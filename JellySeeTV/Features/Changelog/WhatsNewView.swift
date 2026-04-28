@@ -22,9 +22,6 @@ struct WhatsNewView: View {
             VStack(spacing: 0) {
                 header
                 highlightsList
-                // Trailing space so the last highlight isn't flush
-                // against the dismiss button's safe-area inset.
-                Color.clear.frame(height: 60)
             }
             .frame(maxWidth: 1100)
             .frame(maxWidth: .infinity)
@@ -86,6 +83,14 @@ struct WhatsNewView: View {
         .frame(maxWidth: 760)
         .frame(maxWidth: .infinity)
         .padding(.horizontal, 80)
+        // Padding goes on the list itself instead of a trailing
+        // empty Color spacer — without that, the focus engine sees
+        // empty scroll space below the last row, scrolls into it
+        // on the first down-press, and only routes out to the
+        // safe-area-inset dismiss button on the second press.
+        // Padding-as-margin keeps the visual breathing room while
+        // making the down-press transition single-step.
+        .padding(.bottom, 40)
     }
 
     private var dismissButton: some View {
