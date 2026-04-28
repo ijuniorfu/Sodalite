@@ -30,6 +30,13 @@ struct AppRouter: View {
     /// it stays out of the way until the next upgrade.
     @State private var showWhatsNew = false
 
+    /// Drives the JellySeeTV → Sodalite rename modal. Fires on every
+    /// cold launch until the user explicitly taps "Schon migriert".
+    /// Takes precedence over WhatsNew — no point announcing 0.4.0
+    /// changelog highlights when the app is also announcing its
+    /// own death.
+    @State private var showRenameAnnouncement = false
+
     var body: some View {
         ZStack {
             if appState.isAuthenticated {
@@ -76,15 +83,31 @@ struct AppRouter: View {
                 }
             }
         }
+        .fullScreenCover(isPresented: $showRenameAnnouncement) {
+            RenameAnnouncementView(
+                onMigrated: {
+                    RenameAnnouncementPreferences.markMigrated()
+                    showRenameAnnouncement = false
+                },
+                onDismiss: {
+                    // Menu-button exit: close the modal for this
+                    // launch but leave the flag alone so it shows
+                    // again next cold launch. The migration nudge
+                    // shouldn't be skippable by accident.
+                    showRenameAnnouncement = false
+                }
+            )
+        }
         .onChange(of: appState.isLoading) { _, isLoading in
-            // Splash just finished. Fire the What's-New modal if the
-            // version stamp says we crossed a release boundary.
-            // Pass isAuthenticated so the preference layer can tell
-            // a fresh install (don't pester) apart from an upgrade
-            // from a pre-Changelog version (0.3.2 and earlier never
-            // wrote lastSeenVersion → without this, those users
-            // would silently miss the modal forever).
+            // Splash just finished. Rename modal trumps everything
+            // else — JellySeeTV is end-of-life and the migration
+            // bridge is the most important post-splash UI until the
+            // user has confirmed they're done.
             guard !isLoading else { return }
+            if !RenameAnnouncementPreferences.hasMigrated {
+                showRenameAnnouncement = true
+                return
+            }
             if ChangelogPreferences.shouldShowOnLaunch(isExistingUser: appState.isAuthenticated) {
                 showWhatsNew = true
             } else {
