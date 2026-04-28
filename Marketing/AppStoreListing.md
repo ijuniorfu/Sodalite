@@ -1,4 +1,4 @@
-# JellySeeTV — App Store Connect Listing
+# Sodalite — App Store Connect Listing
 
 Drafts for App Store Connect. Copy-paste into the matching fields.
 
@@ -25,7 +25,7 @@ Drafts for App Store Connect. Copy-paste into the matching fields.
 
 ### Name
 ```
-JellySeeTV
+Sodalite
 ```
 (10 chars)
 
@@ -45,7 +45,7 @@ Watch your Jellyfin library and request what's missing from the same app. Native
 ```
 Your Jellyfin library and Seerr — together on Apple TV.
 
-JellySeeTV brings Jellyfin and Seerr together in one native Apple TV interface. Watch what's already on your server. See something on a trending row that isn't there yet? Request it from inside the app — Seerr handles the rest. No more switching to a phone, opening a web UI, or pinging your homelab admin.
+Sodalite brings Jellyfin and Seerr together in one native Apple TV interface. Watch what's already on your server. See something on a trending row that isn't there yet? Request it from inside the app — Seerr handles the rest. No more switching to a phone, opening a web UI, or pinging your homelab admin.
 
 WATCH
 • Direct Play for almost every codec your Apple TV understands: H.264, HEVC, HEVC Main10, AV1
@@ -63,7 +63,7 @@ REQUEST WHAT'S MISSING
 • First-class Seerr integration — browse trending and popular media inside the app
 • One-tap requests for movies and full series
 • Track status — see what's been approved, declined, or is already downloading
-• Single sign-on — log in once, JellySeeTV handles your Seerr session
+• Single sign-on — log in once, Sodalite handles your Seerr session
 
 PERSONAL
 • 26 languages — German, English, Spanish, French, Italian, Japanese, Korean, Norwegian, Dutch, Polish, Portuguese (BR + PT), Russian, Swedish, Simplified + Traditional Chinese, Turkish, Ukrainian, Czech, Slovak, Croatian, Finnish, Greek, Hungarian, Romanian, Danish
@@ -72,7 +72,7 @@ PERSONAL
 • Siri Remote optimized — touch surface scrubbing, click for play/pause, swipe gestures throughout
 
 OPEN SOURCE, END TO END
-JellySeeTV is licensed under GPL-3.0 with an Apple Store / DRM Exception; the underlying video engine, AetherEngine, is LGPL-3.0 with the same exception. No telemetry. No analytics. No third-party SDKs phoning home. Self-host the server, audit the client.
+Sodalite is licensed under GPL-3.0 with an Apple Store / DRM Exception; the underlying video engine, AetherEngine, is LGPL-3.0 with the same exception. No telemetry. No analytics. No third-party SDKs phoning home. Self-host the server, audit the client.
 
 REQUIREMENTS
 • Apple TV 4K (any generation)
@@ -81,7 +81,7 @@ REQUIREMENTS
 • Optional: a Seerr instance (2.0+) for in-app requests
 
 Source code, issues, and roadmap on GitHub:
-https://github.com/superuser404notfound/JellySeeTV
+https://github.com/superuser404notfound/Sodalite
 ```
 (2378 chars — well under 4000)
 
@@ -97,27 +97,27 @@ jellyfin,seerr,jellyseerr,media,player,hdr,dolby,atmos,4k,homelab,plex,emby
 
 ### What's New (for 0.1.0)
 ```
-JellySeeTV 0.1.0 is the first public TestFlight build.
+Sodalite 0.1.0 is the first public TestFlight build.
 
 Native Jellyfin client for Apple TV with built-in Seerr integration. Direct Play, real HDR10 / Dolby Vision, real Dolby Atmos. 26 languages. Open source.
 
-This is a Beta release. Crashes and edge-case bugs are possible. Please report what you find: https://github.com/superuser404notfound/JellySeeTV/issues
+This is a Beta release. Crashes and edge-case bugs are possible. Please report what you find: https://github.com/superuser404notfound/Sodalite/issues
 ```
 (380 chars)
 
 ### Support URL
 ```
-https://github.com/superuser404notfound/JellySeeTV/issues
+https://github.com/superuser404notfound/Sodalite/issues
 ```
 
 ### Marketing URL (optional)
 ```
-https://jellyseetv.superuser404.de
+https://sodalite.superuser404.de
 ```
 
 ### Privacy Policy URL
 ```
-https://jellyseetv.superuser404.de/privacy
+https://sodalite.superuser404.de/privacy
 ```
 
 ### Category
@@ -133,7 +133,7 @@ https://jellyseetv.superuser404.de/privacy
 
 ### Name
 ```
-JellySeeTV
+Sodalite
 ```
 
 ### Untertitel
@@ -152,7 +152,7 @@ Schau deine Jellyfin-Bibliothek und fordere fehlendes aus derselben App an. Nati
 ```
 Deine Jellyfin-Bibliothek und Seerr — gemeinsam auf Apple TV.
 
-JellySeeTV bringt Jellyfin und Seerr in einer nativen Apple-TV-Oberfläche zusammen. Schau, was schon auf deinem Server liegt. Etwas in einer Trending-Reihe entdeckt, das noch nicht da ist? Fordere es direkt aus der App an — Seerr erledigt den Rest. Kein Wechsel ans Handy, kein Aufrufen von Web-UIs, kein Anpingen des Homelab-Admins.
+Sodalite bringt Jellyfin und Seerr in einer nativen Apple-TV-Oberfläche zusammen. Schau, was schon auf deinem Server liegt. Etwas in einer Trending-Reihe entdeckt, das noch nicht da ist? Fordere es direkt aus der App an — Seerr erledigt den Rest. Kein Wechsel ans Handy, kein Aufrufen von Web-UIs, kein Anpingen des Homelab-Admins.
 
 SCHAUEN
 • Direct Play für nahezu jedes Codec, das dein Apple TV unterstützt: H.264, HEVC, HEVC Main10, AV1
@@ -170,7 +170,7 @@ FEHLENDES ANFORDERN
 • Erstklassige Seerr-Integration — Trends und beliebte Inhalte direkt in der App durchstöbern
 • Filme und ganze Serien mit einem Tap anfordern
 • Status verfolgen — sehe, was genehmigt, abgelehnt oder bereits am Herunterladen ist
-• Single Sign-On — einmal anmelden, JellySeeTV verwaltet deine Seerr-Session
+• Single Sign-On — einmal anmelden, Sodalite verwaltet deine Seerr-Session
 
 PERSÖNLICH
 • 26 Sprachen — Deutsch, Englisch, Spanisch, Französisch, Italienisch, Japanisch, Koreanisch, Norwegisch, Niederländisch, Polnisch, Portugiesisch (BR + PT), Russisch, Schwedisch, Vereinfachtes + Traditionelles Chinesisch, Türkisch, Ukrainisch, Tschechisch, Slowakisch, Kroatisch, Finnisch, Griechisch, Ungarisch, Rumänisch, Dänisch
@@ -179,7 +179,7 @@ PERSÖNLICH
 • Optimiert für die Siri Remote — Scrubbing über die Touch-Fläche, Klick für Play/Pause, Wisch-Gesten überall
 
 OPEN SOURCE, KOMPLETT
-JellySeeTV ist unter GPL-3.0 mit App-Store-/DRM-Exception lizenziert; die zugrundeliegende Video-Engine AetherEngine unter LGPL-3.0 mit derselben Exception. Keine Telemetrie. Keine Analytik. Keine Drittanbieter-SDKs, die nach Hause telefonieren. Selbst hosten, selbst auditieren.
+Sodalite ist unter GPL-3.0 mit App-Store-/DRM-Exception lizenziert; die zugrundeliegende Video-Engine AetherEngine unter LGPL-3.0 mit derselben Exception. Keine Telemetrie. Keine Analytik. Keine Drittanbieter-SDKs, die nach Hause telefonieren. Selbst hosten, selbst auditieren.
 
 VORAUSSETZUNGEN
 • Apple TV 4K (jede Generation)
@@ -188,7 +188,7 @@ VORAUSSETZUNGEN
 • Optional: eine Seerr-Instanz (2.0+) für Anfragen aus der App heraus
 
 Quellcode, Issues und Roadmap auf GitHub:
-https://github.com/superuser404notfound/JellySeeTV
+https://github.com/superuser404notfound/Sodalite
 ```
 (2459 chars)
 
@@ -200,27 +200,27 @@ jellyfin,seerr,jellyseerr,medienspieler,heimkino,hdr,dolby,atmos,4k,homelab,plex
 
 ### Was ist neu (für 0.1.0)
 ```
-JellySeeTV 0.1.0 ist der erste öffentliche TestFlight-Build.
+Sodalite 0.1.0 ist der erste öffentliche TestFlight-Build.
 
 Nativer Jellyfin-Client für Apple TV mit eingebauter Seerr-Integration. Direct Play, echtes HDR10 / Dolby Vision, echtes Dolby Atmos. 26 Sprachen. Open Source.
 
-Dies ist ein Beta-Release. Abstürze und Edge-Case-Bugs sind möglich. Bitte melde, was du findest: https://github.com/superuser404notfound/JellySeeTV/issues
+Dies ist ein Beta-Release. Abstürze und Edge-Case-Bugs sind möglich. Bitte melde, was du findest: https://github.com/superuser404notfound/Sodalite/issues
 ```
 (380 chars)
 
 ### Support-URL
 ```
-https://github.com/superuser404notfound/JellySeeTV/issues
+https://github.com/superuser404notfound/Sodalite/issues
 ```
 
 ### Marketing-URL (optional)
 ```
-https://jellyseetv.superuser404.de
+https://sodalite.superuser404.de
 ```
 
 ### Datenschutz-URL
 ```
-https://jellyseetv.superuser404.de/privacy
+https://sodalite.superuser404.de/privacy
 ```
 
 ---
@@ -232,7 +232,7 @@ In App Store Connect → App Privacy:
 **Question: Does your app collect data?**
 → **No, we do not collect data from this app**
 
-(JellySeeTV does not collect, transmit, or share any user data. The Privacy Manifest in the bundle confirms this. Communication only with the user's own self-hosted Jellyfin/Seerr servers.)
+(Sodalite does not collect, transmit, or share any user data. The Privacy Manifest in the bundle confirms this. Communication only with the user's own self-hosted Jellyfin/Seerr servers.)
 
 ---
 
@@ -247,9 +247,9 @@ When the build goes for **External** TestFlight (Internal Testing skips review),
 
 
 ```
-Welcome to JellySeeTV — public beta!                                                                                                                              
+Welcome to Sodalite — public beta!                                                                                                                              
                                                                                                                                                                   
-JellySeeTV is a native Apple TV client for self-hosted Jellyfin servers, with built-in Jellyseerr
+Sodalite is a native Apple TV client for self-hosted Jellyfin servers, with built-in Jellyseerr
 integration for browsing and requesting media. Direct Play, real
 HDR10 / Dolby Vision, real Dolby Atmos. Open source (GPL-3.0).                                                                                                   
    
@@ -285,7 +285,7 @@ What to focus on for this build:
 - Library browse, search, detail views, playback                                                                                                                  
 - Jellyseerr catalog (only if you have a Seerr instance configured)
                                                                                                                                                                     
-Source: https://github.com/superuser404notfound/JellySeeTV                                                                                                        
+Source: https://github.com/superuser404notfound/Sodalite                                                                                                        
                                                                                                                                                                     
 Thanks for testing!
 ```
@@ -311,9 +311,9 @@ Thanks for testing!
 TEST TEXT ----- 
 
 
-Welcome to JellySeeTV — public beta!                                                                                                                                        
+Welcome to Sodalite — public beta!                                                                                                                                        
                                                                                 
-JellySeeTV is a native Apple TV client for self-hosted Jellyfin servers, with built-in
+Sodalite is a native Apple TV client for self-hosted Jellyfin servers, with built-in
 Seerr/Jellyseerr integration for browsing and requesting media. Direct Play, real HDR10 /  
 Dolby Vision, real Dolby Atmos. Open source (GPL-3.0).                        
                                                                                                                                                                                     
@@ -333,6 +333,6 @@ Known limitations: HDR display switching depends on the TV model and the Match C
 TestFlight builds expire after 90 days.                                           
                                                                                 
 Full tester guide and how to file bugs:
-https://github.com/superuser404notfound/JellySeeTV/blob/main/BETA.md                                                                      
+https://github.com/superuser404notfound/Sodalite/blob/main/BETA.md                                                                      
                                                                                                                                                                                     
-Source code: https://github.com/superuser404notfound/JellySeeTV
+Source code: https://github.com/superuser404notfound/Sodalite

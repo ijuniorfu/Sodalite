@@ -20,7 +20,7 @@
           "locale" : "de_DE"
         }
       ],
-      "productID" : "de.superuser404.JellySeeTV.tip.coffee",
+      "productID" : "de.superuser404.Sodalite.tip.coffee",
       "referenceName" : "Coffee Tip",
       "type" : "Consumable"
     },
@@ -40,7 +40,7 @@
           "locale" : "de_DE"
         }
       ],
-      "productID" : "de.superuser404.JellySeeTV.tip.beer",
+      "productID" : "de.superuser404.Sodalite.tip.beer",
       "referenceName" : "Beer Tip",
       "type" : "Consumable"
     },
@@ -60,7 +60,7 @@
           "locale" : "de_DE"
         }
       ],
-      "productID" : "de.superuser404.JellySeeTV.tip.pizza",
+      "productID" : "de.superuser404.Sodalite.tip.pizza",
       "referenceName" : "Pizza Tip",
       "type" : "Consumable"
     },
@@ -80,7 +80,7 @@
           "locale" : "de_DE"
         }
       ],
-      "productID" : "de.superuser404.JellySeeTV.supporter.pack",
+      "productID" : "de.superuser404.Sodalite.supporter.pack",
       "referenceName" : "Supporter Pack",
       "type" : "NonConsumable"
     }

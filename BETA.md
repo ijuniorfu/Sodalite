@@ -1,8 +1,8 @@
-# JellySeeTV Beta — for testers
+# Sodalite Beta — for testers
 
-Thanks for testing JellySeeTV. This page tells you how to get the build, what to look at, and how to report what you find.
+Thanks for testing Sodalite. This page tells you how to get the build, what to look at, and how to report what you find.
 
-## What JellySeeTV is
+## What Sodalite is
 
 A native Apple TV media player for your own Jellyfin server, with built-in [Seerr](https://github.com/Fallenbagel/jellyseerr) browse + request flow. Direct Play, real HDR10 / Dolby Vision, real Dolby Atmos. Open source ([GPL-3.0 with App Store Exception](LICENSE)), no telemetry.
 
@@ -20,7 +20,7 @@ For the long pitch see the [README](README.md).
 1. On any device signed in with your Apple ID, open the public TestFlight link: **https://testflight.apple.com/join/eFKDaaXr**
 2. Tap **Accept** and **Install** — TestFlight handles the rest
 3. On your Apple TV, install the **TestFlight** app from the App Store if it isn't already there
-4. Sign in with the same Apple ID; **JellySeeTV** appears in the list — tap **Install**
+4. Sign in with the same Apple ID; **Sodalite** appears in the list — tap **Install**
 5. Open it from the home screen
 
 If it tells you "this beta has expired", revisit the join link above to grab the current build — TestFlight builds expire after 90 days.
@@ -59,7 +59,7 @@ The high-value areas — what we most want feedback on:
 
 ## How to report a bug
 
-Open an issue on GitHub: **<https://github.com/superuser404notfound/JellySeeTV/issues/new/choose>**
+Open an issue on GitHub: **<https://github.com/superuser404notfound/Sodalite/issues/new/choose>**
 
 Please include:
 
@@ -72,7 +72,7 @@ Please include:
 7. **A photo of the screen** if it's a visual bug — taking a screenshot from the Siri Remote (`TV` + `Play/Pause`) lands the file on your Mac via Photos
 8. *Optional:* TestFlight Feedback (long-press in the TestFlight app) attaches a screenshot + system info automatically — also fine
 
-Bugs already known live in the [open issues](https://github.com/superuser404notfound/JellySeeTV/issues) — search before filing a duplicate.
+Bugs already known live in the [open issues](https://github.com/superuser404notfound/Sodalite/issues) — search before filing a duplicate.
 
 ## What you should NOT expect from a beta
 
@@ -83,7 +83,7 @@ Bugs already known live in the [open issues](https://github.com/superuser404notf
 
 ## Privacy reminder
 
-JellySeeTV does not collect, transmit, or share any usage data. Everything stays between your Apple TV and the servers you point it at. Full details: <https://jellyseetv.superuser404.de/privacy>.
+Sodalite does not collect, transmit, or share any usage data. Everything stays between your Apple TV and the servers you point it at. Full details: <https://sodalite.superuser404.de/privacy>.
 
 ## Thanks
 

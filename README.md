@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="Marketing/Icons/AppStore/icon_1024x1024.png" alt="JellySeeTV" width="180">
+  <img src="Marketing/Icons/AppStore/icon_1024x1024.png" alt="Sodalite" width="180">
 </p>
 
-<h1 align="center">JellySeeTV</h1>
+<h1 align="center">Sodalite</h1>
 
 <p align="center">
   <b>Your Jellyfin library <i>and</i> Seerr — together on Apple TV.</b><br>
@@ -25,19 +25,19 @@
 
 ## Two services, one remote
 
-JellySeeTV brings **Jellyfin and Seerr together in the same UI** on Apple TV. Watch what's already on your server. Spot something on a trending row that isn't there yet? Request it from inside the app — Seerr handles the rest.
+Sodalite brings **Jellyfin and Seerr together in the same UI** on Apple TV. Watch what's already on your server. Spot something on a trending row that isn't there yet? Request it from inside the app — Seerr handles the rest.
 
 No more switching to a phone, opening a web UI, or pinging your homelab admin. Single sign-on, one focus-driven interface, the full library + request loop on the TV where you actually watch.
 
 ## Open source, end to end
 
-JellySeeTV is open from end to end. Every byte that touches your server is in this repo, your auth tokens stay in your Keychain, and there's no telemetry, no analytics, no third-party SDK phoning home.
+Sodalite is open from end to end. Every byte that touches your server is in this repo, your auth tokens stay in your Keychain, and there's no telemetry, no analytics, no third-party SDK phoning home.
 
 Licensed under **GPL-3.0 with an Apple Store / DRM Exception** — fork it, study it, build your own version, but no one can take it private. Modifications must stay open. The exception clause in the LICENSE keeps the App Store and TestFlight distribution paths legally clean. The video stack underneath ([AetherEngine](https://github.com/superuser404notfound/AetherEngine)) is **LGPL-3.0** with the same Apple Store exception, so the engine can be reused in other apps while engine-level improvements flow back to the community. Both are auditable, buildable from source, and free of any vendor lock-in. Self-host the server, self-build the client — the whole loop is yours.
 
 ## Built natively for tvOS
 
-JellySeeTV is built natively from the ground up: SwiftUI on top, a custom video engine underneath, and the same HIG patterns Apple uses for TV+ — focus engine, Siri Remote gestures, transport bar, info panel. Plays the file directly from your server in almost every case, no transcoding required.
+Sodalite is built natively from the ground up: SwiftUI on top, a custom video engine underneath, and the same HIG patterns Apple uses for TV+ — focus engine, Siri Remote gestures, transport bar, info panel. Plays the file directly from your server in almost every case, no transcoding required.
 
 The Seerr integration isn't a tacked-on link to a web view — it's a first-class part of the app, with its own browse rows, request flow, and status tracking right next to your library.
 
@@ -88,7 +88,7 @@ The Seerr integration isn't a tacked-on link to a web view — it's a first-clas
 - **Seerr integration** — browse trending and popular media right inside the app
 - **One-tap requests** — for movies and full series
 - **Track status** — see what's been approved, declined, or is already downloading
-- **Single sign-on** — log in once, JellySeeTV handles your Seerr session
+- **Single sign-on** — log in once, Sodalite handles your Seerr session
 
 ### 🌍 Personal
 - **26 languages** — German, English, Spanish, French, Italian, Japanese, Korean, Norwegian, Dutch, Polish, Portuguese (BR + PT), Russian, Swedish, Simplified + Traditional Chinese, Turkish, Ukrainian, Czech, Slovak, Croatian, Finnish, Greek, Hungarian, Romanian, Danish
@@ -98,7 +98,7 @@ The Seerr integration isn't a tacked-on link to a web view — it's a first-clas
 
 ## Built on
 
-JellySeeTV is a thin native shell over a custom video stack — Apple's frameworks plus a Swift package that handles the formats Apple's own player can't on its own.
+Sodalite is a thin native shell over a custom video stack — Apple's frameworks plus a Swift package that handles the formats Apple's own player can't on its own.
 
 | Component | Technology |
 |---|---|
@@ -126,16 +126,16 @@ A 1080p Apple TV HD will technically run the app, but Direct Play of 4K HDR cont
 ## Building from source
 
 ```bash
-git clone https://github.com/superuser404notfound/JellySeeTV.git
-cd JellySeeTV
-open JellySeeTV.xcodeproj
+git clone https://github.com/superuser404notfound/Sodalite.git
+cd Sodalite
+open Sodalite.xcodeproj
 ```
 
-Pick the `JellySeeTV` scheme, an Apple TV destination, and run. AetherEngine is wired in as a local Swift Package — you'll need it cloned next to this repo (or adjust the path in Package dependencies).
+Pick the `Sodalite` scheme, an Apple TV destination, and run. AetherEngine is wired in as a local Swift Package — you'll need it cloned next to this repo (or adjust the path in Package dependencies).
 
 ```
 ~/Dev/
-├── JellySeeTV/
+├── Sodalite/
 └── AetherEngine/
 ```
 
@@ -153,20 +153,20 @@ Xcode 26+ and Swift 6.0+ are required.
 
 Everything happens in the open — no Discord, no closed garden.
 
-- **[Discussions](https://github.com/superuser404notfound/JellySeeTV/discussions)** — Q&A, ideas, show-and-tell
-- **[Issues](https://github.com/superuser404notfound/JellySeeTV/issues)** — bugs and concrete feature requests
+- **[Discussions](https://github.com/superuser404notfound/Sodalite/discussions)** — Q&A, ideas, show-and-tell
+- **[Issues](https://github.com/superuser404notfound/Sodalite/issues)** — bugs and concrete feature requests
 
 If you're not sure which to use, start a Discussion. Bugs get moved to Issues. Both are public, indexed by search engines, and stay tied to the project — the next person with the same question can find the answer.
 
 ## Related
 
-- [AetherEngine](https://github.com/superuser404notfound/AetherEngine) — the video engine powering JellySeeTV
+- [AetherEngine](https://github.com/superuser404notfound/AetherEngine) — the video engine powering Sodalite
 - [Jellyfin](https://github.com/jellyfin/jellyfin) — the free software media system
 - [Seerr](https://github.com/Fallenbagel/jellyseerr) — request management for Jellyfin
 
 ## Built with
 
-JellySeeTV is vibe-coded — designed and shipped by [Vincent Herbst](https://github.com/superuser404notfound) in close pair-programming with **Claude** (Anthropic). The commit log is the receipt: nearly every commit carries a `Co-Authored-By: Claude` trailer.
+Sodalite is vibe-coded — designed and shipped by [Vincent Herbst](https://github.com/superuser404notfound) in close pair-programming with **Claude** (Anthropic). The commit log is the receipt: nearly every commit carries a `Co-Authored-By: Claude` trailer.
 
 ## License
 

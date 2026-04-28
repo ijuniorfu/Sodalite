@@ -2,7 +2,7 @@
 
 ## Reporting a Vulnerability
 
-If you find a security issue in JellySeeTV, please **do not** open a public GitHub issue.
+If you find a security issue in Sodalite, please **do not** open a public GitHub issue.
 
 Instead, email **superuser404@tuta.com** with:
 
@@ -16,7 +16,7 @@ I'll respond as quickly as possible. For confirmed issues a fix typically lands 
 
 In scope:
 
-- The JellySeeTV app code in this repository
+- The Sodalite app code in this repository
 - Anything that could leak credentials, tokens, or local files
 - Crashes or undefined behaviour reachable from a malicious server response
 - The accompanying [AetherEngine](https://github.com/superuser404notfound/AetherEngine) media engine
@@ -38,4 +38,4 @@ Out of scope:
 
 This is a hobby project maintained by one person. I can't pay bug bounties, and turnaround on lower-severity issues may be slower than you'd see at a funded project. Critical issues (RCE, credential exfiltration) are always top priority.
 
-Thanks for helping keep JellySeeTV safe.
+Thanks for helping keep Sodalite safe.
