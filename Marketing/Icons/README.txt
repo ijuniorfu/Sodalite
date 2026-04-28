@@ -1,4 +1,4 @@
-JellySeeTV Icon Assets
+Sodalite Icon Assets
 ======================
 
 AppStore/

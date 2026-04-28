@@ -1,6 +1,6 @@
-# JellySeeTV Public Beta Launch Kit
+# Sodalite Public Beta Launch Kit
 
-The public TestFlight is live. This file is the script for taking JellySeeTV public — GitHub announcement issue, Reddit posts, optional Mastodon/Bluesky/Show HN, and the cadence to follow so the discussion stays answered.
+The public TestFlight is live. This file is the script for taking Sodalite public — GitHub announcement issue, Reddit posts, optional Mastodon/Bluesky/Show HN, and the cadence to follow so the discussion stays answered.
 
 The vibe-coded disclosure is in every post on purpose. Self-hosted and Apple-platform audiences appreciate the upfront framing far more than they punish it. Trying to hide it would only invite suspicion later — the commit log has `Co-Authored-By: Claude` trailers anyway.
 
@@ -9,7 +9,7 @@ The vibe-coded disclosure is in every post on purpose. Self-hosted and Apple-pla
 * Public TestFlight link: `https://testflight.apple.com/join/eFKDaaXr`
 * Public beta version: **0.3.2** — stable, plenty of internal testing, ready for outside eyes
 * Apple TV Top Shelf integration and Siri voice commands are landed in `main` but **not yet in the public beta** (planned for 0.4.0). Keep them out of the launch copy below so installers don't go looking for features that aren't there yet.
-* Privacy policy + imprint live at `https://jellyseetv.superuser404.de`
+* Privacy policy + imprint live at `https://sodalite.superuser404.de`
 * `BETA.md` and the bug-report template are committed and visible
 * 2x2 screenshot collage at `Screenshots/reddit-collage.jpg` for the Reddit posts
 
@@ -17,7 +17,7 @@ If anything in here references a different version number, replace it before pos
 
 ## Step 1: Pin a GitHub announcement issue
 
-GitHub → JellySeeTV repo → Issues → "New issue" → "Open a blank issue".
+GitHub → Sodalite repo → Issues → "New issue" → "Open a blank issue".
 
 **Title:**
 ```
@@ -26,7 +26,7 @@ Public Beta is live. TestFlight link inside.
 
 **Body:**
 ```markdown
-JellySeeTV is now in public beta on TestFlight.
+Sodalite is now in public beta on TestFlight.
 
 **Install:** https://testflight.apple.com/join/eFKDaaXr
 
@@ -49,9 +49,9 @@ You need an Apple TV 4K running tvOS 26 or later, plus your own Jellyfin server.
 
 ## Transparency: this is a vibe-coded project
 
-I built JellySeeTV in close pair-programming with Claude (Anthropic). The architectural decisions are mine, every change went through a review loop before being committed, and the source is in this repo so you can audit it yourself rather than taking my word for it.
+I built Sodalite in close pair-programming with Claude (Anthropic). The architectural decisions are mine, every change went through a review loop before being committed, and the source is in this repo so you can audit it yourself rather than taking my word for it.
 
-If you want to see how the code is structured before installing, browse the `JellySeeTV/` folder. The video engine lives separately at https://github.com/superuser404notfound/AetherEngine.
+If you want to see how the code is structured before installing, browse the `Sodalite/` folder. The video engine lives separately at https://github.com/superuser404notfound/AetherEngine.
 
 ## What we want feedback on
 
@@ -83,8 +83,8 @@ TestFlight builds expire after 90 days. New builds replace the old one automatic
 
 Code: this repo
 Engine: https://github.com/superuser404notfound/AetherEngine
-Privacy policy: https://jellyseetv.superuser404.de/privacy
-Imprint: https://jellyseetv.superuser404.de/imprint
+Privacy policy: https://sodalite.superuser404.de/privacy
+Imprint: https://sodalite.superuser404.de/imprint
 
 Thanks for testing.
 ```
@@ -101,19 +101,19 @@ Each post should embed `Screenshots/reddit-collage.jpg` once, near the top, righ
 
 **Title:**
 ```
-[Beta] JellySeeTV: a fast, native tvOS Jellyfin client with built-in Jellyseerr (open source, GPL-3.0)
+[Beta] Sodalite: a fast, native tvOS Jellyfin client with built-in Jellyseerr (open source, GPL-3.0)
 ```
 
 **Body:**
 ```markdown
 Hey r/jellyfin,
 
-I built JellySeeTV, a native Apple TV client for Jellyfin with first-class Jellyseerr integration. After a few months of work and a chunk of internal testing, it's stable enough for a public TestFlight beta.
+I built Sodalite, a native Apple TV client for Jellyfin with first-class Jellyseerr integration. After a few months of work and a chunk of internal testing, it's stable enough for a public TestFlight beta.
 
 [2x2 screenshot collage embedded here]
 
 **TestFlight:** https://testflight.apple.com/join/eFKDaaXr
-**Source:** https://github.com/superuser404notfound/JellySeeTV
+**Source:** https://github.com/superuser404notfound/Sodalite
 
 ## What it is
 
@@ -140,7 +140,7 @@ The Jellyseerr piece is what I personally was missing. I want to browse trending
 
 ## A note on how this was built
 
-JellySeeTV is vibe-coded. I built it in close pair-programming with Claude (Anthropic). The architecture, the design decisions, and the review of every commit are mine. The code is open and in the repo precisely so it's not a "trust me bro" situation — if you want to see how a particular feature is structured before installing, look at it directly.
+Sodalite is vibe-coded. I built it in close pair-programming with Claude (Anthropic). The architecture, the design decisions, and the review of every commit are mine. The code is open and in the repo precisely so it's not a "trust me bro" situation — if you want to see how a particular feature is structured before installing, look at it directly.
 
 The video engine is split out into its own LGPL-3.0 package ([AetherEngine](https://github.com/superuser404notfound/AetherEngine)) so it's reusable and reviewable on its own. Both the engine and the app shell ship under copyleft (LGPL / GPL respectively) with an Apple Store / DRM Exception that keeps the App Store and TestFlight distribution paths legally clean.
 
@@ -158,7 +158,7 @@ The video engine is split out into its own LGPL-3.0 package ([AetherEngine](http
 * Edge cases in server discovery
 * Anything that crashes
 
-Bug reports: GitHub Issues are open with templates at https://github.com/superuser404notfound/JellySeeTV/issues — and there's a Discussions tab next to it for everything else (Q&A, ideas, show-and-tell). No Discord, deliberately: Discussions stays public and searchable.
+Bug reports: GitHub Issues are open with templates at https://github.com/superuser404notfound/Sodalite/issues — and there's a Discussions tab next to it for everything else (Q&A, ideas, show-and-tell). No Discord, deliberately: Discussions stays public and searchable.
 
 Happy to answer technical questions in the thread.
 ```
@@ -167,20 +167,20 @@ Happy to answer technical questions in the thread.
 
 **Title:**
 ```
-[Beta] JellySeeTV: open-source native Apple TV client for Jellyfin and Jellyseerr (GPL-3.0, no telemetry, vibe-coded but auditable)
+[Beta] Sodalite: open-source native Apple TV client for Jellyfin and Jellyseerr (GPL-3.0, no telemetry, vibe-coded but auditable)
 ```
 
 **Body:**
 ```markdown
 Hey r/selfhosted,
 
-If you self-host Jellyfin and have an Apple TV in the living room, JellySeeTV might be your missing piece. Native tvOS app, GPL-3.0 with App Store Exception, no telemetry, with built-in Jellyseerr integration so you can browse and request from the same UI.
+If you self-host Jellyfin and have an Apple TV in the living room, Sodalite might be your missing piece. Native tvOS app, GPL-3.0 with App Store Exception, no telemetry, with built-in Jellyseerr integration so you can browse and request from the same UI.
 
 [2x2 screenshot collage embedded here]
 
 **TestFlight:** https://testflight.apple.com/join/eFKDaaXr
-**Source and audit:** https://github.com/superuser404notfound/JellySeeTV
-**Privacy policy:** https://jellyseetv.superuser404.de/privacy (zero data collected)
+**Source and audit:** https://github.com/superuser404notfound/Sodalite
+**Privacy policy:** https://sodalite.superuser404.de/privacy (zero data collected)
 
 ## What it is
 
@@ -196,7 +196,7 @@ If you self-host Jellyfin and have an Apple TV in the living room, JellySeeTV mi
 * No third-party SDKs of any kind
 * Dependency graph fits on a napkin: AVFoundation, VideoToolbox, FFmpeg (LGPL build, dynamic-linkable for App Store compliance), and the Jellyfin/Jellyseerr APIs themselves
 * Credentials live in the system Keychain, never written to disk in plaintext, never logged
-* Network traffic is auditable: open `JellySeeTV/Services/` and you'll see exactly what's sent and where
+* Network traffic is auditable: open `Sodalite/Services/` and you'll see exactly what's sent and where
 * The Privacy Manifest declares zero data collection because there is zero data collection
 
 ## On vibe-coding, since this community will rightly ask
@@ -231,12 +231,12 @@ Bug reports welcome on GitHub.
 
 **Title:**
 ```
-JellySeeTV: open-source native Jellyfin client for Apple TV is in public beta — fast, lean, real HDR + Atmos
+Sodalite: open-source native Jellyfin client for Apple TV is in public beta — fast, lean, real HDR + Atmos
 ```
 
 **Body:**
 ```markdown
-For the Jellyfin users in here: JellySeeTV is now in public TestFlight beta.
+For the Jellyfin users in here: Sodalite is now in public TestFlight beta.
 
 [2x2 screenshot collage embedded here]
 
@@ -250,7 +250,7 @@ Plus first-class Jellyseerr integration if you use that, so you can browse trend
 
 **Requirements:** Apple TV 4K, tvOS 26+, your own Jellyfin server.
 
-It's GPL-3.0 licensed (with an Apple Store Exception so the App Store distribution stays legal) and fully open source. Code is at https://github.com/superuser404notfound/JellySeeTV. The app was built in pair-programming with Claude (Anthropic), with every change reviewed before commit, and the source is open so you can verify what it does before installing.
+It's GPL-3.0 licensed (with an Apple Store Exception so the App Store distribution stays legal) and fully open source. Code is at https://github.com/superuser404notfound/Sodalite. The app was built in pair-programming with Claude (Anthropic), with every change reviewed before commit, and the source is open so you can verify what it does before installing.
 
 Feedback welcome, particularly on HDR / Dolby Vision behavior across different TV models and Atmos handling on various AVRs. Bug reports go in GitHub Issues.
 ```
@@ -260,12 +260,12 @@ Feedback welcome, particularly on HDR / Dolby Vision behavior across different T
 Short version, fits in a single post on either platform:
 
 ```
-JellySeeTV: open-source native Jellyfin client for Apple TV with built-in Jellyseerr is now in public TestFlight beta.
+Sodalite: open-source native Jellyfin client for Apple TV with built-in Jellyseerr is now in public TestFlight beta.
 
 Fast. Lean. Real HDR10. Real Dolby Vision. Real Dolby Atmos. No telemetry, no analytics, no third-party SDKs. GPL-3.0 with App Store Exception. Vibe-coded with Claude, every change reviewed, source is open.
 
 TestFlight: https://testflight.apple.com/join/eFKDaaXr
-Source: https://github.com/superuser404notfound/JellySeeTV
+Source: https://github.com/superuser404notfound/Sodalite
 
 Apple TV 4K and tvOS 26+ required.
 ```
@@ -276,10 +276,10 @@ Show HN is worth a try if you want broader tech reach. The HN audience is genera
 
 **Title:**
 ```
-Show HN: JellySeeTV, open-source native Apple TV client for Jellyfin and Jellyseerr
+Show HN: Sodalite, open-source native Apple TV client for Jellyfin and Jellyseerr
 ```
 
-**URL field:** `https://github.com/superuser404notfound/JellySeeTV`
+**URL field:** `https://github.com/superuser404notfound/Sodalite`
 **Text field:** leave blank. The HN convention for Show HN with a URL is empty body, the discussion lives in the comments.
 
 If it gets traction, plan to hang in the comments for a few hours. Be honest about the vibe-coding workflow, point at concrete architectural decisions in the code (the Atmos MAT-wrapping, the AVPlayerItem.timebase video sync, the lean dependency graph), and answer technical questions promptly. That's what wins HN over.
@@ -313,5 +313,5 @@ The framing matters: "vibe-coded but auditable" is an honest claim that the code
 
 Two things to avoid in the comment threads:
 
-1. **Don't bash other clients by name.** No "VLCKit is bad" or "Swiftfin doesn't do X". You're standing on what JellySeeTV is, not on what others aren't. If someone else brings up a comparison in a comment, answer factually about your own design choices and stop there.
+1. **Don't bash other clients by name.** No "VLCKit is bad" or "Swiftfin doesn't do X". You're standing on what Sodalite is, not on what others aren't. If someone else brings up a comparison in a comment, answer factually about your own design choices and stop there.
 2. **Don't oversell.** "Fast" and "lean" are claims people will test. They mostly hold up — but if a feature isn't there yet (Top Shelf, Siri, downloads), say so directly. Honesty compounds; spin gets caught.
