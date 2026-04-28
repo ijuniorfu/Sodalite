@@ -8,6 +8,8 @@ import SwiftUI
 /// avoids over-binding the Settings layout to a modal-shaped
 /// component.
 struct ChangelogListView: View {
+    @Environment(\.dismiss) private var dismiss
+
     var body: some View {
         ScrollView {
             VStack(spacing: 0) {
@@ -31,8 +33,18 @@ struct ChangelogListView: View {
                 .padding(.bottom, 80)
             }
             .frame(maxWidth: .infinity)
+            // Pure-text content has nothing for the focus engine to
+            // grab, which leaves the Menu button without a pop-target
+            // — it falls through to the system and exits the app.
+            // Making the inner stack focusable gives focus an anchor
+            // and lets the Siri Remote's swipe-down actually scroll.
+            .focusable()
         }
         .toolbar(.hidden, for: .navigationBar)
+        // Belt and braces: explicitly catch the Menu button and pop
+        // back to Settings even if the focus state ever drifts away
+        // from the focusable VStack above.
+        .onExitCommand { dismiss() }
     }
 }
 

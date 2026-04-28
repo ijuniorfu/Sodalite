@@ -31,6 +31,10 @@ struct WhatsNewView: View {
                 dismissFocused = true
             }
         }
+        // Menu button on the Siri Remote should also dismiss, in
+        // case the user reaches for the back gesture instead of
+        // navigating to the Got-it button.
+        .onExitCommand { onDismiss() }
     }
 
     private var header: some View {
