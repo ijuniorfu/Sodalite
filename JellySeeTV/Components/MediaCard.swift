@@ -84,17 +84,21 @@ struct MediaCard: View {
     }
 
     private var itemInfo: some View {
+        // Always render the subtitle slot — even with an empty
+        // string — so cards in a row stay the same total height.
+        // Otherwise items without a subtitle (BoxSets without a
+        // year, episodes from very thinly-scraped libraries) make
+        // the row's vertical centering kick in and the titles end
+        // up at staggered y-positions next to neighbouring cards.
         VStack(alignment: .leading, spacing: 2) {
             Text(displayTitle)
                 .font(.caption)
                 .lineLimit(1)
 
-            if let subtitle = displaySubtitle {
-                Text(subtitle)
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
-            }
+            Text(displaySubtitle ?? " ")
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
         }
     }
 
