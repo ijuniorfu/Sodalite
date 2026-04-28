@@ -26,6 +26,25 @@ struct WhatsNewView: View {
             .frame(maxWidth: 1100)
             .frame(maxWidth: .infinity)
         }
+        // Bottom edge-fade so the user sees that more content is
+        // hiding below the visible viewport when the changelog runs
+        // long. Same affordance Apple uses in the TV app's What's
+        // New sheets — soft gradient cutoff reads as "scrollable"
+        // without needing an explicit chevron hint. The fade only
+        // covers the bottom 6% so a focused highlight near the
+        // edge stays readable; the focus engine keeps focus
+        // centered anyway, this is just a peripheral cue.
+        .mask(
+            LinearGradient(
+                stops: [
+                    .init(color: .black, location: 0),
+                    .init(color: .black, location: 0.94),
+                    .init(color: .clear, location: 1.0),
+                ],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+        )
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         // Near-opaque black so titles and rows behind the modal
         // don't bleed through and hurt readability — the previous

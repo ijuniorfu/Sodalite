@@ -34,10 +34,23 @@ struct ChangelogListView: View {
             }
             .frame(maxWidth: .infinity)
         }
+        // Same bottom edge-fade as the WhatsNewView modal — soft
+        // visual cue that the list keeps going below the viewport.
+        .mask(
+            LinearGradient(
+                stops: [
+                    .init(color: .black, location: 0),
+                    .init(color: .black, location: 0.94),
+                    .init(color: .clear, location: 1.0),
+                ],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+        )
         .toolbar(.hidden, for: .navigationBar)
         // Belt and braces: explicitly catch the Menu button and pop
         // back to Settings even if the focus state ever drifts away
-        // from the focusable VStack above.
+        // from the focusable rows.
         .onExitCommand { dismiss() }
     }
 }
