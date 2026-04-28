@@ -4,11 +4,20 @@ import AppIntents
 /// holding the Siri Remote button and saying any of these phrases
 /// invokes the matching intent — Siri matches on the localized
 /// phrase from the App Shortcuts catalog, so each language ships
-/// its own variant in `Localizable.xcstrings`.
+/// its own variant in `AppShortcuts.xcstrings`.
 ///
-/// Apple's docs cap us at 10 phrases per `AppShortcut` and 10
-/// shortcuts per provider; we use a fraction of that today to keep
-/// the surface focused.
+/// **tvOS Siri limitation note:** custom AppIntents that aren't
+/// based on a system schema (Open, Search, PlayMedia, etc.) are
+/// rejected by tvOS Siri at voice-invocation time with a "the app
+/// doesn't support this with Siri" error — even when the phrase
+/// matches and the AppIntent metadata is correct. Only the
+/// `OpenJellySeeTVIntent` is exposed here because "Open [App]" is
+/// a system-blessed pattern that Apple handles itself via
+/// LSOpenURL, not via our custom intent. `ContinueWatchingIntent`
+/// stays in the codebase for the Shortcuts app on connected
+/// iPhones / iPads / Macs (where custom intents do work via
+/// voice), but advertising it here just produces the user-visible
+/// error on tvOS Siri.
 struct JellySeeTVShortcutsProvider: AppShortcutsProvider {
     static var appShortcuts: [AppShortcut] {
         AppShortcut(
@@ -20,17 +29,6 @@ struct JellySeeTVShortcutsProvider: AppShortcutsProvider {
             ],
             shortTitle: "Open",
             systemImageName: "play.tv"
-        )
-        AppShortcut(
-            intent: ContinueWatchingIntent(),
-            phrases: [
-                "Continue watching on \(.applicationName)",
-                "Keep watching on \(.applicationName)",
-                "Resume on \(.applicationName)",
-                "Resume \(.applicationName)",
-            ],
-            shortTitle: "Continue Watching",
-            systemImageName: "play.fill"
         )
     }
 
