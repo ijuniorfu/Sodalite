@@ -87,6 +87,11 @@ struct AppRouter: View {
             RenameAnnouncementView(
                 onMigrated: {
                     RenameAnnouncementPreferences.markMigrated()
+                    // Also bootstrap the changelog stamp so the
+                    // upgrade from 0.4.0 → 0.4.1 doesn't fire a
+                    // second WhatsNewView right after the user has
+                    // already said "I'm done with this app".
+                    ChangelogPreferences.markCurrentSeen()
                     showRenameAnnouncement = false
                 },
                 onDismiss: {

@@ -392,7 +392,7 @@
 				CODE_SIGN_ENTITLEMENTS = SupportingFiles/JellySeeTV.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 28;
+				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 4NY63S72W9;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -404,7 +404,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.4.0;
+				MARKETING_VERSION = 0.4.1;
 				PRODUCT_BUNDLE_IDENTIFIER = de.superuser404.JellySeeTV;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -428,7 +428,7 @@
 				CODE_SIGN_ENTITLEMENTS = SupportingFiles/JellySeeTV.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 28;
+				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 4NY63S72W9;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -440,7 +440,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.4.0;
+				MARKETING_VERSION = 0.4.1;
 				PRODUCT_BUNDLE_IDENTIFIER = de.superuser404.JellySeeTV;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -461,7 +461,7 @@
 				CODE_SIGN_ENTITLEMENTS = SupportingFiles/JellySeeTVTopShelf.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 28;
+				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 4NY63S72W9;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "SupportingFiles/JellySeeTVTopShelf-Info.plist";
@@ -470,7 +470,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 0.4.0;
+				MARKETING_VERSION = 0.4.1;
 				OTHER_LDFLAGS = (
 					"-e",
 					_NSExtensionMain,
@@ -496,7 +496,7 @@
 				CODE_SIGN_ENTITLEMENTS = SupportingFiles/JellySeeTVTopShelf.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 28;
+				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 4NY63S72W9;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "SupportingFiles/JellySeeTVTopShelf-Info.plist";
@@ -505,7 +505,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 0.4.0;
+				MARKETING_VERSION = 0.4.1;
 				OTHER_LDFLAGS = (
 					"-e",
 					_NSExtensionMain,
