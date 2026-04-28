@@ -45,7 +45,7 @@ Watch your Jellyfin library and request what's missing from the same app. Native
 ```
 Your Jellyfin library and Seerr — together on Apple TV.
 
-JellySeeTV is the only open-source Apple TV client that brings Jellyfin and Seerr together in one native interface. Watch what's already on your server. See something on a trending row that isn't there yet? Request it from inside the app — Seerr handles the rest. No more switching to a phone, opening a web UI, or pinging your homelab admin.
+JellySeeTV brings Jellyfin and Seerr together in one native Apple TV interface. Watch what's already on your server. See something on a trending row that isn't there yet? Request it from inside the app — Seerr handles the rest. No more switching to a phone, opening a web UI, or pinging your homelab admin.
 
 WATCH
 • Direct Play for almost every codec your Apple TV understands: H.264, HEVC, HEVC Main10, AV1
@@ -55,7 +55,7 @@ WATCH
 • Resume from where you left off, on any device
 • Auto-detected intro skip with optional one-tap or auto-skip
 • Next-episode autoplay with configurable countdown
-• Subtitle support (SRT) with mid-playback track switching
+• Subtitle support — text rendering through Jellyfin's SRT pipeline, with track switching mid-playback (server-side conversion handles SRT, WebVTT, ASS, SSA; OCR for PGS/VobSub when Tesseract is installed)
 • Audio track switcher — pick the language or surround mix you want, mid-playback
 • Native tvOS player UI — same transport bar, scrub preview and info panel as Apple TV+
 
@@ -152,7 +152,7 @@ Schau deine Jellyfin-Bibliothek und fordere fehlendes aus derselben App an. Nati
 ```
 Deine Jellyfin-Bibliothek und Seerr — gemeinsam auf Apple TV.
 
-JellySeeTV ist der einzige Open-Source-Apple-TV-Client, der Jellyfin und Seerr in einer nativen Oberfläche vereint. Schau, was schon auf deinem Server liegt. Etwas in einer Trending-Reihe entdeckt, das noch nicht da ist? Fordere es direkt aus der App an — Seerr erledigt den Rest. Kein Wechsel ans Handy, kein Aufrufen von Web-UIs, kein Anpingen des Homelab-Admins.
+JellySeeTV bringt Jellyfin und Seerr in einer nativen Apple-TV-Oberfläche zusammen. Schau, was schon auf deinem Server liegt. Etwas in einer Trending-Reihe entdeckt, das noch nicht da ist? Fordere es direkt aus der App an — Seerr erledigt den Rest. Kein Wechsel ans Handy, kein Aufrufen von Web-UIs, kein Anpingen des Homelab-Admins.
 
 SCHAUEN
 • Direct Play für nahezu jedes Codec, das dein Apple TV unterstützt: H.264, HEVC, HEVC Main10, AV1
@@ -162,7 +162,7 @@ SCHAUEN
 • Fortsetzen, wo du aufgehört hast — auf jedem Gerät
 • Automatisch erkannter Intro-Skip, optional per Knopfdruck oder automatisch
 • Autoplay für die nächste Episode mit konfigurierbarem Countdown
-• Untertitel-Unterstützung (SRT), umschaltbar während der Wiedergabe
+• Untertitel-Unterstützung — Text-Rendering über die SRT-Pipeline von Jellyfin, mitten in der Wiedergabe umschaltbar (Server-seitige Konvertierung für SRT, WebVTT, ASS, SSA; OCR für PGS/VobSub bei installiertem Tesseract)
 • Audio-Track-Wechsler — wähle Sprache oder Surround-Mix mitten in der Wiedergabe
 • Native tvOS-Player-UI — gleiche Transport-Leiste, Scrub-Vorschau und Info-Panel wie bei Apple TV+
 
@@ -247,34 +247,47 @@ When the build goes for **External** TestFlight (Internal Testing skips review),
 
 
 ```
-JellySeeTV is a media player for self-hosted Jellyfin servers. The app requires the user to point it at their own Jellyfin instance — there is no built-in content, no first-party servers, and no in-app purchases.                                                                                                                                                
+Welcome to JellySeeTV — public beta!                                                                                                                              
+                                                                                                                                                                  
+JellySeeTV is a native Apple TV client for self-hosted Jellyfin servers, with built-in Jellyseerr
+integration for browsing and requesting media. Direct Play, real
+HDR10 / Dolby Vision, real Dolby Atmos. Open source (GPL-3.0).                                                                                                   
    
-To exercise the app, please use the official Jellyfin demo server, which is publicly available and intentionally provided for testing purposes:                                   
-                                                         
-    Server URL: https://demo.jellyfin.org/stable                                                                                                                                    
-    Username:   demo                                     
-    Password:   (leave empty — the demo account has no password)                                                                                                                    
-                                                         
-Steps to test:                                                                                                                                                                    
-1. Launch the app. The Server Discovery screen appears.
-2. Choose "Add Server Manually" (auto-discovery only finds servers on the local network, which is not the case here).                                                             
-3. Enter the server URL above.                                                                                                                                                    
-4. Enter the username "demo" and leave the password field empty.                                                                                                                  
-5. The library loads. You can browse Movies, Series, search, open a detail view, and start playback.                                                                              
-                                                                                                                                                                                    
-The Jellyseerr (catalog/request) features and Dolby Atmos passthrough cannot be exercised against the demo server, as it does not have those services configured. Apart from that,
-the full app flow is testable.                                                                                                                                                   
-                                                                                                                                                                                    
-If the demo server is unreachable for any reason, please contact superuser404@tuta.com and I will provide temporary credentials to a private Jellyfin instance for review         
-purposes.
-                                                                                                                                                                                    
-Additional notes:                                      
-  - The app collects no user data. The Privacy Manifest in the bundle confirms zero tracking and zero data collection.
-  - All credentials entered by the user are stored in the system Keychain only.                                                                                                     
-  - Source code is publicly auditable at https://github.com/superuser404notfound/JellySeeTV
-  - The video engine (FFmpeg + VideoToolbox + AVPlayer) is split into a separate LGPL-3.0 package: https://github.com/superuser404notfound/AetherEngine                             
-
-Thank you for reviewing.
+Note for Apple Reviewer                                                                                                                                           
+The app requires a Jellyfin server — there is no built-in content. To exercise the full flow,
+please use the official public Jellyfin demo server:              
+                                                                                                                                                                    
+    Server URL: https://demo.jellyfin.org/stable                                                                                                                    
+    Username:   demo                                                                                                                                                
+    Password:   (leave empty)                                                                                                                                       
+                                                                                                                                                                  
+Steps: launch → Add Server Manually (auto-discovery is local-network only) → enter URL → username
+"demo", password empty → library loads. You can browse, search, 
+open detail views, and start playback.                                                                                                                          
+                                                                                                                                                                    
+Jellyseerr (catalog/requests) and Dolby Atmos passthrough are not configured on the demo server and
+can't be exercised against it. If a working test environment  
+for those is needed, contact superuser404@tuta.com for temporary credentials to a private instance.
+                                                                                                                                                                    
+In-App Purchases                                                                                                                                                  
+Four optional IAPs reachable from Settings → Support Development:
+- Coffee Tip   (consumable, €1.99)  — voluntary tip, unlocks nothing                                                                                              
+- Beer Tip     (consumable, €4.99)  — voluntary tip, unlocks nothing                                                                                              
+- Pizza Tip    (consumable, €9.99)  — voluntary tip, unlocks nothing                                                                                              
+- Supporter Pack (non-consumable, €19.99) — cosmetic extras only (alternate splash, supporter badge, accent colors)                                               
+                                                                                                                                                                  
+No functional features are gated. Every part of the app — full library browsing, search, playback,
+HDR/Atmos, Jellyseerr, profile switching, all settings — works 
+without any purchase.                                                                                                                                             
+                                                                                                                                                                    
+What to focus on for this build:                                                                                                                                  
+- Server discovery + login (auto-discovery on local network, manual entry otherwise)                                                                            
+- Library browse, search, detail views, playback                                                                                                                  
+- Jellyseerr catalog (only if you have a Seerr instance configured)
+                                                                                                                                                                    
+Source: https://github.com/superuser404notfound/JellySeeTV                                                                                                        
+                                                                                                                                                                    
+Thanks for testing!
 ```
 
 
@@ -300,7 +313,8 @@ TEST TEXT -----
 
 Welcome to JellySeeTV — public beta!                                                                                                                                        
                                                                                 
-JellySeeTV is a native Apple TV client for self-hosted Jellyfin servers, with built-in Seerr/Jellyseerr integration for browsing and requesting media. Direct Play, real HDR10 /  
+JellySeeTV is a native Apple TV client for self-hosted Jellyfin servers, with built-in
+Seerr/Jellyseerr integration for browsing and requesting media. Direct Play, real HDR10 /  
 Dolby Vision, real Dolby Atmos. Open source (GPL-3.0).                        
                                                                                                                                                                                     
 Note for Apple Reviewer: this app requires a Jellyfin server, which the user must self-host.
@@ -318,6 +332,7 @@ for temporary read-only credentials to a private Jellyfin instance.
 Known limitations: HDR display switching depends on the TV model and the Match Content setting.
 TestFlight builds expire after 90 days.                                           
                                                                                 
-Full tester guide and how to file bugs: https://github.com/superuser404notfound/JellySeeTV/blob/main/BETA.md                                                                      
+Full tester guide and how to file bugs:
+https://github.com/superuser404notfound/JellySeeTV/blob/main/BETA.md                                                                      
                                                                                                                                                                                     
 Source code: https://github.com/superuser404notfound/JellySeeTV
