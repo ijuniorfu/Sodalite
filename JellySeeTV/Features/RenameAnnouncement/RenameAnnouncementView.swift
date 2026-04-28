@@ -141,6 +141,12 @@ struct RenameAnnouncementView: View {
                 .foregroundStyle(.primary)
                 .frame(maxWidth: .infinity, alignment: .leading)
         }
+        // Each row is focusable so the tvOS focus engine can step
+        // through them and scroll the modal as it goes — same
+        // pattern that fixed the WhatsNewView scroll. Without this
+        // the user is stuck on the migrated button and the QR
+        // section below it is unreachable.
+        .focusable()
     }
 
     private var qrSection: some View {
@@ -162,6 +168,11 @@ struct RenameAnnouncementView: View {
                 .multilineTextAlignment(.center)
         }
         .padding(.bottom, 50)
+        // Bottom-most focusable target so pressing Up from the
+        // migrated button walks: button → QR → step3 → step2 →
+        // step1. ScrollView follows focus and surfaces the QR
+        // even on shorter TVs where it'd otherwise be off-screen.
+        .focusable()
     }
 
     private var migratedButton: some View {
@@ -184,11 +195,9 @@ struct RenameAnnouncementView: View {
 
     // MARK: - QR
 
-    /// Sodalite TestFlight join URL. Filled in by Vincent once the
-    /// new external testing group is created in App Store Connect.
-    /// Until then the placeholder makes the QR scan fail loudly
-    /// instead of silently pointing somewhere wrong.
-    private static let testFlightURL = URL(string: "https://testflight.apple.com/join/REPLACE_ME")!
+    /// Sodalite TestFlight join URL — public external testing group
+    /// generated 2026-04-28 from App Store Connect.
+    private static let testFlightURL = URL(string: "https://testflight.apple.com/join/nWeQzmBX")!
 
     private var qrImage: UIImage? {
         Self.makeQR(from: Self.testFlightURL.absoluteString)
