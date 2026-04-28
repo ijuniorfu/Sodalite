@@ -28,6 +28,13 @@ struct WhatsNewView: View {
             }
             .frame(maxWidth: 1100)
             .frame(maxWidth: .infinity)
+            // Focus anchor for tvOS: with the dismiss button pinned
+            // outside the ScrollView, a long highlight list would
+            // otherwise have nothing for the focus engine to land
+            // on inside the scroll. Up-swipe on the Siri Remote
+            // moves focus here and the engine auto-scrolls the
+            // content into view.
+            .focusable()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         // Near-opaque black so titles and rows behind the modal
