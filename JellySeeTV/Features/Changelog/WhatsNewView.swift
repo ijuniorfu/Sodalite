@@ -5,6 +5,12 @@ import SwiftUI
 /// marks the version seen and the modal stays out of the way until
 /// the next bump. Mirrors the visual treatment of native tvOS
 /// "What's New" sheets — large title, icon row, dismiss CTA.
+///
+/// Layout: a single ScrollView wraps header + highlights so the
+/// content can grow as long as the changelog needs and scroll
+/// when it overflows the screen height. The dismiss button is
+/// pinned to the safe-area inset at the bottom so it never gets
+/// pushed off, no matter how many highlights ship in one release.
 struct WhatsNewView: View {
     let entry: ChangelogEntry
     let onDismiss: () -> Void
@@ -12,16 +18,30 @@ struct WhatsNewView: View {
     @FocusState private var dismissFocused: Bool
 
     var body: some View {
-        VStack(spacing: 0) {
-            header
-            highlightsList
-            Spacer(minLength: 0)
-            dismissButton
+        ScrollView {
+            VStack(spacing: 0) {
+                header
+                highlightsList
+                // Trailing space so the last highlight isn't flush
+                // against the dismiss button's safe-area inset.
+                Color.clear.frame(height: 60)
+            }
+            .frame(maxWidth: 1100)
+            .frame(maxWidth: .infinity)
         }
-        .frame(maxWidth: 1100, maxHeight: .infinity)
-        .frame(maxWidth: .infinity)
-        .background(Color.black.opacity(0.85))
-        .ignoresSafeArea()
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        // Near-opaque black so titles and rows behind the modal
+        // don't bleed through and hurt readability — the previous
+        // 0.85 was visibly translucent over the catalog grid.
+        .background(Color.black.opacity(0.96).ignoresSafeArea())
+        // Pin the Got-it CTA to the bottom edge regardless of how
+        // tall the highlights list grows. The user always has a
+        // visible dismiss target without having to scroll for it.
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            dismissButton
+                .frame(maxWidth: .infinity)
+                .background(Color.black.opacity(0.96).ignoresSafeArea(edges: .bottom))
+        }
         .onAppear {
             // tvOS deferred-focus pattern — letting the focus settle
             // on the dismiss button after the sheet's transition
@@ -58,16 +78,14 @@ struct WhatsNewView: View {
     }
 
     private var highlightsList: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 28) {
-                ForEach(entry.highlights) { highlight in
-                    HighlightRow(highlight: highlight)
-                }
+        VStack(alignment: .leading, spacing: 28) {
+            ForEach(entry.highlights) { highlight in
+                HighlightRow(highlight: highlight)
             }
-            .frame(maxWidth: 760)
-            .frame(maxWidth: .infinity)
-            .padding(.horizontal, 80)
         }
+        .frame(maxWidth: 760)
+        .frame(maxWidth: .infinity)
+        .padding(.horizontal, 80)
     }
 
     private var dismissButton: some View {
@@ -85,8 +103,7 @@ struct WhatsNewView: View {
         }
         .buttonStyle(SettingsTileButtonStyle())
         .focused($dismissFocused)
-        .padding(.bottom, 80)
-        .padding(.top, 30)
+        .padding(.vertical, 30)
     }
 }
 
