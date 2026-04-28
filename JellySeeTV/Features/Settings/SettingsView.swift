@@ -151,6 +151,14 @@ struct SettingsView: View {
             ) {
                 SupportDevelopmentView()
             }
+
+            SettingsTile(
+                icon: "sparkles",
+                title: "settings.changelog.title",
+                subtitle: "settings.changelog.subtitle"
+            ) {
+                ChangelogListView()
+            }
         }
     }
 

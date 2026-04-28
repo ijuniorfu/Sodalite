@@ -23,6 +23,13 @@ struct AppRouter: View {
     /// drives off this — non-nil = sheet shown.
     @State private var deepLinkItem: JellyfinItem?
 
+    /// Set true once after the splash hides on a launch where
+    /// `ChangelogPreferences.shouldShowOnLaunch()` returned true —
+    /// drives the WhatsNew fullScreenCover. Cleared by the modal's
+    /// dismiss callback, which also stamps the version as seen so
+    /// it stays out of the way until the next upgrade.
+    @State private var showWhatsNew = false
+
     var body: some View {
         ZStack {
             if appState.isAuthenticated {
@@ -59,6 +66,26 @@ struct AppRouter: View {
         .fullScreenCover(item: $deepLinkItem) { item in
             NavigationStack {
                 DetailRouterView(item: item)
+            }
+        }
+        .fullScreenCover(isPresented: $showWhatsNew) {
+            if let entry = Changelog.latest {
+                WhatsNewView(entry: entry) {
+                    ChangelogPreferences.markCurrentSeen()
+                    showWhatsNew = false
+                }
+            }
+        }
+        .onChange(of: appState.isLoading) { _, isLoading in
+            // Splash just finished. Fire the What's-New modal if the
+            // version stamp says we crossed a release boundary, and
+            // bootstrap on first install so we don't pester a brand-
+            // new user.
+            guard !isLoading else { return }
+            if ChangelogPreferences.shouldShowOnLaunch() {
+                showWhatsNew = true
+            } else {
+                ChangelogPreferences.bootstrapIfNeeded()
             }
         }
     }
