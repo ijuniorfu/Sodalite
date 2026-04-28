@@ -158,7 +158,7 @@ The video engine is split out into its own LGPL-3.0 package ([AetherEngine](http
 * Edge cases in server discovery
 * Anything that crashes
 
-Bug reports: GitHub issues are open with templates at https://github.com/superuser404notfound/JellySeeTV/issues
+Bug reports: GitHub Issues are open with templates at https://github.com/superuser404notfound/JellySeeTV/issues — and there's a Discussions tab next to it for everything else (Q&A, ideas, show-and-tell). No Discord, deliberately: Discussions stays public and searchable.
 
 Happy to answer technical questions in the thread.
 ```

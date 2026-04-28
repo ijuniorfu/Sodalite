@@ -145,6 +145,15 @@ Xcode 26+ and Swift 6.0+ are required.
 - [ ] Live TV + DVR support
 - [ ] Music library support
 
+## Community
+
+Everything happens in the open — no Discord, no closed garden.
+
+- **[Discussions](https://github.com/superuser404notfound/JellySeeTV/discussions)** — Q&A, ideas, show-and-tell
+- **[Issues](https://github.com/superuser404notfound/JellySeeTV/issues)** — bugs and concrete feature requests
+
+If you're not sure which to use, start a Discussion. Bugs get moved to Issues. Both are public, indexed by search engines, and stay tied to the project — the next person with the same question can find the answer.
+
 ## Related
 
 - [AetherEngine](https://github.com/superuser404notfound/AetherEngine) — the video engine powering JellySeeTV
