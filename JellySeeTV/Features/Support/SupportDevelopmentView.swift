@@ -179,6 +179,9 @@ struct SupportDevelopmentView: View {
             .padding(.horizontal, 24)
             .padding(.vertical, 12)
         }
+        // Tile style keeps the label readable across every accent
+        // tint and matches the tip / supporter cards above.
+        .buttonStyle(SettingsTileButtonStyle())
         .disabled(isRestoring)
         .opacity(isRestoring ? 0.5 : 1)
         .padding(.top, 12)

@@ -97,12 +97,14 @@ struct SeerrSettingsView: View {
                 } label: {
                     Label("settings.seerr.useJellyfinIP", systemImage: "arrow.triangle.2.circlepath")
                         .font(.caption)
-                        // Keep the label readable when a custom accent
-                        // tint is active — without this, the bordered
-                        // button would render icon + text in the same
-                        // tint colour as its fill.
-                        .foregroundStyle(.primary)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 8)
                 }
+                // foregroundStyle alone doesn't reliably override the
+                // tvOS bordered style's tint propagation into the
+                // icon channel — only a custom buttonStyle that
+                // replaces the system rendering is robust.
+                .buttonStyle(SettingsTileButtonStyle())
             }
 
             if let discoveryError {

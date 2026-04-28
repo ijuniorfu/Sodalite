@@ -120,6 +120,12 @@ struct LaunchProfilePickerView: View {
             .padding(.horizontal, 28)
             .padding(.vertical, 14)
         }
+        // Same accent-tint trap as the addProfileButton on the
+        // ProfileSettingsView — the default tvOS bordered style fills
+        // with the active tint and propagates that tint into the
+        // Label's icon + text. Tile style fills with white-opacity
+        // and lets the label render in primary foreground regardless.
+        .buttonStyle(SettingsTileButtonStyle())
     }
 
     // MARK: - Actions

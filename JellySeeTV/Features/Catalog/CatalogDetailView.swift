@@ -489,15 +489,17 @@ struct CatalogDetailView: View {
                         Label(requestButtonTitle, systemImage: "tray.and.arrow.down")
                             .font(.body)
                             .fontWeight(.semibold)
-                            // Keep the label legible against the
-                            // tinted bordered fill — primary FG
-                            // overrides SwiftUI's tint propagation
-                            // into the Label's icon + text channel.
-                            .foregroundStyle(.primary)
                             .padding(.horizontal, 24)
                             .padding(.vertical, 12)
                     }
                 }
+                // foregroundStyle alone is unreliable — the default
+                // tvOS bordered style still propagates tint into the
+                // icon channel under some focus states. SettingsTile
+                // replaces the system rendering completely, so the
+                // label stays legible across every accent the user
+                // can pick.
+                .buttonStyle(SettingsTileButtonStyle())
                 .disabled(isSubmitting || !canSubmit)
             }
 
