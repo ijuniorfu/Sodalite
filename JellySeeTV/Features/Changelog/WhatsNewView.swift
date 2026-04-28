@@ -28,13 +28,6 @@ struct WhatsNewView: View {
             }
             .frame(maxWidth: 1100)
             .frame(maxWidth: .infinity)
-            // Focus anchor for tvOS: with the dismiss button pinned
-            // outside the ScrollView, a long highlight list would
-            // otherwise have nothing for the focus engine to land
-            // on inside the scroll. Up-swipe on the Siri Remote
-            // moves focus here and the engine auto-scrolls the
-            // content into view.
-            .focusable()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         // Near-opaque black so titles and rows behind the modal
@@ -117,6 +110,8 @@ struct WhatsNewView: View {
 private struct HighlightRow: View {
     let highlight: ChangelogHighlight
 
+    @Environment(\.isFocused) private var isFocused
+
     var body: some View {
         HStack(alignment: .top, spacing: 24) {
             iconBubble
@@ -134,6 +129,19 @@ private struct HighlightRow: View {
 
             Spacer(minLength: 0)
         }
+        .padding(20)
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(.white.opacity(isFocused ? 0.08 : 0))
+        )
+        .scaleEffect(isFocused ? 1.02 : 1.0)
+        .animation(.easeInOut(duration: 0.2), value: isFocused)
+        // Each row needs to be focusable for the tvOS focus engine
+        // to step through them — otherwise the scroll view has no
+        // anchor inside it and a long changelog can't be scrolled
+        // by the user. The focus highlight is intentionally subtle:
+        // these are read-only entries, not actions.
+        .focusable()
     }
 
     private var iconBubble: some View {

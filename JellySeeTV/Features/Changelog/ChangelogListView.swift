@@ -33,12 +33,6 @@ struct ChangelogListView: View {
                 .padding(.bottom, 80)
             }
             .frame(maxWidth: .infinity)
-            // Pure-text content has nothing for the focus engine to
-            // grab, which leaves the Menu button without a pop-target
-            // — it falls through to the system and exits the app.
-            // Making the inner stack focusable gives focus an anchor
-            // and lets the Siri Remote's swipe-down actually scroll.
-            .focusable()
         }
         .toolbar(.hidden, for: .navigationBar)
         // Belt and braces: explicitly catch the Menu button and pop
@@ -74,6 +68,8 @@ private struct VersionSection: View {
 private struct HighlightRow: View {
     let highlight: ChangelogHighlight
 
+    @Environment(\.isFocused) private var isFocused
+
     var body: some View {
         HStack(alignment: .top, spacing: 20) {
             ZStack {
@@ -98,6 +94,17 @@ private struct HighlightRow: View {
 
             Spacer(minLength: 0)
         }
+        .padding(16)
+        .background(
+            RoundedRectangle(cornerRadius: 14)
+                .fill(.white.opacity(isFocused ? 0.08 : 0))
+        )
+        .scaleEffect(isFocused ? 1.02 : 1.0)
+        .animation(.easeInOut(duration: 0.2), value: isFocused)
+        // Each row is focusable so the tvOS focus engine can step
+        // through them and auto-scroll the list as it goes — same
+        // pattern as the WhatsNewView modal.
+        .focusable()
     }
 
     private var tintForKind: Color {
