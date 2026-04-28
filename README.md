@@ -21,21 +21,21 @@
 
 ## Two services, one remote
 
-JellySeeTV is the only **open-source** Apple TV client that brings **Jellyfin and Seerr together in the same UI**. Watch what's already on your server. Spot something on a trending row that isn't there yet? Request it from inside the app — Seerr handles the rest.
+JellySeeTV brings **Jellyfin and Seerr together in the same UI** on Apple TV. Watch what's already on your server. Spot something on a trending row that isn't there yet? Request it from inside the app — Seerr handles the rest.
 
 No more switching to a phone, opening a web UI, or pinging your homelab admin. Single sign-on, one focus-driven interface, the full library + request loop on the TV where you actually watch.
 
 ## Open source, end to end
 
-Most Apple TV media players are closed-source binaries you have to trust. JellySeeTV isn't. Every byte that touches your server is in this repo, your auth tokens stay in your Keychain, and there's no telemetry, no analytics, no third-party SDK phoning home.
+JellySeeTV is open from end to end. Every byte that touches your server is in this repo, your auth tokens stay in your Keychain, and there's no telemetry, no analytics, no third-party SDK phoning home.
 
-JellySeeTV is licensed under **GPL-3.0 with an Apple Store / DRM Exception** — fork it, study it, build your own version, but no one can take it private. Modifications must stay open. The exception clause in the LICENSE keeps the App Store and TestFlight distribution paths legally clean. The video stack underneath ([AetherEngine](https://github.com/superuser404notfound/AetherEngine)) is **LGPL-3.0** with the same Apple Store exception, so the engine can be reused in other apps while engine-level improvements flow back to the community. Both are auditable, buildable from source, and free of any vendor lock-in. Self-host the server, self-build the client — the whole loop is yours.
+Licensed under **GPL-3.0 with an Apple Store / DRM Exception** — fork it, study it, build your own version, but no one can take it private. Modifications must stay open. The exception clause in the LICENSE keeps the App Store and TestFlight distribution paths legally clean. The video stack underneath ([AetherEngine](https://github.com/superuser404notfound/AetherEngine)) is **LGPL-3.0** with the same Apple Store exception, so the engine can be reused in other apps while engine-level improvements flow back to the community. Both are auditable, buildable from source, and free of any vendor lock-in. Self-host the server, self-build the client — the whole loop is yours.
 
-## Why JellySeeTV
+## Built natively for tvOS
 
-Jellyfin is great. The existing Apple TV clients are either web wrappers or built around third-party players that fight tvOS instead of using it. JellySeeTV is built natively from the ground up: SwiftUI on top, a custom video engine underneath, and the same HIG patterns Apple uses for TV+ — focus engine, Siri Remote gestures, transport bar, info panel. Plays the file directly from your server in almost every case, no transcoding required.
+JellySeeTV is built natively from the ground up: SwiftUI on top, a custom video engine underneath, and the same HIG patterns Apple uses for TV+ — focus engine, Siri Remote gestures, transport bar, info panel. Plays the file directly from your server in almost every case, no transcoding required.
 
-And the Seerr integration isn't a tacked-on link to a web view — it's a first-class part of the app, with its own browse rows, request flow, and status tracking right next to your library.
+The Seerr integration isn't a tacked-on link to a web view — it's a first-class part of the app, with its own browse rows, request flow, and status tracking right next to your library.
 
 ## Screenshots
 
@@ -76,7 +76,7 @@ And the Seerr integration isn't a tacked-on link to a web view — it's a first-
 - **Resume** from where you left off, on any device
 - **Intro skip** — auto-detected from your Jellyfin server, optional one-tap skip
 - **Next episode** — auto-play with countdown, or just an overlay; configurable
-- **Subtitle support** — SRT, with track selection during playback
+- **Subtitle support** — text rendering through Jellyfin's SRT pipeline (server converts SRT, WebVTT, ASS, SSA inline; OCR for PGS / VobSub if your server has Tesseract). Track switching mid-playback.
 - **Audio track switcher** — pick the language or surround mix you want, mid-playback
 - **Native player UI** — same transport bar, scrub preview and info panel as Apple TV+
 
@@ -94,7 +94,7 @@ And the Seerr integration isn't a tacked-on link to a web view — it's a first-
 
 ## Built on
 
-JellySeeTV is a thin native shell over a custom video stack. The interesting part is what *isn't* there: no VLCKit, no third-party players, no web views. Just Apple's frameworks plus a Swift package that handles the formats Apple's own player can't.
+JellySeeTV is a thin native shell over a custom video stack — Apple's frameworks plus a Swift package that handles the formats Apple's own player can't on its own.
 
 | Component | Technology |
 |---|---|
@@ -159,7 +159,6 @@ If you're not sure which to use, start a Discussion. Bugs get moved to Issues. B
 - [AetherEngine](https://github.com/superuser404notfound/AetherEngine) — the video engine powering JellySeeTV
 - [Jellyfin](https://github.com/jellyfin/jellyfin) — the free software media system
 - [Seerr](https://github.com/Fallenbagel/jellyseerr) — request management for Jellyfin
-- [Swiftfin](https://github.com/jellyfin/Swiftfin) — official Jellyfin client for iOS / tvOS (VLCKit-based)
 
 ## Built with
 
