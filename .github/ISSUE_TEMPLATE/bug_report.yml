@@ -24,7 +24,7 @@ body:
       label: Steps to reproduce
       description: Exact sequence of buttons / actions. The more reliably it reproduces, the faster a fix lands.
       placeholder: |
-        1. Open JellySeeTV
+        1. Open Sodalite
         2. Go to the catalog tab
         3. Pick any movie that's tagged HDR
         4. Press Play
@@ -35,7 +35,7 @@ body:
   - type: input
     id: app-version
     attributes:
-      label: JellySeeTV build
+      label: Sodalite build
       description: Settings → scroll to the bottom (e.g. `1.0.0 (3)`)
       placeholder: "0.1.0 (1)"
     validations:

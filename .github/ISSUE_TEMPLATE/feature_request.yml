@@ -1,5 +1,5 @@
 name: Feature request
-description: Suggest something JellySeeTV could do that it doesn't already
+description: Suggest something Sodalite could do that it doesn't already
 labels: ["enhancement"]
 body:
   - type: markdown
