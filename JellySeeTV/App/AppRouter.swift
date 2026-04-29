@@ -31,10 +31,9 @@ struct AppRouter: View {
     @State private var showWhatsNew = false
 
     /// Drives the JellySeeTV → Sodalite rename modal. Fires on every
-    /// cold launch until the user explicitly taps "Schon migriert".
-    /// Takes precedence over WhatsNew — no point announcing 0.4.0
-    /// changelog highlights when the app is also announcing its
-    /// own death.
+    /// cold launch — no opt-out. Takes precedence over WhatsNew:
+    /// no point announcing 0.4.x changelog highlights when the app
+    /// is also announcing its own death.
     @State private var showRenameAnnouncement = false
 
     var body: some View {
@@ -85,39 +84,23 @@ struct AppRouter: View {
         }
         .fullScreenCover(isPresented: $showRenameAnnouncement) {
             RenameAnnouncementView(
-                onMigrated: {
-                    RenameAnnouncementPreferences.markMigrated()
-                    // Also bootstrap the changelog stamp so the
-                    // upgrade from 0.4.0 → 0.4.1 doesn't fire a
-                    // second WhatsNewView right after the user has
-                    // already said "I'm done with this app".
+                onClose: {
+                    // Stamp the current changelog version so we don't
+                    // immediately stack a WhatsNewView on top of the
+                    // already-seen rename modal on the next launch
+                    // (the rename modal will still come back — but
+                    // the WhatsNew stays out of the way).
                     ChangelogPreferences.markCurrentSeen()
-                    showRenameAnnouncement = false
-                },
-                onDismiss: {
-                    // Menu-button exit: close the modal for this
-                    // launch but leave the flag alone so it shows
-                    // again next cold launch. The migration nudge
-                    // shouldn't be skippable by accident.
                     showRenameAnnouncement = false
                 }
             )
         }
         .onChange(of: appState.isLoading) { _, isLoading in
-            // Splash just finished. Rename modal trumps everything
-            // else — JellySeeTV is end-of-life and the migration
-            // bridge is the most important post-splash UI until the
-            // user has confirmed they're done.
+            // Splash just finished. JellySeeTV is end-of-life — the
+            // rename modal fires unconditionally on every launch
+            // until the app is uninstalled.
             guard !isLoading else { return }
-            if !RenameAnnouncementPreferences.hasMigrated {
-                showRenameAnnouncement = true
-                return
-            }
-            if ChangelogPreferences.shouldShowOnLaunch(isExistingUser: appState.isAuthenticated) {
-                showWhatsNew = true
-            } else {
-                ChangelogPreferences.bootstrapIfNeeded()
-            }
+            showRenameAnnouncement = true
         }
     }
 

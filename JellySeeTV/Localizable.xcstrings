@@ -50532,163 +50532,163 @@
         }
       }
     },
-    "rename.modal.migrated": {
-      "comment": "Footer CTA on the rename modal — stamps the migrated flag and dismisses for good.",
+    "rename.modal.close": {
+      "comment": "Footer CTA on the rename modal — closes the modal for the current session. The modal returns on next launch.",
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Už migrováno"
+            "value": "Zavřít"
           }
         },
         "da": {
           "stringUnit": {
             "state": "translated",
-            "value": "Allerede migreret"
+            "value": "Luk"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Schon migriert"
+            "value": "Schließen"
           }
         },
         "el": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ήδη μεταφέρθηκα"
+            "value": "Κλείσιμο"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Already migrated"
+            "value": "Close"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ya migré"
+            "value": "Cerrar"
           }
         },
         "fi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Jo siirretty"
+            "value": "Sulje"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Déjà migré"
+            "value": "Fermer"
           }
         },
         "hr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Već prebačeno"
+            "value": "Zatvori"
           }
         },
         "hu": {
           "stringUnit": {
             "state": "translated",
-            "value": "Már átálltam"
+            "value": "Bezárás"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Già migrato"
+            "value": "Chiudi"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "移行済み"
+            "value": "閉じる"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "이미 마이그레이션 완료"
+            "value": "닫기"
           }
         },
         "nb": {
           "stringUnit": {
             "state": "translated",
-            "value": "Allerede migrert"
+            "value": "Lukk"
           }
         },
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Al gemigreerd"
+            "value": "Sluiten"
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Już zmigrowano"
+            "value": "Zamknij"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Já migrei"
+            "value": "Fechar"
           }
         },
         "pt-PT": {
           "stringUnit": {
             "state": "translated",
-            "value": "Já migrei"
+            "value": "Fechar"
           }
         },
         "ro": {
           "stringUnit": {
             "state": "translated",
-            "value": "Deja migrat"
+            "value": "Închide"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Уже перешёл"
+            "value": "Закрыть"
           }
         },
         "sk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Už migrované"
+            "value": "Zavrieť"
           }
         },
         "sv": {
           "stringUnit": {
             "state": "translated",
-            "value": "Redan migrerat"
+            "value": "Stäng"
           }
         },
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Zaten geçtim"
+            "value": "Kapat"
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Уже мігрував"
+            "value": "Закрити"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "已迁移"
+            "value": "关闭"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "已遷移"
+            "value": "關閉"
           }
         }
       }

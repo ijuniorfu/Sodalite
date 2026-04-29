@@ -4,9 +4,11 @@ import CoreImage
 import CoreImage.CIFilterBuiltins
 
 /// Last-mile bridge for the JellySeeTV → Sodalite rename. Fires on
-/// every launch of this final farewell build until the user taps
-/// "Schon migriert" — at which point `RenameAnnouncementPreferences`
-/// stamps the flag and the modal stays out of the way.
+/// every launch of this final farewell build — there's no opt-out.
+/// The close button (and Menu) only dismiss for the current session;
+/// the modal comes back on every relaunch. JellySeeTV is dead, the
+/// migration window is short, and a per-session reminder is the
+/// gentlest nudge that still actually moves people across.
 ///
 /// On Apple TV the user can't navigate a `https://testflight…` URL
 /// from a button (no browser, no UIApplication.open path that lands
@@ -17,10 +19,9 @@ import CoreImage.CIFilterBuiltins
 /// open it once. KeychainMigrator on the Sodalite side picks the
 /// session up from the shared keychain access groups.
 struct RenameAnnouncementView: View {
-    let onMigrated: () -> Void
-    let onDismiss: () -> Void
+    let onClose: () -> Void
 
-    @FocusState private var migratedFocused: Bool
+    @FocusState private var closeFocused: Bool
 
     var body: some View {
         ScrollView {
@@ -28,40 +29,21 @@ struct RenameAnnouncementView: View {
                 header
                 stepsList
                 qrSection
+                closeButton
             }
             .frame(maxWidth: 1100)
             .frame(maxWidth: .infinity)
         }
-        // Same edge-fade affordance as WhatsNewView so users on
-        // smaller TVs see that more content is hiding below.
-        .mask(
-            LinearGradient(
-                stops: [
-                    .init(color: .black, location: 0),
-                    .init(color: .black, location: 0.94),
-                    .init(color: .clear, location: 1.0),
-                ],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-        )
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color.black.opacity(0.96).ignoresSafeArea())
-        .safeAreaInset(edge: .bottom, spacing: 0) {
-            migratedButton
-                .frame(maxWidth: .infinity)
-                .background(Color.black.opacity(0.96).ignoresSafeArea(edges: .bottom))
-        }
         .onAppear {
             DispatchQueue.main.async {
-                migratedFocused = true
+                closeFocused = true
             }
         }
-        // Menu button: dismiss for THIS launch only. The modal comes
-        // back next cold launch — the user has to actively tap
-        // "Schon migriert" to make it stop, which prevents accidental
-        // long-term skips before the migration is actually done.
-        .onExitCommand { onDismiss() }
+        // Menu button: same as the close CTA. The modal returns on
+        // the next launch regardless — there is no permanent dismiss.
+        .onExitCommand { onClose() }
     }
 
     private var header: some View {
@@ -167,21 +149,19 @@ struct RenameAnnouncementView: View {
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
         }
-        .padding(.bottom, 50)
-        // Bottom-most focusable target so pressing Up from the
-        // migrated button walks: button → QR → step3 → step2 →
-        // step1. ScrollView follows focus and surfaces the QR
-        // even on shorter TVs where it'd otherwise be off-screen.
+        .padding(.bottom, 40)
+        // Focusable so the user can pause on the QR / URL while
+        // scanning it without the focus engine snapping past.
         .focusable()
     }
 
-    private var migratedButton: some View {
+    private var closeButton: some View {
         Button {
-            onMigrated()
+            onClose()
         } label: {
             Text(String(
-                localized: "rename.modal.migrated",
-                defaultValue: "Schon migriert"
+                localized: "rename.modal.close",
+                defaultValue: "Schließen"
             ))
             .font(.body)
             .fontWeight(.semibold)
@@ -189,8 +169,9 @@ struct RenameAnnouncementView: View {
             .padding(.vertical, 16)
         }
         .buttonStyle(SettingsTileButtonStyle())
-        .focused($migratedFocused)
-        .padding(.vertical, 30)
+        .focused($closeFocused)
+        .padding(.top, 20)
+        .padding(.bottom, 80)
     }
 
     // MARK: - QR
