@@ -15,7 +15,13 @@ struct WhatsNewView: View {
     let entry: ChangelogEntry
     let onDismiss: () -> Void
 
-    @FocusState private var dismissFocused: Bool
+    /// Namespace anchoring the focus scope so the first highlight row
+    /// can declare itself as the default focus target. Without it,
+    /// tvOS lands focus on whichever fokussierbare Item is closest to
+    /// the leading-top corner of the modal — which on this layout is
+    /// the safeAreaInset dismiss button, not the changelog the user
+    /// is here to read.
+    @Namespace private var focusNamespace
 
     var body: some View {
         ScrollView {
@@ -26,6 +32,7 @@ struct WhatsNewView: View {
             .frame(maxWidth: 1100)
             .frame(maxWidth: .infinity)
         }
+        .focusScope(focusNamespace)
         // Bottom edge-fade so the user sees that more content is
         // hiding below the visible viewport when the changelog runs
         // long. Same affordance Apple uses in the TV app's What's
@@ -58,15 +65,6 @@ struct WhatsNewView: View {
                 .frame(maxWidth: .infinity)
                 .background(Color.black.opacity(0.96).ignoresSafeArea(edges: .bottom))
         }
-        .onAppear {
-            // tvOS deferred-focus pattern — letting the focus settle
-            // on the dismiss button after the sheet's transition
-            // means the user can immediately press Play/Pause to
-            // close without arrow-keying down through the list.
-            DispatchQueue.main.async {
-                dismissFocused = true
-            }
-        }
         // Menu button on the Siri Remote should also dismiss, in
         // case the user reaches for the back gesture instead of
         // navigating to the Got-it button.
@@ -95,8 +93,9 @@ struct WhatsNewView: View {
 
     private var highlightsList: some View {
         VStack(alignment: .leading, spacing: 28) {
-            ForEach(entry.highlights) { highlight in
+            ForEach(Array(entry.highlights.enumerated()), id: \.element.id) { index, highlight in
                 HighlightRow(highlight: highlight)
+                    .prefersDefaultFocus(index == 0, in: focusNamespace)
             }
         }
         .frame(maxWidth: 760)
@@ -126,7 +125,6 @@ struct WhatsNewView: View {
             .padding(.vertical, 16)
         }
         .buttonStyle(SettingsTileButtonStyle())
-        .focused($dismissFocused)
         .padding(.vertical, 30)
     }
 }
