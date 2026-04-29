@@ -1,7 +1,3 @@
-<p align="center">
-  <img src="Marketing/Icons/AppStore/icon_1024x1024.png" alt="Sodalite" width="180">
-</p>
-
 <h1 align="center">Sodalite</h1>
 
 <p align="center">
@@ -40,27 +36,6 @@ Licensed under **GPL-3.0 with an Apple Store / DRM Exception** — fork it, stud
 Sodalite is built natively from the ground up: SwiftUI on top, a custom video engine underneath, and the same HIG patterns Apple uses for TV+ — focus engine, Siri Remote gestures, transport bar, info panel. Plays the file directly from your server in almost every case, no transcoding required.
 
 The Seerr integration isn't a tacked-on link to a web view — it's a first-class part of the app, with its own browse rows, request flow, and status tracking right next to your library.
-
-## Screenshots
-
-<table>
-  <tr>
-    <td width="50%"><img src="Screenshots/01-home.jpg" alt="Home — Continue Watching + Next Up"></td>
-    <td width="50%"><img src="Screenshots/02-catalog.jpg" alt="Catalog — Trending + Upcoming Movies"></td>
-  </tr>
-  <tr>
-    <td align="center"><sub>Home</sub></td>
-    <td align="center"><sub>Catalog</sub></td>
-  </tr>
-  <tr>
-    <td><img src="Screenshots/03-search.jpg" alt="Search — Library + Catalog results"></td>
-    <td><img src="Screenshots/04-settings.jpg" alt="Settings — Profile, Rows, Playback, Appearance, Seerr"></td>
-  </tr>
-  <tr>
-    <td align="center"><sub>Search</sub></td>
-    <td align="center"><sub>Settings</sub></td>
-  </tr>
-</table>
 
 ## Features
 
