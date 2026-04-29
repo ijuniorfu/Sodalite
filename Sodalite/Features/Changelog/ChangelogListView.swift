@@ -36,17 +36,23 @@ struct ChangelogListView: View {
         }
         // Same bottom edge-fade as the WhatsNewView modal — soft
         // visual cue that the list keeps going below the viewport.
+        // Slightly wider band (88%→100%) than the modal so the fade
+        // reads through the navigation-stack container that wraps
+        // this view; the modal version sits over plain black, so
+        // 94% is enough there but not here.
         .mask(
             LinearGradient(
                 stops: [
                     .init(color: .black, location: 0),
-                    .init(color: .black, location: 0.94),
+                    .init(color: .black, location: 0.88),
                     .init(color: .clear, location: 1.0),
                 ],
                 startPoint: .top,
                 endPoint: .bottom
             )
         )
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color.black.ignoresSafeArea())
         .toolbar(.hidden, for: .navigationBar)
         // Belt and braces: explicitly catch the Menu button and pop
         // back to Settings even if the focus state ever drifts away
@@ -110,9 +116,18 @@ private struct HighlightRow: View {
         .padding(16)
         .background(
             RoundedRectangle(cornerRadius: 14)
-                .fill(.white.opacity(isFocused ? 0.08 : 0))
+                .fill(isFocused ? .white.opacity(0.15) : .white.opacity(0.05))
         )
-        .scaleEffect(isFocused ? 1.02 : 1.0)
+        // Same accent-tint stroke + lift treatment SettingsTileButtonStyle
+        // uses for actionable tiles, so focused rows read as the same
+        // visual primitive across the app.
+        .overlay(
+            RoundedRectangle(cornerRadius: 14)
+                .strokeBorder(.tint, lineWidth: 3)
+                .opacity(isFocused ? 1 : 0)
+        )
+        .scaleEffect(isFocused ? 1.03 : 1.0)
+        .shadow(color: .black.opacity(isFocused ? 0.3 : 0), radius: 15, y: 8)
         .animation(.easeInOut(duration: 0.2), value: isFocused)
         // Each row is focusable so the tvOS focus engine can step
         // through them and auto-scroll the list as it goes — same

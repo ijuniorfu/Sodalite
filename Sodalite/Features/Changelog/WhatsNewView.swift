@@ -156,15 +156,23 @@ private struct HighlightRow: View {
         .padding(20)
         .background(
             RoundedRectangle(cornerRadius: 16)
-                .fill(.white.opacity(isFocused ? 0.08 : 0))
+                .fill(isFocused ? .white.opacity(0.15) : .white.opacity(0.05))
         )
-        .scaleEffect(isFocused ? 1.02 : 1.0)
+        // Same accent-tint stroke + lift treatment SettingsTileButtonStyle
+        // uses for actionable tiles, so focused rows read as the same
+        // visual primitive across the app.
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .strokeBorder(.tint, lineWidth: 3)
+                .opacity(isFocused ? 1 : 0)
+        )
+        .scaleEffect(isFocused ? 1.03 : 1.0)
+        .shadow(color: .black.opacity(isFocused ? 0.3 : 0), radius: 15, y: 8)
         .animation(.easeInOut(duration: 0.2), value: isFocused)
         // Each row needs to be focusable for the tvOS focus engine
         // to step through them — otherwise the scroll view has no
         // anchor inside it and a long changelog can't be scrolled
-        // by the user. The focus highlight is intentionally subtle:
-        // these are read-only entries, not actions.
+        // by the user.
         .focusable()
     }
 
