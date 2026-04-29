@@ -308,7 +308,7 @@ final class PlayerViewModel {
             // Audio track priority: preferred language → stream default → first.
             let preferredAudio = preferences.preferredAudioLanguage
             let chosenAudio = player.audioTracks.first(where: {
-                preferredAudio != nil && $0.language == preferredAudio
+                preferredAudio != nil && Self.languagesMatch($0.language, preferredAudio)
             }) ?? player.audioTracks.first(where: { $0.isDefault })
               ?? player.audioTracks.first
             if let chosenAudio {
@@ -546,19 +546,50 @@ final class PlayerViewModel {
     ///    a switch back to native audio).
     private func applyPreferredSubtitle(forAudioLanguage audioLanguage: String?) {
         if let explicit = preferences.preferredSubtitleLanguage {
-            if let match = subtitleStreams.first(where: { $0.language == explicit }) {
+            if let match = subtitleStreams.first(where: { Self.languagesMatch($0.language, explicit) }) {
                 selectSubtitleTrack(id: match.index)
             }
             return
         }
         guard preferences.autoSubtitleForForeignAudio,
               let preferredAudio = preferences.preferredAudioLanguage,
-              audioLanguage != preferredAudio
+              !Self.languagesMatch(audioLanguage, preferredAudio)
         else { return }
-        if let match = subtitleStreams.first(where: { $0.language == preferredAudio }) {
+        if let match = subtitleStreams.first(where: { Self.languagesMatch($0.language, preferredAudio) }) {
             selectSubtitleTrack(id: match.index)
         }
     }
+
+    /// Compares two language tags loosely so settings ("ger"), FFmpeg
+    /// container metadata ("deu"), and BCP-47 ("de") all line up as
+    /// the same language. Without this, the auto-subtitle path was
+    /// silently failing for users whose preferred-audio code didn't
+    /// match the format the muxer / Jellyfin happened to write into
+    /// the stream.
+    static func languagesMatch(_ a: String?, _ b: String?) -> Bool {
+        guard let a = a?.lowercased(), let b = b?.lowercased() else { return false }
+        if a == b { return true }
+        return languageSynonyms.contains { $0.contains(a) && $0.contains(b) }
+    }
+
+    /// Equivalence classes spanning ISO 639-1, 639-2/T, and 639-2/B
+    /// for every language Sodalite ships UI for plus the major ones
+    /// users typically have library content in. Anything outside the
+    /// table falls back to strict equality, which is fine when both
+    /// sides are stamped from the same source.
+    private static let languageSynonyms: [Set<String>] = [
+        ["de", "deu", "ger"], ["en", "eng"], ["fr", "fra", "fre"],
+        ["es", "spa"], ["it", "ita"], ["ja", "jpn"], ["ko", "kor"],
+        ["zh", "zho", "chi"], ["pt", "por"], ["ru", "rus"],
+        ["nl", "nld", "dut"], ["sv", "swe"], ["da", "dan"],
+        ["no", "nor"], ["nb", "nob"], ["nn", "nno"],
+        ["fi", "fin"], ["pl", "pol"], ["cs", "ces", "cze"],
+        ["hu", "hun"], ["tr", "tur"], ["el", "ell", "gre"],
+        ["ar", "ara"], ["he", "heb"], ["hi", "hin"], ["id", "ind"],
+        ["th", "tha"], ["vi", "vie"], ["uk", "ukr"], ["ro", "ron", "rum"],
+        ["sk", "slk", "slo"], ["hr", "hrv"], ["bg", "bul"],
+        ["sr", "srp"], ["pt-br", "por"], ["pt-pt", "por"],
+    ]
 
     // MARK: - Intro Skip
 
