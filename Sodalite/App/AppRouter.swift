@@ -183,7 +183,22 @@ struct AppRouter: View {
 
         // primaryImageTag is optional in the keychain — users without
         // a custom avatar never had one persisted. Missing = initials.
-        let imageTag = try? dependencies.keychainService.loadString(for: "activeUserImageTag")
+        // Fallback path covers JellySeeTV migrations whose last login
+        // pre-dated the dedicated activeUserImageTag entry: the
+        // RememberedUser blob still carries the tag, so we can lift
+        // it from there and re-stamp the canonical key so subsequent
+        // restores find it directly.
+        let imageTag: String? = {
+            if let direct = try? dependencies.keychainService.loadString(for: "activeUserImageTag") {
+                return direct
+            }
+            guard let fromRemembered = dependencies.listRememberedUsers(serverID: server.id)
+                .first(where: { $0.id == userID })?
+                .imageTag, !fromRemembered.isEmpty
+            else { return nil }
+            try? dependencies.keychainService.save(fromRemembered, for: "activeUserImageTag")
+            return fromRemembered
+        }()
         let restored = JellyfinUser(
             id: userID,
             name: userName,
