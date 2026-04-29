@@ -87,7 +87,12 @@ private struct VersionSection: View {
 private struct HighlightRow: View {
     let highlight: ChangelogHighlight
 
-    @Environment(\.isFocused) private var isFocused
+    // @FocusState rather than @Environment(\.isFocused): the latter
+    // doesn't propagate reliably into a plain .focusable() View on
+    // tvOS, so the row would otherwise stay on its not-focused
+    // background and the accent stroke would never appear. Binding
+    // a real FocusState updates on every focus-engine event.
+    @FocusState private var isFocused: Bool
 
     var body: some View {
         HStack(alignment: .top, spacing: 20) {
@@ -133,6 +138,7 @@ private struct HighlightRow: View {
         // through them and auto-scroll the list as it goes — same
         // pattern as the WhatsNewView modal.
         .focusable()
+        .focused($isFocused)
     }
 
     private var tintForKind: Color {

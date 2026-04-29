@@ -134,7 +134,13 @@ struct WhatsNewView: View {
 private struct HighlightRow: View {
     let highlight: ChangelogHighlight
 
-    @Environment(\.isFocused) private var isFocused
+    // @FocusState rather than @Environment(\.isFocused): the latter
+    // does not propagate reliably into a plain .focusable() View on
+    // tvOS, leaving the row stuck on the not-focused background and
+    // the accent-tint stroke permanently hidden. Binding a real
+    // FocusState to the view via .focused() updates on every focus
+    // engine event, which is what we need for the visual feedback.
+    @FocusState private var isFocused: Bool
 
     var body: some View {
         HStack(alignment: .top, spacing: 24) {
@@ -174,6 +180,7 @@ private struct HighlightRow: View {
         // anchor inside it and a long changelog can't be scrolled
         // by the user.
         .focusable()
+        .focused($isFocused)
     }
 
     private var iconBubble: some View {
