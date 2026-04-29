@@ -36,7 +36,7 @@ struct SettingsView: View {
                     Image("PremiumBadge")
                         .resizable()
                         .aspectRatio(contentMode: .fit)
-                        .frame(width: 44, height: 44)
+                        .frame(width: 64, height: 64)
                         .accessibilityLabel(Text(String(
                             localized: "support.pack.unlocked",
                             defaultValue: "Unlocked"
@@ -207,7 +207,7 @@ struct SettingsView: View {
         return VStack(spacing: 12) {
             footerLogo
                 .aspectRatio(contentMode: .fit)
-                .frame(width: 56, height: 56)
+                .frame(width: 96, height: 96)
             Text("Sodalite \(version) (\(build))")
                 .font(.caption)
                 .foregroundStyle(.tertiary)
