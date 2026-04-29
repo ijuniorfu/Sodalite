@@ -1,3 +1,7 @@
+<p align="center">
+  <img src=".github/sodalite-logo.png" alt="Sodalite" width="180">
+</p>
+
 <h1 align="center">Sodalite</h1>
 
 <p align="center">
