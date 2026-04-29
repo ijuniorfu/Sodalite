@@ -3,7 +3,6 @@ import Combine
 import Observation
 import AetherEngine
 import AVKit
-import os
 
 /// ViewModel that bridges AetherEngine with Jellyfin session reporting
 /// and our custom tvOS-style player UI.
@@ -545,44 +544,19 @@ final class PlayerViewModel {
     /// 3. No match → leave the current subtitle selection alone (the
     ///    user may have picked one manually; we don't override it on
     ///    a switch back to native audio).
-    private static let subtitleLog = Logger(
-        subsystem: "de.superuser404.Sodalite",
-        category: "SubtitleAutoSwitch"
-    )
-
     private func applyPreferredSubtitle(forAudioLanguage audioLanguage: String?) {
-        let availableSubLangs = subtitleStreams
-            .map { "\($0.index):\($0.language ?? "nil")" }
-            .joined(separator: ", ")
-        Self.subtitleLog.notice(
-            "applyPreferredSubtitle: audio=\(audioLanguage ?? "nil", privacy: .public) prefAudio=\(self.preferences.preferredAudioLanguage ?? "nil", privacy: .public) prefSub=\(self.preferences.preferredSubtitleLanguage ?? "nil", privacy: .public) autoForeign=\(self.preferences.autoSubtitleForForeignAudio, privacy: .public) subs=[\(availableSubLangs, privacy: .public)]"
-        )
         if let explicit = preferences.preferredSubtitleLanguage {
             if let match = subtitleStreams.first(where: { Self.languagesMatch($0.language, explicit) }) {
-                Self.subtitleLog.notice("→ explicit-pref: enabling sub idx=\(match.index, privacy: .public) lang=\(match.language ?? "nil", privacy: .public)")
                 selectSubtitleTrack(id: match.index)
-            } else {
-                Self.subtitleLog.notice("→ explicit-pref: no subtitle stream matches \(explicit, privacy: .public)")
             }
             return
         }
-        guard preferences.autoSubtitleForForeignAudio else {
-            Self.subtitleLog.notice("→ skip: autoSubtitleForForeignAudio is off")
-            return
-        }
-        guard let preferredAudio = effectivePreferredAudioLanguage() else {
-            Self.subtitleLog.notice("→ skip: could not resolve any preferred-audio target (no setting and no system locale)")
-            return
-        }
-        guard !Self.languagesMatch(audioLanguage, preferredAudio) else {
-            Self.subtitleLog.notice("→ skip: audio matches preferred (no foreign-audio condition)")
-            return
-        }
+        guard preferences.autoSubtitleForForeignAudio,
+              let preferredAudio = effectivePreferredAudioLanguage(),
+              !Self.languagesMatch(audioLanguage, preferredAudio)
+        else { return }
         if let match = subtitleStreams.first(where: { Self.languagesMatch($0.language, preferredAudio) }) {
-            Self.subtitleLog.notice("→ auto-foreign: enabling sub idx=\(match.index, privacy: .public) lang=\(match.language ?? "nil", privacy: .public)")
             selectSubtitleTrack(id: match.index)
-        } else {
-            Self.subtitleLog.notice("→ auto-foreign: no subtitle stream matches preferred audio language \(preferredAudio, privacy: .public)")
         }
     }
 
