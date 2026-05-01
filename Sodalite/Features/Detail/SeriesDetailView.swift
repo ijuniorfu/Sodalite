@@ -239,7 +239,7 @@ struct SeriesDetailView: View {
                     title: playTitle,
                     systemImage: "play.fill",
                     isProminent: true,
-                    subtitle: resumeTimestamp(vm: vm),
+                    subtitle: playButtonSubtitle(vm: vm),
                     action: {
                         let ep = selectedEpisode ?? vm.episodes.first(where: { $0.id == vm.currentEpisodeID }) ?? vm.episodes.first
                         if let ep {
@@ -298,18 +298,43 @@ struct SeriesDetailView: View {
         return "detail.play"
     }
 
-    /// Resume timestamp surfaced under the primary play button. Mirrors
-    /// the play-action's own pick: the explicitly-selected episode if
-    /// the user tapped one, otherwise the next-up episode the action
-    /// would actually start.
-    private func resumeTimestamp(vm: DetailViewModel) -> String? {
+    /// Subtitle line under the primary play button: shows which episode
+    /// the tap will actually start (S1E5-style) plus, when the user is
+    /// resuming, the timestamp it'll resume from. Mirrors the play
+    /// action's own selection logic so the label always agrees with
+    /// the action.
+    ///
+    /// - "S1E5 · 12:34" when resuming a partially-watched episode
+    /// - "S1E5" when starting fresh
+    /// - nil if there's no resolvable target (e.g. an empty series)
+    private func playButtonSubtitle(vm: DetailViewModel) -> String? {
         let target = selectedEpisode
             ?? vm.episodes.first(where: { $0.id == vm.currentEpisodeID })
             ?? vm.episodes.first
-        guard let ticks = target?.userData?.playbackPositionTicks, ticks > 0 else {
-            return nil
+        guard let target else { return nil }
+
+        var parts: [String] = []
+        let episodeLabel = episodeShorthand(for: target)
+        if !episodeLabel.isEmpty {
+            parts.append(episodeLabel)
         }
-        return ResumeTimeFormatter.format(ticks: ticks)
+        if let ticks = target.userData?.playbackPositionTicks,
+           ticks > 0,
+           let stamp = ResumeTimeFormatter.format(ticks: ticks) {
+            parts.append(stamp)
+        }
+        return parts.isEmpty ? nil : parts.joined(separator: " · ")
+    }
+
+    /// "S1E5" / "S2E12" / "E5" / "" depending on which numbers the
+    /// episode metadata carries. Keep verbatim so the label reads the
+    /// same in every locale; the format is universal across streaming
+    /// UIs.
+    private func episodeShorthand(for episode: JellyfinItem) -> String {
+        var out = ""
+        if let s = episode.parentIndexNumber { out += "S\(s)" }
+        if let e = episode.indexNumber { out += "E\(e)" }
+        return out
     }
 
     /// The "Request in Seerr" button only makes sense for series that
