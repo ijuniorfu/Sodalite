@@ -74,7 +74,7 @@ final class DetailViewModel {
         let itemID = item.id
         let itemType = item.type
 
-        // Fetch detail + similar. We avoid `async let` here because it
+        // Fetch detail. We avoid `async let` here because it
         // interacts badly with @MainActor-isolated service calls crossing
         // back into a non-isolated @Observable class — the task-local
         // allocator ends up deallocating a pointer that is no longer the
@@ -84,15 +84,13 @@ final class DetailViewModel {
         // A detached-ish Task{}.value pair stays parallel but keeps each
         // call on its own independent allocator.
         let detailTask = Task { try? await itemService.getItemDetail(userID: userID, itemID: itemID) }
-        let similarTask = Task { try? await itemService.getSimilarItems(itemID: itemID, userID: userID, limit: 12) }
 
-        // Series content (seasons + next-up) only depends on the
-        // item ID, which we already have from the passed-in item —
-        // start the chain in parallel with the detail/similar fetch
+        // Series content (seasons + next-up + episodes) only depends
+        // on the item ID, which we already have from the passed-in
+        // item — start the chain in parallel with the detail fetch
         // so the play button's "Fortsetzen + S1E5 · 12:34" subtitle
         // and progress overlay arrive on the screen at the same
-        // moment as the rest of the detail panel, instead of waiting
-        // for detail → seasons → next-up to play out sequentially.
+        // moment as the rest of the detail panel.
         let seriesContentTask: Task<Void, Never>? = (itemType == .series) ? Task {
             await loadSeasons()
         } : nil
@@ -100,12 +98,22 @@ final class DetailViewModel {
             await loadCollectionItems()
         } : nil
 
+        // Similar items power a row near the bottom of the detail
+        // screen — well below the fold on every reasonable viewport,
+        // so the user wouldn't see it within the first paint anyway.
+        // Fire it without awaiting so it doesn't gate isLoading
+        // flipping false; the similar-row appears progressively when
+        // the response lands.
+        Task { [weak self] in
+            guard let self else { return }
+            if let similar = try? await itemService.getSimilarItems(itemID: itemID, userID: userID, limit: 12) {
+                await MainActor.run { self.similarItems = similar.items }
+            }
+        }
+
         if let detail = await detailTask.value {
             item = detail
             isFavorite = detail.userData?.isFavorite ?? false
-        }
-        if let similar = await similarTask.value {
-            similarItems = similar.items
         }
 
         if itemType != .series && itemType != .boxSet {
@@ -113,7 +121,7 @@ final class DetailViewModel {
         }
 
         // Wait for the parallel chains to finish so isLoading flips
-        // false only after every section has data to render.
+        // false only after every above-the-fold section has data.
         await seriesContentTask?.value
         await collectionContentTask?.value
 
@@ -123,70 +131,65 @@ final class DetailViewModel {
     func loadSeasons() async {
         guard item.type == .series else { return }
 
-        do {
-            // Seasons + NextUp don't depend on each other — fan them
-            // out so the slowest of the two gates "ready", not the
-            // sum. Same Task.value-not-async-let dance the rest of
-            // this file uses to dodge the task-local allocator
-            // SIGABRT under @MainActor isolation.
-            let seasonsTask = Task { try? await itemService.getSeasons(seriesID: item.id, userID: userID) }
-            let nextUpTask: Task<JellyfinItemsResponse?, Never>? = libraryService.map { libService in
-                Task { try? await libService.getNextUp(userID: userID, seriesID: item.id, limit: 1) }
-            }
-
-            // Publish the next-up episode the moment its response
-            // lands, decoupled from the seasons fetch. The play
-            // button only needs this to flip into its final
-            // "Fortsetzen + S1E5 · 12:34 + progress" state — gating
-            // it on the seasons round-trip too means the user
-            // watches the button repaint twice for no reason.
-            let nextUpPublishTask: Task<Void, Never>? = nextUpTask.map { task in
-                Task { @MainActor [weak self] in
-                    if let next = await task.value?.items.first {
-                        self?.nextUpEpisode = next
-                    }
-                }
-            }
-
-            guard let response = await seasonsTask.value else {
-                _ = await nextUpPublishTask?.value
-                return
-            }
-            seasons = response.items
-
-            var targetSeasonID: String?
-            var targetEpisodeID: String?
-            if let nextUpTask, let nextEp = await nextUpTask.value?.items.first {
-                targetSeasonID = nextEp.seasonId
-                targetEpisodeID = nextEp.id
-                // nextUpEpisode is already published by the
-                // decoupled task above; this just routes the
-                // episode + season IDs into the season-load that
-                // follows.
-            }
-
-            // Fallback: no NextUp means no watch history → start at season 1
-
-            // Load the target season or fallback to first
-            let seasonToLoad = targetSeasonID ?? seasons.first?.id
-            if let seasonToLoad {
-                selectedSeasonID = seasonToLoad
-                await loadEpisodes(seasonID: seasonToLoad)
-                currentEpisodeID = targetEpisodeID
-
-                // Pre-fetch playback info for the target episode (or first episode)
-                let prefetchID = targetEpisodeID ?? episodes.first?.id
-                if let prefetchID {
-                    prefetchPlaybackInfo(for: prefetchID)
-                }
-
-                // Warm the cache for the remaining seasons in the
-                // background so subsequent tab switches are instant.
-                startEpisodePrefetch()
-            }
-        } catch {
-            // Handle error
+        // Three independent fetches all keyed off the series ID:
+        //   - getSeasons:  the season-tabs list
+        //   - getNextUp:   the resume target (if any)
+        //   - loadEpisodes: needs a season ID, but next-up gives us
+        //                  one as soon as it lands — so we wait
+        //                  ONLY on next-up before kicking that off,
+        //                  not on the seasons response.
+        let seasonsTask = Task { try? await itemService.getSeasons(seriesID: item.id, userID: userID) }
+        let nextUpTask: Task<JellyfinItemsResponse?, Never>? = libraryService.map { libService in
+            Task { try? await libService.getNextUp(userID: userID, seriesID: item.id, limit: 1) }
         }
+
+        // As soon as next-up resolves: publish nextUpEpisode + fire
+        // loadEpisodes for that episode's season in parallel with
+        // the still-pending getSeasons. Without this, loadEpisodes
+        // would only start AFTER seasons had returned and we'd
+        // serialise three round-trips into the critical path
+        // instead of overlapping them.
+        let earlyEpisodesTask: Task<Void, Never>? = nextUpTask.map { task in
+            Task { @MainActor [weak self] in
+                guard let self,
+                      let nextEp = await task.value?.items.first else { return }
+                self.nextUpEpisode = nextEp
+                if let seasonID = nextEp.seasonId {
+                    self.selectedSeasonID = seasonID
+                    await self.loadEpisodes(seasonID: seasonID)
+                    self.currentEpisodeID = nextEp.id
+                    self.prefetchPlaybackInfo(for: nextEp.id)
+                }
+            }
+        }
+
+        // Wait on the seasons response — fast network races aside
+        // this is the slowest of the three calls because Jellyfin
+        // returns full metadata for every season image tag.
+        let seasonsResponse = await seasonsTask.value
+        if let seasonsResponse {
+            seasons = seasonsResponse.items
+        }
+
+        // Let the early-episodes task settle (probably already done)
+        // before falling back to the no-next-up path.
+        await earlyEpisodesTask?.value
+
+        // Fallback path: no next-up means no watch history. Land on
+        // season 1 with its episode list loaded so the user has
+        // something to focus into.
+        if nextUpEpisode == nil, episodes.isEmpty,
+           let firstSeasonID = seasons.first?.id {
+            selectedSeasonID = firstSeasonID
+            await loadEpisodes(seasonID: firstSeasonID)
+            if let firstEp = episodes.first?.id {
+                prefetchPlaybackInfo(for: firstEp)
+            }
+        }
+
+        // Warm the cache for the remaining seasons in the
+        // background so subsequent tab switches are instant.
+        startEpisodePrefetch()
     }
 
     func loadEpisodes(seasonID: String) async {
