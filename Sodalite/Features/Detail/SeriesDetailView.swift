@@ -3,6 +3,7 @@ import SwiftUI
 struct SeriesDetailView: View {
     @Environment(\.appState) private var appState
     @Environment(\.dependencies) private var dependencies
+    @Environment(\.dismiss) private var dismiss
     @State private var viewModel: DetailViewModel?
     @State private var selectedEpisode: JellyfinItem?
     @State private var navigateToItem: JellyfinItem?
@@ -113,9 +114,18 @@ struct SeriesDetailView: View {
                 // + progress overlay all changed in a 300 ms window);
                 // gating on isLoading lets the user land on a
                 // single, finished render.
-                ProgressView()
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .transition(.opacity)
+                ZStack {
+                    ProgressView()
+                    // Invisible focus anchor — without it, pressing
+                    // Menu on the loading screen propagates past the
+                    // navigation stack and quits the app instead of
+                    // popping back. Same pattern other empty/loading
+                    // states in the app use.
+                    Button("") { dismiss() }
+                        .opacity(0)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .transition(.opacity)
             }
         }
         .animation(.easeInOut(duration: 0.25), value: viewModel?.isLoading)

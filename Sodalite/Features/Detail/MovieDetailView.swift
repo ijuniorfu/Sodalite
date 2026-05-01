@@ -3,6 +3,7 @@ import SwiftUI
 struct MovieDetailView: View {
     @Environment(\.appState) private var appState
     @Environment(\.dependencies) private var dependencies
+    @Environment(\.dismiss) private var dismiss
     @State private var viewModel: DetailViewModel?
     @State private var navigateToSeries: JellyfinItem?
     @State private var navigateToItem: JellyfinItem?
@@ -24,9 +25,17 @@ struct MovieDetailView: View {
                 // visible repaint when the play button's resume
                 // metadata + progress overlay land mid-render. One
                 // finished frame reads quieter than three.
-                ProgressView()
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .transition(.opacity)
+                ZStack {
+                    ProgressView()
+                    // Invisible focus anchor so a Menu press during
+                    // load pops back to the previous screen instead
+                    // of escaping the navigation stack and quitting
+                    // the app.
+                    Button("") { dismiss() }
+                        .opacity(0)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .transition(.opacity)
             }
         }
         .animation(.easeInOut(duration: 0.25), value: viewModel?.isLoading)
