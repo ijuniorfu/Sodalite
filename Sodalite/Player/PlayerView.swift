@@ -859,7 +859,8 @@ private struct PlayerOverlayView: View {
                     trackDropdown: viewModel.trackDropdown,
                     showSkipIntroButton: viewModel.isInsideIntro,
                     seasonEpisodes: viewModel.seasonEpisodes,
-                    activeEpisodeID: viewModel.item.id
+                    activeEpisodeID: viewModel.item.id,
+                    episodeImageURL: { episodeThumbnailURL(for: $0) }
                 )
             }
         }

@@ -39,6 +39,10 @@ struct TransportBar: View {
     /// ID of the episode currently playing — used to mark the active
     /// row in the dropdown and to compose the button label.
     let activeEpisodeID: String?
+    /// Resolves the thumbnail URL for an episode row. Closure rather
+    /// than a hard dependency on JellyfinImageService so the SwiftUI
+    /// view stays unaware of the service layer.
+    let episodeImageURL: (JellyfinItem) -> URL?
 
     var body: some View {
         VStack(spacing: 10) {
@@ -181,7 +185,8 @@ struct TransportBar: View {
             DropdownItem(
                 title: episodeRowTitle(for: episode),
                 isActive: episode.id == activeEpisodeID,
-                isHighlighted: idx == highlighted
+                isHighlighted: idx == highlighted,
+                imageURL: episodeImageURL(episode)
             )
         }
     }
@@ -254,36 +259,30 @@ struct TransportBar: View {
     // MARK: - Track Button + Dropdown
 
     private static let dropdownItemHeight: CGFloat = 56
+    /// Episode rows carry a 16:9 thumbnail and the episode title, so
+    /// they need a taller row to read at TV viewing distance. The
+    /// image renders at 120×68 with 8pt vertical breathing room → 84pt
+    /// total. Audio/subtitle/speed dropdowns stay on the compact 56pt
+    /// row.
+    private static let episodeRowHeight: CGFloat = 84
     private static let dropdownMaxVisible: Int = 6
 
     private func trackButton(label: String, icon: String, isFocused: Bool, dropdown: [DropdownItem], isOpen: Bool) -> some View {
         VStack(spacing: 6) {
             // Dropdown menu (opens upward, scrollable if many items)
             if isOpen {
+                let hasImages = dropdown.contains(where: { $0.imageURL != nil })
+                let rowHeight = hasImages ? Self.episodeRowHeight : Self.dropdownItemHeight
                 let itemCount = dropdown.count
                 let visibleCount = min(itemCount, Self.dropdownMaxVisible)
-                let height = CGFloat(visibleCount) * Self.dropdownItemHeight
+                let height = CGFloat(visibleCount) * rowHeight
 
                 ScrollViewReader { proxy in
                     ScrollView {
                         VStack(spacing: 0) {
                             ForEach(Array(dropdown.enumerated()), id: \.offset) { idx, item in
-                                HStack {
-                                    Text(item.title)
-                                        .font(.callout)
-                                        .lineLimit(1)
-                                    Spacer()
-                                    if item.isActive {
-                                        Image(systemName: "checkmark")
-                                            .font(.caption)
-                                            .fontWeight(.bold)
-                                    }
-                                }
-                                .padding(.horizontal, 16)
-                                .frame(height: Self.dropdownItemHeight)
-                                .background(item.isHighlighted ? Color.white.opacity(0.25) : Color.clear)
-                                .foregroundStyle(item.isHighlighted ? .white : .white.opacity(0.8))
-                                .id(idx)
+                                dropdownRow(item: item, hasImages: hasImages, rowHeight: rowHeight)
+                                    .id(idx)
                             }
                         }
                     }
@@ -294,6 +293,7 @@ struct TransportBar: View {
                     }
                 }
                 .frame(height: height)
+                .frame(minWidth: hasImages ? 480 : 0)
                 .background(.ultraThinMaterial)
                 .clipShape(RoundedRectangle(cornerRadius: 12))
                 .fixedSize(horizontal: true, vertical: false)
@@ -362,6 +362,48 @@ private struct DropdownItem {
     let title: String
     let isActive: Bool
     let isHighlighted: Bool
+    /// Optional thumbnail; only the episode picker fills this in.
+    /// Other dropdowns (audio, subtitle, speed) leave it nil and the
+    /// row falls back to the compact text-only layout.
+    var imageURL: URL? = nil
+}
+
+// MARK: - Dropdown Row
+
+private extension TransportBar {
+    @ViewBuilder
+    func dropdownRow(item: DropdownItem, hasImages: Bool, rowHeight: CGFloat) -> some View {
+        HStack(spacing: 14) {
+            if hasImages {
+                AsyncCachedImage(url: item.imageURL) { image in
+                    image
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                } placeholder: {
+                    Rectangle().fill(Color.white.opacity(0.08))
+                }
+                .frame(width: 120, height: 68)
+                .clipShape(RoundedRectangle(cornerRadius: 6))
+            }
+
+            Text(item.title)
+                .font(.callout)
+                .lineLimit(2)
+                .multilineTextAlignment(.leading)
+
+            Spacer()
+
+            if item.isActive {
+                Image(systemName: "checkmark")
+                    .font(.caption)
+                    .fontWeight(.bold)
+            }
+        }
+        .padding(.horizontal, 16)
+        .frame(height: rowHeight)
+        .background(item.isHighlighted ? Color.white.opacity(0.25) : Color.clear)
+        .foregroundStyle(item.isHighlighted ? .white : .white.opacity(0.8))
+    }
 }
 
 // MARK: - Title Overlay
