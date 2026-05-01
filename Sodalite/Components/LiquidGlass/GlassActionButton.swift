@@ -15,6 +15,14 @@ struct GlassActionButton: View {
     /// resume tile in the active accent. nil suppresses the overlay
     /// entirely (fresh content, no progress to show).
     var progressFraction: Double? = nil
+    /// When true, the label is replaced with a spinner and the
+    /// button is disabled. Used while the host view is still
+    /// resolving which content the action will play — e.g. the
+    /// series detail's play button waits for getNextUp before it
+    /// can decide between "Abspielen" and "Fortsetzen + S1E5".
+    /// Showing a placeholder is visually quieter than letting the
+    /// title flip mid-render.
+    var isLoading: Bool = false
     let action: () -> Void
 
     var body: some View {
@@ -22,16 +30,21 @@ struct GlassActionButton: View {
             action()
         } label: {
             HStack(spacing: 10) {
-                Image(systemName: systemImage)
-                    .font(.body)
-                Text(title)
-                    .font(.callout)
-                    .fontWeight(.medium)
-                if let subtitle, !subtitle.isEmpty {
-                    Text(subtitle)
-                        .font(.caption)
-                        .foregroundStyle(.white.opacity(0.75))
-                        .monospacedDigit()
+                if isLoading {
+                    ProgressView()
+                        .frame(minWidth: 80)
+                } else {
+                    Image(systemName: systemImage)
+                        .font(.body)
+                    Text(title)
+                        .font(.callout)
+                        .fontWeight(.medium)
+                    if let subtitle, !subtitle.isEmpty {
+                        Text(subtitle)
+                            .font(.caption)
+                            .foregroundStyle(.white.opacity(0.75))
+                            .monospacedDigit()
+                    }
                 }
             }
             .padding(.horizontal, 24)
@@ -41,6 +54,7 @@ struct GlassActionButton: View {
             isProminent: isProminent,
             progressFraction: progressFraction
         ))
+        .disabled(isLoading)
     }
 }
 

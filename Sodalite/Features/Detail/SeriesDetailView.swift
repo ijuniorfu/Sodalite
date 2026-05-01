@@ -241,6 +241,12 @@ struct SeriesDetailView: View {
                     isProminent: true,
                     subtitle: playButtonSubtitle(vm: vm),
                     progressFraction: playProgressFraction(vm: vm),
+                    // Hold the button on a spinner until we've got
+                    // a concrete play target. Avoids the visible
+                    // "Abspielen" → "Fortsetzen + S1E5 · 12:34"
+                    // repaint that fires when getNextUp lands a few
+                    // hundred ms after the view appears.
+                    isLoading: playTarget(vm: vm) == nil,
                     action: {
                         let ep = playTarget(vm: vm)
                         if let ep {

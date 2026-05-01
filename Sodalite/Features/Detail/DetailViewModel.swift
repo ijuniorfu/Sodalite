@@ -134,7 +134,22 @@ final class DetailViewModel {
                 Task { try? await libService.getNextUp(userID: userID, seriesID: item.id, limit: 1) }
             }
 
+            // Publish the next-up episode the moment its response
+            // lands, decoupled from the seasons fetch. The play
+            // button only needs this to flip into its final
+            // "Fortsetzen + S1E5 · 12:34 + progress" state — gating
+            // it on the seasons round-trip too means the user
+            // watches the button repaint twice for no reason.
+            let nextUpPublishTask: Task<Void, Never>? = nextUpTask.map { task in
+                Task { @MainActor [weak self] in
+                    if let next = await task.value?.items.first {
+                        self?.nextUpEpisode = next
+                    }
+                }
+            }
+
             guard let response = await seasonsTask.value else {
+                _ = await nextUpPublishTask?.value
                 return
             }
             seasons = response.items
@@ -144,11 +159,10 @@ final class DetailViewModel {
             if let nextUpTask, let nextEp = await nextUpTask.value?.items.first {
                 targetSeasonID = nextEp.seasonId
                 targetEpisodeID = nextEp.id
-                // Surface the next-up item to the view layer
-                // immediately so the play button can render its
-                // subtitle + resume progress before loadEpisodes
-                // finishes the slower season-list fetch below.
-                nextUpEpisode = nextEp
+                // nextUpEpisode is already published by the
+                // decoupled task above; this just routes the
+                // episode + season IDs into the season-load that
+                // follows.
             }
 
             // Fallback: no NextUp means no watch history → start at season 1
