@@ -12,7 +12,7 @@ import AetherEngine
 enum TrackDisplayFormatter {
 
     /// Full display name for an audio track.
-    /// Example: "Deutsch · Dolby Digital 5.1"
+    /// Example: "Deutsch · Dolby Digital 5.1" or "Englisch · Dolby Atmos"
     static func audioDisplayName(for track: TrackInfo) -> String {
         var parts: [String] = []
 
@@ -21,10 +21,17 @@ enum TrackDisplayFormatter {
             parts.append(lang)
         }
 
-        // Codec + channels
-        let quality = audioQuality(codec: track.codec, channels: track.channels)
-        if !quality.isEmpty {
-            parts.append(quality)
+        // Atmos overrides the bed-channel description: a track that's
+        // 5.1 + JOC objects is universally branded as "Dolby Atmos",
+        // not "Dolby Digital+ 5.1" — which is what the user sees on
+        // every other Atmos-aware UI.
+        if track.isAtmos {
+            parts.append("Dolby Atmos")
+        } else {
+            let quality = audioQuality(codec: track.codec, channels: track.channels)
+            if !quality.isEmpty {
+                parts.append(quality)
+            }
         }
 
         if parts.isEmpty {
