@@ -47,10 +47,17 @@ struct ServerDiscoveryView: View {
                         } label: {
                             if vm.isLoading {
                                 ProgressView()
+                                    .padding(.horizontal, 32)
+                                    .padding(.vertical, 12)
                             } else {
                                 Text("auth.server.connect")
+                                    .font(.body)
+                                    .fontWeight(.semibold)
+                                    .padding(.horizontal, 32)
+                                    .padding(.vertical, 12)
                             }
                         }
+                        .buttonStyle(SettingsTileButtonStyle())
                         .disabled(vm.isLoading || vm.serverAddress.trimmingCharacters(in: .whitespaces).isEmpty)
                     }
                     .frame(maxWidth: 500)

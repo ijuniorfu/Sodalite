@@ -473,10 +473,27 @@ struct CatalogDetailView: View {
     private var requestSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             if didRequest {
-                Label("catalog.request.sent", systemImage: "checkmark.circle.fill")
-                    .foregroundStyle(.green)
-                    .font(.body)
-                    .fontWeight(.medium)
+                // Replaces the request button with a back-to-catalog
+                // CTA after the request lands. The screen has nothing
+                // else focusable at this point, and tvOS routes the
+                // Menu button to "exit the app" when the current view
+                // has no focus to pop — the user would otherwise drop
+                // out to the Home screen instead of returning to the
+                // catalog row they came from.
+                Button {
+                    dismiss()
+                } label: {
+                    HStack(spacing: 12) {
+                        Image(systemName: "checkmark.circle.fill")
+                            .foregroundStyle(.green)
+                        Text("catalog.request.sent")
+                            .font(.body)
+                            .fontWeight(.medium)
+                    }
+                    .padding(.horizontal, 24)
+                    .padding(.vertical, 12)
+                }
+                .buttonStyle(SettingsTileButtonStyle())
             } else {
                 Button {
                     Task { await submitRequest() }

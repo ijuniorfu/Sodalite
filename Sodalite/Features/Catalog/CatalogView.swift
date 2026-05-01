@@ -136,6 +136,7 @@ struct CatalogView: View {
                 .padding(.horizontal, 32)
                 .padding(.vertical, 16)
             }
+            .buttonStyle(SettingsTileButtonStyle())
             .padding(.top, 8)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)

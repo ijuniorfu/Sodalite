@@ -129,6 +129,7 @@ struct SeerrSettingsView: View {
                         .padding(.vertical, 12)
                 }
             }
+            .buttonStyle(SettingsTileButtonStyle())
             .disabled(isDiscovering || !isAddressValid)
         }
     }
@@ -160,7 +161,10 @@ struct SeerrSettingsView: View {
             } label: {
                 Text("settings.seerr.changeServer")
                     .font(.caption)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 8)
             }
+            .buttonStyle(SettingsTileButtonStyle())
         }
         .padding(20)
         .background(
@@ -229,6 +233,7 @@ struct SeerrSettingsView: View {
                             .padding(.vertical, 12)
                     }
                 }
+                .buttonStyle(SettingsTileButtonStyle())
                 .disabled(isLoggingIn || !canSubmit)
             }
         }

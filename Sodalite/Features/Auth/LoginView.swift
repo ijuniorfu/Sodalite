@@ -155,10 +155,17 @@ struct LoginView: View {
             } label: {
                 if vm.isLoading {
                     ProgressView()
+                        .padding(.horizontal, 32)
+                        .padding(.vertical, 12)
                 } else {
                     Text("auth.login.signIn")
+                        .font(.body)
+                        .fontWeight(.semibold)
+                        .padding(.horizontal, 32)
+                        .padding(.vertical, 12)
                 }
             }
+            .buttonStyle(SettingsTileButtonStyle())
             .disabled(vm.isLoading || vm.username.trimmingCharacters(in: .whitespaces).isEmpty)
 
             Button {
@@ -166,7 +173,11 @@ struct LoginView: View {
                 Task { await vm.startQuickConnect() }
             } label: {
                 Text("auth.login.quickConnect")
+                    .font(.body)
+                    .padding(.horizontal, 32)
+                    .padding(.vertical, 12)
             }
+            .buttonStyle(SettingsTileButtonStyle())
         }
         .frame(maxWidth: 500)
     }
@@ -211,7 +222,11 @@ struct LoginView: View {
                 showQuickConnect = false
             } label: {
                 Text("auth.quickConnect.cancel")
+                    .font(.body)
+                    .padding(.horizontal, 32)
+                    .padding(.vertical, 12)
             }
+            .buttonStyle(SettingsTileButtonStyle())
         }
         .frame(maxWidth: 500)
     }

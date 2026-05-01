@@ -39,7 +39,15 @@ struct DetailContentOverlay<Content: View>: View {
                 }
                 .padding(.bottom, 80)
                 .background(.black)
+
+                // Trailing solid-black filler so a short content block
+                // (e.g. once "Anfrage gesendet" has replaced the
+                // request flow's tabs) doesn't leave the backdrop
+                // bleeding through with a hard gradient edge at the
+                // bottom of the screen.
+                Color.black.frame(minHeight: 600)
             }
         }
+        .background(Color.black.ignoresSafeArea(edges: .bottom))
     }
 }
