@@ -234,9 +234,18 @@ final class PlayerHostController: UIViewController {
         // AetherEngine stops the demux loop on didEnterBackground (VT sessions
         // and AVIO connections are invalidated by tvOS). Reload the pipeline
         // from the current position to rebuild everything safely.
+        //
+        // After reload, hold the player paused on the resumed frame and
+        // surface the controls so the user has to press Play deliberately.
+        // Auto-resuming on foreground returns from "TV went to standby
+        // mid-show" or "Home button to check a notification" was startling
+        // — the user has no control over what's currently happening on
+        // screen, and a five-minute idle gap shouldn't keep racing.
         guard viewModel.hasStartedPlaying else { return }
-        Task {
+        Task { @MainActor in
             try? await viewModel.player.reloadAtCurrentPosition()
+            viewModel.player.pause()
+            viewModel.showControlsTemporarily()
         }
     }
 
