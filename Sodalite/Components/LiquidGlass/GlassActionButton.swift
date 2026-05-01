@@ -19,20 +19,19 @@ struct GlassActionButton: View {
             HStack(spacing: 10) {
                 Image(systemName: systemImage)
                     .font(.body)
+                Text(title)
+                    .font(.callout)
+                    .fontWeight(.medium)
+                // Subtitle sits inline next to the title rather than
+                // stacked below it. Two-line buttons would make this
+                // one taller than its row neighbours (Replay, Favorite,
+                // Request) and the action row would lose its visual
+                // grid; widening is the cheaper trade on a 10-foot UI.
                 if let subtitle, !subtitle.isEmpty {
-                    VStack(alignment: .leading, spacing: 1) {
-                        Text(title)
-                            .font(.callout)
-                            .fontWeight(.medium)
-                        Text(subtitle)
-                            .font(.caption2)
-                            .foregroundStyle(.white.opacity(0.75))
-                            .monospacedDigit()
-                    }
-                } else {
-                    Text(title)
-                        .font(.callout)
-                        .fontWeight(.medium)
+                    Text(subtitle)
+                        .font(.caption)
+                        .foregroundStyle(.white.opacity(0.75))
+                        .monospacedDigit()
                 }
             }
             .padding(.horizontal, 24)
