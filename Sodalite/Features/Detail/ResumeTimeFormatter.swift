@@ -6,9 +6,13 @@ import Foundation
 /// an hour. Sprachneutral so we can use the same string across all 26
 /// shipped locales without going through the catalog.
 enum ResumeTimeFormatter {
-    static func format(ticks: Int) -> String? {
+    /// Jellyfin's `playbackPositionTicks` is `Int64?` — Swift refuses
+    /// to widen `Int → Int64` implicitly in either direction, so the
+    /// formatter mirrors the source type rather than forcing every
+    /// call site to wrap in `Int(...)`.
+    static func format(ticks: Int64) -> String? {
         guard ticks > 0 else { return nil }
-        let totalSeconds = ticks / 10_000_000
+        let totalSeconds = Int(ticks / 10_000_000)
         let hours = totalSeconds / 3600
         let minutes = (totalSeconds % 3600) / 60
         let seconds = totalSeconds % 60
