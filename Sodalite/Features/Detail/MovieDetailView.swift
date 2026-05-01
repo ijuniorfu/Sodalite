@@ -14,13 +14,22 @@ struct MovieDetailView: View {
 
     var body: some View {
         Group {
-            if let vm = viewModel {
+            if let vm = viewModel, !vm.isLoading {
                 contentView(vm: vm)
+                    .transition(.opacity)
             } else {
+                // Centred spinner while detail + similar are still
+                // in flight. See SeriesDetailView for the same
+                // rationale: progressively-filling fields produce a
+                // visible repaint when the play button's resume
+                // metadata + progress overlay land mid-render. One
+                // finished frame reads quieter than three.
                 ProgressView()
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .transition(.opacity)
             }
         }
+        .animation(.easeInOut(duration: 0.25), value: viewModel?.isLoading)
         .ignoresSafeArea()
         .overlay {
             if let userID = appState.activeUser?.id {

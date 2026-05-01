@@ -54,7 +54,7 @@ struct SeriesDetailView: View {
             DetailBackdrop(imageURL: backdropURL)
                 .id(backdropURL?.absoluteString ?? "empty")
 
-            if let vm = viewModel {
+            if let vm = viewModel, !vm.isLoading {
                 DetailContentOverlay {
                     glassPanel(vm: vm)
                         .padding(.horizontal, 50)
@@ -98,10 +98,21 @@ struct SeriesDetailView: View {
                         )
                     }
                 }
+                .transition(.opacity)
             } else {
+                // Centred spinner over the backdrop while every
+                // section's data is still in flight. Showing the
+                // panel progressively as fields fill in produced a
+                // visible repaint storm (play button title + subtitle
+                // + progress overlay all changed in a 300 ms window);
+                // gating on isLoading lets the user land on a
+                // single, finished render.
                 ProgressView()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .transition(.opacity)
             }
         }
+        .animation(.easeInOut(duration: 0.25), value: viewModel?.isLoading)
         .ignoresSafeArea()
         .overlay {
             if let userID = appState.activeUser?.id {
