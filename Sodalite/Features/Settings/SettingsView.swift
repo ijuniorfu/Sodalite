@@ -346,9 +346,15 @@ struct PlaybackSettingsPlaceholder: View {
                 .foregroundStyle(.tertiary)
             Text("settings.playback.comingSoon")
                 .foregroundStyle(.secondary)
-            Button("home.retry") {
+            Button {
                 dismiss()
+            } label: {
+                Text("home.retry")
+                    .font(.body)
+                    .padding(.horizontal, 32)
+                    .padding(.vertical, 12)
             }
+            .buttonStyle(SettingsTileButtonStyle())
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .navigationTitle("settings.playback.title")

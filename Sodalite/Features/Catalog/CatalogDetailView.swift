@@ -93,6 +93,7 @@ struct CatalogDetailView: View {
                         .padding(.horizontal, 24)
                         .padding(.vertical, 10)
                 }
+                .buttonStyle(SettingsTileButtonStyle())
                 Button {
                     dismiss()
                 } label: {
@@ -100,6 +101,7 @@ struct CatalogDetailView: View {
                         .padding(.horizontal, 24)
                         .padding(.vertical, 10)
                 }
+                .buttonStyle(SettingsTileButtonStyle())
             }
         }
         .frame(maxWidth: .infinity)

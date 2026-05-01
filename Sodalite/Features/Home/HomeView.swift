@@ -25,9 +25,15 @@ struct HomeView: View {
                                 .foregroundStyle(.secondary)
                             Text(error)
                                 .foregroundStyle(.secondary)
-                            Button("home.retry") {
+                            Button {
                                 Task { await vm.loadContent() }
+                            } label: {
+                                Text("home.retry")
+                                    .font(.body)
+                                    .padding(.horizontal, 32)
+                                    .padding(.vertical, 12)
                             }
+                            .buttonStyle(SettingsTileButtonStyle())
                         }
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                     } else {

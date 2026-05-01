@@ -71,10 +71,16 @@ struct CatalogMyRequestsView: View {
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
                 .frame(maxWidth: 600)
-            Button("home.retry") {
+            Button {
                 guard let userID = appState.activeSeerrUser?.id else { return }
                 Task { await viewModel.loadMyRequests(userID: userID) }
+            } label: {
+                Text("home.retry")
+                    .font(.body)
+                    .padding(.horizontal, 32)
+                    .padding(.vertical, 12)
             }
+            .buttonStyle(SettingsTileButtonStyle())
             .padding(.top, 8)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)

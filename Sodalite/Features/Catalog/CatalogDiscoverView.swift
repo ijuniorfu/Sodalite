@@ -161,9 +161,15 @@ struct CatalogDiscoverView: View {
             Text(message)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
-            Button("home.retry") {
+            Button {
                 Task { await viewModel.loadDiscover() }
+            } label: {
+                Text("home.retry")
+                    .font(.body)
+                    .padding(.horizontal, 32)
+                    .padding(.vertical, 12)
             }
+            .buttonStyle(SettingsTileButtonStyle())
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding(40)

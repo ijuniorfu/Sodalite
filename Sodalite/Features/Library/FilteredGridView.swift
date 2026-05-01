@@ -82,7 +82,11 @@ struct FilteredGridView: View {
                         .foregroundStyle(.secondary)
                     Button { dismiss() } label: {
                         Text("detail.showSeries")
+                            .font(.body)
+                            .padding(.horizontal, 32)
+                            .padding(.vertical, 12)
                     }
+                    .buttonStyle(SettingsTileButtonStyle())
                 }
                 .frame(maxWidth: .infinity, minHeight: 400)
             } else {

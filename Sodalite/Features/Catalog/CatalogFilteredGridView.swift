@@ -230,7 +230,11 @@ struct CatalogFilteredGridView: View {
             // instead of popping back to the catalog.
             Button { dismiss() } label: {
                 Text("common.back")
+                    .font(.body)
+                    .padding(.horizontal, 32)
+                    .padding(.vertical, 12)
             }
+            .buttonStyle(SettingsTileButtonStyle())
         }
         .frame(maxWidth: .infinity, minHeight: 400)
     }
@@ -248,7 +252,11 @@ struct CatalogFilteredGridView: View {
                 .foregroundStyle(.secondary)
             Button { dismiss() } label: {
                 Text("common.back")
+                    .font(.body)
+                    .padding(.horizontal, 32)
+                    .padding(.vertical, 12)
             }
+            .buttonStyle(SettingsTileButtonStyle())
         }
         .frame(maxWidth: .infinity, minHeight: 400)
     }

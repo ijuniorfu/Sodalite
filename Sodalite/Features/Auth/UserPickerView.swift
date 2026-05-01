@@ -133,6 +133,7 @@ struct UserPickerView: View {
             .padding(.horizontal, 24)
             .padding(.vertical, 12)
         }
+        .buttonStyle(SettingsTileButtonStyle())
     }
 
     // MARK: - States
@@ -160,6 +161,7 @@ struct UserPickerView: View {
                 .padding(.horizontal, 28)
                 .padding(.vertical, 14)
             }
+            .buttonStyle(SettingsTileButtonStyle())
         }
         .frame(maxHeight: .infinity)
     }
@@ -181,6 +183,7 @@ struct UserPickerView: View {
                         .padding(.horizontal, 24)
                         .padding(.vertical, 12)
                 }
+                .buttonStyle(SettingsTileButtonStyle())
                 Button {
                     manualLogin = true
                 } label: {
@@ -191,6 +194,7 @@ struct UserPickerView: View {
                     .padding(.horizontal, 24)
                     .padding(.vertical, 12)
                 }
+                .buttonStyle(SettingsTileButtonStyle())
             }
         }
         .frame(maxHeight: .infinity)
