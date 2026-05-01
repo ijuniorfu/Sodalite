@@ -9,6 +9,14 @@ final class DetailViewModel {
     var episodes: [JellyfinItem] = []
     var collectionItems: [JellyfinItem] = []
     var currentEpisodeID: String?
+    /// The full next-up episode item, populated as soon as the
+    /// `getNextUp` response lands. Used by the play button to render
+    /// "S1E5 · 12:34" + the resume-progress bar before the season's
+    /// full episode list has finished loading. Without this the
+    /// button stays on its initial "Play" / no-subtitle state for the
+    /// few hundred ms it takes loadEpisodes to fill `episodes`, which
+    /// reads as a layout flicker on the user's first focused tile.
+    var nextUpEpisode: JellyfinItem?
     var similarItems: [JellyfinItem] = []
     var selectedSeasonID: String?
     var isLoading = false
@@ -122,6 +130,11 @@ final class DetailViewModel {
             if let nextUpTask, let nextEp = await nextUpTask.value?.items.first {
                 targetSeasonID = nextEp.seasonId
                 targetEpisodeID = nextEp.id
+                // Surface the next-up item to the view layer
+                // immediately so the play button can render its
+                // subtitle + resume progress before loadEpisodes
+                // finishes the slower season-list fetch below.
+                nextUpEpisode = nextEp
             }
 
             // Fallback: no NextUp means no watch history → start at season 1

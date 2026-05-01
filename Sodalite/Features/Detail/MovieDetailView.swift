@@ -143,6 +143,7 @@ struct MovieDetailView: View {
                     systemImage: "play.fill",
                     isProminent: true,
                     subtitle: resumeTimestamp(vm: vm),
+                    progressFraction: playProgressFraction(vm: vm),
                     action: {
                         playFromBeginning = false
                         showPlayer = true
@@ -217,6 +218,17 @@ struct MovieDetailView: View {
             return nil
         }
         return ResumeTimeFormatter.format(ticks: ticks)
+    }
+
+    /// 0…1 progress fraction surfaced as the resume-progress overlay
+    /// inside the play button. nil when the movie is fresh or has no
+    /// run-time metadata.
+    private func playProgressFraction(vm: DetailViewModel) -> Double? {
+        guard let ticks = vm.item.userData?.playbackPositionTicks, ticks > 0,
+              let total = vm.item.runTimeTicks, total > 0 else {
+            return nil
+        }
+        return min(1.0, max(0.0, Double(ticks) / Double(total)))
     }
 
     private func episodeSubtitle(vm: DetailViewModel, seriesName: String) -> String {

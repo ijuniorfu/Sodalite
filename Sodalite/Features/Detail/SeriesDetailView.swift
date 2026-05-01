@@ -236,12 +236,13 @@ struct SeriesDetailView: View {
 
             HStack(spacing: 16) {
                 GlassActionButton(
-                    title: playTitle,
+                    title: playTitle(vm: vm),
                     systemImage: "play.fill",
                     isProminent: true,
                     subtitle: playButtonSubtitle(vm: vm),
+                    progressFraction: playProgressFraction(vm: vm),
                     action: {
-                        let ep = selectedEpisode ?? vm.episodes.first(where: { $0.id == vm.currentEpisodeID }) ?? vm.episodes.first
+                        let ep = playTarget(vm: vm)
                         if let ep {
                             playItem = ep
                             playFromBeginning = false
@@ -290,28 +291,45 @@ struct SeriesDetailView: View {
         )
     }
 
-    private var playTitle: LocalizedStringKey {
-        if let ep = selectedEpisode,
-           let ticks = ep.userData?.playbackPositionTicks, ticks > 0 {
+    /// Single source of truth for "which episode does the play button
+    /// act on right now?". Used by playTitle, playButtonSubtitle, the
+    /// progress-bar fraction, AND the action closure so all four stay
+    /// in lockstep.
+    ///
+    /// Resolution order:
+    ///   1. Episode the user explicitly tapped (selectedEpisode)
+    ///   2. Episode in the loaded list flagged as currentEpisodeID
+    ///   3. The next-up item from getNextUp — populated as soon as
+    ///      that response lands, so the button has data to render
+    ///      before the full season episode list is fetched
+    ///   4. First episode of the loaded list (fresh series start)
+    private func playTarget(vm: DetailViewModel) -> JellyfinItem? {
+        if let selectedEpisode { return selectedEpisode }
+        if let id = vm.currentEpisodeID,
+           let match = vm.episodes.first(where: { $0.id == id }) {
+            return match
+        }
+        if let next = vm.nextUpEpisode { return next }
+        return vm.episodes.first
+    }
+
+    private func playTitle(vm: DetailViewModel) -> LocalizedStringKey {
+        if let ticks = playTarget(vm: vm)?.userData?.playbackPositionTicks,
+           ticks > 0 {
             return "detail.resume"
         }
         return "detail.play"
     }
 
-    /// Subtitle line under the primary play button: shows which episode
-    /// the tap will actually start (S1E5-style) plus, when the user is
-    /// resuming, the timestamp it'll resume from. Mirrors the play
-    /// action's own selection logic so the label always agrees with
-    /// the action.
+    /// Subtitle line next to the primary play button: shows which
+    /// episode the tap will actually start (S1E5-style) plus, when
+    /// the user is resuming, the timestamp it'll resume from.
     ///
     /// - "S1E5 · 12:34" when resuming a partially-watched episode
     /// - "S1E5" when starting fresh
     /// - nil if there's no resolvable target (e.g. an empty series)
     private func playButtonSubtitle(vm: DetailViewModel) -> String? {
-        let target = selectedEpisode
-            ?? vm.episodes.first(where: { $0.id == vm.currentEpisodeID })
-            ?? vm.episodes.first
-        guard let target else { return nil }
+        guard let target = playTarget(vm: vm) else { return nil }
 
         var parts: [String] = []
         let episodeLabel = episodeShorthand(for: target)
@@ -324,6 +342,20 @@ struct SeriesDetailView: View {
             parts.append(stamp)
         }
         return parts.isEmpty ? nil : parts.joined(separator: " · ")
+    }
+
+    /// 0…1 fraction representing how far into the resolved target
+    /// episode the user is. Returns nil when the episode is fresh or
+    /// has no run-time metadata — the play button suppresses the
+    /// progress overlay in those cases instead of drawing an empty
+    /// bar.
+    private func playProgressFraction(vm: DetailViewModel) -> Double? {
+        guard let target = playTarget(vm: vm),
+              let ticks = target.userData?.playbackPositionTicks, ticks > 0,
+              let total = target.runTimeTicks, total > 0 else {
+            return nil
+        }
+        return min(1.0, max(0.0, Double(ticks) / Double(total)))
     }
 
     /// "S1E5" / "S2E12" / "E5" / "" depending on which numbers the
