@@ -52,22 +52,27 @@ struct GlassButtonStyle: ButtonStyle {
     var progressFraction: Double? = nil
     @Environment(\.isFocused) private var isFocused
 
+    /// A tile that wears a progress overlay drops its prominent fill
+    /// — the accent-coloured backdrop drowned out the accent-coloured
+    /// progress capsule and the bar read as a barely-visible shade
+    /// difference. Falling back to the neutral grey fill the other
+    /// detail-row buttons use lets the progress capsule pop in full
+    /// tint colour against the muted base.
+    private var effectivelyProminent: Bool {
+        isProminent && (progressFraction ?? 0) <= 0
+    }
+
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .background(
                 ZStack(alignment: .leading) {
-                    // Base capsule — same fill the button has always
-                    // drawn. The progress overlay above sits on top of
-                    // this so a half-watched item still shows the
-                    // remaining-bar background colour for the right
-                    // half of the tile.
                     Capsule()
                         .fill(backgroundFill)
 
                     if let fraction = progressFraction, fraction > 0 {
                         GeometryReader { geo in
                             Capsule()
-                                .fill(.tint.opacity(isFocused ? 0.55 : 0.4))
+                                .fill(.tint.opacity(isFocused ? 0.95 : 0.85))
                                 .frame(width: geo.size.width * CGFloat(min(1.0, fraction)))
                         }
                         // Shape the inner fill to the outer capsule so
@@ -88,7 +93,7 @@ struct GlassButtonStyle: ButtonStyle {
     }
 
     private var backgroundFill: AnyShapeStyle {
-        if isProminent {
+        if effectivelyProminent {
             return AnyShapeStyle(isFocused ? Color.accentColor.opacity(0.9) : Color.accentColor.opacity(0.7))
         }
         return AnyShapeStyle(isFocused ? .white.opacity(0.2) : .white.opacity(0.1))

@@ -86,6 +86,20 @@ final class DetailViewModel {
         let detailTask = Task { try? await itemService.getItemDetail(userID: userID, itemID: itemID) }
         let similarTask = Task { try? await itemService.getSimilarItems(itemID: itemID, userID: userID, limit: 12) }
 
+        // Series content (seasons + next-up) only depends on the
+        // item ID, which we already have from the passed-in item —
+        // start the chain in parallel with the detail/similar fetch
+        // so the play button's "Fortsetzen + S1E5 · 12:34" subtitle
+        // and progress overlay arrive on the screen at the same
+        // moment as the rest of the detail panel, instead of waiting
+        // for detail → seasons → next-up to play out sequentially.
+        let seriesContentTask: Task<Void, Never>? = (itemType == .series) ? Task {
+            await loadSeasons()
+        } : nil
+        let collectionContentTask: Task<Void, Never>? = (itemType == .boxSet) ? Task {
+            await loadCollectionItems()
+        } : nil
+
         if let detail = await detailTask.value {
             item = detail
             isFavorite = detail.userData?.isFavorite ?? false
@@ -94,14 +108,14 @@ final class DetailViewModel {
             similarItems = similar.items
         }
 
-        // Load content (depends on item type from detail response)
-        if itemType == .series {
-            await loadSeasons()
-        } else if itemType == .boxSet {
-            await loadCollectionItems()
-        } else {
+        if itemType != .series && itemType != .boxSet {
             prefetchPlaybackInfo(for: itemID)
         }
+
+        // Wait for the parallel chains to finish so isLoading flips
+        // false only after every section has data to render.
+        await seriesContentTask?.value
+        await collectionContentTask?.value
 
         isLoading = false
     }
