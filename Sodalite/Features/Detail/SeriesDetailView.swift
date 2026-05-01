@@ -14,6 +14,12 @@ struct SeriesDetailView: View {
     @FocusState private var focusedSeasonID: String?
     @FocusState private var focusedEpisodeID: String?
     @FocusState private var focusBridgeActive: Bool
+    /// Drives the initial focus once the loading gate releases —
+    /// the play button only enters the view hierarchy after
+    /// isLoading flips false, so the focus engine has nothing to
+    /// auto-land on at first paint. We push focus explicitly via
+    /// .onChange below.
+    @FocusState private var playButtonFocused: Bool
     @State private var episodeRedirectDone = false
     /// Sticky flag: set when the episode row had focus so that the
     /// season bar's onChange can tell "user scrolled up from episodes"
@@ -184,7 +190,19 @@ struct SeriesDetailView: View {
                 }
             }
         }
-        .onChange(of: viewModel?.isLoading) { _, _ in updateBackdropURL() }
+        .onChange(of: viewModel?.isLoading) { _, loading in
+            updateBackdropURL()
+            // Loading gate keeps the play button out of the view
+            // tree at first paint, so the focus engine has nothing
+            // to land on when it appears. Push focus explicitly
+            // once isLoading flips false. Tiny defer rides out the
+            // same focus-commit race other parts of the app dodge.
+            if loading == false {
+                deferOnMain(by: 0.1) {
+                    playButtonFocused = true
+                }
+            }
+        }
         .onChange(of: selectedEpisode?.id) { _, _ in updateBackdropURL() }
     }
 
@@ -267,6 +285,7 @@ struct SeriesDetailView: View {
                         }
                     }
                 )
+                .focused($playButtonFocused)
 
                 if !isShowingEpisode {
                     GlassActionButton(

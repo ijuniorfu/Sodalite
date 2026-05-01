@@ -55,6 +55,19 @@ struct MovieDetailView: View {
                 }
             }
         }
+        // Loading-gate now blocks the play button from existing in
+        // the view hierarchy at first paint, so the focus engine has
+        // nothing to land on when the modal appears. Push the focus
+        // explicitly once isLoading flips false and the button is in
+        // the tree. Tiny defer dodges the same focus-commit race the
+        // post-player return path already works around.
+        .onChange(of: viewModel?.isLoading) { _, loading in
+            if loading == false {
+                deferOnMain(by: 0.1) {
+                    playButtonFocused = true
+                }
+            }
+        }
         .navigationDestination(item: $navigateToItem) { item in
             DetailRouterView(item: item)
         }
