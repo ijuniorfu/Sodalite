@@ -48,6 +48,7 @@ final class PlayerViewModel {
     enum ControlsFocus: Hashable {
         case progressBar
         case skipIntroButton
+        case episodeButton
         case audioButton
         case subtitleButton
         case speedButton
@@ -55,6 +56,7 @@ final class PlayerViewModel {
 
     enum TrackDropdown: Equatable {
         case none
+        case episode(highlighted: Int)  // index into seasonEpisodes
         case audio(highlighted: Int)   // index into player.audioTracks
         case subtitle(highlighted: Int) // index into subtitle items (0=Off, 1..=tracks)
         case speed(highlighted: Int)    // index into PlayerViewModel.speedOptions
@@ -72,6 +74,15 @@ final class PlayerViewModel {
     var subtitleCues: [SubtitleCue] = []
     var activeAudioIndex: Int?
     var activeSubtitleIndex: Int?
+
+    /// Episodes from the currently-playing item's season, sorted by
+    /// indexNumber. Populated lazily after startPlayback so the
+    /// transport bar can offer an in-season episode picker without
+    /// the user having to back out to the series detail screen.
+    /// Stays empty for movies, single-episode series, and any item
+    /// without a parent season — TransportBar suppresses the button
+    /// when count <= 1.
+    var seasonEpisodes: [JellyfinItem] = []
 
     // Video format (HDR/DV indicator)
     var videoFormat: VideoFormat = .sdr
@@ -337,6 +348,11 @@ final class PlayerViewModel {
             // the endpoint. Once the marker lands the next time tick
             // will flip isInsideIntro on naturally.
             Task { [weak self] in await self?.loadEpisodeSegments() }
+
+            // Same fire-and-forget: the season episode list powers the
+            // transport-bar episode picker. A movie or single-episode
+            // series leaves the list empty and the picker stays hidden.
+            Task { [weak self] in await self?.loadSeasonEpisodes() }
 
         } catch {
             errorMessage = error.localizedDescription

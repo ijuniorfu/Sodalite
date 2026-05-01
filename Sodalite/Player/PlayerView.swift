@@ -275,6 +275,7 @@ final class PlayerHostController: UIViewController {
         } else if viewModel.showControls && viewModel.controlsFocus != .progressBar {
             switch viewModel.controlsFocus {
             case .skipIntroButton: viewModel.skipIntro()
+            case .episodeButton: openEpisodeDropdown()
             case .audioButton: openAudioDropdown()
             case .subtitleButton: openSubtitleDropdown()
             case .speedButton: openSpeedDropdown()
@@ -344,6 +345,7 @@ final class PlayerHostController: UIViewController {
     private func stepTransportFocus(direction: Int) {
         var order: [PlayerViewModel.ControlsFocus] = []
         if viewModel.isInsideIntro { order.append(.skipIntroButton) }
+        if viewModel.seasonEpisodes.count > 1 { order.append(.episodeButton) }
         if !viewModel.player.audioTracks.isEmpty { order.append(.audioButton) }
         if !viewModel.subtitleStreams.isEmpty { order.append(.subtitleButton) }
         order.append(.speedButton)
@@ -363,12 +365,14 @@ final class PlayerHostController: UIViewController {
                 // Preserve scrub state — user can confirm/cancel when returning
                 let hasAudio = !viewModel.player.audioTracks.isEmpty
                 let hasSubs = !viewModel.subtitleStreams.isEmpty
+                let hasEpisodes = viewModel.seasonEpisodes.count > 1
                 if viewModel.isInsideIntro { viewModel.controlsFocus = .skipIntroButton }
+                else if hasEpisodes { viewModel.controlsFocus = .episodeButton }
                 else if hasAudio { viewModel.controlsFocus = .audioButton }
                 else if hasSubs { viewModel.controlsFocus = .subtitleButton }
                 else { viewModel.controlsFocus = .speedButton }
                 viewModel.scheduleControlsHide()
-            case .skipIntroButton, .audioButton, .subtitleButton, .speedButton:
+            case .skipIntroButton, .episodeButton, .audioButton, .subtitleButton, .speedButton:
                 viewModel.scheduleControlsHide()
             }
         } else {
@@ -392,6 +396,17 @@ final class PlayerHostController: UIViewController {
     }
 
     // MARK: - Dropdown Logic
+
+    private func openEpisodeDropdown() {
+        let episodes = viewModel.seasonEpisodes
+        guard episodes.count > 1 else { return }
+        viewModel.controlsTimer?.cancel()
+        // Default to the active episode so the highlight starts on
+        // the row the user is already watching, matching the audio
+        // and speed dropdown behaviour.
+        let currentIdx = episodes.firstIndex(where: { $0.id == viewModel.item.id }) ?? 0
+        viewModel.trackDropdown = .episode(highlighted: currentIdx)
+    }
 
     private func openAudioDropdown() {
         let tracks = viewModel.player.audioTracks
@@ -421,6 +436,11 @@ final class PlayerHostController: UIViewController {
 
     private func moveDropdownHighlight(by offset: Int) {
         switch viewModel.trackDropdown {
+        case .episode(let idx):
+            let count = viewModel.seasonEpisodes.count
+            guard count > 0 else { return }
+            let newIdx = max(0, min(count - 1, idx + offset))
+            viewModel.trackDropdown = .episode(highlighted: newIdx)
         case .audio(let idx):
             let count = viewModel.player.audioTracks.count
             guard count > 0 else { return }
@@ -442,6 +462,13 @@ final class PlayerHostController: UIViewController {
 
     private func confirmDropdownSelection() {
         switch viewModel.trackDropdown {
+        case .episode(let idx):
+            viewModel.trackDropdown = .none
+            // Hand the actual switch off to a Task — selectEpisode tears
+            // down the existing playback session and starts a fresh one
+            // (network roundtrip + decoder restart). We don't want the
+            // confirm-button press to block the main thread on that.
+            Task { await viewModel.selectEpisode(at: idx) }
         case .audio(let idx):
             let tracks = viewModel.player.audioTracks
             if idx < tracks.count {
@@ -830,7 +857,9 @@ private struct PlayerOverlayView: View {
                     activeSpeedIndex: viewModel.activeSpeedIndex,
                     controlsFocus: viewModel.controlsFocus,
                     trackDropdown: viewModel.trackDropdown,
-                    showSkipIntroButton: viewModel.isInsideIntro
+                    showSkipIntroButton: viewModel.isInsideIntro,
+                    seasonEpisodes: viewModel.seasonEpisodes,
+                    activeEpisodeID: viewModel.item.id
                 )
             }
         }

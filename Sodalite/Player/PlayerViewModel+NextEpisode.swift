@@ -162,4 +162,84 @@ extension PlayerViewModel {
         isCountdownActive = false
         nextEpisodeCancelled = true
     }
+
+    // MARK: - Season Episode Picker
+
+    /// Loads every episode of the currently-playing item's season,
+    /// sorted by indexNumber, into `seasonEpisodes`. Used by the
+    /// transport-bar episode picker. Silently no-ops for items
+    /// without a series + season (movies, the rare orphan episode).
+    func loadSeasonEpisodes() async {
+        guard let seriesID = item.seriesId,
+              let seasonID = item.seasonId else {
+            seasonEpisodes = []
+            return
+        }
+        do {
+            let episodes = try await playbackService.getEpisodes(
+                seriesID: seriesID, seasonID: seasonID, userID: userID
+            )
+            seasonEpisodes = episodes.sorted { ($0.indexNumber ?? .max) < ($1.indexNumber ?? .max) }
+        } catch {
+            #if DEBUG
+            print("[SeasonPicker] Fetch failed: \(error)")
+            #endif
+            seasonEpisodes = []
+        }
+    }
+
+    /// Switches playback to a specific episode in the loaded season
+    /// list. Tearing down the current session and starting a fresh
+    /// one mirrors the playNextEpisode flow exactly — same reset
+    /// surface, same reportStop / reportStart cycle so Jellyfin's
+    /// session tracking stays consistent. Bounds-checked against
+    /// the current `seasonEpisodes` so a stale dropdown highlight
+    /// can't crash by indexing into nothing.
+    func selectEpisode(at index: Int) async {
+        guard seasonEpisodes.indices.contains(index) else { return }
+        let target = seasonEpisodes[index]
+        guard target.id != item.id else { return }
+
+        nextEpisodeTimer?.cancel()
+        nextEpisodeTimer = nil
+        showNextEpisodeOverlay = false
+
+        stopProgressReporting()
+        cancellables.removeAll()
+        await reportStop()
+        player.stop()
+
+        // Same reset surface playNextEpisode uses — the only
+        // difference is which JellyfinItem we hand to startPlayback.
+        item = target
+        startFromBeginning = true
+        cachedPlaybackInfo = nil
+        errorMessage = nil
+        videoFormat = .sdr
+        subtitleCues = []
+        subtitleStreams = []
+        activeSubtitleIndex = nil
+        activeAudioIndex = nil
+        nextEpisode = nil
+        hasFetchedNextEpisode = false
+        nextEpisodeCancelled = false
+        nextEpisodeCountdown = 10
+        isCountdownActive = false
+        hasReportedStart = false
+        hasStartedPlaying = false
+        showControls = false
+        isScrubbing = false
+        controlsFocus = .progressBar
+        trackDropdown = .none
+        progress = 0
+        playbackTime = 0
+        resumePositionTicks = 0
+        introSegment = nil
+        outroSegment = nil
+        isInsideIntro = false
+        didAutoSkipCurrentIntro = false
+        didAutoSkipCurrentOutro = false
+
+        await startPlayback()
+    }
 }

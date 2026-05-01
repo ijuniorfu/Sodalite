@@ -32,6 +32,13 @@ struct TransportBar: View {
     /// transport button row. The floating glass version is suppressed
     /// in that case (see PlayerOverlayView).
     let showSkipIntroButton: Bool
+    /// Episodes from the current item's season. Empty for movies and
+    /// single-episode series; the episode-picker button is suppressed
+    /// whenever count <= 1.
+    let seasonEpisodes: [JellyfinItem]
+    /// ID of the episode currently playing — used to mark the active
+    /// row in the dropdown and to compose the button label.
+    let activeEpisodeID: String?
 
     var body: some View {
         VStack(spacing: 10) {
@@ -56,6 +63,16 @@ struct TransportBar: View {
                         isFocused: controlsFocus == .skipIntroButton,
                         dropdown: [],
                         isOpen: false
+                    )
+                }
+
+                if seasonEpisodes.count > 1 {
+                    trackButton(
+                        label: episodeButtonLabel,
+                        icon: "list.bullet",
+                        isFocused: controlsFocus == .episodeButton,
+                        dropdown: episodeDropdownItems,
+                        isOpen: isEpisodeDropdownOpen
                     )
                 }
 
@@ -137,6 +154,44 @@ struct TransportBar: View {
     private var isSpeedDropdownOpen: Bool {
         if case .speed = trackDropdown { return true }
         return false
+    }
+
+    private var isEpisodeDropdownOpen: Bool {
+        if case .episode = trackDropdown { return true }
+        return false
+    }
+
+    /// "S1E5" / "S2E12" if the current episode has both numbers, falls
+    /// back to just the index, then to a generic label so the button
+    /// always has something to render.
+    private var episodeButtonLabel: String {
+        let active = seasonEpisodes.first(where: { $0.id == activeEpisodeID })
+        if let active {
+            var parts: [String] = []
+            if let s = active.parentIndexNumber { parts.append("S\(s)") }
+            if let e = active.indexNumber { parts.append("E\(e)") }
+            if !parts.isEmpty { return parts.joined() }
+        }
+        return String(localized: "player.episodes", defaultValue: "Episodes")
+    }
+
+    private var episodeDropdownItems: [DropdownItem] {
+        guard case .episode(let highlighted) = trackDropdown else { return [] }
+        return seasonEpisodes.enumerated().map { idx, episode in
+            DropdownItem(
+                title: episodeRowTitle(for: episode),
+                isActive: episode.id == activeEpisodeID,
+                isHighlighted: idx == highlighted
+            )
+        }
+    }
+
+    private func episodeRowTitle(for episode: JellyfinItem) -> String {
+        var prefix = ""
+        if let e = episode.indexNumber {
+            prefix = "E\(e) · "
+        }
+        return prefix + episode.name
     }
 
     /// "1×" / "1.5×" / "0.75×" — fixed-style, not localized (the × glyph
