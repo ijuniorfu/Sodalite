@@ -529,9 +529,22 @@ final class PlayerViewModel {
                 // On the sidecar path the host has already populated
                 // `subtitleCues` from SRTParser and we don't want to
                 // wipe it with the engine's empty array.
-                if self.player.currentSubtitleStreamIndex != nil {
+                let active = self.player.currentSubtitleStreamIndex
+                Self.subtitleLog.notice(
+                    "engine cues sink count=\(cues.count, privacy: .public) activeStream=\(active.map(String.init) ?? "nil", privacy: .public)"
+                )
+                if active != nil {
                     self.subtitleCues = cues
                 }
+            }
+            .store(in: &cancellables)
+
+        player.$isLoadingSubtitles
+            .receive(on: DispatchQueue.main)
+            .sink { loading in
+                Self.subtitleLog.notice(
+                    "engine isLoadingSubtitles=\(loading, privacy: .public)"
+                )
             }
             .store(in: &cancellables)
     }
@@ -788,11 +801,17 @@ final class PlayerViewModel {
         let useEngine = canUseEngine && !isExternal && Self.isTextSubtitleCodec(codec)
 
         if useEngine {
+            Self.subtitleLog.notice(
+                "selectSubtitleTrack engine path streamIndex=\(id, privacy: .public) codec=\(codec ?? "nil", privacy: .public) playMethod=\(self.activePlayMethod.rawValue, privacy: .public)"
+            )
             // Embedded text codec on a direct path — engine demuxes +
             // decodes the stream client-side, no server extraction.
             subtitleCues = []
             player.selectSubtitleTrack(index: id)
         } else {
+            Self.subtitleLog.notice(
+                "selectSubtitleTrack http path streamIndex=\(id, privacy: .public) codec=\(codec ?? "nil", privacy: .public) external=\(isExternal, privacy: .public) playMethod=\(self.activePlayMethod.rawValue, privacy: .public)"
+            )
             // Sidecar, graphic codec, or transcoded session — let
             // Jellyfin do the extraction/render and stream us SRT.
             player.clearSubtitle()
