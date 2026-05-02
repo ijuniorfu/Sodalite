@@ -248,6 +248,21 @@ struct LoginView: View {
             try? await Task.sleep(for: .seconds(1.5))
             guard let result = vm.authResult else { return }
             appState.setAuthenticated(server: result.server, user: result.user)
+
+            // Re-evaluate the Seerr session against the freshly-
+            // signed-in user. switchToUser on an existing remembered
+            // profile already does this, but the "Add another
+            // profile" + first-time login paths fell through with
+            // whatever Seerr state the previous Jellyfin user had —
+            // until the user manually swapped profiles back and
+            // forth, the new account showed the previous account's
+            // Seerr UI. Restoring (or clearing) here keeps the new
+            // session honest from the first frame.
+            await syncSeerrToActiveProfile(
+                userID: result.user.id,
+                serverID: result.server.id
+            )
+
             // Tell anyone who pushed this view that we're done.
             // Initial-login flows (ServerDiscoveryView → …) don't
             // need this — AppRouter swaps its root when
@@ -255,6 +270,33 @@ struct LoginView: View {
             // branch from ProfileSettingsView stays mounted on top
             // of TabRootView until the push is popped.
             NotificationCenter.default.post(name: .loginDidComplete, object: nil)
+        }
+    }
+
+    /// Pulls the Seerr session that belongs to the just-authed
+    /// Jellyfin profile out of the keychain (or wipes the active
+    /// session when the new profile has no Seerr login of its own).
+    /// Mirrors ProfileSettingsView.restoreSeerrForSwitchedProfile so
+    /// the add-profile path lands on the same end state as a
+    /// regular profile switch.
+    private func syncSeerrToActiveProfile(userID: String, serverID: String) async {
+        guard let seerrServer = dependencies.restoreSeerrSession(
+            forJellyfinUserID: userID,
+            jellyfinServerID: serverID
+        ) else {
+            try? dependencies.clearSeerrSession()
+            appState.disconnectSeerr()
+            return
+        }
+        if let seerrUser = try? await dependencies.seerrAuthService.currentUser() {
+            appState.setSeerrConnected(server: seerrServer, user: seerrUser)
+        } else {
+            dependencies.forgetRememberedSeerr(
+                forJellyfinUserID: userID,
+                jellyfinServerID: serverID
+            )
+            try? dependencies.clearSeerrSession()
+            appState.disconnectSeerr()
         }
     }
 }
