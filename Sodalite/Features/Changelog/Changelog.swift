@@ -13,6 +13,60 @@ import Foundation
 /// previously affected behaviour.
 enum Changelog {
     static let entries: [ChangelogEntry] = [
+        // MARK: 0.4.1
+        ChangelogEntry(
+            version: "0.4.1",
+            highlights: [
+                ChangelogHighlight(
+                    .new,
+                    "changelog.0_4_1.episodePicker.title",
+                    "changelog.0_4_1.episodePicker.body",
+                    icon: "list.bullet.rectangle"
+                ),
+                ChangelogHighlight(
+                    .new,
+                    "changelog.0_4_1.resumeButton.title",
+                    "changelog.0_4_1.resumeButton.body",
+                    icon: "play.rectangle.on.rectangle.fill"
+                ),
+                ChangelogHighlight(
+                    .improve,
+                    "changelog.0_4_1.detailLoading.title",
+                    "changelog.0_4_1.detailLoading.body",
+                    icon: "bolt.fill"
+                ),
+                ChangelogHighlight(
+                    .improve,
+                    "changelog.0_4_1.atmosLabel.title",
+                    "changelog.0_4_1.atmosLabel.body",
+                    icon: "speaker.wave.3.fill"
+                ),
+                ChangelogHighlight(
+                    .improve,
+                    "changelog.0_4_1.backgroundPause.title",
+                    "changelog.0_4_1.backgroundPause.body",
+                    icon: "pause.circle.fill"
+                ),
+                ChangelogHighlight(
+                    .improve,
+                    "changelog.0_4_1.profileGrid.title",
+                    "changelog.0_4_1.profileGrid.body",
+                    icon: "person.2.circle.fill"
+                ),
+                ChangelogHighlight(
+                    .fix,
+                    "changelog.0_4_1.endOfContent.title",
+                    "changelog.0_4_1.endOfContent.body",
+                    icon: "checkmark.circle.fill"
+                ),
+                ChangelogHighlight(
+                    .fix,
+                    "changelog.0_4_1.polishFixes.title",
+                    "changelog.0_4_1.polishFixes.body",
+                    icon: "wrench.and.screwdriver.fill"
+                ),
+            ]
+        ),
         // MARK: 0.4.0
         ChangelogEntry(
             version: "0.4.0",

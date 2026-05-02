@@ -14924,6 +14924,2583 @@
         }
       }
     },
+    "changelog.0_4_1.atmosLabel.body": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Atmos zvukové stopy se v rozbalovací nabídce zobrazují jako „Dolby Atmos“ místo pouhého počtu kanálů."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Atmos-lydspor vises nu som \"Dolby Atmos\" i menuen i stedet for blot kanalantallet."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Atmos-Tonspuren werden im Audio-Menü als „Dolby Atmos\" angezeigt statt nur als Kanalanzahl."
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Τα κομμάτια ήχου Atmos εμφανίζονται πλέον ως «Dolby Atmos» στο μενού αντί για τον αριθμό καναλιών."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Atmos audio tracks read \"Dolby Atmos\" in the dropdown instead of just the channel count."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Las pistas Atmos aparecen como «Dolby Atmos» en el menú en lugar de solo el número de canales."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Atmos-ääniraidat näkyvät valikossa nimellä \"Dolby Atmos\" pelkän kanavamäärän sijaan."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les pistes audio Atmos affichent « Dolby Atmos » dans le menu plutôt que leur nombre de canaux."
+          }
+        },
+        "hr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Atmos audio zapisi sada se prikazuju kao „Dolby Atmos“ umjesto samo broja kanala."
+          }
+        },
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Az Atmos hangsávok „Dolby Atmos“ néven jelennek meg a menüben, nem csak a csatornaszámmal."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le tracce Atmos appaiono come «Dolby Atmos» nel menù invece del solo conteggio canali."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Atmosオーディオトラックがチャンネル数ではなく「Dolby Atmos」とドロップダウンに表示されます。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Atmos 오디오 트랙이 채널 수 대신 드롭다운에 \"Dolby Atmos\"로 표시됩니다."
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Atmos-lydspor vises nå som \"Dolby Atmos\" i menyen i stedet for bare kanalantallet."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Atmos-audiotracks staan nu als \"Dolby Atmos\" in het menu in plaats van alleen het aantal kanalen."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ścieżki audio Atmos są oznaczane „Dolby Atmos“ w menu zamiast samej liczby kanałów."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "As faixas Atmos aparecem como \"Dolby Atmos\" no menu em vez de apenas a contagem de canais."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "As faixas Atmos aparecem como \"Dolby Atmos\" no menu em vez de apenas a contagem de canais."
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pistele audio Atmos apar ca „Dolby Atmos“ în meniu în loc de doar numărul de canale."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Дорожки Atmos в меню теперь отмечены как «Dolby Atmos», а не просто количеством каналов."
+          }
+        },
+        "sk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Atmos zvukové stopy sa v menu zobrazujú ako „Dolby Atmos“ namiesto počtu kanálov."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Atmos-ljudspår visas som \"Dolby Atmos\" i menyn istället för bara kanalantalet."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Atmos ses parçaları menüde kanal sayısı yerine \"Dolby Atmos\" olarak görünür."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Доріжки Atmos у меню тепер відображаються як «Dolby Atmos», а не лише кількістю каналів."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Atmos 音轨在下拉菜单中显示为\"Dolby Atmos\",而不仅是声道数。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Atmos 音軌在下拉選單中顯示為「Dolby Atmos」,而不只是聲道數。"
+          }
+        }
+      }
+    },
+    "changelog.0_4_1.atmosLabel.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Detekce Dolby Atmos"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dolby Atmos-detektion"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dolby-Atmos-Erkennung"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ανίχνευση Dolby Atmos"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dolby Atmos detection"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Detección de Dolby Atmos"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dolby Atmos -tunnistus"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Détection Dolby Atmos"
+          }
+        },
+        "hr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Detekcija Dolby Atmos"
+          }
+        },
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dolby Atmos felismerés"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rilevamento Dolby Atmos"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dolby Atmosの検出"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dolby Atmos 감지"
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dolby Atmos-gjenkjenning"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dolby Atmos-detectie"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wykrywanie Dolby Atmos"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Detecção de Dolby Atmos"
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deteção de Dolby Atmos"
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Detectare Dolby Atmos"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Обнаружение Dolby Atmos"
+          }
+        },
+        "sk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Detekcia Dolby Atmos"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dolby Atmos-detektering"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dolby Atmos algılama"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Виявлення Dolby Atmos"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dolby Atmos 检测"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dolby Atmos 偵測"
+          }
+        }
+      }
+    },
+    "changelog.0_4_1.backgroundPause.body": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Přesun aplikace na pozadí pozastaví přehrávání. Přepínač aplikací (dvojitý Home) přehrávání nepřeruší."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Når appen sendes i baggrunden pauses afspilningen. App-skifteren (dobbelt Home) lader den fortsætte."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wenn die App in den Hintergrund geht, pausiert die Wiedergabe. Der App-Umschalter (Home-Doppelklick) lässt sie weiterlaufen."
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Όταν η εφαρμογή πάει στο παρασκήνιο, η αναπαραγωγή κάνει παύση. Ο εναλλάκτης εφαρμογών (διπλό Home) την αφήνει να συνεχίσει."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Backgrounding the app pauses playback. The app switcher (double-Home) leaves it playing."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Al enviar la app al fondo, la reproducción se pausa. El selector de apps (doble Home) la deja seguir."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sovelluksen siirtäminen taustalle keskeyttää toiston. Sovellusvalitsin (kaksoisnapautus Home) ei."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mettre l'app en arrière-plan met la lecture en pause. Le sélecteur d'apps (double Home) la laisse continuer."
+          }
+        },
+        "hr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Slanje aplikacije u pozadinu pauzira reprodukciju. Preklopnik aplikacija (dvostruki Home) je ne prekida."
+          }
+        },
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Az alkalmazás háttérbe küldése szünetelteti a lejátszást. Az alkalmazásváltó (dupla Home) tovább engedi."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mettere l'app in background mette in pausa. Lo switcher app (doppio Home) la lascia in riproduzione."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "アプリをバックグラウンドにすると再生が一時停止します。アプリスイッチャー(Homeボタンのダブルクリック)では再生は続きます。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "앱을 백그라운드로 보내면 재생이 일시 정지됩니다. 앱 전환기(Home 더블 클릭)에서는 재생이 계속됩니다."
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Å sende appen i bakgrunnen pauser avspillingen. App-velgeren (dobbelt Home) lar den spille videre."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "De app naar de achtergrond sturen pauzeert het afspelen. De app-wisselaar (dubbele Home) niet."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wysłanie aplikacji w tło wstrzymuje odtwarzanie. Przełącznik aplikacji (podwójny Home) nie przerywa."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enviar o app para segundo plano pausa a reprodução. O alternador de apps (Home duplo) não."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enviar a app para segundo plano pausa a reprodução. O alternador de apps (Home duplo) não."
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trimiterea aplicației în fundal pune redarea în pauză. Comutatorul de aplicații (Home dublu) o lasă să meargă."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сворачивание приложения в фон ставит воспроизведение на паузу. Переключатель приложений (двойной Home) — нет."
+          }
+        },
+        "sk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Presunutie aplikácie na pozadie pozastaví prehrávanie. Prepínač aplikácií (dvojitý Home) ho ponechá."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Att lägga appen i bakgrunden pausar uppspelningen. App-växlaren (dubbel Home) lämnar den igång."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uygulamayı arka plana almak oynatmayı duraklatır. Uygulama değiştirici (çift Home) duraklatmaz."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Згортання застосунку у фон ставить відтворення на паузу. Перемикач застосунків (подвійний Home) — ні."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "将应用切到后台会暂停播放。应用切换器(双击 Home)则继续播放。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "將應用切到背景會暫停播放。應用切換器(雙擊 Home)則繼續播放。"
+          }
+        }
+      }
+    },
+    "changelog.0_4_1.backgroundPause.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pozastavení v pozadí"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pause i baggrunden"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pause im Hintergrund"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Παύση στο παρασκήνιο"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pause on background"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pausa al ir al fondo"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tauko taustalla"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pause en arrière-plan"
+          }
+        },
+        "hr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pauza u pozadini"
+          }
+        },
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Szünet a háttérben"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pausa in background"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "バックグラウンドで一時停止"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "백그라운드에서 일시 정지"
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pause i bakgrunnen"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pauze op achtergrond"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pauza w tle"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pausa em segundo plano"
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pausa em segundo plano"
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pauză în fundal"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Пауза в фоне"
+          }
+        },
+        "sk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pozastavenie na pozadí"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paus i bakgrunden"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arka planda duraklat"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Пауза у фоні"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "后台时暂停"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "背景時暫停"
+          }
+        }
+      }
+    },
+    "changelog.0_4_1.detailLoading.body": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Filmy a seriály se otevírají v jednom kroku — všechny sekce se načítají paralelně, žádné mezi-překreslení."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Film og serier åbnes på én gang — alle sektioner hentes parallelt uden mellem-genoptegninger."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Filme und Serien öffnen sich in einem Zug — alle Sektionen werden parallel geladen, kein Zwischen-Repaint."
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ταινίες και σειρές ανοίγουν με μία κίνηση — κάθε ενότητα φορτώνεται παράλληλα, χωρίς ενδιάμεσες ανανεώσεις."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Movies and series open in one shot — every section fetched in parallel, no mid-render flicker."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Películas y series se abren en un solo paso — cada sección se descarga en paralelo, sin parpadeos."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Elokuvat ja sarjat avautuvat kerralla — kaikki osiot ladataan rinnakkain, ei välivilkuntaa."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Films et séries s'ouvrent d'un seul coup — chaque section chargée en parallèle, sans clignotement."
+          }
+        },
+        "hr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Filmovi i serije otvaraju se u jednom potezu — svaki odjeljak se učitava paralelno, bez treperenja."
+          }
+        },
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Filmek és sorozatok egy lépésben nyílnak meg — minden szakasz párhuzamosan töltődik, villogás nélkül."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Film e serie si aprono in un colpo solo — ogni sezione caricata in parallelo, senza flicker."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "映画やシリーズが一度に開きます — すべてのセクションを並列で取得し、途中の再描画なし。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "영화와 시리즈가 한 번에 열립니다 — 모든 섹션이 병렬로 로드되며 중간 깜박임이 없습니다."
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Filmer og serier åpnes i ett trekk — hver seksjon hentes parallelt, uten flimring."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Films en series openen in één keer — elke sectie parallel opgehaald, geen tussentijds geflikker."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Filmy i seriale otwierają się od razu — każda sekcja ładowana równolegle, bez migotania."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Filmes e séries abrem de uma vez — cada seção carregada em paralelo, sem piscadas."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Filmes e séries abrem de uma vez — cada secção carregada em paralelo, sem piscadelas."
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Filmele și serialele se deschid dintr-o singură mișcare — fiecare secțiune încărcată în paralel."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Фильмы и сериалы открываются одним движением — каждый раздел загружается параллельно, без мерцания."
+          }
+        },
+        "sk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Filmy a seriály sa otvárajú naraz — každá sekcia sa načítava paralelne, bez prekresľovania."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Filmer och serier öppnas i ett svep — varje sektion hämtas parallellt, inget mellanläge-blink."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Filmler ve diziler tek seferde açılır — her bölüm paralel yüklenir, ara kararma yok."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Фільми та серіали відкриваються одним кроком — кожен розділ завантажується паралельно, без мерехтіння."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "电影和剧集一次性打开 — 各部分并行加载,无中途重绘。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "電影和劇集一次性打開 — 各部分並行載入,無中途重繪。"
+          }
+        }
+      }
+    },
+    "changelog.0_4_1.detailLoading.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rychlejší načítání detailů"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hurtigere detaljevisning"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schnellere Detailansicht"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ταχύτερη φόρτωση λεπτομερειών"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Faster detail loading"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Carga de detalles más rápida"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nopeampi tietojen lataus"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chargement des détails plus rapide"
+          }
+        },
+        "hr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brže učitavanje detalja"
+          }
+        },
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gyorsabb részletek betöltés"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Caricamento dettagli più veloce"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "詳細画面の読み込みが高速化"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "상세 화면 더 빠르게 로딩"
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Raskere detaljvisning"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Snellere detailweergave"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Szybsze ładowanie szczegółów"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Carregamento de detalhes mais rápido"
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Carregamento de detalhes mais rápido"
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Încărcare mai rapidă a detaliilor"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Быстрая загрузка деталей"
+          }
+        },
+        "sk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rýchlejšie načítanie detailov"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Snabbare detaljvy"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Daha hızlı detay yüklemesi"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Швидше завантаження деталей"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "详情页加载更快"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "詳情頁載入更快"
+          }
+        }
+      }
+    },
+    "changelog.0_4_1.endOfContent.body": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Přehrávač vás po skončení filmu nebo poslední epizody seriálu automaticky vrátí na detail."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Afspilleren returnerer dig til detaljevisningen når en film eller seriens sidste afsnit slutter."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wenn ein Film oder die letzte Folge einer Serie endet, schließt der Player automatisch zurück zur Detailansicht."
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Όταν τελειώνει μια ταινία ή το τελευταίο επεισόδιο, το πρόγραμμα αναπαραγωγής σας επιστρέφει αυτόματα στις λεπτομέρειες."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Player returns you to the detail view when a movie or the last episode of a series ends."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El reproductor te devuelve a la vista de detalle cuando termina una película o el último episodio."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Soitin palauttaa sinut tietonäkymään, kun elokuva tai sarjan viimeinen jakso päättyy."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le lecteur vous ramène à la vue détail à la fin d'un film ou du dernier épisode d'une série."
+          }
+        },
+        "hr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reproduktor vas vraća na pregled detalja kad film ili posljednja epizoda serije završi."
+          }
+        },
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A lejátszó visszavisz a részletek nézetbe, ha egy film vagy a sorozat utolsó epizódja véget ér."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Il player ti riporta alla schermata dettagli quando un film o l'ultimo episodio finisce."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "映画やシリーズの最終話が終わると、プレーヤーは自動的に詳細画面に戻ります。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "영화나 시리즈의 마지막 에피소드가 끝나면 플레이어가 자동으로 상세 화면으로 돌아갑니다."
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spilleren returnerer deg til detaljvisningen når en film eller seriens siste episode slutter."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "De speler keert terug naar de detailweergave wanneer een film of laatste aflevering eindigt."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Odtwarzacz wraca do widoku szczegółów po zakończeniu filmu lub ostatniego odcinka serialu."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O player retorna à tela de detalhes quando um filme ou o último episódio termina."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O reprodutor regressa ao ecrã de detalhes quando um filme ou o último episódio termina."
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Playerul te returnează la vizualizarea detaliilor când un film sau ultimul episod se termină."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Плеер возвращает вас к экрану деталей по окончании фильма или последней серии."
+          }
+        },
+        "sk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prehrávač vás vráti späť na detail po skončení filmu alebo poslednej epizódy."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spelaren returnerar dig till detaljvyn när en film eller seriens sista avsnitt slutar."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bir film veya dizinin son bölümü bittiğinde oynatıcı sizi otomatik olarak detay ekranına döndürür."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Програвач повертає вас до перегляду деталей по завершенні фільму чи останнього епізоду серіалу."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "电影或剧集最后一集结束时,播放器会自动返回详情页。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "電影或劇集最後一集結束時,播放器會自動返回詳情頁。"
+          }
+        }
+      }
+    },
+    "changelog.0_4_1.endOfContent.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automatický návrat na konci"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automatisk retur ved slutningen"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auto-Schließen am Ende"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Αυτόματη επιστροφή στο τέλος"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auto-return at end"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vuelta automática al terminar"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automaattinen paluu lopussa"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retour automatique à la fin"
+          }
+        },
+        "hr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automatski povratak na kraju"
+          }
+        },
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automatikus visszatérés a végén"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ritorno automatico alla fine"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "終了時に自動で戻る"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "끝나면 자동 복귀"
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automatisk retur ved slutten"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automatisch terug aan eind"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automatyczny powrót na końcu"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retorno automático no fim"
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Regresso automático no fim"
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Revenire automată la final"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Авто-возврат в конце"
+          }
+        },
+        "sk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automatický návrat na konci"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auto-retur vid slutet"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sonda otomatik dönüş"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Авто-повернення в кінці"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "结束时自动返回"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "結束時自動返回"
+          }
+        }
+      }
+    },
+    "changelog.0_4_1.episodePicker.body": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Přepněte na libovolnou epizodu aktuální sezóny bez opouštění přehrávače — s náhledy pro každý řádek."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hop til ethvert afsnit af den aktuelle sæson uden at forlade afspilleren — med miniaturer for hver række."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wechsle ohne den Player zu verlassen direkt zu jeder Folge der Staffel — mit Vorschau-Bild pro Zeile."
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Μεταβείτε σε οποιοδήποτε επεισόδιο της τρέχουσας σεζόν χωρίς να βγείτε από το πρόγραμμα — με προεπισκόπηση ανά γραμμή."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jump to any episode of the current season without leaving the player — thumbnail preview per row."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Salta a cualquier episodio de la temporada actual sin salir del reproductor — miniatura por fila."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hyppää nykyisen kauden mille tahansa jaksolle poistumatta soittimesta — esikatselukuva riviä kohden."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sautez à n'importe quel épisode de la saison en cours sans quitter le lecteur — miniature par ligne."
+          }
+        },
+        "hr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Skočite na bilo koju epizodu trenutne sezone bez napuštanja reproduktora — sličica u svakom redu."
+          }
+        },
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ugrás az aktuális évad bármelyik epizódjára anélkül, hogy elhagynád a lejátszót — előnézeti kép soronként."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Passa a qualsiasi episodio della stagione attuale senza uscire dal player — miniatura per riga."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "プレーヤーを離れずに現在のシーズンの任意のエピソードに移動できます — 各行にサムネイル付き。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "플레이어를 떠나지 않고 현재 시즌의 어떤 에피소드로든 이동할 수 있습니다 — 각 행에 썸네일 표시."
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hopp til hvilken som helst episode i den aktuelle sesongen uten å forlate spilleren — miniatyr per rad."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spring naar elke aflevering van het huidige seizoen zonder de speler te verlaten — miniatuur per rij."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Przeskocz do dowolnego odcinka aktualnego sezonu bez opuszczania odtwarzacza — miniatura w każdym wierszu."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pule para qualquer episódio da temporada atual sem sair do player — miniatura por linha."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Salta para qualquer episódio da temporada atual sem sair do reprodutor — miniatura por linha."
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sari la orice episod al sezonului curent fără a părăsi playerul — miniatură pe rând."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Переключайтесь на любую серию текущего сезона, не выходя из плеера — превью в каждой строке."
+          }
+        },
+        "sk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Skočte na ktorúkoľvek epizódu aktuálnej sezóny bez opustenia prehrávača — miniatúra v každom riadku."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hoppa till vilket avsnitt som helst i nuvarande säsong utan att lämna spelaren — miniatyr per rad."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Oynatıcıdan çıkmadan mevcut sezonun herhangi bir bölümüne atlayın — her satırda küçük resim."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Перейдіть до будь-якого епізоду поточного сезону, не залишаючи програвач — мініатюра в кожному рядку."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无需离开播放器即可跳转到当前季的任何一集 — 每行都有缩略图预览。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "無需離開播放器即可跳轉到當前季的任何一集 — 每行都有縮圖預覽。"
+          }
+        }
+      }
+    },
+    "changelog.0_4_1.episodePicker.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Výběr epizod v přehrávači"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Episodevælger i afspilleren"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Folgen-Auswahl im Player"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Επιλογέας επεισοδίου στο πρόγραμμα αναπαραγωγής"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In-player episode picker"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selector de episodios en el reproductor"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jakso­valitsin soittimessa"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sélecteur d'épisodes dans le lecteur"
+          }
+        },
+        "hr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Odabir epizoda u reproduktoru"
+          }
+        },
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Epizódválasztó a lejátszóban"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selettore episodi nel player"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "プレーヤー内エピソード選択"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "플레이어 내 에피소드 선택"
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Episodevelger i spilleren"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aflevering­kiezer in speler"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wybór odcinków w odtwarzaczu"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seletor de episódios no player"
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seletor de episódios no reprodutor"
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selector de episoade în player"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Выбор серий в плеере"
+          }
+        },
+        "sk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Výber epizód v prehrávači"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Avsnittsväljare i spelaren"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Oynatıcıda bölüm seçici"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Вибір епізодів у програвачі"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "播放器内剧集选择"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "播放器內集數選擇"
+          }
+        }
+      }
+    },
+    "changelog.0_4_1.polishFixes.body": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Robustnější načítání titulků u 4K souborů, čitelné tlačítka s vlastní akcentní barvou, automatické titulky při přepínání zvuku a další úpravy fokusu."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mere robust undertekstindlæsning på store 4K-containere, læsbare tonede knapper, auto-undertekster ved manuelt lydskifte og diverse fokus-rettelser."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Robusteres Laden von Untertiteln bei großen 4K-Containern, lesbare Akzent-Buttons, automatische Untertitel beim Audio-Wechsel und diverse Focus-Fixes."
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Πιο ανθεκτική φόρτωση υποτίτλων σε μεγάλα 4K αρχεία, ευανάγνωστα κουμπιά με χρώμα έμφασης, αυτόματοι υπότιτλοι σε αλλαγή ήχου, και διορθώσεις εστίασης."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Subtitle loading more resilient on big 4K containers, accent-tint buttons readable, auto-subs fire on manual audio switch, plus various focus fixes."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Carga de subtítulos más resistente en archivos 4K grandes, botones con color de acento legibles, auto-subs al cambiar audio y varios arreglos de foco."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tekstitysten lataus kestävämpi suurissa 4K-tiedostoissa, korostusväriset painikkeet luettavissa, auto-tekstitykset toimivat manuaalisessa äänenvaihdossa ja erilaisia kohdistuskorjauksia."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chargement de sous-titres plus robuste sur les gros conteneurs 4K, boutons accent-teintés lisibles, auto-sous-titres au changement audio manuel, et divers correctifs de focus."
+          }
+        },
+        "hr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Otpornije učitavanje titlova na velikim 4K spremnicima, čitljivi gumbi s naglašenom bojom, automatski titlovi pri ručnoj promjeni zvuka, i razne ispravke fokusa."
+          }
+        },
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kitartóbb felirat-betöltés nagy 4K fájlokon, olvasható kiemelőszínű gombok, automatikus feliratok kézi hangváltáskor és különféle fókusz-javítások."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Caricamento sottotitoli più robusto su grandi contenitori 4K, pulsanti con colore accento leggibili, auto-sub al cambio audio manuale e varie correzioni di focus."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "大きな4Kコンテナでの字幕読み込みがより堅牢に、アクセント色のボタンが読みやすく、手動オーディオ切替時の自動字幕、その他フォーカス修正。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "큰 4K 컨테이너에서 자막 로딩이 더 견고해지고, 강조색 버튼이 읽기 쉬워지며, 수동 오디오 전환 시 자동 자막이 작동하고, 다양한 포커스 수정."
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mer robust tekstingsinnlasting på store 4K-containere, lesbare aksent-knapper, auto-tekst ved manuelt lydskifte og diverse fokus-rettelser."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Robuustere ondertitelladen bij grote 4K-bestanden, leesbare accent-knoppen, auto-ondertitels bij handmatige audio-wissel, plus diverse focusfixes."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wytrwalsze ładowanie napisów dla dużych plików 4K, czytelne przyciski w kolorze akcentu, automatyczne napisy przy ręcznej zmianie ścieżki audio, oraz różne poprawki fokusu."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Carregamento de legendas mais resiliente em arquivos 4K grandes, botões coloridos legíveis, auto-legendas ao trocar áudio manualmente, e várias correções de foco."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Carregamento de legendas mais resiliente em ficheiros 4K grandes, botões com cor de destaque legíveis, auto-legendas ao mudar áudio manualmente, e várias correções de foco."
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Încărcare mai robustă a subtitrărilor pe containere 4K mari, butoane cu nuanță accent lizibile, sub-uri automate la schimbarea audio manuală, și diverse corecturi de focus."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Более устойчивая загрузка субтитров для больших 4K-файлов, читаемые кнопки с акцентным цветом, авто-субтитры при ручном переключении звука и разные правки фокуса."
+          }
+        },
+        "sk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Odolnejšie načítanie titulkov pri veľkých 4K súboroch, čitateľné tlačidlá s akcentovou farbou, automatické titulky pri ručnej zmene zvuku, a rôzne opravy fokusu."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mer robust undertextladdning på stora 4K-filer, läsbara accentfärgade knappar, auto-undertext vid manuellt ljudbyte och diverse fokusfixar."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Büyük 4K dosyalarında daha dayanıklı altyazı yüklemesi, vurgu rengi okunabilir düğmeler, manuel ses değiştirmede otomatik altyazılar ve çeşitli odak düzeltmeleri."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Стійкіше завантаження субтитрів для великих 4K-файлів, читабельні кнопки з кольором акценту, автосубтитри при ручному перемиканні звуку, та різні правки фокусу."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "大型 4K 文件上字幕加载更稳健,强调色按钮恢复可读,手动切换音轨时自动启用字幕,以及多项焦点修复。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "大型 4K 檔案上字幕載入更穩健,強調色按鈕恢復可讀,手動切換音軌時自動啟用字幕,以及多項焦點修復。"
+          }
+        }
+      }
+    },
+    "changelog.0_4_1.polishFixes.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Drobné úpravy a opravy"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mindre forbedringer og rettelser"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Politur und Fixes"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Διάφορες βελτιώσεις και διορθώσεις"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Polish and fixes"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pulido y correcciones"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hiomista ja korjauksia"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Polissage et corrections"
+          }
+        },
+        "hr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sitne dorade i popravci"
+          }
+        },
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Csiszolás és javítások"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rifiniture e correzioni"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "細かな改善と修正"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "다듬기 및 수정"
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Finpuss og rettelser"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verfijning en oplossingen"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Drobne poprawki"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ajustes e correções"
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ajustes e correções"
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Îmbunătățiri și remedieri"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Доработки и исправления"
+          }
+        },
+        "sk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Drobné úpravy a opravy"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Putsning och fixar"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cilalama ve düzeltmeler"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Дрібні правки та виправлення"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "细节打磨与修复"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "細節打磨與修復"
+          }
+        }
+      }
+    },
+    "changelog.0_4_1.profileGrid.body": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nastavení profilů zobrazuje všechny zapamatované profily vedle sebe se zelenou značkou na aktivním."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Profilindstillingerne viser hver husket profil side om side med et grønt mærke på den aktive."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Profil-Einstellungen zeigen alle gespeicherten Profile nebeneinander, mit grünem Marker am aktiven."
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Οι ρυθμίσεις προφίλ δείχνουν κάθε αποθηκευμένο προφίλ δίπλα-δίπλα, με πράσινο σημάδι στο ενεργό."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Profile settings shows every remembered profile side-by-side, with a green check on the active session."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Los ajustes de perfil muestran cada perfil recordado lado a lado, con marca verde en la sesión activa."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Profiiliasetukset näyttää kaikki muistetut profiilit rinnakkain ja vihreällä merkillä aktiivisen istunnon."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les réglages de profil affichent chaque profil mémorisé côte à côte, avec une coche verte sur la session active."
+          }
+        },
+        "hr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Postavke profila prikazuju sve zapamćene profile jedan do drugog, sa zelenom oznakom na aktivnoj sesiji."
+          }
+        },
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A profilbeállítások minden megjegyzett profilt egymás mellett mutatnak, zöld pipával az aktív munkameneten."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le impostazioni profilo mostrano ogni profilo ricordato affiancato, con segno verde sulla sessione attiva."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "プロフィール設定で記憶された全プロフィールを横並びに表示し、アクティブなセッションには緑のチェックを付けます。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "프로필 설정에서 기억된 모든 프로필을 나란히 표시하며, 활성 세션에 녹색 체크 표시를 합니다."
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Profilinnstillingene viser hver husket profil side ved side, med grønt merke på den aktive økten."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Profielinstellingen tonen elk onthouden profiel naast elkaar, met een groen vinkje op de actieve sessie."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ustawienia profilu pokazują każdy zapamiętany profil obok siebie, z zielonym znacznikiem na aktywnej sesji."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Configurações de perfil mostram cada perfil lembrado lado a lado, com marca verde na sessão ativa."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "As definições de perfil mostram cada perfil lembrado lado a lado, com marca verde na sessão ativa."
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Setările de profil afișează fiecare profil memorat alăturat, cu bifă verde pe sesiunea activă."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Настройки профиля показывают все сохранённые профили в одной сетке с зелёной отметкой на активной сессии."
+          }
+        },
+        "sk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nastavenia profilov zobrazujú každý zapamätaný profil vedľa seba, so zelenou značkou na aktívnej relácii."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Profilinställningarna visar varje minns profil sida vid sida, med en grön bock på den aktiva sessionen."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Profil ayarları, her hatırlanan profili yan yana ve aktif oturumda yeşil bir işaretle gösterir."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Налаштування профілю показують кожен запам'ятований профіль поряд, із зеленою позначкою на активній сесії."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "档案设置中将每个记住的档案并排显示,并在当前会话上加绿色对勾。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "檔案設定中將每個記住的檔案並排顯示,並在當前工作階段上加綠色勾號。"
+          }
+        }
+      }
+    },
+    "changelog.0_4_1.profileGrid.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Profily vedle sebe"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Profiler side om side"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Profile nebeneinander"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Πλέγμα προφίλ δίπλα-δίπλα"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Side-by-side profile grid"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cuadrícula de perfiles lado a lado"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Profiilit rinnakkain"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grille de profils côte à côte"
+          }
+        },
+        "hr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Profili jedan do drugog"
+          }
+        },
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Profilok egymás mellett"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Profili affiancati"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "プロフィールを横並びに"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "프로필을 나란히 표시"
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Profiler side ved side"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Profielen naast elkaar"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Profile obok siebie"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grade de perfis lado a lado"
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grelha de perfis lado a lado"
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Profile alăturate"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Профили в одной сетке"
+          }
+        },
+        "sk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Profily vedľa seba"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Profiler sida vid sida"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Profilleri yan yana göster"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Профілі поряд"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "档案并排显示"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "檔案並排顯示"
+          }
+        }
+      }
+    },
+    "changelog.0_4_1.resumeButton.body": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tlačítko Přehrát v detailech ukazuje epizodu, časovou značku a indikátor postupu ve vaší akcentní barvě."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Afspil-knappen i detaljevisningen viser episode, tidsstempel og en fremgangsbjælke i din accentfarve."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Abspielen-Button in den Detailansichten zeigt Folge, Zeitstempel und einen Fortschrittsbalken in deiner Akzentfarbe."
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Το κουμπί αναπαραγωγής στις λεπτομέρειες δείχνει το επεισόδιο, τη χρονική σφραγίδα και μπάρα προόδου στο χρώμα έμφασης."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Detail-view play button now shows the episode, timestamp, and a progress bar in your accent colour."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El botón de reproducir en detalles muestra ahora el episodio, marca de tiempo y barra de progreso con tu color de acento."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tieto­näkymän toistopainike näyttää nyt jakson, aikaleiman ja edistymispalkin korostusvärilläsi."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le bouton Lecture de la vue détail affiche désormais l'épisode, l'horodatage et une barre de progression dans votre couleur d'accent."
+          }
+        },
+        "hr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gumb Reproduciraj u detaljima sad prikazuje epizodu, vremenski žig i traku napretka u boji naglaska."
+          }
+        },
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A részletek nézet lejátszás gombja most mutatja az epizódot, az időbélyeget és egy folyamatjelzőt a kiemelőszínedben."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Il pulsante Riproduci nella vista dettagli mostra ora l'episodio, il timestamp e una barra di avanzamento nel tuo colore d'accento."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "詳細画面の再生ボタンに、エピソード、タイムスタンプ、アクセントカラーの進捗バーが表示されます。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "상세 화면의 재생 버튼이 이제 에피소드, 타임스탬프, 강조색의 진행률 바를 표시합니다."
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spill av-knappen i detaljvisningen viser nå episode, tidsstempel og en fremdriftsindikator i aksentfargen din."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "De afspelen-knop in de detailweergave toont nu de aflevering, tijdstempel en een voortgangsbalk in jouw accentkleur."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Przycisk Odtwórz w widoku szczegółów pokazuje teraz odcinek, znacznik czasu i pasek postępu w Twoim kolorze akcentu."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O botão Reproduzir nos detalhes agora mostra o episódio, o timestamp e uma barra de progresso na sua cor de destaque."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O botão Reproduzir nos detalhes mostra agora o episódio, o registo temporal e uma barra de progresso na sua cor de destaque."
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Butonul de redare în detalii afișează acum episodul, marca de timp și o bară de progres în culoarea ta de accent."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Кнопка воспроизведения на экране деталей теперь показывает эпизод, метку времени и индикатор прогресса в вашем акцентном цвете."
+          }
+        },
+        "sk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tlačidlo Prehrať v detailoch teraz ukazuje epizódu, časovú značku a indikátor postupu vo vašej akcentovej farbe."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spela-knappen i detaljvyn visar nu avsnittet, tidsstämpeln och en förloppsindikator i din accentfärg."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Detay görünümündeki Oynat düğmesi artık bölümü, zaman damgasını ve vurgu renginizde bir ilerleme çubuğu gösterir."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Кнопка відтворення на екрані деталей тепер показує епізод, мітку часу та смугу прогресу у вашому акцентному кольорі."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "详情页的播放按钮现在显示剧集、时间戳以及您强调色的进度条。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "詳情頁的播放按鈕現在顯示集數、時間戳以及您強調色的進度條。"
+          }
+        }
+      }
+    },
+    "changelog.0_4_1.resumeButton.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chytřejší tlačítko Pokračovat"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Smartere genoptag-knap"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Klarerer Fortsetzen-Button"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Εξυπνότερο κουμπί συνέχισης"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Smarter resume button"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Botón de continuar más inteligente"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Älykkäämpi jatka-painike"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bouton de reprise plus intelligent"
+          }
+        },
+        "hr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pametniji gumb za nastavak"
+          }
+        },
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Okosabb folytatás gomb"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pulsante Riprendi più intelligente"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "より賢い「再開」ボタン"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "더 똑똑한 이어보기 버튼"
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Smartere fortsett-knapp"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Slimmere hervatknop"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inteligentniejszy przycisk Wznów"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Botão Continuar mais inteligente"
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Botão Retomar mais inteligente"
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buton de reluare mai inteligent"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Умнее кнопка «Продолжить»"
+          }
+        },
+        "sk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Šikovnejšie tlačidlo Pokračovať"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Smartare återuppta-knapp"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Daha akıllı sürdür düğmesi"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Розумніша кнопка «Продовжити»"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "更智能的继续观看按钮"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "更智慧的繼續觀看按鈕"
+          }
+        }
+      }
+    },
+
     "changelog.modal.dismiss": {
       "extractionState": "manual",
       "localizations": {
