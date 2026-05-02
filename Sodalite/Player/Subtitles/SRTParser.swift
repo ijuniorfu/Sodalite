@@ -49,7 +49,7 @@ enum SRTParser {
                 id: cues.count,
                 startTime: start,
                 endTime: end,
-                text: cleanText
+                body: .text(cleanText)
             ))
         }
 

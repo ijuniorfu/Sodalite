@@ -776,7 +776,6 @@ final class PlayerViewModel {
         activeSubtitleIndex = id
         let stream = subtitleStreams.first(where: { $0.index == id })
         let isExternal = stream?.isExternal == true
-        let isText = Self.isTextSubtitleCodec(stream?.codec)
 
         if isExternal {
             // Sidecar file (.srt / .ass / .vtt next to the media).
@@ -796,35 +795,23 @@ final class PlayerViewModel {
                 player.clearSubtitle()
                 subtitleCues = []
             }
-        } else if isText && activePlayMethod != .transcode {
-            // Embedded text codec on a direct path — engine streams
-            // cues from packets already flowing through the main
-            // demux loop. No second connection.
+        } else if activePlayMethod != .transcode {
+            // Embedded stream on direct play / direct stream — engine
+            // streams cues from packets already flowing through the
+            // main demux loop, both for text codecs (SubRip / ASS /
+            // WebVTT / mov_text) and bitmap codecs (PGS / DVB / HDMV
+            // PGS). No second connection, no server extraction.
             player.selectSubtitleTrack(index: id)
             subtitleCues = player.subtitleCues
         } else {
-            // Bitmap codec (PGS/DVB) or transcoded session — engine
-            // can't decode bitmaps yet, and transcoded HLS rewrites
-            // stream indices the engine can't trust. Fall through
-            // to the legacy server-extracted SRT loader.
+            // Transcoded session — HLS rewrites stream indices so
+            // the engine can't reach the source subtitle. Fall back
+            // to the legacy server-extracted SRT loader, which only
+            // works for text codecs.
             player.clearSubtitle()
             subtitleCues = []
             Task { await loadSubtitles(streamIndex: id) }
         }
-    }
-
-    /// Codecs the AetherEngine subtitle stream-decoder handles.
-    /// PGS / DVB / HDMV sub fall through to the HTTP path.
-    private static func isTextSubtitleCodec(_ codec: String?) -> Bool {
-        guard let c = codec?.lowercased() else { return false }
-        return [
-            "subrip", "srt",
-            "ass", "ssa",
-            "mov_text",
-            "webvtt", "vtt",
-            "subviewer",
-            "text",
-        ].contains(c)
     }
 
     private static let subtitleLog = Logger(
