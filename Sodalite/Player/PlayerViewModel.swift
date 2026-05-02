@@ -517,6 +517,22 @@ final class PlayerViewModel {
             }
             .store(in: &cancellables)
 
+        // Engine streaming subtitle path. The engine appends decoded
+        // cues into its own list as packets flow through the main
+        // demux loop; mirror that into our `subtitleCues` so the
+        // overlay re-renders. Only runs while an engine track is
+        // active — the HTTP path for sidecars/graphics writes
+        // `subtitleCues` directly without a stream selected on the
+        // engine side, so the guard keeps the two paths from
+        // stomping on each other.
+        player.$subtitleCues
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] cues in
+                guard let self else { return }
+                guard self.player.currentSubtitleStreamIndex != nil else { return }
+                self.subtitleCues = cues
+            }
+            .store(in: &cancellables)
     }
 
     // MARK: - Controls
@@ -751,13 +767,52 @@ final class PlayerViewModel {
     }
 
     func selectSubtitleTrack(id: Int?) {
-        if let id {
-            activeSubtitleIndex = id
-            Task { await loadSubtitles(streamIndex: id) }
-        } else {
+        guard let id else {
             activeSubtitleIndex = nil
             subtitleCues = []
+            player.clearSubtitle()
+            return
         }
+        activeSubtitleIndex = id
+        let stream = subtitleStreams.first(where: { $0.index == id })
+        let isExternal = stream?.isExternal == true
+        let isText = Self.isTextSubtitleCodec(stream?.codec)
+        // Engine streaming only routes packets that are already
+        // flowing through the main demux loop. Sidecar files
+        // (`isExternal`) live next to the media and never enter
+        // the demuxer; bitmap codecs need rendering the engine
+        // doesn't have yet; transcoded HLS rewrites stream
+        // indices so the engine can't trust the source index.
+        let useEngine = !isExternal
+            && isText
+            && activePlayMethod != .transcode
+
+        if useEngine {
+            // Engine appends cues into its own published list as
+            // packets arrive. Mirror the snapshot we already have
+            // (usually empty for a brand-new track) and let the
+            // sink keep us up to date.
+            player.selectSubtitleTrack(index: id)
+            subtitleCues = player.subtitleCues
+        } else {
+            player.clearSubtitle()
+            subtitleCues = []
+            Task { await loadSubtitles(streamIndex: id) }
+        }
+    }
+
+    /// Codecs the AetherEngine subtitle stream-decoder handles.
+    /// PGS / DVB / HDMV sub fall through to the HTTP path.
+    private static func isTextSubtitleCodec(_ codec: String?) -> Bool {
+        guard let c = codec?.lowercased() else { return false }
+        return [
+            "subrip", "srt",
+            "ass", "ssa",
+            "mov_text",
+            "webvtt", "vtt",
+            "subviewer",
+            "text",
+        ].contains(c)
     }
 
     private static let subtitleLog = Logger(
