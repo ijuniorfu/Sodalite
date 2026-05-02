@@ -3,6 +3,7 @@ import Combine
 import Observation
 import AetherEngine
 import AVKit
+import os
 
 /// ViewModel that bridges AetherEngine with Jellyfin session reporting
 /// and our custom tvOS-style player UI.
@@ -758,35 +759,65 @@ final class PlayerViewModel {
         }
     }
 
+    private static let subtitleLog = Logger(
+        subsystem: "de.superuser404.Sodalite",
+        category: "Subtitles"
+    )
+
     private func loadSubtitles(streamIndex: Int) async {
-        // Always request SRT — Jellyfin converts ASS/PGS/VTT server-side.
-        let format = "srt"
-        #if DEBUG
-        if let stream = subtitleStreams.first(where: { $0.index == streamIndex }) {
-            print("[Subtitles] Stream \(streamIndex): source codec=\(stream.codec ?? "nil"), requesting as srt")
-        }
-        #endif
+        let stream = subtitleStreams.first(where: { $0.index == streamIndex })
+        Self.subtitleLog.notice(
+            "loadSubtitles streamIndex=\(streamIndex, privacy: .public) codec=\(stream?.codec ?? "nil", privacy: .public) lang=\(stream?.language ?? "nil", privacy: .public)"
+        )
 
         guard let url = playbackService.buildSubtitleURL(
             itemID: item.id,
             mediaSourceID: mediaSourceID,
             streamIndex: streamIndex,
-            format: format
+            format: "srt"
         ) else {
-            #if DEBUG
-            print("[Subtitles] Failed to build URL")
-            #endif
+            Self.subtitleLog.notice("→ failed to build URL")
             return
         }
 
-        do {
-            let (data, _) = try await URLSession.shared.data(from: url)
-            guard let content = String(data: data, encoding: .utf8) else { return }
-            subtitleCues = SRTParser.parse(content)
-        } catch {
-            #if DEBUG
-            print("[Subtitles] Failed to load: \(error)")
-            #endif
+        // The first hit on a 4K UHD container can take several
+        // seconds — Jellyfin lazy-extracts the sub via FFmpeg and
+        // a freshly-loaded server hasn't cached anything yet. Two
+        // attempts with a generous budget catches both the slow-
+        // extraction case (long timeout buys it through) and the
+        // odd transient (retry hits the now-cached payload).
+        var request = URLRequest(url: url)
+        request.timeoutInterval = 120
+
+        for attempt in 1...2 {
+            do {
+                let (data, response) = try await URLSession.shared.data(for: request)
+                if let http = response as? HTTPURLResponse, !(200..<300).contains(http.statusCode) {
+                    Self.subtitleLog.notice("→ attempt \(attempt, privacy: .public) HTTP \(http.statusCode, privacy: .public)")
+                    if attempt == 2 { return }
+                    continue
+                }
+                guard let content = String(data: data, encoding: .utf8), !content.isEmpty else {
+                    Self.subtitleLog.notice("→ attempt \(attempt, privacy: .public) empty payload")
+                    if attempt == 2 { return }
+                    try? await Task.sleep(for: .seconds(1))
+                    continue
+                }
+                let cues = SRTParser.parse(content)
+                if cues.isEmpty {
+                    Self.subtitleLog.notice("→ attempt \(attempt, privacy: .public) parsed 0 cues from \(content.count, privacy: .public) bytes")
+                    if attempt == 2 { return }
+                    try? await Task.sleep(for: .seconds(1))
+                    continue
+                }
+                subtitleCues = cues
+                Self.subtitleLog.notice("→ loaded \(cues.count, privacy: .public) cues on attempt \(attempt, privacy: .public)")
+                return
+            } catch {
+                Self.subtitleLog.notice("→ attempt \(attempt, privacy: .public) failed: \(error.localizedDescription, privacy: .public)")
+                if attempt == 2 { return }
+                try? await Task.sleep(for: .seconds(1))
+            }
         }
     }
 
