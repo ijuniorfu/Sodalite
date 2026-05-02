@@ -1,5 +1,6 @@
 import SwiftUI
 import AetherEngine
+import AVFoundation
 
 // MARK: - Player Launcher (UIKit modal presentation)
 
@@ -261,6 +262,16 @@ final class PlayerHostController: UIViewController {
         // playback continue uninterrupted.
         guard wasFullyBackgrounded else { return }
         wasFullyBackgrounded = false
+
+        // tvOS deactivates the app's AVAudioSession on background.
+        // Without an explicit re-activation here, the post-reload
+        // pause()/resume() sequence drives a synchronizer whose
+        // audio renderer has no live session to push samples
+        // through — the user pressed Play, the state machine
+        // flipped to .playing, but no audio came out and no
+        // frames advanced. Re-arming the session before the
+        // pipeline rebuild fixes it.
+        try? AVAudioSession.sharedInstance().setActive(true)
 
         // Real background return: VT + AVIO sessions are dead, so
         // reload the pipeline from the current position. After the
