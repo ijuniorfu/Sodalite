@@ -279,8 +279,17 @@ final class PlayerHostController: UIViewController {
         // surface the controls so the user has to press Play
         // deliberately — auto-resuming after a sleep / Home /
         // screensaver gap is startling.
+        //
+        // The 250ms breath between reload and pause gives load()'s
+        // spawned demux + decoder + display-layer-recreate work
+        // enough time to actually settle before we flip the rate
+        // back to zero. Pausing too early would catch the audio
+        // renderer mid-prime — the first frame would render at the
+        // user's next press and then the synchronizer would stall
+        // because its sources weren't fully wired up.
         Task { @MainActor in
             try? await viewModel.player.reloadAtCurrentPosition()
+            try? await Task.sleep(for: .milliseconds(250))
             viewModel.player.pause()
             viewModel.showControlsTemporarily()
         }
