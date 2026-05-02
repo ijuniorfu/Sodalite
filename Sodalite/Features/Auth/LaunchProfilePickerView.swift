@@ -278,7 +278,10 @@ struct RememberedProfileCard: View {
                     .lineLimit(1)
             }
         }
-        .buttonStyle(.plain)
+        // BareButtonStyle suppresses tvOS' default thick white focus
+        // halo around the card. The avatar itself draws our tint
+        // (or green-when-current) ring inside its own overlay.
+        .buttonStyle(BareButtonStyle())
         .focused($isFocused)
         // tvOS-native: long-pressing a focusable button opens a
         // context menu instead of firing both the primary action

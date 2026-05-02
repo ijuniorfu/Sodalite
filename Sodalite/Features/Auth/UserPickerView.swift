@@ -252,7 +252,10 @@ private struct UserPickerCard: View {
                     .lineLimit(1)
             }
         }
-        .buttonStyle(.plain)
+        // BareButtonStyle suppresses tvOS' default thick white focus
+        // halo. The avatar's own tint ring takes over the focus
+        // affordance (matches the LaunchProfilePicker / settings grid).
+        .buttonStyle(BareButtonStyle())
         .focused($isFocused)
     }
 

@@ -334,6 +334,21 @@ struct SettingsTileButtonStyle: ButtonStyle {
     }
 }
 
+/// Plain pass-through style: renders the label exactly as written
+/// and adds nothing on focus. Used by avatar / profile cards that
+/// already draw their own focus ring (tinted Circle stroke around
+/// the avatar) — the system-default `.plain` style still overlays a
+/// thick white halo on tvOS, which fights our custom ring. Defining
+/// any custom ButtonStyle is enough to suppress that halo; the body
+/// here is intentionally minimal.
+struct BareButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? 0.97 : 1.0)
+            .animation(.easeInOut(duration: 0.1), value: configuration.isPressed)
+    }
+}
+
 /// Focus treatment only — accent-tint stroke, scale, shadow — without
 /// the default background fill. For buttons that already paint their
 /// own backdrop (e.g. SeerrSettings' Jellyfin-credentials toggle, with
