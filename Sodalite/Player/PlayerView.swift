@@ -88,6 +88,15 @@ final class PlayerHostController: UIViewController {
     /// that AetherEngine no longer feeds.
     private var hostedVideoLayer: CALayer?
 
+    /// True only between `didEnterBackground` and the next
+    /// `didBecomeActive`. The Apple TV app switcher (double Home)
+    /// fires `willResignActive` but NOT `didEnterBackground`, so it
+    /// leaves this false — and we use that signal to skip the
+    /// reload-and-pause routine. Pure full-background returns
+    /// (Home button, screensaver, AirPlay nag handing focus away)
+    /// keep the existing pause-on-resume behaviour.
+    private var wasFullyBackgrounded = false
+
     init(
         viewModel: PlayerViewModel,
         tintColor: Color? = nil,
@@ -172,6 +181,14 @@ final class PlayerHostController: UIViewController {
             self, selector: #selector(appDidBecomeActive),
             name: UIApplication.didBecomeActiveNotification, object: nil
         )
+        // Distinguishes a real background trip (Home button, sleep,
+        // screensaver wake) from a transient inactive state like
+        // the Apple TV app switcher. didEnterBackground only fires
+        // for the former.
+        NotificationCenter.default.addObserver(
+            self, selector: #selector(appDidEnterBackground),
+            name: UIApplication.didEnterBackgroundNotification, object: nil
+        )
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -230,18 +247,27 @@ final class PlayerHostController: UIViewController {
         hostedVideoLayer = newLayer
     }
 
+    @objc private func appDidEnterBackground() {
+        wasFullyBackgrounded = true
+    }
+
     @objc private func appDidBecomeActive() {
-        // AetherEngine stops the demux loop on didEnterBackground (VT sessions
-        // and AVIO connections are invalidated by tvOS). Reload the pipeline
-        // from the current position to rebuild everything safely.
-        //
-        // After reload, hold the player paused on the resumed frame and
-        // surface the controls so the user has to press Play deliberately.
-        // Auto-resuming on foreground returns from "TV went to standby
-        // mid-show" or "Home button to check a notification" was startling
-        // — the user has no control over what's currently happening on
-        // screen, and a five-minute idle gap shouldn't keep racing.
         guard viewModel.hasStartedPlaying else { return }
+
+        // App switcher (double Home, swipe between recents) lands
+        // here without ever firing didEnterBackground. The decoder
+        // sessions are still alive, the audio is still synced, so
+        // there's nothing to rebuild and nothing to pause — let
+        // playback continue uninterrupted.
+        guard wasFullyBackgrounded else { return }
+        wasFullyBackgrounded = false
+
+        // Real background return: VT + AVIO sessions are dead, so
+        // reload the pipeline from the current position. After the
+        // reload, hold the player paused on the resumed frame and
+        // surface the controls so the user has to press Play
+        // deliberately — auto-resuming after a sleep / Home /
+        // screensaver gap is startling.
         Task { @MainActor in
             try? await viewModel.player.reloadAtCurrentPosition()
             viewModel.player.pause()
