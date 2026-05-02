@@ -59,7 +59,7 @@ The Seerr integration isn't a tacked-on link to a web view — it's a first-clas
 - **Resume** from where you left off, on any device
 - **Intro skip** — auto-detected from your Jellyfin server, optional one-tap skip
 - **Next episode** — auto-play with countdown, or just an overlay; configurable
-- **Subtitle support** — text rendering through Jellyfin's SRT pipeline (server converts SRT, WebVTT, ASS, SSA inline; OCR for PGS / VobSub if your server has Tesseract). Track switching mid-playback.
+- **Subtitles, all formats, client-side** — text codecs (SubRip, ASS, SSA, WebVTT, mov_text) decoded inline in AetherEngine as packets flow through the demuxer, no server extraction lag on first hit. Bitmap subtitles (PGS, HDMV PGS, DVB, DVD) rendered as native images at the right position on the frame — no more relying on the server having Tesseract installed for Blu-ray rips. Sidecar `.srt` / `.ass` / `.vtt` files parsed by FFmpeg as well. Track switching mid-playback, with auto-resolution against your preferred audio / subtitle language.
 - **Audio track switcher** — pick the language or surround mix you want, mid-playback
 - **Native player UI** — same transport bar, scrub preview and info panel as Apple TV+
 
