@@ -207,32 +207,38 @@ final class PlayerViewModel {
             //    users rarely want them on; keeping them also poisons the
             //    preferred-language auto-select (a forced "deu" beats a
             //    full "deu" track if it comes first).
-            // 3. Deduplicate same-language streams with no distinguishing metadata
-            let imageCodecs: Set<String> = ["pgssub", "hdmv_pgs_subtitle", "dvd_subtitle", "dvdsub", "xsub", "vobsub"]
-            let textStreams = source.mediaStreams?.filter { stream in
-                guard stream.type == .subtitle else { return false }
-                if let codec = stream.codec?.lowercased(), imageCodecs.contains(codec) {
-                    return false
-                }
-                if stream.isForced == true { return false }
-                // Some servers put "forced" in the title instead of the flag.
-                if let title = stream.title?.lowercased(), title.contains("forced") {
-                    return false
-                }
-                return true
+            // 3. Deduplicate same-language streams with no distinguishing metadata.
+            // Bitmap codecs (PGS / HDMV / DVB / DVD) used to be excluded
+            // here because the legacy server-extraction path couldn't
+            // produce SRT for them. The engine renders them as CGImage
+            // now, so they belong in the picker. "Forced" tracks also
+            // stay in the list — many releases mark every subtitle
+            // track as forced and we'd otherwise leave the user with
+            // an empty dropdown for a file that obviously has subs.
+            // The dedupe step below uses `forced` / `signs` / `sdh` /
+            // etc. as descriptors so distinct tracks for the same
+            // language don't collapse into one.
+            let allSubStreams = source.mediaStreams?.filter { stream in
+                stream.type == .subtitle
             } ?? []
 
             // Deduplicate: if multiple streams share the same language and
             // neither has a distinguishing title (SDH, Forced, etc.),
-            // keep only the first one.
+            // keep only the first one. Streams with descriptors keep
+            // each variant under its own key so e.g. "Forced (SRT)"
+            // and "Full (PGS)" both survive even when they share a
+            // language tag.
             var seen = Set<String>()
-            subtitleStreams = textStreams.filter { stream in
+            subtitleStreams = allSubStreams.filter { stream in
                 let lang = stream.language ?? "und"
                 let hasDescriptor = stream.isForced == true
                     || (stream.title?.lowercased()).map { t in
-                        ["sdh", "commentary", "cc", "signs", "songs", "hearing", "forced", "musik", "music"].contains(where: { t.contains($0) })
+                        ["sdh", "commentary", "cc", "signs", "songs", "hearing", "forced", "musik", "music", "full"].contains(where: { t.contains($0) })
                     } ?? false
-                let key = hasDescriptor ? "\(lang)_\(stream.title ?? "")" : lang
+                let codecKey = stream.codec?.lowercased() ?? ""
+                let key = hasDescriptor
+                    ? "\(lang)_\(stream.title ?? "")_\(codecKey)"
+                    : "\(lang)_\(codecKey)"
                 if seen.contains(key) { return false }
                 seen.insert(key)
                 return true

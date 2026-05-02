@@ -34,6 +34,11 @@ struct SubtitleOverlayView: View {
     // MARK: - Text branch
 
     private func textOverlay(_ text: String) -> some View {
+        // `.frame(maxWidth: .infinity)` is critical here — without it
+        // the VStack collapses to the text's content width and the
+        // ZStack centers that small column at screen-center, which
+        // visually keeps the text near the left edge of a wide frame
+        // instead of at the centre.
         VStack {
             Spacer()
             Text(text)
@@ -48,6 +53,7 @@ struct SubtitleOverlayView: View {
                 .padding(.bottom, 80)
                 .transition(.opacity)
         }
+        .frame(maxWidth: .infinity)
     }
 
     // MARK: - Image branch
