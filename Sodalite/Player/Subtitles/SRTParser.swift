@@ -1,12 +1,10 @@
 import Foundation
+import AetherEngine
 
-/// A single subtitle entry with timing and text.
-struct SubtitleCue: Identifiable {
-    let id: Int
-    let startTime: Double  // seconds
-    let endTime: Double    // seconds
-    let text: String
-}
+// `SubtitleCue` is now defined in AetherEngine — the engine's own
+// in-process subtitle decoder produces it during embedded-stream
+// playback. The HTTP/sidecar fallback below feeds the same type
+// so both paths land on the same overlay renderer.
 
 /// Parses SRT (SubRip) and WebVTT subtitle files into timed cues.
 enum SRTParser {

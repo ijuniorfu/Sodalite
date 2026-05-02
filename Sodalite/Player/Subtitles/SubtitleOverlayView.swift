@@ -1,4 +1,5 @@
 import SwiftUI
+import AetherEngine
 
 /// Displays the current subtitle text at the bottom of the player,
 /// synchronized to the playback position.
