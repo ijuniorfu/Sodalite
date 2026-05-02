@@ -517,19 +517,19 @@ final class PlayerViewModel {
             }
             .store(in: &cancellables)
 
-        // Engine streaming subtitle path. The engine appends decoded
-        // cues into its own list as packets flow through the main
-        // demux loop; mirror that into our `subtitleCues` so the
-        // overlay re-renders. Only runs while an engine track is
-        // active — the HTTP path for sidecars/graphics writes
-        // `subtitleCues` directly without a stream selected on the
-        // engine side, so the guard keeps the two paths from
-        // stomping on each other.
+        // Engine subtitle pipeline — covers both embedded streams
+        // (cues stream in from the main demux loop) and sidecar
+        // files (cues arrive in one batch when SubtitleDecoder
+        // finishes). Mirror them into our `subtitleCues` whenever
+        // the engine is the source. The legacy HTTP path for
+        // bitmap codecs / transcoded sessions writes `subtitleCues`
+        // directly with `isSubtitleActive == false`, so the guard
+        // keeps those two paths from clobbering each other.
         player.$subtitleCues
             .receive(on: DispatchQueue.main)
             .sink { [weak self] cues in
                 guard let self else { return }
-                guard self.player.currentSubtitleStreamIndex != nil else { return }
+                guard self.player.isSubtitleActive else { return }
                 self.subtitleCues = cues
             }
             .store(in: &cancellables)
@@ -777,24 +777,36 @@ final class PlayerViewModel {
         let stream = subtitleStreams.first(where: { $0.index == id })
         let isExternal = stream?.isExternal == true
         let isText = Self.isTextSubtitleCodec(stream?.codec)
-        // Engine streaming only routes packets that are already
-        // flowing through the main demux loop. Sidecar files
-        // (`isExternal`) live next to the media and never enter
-        // the demuxer; bitmap codecs need rendering the engine
-        // doesn't have yet; transcoded HLS rewrites stream
-        // indices so the engine can't trust the source index.
-        let useEngine = !isExternal
-            && isText
-            && activePlayMethod != .transcode
 
-        if useEngine {
-            // Engine appends cues into its own published list as
-            // packets arrive. Mirror the snapshot we already have
-            // (usually empty for a brand-new track) and let the
-            // sink keep us up to date.
+        if isExternal {
+            // Sidecar file (.srt / .ass / .vtt next to the media).
+            // Hand the URL to the engine — it fetches the file once
+            // and decodes it via FFmpeg, no host-side SRTParser. The
+            // resulting cues land on `engine.subtitleCues` and the
+            // mirror sink picks them up.
+            if let url = playbackService.buildSubtitleURL(
+                itemID: item.id,
+                mediaSourceID: mediaSourceID,
+                streamIndex: id,
+                format: stream?.codec ?? "srt"
+            ) {
+                player.selectSidecarSubtitle(url: url)
+                subtitleCues = []
+            } else {
+                player.clearSubtitle()
+                subtitleCues = []
+            }
+        } else if isText && activePlayMethod != .transcode {
+            // Embedded text codec on a direct path — engine streams
+            // cues from packets already flowing through the main
+            // demux loop. No second connection.
             player.selectSubtitleTrack(index: id)
             subtitleCues = player.subtitleCues
         } else {
+            // Bitmap codec (PGS/DVB) or transcoded session — engine
+            // can't decode bitmaps yet, and transcoded HLS rewrites
+            // stream indices the engine can't trust. Fall through
+            // to the legacy server-extracted SRT loader.
             player.clearSubtitle()
             subtitleCues = []
             Task { await loadSubtitles(streamIndex: id) }
