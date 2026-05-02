@@ -11,6 +11,12 @@ struct ProfileSettingsView: View {
     @State private var rememberedUsers: [RememberedUser] = []
     @State private var navigateToAddProfile = false
     @State private var actionError: String?
+    /// Pushed `true` when the add-profile flow lands back on this
+    /// view via `loginDidComplete`. Without an explicit focus push
+    /// the popped stack leaves the focus engine with nothing to
+    /// land on — Menu then escapes the navigation hierarchy and
+    /// quits the app.
+    @FocusState private var addProfileButtonFocused: Bool
 
     private var authPreferences: AuthPreferences {
         dependencies.authPreferences
@@ -73,6 +79,15 @@ struct ProfileSettingsView: View {
             // user isn't stranded on a stale success checkmark.
             navigateToAddProfile = false
             refresh()
+            // Drop focus on the add-profile button after the pop
+            // animation settles. tvOS doesn't auto-restore focus
+            // when a navigation pop completes; without this the
+            // engine has nothing to land on, the user presses
+            // Menu thinking they're stepping back, and the press
+            // escapes the navigation stack and quits the app.
+            deferOnMain(by: 0.3) {
+                addProfileButtonFocused = true
+            }
         }
     }
 
@@ -184,6 +199,7 @@ struct ProfileSettingsView: View {
             // the primary foreground, so contrast holds across every
             // tint the user can pick. Same style the radios below use.
             .buttonStyle(SettingsTileButtonStyle())
+            .focused($addProfileButtonFocused)
         }
     }
 
