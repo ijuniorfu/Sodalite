@@ -58,8 +58,17 @@ struct SeriesDetailView: View {
 
     var body: some View {
         ZStack {
-            DetailBackdrop(imageURL: backdropURL)
-                .id(backdropURL?.absoluteString ?? "empty")
+            // Solid black behind the spinner — the backdrop image is
+            // distracting next to the loading indicator (and may
+            // still be fading in from network) so we hold it back
+            // until the content is ready to crossfade in over it.
+            Color.black.ignoresSafeArea()
+
+            if let vm = viewModel, !vm.isLoading {
+                DetailBackdrop(imageURL: backdropURL)
+                    .id(backdropURL?.absoluteString ?? "empty")
+                    .transition(.opacity)
+            }
 
             if let vm = viewModel, !vm.isLoading {
                 DetailContentOverlay {

@@ -14,7 +14,12 @@ struct MovieDetailView: View {
     let item: JellyfinItem
 
     var body: some View {
-        Group {
+        ZStack {
+            // Solid black underneath the loading state — see
+            // SeriesDetailView. The contentView already paints its
+            // own backdrop, so this only shows through during load.
+            Color.black.ignoresSafeArea()
+
             if let vm = viewModel, !vm.isLoading {
                 contentView(vm: vm)
                     .transition(.opacity)
