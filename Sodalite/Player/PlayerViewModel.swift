@@ -614,18 +614,16 @@ final class PlayerViewModel {
         scrubProgress = max(0, min(1, scrubProgress + jumpProgress))
         scrubTime = formatSeconds(Double(scrubProgress) * dur)
 
-        // Auto-commit after a short idle window. Without this, a single
-        // left / right tap leaves the scrub preview parked on screen
-        // forever — the user pressed once, expected a 10-second jump,
-        // and got a frozen UI instead. Each subsequent tap cancels and
-        // reschedules this timer so rapid presses still accumulate
-        // (5 s + 10 s + 10 s = 25 s); once the user stops pressing the
-        // seek lands and the standard hide path kicks in via
-        // `commitScrub` → `scheduleControlsHide`.
+        // Auto-cancel on idle, matching `scrubPanEnded`. Commit stays
+        // explicit (Select), but if the user taps left / right and
+        // walks away without pressing anything else the scrub is
+        // discarded after 5 s and the controls fade out — instead of
+        // sitting on the picture forever.
         controlsTimer = Task {
-            try? await Task.sleep(for: .seconds(1.5))
-            guard !Task.isCancelled, isScrubbing else { return }
-            commitScrub()
+            try? await Task.sleep(for: .seconds(5))
+            guard !Task.isCancelled else { return }
+            isScrubbing = false
+            hideControls()
         }
     }
 
