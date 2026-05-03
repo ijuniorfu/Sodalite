@@ -434,7 +434,15 @@ struct TransportBar: View {
                     }
                 }
                 .frame(height: height)
-                .frame(minWidth: hasImages ? 480 : 0)
+                // Cap the column width so long episode/chapter titles
+                // wrap inside the row (we already have lineLimit(2) on
+                // the Text) instead of stretching the dropdown so wide
+                // that the buttons in the rest of the transport row
+                // get squeezed and start vertically hyphenating.
+                .frame(
+                    minWidth: hasImages ? 480 : 0,
+                    maxWidth: hasImages ? 720 : 360
+                )
                 .background(.ultraThinMaterial)
                 .clipShape(RoundedRectangle(cornerRadius: 12))
                 .fixedSize(horizontal: true, vertical: false)
@@ -444,6 +452,11 @@ struct TransportBar: View {
             // Button label
             Label(label, systemImage: icon)
                 .font(.callout)
+                // Single-line guarantee: when an open dropdown column
+                // pushes layout pressure across the row, this keeps
+                // labels like "Original" / "Deutsch" from breaking
+                // mid-word with hyphenation.
+                .lineLimit(1)
                 .foregroundStyle(isFocused ? .white : .white.opacity(0.6))
                 .padding(.horizontal, 16)
                 .padding(.vertical, 8)
