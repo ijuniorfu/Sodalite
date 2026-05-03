@@ -96,17 +96,23 @@ final class PlaybackPreferences {
 
     /// Subtitle text size relative to the default. Used for both
     /// the engine's text-cue overlay and the legacy SRTParser path.
+    /// Calibrated for tvOS viewing distance (3–5 m from a 55–65″ TV)
+    /// — sizes land between ~32 pt (small) and ~68 pt (xlarge),
+    /// roughly aligned with Apple TV's own subtitle-size
+    /// accessibility range from Default to Extra Extra Large.
     enum SubtitleFontSize: String, CaseIterable, Sendable, Identifiable {
         case small, medium, large, xlarge
         var id: String { rawValue }
         var titleKey: String { "settings.playback.subtitle.size.\(rawValue)" }
-        /// Multiplier applied to the base font size (`.title3` ≈ 24pt).
+        /// Multiplier applied to the 28 pt base. The multipliers grow
+        /// roughly geometrically (1.15 → 1.45 → 1.85 → 2.4) so each
+        /// step up looks distinctly bigger from across the room.
         var scale: CGFloat {
             switch self {
-            case .small: return 0.85
-            case .medium: return 1.0
-            case .large: return 1.2
-            case .xlarge: return 1.45
+            case .small: return 1.15
+            case .medium: return 1.45
+            case .large: return 1.85
+            case .xlarge: return 2.4
             }
         }
     }
