@@ -54,6 +54,7 @@ final class PlayerViewModel {
         case audioButton
         case subtitleButton
         case speedButton
+        case pictureButton
     }
 
     enum TrackDropdown: Equatable {
@@ -63,6 +64,7 @@ final class PlayerViewModel {
         case audio(highlighted: Int)   // index into player.audioTracks
         case subtitle(highlighted: Int) // index into subtitle items (0=Off, 1..=tracks)
         case speed(highlighted: Int)    // index into PlayerViewModel.speedOptions
+        case picture(highlighted: Int)  // index into PlaybackPreferences.PictureMode.allCases
     }
 
     var isDropdownOpen: Bool { trackDropdown != .none }
@@ -94,6 +96,14 @@ final class PlayerViewModel {
     /// the file ships no chapters — TransportBar suppresses the
     /// button when count <= 1.
     var chapters: [ChapterInfo] = []
+
+    /// Picture-fill mode for the currently active session. Initialised
+    /// at `startPlayback` from the user's `PlaybackPreferences.pictureMode`,
+    /// then mutable on the fly via `selectPictureMode`. Doesn't write
+    /// back to prefs — the in-player picker is treated as a transient
+    /// override for this playback only, the settings screen owns the
+    /// global default.
+    var pictureMode: PlaybackPreferences.PictureMode = .original
 
     // Video format (HDR/DV indicator)
     var videoFormat: VideoFormat = .sdr
@@ -187,6 +197,11 @@ final class PlayerViewModel {
         // taggers emit them out of sequence.
         chapters = (item.chapters ?? [])
             .sorted { $0.startPositionTicks < $1.startPositionTicks }
+        // Reset the picture mode to the user's global default for
+        // each new playback session — in-player overrides shouldn't
+        // bleed across episodes / movies.
+        pictureMode = preferences.pictureMode
+        applyPictureMode()
         #if DEBUG
         print("[PlayerVM] startPlayback: item=\(item.name), seriesId=\(item.seriesId ?? "nil"), type=\(item.type), chapters=\(chapters.count)")
         #endif
@@ -591,6 +606,26 @@ final class PlayerViewModel {
         let jumpProgress = Float(seconds / dur)
         scrubProgress = max(0, min(1, scrubProgress + jumpProgress))
         scrubTime = formatSeconds(Double(scrubProgress) * dur)
+    }
+
+    /// Apply the current `pictureMode` to the engine's display layer.
+    /// Maps the host enum to AVLayerVideoGravity. Called on every
+    /// `startPlayback` (re-applies on each new session) and from
+    /// `selectPictureMode` (in-player picker).
+    func applyPictureMode() {
+        switch pictureMode {
+        case .original: player.videoGravity = .resizeAspect
+        case .fill:     player.videoGravity = .resizeAspectFill
+        }
+    }
+
+    /// In-player picker change. Mutates the session-local `pictureMode`
+    /// and pushes it to the engine. Doesn't persist — the user's
+    /// global default lives in `PlaybackPreferences.pictureMode` and
+    /// is set from the Settings screen.
+    func selectPictureMode(_ mode: PlaybackPreferences.PictureMode) {
+        pictureMode = mode
+        applyPictureMode()
     }
 
     /// Seek directly to the start of a chapter. Index is into the

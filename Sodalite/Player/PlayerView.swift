@@ -332,6 +332,7 @@ final class PlayerHostController: UIViewController {
             case .audioButton: openAudioDropdown()
             case .subtitleButton: openSubtitleDropdown()
             case .speedButton: openSpeedDropdown()
+            case .pictureButton: openPictureDropdown()
             default: break
             }
         } else if viewModel.isScrubbing {
@@ -403,6 +404,7 @@ final class PlayerHostController: UIViewController {
         if !viewModel.player.audioTracks.isEmpty { order.append(.audioButton) }
         if !viewModel.subtitleStreams.isEmpty { order.append(.subtitleButton) }
         order.append(.speedButton)
+        order.append(.pictureButton)
         guard let current = order.firstIndex(of: viewModel.controlsFocus) else { return }
         let next = current + direction
         if next >= 0 && next < order.count {
@@ -428,7 +430,7 @@ final class PlayerHostController: UIViewController {
                 else if hasSubs { viewModel.controlsFocus = .subtitleButton }
                 else { viewModel.controlsFocus = .speedButton }
                 viewModel.scheduleControlsHide()
-            case .skipIntroButton, .chapterButton, .episodeButton, .audioButton, .subtitleButton, .speedButton:
+            case .skipIntroButton, .chapterButton, .episodeButton, .audioButton, .subtitleButton, .speedButton, .pictureButton:
                 viewModel.scheduleControlsHide()
             }
         } else {
@@ -509,6 +511,13 @@ final class PlayerHostController: UIViewController {
         viewModel.trackDropdown = .speed(highlighted: viewModel.activeSpeedIndex)
     }
 
+    private func openPictureDropdown() {
+        viewModel.controlsTimer?.cancel()
+        let modes = PlaybackPreferences.PictureMode.allCases
+        let currentIdx = modes.firstIndex(of: viewModel.pictureMode) ?? 0
+        viewModel.trackDropdown = .picture(highlighted: currentIdx)
+    }
+
     private func moveDropdownHighlight(by offset: Int) {
         switch viewModel.trackDropdown {
         case .chapter(let idx):
@@ -535,6 +544,10 @@ final class PlayerHostController: UIViewController {
             let count = PlayerViewModel.speedOptions.count
             let newIdx = max(0, min(count - 1, idx + offset))
             viewModel.trackDropdown = .speed(highlighted: newIdx)
+        case .picture(let idx):
+            let count = PlaybackPreferences.PictureMode.allCases.count
+            let newIdx = max(0, min(count - 1, idx + offset))
+            viewModel.trackDropdown = .picture(highlighted: newIdx)
         case .none:
             break
         }
@@ -574,6 +587,13 @@ final class PlayerHostController: UIViewController {
             viewModel.scheduleControlsHide()
         case .speed(let idx):
             viewModel.selectSpeed(index: idx)
+            viewModel.trackDropdown = .none
+            viewModel.scheduleControlsHide()
+        case .picture(let idx):
+            let modes = PlaybackPreferences.PictureMode.allCases
+            if modes.indices.contains(idx) {
+                viewModel.selectPictureMode(modes[idx])
+            }
             viewModel.trackDropdown = .none
             viewModel.scheduleControlsHide()
         case .none:
@@ -967,7 +987,8 @@ private struct PlayerOverlayView: View {
                     episodeImageURL: { episodeThumbnailURL(for: $0) },
                     chapters: viewModel.chapters,
                     durationSeconds: viewModel.player.duration,
-                    chapterImageURL: { chapterThumbnailURL(for: $0) }
+                    chapterImageURL: { chapterThumbnailURL(for: $0) },
+                    pictureMode: viewModel.pictureMode
                 )
             }
         }

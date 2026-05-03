@@ -159,6 +159,20 @@ struct PlaybackSettingsView: View {
                     ),
                     label: PlaybackSettingsView.formatSubtitleDelay
                 )
+
+                sectionHeader("settings.playback.section.picture")
+
+                valueRow(
+                    icon: "rectangle.expand.vertical",
+                    title: "settings.playback.picture",
+                    subtitle: "settings.playback.picture.subtitle",
+                    options: PlaybackPreferences.PictureMode.allCases,
+                    selection: Binding(
+                        get: { prefs.pictureMode },
+                        set: { prefs.pictureMode = $0 }
+                    ),
+                    label: { String(localized: String.LocalizationValue($0.titleKey)) }
+                )
             }
             .padding(.horizontal, 80)
             .padding(.top, 60)

@@ -54,6 +54,9 @@ struct TransportBar: View {
     /// dropdown shows thumbnails when the closure returns non-nil
     /// for at least one chapter.
     let chapterImageURL: (Int) -> URL?
+    /// Currently-applied picture-fill mode. Mirrors
+    /// `viewModel.pictureMode` and drives the picture button's label.
+    let pictureMode: PlaybackPreferences.PictureMode
 
     var body: some View {
         VStack(spacing: 10) {
@@ -134,6 +137,14 @@ struct TransportBar: View {
                     dropdown: speedDropdownItems,
                     isOpen: isSpeedDropdownOpen
                 )
+
+                trackButton(
+                    label: pictureButtonLabel,
+                    icon: pictureButtonIcon,
+                    isFocused: controlsFocus == .pictureButton,
+                    dropdown: pictureDropdownItems,
+                    isOpen: isPictureDropdownOpen
+                )
             }
             .padding(.bottom, 4)
 
@@ -189,6 +200,33 @@ struct TransportBar: View {
     private var isChapterDropdownOpen: Bool {
         if case .chapter = trackDropdown { return true }
         return false
+    }
+
+    private var isPictureDropdownOpen: Bool {
+        if case .picture = trackDropdown { return true }
+        return false
+    }
+
+    private var pictureButtonIcon: String {
+        switch pictureMode {
+        case .original: return "rectangle.ratio.16.to.9"
+        case .fill:     return "rectangle.expand.vertical"
+        }
+    }
+
+    private var pictureButtonLabel: String {
+        String(localized: String.LocalizationValue(pictureMode.titleKey))
+    }
+
+    private var pictureDropdownItems: [DropdownItem] {
+        guard case .picture(let highlighted) = trackDropdown else { return [] }
+        return PlaybackPreferences.PictureMode.allCases.enumerated().map { idx, mode in
+            DropdownItem(
+                title: String(localized: String.LocalizationValue(mode.titleKey)),
+                isActive: mode == pictureMode,
+                isHighlighted: idx == highlighted
+            )
+        }
     }
 
     /// Currently-active chapter index — the last chapter whose start

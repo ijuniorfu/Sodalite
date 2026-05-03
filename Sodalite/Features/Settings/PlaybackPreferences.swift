@@ -28,6 +28,7 @@ final class PlaybackPreferences {
         static let subtitleColor = "playback.subtitleColor"
         static let subtitleBackground = "playback.subtitleBackground"
         static let subtitleDelaySeconds = "playback.subtitleDelaySeconds"
+        static let pictureMode = "playback.pictureMode"
     }
 
     // MARK: - Allowed Values
@@ -148,6 +149,20 @@ final class PlaybackPreferences {
         var titleKey: String { "settings.playback.subtitle.background.\(rawValue)" }
     }
 
+    /// How the rendered video frame fills the available player area.
+    /// `original` preserves the source aspect ratio with letterbox /
+    /// pillarbox bars where needed (the safe default — never hides
+    /// content). `fill` zooms in and crops the overflow so the frame
+    /// covers the screen edge to edge — useful for 4:3 episodes on
+    /// a 16:9 TV or 2.39:1 cinemascope content where the user prefers
+    /// no letterbox bars. Maps directly to AVLayerVideoGravity in the
+    /// engine.
+    enum PictureMode: String, CaseIterable, Sendable, Identifiable {
+        case original, fill
+        var id: String { rawValue }
+        var titleKey: String { "settings.playback.picture.\(rawValue)" }
+    }
+
     // MARK: - Properties
 
     var autoplayNextEpisode: Bool {
@@ -209,6 +224,14 @@ final class PlaybackPreferences {
         didSet { store.set(subtitleDelaySeconds, forKey: Keys.subtitleDelaySeconds) }
     }
 
+    /// Default picture-fill mode for new playback sessions. The
+    /// in-player picture button can override this for the current
+    /// session without persisting — that's a transient state on
+    /// PlayerViewModel, not on the prefs.
+    var pictureMode: PictureMode {
+        didSet { store.set(pictureMode.rawValue, forKey: Keys.pictureMode) }
+    }
+
     // MARK: - Init
 
     private let store: UserDefaults
@@ -230,5 +253,7 @@ final class PlaybackPreferences {
         self.subtitleBackground = (store.string(forKey: Keys.subtitleBackground))
             .flatMap(SubtitleBackground.init(rawValue:)) ?? .box
         self.subtitleDelaySeconds = store.object(forKey: Keys.subtitleDelaySeconds) as? Double ?? 0
+        self.pictureMode = (store.string(forKey: Keys.pictureMode))
+            .flatMap(PictureMode.init(rawValue:)) ?? .original
     }
 }
