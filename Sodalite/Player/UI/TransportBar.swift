@@ -377,6 +377,18 @@ struct TransportBar: View {
                             }
                         }
                     }
+                    .onAppear {
+                        // The first render needs an explicit scroll —
+                        // .onChange only fires when the highlighted
+                        // index *changes*, not for the value the
+                        // dropdown was opened at. Without this the
+                        // scrollview anchors at index 0 and the
+                        // active row is offscreen until the user
+                        // moves the highlight one step.
+                        if let highlighted = dropdown.firstIndex(where: { $0.isHighlighted }) {
+                            proxy.scrollTo(highlighted, anchor: .center)
+                        }
+                    }
                     .onChange(of: dropdown.firstIndex(where: { $0.isHighlighted })) { _, highlighted in
                         if let highlighted {
                             withAnimation { proxy.scrollTo(highlighted, anchor: .center) }
