@@ -434,14 +434,17 @@ struct TransportBar: View {
                     }
                 }
                 .frame(height: height)
-                // Cap the column width so long episode/chapter titles
-                // wrap inside the row (we already have lineLimit(2) on
-                // the Text) instead of stretching the dropdown so wide
-                // that the buttons in the rest of the transport row
-                // get squeezed and start vertically hyphenating.
+                // Image dropdowns (episodes / chapters w/ thumbnails)
+                // get a tight cap so long titles wrap inside the row
+                // instead of stretching the column wide enough to
+                // squeeze the rest of the transport buttons. Text-only
+                // dropdowns (audio / subs / speed / picture) have
+                // shorter content by nature — give them generous
+                // headroom so names like "Deutsch · Dolby TrueHD 7.1"
+                // don't truncate to "Deutsch · Dol…".
                 .frame(
                     minWidth: hasImages ? 480 : 0,
-                    maxWidth: hasImages ? 720 : 360
+                    maxWidth: hasImages ? 720 : 800
                 )
                 .background(.ultraThinMaterial)
                 .clipShape(RoundedRectangle(cornerRadius: 12))
