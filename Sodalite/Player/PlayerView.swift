@@ -745,6 +745,13 @@ private struct PlayerOverlayView: View {
                 controlsOverlay
             }
 
+            // Top-right info column — HDR badge (only with controls,
+            // matches Apple TV's own player) and Speed badge (always
+            // when rate ≠ 1.0× so the user remembers they sped things
+            // up after the transport hides). Stacks vertically when
+            // both are visible.
+            topRightInfoColumn
+
             // Floating Skip Intro hint — only while the full controls
             // are hidden. When they open, the skip action becomes a
             // proper focusable button inside TransportBar instead.
@@ -928,16 +935,13 @@ private struct PlayerOverlayView: View {
             }
             .ignoresSafeArea()
 
-            // Title (top left) + HDR badge (top right)
+            // Title (top left). HDR + Speed indicators live in a
+            // separate always-visible column so the speed badge can
+            // persist after the transport hides.
             VStack {
                 HStack(alignment: .top) {
                     PlayerTitleOverlay(item: viewModel.item)
                     Spacer()
-                    if viewModel.videoFormat != .sdr {
-                        VideoFormatBadge(format: viewModel.videoFormat)
-                            .padding(.horizontal, 80)
-                            .padding(.top, 68)
-                    }
                 }
                 Spacer()
             }
@@ -968,6 +972,61 @@ private struct PlayerOverlayView: View {
             }
         }
         .transition(.opacity)
+    }
+}
+
+// MARK: - Top-Right Info Column
+
+private extension PlayerOverlayView {
+    /// Stack of informational badges in the top-right corner. The
+    /// HDR badge follows the transport's visibility (Apple TV's own
+    /// player does the same — informational, not action-required),
+    /// while the speed badge is persistent whenever the rate isn't
+    /// 1.0× so a user who set 1.5× and then hid the transport doesn't
+    /// silently keep watching at the wrong speed.
+    var topRightInfoColumn: some View {
+        VStack {
+            HStack(alignment: .top) {
+                Spacer()
+                VStack(alignment: .trailing, spacing: 10) {
+                    if viewModel.showControls && viewModel.videoFormat != .sdr {
+                        VideoFormatBadge(format: viewModel.videoFormat)
+                    }
+                    // Index 2 is 1.0× — the picker default. Anything
+                    // else (0.5/0.75/1.25/1.5/2.0) flips the badge on.
+                    if viewModel.activeSpeedIndex != 2 {
+                        SpeedBadge(index: viewModel.activeSpeedIndex)
+                    }
+                }
+                .padding(.horizontal, 80)
+                .padding(.top, 68)
+            }
+            Spacer()
+        }
+        .animation(.easeInOut(duration: 0.2), value: viewModel.activeSpeedIndex)
+        .animation(.easeInOut(duration: 0.2), value: viewModel.showControls)
+        .animation(.easeInOut(duration: 0.2), value: viewModel.videoFormat)
+        .allowsHitTesting(false)
+    }
+}
+
+// MARK: - Speed Badge
+
+private struct SpeedBadge: View {
+    let index: Int
+
+    var body: some View {
+        Text(TransportBar.speedLabel(for: index))
+            .font(.system(size: 18, weight: .bold, design: .rounded))
+            .foregroundStyle(.white)
+            .monospacedDigit()
+            .padding(.horizontal, 14)
+            .padding(.vertical, 6)
+            .background(
+                Capsule()
+                    .fill(.ultraThinMaterial)
+                    .environment(\.colorScheme, .dark)
+            )
     }
 }
 
