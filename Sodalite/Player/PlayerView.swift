@@ -635,6 +635,15 @@ final class PlayerHostController: UIViewController {
     /// the swipe is being used for transport-button navigation rather
     /// than scrubbing — same single-shot behaviour as vertical.
     private static let horizontalFireThreshold: CGFloat = 150
+    /// Minimum velocity (pt/s) for a step-firing pan to count as an
+    /// intentional swipe. The Siri Remote's touchpad reports tiny
+    /// finger drift while the user is just resting their finger before
+    /// a click — over a second or two that drift can accumulate past
+    /// the distance threshold above and steal focus to the wrong
+    /// button. Requiring velocity as well filters out the slow drift
+    /// case while still letting any real swipe through (typical
+    /// directional swipes are well above 1000 pt/s).
+    private static let stepMinVelocity: CGFloat = 400
 
     @objc private func handlePan(_ gesture: UIPanGestureRecognizer) {
         if viewModel.isDropdownOpen {
@@ -696,15 +705,19 @@ final class PlayerHostController: UIViewController {
                     let width = max(view.bounds.width, 1)
                     viewModel.scrub(delta: t.x / width)
                 } else {
+                    let v = gesture.velocity(in: view)
                     guard !horizontalStepFired,
-                          abs(t.x) >= Self.horizontalFireThreshold
+                          abs(t.x) >= Self.horizontalFireThreshold,
+                          abs(v.x) >= Self.stepMinVelocity
                     else { return }
                     horizontalStepFired = true
                     if t.x < 0 { leftPressed() } else { rightPressed() }
                 }
             case .vertical:
+                let v = gesture.velocity(in: view)
                 guard !verticalStepFired,
-                      abs(t.y) >= Self.verticalFireThreshold
+                      abs(t.y) >= Self.verticalFireThreshold,
+                      abs(v.y) >= Self.stepMinVelocity
                 else { return }
                 verticalStepFired = true
                 if t.y < 0 { upPressed() } else { downPressed() }
