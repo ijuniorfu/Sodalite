@@ -613,6 +613,20 @@ final class PlayerViewModel {
         let jumpProgress = Float(seconds / dur)
         scrubProgress = max(0, min(1, scrubProgress + jumpProgress))
         scrubTime = formatSeconds(Double(scrubProgress) * dur)
+
+        // Auto-commit after a short idle window. Without this, a single
+        // left / right tap leaves the scrub preview parked on screen
+        // forever — the user pressed once, expected a 10-second jump,
+        // and got a frozen UI instead. Each subsequent tap cancels and
+        // reschedules this timer so rapid presses still accumulate
+        // (5 s + 10 s + 10 s = 25 s); once the user stops pressing the
+        // seek lands and the standard hide path kicks in via
+        // `commitScrub` → `scheduleControlsHide`.
+        controlsTimer = Task {
+            try? await Task.sleep(for: .seconds(1.5))
+            guard !Task.isCancelled, isScrubbing else { return }
+            commitScrub()
+        }
     }
 
     /// Reset the error trio so a fresh `startPlayback` shows nothing
