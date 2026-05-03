@@ -74,7 +74,8 @@ final class SearchViewModel {
         async let jfTask = searchJellyfin(query: query)
         async let seerrTask = searchSeerr(query: query)
 
-        let (jfItems, seerrItems) = await (jfTask, seerrTask)
+        let jfResult = await jfTask
+        let seerrResult = await seerrTask
 
         // Only publish if we are still the most recent search. A run
         // that's been superseded must not overwrite the newer query's
@@ -83,12 +84,32 @@ final class SearchViewModel {
         // mid-flight.
         guard id == currentSearchID else { return }
 
+        let jfItems = jfResult.items
+        let seerrItems = seerrResult.items
         jellyfinResults = jfItems
         seerrResults = deduplicate(seerr: seerrItems, against: jfItems)
         isSearching = false
+
+        // Differentiate connection failure from "no results found".
+        // The Jellyfin call is the primary signal — if it errored *and*
+        // we have nothing to show from either service, the user is
+        // looking at a network problem, not an empty library. Seerr
+        // alone can't trigger this because users may have it
+        // disconnected on purpose.
+        if jfResult.error != nil && jellyfinResults.isEmpty && seerrResults.isEmpty {
+            errorMessage = String(
+                localized: "search.error.connection",
+                defaultValue: "Couldn't reach your server. Check the connection and try again."
+            )
+        }
     }
 
-    private func searchJellyfin(query: String) async -> [JellyfinItem] {
+    private struct ServiceResult<T> {
+        let items: [T]
+        let error: Error?
+    }
+
+    private func searchJellyfin(query: String) async -> ServiceResult<JellyfinItem> {
         let q = ItemQuery(
             includeItemTypes: [.movie, .series],
             sortBy: "SortName",
@@ -98,19 +119,21 @@ final class SearchViewModel {
         )
         do {
             let resp = try await itemService.getCollectionItems(userID: userID, query: q)
-            return resp.items
+            return ServiceResult(items: resp.items, error: nil)
         } catch {
-            return []
+            return ServiceResult(items: [], error: error)
         }
     }
 
-    private func searchSeerr(query: String) async -> [SeerrMedia] {
-        guard let service = seerrSearchService else { return [] }
+    private func searchSeerr(query: String) async -> ServiceResult<SeerrMedia> {
+        guard let service = seerrSearchService else {
+            return ServiceResult(items: [], error: nil)
+        }
         do {
             let result = try await service.search(query: query, page: 1)
-            return result.results
+            return ServiceResult(items: result.results, error: nil)
         } catch {
-            return []
+            return ServiceResult(items: [], error: error)
         }
     }
 

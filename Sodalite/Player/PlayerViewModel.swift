@@ -23,6 +23,13 @@ final class PlayerViewModel {
 
     var isLoading = true
     var errorMessage: String?
+    /// Icon (SF Symbol) chosen for the active error — set together
+    /// with `errorMessage` via `setError(from:)`. nil when no error.
+    var errorIcon: String?
+    /// Localised headline for the active error (e.g. "Connection
+    /// problem" / "Sign-in required"). Sits above `errorMessage` in
+    /// the player overlay; the message provides the detail.
+    var errorTitle: String?
     var isPlaying = false
     var showControls = false
 
@@ -190,7 +197,7 @@ final class PlayerViewModel {
 
     func startPlayback() async {
         isLoading = true
-        errorMessage = nil
+        clearError()
         // Source-container chapters are already on the item if the
         // detail fetch requested the Chapters field. Sort defensively
         // — the API documents start-position order but a few legacy
@@ -393,7 +400,7 @@ final class PlayerViewModel {
             Task { [weak self] in await self?.loadSeasonEpisodes() }
 
         } catch {
-            errorMessage = error.localizedDescription
+            setError(from: error)
             isLoading = false
         }
     }
@@ -468,7 +475,7 @@ final class PlayerViewModel {
                 case .seeking:
                     break
                 case .error(let msg):
-                    self.errorMessage = msg
+                    self.setEnginePlaybackError(message: msg)
                     self.isLoading = false
                 }
             }
@@ -606,6 +613,79 @@ final class PlayerViewModel {
         let jumpProgress = Float(seconds / dur)
         scrubProgress = max(0, min(1, scrubProgress + jumpProgress))
         scrubTime = formatSeconds(Double(scrubProgress) * dur)
+    }
+
+    /// Reset the error trio so a fresh `startPlayback` shows nothing
+    /// stale while it loads.
+    func clearError() {
+        errorMessage = nil
+        errorIcon = nil
+        errorTitle = nil
+    }
+
+    /// Categorise an error from the playback-start path into an
+    /// icon + title + body trio for the player overlay. The body
+    /// stays the underlying `localizedDescription` (already localised
+    /// for `APIError`) so the user sees the real reason; the icon
+    /// and title give it shape.
+    func setError(from error: Error) {
+        let icon: String
+        let title: String
+        if let api = error as? APIError {
+            switch api {
+            case .serverUnreachable:
+                icon = "wifi.exclamationmark"
+                title = String(localized: "player.error.connection.title", defaultValue: "Connection problem")
+            case .networkError:
+                icon = "wifi.exclamationmark"
+                title = String(localized: "player.error.connection.title", defaultValue: "Connection problem")
+            case .timeout:
+                icon = "clock.badge.exclamationmark"
+                title = String(localized: "player.error.timeout.title", defaultValue: "Request timed out")
+            case .unauthorized:
+                icon = "lock.shield"
+                title = String(localized: "player.error.unauthorized.title", defaultValue: "Sign-in required")
+            case .httpError(let statusCode, _):
+                if statusCode == 404 {
+                    icon = "questionmark.folder"
+                    title = String(localized: "player.error.notFound.title", defaultValue: "Item unavailable")
+                } else if (500..<600).contains(statusCode) {
+                    icon = "server.rack"
+                    title = String(localized: "player.error.server.title", defaultValue: "Server error")
+                } else {
+                    icon = "exclamationmark.triangle"
+                    title = String(localized: "player.error.generic.title", defaultValue: "Couldn't start playback")
+                }
+            case .invalidURL, .invalidResponse, .decodingError:
+                icon = "exclamationmark.triangle"
+                title = String(localized: "player.error.generic.title", defaultValue: "Couldn't start playback")
+            }
+        } else if let engine = error as? PlayerEngineError {
+            switch engine {
+            case .noSource, .noURL:
+                icon = "questionmark.video"
+                title = String(localized: "player.error.noVideo.title", defaultValue: "Couldn't open this video")
+            }
+        } else {
+            icon = "exclamationmark.triangle"
+            title = String(localized: "player.error.generic.title", defaultValue: "Couldn't start playback")
+        }
+        errorIcon = icon
+        errorTitle = title
+        errorMessage = error.localizedDescription
+    }
+
+    /// Engine-side terminal error mid-playback (decoder failure,
+    /// renderer death, network drop after we'd already handed off).
+    /// Different category from start-up errors — playback was running
+    /// and stopped, so the headline reads as such.
+    func setEnginePlaybackError(message: String) {
+        errorIcon = "exclamationmark.triangle"
+        errorTitle = String(
+            localized: "player.error.playback.title",
+            defaultValue: "Playback stopped"
+        )
+        errorMessage = message
     }
 
     /// Apply the current `pictureMode` to the engine's display layer.
@@ -1095,8 +1175,16 @@ enum PlayerEngineError: LocalizedError {
 
     var errorDescription: String? {
         switch self {
-        case .noSource: "No media source available"
-        case .noURL: "Could not build stream URL"
+        case .noSource:
+            String(
+                localized: "player.error.noSource",
+                defaultValue: "The server didn't return any media source for this item."
+            )
+        case .noURL:
+            String(
+                localized: "player.error.noURL",
+                defaultValue: "Couldn't build a stream URL for this item."
+            )
         }
     }
 }

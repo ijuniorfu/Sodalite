@@ -137,6 +137,29 @@ final class HomeViewModel {
             }
         }
 
+        // If we had rows configured *and* every single fan-out came
+        // back empty, the most likely cause is the server is
+        // unreachable — `loadRow`/`loadTagRow` both swallow errors and
+        // return nil, so a fan-out full of nils looks identical to a
+        // total network failure. Surface the existing retry overlay
+        // when that happens. On a *refresh* we keep the previously-
+        // rendered rows on screen instead of wiping them (better UX
+        // for a transient hiccup).
+        let hadConfiguredFetchableRows = !plan.isEmpty
+        let totalFailure = hadConfiguredFetchableRows
+            && newRows.isEmpty
+            && newTagRows.isEmpty
+        if totalFailure {
+            if isFirstLoad {
+                errorMessage = String(
+                    localized: "home.error.unreachable",
+                    defaultValue: "Couldn't reach your server. Check the connection and try again."
+                )
+            }
+            isLoading = false
+            return
+        }
+
         // Atomic swap -- old images stay visible until new data is ready.
         // ForEach diffs by HomeRowData.id (stable) so AsyncImage
         // subviews are reused when rows are refetched; no .id() on the

@@ -151,7 +151,10 @@ final class PlayerHostController: UIViewController {
         // SwiftUI overlays (display-only). `.tint(...)` has to be
         // applied here because this hosted view lives in a UIKit modal —
         // the WindowGroup tint set on SodaliteApp never reaches it.
-        let overlay = PlayerOverlayView(viewModel: viewModel)
+        let overlay = PlayerOverlayView(
+            viewModel: viewModel,
+            onDismiss: { [weak self] in self?.dismissPlayer() }
+        )
             .tint(tintColor)
         let hosting = UIHostingController(rootView: overlay)
         hosting.view.backgroundColor = .clear
@@ -728,6 +731,7 @@ final class PlayerHostController: UIViewController {
 
 private struct PlayerOverlayView: View {
     let viewModel: PlayerViewModel
+    let onDismiss: () -> Void
 
     var body: some View {
         ZStack {
@@ -750,15 +754,35 @@ private struct PlayerOverlayView: View {
             }
 
             if let error = viewModel.errorMessage {
-                VStack(spacing: 16) {
-                    Image(systemName: "exclamationmark.triangle")
-                        .font(.system(size: 50))
-                        .foregroundStyle(.secondary)
+                VStack(spacing: 20) {
+                    Image(systemName: viewModel.errorIcon ?? "exclamationmark.triangle")
+                        .font(.system(size: 64))
+                        .foregroundStyle(.tint)
+                    if let title = viewModel.errorTitle {
+                        Text(title)
+                            .font(.title2)
+                            .fontWeight(.semibold)
+                            .foregroundStyle(.white)
+                    }
                     Text(error)
-                        .foregroundStyle(.secondary)
+                        .font(.body)
+                        .foregroundStyle(.white.opacity(0.7))
+                        .multilineTextAlignment(.center)
+                        .frame(maxWidth: 720)
+                    Button {
+                        onDismiss()
+                    } label: {
+                        Text("player.error.back")
+                            .font(.body)
+                            .padding(.horizontal, 32)
+                            .padding(.vertical, 12)
+                    }
+                    .buttonStyle(SettingsTileButtonStyle())
+                    .padding(.top, 8)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .background(.black)
+                .transition(.opacity)
             }
 
             if viewModel.showControls && !viewModel.isLoading && viewModel.errorMessage == nil {

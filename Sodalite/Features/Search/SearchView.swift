@@ -185,6 +185,18 @@ struct SearchView: View {
         if vm.isSearching {
             ProgressView()
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
+        } else if let errorMessage = vm.errorMessage {
+            VStack(spacing: 12) {
+                Image(systemName: "wifi.exclamationmark")
+                    .font(.system(size: 48))
+                    .foregroundStyle(.tint)
+                Text(errorMessage)
+                    .font(.headline)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+                    .frame(maxWidth: 500)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
         } else if vm.query.trimmingCharacters(in: .whitespaces).count < 2 {
             VStack(spacing: 12) {
                 Image(systemName: "magnifyingglass")
