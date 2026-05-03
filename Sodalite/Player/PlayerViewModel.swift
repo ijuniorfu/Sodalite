@@ -49,6 +49,7 @@ final class PlayerViewModel {
     enum ControlsFocus: Hashable {
         case progressBar
         case skipIntroButton
+        case chapterButton
         case episodeButton
         case audioButton
         case subtitleButton
@@ -57,6 +58,7 @@ final class PlayerViewModel {
 
     enum TrackDropdown: Equatable {
         case none
+        case chapter(highlighted: Int)  // index into chapters
         case episode(highlighted: Int)  // index into seasonEpisodes
         case audio(highlighted: Int)   // index into player.audioTracks
         case subtitle(highlighted: Int) // index into subtitle items (0=Off, 1..=tracks)
@@ -84,6 +86,14 @@ final class PlayerViewModel {
     /// without a parent season — TransportBar suppresses the button
     /// when count <= 1.
     var seasonEpisodes: [JellyfinItem] = []
+
+    /// Chapter markers from the source container. Populated at
+    /// startPlayback from `item.chapters`. Sorted by start position
+    /// so the scrub-bar overlay can iterate without re-sorting and
+    /// the chapter dropdown lists them in playback order. Empty when
+    /// the file ships no chapters — TransportBar suppresses the
+    /// button when count <= 1.
+    var chapters: [ChapterInfo] = []
 
     // Video format (HDR/DV indicator)
     var videoFormat: VideoFormat = .sdr
@@ -171,8 +181,14 @@ final class PlayerViewModel {
     func startPlayback() async {
         isLoading = true
         errorMessage = nil
+        // Source-container chapters are already on the item if the
+        // detail fetch requested the Chapters field. Sort defensively
+        // — the API documents start-position order but a few legacy
+        // taggers emit them out of sequence.
+        chapters = (item.chapters ?? [])
+            .sorted { $0.startPositionTicks < $1.startPositionTicks }
         #if DEBUG
-        print("[PlayerVM] startPlayback: item=\(item.name), seriesId=\(item.seriesId ?? "nil"), type=\(item.type)")
+        print("[PlayerVM] startPlayback: item=\(item.name), seriesId=\(item.seriesId ?? "nil"), type=\(item.type), chapters=\(chapters.count)")
         #endif
 
         do {
@@ -575,6 +591,14 @@ final class PlayerViewModel {
         let jumpProgress = Float(seconds / dur)
         scrubProgress = max(0, min(1, scrubProgress + jumpProgress))
         scrubTime = formatSeconds(Double(scrubProgress) * dur)
+    }
+
+    /// Seek directly to the start of a chapter. Index is into the
+    /// already-sorted `chapters` array — out-of-range calls no-op.
+    func selectChapter(at index: Int) {
+        guard chapters.indices.contains(index) else { return }
+        let target = chapters[index].startSeconds
+        Task { await player.seek(to: target) }
     }
 
     func selectAudioTrack(id: Int) {

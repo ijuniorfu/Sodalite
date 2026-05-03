@@ -33,6 +33,7 @@ struct JellyfinItem: Codable, Sendable, Identifiable, Equatable, Hashable {
     let childCount: Int?
     let seriesPrimaryImageTag: String?
     let providerIds: [String: String]?
+    let chapters: [ChapterInfo]?
 
     /// TMDB identifier if Jellyfin has it (used to correlate with Seerr
     /// catalog entries — dedup in search, route from detail-view
@@ -77,6 +78,7 @@ struct JellyfinItem: Codable, Sendable, Identifiable, Equatable, Hashable {
         case childCount = "ChildCount"
         case seriesPrimaryImageTag = "SeriesPrimaryImageTag"
         case providerIds = "ProviderIds"
+        case chapters = "Chapters"
     }
 
     /// Create a copy with updated userData
@@ -113,6 +115,7 @@ struct JellyfinItem: Codable, Sendable, Identifiable, Equatable, Hashable {
         self.childCount = item.childCount
         self.seriesPrimaryImageTag = item.seriesPrimaryImageTag
         self.providerIds = item.providerIds
+        self.chapters = item.chapters
     }
 
     /// Create a minimal series stub for navigation
@@ -149,6 +152,7 @@ struct JellyfinItem: Codable, Sendable, Identifiable, Equatable, Hashable {
         self.childCount = nil
         self.seriesPrimaryImageTag = nil
         self.providerIds = nil
+        self.chapters = nil
     }
 
     static func == (lhs: JellyfinItem, rhs: JellyfinItem) -> Bool {
@@ -177,6 +181,27 @@ enum ItemType: String, Codable, Sendable {
         let container = try decoder.singleValueContainer()
         let rawValue = try container.decode(String.self)
         self = ItemType(rawValue: rawValue) ?? .unknown
+    }
+}
+
+/// A named chapter marker on a movie or episode. Jellyfin populates
+/// these from the source container (MKV / MP4 chapters) or via a
+/// post-processing tagger. `imageTag` is set when the server has
+/// generated a chapter thumbnail.
+struct ChapterInfo: Codable, Sendable, Equatable, Hashable {
+    let startPositionTicks: Int64
+    let name: String?
+    let imageTag: String?
+
+    enum CodingKeys: String, CodingKey {
+        case startPositionTicks = "StartPositionTicks"
+        case name = "Name"
+        case imageTag = "ImageTag"
+    }
+
+    /// Start position in seconds (ticks divided by AV_TIME_BASE-style 10⁷).
+    var startSeconds: Double {
+        Double(startPositionTicks) / 10_000_000
     }
 }
 

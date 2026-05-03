@@ -43,6 +43,17 @@ struct TransportBar: View {
     /// than a hard dependency on JellyfinImageService so the SwiftUI
     /// view stays unaware of the service layer.
     let episodeImageURL: (JellyfinItem) -> URL?
+    /// Source-container chapters (already sorted by start). Empty
+    /// when the file ships no chapters; the button is suppressed
+    /// whenever count <= 1.
+    let chapters: [ChapterInfo]
+    /// Total runtime in seconds — used to position the chapter ticks
+    /// along the progress bar.
+    let durationSeconds: Double
+    /// Resolves the chapter image URL given a chapter's index. The
+    /// dropdown shows thumbnails when the closure returns non-nil
+    /// for at least one chapter.
+    let chapterImageURL: (Int) -> URL?
 
     var body: some View {
         VStack(spacing: 10) {
@@ -77,6 +88,16 @@ struct TransportBar: View {
                         isFocused: controlsFocus == .episodeButton,
                         dropdown: episodeDropdownItems,
                         isOpen: isEpisodeDropdownOpen
+                    )
+                }
+
+                if chapters.count > 1 {
+                    trackButton(
+                        label: chapterButtonLabel,
+                        icon: "list.dash",
+                        isFocused: controlsFocus == .chapterButton,
+                        dropdown: chapterDropdownItems,
+                        isOpen: isChapterDropdownOpen
                     )
                 }
 
@@ -165,6 +186,41 @@ struct TransportBar: View {
         return false
     }
 
+    private var isChapterDropdownOpen: Bool {
+        if case .chapter = trackDropdown { return true }
+        return false
+    }
+
+    /// Currently-active chapter index — the last chapter whose start
+    /// is at or before the current playback progress. Nil only when
+    /// the chapter list is empty (the button is hidden in that case
+    /// anyway).
+    private var activeChapterIndex: Int? {
+        guard !chapters.isEmpty else { return nil }
+        let nowSeconds = Double(progress) * max(durationSeconds, 0)
+        var idx = 0
+        for (i, chapter) in chapters.enumerated() {
+            if chapter.startSeconds <= nowSeconds + 0.001 {
+                idx = i
+            } else {
+                break
+            }
+        }
+        return idx
+    }
+
+    /// Button label = current chapter name, falling back to "Chapter
+    /// N / Total" when the chapter has no name set.
+    private var chapterButtonLabel: String {
+        guard let i = activeChapterIndex else {
+            return String(localized: "player.chapters", defaultValue: "Chapters")
+        }
+        if let name = chapters[i].name, !name.isEmpty {
+            return name
+        }
+        return "\(i + 1) / \(chapters.count)"
+    }
+
     /// "S1E5" / "S2E12" if the current episode has both numbers, falls
     /// back to just the index, then to a generic label so the button
     /// always has something to render.
@@ -189,6 +245,41 @@ struct TransportBar: View {
                 imageURL: episodeImageURL(episode)
             )
         }
+    }
+
+    private var chapterDropdownItems: [DropdownItem] {
+        guard case .chapter(let highlighted) = trackDropdown else { return [] }
+        let active = activeChapterIndex
+        return chapters.enumerated().map { idx, chapter in
+            DropdownItem(
+                title: chapterRowTitle(for: chapter, index: idx),
+                isActive: idx == active,
+                isHighlighted: idx == highlighted,
+                imageURL: chapterImageURL(idx)
+            )
+        }
+    }
+
+    /// "12:34  Opening" / "12:34  Chapter 3" depending on whether the
+    /// chapter has a name. Timestamp first so all rows stay vertically
+    /// aligned in the dropdown.
+    private func chapterRowTitle(for chapter: ChapterInfo, index: Int) -> String {
+        let stamp = TransportBar.formatChapterTime(chapter.startSeconds)
+        let name = chapter.name.flatMap { $0.isEmpty ? nil : $0 }
+            ?? String(localized: "player.chapter.fallback", defaultValue: "Chapter \(index + 1)")
+            .replacingOccurrences(of: "\(index + 1)", with: "\(index + 1)")
+        return "\(stamp)  \(name)"
+    }
+
+    private static func formatChapterTime(_ seconds: Double) -> String {
+        let total = Int(max(0, seconds))
+        let h = total / 3600
+        let m = (total % 3600) / 60
+        let s = total % 60
+        if h > 0 {
+            return String(format: "%d:%02d:%02d", h, m, s)
+        }
+        return String(format: "%d:%02d", m, s)
     }
 
     private func episodeRowTitle(for episode: JellyfinItem) -> String {
@@ -336,6 +427,25 @@ struct TransportBar: View {
                 Capsule()
                     .fill(.white.opacity(0.2))
                     .frame(height: trackHeight)
+
+                // Chapter markers — narrow vertical ticks at each
+                // chapter's start position. Drawn on top of the
+                // unplayed track and below the played portion so they
+                // appear muted-white in the unplayed section and
+                // melt into the tint behind the playhead. Skip the
+                // very first chapter (always at 0:00, would visually
+                // collide with the left edge).
+                if chapters.count > 1, durationSeconds > 0 {
+                    ForEach(chapters.dropFirst().indices, id: \.self) { i in
+                        let frac = chapters[i].startSeconds / durationSeconds
+                        if frac > 0, frac < 1 {
+                            Capsule()
+                                .fill(.white.opacity(0.55))
+                                .frame(width: 2, height: trackHeight + 4)
+                                .offset(x: width * CGFloat(frac) - 1)
+                        }
+                    }
+                }
 
                 // Played portion + scrub knob both follow the active
                 // tint so the progress bar visually agrees with the

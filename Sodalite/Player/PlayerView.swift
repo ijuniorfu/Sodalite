@@ -327,6 +327,7 @@ final class PlayerHostController: UIViewController {
         } else if viewModel.showControls && viewModel.controlsFocus != .progressBar {
             switch viewModel.controlsFocus {
             case .skipIntroButton: viewModel.skipIntro()
+            case .chapterButton: openChapterDropdown()
             case .episodeButton: openEpisodeDropdown()
             case .audioButton: openAudioDropdown()
             case .subtitleButton: openSubtitleDropdown()
@@ -398,6 +399,7 @@ final class PlayerHostController: UIViewController {
         var order: [PlayerViewModel.ControlsFocus] = []
         if viewModel.isInsideIntro { order.append(.skipIntroButton) }
         if viewModel.seasonEpisodes.count > 1 { order.append(.episodeButton) }
+        if viewModel.chapters.count > 1 { order.append(.chapterButton) }
         if !viewModel.player.audioTracks.isEmpty { order.append(.audioButton) }
         if !viewModel.subtitleStreams.isEmpty { order.append(.subtitleButton) }
         order.append(.speedButton)
@@ -418,13 +420,15 @@ final class PlayerHostController: UIViewController {
                 let hasAudio = !viewModel.player.audioTracks.isEmpty
                 let hasSubs = !viewModel.subtitleStreams.isEmpty
                 let hasEpisodes = viewModel.seasonEpisodes.count > 1
+                let hasChapters = viewModel.chapters.count > 1
                 if viewModel.isInsideIntro { viewModel.controlsFocus = .skipIntroButton }
                 else if hasEpisodes { viewModel.controlsFocus = .episodeButton }
+                else if hasChapters { viewModel.controlsFocus = .chapterButton }
                 else if hasAudio { viewModel.controlsFocus = .audioButton }
                 else if hasSubs { viewModel.controlsFocus = .subtitleButton }
                 else { viewModel.controlsFocus = .speedButton }
                 viewModel.scheduleControlsHide()
-            case .skipIntroButton, .episodeButton, .audioButton, .subtitleButton, .speedButton:
+            case .skipIntroButton, .chapterButton, .episodeButton, .audioButton, .subtitleButton, .speedButton:
                 viewModel.scheduleControlsHide()
             }
         } else {
@@ -460,6 +464,25 @@ final class PlayerHostController: UIViewController {
         viewModel.trackDropdown = .episode(highlighted: currentIdx)
     }
 
+    private func openChapterDropdown() {
+        let chapters = viewModel.chapters
+        guard chapters.count > 1 else { return }
+        viewModel.controlsTimer?.cancel()
+        // Default to the chapter currently playing so the user lands
+        // on a row that matches the on-screen content rather than
+        // having to scroll to find it.
+        let nowSeconds = viewModel.player.currentTime
+        var currentIdx = 0
+        for (i, chapter) in chapters.enumerated() {
+            if chapter.startSeconds <= nowSeconds + 0.001 {
+                currentIdx = i
+            } else {
+                break
+            }
+        }
+        viewModel.trackDropdown = .chapter(highlighted: currentIdx)
+    }
+
     private func openAudioDropdown() {
         let tracks = viewModel.player.audioTracks
         guard !tracks.isEmpty else { return }
@@ -488,6 +511,11 @@ final class PlayerHostController: UIViewController {
 
     private func moveDropdownHighlight(by offset: Int) {
         switch viewModel.trackDropdown {
+        case .chapter(let idx):
+            let count = viewModel.chapters.count
+            guard count > 0 else { return }
+            let newIdx = max(0, min(count - 1, idx + offset))
+            viewModel.trackDropdown = .chapter(highlighted: newIdx)
         case .episode(let idx):
             let count = viewModel.seasonEpisodes.count
             guard count > 0 else { return }
@@ -514,6 +542,10 @@ final class PlayerHostController: UIViewController {
 
     private func confirmDropdownSelection() {
         switch viewModel.trackDropdown {
+        case .chapter(let idx):
+            viewModel.selectChapter(at: idx)
+            viewModel.trackDropdown = .none
+            viewModel.scheduleControlsHide()
         case .episode(let idx):
             viewModel.trackDropdown = .none
             // Hand the actual switch off to a Task — selectEpisode tears
@@ -858,6 +890,18 @@ private struct PlayerOverlayView: View {
         return nil
     }
 
+    /// Build the chapter-thumbnail URL using Jellyfin's
+    /// `/Items/{id}/Images/Chapter/{index}` endpoint. Returns nil
+    /// when the chapter has no `imageTag` — the dropdown then falls
+    /// back to its compact text-only row layout.
+    private func chapterThumbnailURL(for index: Int) -> URL? {
+        guard let baseURL = viewModel.playbackService.baseURL,
+              viewModel.chapters.indices.contains(index),
+              let tag = viewModel.chapters[index].imageTag
+        else { return nil }
+        return URL(string: "\(baseURL)/Items/\(viewModel.item.id)/Images/Chapter/\(index)?tag=\(tag)&maxWidth=480&quality=80")
+    }
+
     private var controlsOverlay: some View {
         ZStack {
             VStack {
@@ -912,7 +956,10 @@ private struct PlayerOverlayView: View {
                     showSkipIntroButton: viewModel.isInsideIntro,
                     seasonEpisodes: viewModel.seasonEpisodes,
                     activeEpisodeID: viewModel.item.id,
-                    episodeImageURL: { episodeThumbnailURL(for: $0) }
+                    episodeImageURL: { episodeThumbnailURL(for: $0) },
+                    chapters: viewModel.chapters,
+                    durationSeconds: viewModel.player.duration,
+                    chapterImageURL: { chapterThumbnailURL(for: $0) }
                 )
             }
         }
