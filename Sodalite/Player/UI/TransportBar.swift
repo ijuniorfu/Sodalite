@@ -94,7 +94,17 @@ struct TransportBar: View {
                     )
                 }
 
-                if chapters.count > 1 {
+                // Chapter button: hidden on series episodes because the
+                // chapter data on episodic content is usually auto-
+                // generated noise (intro / credits markers, sometimes
+                // a "Scene 1" stub) without real navigation value. The
+                // episode picker is the primary affordance for series;
+                // the chapter picker is reserved for movies and one-
+                // shots where chapter metadata is typically meaningful.
+                // We use `seasonEpisodes.count > 1` as the proxy for
+                // "this is a series episode" since that's already wired
+                // through to the transport bar.
+                if chapters.count > 1, seasonEpisodes.count <= 1 {
                     trackButton(
                         label: chapterButtonLabel,
                         icon: "list.dash",

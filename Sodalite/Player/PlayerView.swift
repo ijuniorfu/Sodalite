@@ -403,7 +403,12 @@ final class PlayerHostController: UIViewController {
         var order: [PlayerViewModel.ControlsFocus] = []
         if viewModel.isInsideIntro { order.append(.skipIntroButton) }
         if viewModel.seasonEpisodes.count > 1 { order.append(.episodeButton) }
-        if viewModel.chapters.count > 1 { order.append(.chapterButton) }
+        // Mirror TransportBar's chapter-button visibility gate — same
+        // "hide on series episodes" rule, otherwise focus could land on
+        // a button that isn't being rendered.
+        if viewModel.chapters.count > 1, viewModel.seasonEpisodes.count <= 1 {
+            order.append(.chapterButton)
+        }
         if !viewModel.player.audioTracks.isEmpty { order.append(.audioButton) }
         if !viewModel.subtitleStreams.isEmpty { order.append(.subtitleButton) }
         order.append(.speedButton)
@@ -425,7 +430,9 @@ final class PlayerHostController: UIViewController {
                 let hasAudio = !viewModel.player.audioTracks.isEmpty
                 let hasSubs = !viewModel.subtitleStreams.isEmpty
                 let hasEpisodes = viewModel.seasonEpisodes.count > 1
-                let hasChapters = viewModel.chapters.count > 1
+                // Mirror the TransportBar visibility gate — chapter
+                // button is suppressed for series episodes.
+                let hasChapters = viewModel.chapters.count > 1 && !hasEpisodes
                 if viewModel.isInsideIntro { viewModel.controlsFocus = .skipIntroButton }
                 else if hasEpisodes { viewModel.controlsFocus = .episodeButton }
                 else if hasChapters { viewModel.controlsFocus = .chapterButton }
