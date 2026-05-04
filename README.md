@@ -53,7 +53,7 @@ The Seerr integration isn't a tacked-on link to a web view — it's a first-clas
 
 ### 🎬 Watch
 - **Direct Play** for almost every codec your Apple TV understands: H.264, HEVC, HEVC Main10, AV1
-- **HDR10, Dolby Vision, HLG** — auto-detected, sent through with full color metadata, display switches to HDR mode automatically (Match Content)
+- **HDR10, HDR10+, Dolby Vision, HLG** — auto-detected, sent through with full color metadata. HDR10+ streams forward per-frame ST 2094-40 dynamic metadata so HDR10+ TVs apply the source's tone-mapping curves; Dolby Vision streams signal as `dvh1` so DV-capable TVs switch into Dolby Vision mode for Profile 5, 8.1 and 8.4. The display switches to the matching HDR mode automatically (Match Content).
 - **Dolby Atmos** via EAC3+JOC, wrapped as Dolby MAT 2.0 — your AVR's Atmos light actually comes on
 - **Multichannel surround** — 5.1, 7.1 with correct channel layout
 - **Resume** from where you left off, on any device
