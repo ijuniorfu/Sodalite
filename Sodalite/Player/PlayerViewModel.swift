@@ -1097,19 +1097,34 @@ final class PlayerViewModel {
     @discardableResult
     func applyDisplayCriteria(format: VideoFormat, refreshRate: Float = 23.976) -> Bool {
         #if os(tvOS)
-        guard #available(tvOS 17.0, *), format != .sdr else { return false }
+        guard #available(tvOS 17.0, *) else {
+            #if DEBUG
+            print("[PlayerVM] applyDisplayCriteria skipped: tvOS < 17")
+            #endif
+            return false
+        }
+        guard format != .sdr else { return false }
 
         guard let window = displayWindow else {
             #if DEBUG
-            print("[PlayerVM] No window for display criteria")
+            print("[PlayerVM] applyDisplayCriteria skipped: no window")
             #endif
             return false
         }
 
         let displayManager = window.avDisplayManager
 
-        // Respect user's "Match Content" setting
+        // Respect user's "Match Content" setting (Apple TV → Settings →
+        // Video and Audio → Match Content → Match Dynamic Range). When
+        // OFF, the system refuses to switch the display, so a
+        // preferredDisplayCriteria assignment would silently no-op and
+        // we'd ship HDR pixel data into an SDR-locked panel — which
+        // renders as black or massively over-saturated. Tonemap path
+        // is the safe fallback.
         guard displayManager.isDisplayCriteriaMatchingEnabled else {
+            #if DEBUG
+            print("[PlayerVM] applyDisplayCriteria skipped: Match Content disabled in Apple TV settings — falling back to tonemap")
+            #endif
             return false
         }
 
