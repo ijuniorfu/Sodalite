@@ -1065,6 +1065,9 @@ final class PlayerViewModel {
 
         // videoRangeType is more specific: "DOVI", "HDR10", "HDR10Plus", "HLG"
         if let rangeType = videoStream.videoRangeType?.uppercased() {
+            // HDR10Plus must be checked before plain HDR10 — its string
+            // contains "HDR10" too, so the order matters.
+            if rangeType.contains("HDR10PLUS") { return .hdr10Plus }
             if rangeType.contains("DOVI") || rangeType.contains("DOV") { return .dolbyVision }
             if rangeType.contains("HDR10") { return .hdr10 }
             if rangeType.contains("HLG") { return .hlg }

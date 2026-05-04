@@ -1117,6 +1117,7 @@ private struct VideoFormatBadge: View {
         switch format {
         case .sdr:          return "SDR"
         case .hdr10:        return "HDR10"
+        case .hdr10Plus:    return "HDR10+"
         case .dolbyVision:  return "Dolby Vision"
         case .hlg:          return "HLG"
         }
