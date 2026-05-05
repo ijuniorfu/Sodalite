@@ -131,9 +131,28 @@ final class PlayerHostController: UIViewController {
         // (happens on every load() to avoid stale state from the
         // previous session). Without this the view keeps the old,
         // unfed layer and the user sees a frozen or black picture.
+        //
+        // Critical: when called from the main thread (the actual case,
+        // since engine.load() runs on the main actor), insert the
+        // layer SYNCHRONOUSLY. The previous `Task { @MainActor in … }`
+        // wrap opened a race window where load()'s subsequent
+        // synchronous setup (demuxer.open + decoder setup + audio
+        // engine + startDemuxLoop dispatch) could complete and the
+        // background demux loop produce + enqueue the first frame
+        // before the queued main-actor swap had a chance to run. The
+        // frame then landed in a layer that wasn't yet in the view
+        // hierarchy, the renderer marked `hasRenderedFirstFrame` true,
+        // load() returned satisfied, and the user got audio + black
+        // picture until a manual seek flushed the orphaned queue and
+        // re-primed the pipeline against the now-attached layer.
+        // The Thread.isMainThread fast path makes the swap synchronous
+        // in the common case while keeping a defensive async fallback
+        // if a future caller ever fires this off the main thread.
         viewModel.player.onVideoLayerReplaced = { [weak self] newLayer in
-            Task { @MainActor in
+            if Thread.isMainThread {
                 self?.swapVideoLayer(to: newLayer)
+            } else {
+                DispatchQueue.main.async { self?.swapVideoLayer(to: newLayer) }
             }
         }
 
