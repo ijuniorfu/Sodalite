@@ -19,8 +19,18 @@ extension PlayerViewModel {
             isScrubbing = true
             scrubStartProgress = progress
             showControls = true
-            controlsTimer?.cancel()
         }
+        // Always cancel any pending hide / auto-cancel timer, not just
+        // on the first scrub() call. Slow touchpad swipes occasionally
+        // make UIPanGestureRecognizer flip to `.ended` momentarily even
+        // while the user is still touching, which fires scrubPanEnded
+        // and schedules the 5 s auto-hide. When the user keeps panning
+        // (a fresh gesture that scrub(delta:) sees) the original guard
+        // skipped the cancel because isScrubbing was still true from
+        // the previous gesture, so the timer kept running and tore the
+        // UI down mid-scrub. Cancelling on every call closes that gap
+        // and matches the seekJump path's behaviour.
+        controlsTimer?.cancel()
 
         scrubProgress = max(0, min(1, scrubStartProgress + Float(delta) * 0.3))
         scrubTime = formatSeconds(Double(scrubProgress) * dur)
