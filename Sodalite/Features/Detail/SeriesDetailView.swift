@@ -22,6 +22,12 @@ struct SeriesDetailView: View {
     /// but pressing Down jumped past the seasons row straight to the
     /// cast row below the episodes.
     @State private var playOriginatedFromPlayButton = false
+    /// Captured ScrollViewProxy for the outer vertical ScrollView in
+    /// DetailContentOverlay. The player-dismiss handler uses it to
+    /// scroll back to the episode row when restoring focus to the
+    /// just-played episode, otherwise the nil-flicker focus transition
+    /// left the page stuck at the top.
+    @State private var episodeRowScrollProxy: ScrollViewProxy?
     @FocusState private var focusedSeasonID: String?
     @FocusState private var focusedEpisodeID: String?
     @FocusState private var focusBridgeActive: Bool
@@ -82,46 +88,62 @@ struct SeriesDetailView: View {
 
             if let vm = viewModel, !vm.isLoading {
                 DetailContentOverlay {
-                    glassPanel(vm: vm)
-                        .padding(.horizontal, 50)
-                        .id("\(vm.item.id)-\(vm.item.genres?.count ?? 0)-\(vm.isLoading)")
-                        .animation(.easeInOut(duration: 0.3), value: selectedEpisode?.id)
+                    // Captured ScrollViewProxy lets the player-dismiss
+                    // handler scroll the outer vertical ScrollView back
+                    // to the episode row. Without this, the nil-flicker
+                    // focus restore triggered tvOS's "scroll to bring
+                    // focus into view" against an intermediate
+                    // not-yet-rendered state and the page jumped to the
+                    // top, even though logical focus eventually landed
+                    // on the just-played episode card.
+                    ScrollViewReader { outerProxy in
+                        VStack(alignment: .leading, spacing: 40) {
+                            glassPanel(vm: vm)
+                                .padding(.horizontal, 50)
+                                .id("\(vm.item.id)-\(vm.item.genres?.count ?? 0)-\(vm.isLoading)")
+                                .animation(.easeInOut(duration: 0.3), value: selectedEpisode?.id)
 
-                    if let overview = displayItem.overview, !overview.isEmpty {
-                        ExpandableTextBox(text: overview)
-                            .padding(.horizontal, 50)
-                            .id(displayItem.id)
-                    }
+                            if let overview = displayItem.overview, !overview.isEmpty {
+                                ExpandableTextBox(text: overview)
+                                    .padding(.horizontal, 50)
+                                    .id(displayItem.id)
+                            }
 
-                    if displayItem.mediaStreams != nil || displayItem.mediaSources != nil {
-                        TechInfoBox(item: displayItem)
-                            .animation(.easeInOut(duration: 0.3), value: selectedEpisode?.id)
-                    }
+                            if displayItem.mediaStreams != nil || displayItem.mediaSources != nil {
+                                TechInfoBox(item: displayItem)
+                                    .animation(.easeInOut(duration: 0.3), value: selectedEpisode?.id)
+                            }
 
-                    if !vm.seasons.isEmpty {
-                        seasonSection(vm: vm)
-                    }
+                            if !vm.seasons.isEmpty {
+                                seasonSection(vm: vm)
+                                    .id("episodeRow")
+                            }
 
-                    if let people = vm.item.people, !people.isEmpty {
-                        CastRow(
-                            people: Array(people.prefix(15)),
-                            imageURLProvider: { person in
-                                dependencies.jellyfinImageService.personImageURL(
-                                    personID: person.id,
-                                    tag: person.primaryImageTag
+                            if let people = vm.item.people, !people.isEmpty {
+                                CastRow(
+                                    people: Array(people.prefix(15)),
+                                    imageURLProvider: { person in
+                                        dependencies.jellyfinImageService.personImageURL(
+                                            personID: person.id,
+                                            tag: person.primaryImageTag
+                                        )
+                                    }
                                 )
                             }
-                        )
-                    }
 
-                    if !vm.similarItems.isEmpty {
-                        HorizontalMediaRow(
-                            title: "detail.similar",
-                            items: vm.similarItems,
-                            imageURLProvider: { vm.posterURL(for: $0) },
-                            onItemSelected: { navigateToItem = $0 },
-                            cardStyle: .poster
-                        )
+                            if !vm.similarItems.isEmpty {
+                                HorizontalMediaRow(
+                                    title: "detail.similar",
+                                    items: vm.similarItems,
+                                    imageURLProvider: { vm.posterURL(for: $0) },
+                                    onItemSelected: { navigateToItem = $0 },
+                                    cardStyle: .poster
+                                )
+                            }
+                        }
+                        .onAppear {
+                            episodeRowScrollProxy = outerProxy
+                        }
                     }
                 }
                 .transition(.opacity)
@@ -194,6 +216,18 @@ struct SeriesDetailView: View {
                         playButtonFocused = true
                     }
                 } else if let ep = playItem {
+                    // Scroll back to the episode row before the focus
+                    // restore. tvOS's modal-dismiss restoration plus
+                    // the nil-flicker focus transition below would
+                    // otherwise leave the outer ScrollView pinned at
+                    // the top, so the user landed on the right
+                    // logical focus target but on a page that had
+                    // scrolled away from it.
+                    if let proxy = episodeRowScrollProxy {
+                        withAnimation(.easeInOut(duration: 0.3)) {
+                            proxy.scrollTo("episodeRow", anchor: .top)
+                        }
+                    }
                     focusedEpisodeID = nil
                     DispatchQueue.main.async {
                         focusedEpisodeID = ep.id
