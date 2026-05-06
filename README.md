@@ -125,6 +125,7 @@ Xcode 26+ and Swift 6.0+ are required.
 - [x] Public TestFlight beta
 - [ ] App Store release
 - [ ] iOS / iPadOS companion app
+- [ ] In-app library-update banner via Jellyfin's WebSocket, surfaces a quiet notification when Sonarr / Radarr ingests new content while Sodalite is open. No backend service, no APNs, same self-hosted data flow as everything else
 - [ ] Live TV + DVR support
 - [ ] Music library support
 
