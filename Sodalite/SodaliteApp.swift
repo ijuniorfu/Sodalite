@@ -1,4 +1,5 @@
 import SwiftUI
+import AetherEngine
 
 @main
 struct SodaliteApp: App {
@@ -11,10 +12,15 @@ struct SodaliteApp: App {
         // hit Jellyfin without rebuilding its own DI graph.
         IntentBridge.bind(appState: appState, dependencies: dependencies)
 
-        // Spin up the diagnostic stdout tap as early as possible so
-        // the in-player overlay can show engine init messages too.
-        // No-op in App Store builds.
-        _ = LogTap.shared
+        // Wire AetherEngine's diagnostic broadcaster to the in-app
+        // log overlay. Only in diagnostic builds (DEBUG / TestFlight),
+        // App Store builds leave the handler nil so the engine emits
+        // to print() only.
+        if LogTap.isDiagnosticBuild {
+            EngineLog.handler = { line in
+                LogTap.shared.note(line)
+            }
+        }
     }
 
     var body: some Scene {

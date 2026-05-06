@@ -544,7 +544,6 @@ final class PlayerViewModel {
             .receive(on: DispatchQueue.main)
             .sink { [weak self] format in
                 guard let self else { return }
-                #if DEBUG
                 // Reactive format upgrades happen when the engine
                 // discovers an HDR10+ T.35 SEI mid-playback (or, in
                 // theory, any other late-detected metadata). tvOS'
@@ -553,11 +552,13 @@ final class PlayerViewModel {
                 // criteria, but we do log the transition so a
                 // TestFlight diagnosis can tell "engine never saw
                 // HDR10+" apart from "engine saw HDR10+ but TV
-                // ignored it".
+                // ignored it". Routed through LogTap so it appears
+                // in the in-app overlay as well as stdout.
                 if format != self.videoFormat {
-                    print("[PlayerVM] videoFormat changed: \(self.videoFormat) → \(format)")
+                    let line = "[PlayerVM] videoFormat changed: \(self.videoFormat) → \(format)"
+                    print(line)
+                    LogTap.shared.note(line)
                 }
-                #endif
                 // Only show the HDR badge if the display is actually in
                 // HDR mode. When "Match Dynamic Range" is off, the TV
                 // stays in SDR, showing "HDR10" would be misleading.

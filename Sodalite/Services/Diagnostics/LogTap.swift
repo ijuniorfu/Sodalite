@@ -1,20 +1,28 @@
 import Foundation
 import Combine
 
-/// Captures lines written to `stdout` (where `print(...)` lands) and
-/// publishes the most recent matching lines for an in-app overlay.
-/// Diagnostic-only, lets TestFlight testers screenshot what the
-/// engine logged during playback when they have no Mac to pair with
-/// Console.app. Also re-emits captured bytes back onto the original
-/// stdout file descriptor so Xcode console / OSLog forwarding stay
-/// intact.
+/// Ring buffer of recent diagnostic log lines, surfaced into the
+/// player overlay so a TestFlight beta tester can screenshot what
+/// the engine reported during playback when they have no Mac to
+/// pair with Console.app.
+///
+/// Lines arrive via two paths:
+///   - `AetherEngine.EngineLog.handler` (preferred) for engine prints
+///     that go through the explicit broadcaster.
+///   - Direct `LogTap.shared.note(_:)` calls from host code (e.g.
+///     PlayerViewModel) for things the engine doesn't see.
+///
+/// We deliberately do **not** redirect `stdout` via `dup2` any more,
+/// the previous approach was unreliable on tvOS Release builds where
+/// stdout is silently null-redirected when no debugger is attached.
 final class LogTap: ObservableObject {
 
     static let shared = LogTap()
 
-    /// Build is "diagnostic" when running under the debugger (DEBUG)
-    /// or shipped via TestFlight (sandbox receipt). App Store builds
-    /// stay silent so end users never see the overlay.
+    /// Whether the diagnostic overlay should be mounted at all.
+    /// Always on under the debugger (DEBUG), on for sandbox-receipt
+    /// builds (TestFlight), off for App Store builds so end users
+    /// never see a developer overlay.
     static let isDiagnosticBuild: Bool = {
         #if DEBUG
         return true
@@ -25,85 +33,17 @@ final class LogTap: ObservableObject {
 
     @Published private(set) var lines: [String] = []
 
-    /// Patterns we consider interesting. The pipe sees every print
-    /// from every part of the process, including SwiftUI / OS noise,
-    /// so we filter to engine + player diagnostics only.
-    private let patterns = [
-        "[VideoDecoder]",
-        "[SoftwareVideoDecoder]",
-        "[Renderer]",
-        "[AetherEngine]",
-        "[Demuxer]",
-        "[PlayerVM]",
-        "[HLSAudio]",
-        "[HLSAudioEngine]"
-    ]
-
     private let maxLines = 80
-    private let pipe = Pipe()
-    private var originalStdoutFD: Int32 = -1
-    private var residualBuffer = ""
-    private let appendQueue = DispatchQueue(label: "com.sodalite.logtap.append")
 
-    private init() {
-        guard Self.isDiagnosticBuild else { return }
-        installPipe()
-    }
+    private init() {}
 
-    private func installPipe() {
-        // Force stdout line-buffered so each print() flushes through
-        // the pipe immediately. Default is fully-buffered when stdout
-        // isn't a tty, which would buffer ~4 KB before we see anything.
-        setvbuf(stdout, nil, _IOLBF, 0)
-
-        // Save the original stdout fd so we can echo back to it.
-        // Without this, redirecting fd 1 onto the pipe also redirects
-        // anything Xcode or os_log forwarding watches.
-        originalStdoutFD = dup(fileno(stdout))
-
-        // Replace fd 1 with the pipe's write end.
-        dup2(pipe.fileHandleForWriting.fileDescriptor, fileno(stdout))
-
-        let originalFD = originalStdoutFD
-        pipe.fileHandleForReading.readabilityHandler = { [weak self] handle in
-            let data = handle.availableData
-            guard !data.isEmpty else { return }
-
-            // Echo back to the saved original fd so the Xcode console
-            // and any external OSLog stream keep showing what the app
-            // wrote. Best-effort, ignore the return.
-            if originalFD >= 0 {
-                _ = data.withUnsafeBytes { buf -> Int in
-                    guard let base = buf.baseAddress else { return 0 }
-                    return write(originalFD, base, data.count)
-                }
-            }
-
-            guard let chunk = String(data: data, encoding: .utf8) else { return }
-            self?.appendQueue.async { [weak self] in
-                self?.ingest(chunk)
-            }
-        }
-    }
-
-    /// Buffer partial lines: a single print() may arrive split across
-    /// reads if it crosses an internal boundary, so accumulate and
-    /// only commit complete \n-terminated lines.
-    private func ingest(_ chunk: String) {
-        residualBuffer += chunk
-        var committed: [String] = []
-        while let nlIndex = residualBuffer.firstIndex(of: "\n") {
-            let line = String(residualBuffer[..<nlIndex])
-            residualBuffer = String(residualBuffer[residualBuffer.index(after: nlIndex)...])
-            if patterns.contains(where: { line.contains($0) }) {
-                committed.append(line)
-            }
-        }
-        guard !committed.isEmpty else { return }
-
+    /// Append one line to the overlay. Safe to call from any thread.
+    /// Long lines are truncated when rendered in the overlay (the
+    /// view applies `lineLimit(1)` + tail truncation).
+    func note(_ line: String) {
         DispatchQueue.main.async { [weak self] in
             guard let self else { return }
-            self.lines.append(contentsOf: committed)
+            self.lines.append(line)
             if self.lines.count > self.maxLines {
                 self.lines.removeFirst(self.lines.count - self.maxLines)
             }
