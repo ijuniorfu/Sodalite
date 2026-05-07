@@ -330,6 +330,16 @@ final class PlayerViewModel {
             // Without tone-mapping, AVSampleBufferDisplayLayer shows black
             // because it can't map PQ values onto an SDR display.
             let detectedFormat = detectVideoFormat(from: source)
+            let engineRoute = selectPlayerEngine(for: source, format: detectedFormat)
+            let routeLine = "[PlayerVM] engine=\(engineRoute.rawValue) (format=\(detectedFormat), container=\(source.container ?? "nil"), directPlay=\(source.supportsDirectPlay ?? false))"
+            print(routeLine)
+            LogTap.shared.note(routeLine)
+            // Phase 1 of the hybrid rollout: route is computed and
+            // logged for diagnostic purposes only. Phase 2 will
+            // actually instantiate the AVPlayer path when this
+            // returns `.native`. For now, AetherEngine drives every
+            // session regardless.
+            _ = engineRoute
             var displayWillSwitchToHDR = false
             if detectedFormat != .sdr {
                 // If content is DV but TV only supports HDR10, use HDR10 criteria
@@ -1094,6 +1104,42 @@ final class PlayerViewModel {
         return .sdr
     }
 
+    /// Which playback engine should drive a given source. The
+    /// FFmpeg + VideoToolbox + AVSampleBufferDisplayLayer path
+    /// (`.aether`) cannot trigger the HDMI Dolby Vision handshake
+    /// on tvOS; only `AVPlayer`-rooted playback can. So for DV
+    /// streams that Jellyfin can deliver as a direct-play MP4
+    /// with the `dvh1` + `dvcC`/`dvvC` atoms intact, route through
+    /// the native AVPlayer path (`.native`). Everything else stays
+    /// on the engine.
+    ///
+    /// Phase 1 of the hybrid rollout: this only computes the
+    /// decision and logs it. Actual `.native` execution lands in
+    /// later phases.
+    func selectPlayerEngine(for source: PlaybackMediaSource, format: VideoFormat) -> PlayerEngineRoute {
+        guard format == .dolbyVision else { return .aether }
+        guard DisplayCapabilities.supportsDolbyVision else {
+            // TV doesn't advertise DV, no point routing through
+            // AVPlayer just to render the HDR10 base layer that
+            // AetherEngine already plays correctly.
+            return .aether
+        }
+        // AVPlayer needs a direct-play MP4-family container to
+        // preserve the DV codec atoms. HLS or transcoded paths
+        // strip dvcC, anything else from this list (mkv, ts,
+        // webm, etc.) is impossible to direct-play through AVPlayer.
+        guard source.supportsDirectPlay == true else { return .aether }
+        guard let container = source.container?.lowercased() else { return .aether }
+        let supportedContainers: Set<String> = ["mp4", "m4v", "mov"]
+        let containers = container
+            .split(separator: ",")
+            .map { $0.trimmingCharacters(in: .whitespaces) }
+        guard containers.contains(where: supportedContainers.contains) else {
+            return .aether
+        }
+        return .native
+    }
+
     func formatSeconds(_ seconds: Double) -> String {
         let total = Int(max(0, seconds))
         let h = total / 3600
@@ -1212,6 +1258,18 @@ final class PlayerViewModel {
             .first
     }
     #endif
+}
+
+/// Which underlying playback technology will drive a given
+/// session. `.aether` is the engine's FFmpeg + VideoToolbox +
+/// custom display-layer pipeline (used for everything except
+/// Dolby Vision direct-play). `.native` is the AVPlayer +
+/// AVPlayerLayer path that we use only for DV because it's the
+/// only way to trigger the HDMI HDR-mode handshake to "Dolby
+/// Vision" on tvOS.
+enum PlayerEngineRoute: String {
+    case aether
+    case native
 }
 
 enum PlayerEngineError: LocalizedError {
