@@ -4,6 +4,7 @@ import AetherEngine
 extension PlayerViewModel {
 
     var effectiveDuration: Double {
+        if let np = nativePlayer, np.duration > 0 { return np.duration }
         if player.duration > 0 { return player.duration }
         if let ticks = item.runTimeTicks, ticks > 0 {
             return Double(ticks) / 10_000_000
@@ -74,7 +75,7 @@ extension PlayerViewModel {
         progress = scrubProgress
         isScrubbing = false
         Task {
-            await player.seek(to: targetTime)
+            await seekActivePlayer(to: targetTime)
             reportProgressIfNeeded()
             scheduleControlsHide()
         }

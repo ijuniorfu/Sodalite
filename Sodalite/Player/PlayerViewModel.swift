@@ -204,6 +204,70 @@ final class PlayerViewModel {
         return player.videoLayer
     }
 
+    /// Combine subscriptions held alive for as long as the current
+    /// `nativePlayer` is active. Cleared when the native session
+    /// ends so engine-driven aether sessions don't see leaked
+    /// observers.
+    var nativeCancellables = Set<AnyCancellable>()
+
+    /// Route a seek to whichever player is currently active. The
+    /// engine's `seek(to:)` is async (it serialises with the demux
+    /// loop); the native AVPlayer's is synchronous (AVPlayer queues
+    /// the seek internally and reports completion via the periodic
+    /// time observer). The Task wrapper hides that asymmetry from
+    /// callers — they always `Task { await viewModel.seekActivePlayer(...) }`.
+    func seekActivePlayer(to seconds: Double) async {
+        if let np = nativePlayer {
+            np.seek(to: seconds)
+        } else {
+            await player.seek(to: seconds)
+        }
+    }
+
+    /// Mirror NativeAVPlayer's published time / duration / failure
+    /// state into PlayerViewModel's existing fields so the player
+    /// chrome (scrub bar, total-time label, intro-skip detector,
+    /// next-episode-overlay countdown) keeps working without
+    /// branching on aether-vs-native at every read site. Called
+    /// once per native session, right after `nativePlayer` is set.
+    func wireNativePlayerObservers(_ np: NativeAVPlayer) {
+        nativeCancellables.removeAll()
+
+        np.$currentTime
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] time in
+                guard let self = self else { return }
+                self.playbackTime = time
+                self.updateIntroVisibility(time: time)
+                self.updateOutroAutoSkip(time: time)
+                self.checkForNextEpisode()
+                if !self.isScrubbing {
+                    self.currentTime = self.formatSeconds(time)
+                    let dur = self.effectiveDuration
+                    let rem = dur - time
+                    self.remainingTime = "-\(self.formatSeconds(max(0, rem)))"
+                    self.progress = dur > 0 ? Float(time / dur) : 0
+                }
+            }
+            .store(in: &nativeCancellables)
+
+        np.$duration
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] dur in
+                guard let self = self, dur > 0 else { return }
+                self.totalTime = self.formatSeconds(dur)
+            }
+            .store(in: &nativeCancellables)
+
+        np.$failureMessage
+            .receive(on: DispatchQueue.main)
+            .compactMap { $0 }
+            .sink { [weak self] message in
+                self?.errorMessage = message
+            }
+            .store(in: &nativeCancellables)
+    }
+
     init(
         item: JellyfinItem,
         startFromBeginning: Bool,
@@ -407,6 +471,7 @@ final class PlayerViewModel {
                 let np = NativeAVPlayer()
                 nativePlayer = np
                 onActiveVideoLayerChanged?(np.playerLayer)
+                wireNativePlayerObservers(np)
                 np.load(url: localhostURL, startPosition: startPos)
                 np.play()
 
@@ -485,6 +550,7 @@ final class PlayerViewModel {
         // the engine's session (so the server can stop without
         // mid-request races).
         if let np = nativePlayer {
+            nativeCancellables.removeAll()
             np.tearDown()
             nativePlayer = nil
             player.stopNativeVideoSession()
@@ -819,7 +885,7 @@ final class PlayerViewModel {
     func selectChapter(at index: Int) {
         guard chapters.indices.contains(index) else { return }
         let target = chapters[index].startSeconds
-        Task { await player.seek(to: target) }
+        Task { [weak self] in await self?.seekActivePlayer(to: target) }
     }
 
     func selectAudioTrack(id: Int) {
@@ -956,7 +1022,7 @@ final class PlayerViewModel {
     func skipIntro() {
         guard let seg = introSegment else { return }
         isInsideIntro = false
-        Task { await player.seek(to: seg.endSeconds) }
+        Task { [weak self] in await self?.seekActivePlayer(to: seg.endSeconds) }
     }
 
     /// Outro equivalent to `updateIntroVisibility`, no Skip Outro UI
@@ -986,7 +1052,7 @@ final class PlayerViewModel {
                 await self?.playNextEpisode()
             }
         } else {
-            Task { await player.seek(to: seg.endSeconds) }
+            Task { [weak self] in await self?.seekActivePlayer(to: seg.endSeconds) }
         }
     }
 
@@ -1200,6 +1266,25 @@ final class PlayerViewModel {
         let videoStream = source.mediaStreams?.first(where: { $0.type == .video })
         let codec = videoStream?.codec?.lowercased()
         guard codec == "hevc" || codec == "h265" else { return .aether }
+
+        // At least one audio stream must be in AVPlayer's
+        // fMP4-decodable set, otherwise the .native session would
+        // play silent. TrueHD / DTS / DTS-HD-MA fall through here
+        // because AVPlayer can't decode them in fMP4 (DrHurt's
+        // `-c:a flac` transcode trick from AetherEngine#1 isn't
+        // wired up yet — phase-7 expansion). For those files the
+        // host falls back to AetherEngine which decodes them via
+        // its own audio path.
+        let audioStreams = source.mediaStreams?.filter { $0.type == .audio } ?? []
+        let avplayerCompatibleAudio: Set<String> = [
+            "aac", "ac3", "eac3", "flac", "alac", "mp3", "opus",
+        ]
+        let hasCompatibleAudio = audioStreams.contains { stream in
+            guard let codec = stream.codec?.lowercased() else { return false }
+            return avplayerCompatibleAudio.contains(codec)
+        }
+        guard hasCompatibleAudio else { return .aether }
+
         return .native
     }
 
