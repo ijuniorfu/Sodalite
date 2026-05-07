@@ -121,16 +121,33 @@ final class PlayerHostController: UIViewController {
         // decoder emits has already been routed to this layer by
         // then, and on an unlaidout layer that frame is dropped,
         // the screen stays black until a seek re-primes the pipeline.
-        let layer = viewModel.player.videoLayer
+        let layer = viewModel.activeVideoLayer
         view.layoutIfNeeded()
         layer.frame = view.bounds
         view.layer.addSublayer(layer)
         hostedVideoLayer = layer
 
-        // Swap the sublayer if the engine recreates its video layer
-        // (happens on every load() to avoid stale state from the
-        // previous session). Without this the view keeps the old,
-        // unfed layer and the user sees a frozen or black picture.
+        // Active-layer change callback. PlayerViewModel fires this
+        // when either:
+        //  - the engine recreates its `AVSampleBufferDisplayLayer`
+        //    (the existing aether-path behaviour, prevents stale
+        //    state from leaking between sessions), or
+        //  - we enter / leave a `.native` route session and the
+        //    layer should switch between the engine's display layer
+        //    and the AVPlayer's `AVPlayerLayer`.
+        viewModel.onActiveVideoLayerChanged = { [weak self] newLayer in
+            if Thread.isMainThread {
+                self?.swapVideoLayer(to: newLayer)
+            } else {
+                DispatchQueue.main.async { self?.swapVideoLayer(to: newLayer) }
+            }
+        }
+
+        // Forward the engine's own layer-replaced events into the
+        // unified callback above. The engine recreates the layer on
+        // every aether-route load(), so this keeps PlayerView seeing
+        // the right layer without it having to know about engine vs
+        // native distinctions.
         //
         // Critical: when called from the main thread (the actual case,
         // since engine.load() runs on the main actor), insert the
@@ -149,11 +166,12 @@ final class PlayerHostController: UIViewController {
         // in the common case while keeping a defensive async fallback
         // if a future caller ever fires this off the main thread.
         viewModel.player.onVideoLayerReplaced = { [weak self] newLayer in
-            if Thread.isMainThread {
-                self?.swapVideoLayer(to: newLayer)
-            } else {
-                DispatchQueue.main.async { self?.swapVideoLayer(to: newLayer) }
-            }
+            // Defer to the unified active-layer callback rather than
+            // swapping directly, so the native path's AVPlayerLayer
+            // doesn't get clobbered when the engine recreates its
+            // own (unused) display layer mid-session.
+            guard let self = self else { return }
+            self.viewModel.onActiveVideoLayerChanged?(self.viewModel.activeVideoLayer)
         }
 
         // End-of-content auto-dismiss: a movie or the last episode of
@@ -249,6 +267,7 @@ final class PlayerHostController: UIViewController {
         guard isBeingDismissed || isMovingFromParent else { return }
         hostedVideoLayer?.removeFromSuperlayer()
         viewModel.player.onVideoLayerReplaced = nil
+        viewModel.onActiveVideoLayerChanged = nil
         Task { await viewModel.stopPlayback() }
     }
 
@@ -633,6 +652,7 @@ final class PlayerHostController: UIViewController {
     private func dismissPlayer() {
         hostedVideoLayer?.removeFromSuperlayer()
         viewModel.player.onVideoLayerReplaced = nil
+        viewModel.onActiveVideoLayerChanged = nil
         viewModel.resetDisplayCriteria()
         Task {
             await viewModel.stopPlayback()

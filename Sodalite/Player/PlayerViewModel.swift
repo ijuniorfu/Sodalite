@@ -176,6 +176,34 @@ final class PlayerViewModel {
     var activePlayMethod: PlayMethod = .directPlay
     var subtitleStreams: [MediaStream] = []
 
+    // MARK: - Native AVPlayer path (Dolby Vision)
+
+    /// Non-nil during a `.native` route session. Owns the AVPlayer +
+    /// AVPlayerLayer that drives Dolby Vision playback for sources
+    /// AetherEngine can demux but where we need the AVPlayer-only
+    /// HDMI handshake to engage true DV mode on a capable TV.
+    var nativePlayer: NativeAVPlayer?
+
+    /// Fired by PlayerViewModel whenever the active video layer
+    /// changes — either because the engine recreated its
+    /// `AVSampleBufferDisplayLayer` (the existing aether-path
+    /// behaviour) or because we entered/left a native session and
+    /// the host should swap to/from the `AVPlayerLayer`. The host
+    /// (`PlayerView`) assigns this in `viewDidLoad` and clears it
+    /// in `viewWillDisappear`.
+    var onActiveVideoLayerChanged: ((CALayer) -> Void)?
+
+    /// The CALayer the host should currently be showing. Either the
+    /// engine's display layer (aether path) or the native AVPlayer's
+    /// layer (native path). Read by `PlayerView.viewDidLoad` to
+    /// pick the initial sublayer.
+    var activeVideoLayer: CALayer {
+        if let np = nativePlayer {
+            return np.playerLayer
+        }
+        return player.videoLayer
+    }
+
     init(
         item: JellyfinItem,
         startFromBeginning: Bool,
@@ -334,12 +362,6 @@ final class PlayerViewModel {
             let routeLine = "[PlayerVM] engine=\(engineRoute.rawValue) (format=\(detectedFormat), container=\(source.container ?? "nil"), directPlay=\(source.supportsDirectPlay ?? false))"
             print(routeLine)
             LogTap.shared.note(routeLine)
-            // Phase 1 of the hybrid rollout: route is computed and
-            // logged for diagnostic purposes only. Phase 2 will
-            // actually instantiate the AVPlayer path when this
-            // returns `.native`. For now, AetherEngine drives every
-            // session regardless.
-            _ = engineRoute
             var displayWillSwitchToHDR = false
             if detectedFormat != .sdr {
                 // If content is DV but TV only supports HDR10, use HDR10 criteria
@@ -370,6 +392,34 @@ final class PlayerViewModel {
                 print("[PlayerVM] Tone-mapping HDR→SDR (display stays in SDR mode)")
             }
             #endif
+
+            if engineRoute == .native {
+                // Phase 5 of the hybrid rollout: route DV streams
+                // through AVPlayer for the HDMI handshake to "Dolby
+                // Vision". AetherEngine wraps the source as
+                // loopback HLS-fMP4 and returns the playlist URL;
+                // we hand it to NativeAVPlayer. Display criteria
+                // were set above in `applyDisplayCriteria` already,
+                // same as for the aether path.
+                let localhostURL = try player.startNativeVideoSession(url: url)
+                LogTap.shared.note("[PlayerVM] native session started: \(localhostURL.absoluteString)")
+
+                let np = NativeAVPlayer()
+                nativePlayer = np
+                onActiveVideoLayerChanged?(np.playerLayer)
+                np.load(url: localhostURL, startPosition: startPos)
+                np.play()
+
+                totalTime = formatSeconds(effectiveDuration)
+                isLoading = false
+                hasStartedPlaying = true
+                startObserving()
+                await reportStart()
+                startProgressReporting()
+                Task { [weak self] in await self?.loadEpisodeSegments() }
+                Task { [weak self] in await self?.loadSeasonEpisodes() }
+                return
+            }
 
             try await player.load(
                 url: url,
@@ -427,6 +477,21 @@ final class PlayerViewModel {
         // ~1-2s of trailing audio that the user heard during the
         // network round-trip.
         let finalTicks = currentPositionTicks
+        // Tear down the native session first if one is active. The
+        // engine's `stopNativeVideoSession` releases the loopback
+        // server's TCP port and the FFmpeg demuxer/muxer, the local
+        // wrapper releases its `AVPlayerItem`. Order: NativeAVPlayer
+        // first (so AVPlayer stops fetching from the server), then
+        // the engine's session (so the server can stop without
+        // mid-request races).
+        if let np = nativePlayer {
+            np.tearDown()
+            nativePlayer = nil
+            player.stopNativeVideoSession()
+            // Hand the active layer back to the engine's display
+            // layer so the next session (if any) starts clean.
+            onActiveVideoLayerChanged?(player.videoLayer)
+        }
         player.stop()
         // Always revert the TV to SDR once playback ends. PlayerView's
         // onDisappear also calls this, but if the app is backgrounded or
@@ -607,7 +672,11 @@ final class PlayerViewModel {
     // MARK: - Controls
 
     func togglePlayPause() {
-        player.togglePlayPause()
+        if let np = nativePlayer {
+            np.toggle()
+        } else {
+            player.togglePlayPause()
+        }
         reportProgressIfNeeded()
         showControls = true
         scheduleControlsHide()
@@ -1107,36 +1176,30 @@ final class PlayerViewModel {
     /// Which playback engine should drive a given source. The
     /// FFmpeg + VideoToolbox + AVSampleBufferDisplayLayer path
     /// (`.aether`) cannot trigger the HDMI Dolby Vision handshake
-    /// on tvOS; only `AVPlayer`-rooted playback can. So for DV
-    /// streams that Jellyfin can deliver as a direct-play MP4
-    /// with the `dvh1` + `dvcC`/`dvvC` atoms intact, route through
-    /// the native AVPlayer path (`.native`). Everything else stays
-    /// on the engine.
+    /// on tvOS; only `AVPlayer`-rooted playback can. For DV streams
+    /// where AetherEngine can produce a loopback HLS-fMP4 view of
+    /// the source — which it can for any container FFmpeg demuxes,
+    /// MKV included — we route through the native AVPlayer path
+    /// (`.native`). Everything else stays on the engine.
     ///
-    /// Phase 1 of the hybrid rollout: this only computes the
-    /// decision and logs it. Actual `.native` execution lands in
-    /// later phases.
+    /// Eligibility:
+    /// - format must be `.dolbyVision`
+    /// - the active TV must advertise DV in `availableHDRModes` (no
+    ///   point routing through AVPlayer just to render the HDR10
+    ///   base layer that AetherEngine already plays correctly)
+    /// - Jellyfin must allow direct-stream or direct-play of this
+    ///   source so the demuxer can read raw container bytes
+    /// - the video stream's codec must be HEVC (the only codec
+    ///   `HLSVideoEngine`'s muxer is wired up for in phase 4; AV1
+    ///   DV could be added later)
     func selectPlayerEngine(for source: PlaybackMediaSource, format: VideoFormat) -> PlayerEngineRoute {
         guard format == .dolbyVision else { return .aether }
-        guard DisplayCapabilities.supportsDolbyVision else {
-            // TV doesn't advertise DV, no point routing through
-            // AVPlayer just to render the HDR10 base layer that
-            // AetherEngine already plays correctly.
-            return .aether
-        }
-        // AVPlayer needs a direct-play MP4-family container to
-        // preserve the DV codec atoms. HLS or transcoded paths
-        // strip dvcC, anything else from this list (mkv, ts,
-        // webm, etc.) is impossible to direct-play through AVPlayer.
-        guard source.supportsDirectPlay == true else { return .aether }
-        guard let container = source.container?.lowercased() else { return .aether }
-        let supportedContainers: Set<String> = ["mp4", "m4v", "mov"]
-        let containers = container
-            .split(separator: ",")
-            .map { $0.trimmingCharacters(in: .whitespaces) }
-        guard containers.contains(where: supportedContainers.contains) else {
-            return .aether
-        }
+        guard DisplayCapabilities.supportsDolbyVision else { return .aether }
+        let directOK = (source.supportsDirectPlay == true) || (source.supportsDirectStream == true)
+        guard directOK else { return .aether }
+        let videoStream = source.mediaStreams?.first(where: { $0.type == .video })
+        let codec = videoStream?.codec?.lowercased()
+        guard codec == "hevc" || codec == "h265" else { return .aether }
         return .native
     }
 
