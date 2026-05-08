@@ -465,25 +465,45 @@ final class PlayerViewModel {
                 // we hand it to NativeAVPlayer. Display criteria
                 // were set above in `applyDisplayCriteria` already,
                 // same as for the aether path.
-                let localhostURL = try player.startNativeVideoSession(url: url)
-                LogTap.shared.note("[PlayerVM] native session started: \(localhostURL.absoluteString)")
+                //
+                // If the engine throws (P7 reject, malformed source,
+                // server bind failure), fall through to the aether
+                // path so the file still plays — the user gets HDR10
+                // base instead of true DV mode but at least gets a
+                // picture. We also reset display criteria here so
+                // the TV doesn't stay in HDR/DV mode while the
+                // aether path renders content that may not need it.
+                do {
+                    let localhostURL = try player.startNativeVideoSession(url: url)
+                    LogTap.shared.note("[PlayerVM] native session started: \(localhostURL.absoluteString)")
 
-                let np = NativeAVPlayer()
-                nativePlayer = np
-                onActiveVideoLayerChanged?(np.playerLayer)
-                wireNativePlayerObservers(np)
-                np.load(url: localhostURL, startPosition: startPos)
-                np.play()
+                    let np = NativeAVPlayer()
+                    nativePlayer = np
+                    onActiveVideoLayerChanged?(np.playerLayer)
+                    wireNativePlayerObservers(np)
+                    np.load(url: localhostURL, startPosition: startPos)
+                    np.play()
 
-                totalTime = formatSeconds(effectiveDuration)
-                isLoading = false
-                hasStartedPlaying = true
-                startObserving()
-                await reportStart()
-                startProgressReporting()
-                Task { [weak self] in await self?.loadEpisodeSegments() }
-                Task { [weak self] in await self?.loadSeasonEpisodes() }
-                return
+                    totalTime = formatSeconds(effectiveDuration)
+                    isLoading = false
+                    hasStartedPlaying = true
+                    startObserving()
+                    await reportStart()
+                    startProgressReporting()
+                    Task { [weak self] in await self?.loadEpisodeSegments() }
+                    Task { [weak self] in await self?.loadSeasonEpisodes() }
+                    return
+                } catch {
+                    LogTap.shared.note("[PlayerVM] native session failed: \(error.localizedDescription) — falling back to aether")
+                    print("[PlayerVM] native session failed: \(error)")
+                    resetDisplayCriteria()
+                    if displayWillSwitchToHDR {
+                        // Re-apply display criteria for the aether
+                        // fallback so the TV stays in HDR mode for
+                        // the actual playback we're about to start.
+                        displayWillSwitchToHDR = applyDisplayCriteria(format: detectedFormat == .dolbyVision ? .hdr10 : detectedFormat)
+                    }
+                }
             }
 
             try await player.load(
