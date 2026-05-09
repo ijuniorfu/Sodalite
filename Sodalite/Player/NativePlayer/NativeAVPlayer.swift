@@ -51,6 +51,15 @@ final class NativeAVPlayer: ObservableObject {
     private var notificationObservers: [NSObjectProtocol] = []
     private var accessLogCount = 0
 
+    /// `play()` was called by the host but the AVPlayerItem hadn't
+    /// reached `.readyToPlay` yet. Cleared once the item readies and
+    /// `avPlayer.play()` is dispatched. This mirrors HLSAudioEngine's
+    /// "play after ready" pattern, which works for AVPlayer + localhost
+    /// HLS where the equivalent eager-play pattern (replaceCurrentItem
+    /// then immediate play) hangs on tvOS without ever opening a TCP
+    /// socket to the loopback server.
+    private var pendingPlay = false
+
     // MARK: - Init
 
     init() {
@@ -86,6 +95,13 @@ final class NativeAVPlayer: ObservableObject {
 
         let asset = AVURLAsset(url: url)
         let item = AVPlayerItem(asset: asset)
+        // Match the audio engine's HLSAudioEngine config so any
+        // "video-pattern is wrong" hypothesis can be ruled out as we
+        // iterate. 4 s of forward buffer matches Apple's HLS authoring
+        // recommendation for a 6 s VOD segment cadence: enough to ride
+        // out a normal segment-generation hiccup without ballooning
+        // resident memory.
+        item.preferredForwardBufferDuration = 4.0
         playerItem = item
         accessLogCount = 0
         failureMessage = nil
@@ -112,6 +128,20 @@ final class NativeAVPlayer: ObservableObject {
                 case .readyToPlay:
                     self.duration = item.duration.seconds.isFinite ? item.duration.seconds : 0
                     self.isReady = true
+                    // Drain any pending play() the host called before
+                    // the item was ready. With AVPlayer +
+                    // automaticallyWaitsToMinimizeStalling=true the
+                    // documented behaviour is "play() is honoured once
+                    // the asset readies", but on tvOS 26 + localhost
+                    // HLS the eager-play pattern leaves AVPlayer in
+                    // waitingToPlay forever without ever opening a
+                    // TCP socket. Deferring the actual `.play()` call
+                    // until readyToPlay matches HLSAudioEngine's
+                    // working pattern.
+                    if self.pendingPlay {
+                        LogTap.shared.note("[NativeAVPlayer] draining pendingPlay on readyToPlay")
+                        self.avPlayer.play()
+                    }
                 case .failed:
                     self.failureMessage = item.error?.localizedDescription ?? "AVPlayerItem failed (no description)"
                 default:
@@ -213,6 +243,24 @@ final class NativeAVPlayer: ObservableObject {
 
         avPlayer.replaceCurrentItem(with: item)
 
+        // Explicitly kick off the async load of the asset's playable /
+        // tracks / duration values. AVPlayerItem(asset:) plus KVO on
+        // status SHOULD trigger this implicitly per Apple's docs, but
+        // the build-123 overlay shows AVPlayer stuck in waitingToPlay
+        // with the item never advancing past .unknown — consistent
+        // with the asset never beginning its async load. Forcing the
+        // load explicitly removes that ambiguity.
+        Task { [weak self] in
+            do {
+                let _ = try await asset.load(.isPlayable, .tracks, .duration)
+                LogTap.shared.note("[NativeAVPlayer] asset.load completed: playable=\(asset.isPlayable)")
+            } catch {
+                let nsErr = error as NSError
+                LogTap.shared.note("[NativeAVPlayer] asset.load failed: \(nsErr.domain)/\(nsErr.code) '\(nsErr.localizedDescription)'")
+                _ = self
+            }
+        }
+
         if let start = startPosition, start > 0 {
             seek(to: start)
         }
@@ -229,10 +277,17 @@ final class NativeAVPlayer: ObservableObject {
     // MARK: - Playback control
 
     func play() {
-        avPlayer.play()
+        pendingPlay = true
+        if isReady {
+            avPlayer.play()
+        }
+        // else: status observer's .readyToPlay branch will dispatch
+        // the play() once the asset has loaded. See the `pendingPlay`
+        // doc comment for context.
     }
 
     func pause() {
+        pendingPlay = false
         avPlayer.pause()
     }
 
@@ -277,6 +332,7 @@ final class NativeAVPlayer: ObservableObject {
         }
         notificationObservers.removeAll()
         accessLogCount = 0
+        pendingPlay = false
         avPlayer.replaceCurrentItem(with: nil)
         playerItem = nil
         isReady = false
