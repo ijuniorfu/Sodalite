@@ -457,6 +457,36 @@ final class PlayerViewModel {
             }
             #endif
 
+            if engineRoute == .directURL {
+                // Cheapest path: AVPlayer can open this container
+                // directly. We just hand it the Jellyfin direct-play
+                // URL with no engine, no HLS wrapper, no localhost
+                // server. AVPlayer reads the source's own dvcC /
+                // dvvC / hvcC boxes for HDR mode signalling, so
+                // HDR10 / HDR10+ / HLG / DV all engage on the HDMI
+                // handshake without us synthesising anything. Display
+                // criteria were already set above so the TV is in
+                // the right mode by the time the first frame lands.
+                LogTap.shared.note("[PlayerVM] directURL session: \(url.absoluteString)")
+
+                let np = NativeAVPlayer()
+                nativePlayer = np
+                onActiveVideoLayerChanged?(np.playerLayer)
+                wireNativePlayerObservers(np)
+                np.load(url: url, startPosition: startPos)
+                np.play()
+
+                totalTime = formatSeconds(effectiveDuration)
+                isLoading = false
+                hasStartedPlaying = true
+                startObserving()
+                await reportStart()
+                startProgressReporting()
+                Task { [weak self] in await self?.loadEpisodeSegments() }
+                Task { [weak self] in await self?.loadSeasonEpisodes() }
+                return
+            }
+
             if engineRoute == .native {
                 // Phase 5 of the hybrid rollout: route DV streams
                 // through AVPlayer for the HDMI handshake to "Dolby
@@ -1259,42 +1289,36 @@ final class PlayerViewModel {
         return .sdr
     }
 
-    /// Which playback engine should drive a given source. The
-    /// FFmpeg + VideoToolbox + AVSampleBufferDisplayLayer path
-    /// (`.aether`) cannot trigger the HDMI Dolby Vision handshake
-    /// on tvOS; only `AVPlayer`-rooted playback can. For DV streams
-    /// where AetherEngine can produce a loopback HLS-fMP4 view of
-    /// the source — which it can for any container FFmpeg demuxes,
-    /// MKV included — we route through the native AVPlayer path
-    /// (`.native`). Everything else stays on the engine.
+    /// Which playback engine should drive a given source.
     ///
-    /// Eligibility:
-    /// - format must be `.dolbyVision`
-    /// - the active TV must advertise DV in `availableHDRModes` (no
-    ///   point routing through AVPlayer just to render the HDR10
-    ///   base layer that AetherEngine already plays correctly)
-    /// - Jellyfin must allow direct-stream or direct-play of this
-    ///   source so the demuxer can read raw container bytes
-    /// - the video stream's codec must be HEVC (the only codec
-    ///   `HLSVideoEngine`'s muxer is wired up for in phase 4; AV1
-    ///   DV could be added later)
+    /// Decision order (most preferred first):
+    ///
+    /// 1. `.directURL`: source is an MP4 / M4V / MOV that AVPlayer
+    ///    can open natively, with HEVC or H.264 video and an
+    ///    AVPlayer-decodable audio track. Confirmed end-to-end on
+    ///    tvOS by ZeroQ-bit's testing on AetherEngine#2: every DV
+    ///    profile (P5, P8.1, P8.4) at every framerate (24 / 25 / 30
+    ///    / 50 / 120 fps) reaches readyToPlay with no wrapper.
+    ///    HDR10 / HDR10+ / HLG / DV mode all engage on the HDMI
+    ///    handshake automatically because the source's own codec
+    ///    config boxes (dvcC / dvvC / hvcC) drive it. No engine, no
+    ///    HLS, no localhost server.
+    ///
+    /// 2. `.native`: DV source in a container AVPlayer can't open
+    ///    directly (MKV, TS) or in MP4 with codec tags AVPlayer
+    ///    rejects (`hev1`, `dvhe`). AetherEngine wraps the source as
+    ///    loopback HLS-fMP4 and retags / repackages on the fly.
+    ///    Higher overhead than directURL but the only way to get
+    ///    DV mode on the HDMI handshake for non-MP4 sources.
+    ///
+    /// 3. `.aether`: universal fallback. Plays via FFmpeg +
+    ///    VideoToolbox + AVSampleBufferDisplayLayer. Cannot trigger
+    ///    DV mode on tvOS HDMI but plays everything that decodes,
+    ///    including TrueHD / DTS / DTS-HD-MA audio that AVPlayer
+    ///    refuses outright.
     func selectPlayerEngine(for source: PlaybackMediaSource, format: VideoFormat) -> PlayerEngineRoute {
-        guard format == .dolbyVision else { return .aether }
-        guard DisplayCapabilities.supportsDolbyVision else { return .aether }
-        let directOK = (source.supportsDirectPlay == true) || (source.supportsDirectStream == true)
-        guard directOK else { return .aether }
         let videoStream = source.mediaStreams?.first(where: { $0.type == .video })
-        let codec = videoStream?.codec?.lowercased()
-        guard codec == "hevc" || codec == "h265" else { return .aether }
-
-        // At least one audio stream must be in AVPlayer's
-        // fMP4-decodable set, otherwise the .native session would
-        // play silent. TrueHD / DTS / DTS-HD-MA fall through here
-        // because AVPlayer can't decode them in fMP4 (DrHurt's
-        // `-c:a flac` transcode trick from AetherEngine#1 isn't
-        // wired up yet — phase-7 expansion). For those files the
-        // host falls back to AetherEngine which decodes them via
-        // its own audio path.
+        let videoCodec = videoStream?.codec?.lowercased()
         let audioStreams = source.mediaStreams?.filter { $0.type == .audio } ?? []
         let avplayerCompatibleAudio: Set<String> = [
             "aac", "ac3", "eac3", "flac", "alac", "mp3", "opus",
@@ -1303,6 +1327,40 @@ final class PlayerViewModel {
             guard let codec = stream.codec?.lowercased() else { return false }
             return avplayerCompatibleAudio.contains(codec)
         }
+        let directOK = (source.supportsDirectPlay == true) || (source.supportsDirectStream == true)
+        let avplayerOpenableContainer: Set<String> = ["mp4", "m4v", "mov"]
+        let container = source.container?.lowercased() ?? ""
+
+        // 1. directURL: cheapest possible path. Source is already an
+        //    MP4-family container with codecs AVPlayer accepts. We
+        //    just hand AVPlayer the URL. Display criteria are still
+        //    set up the same way; AVPlayer reads the source's own
+        //    dvcC / dvvC / hvcC boxes for HDR mode on the HDMI
+        //    handshake, no synthesis needed on our side.
+        //
+        //    Caveat (DrHurt, AetherEngine#2): MP4 with `hev1` or
+        //    `dvhe` sample-entry tags is rejected by AVPlayer even
+        //    though the codec is HEVC. Jellyfin's `codec` field
+        //    doesn't surface the FourCC tag, so we can't gate on it
+        //    pre-flight. If AVPlayer fails the directURL session at
+        //    runtime, the playback path falls through to .aether so
+        //    the file still plays (at HDR10 base for DV sources).
+        //    A later round can add a .native retag fallback for the
+        //    hev1 / dvhe case specifically.
+        if directOK,
+           avplayerOpenableContainer.contains(container),
+           videoCodec == "hevc" || videoCodec == "h265" || videoCodec == "h264" || videoCodec == "avc",
+           hasCompatibleAudio {
+            return .directURL
+        }
+
+        // 2. native: DV-only path through AetherEngine's HLS-fMP4
+        //    wrapper. Required when the container is something
+        //    AVPlayer can't open (MKV / TS) but we still want DV mode.
+        guard format == .dolbyVision else { return .aether }
+        guard DisplayCapabilities.supportsDolbyVision else { return .aether }
+        guard directOK else { return .aether }
+        guard videoCodec == "hevc" || videoCodec == "h265" else { return .aether }
         guard hasCompatibleAudio else { return .aether }
 
         return .native
@@ -1429,15 +1487,26 @@ final class PlayerViewModel {
 }
 
 /// Which underlying playback technology will drive a given
-/// session. `.aether` is the engine's FFmpeg + VideoToolbox +
-/// custom display-layer pipeline (used for everything except
-/// Dolby Vision direct-play). `.native` is the AVPlayer +
-/// AVPlayerLayer path that we use only for DV because it's the
-/// only way to trigger the HDMI HDR-mode handshake to "Dolby
-/// Vision" on tvOS.
+/// session.
+///
+/// - `.aether`: AetherEngine's FFmpeg + VideoToolbox + custom
+///   display-layer pipeline. Used as the universal fallback and
+///   for containers AVPlayer can't open natively (MKV / TS / AVI).
+/// - `.native`: AetherEngine's loopback HLS-fMP4 wrapper feeds
+///   AVPlayer. Used when the source needs muxer-level fixup (codec
+///   tag retagging, container conversion) before AVPlayer accepts
+///   it. Engages the HDMI Dolby Vision handshake on tvOS.
+/// - `.directURL`: AVPlayer fed the source URL directly with no
+///   wrapper. Lowest-overhead path. Used when the source is
+///   already an AVPlayer-openable container (MP4 / M4V / MOV) with
+///   compatible codec tags and audio. Engages every HDR mode
+///   AVPlayer supports natively (HDR10 / HDR10+ / HLG / DV) without
+///   our engine touching the bytes. Confirmed end-to-end by
+///   ZeroQ-bit on AetherEngine#2 across P5/P8.1/P8.4 at 24-120 fps.
 enum PlayerEngineRoute: String {
     case aether
     case native
+    case directURL
 }
 
 enum PlayerEngineError: LocalizedError {
