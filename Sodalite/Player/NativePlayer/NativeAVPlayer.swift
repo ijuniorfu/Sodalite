@@ -113,6 +113,38 @@ final class NativeAVPlayer: ObservableObject {
             let nsErr = item.error as NSError?
             let errSuffix = nsErr.map { " err=\($0.domain)/\($0.code) '\($0.localizedDescription)'" } ?? ""
             LogTap.shared.note("[NativeAVPlayer] item.status=\(statusStr)\(errSuffix)")
+
+            // On .failed, dump the asset's track format descriptions
+            // so we can see what codec FourCC AVPlayer actually saw.
+            // Targets DrHurt's hev1 / dvhe rejection caveat: if a
+            // directURL session fails because the source MP4's
+            // sample-entry tag is hev1 instead of hvc1, that shows up
+            // here as "video codec='hev1'". Also surfaces the
+            // underlying NSError chain which often has the precise
+            // CoreMedia / VideoToolbox cause behind the
+            // AVFoundationErrorDomain wrapper.
+            if item.status == .failed {
+                if let nsErr = nsErr,
+                   let underlying = nsErr.userInfo[NSUnderlyingErrorKey] as? NSError {
+                    LogTap.shared.note("[NativeAVPlayer] item.error.underlying=\(underlying.domain)/\(underlying.code) '\(underlying.localizedDescription)'")
+                }
+                if let urlAsset = item.asset as? AVURLAsset {
+                    LogTap.shared.note("[NativeAVPlayer] item.asset.url=\(urlAsset.url.absoluteString)")
+                }
+                let tracks = item.asset.tracks
+                for track in tracks {
+                    let fourcc: String
+                    if let fmt = track.formatDescriptions.first {
+                        let cm = fmt as! CMFormatDescription
+                        let mediaSubType = CMFormatDescriptionGetMediaSubType(cm)
+                        fourcc = Self.fourccString(mediaSubType)
+                    } else {
+                        fourcc = "?"
+                    }
+                    LogTap.shared.note("[NativeAVPlayer] item.asset.track type=\(track.mediaType.rawValue) codec='\(fourcc)' enabled=\(track.isEnabled) playable=\(track.isPlayable)")
+                }
+            }
+
             Task { @MainActor in
                 guard let self = self else { return }
                 switch item.status {
@@ -318,5 +350,24 @@ final class NativeAVPlayer: ObservableObject {
         currentTime = 0
         duration = 0
         rate = 0
+    }
+
+    /// Render a 4-byte CoreMedia FourCC subtype (e.g. 'hvc1', 'hev1',
+    /// 'dvh1', 'avc1', 'mp4a') as a printable ASCII string. Used in
+    /// failure-path diagnostics to surface the exact sample-entry
+    /// codec tag AVPlayer saw, which lets us tell whether the source
+    /// was hev1 / dvhe (DrHurt's known-rejected forms from
+    /// AetherEngine#2) versus hvc1 / dvh1 (the accepted forms).
+    private static func fourccString(_ code: FourCharCode) -> String {
+        let bytes: [UInt8] = [
+            UInt8((code >> 24) & 0xff),
+            UInt8((code >> 16) & 0xff),
+            UInt8((code >> 8) & 0xff),
+            UInt8(code & 0xff),
+        ]
+        let chars = bytes.map { (b: UInt8) -> Character in
+            (b >= 0x20 && b < 0x7f) ? Character(UnicodeScalar(b)) : "."
+        }
+        return String(chars)
     }
 }
