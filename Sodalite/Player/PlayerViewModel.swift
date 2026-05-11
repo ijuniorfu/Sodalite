@@ -652,13 +652,26 @@ final class PlayerViewModel {
                         self.startNextEpisodeCountdown(from: seconds)
                     } else if self.hasStartedPlaying,
                               self.nextEpisode == nil,
-                              !self.showNextEpisodeOverlay {
+                              !self.showNextEpisodeOverlay,
+                              self.nativePlayer == nil {
                         // Real end-of-content: a movie just finished, or
                         // the last episode of a series rolled credits.
                         // Without this the player sits on a black frame
                         // with no focus target, Menu still works to
                         // exit, but the natural flow is to drop the user
                         // back on the detail view they came from.
+                        //
+                        // Skipped for native (directURL / native HLS-
+                        // wrapper) sessions: the engine isn't driving
+                        // playback in those routes, it just hosts the
+                        // local HLS server, so its state stays `.idle`
+                        // the whole time. Without this guard the first
+                        // idle tick after np.play() incorrectly looked
+                        // like end-of-content and auto-dismissed the
+                        // player a fraction of a second after launch.
+                        // End-of-content for native sessions is detected
+                        // separately via the AVPlayer periodic time
+                        // observer comparing currentTime to duration.
                         self.onPlaybackReachedEnd?()
                     }
                 case .loading:

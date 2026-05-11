@@ -179,8 +179,19 @@ final class PlayerHostController: UIViewController {
         // focus state behind. Route it through the same dismissPlayer
         // path the Menu button uses so the user lands back on the
         // detail view they came from.
+        //
+        // Suppressed in diagnostic builds (DEBUG / TestFlight) so the
+        // log overlay remains readable after a failed-start session.
+        // Without this, a session that errors out within a second of
+        // launch dismisses the player before the tester can screenshot
+        // the diagnostic overlay (DrHurt: "Error messages literally
+        // flash for less than 1 sec before going back to movie info
+        // screen"). Menu still dismisses manually. App Store builds
+        // keep the auto-dismiss so end users aren't stranded on a
+        // black screen.
         viewModel.onPlaybackReachedEnd = { [weak self] in
             Task { @MainActor in
+                guard !LogTap.isDiagnosticBuild else { return }
                 self?.dismissPlayer()
             }
         }
