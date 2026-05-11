@@ -1442,10 +1442,27 @@ final class PlayerViewModel {
             kCMFormatDescriptionExtension_YCbCrMatrix: kCVImageBufferYCbCrMatrix_ITU_R_2020,
         ]
 
+        // The codec FourCC encoded in the format description is what
+        // tvOS reads to pick the HDMI display mode: `'hvc1'` →
+        // HDR10/HDR10+/HLG; `'dvh1'` → Dolby Vision. Building a
+        // criteria with kCMVideoCodecType_HEVC for a DV source makes
+        // the TV negotiate plain HDR10 even though the bitstream
+        // carries a DV RPU, which is what DrHurt observed on a
+        // Philips DV TV: P8 MKV played end-to-end but the panel
+        // stayed in HDR mode instead of switching to Dolby Vision.
+        // For DV sources we override the codecType to the dvh1
+        // FourCC (0x64766831) so the handshake signals DV; for
+        // everything else we stay on HEVC. Color primaries / TF /
+        // matrix don't change — DV's base layer is still BT.2020 +
+        // ST 2084 PQ, the RPU just rides alongside.
+        // ref: Jellyfin issue #16179, KSPlayer issue #633.
+        let dvh1: CMVideoCodecType = 0x64766831  // 'dvh1'
+        let codecType: CMVideoCodecType = format == .dolbyVision ? dvh1 : kCMVideoCodecType_HEVC
+
         var formatDesc: CMVideoFormatDescription?
         CMVideoFormatDescriptionCreate(
             allocator: kCFAllocatorDefault,
-            codecType: kCMVideoCodecType_HEVC,
+            codecType: codecType,
             width: 3840, height: 2160,
             extensions: extensions,
             formatDescriptionOut: &formatDesc
