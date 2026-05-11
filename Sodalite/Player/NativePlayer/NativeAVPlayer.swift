@@ -106,6 +106,17 @@ final class NativeAVPlayer: ObservableObject {
         // out a normal segment-generation hiccup without ballooning
         // resident memory.
         item.preferredForwardBufferDuration = 4.0
+
+        // Forward per-frame HDR metadata (HDR10+ ST 2094-40 and Dolby
+        // Vision RPU) from the source bitstream into AVPlayer's
+        // display-mode handshake. Without this, AVPlayer renders DV
+        // sources in static HDR10 base only — the TV switches to
+        // generic HDR mode instead of Dolby Vision mode, and DV
+        // tone-mapping curves never engage. DrHurt's tests confirmed
+        // that P8 MKVs and DV-tagged MP4s played end-to-end but the
+        // Philips TV stayed in HDR mode for DV sources; he flagged
+        // the missing AVPlayerItem flag specifically.
+        item.appliesPerFrameHDRDisplayMetadata = true
         playerItem = item
         accessLogCount = 0
         failureMessage = nil
