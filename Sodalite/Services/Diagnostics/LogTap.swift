@@ -33,7 +33,15 @@ final class LogTap: ObservableObject {
 
     @Published private(set) var lines: [String] = []
 
-    private let maxLines = 80
+    /// Capacity of the in-memory ring buffer the overlay renders from.
+    /// 300 lines is enough to hold a full HLS-wrapper session start
+    /// (engine init.mp4 hex dump + box summary + master.m3u8 body +
+    /// media.m3u8 head + per-request response logs) plus the eventual
+    /// AVPlayer failure landing, without losing the early structural
+    /// diagnostics by the time the player gives up. The previous 80
+    /// rolled the `[FMP4VideoMuxer] init.mp4 …` summary off the top
+    /// before the failure landed, defeating its purpose.
+    private let maxLines = 300
 
     private init() {}
 

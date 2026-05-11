@@ -1194,7 +1194,14 @@ private struct VideoFormatBadge: View {
 private struct DiagnosticLogOverlay: View {
     @ObservedObject private var tap = LogTap.shared
 
-    private let visibleCount = 14
+    /// Number of overlay rows rendered at once. 22 fits comfortably
+    /// on a 1080p / 4K TV without occluding the player controls,
+    /// while being deep enough to keep an asset.load failure burst
+    /// (~12 lines from `GET /seg0.mp4` through to
+    /// `item.error.underlying`) plus a couple of preceding context
+    /// lines visible together — the previous 14 cut off the seg0
+    /// fetch context so a screenshot at failure time lost it.
+    private let visibleCount = 22
 
     var body: some View {
         VStack {
