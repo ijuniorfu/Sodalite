@@ -51,6 +51,15 @@ final class NativeAVPlayer: ObservableObject {
     private var notificationObservers: [NSObjectProtocol] = []
     private var accessLogCount = 0
 
+    /// Monotonic counter so multi-attempt sessions (DrHurt-style
+    /// "play, fail, back out, retry") produce distinguishable log
+    /// lines. Every load(url:) increments it; every async asset.load
+    /// log line tags itself with the current value so a chain of
+    /// "asset.load failed" entries can be matched back to the
+    /// originating load() invocation.
+    private static var nextSessionID: Int = 0
+    private var sessionID: Int = 0
+
     // MARK: - Init
 
     init() {
@@ -82,7 +91,11 @@ final class NativeAVPlayer: ObservableObject {
     func load(url: URL, startPosition: Double?) {
         unloadCurrentItem()
 
-        LogTap.shared.note("[NativeAVPlayer] load url=\(url.absoluteString) startPos=\(startPosition.map { String(format: "%.2fs", $0) } ?? "nil")")
+        Self.nextSessionID += 1
+        sessionID = Self.nextSessionID
+        let sid = sessionID
+
+        LogTap.shared.note("[NativeAVPlayer] #\(sid) load url=\(url.absoluteString) startPos=\(startPosition.map { String(format: "%.2fs", $0) } ?? "nil")")
 
         let asset = AVURLAsset(url: url)
         let item = AVPlayerItem(asset: asset)
@@ -112,7 +125,7 @@ final class NativeAVPlayer: ObservableObject {
             }
             let nsErr = item.error as NSError?
             let errSuffix = nsErr.map { " err=\($0.domain)/\($0.code) '\($0.localizedDescription)'" } ?? ""
-            LogTap.shared.note("[NativeAVPlayer] item.status=\(statusStr)\(errSuffix)")
+            LogTap.shared.note("[NativeAVPlayer] #\(sid) item.status=\(statusStr)\(errSuffix)")
 
             // On .failed, dump the asset's track format descriptions
             // so we can see what codec FourCC AVPlayer actually saw.
@@ -126,23 +139,9 @@ final class NativeAVPlayer: ObservableObject {
             if item.status == .failed {
                 if let nsErr = nsErr,
                    let underlying = nsErr.userInfo[NSUnderlyingErrorKey] as? NSError {
-                    LogTap.shared.note("[NativeAVPlayer] item.error.underlying=\(underlying.domain)/\(underlying.code) '\(underlying.localizedDescription)'")
+                    LogTap.shared.note("[NativeAVPlayer] #\(sid) item.error.underlying=\(underlying.domain)/\(underlying.code) '\(underlying.localizedDescription)'")
                 }
-                if let urlAsset = item.asset as? AVURLAsset {
-                    LogTap.shared.note("[NativeAVPlayer] item.asset.url=\(urlAsset.url.absoluteString)")
-                }
-                let tracks = item.asset.tracks
-                for track in tracks {
-                    let fourcc: String
-                    if let fmt = track.formatDescriptions.first {
-                        let cm = fmt as! CMFormatDescription
-                        let mediaSubType = CMFormatDescriptionGetMediaSubType(cm)
-                        fourcc = Self.fourccString(mediaSubType)
-                    } else {
-                        fourcc = "?"
-                    }
-                    LogTap.shared.note("[NativeAVPlayer] item.asset.track type=\(track.mediaType.rawValue) codec='\(fourcc)' enabled=\(track.isEnabled) playable=\(track.isPlayable)")
-                }
+                Self.dumpAssetTracks(item.asset, sid: sid, reason: "item.failed")
             }
 
             Task { @MainActor in
@@ -161,7 +160,7 @@ final class NativeAVPlayer: ObservableObject {
 
         rateObservation = avPlayer.observe(\.rate, options: [.new]) { [weak self] player, _ in
             let rate = player.rate
-            LogTap.shared.note("[NativeAVPlayer] rate=\(rate)")
+            LogTap.shared.note("[NativeAVPlayer] #\(sid) rate=\(rate)")
             Task { @MainActor in
                 self?.rate = rate
             }
@@ -181,7 +180,7 @@ final class NativeAVPlayer: ObservableObject {
             @unknown default:                      statusStr = "@unknown"
             }
             let reason = player.reasonForWaitingToPlay?.rawValue ?? "-"
-            LogTap.shared.note("[NativeAVPlayer] timeControlStatus=\(statusStr) reason=\(reason)")
+            LogTap.shared.note("[NativeAVPlayer] #\(sid) timeControlStatus=\(statusStr) reason=\(reason)")
         }
 
         // Error log: AVPlayer surfaces transient HLS-level errors
@@ -195,7 +194,7 @@ final class NativeAVPlayer: ObservableObject {
         ) { [weak self] _ in
             guard let self = self, let event = self.playerItem?.errorLog()?.events.last else { return }
             let comment = event.errorComment ?? "no comment"
-            LogTap.shared.note("[NativeAVPlayer] errorLog code=\(event.errorStatusCode) domain=\(event.errorDomain) uri=\(event.uri ?? "-") '\(comment)'")
+            LogTap.shared.note("[NativeAVPlayer] #\(sid) errorLog code=\(event.errorStatusCode) domain=\(event.errorDomain) uri=\(event.uri ?? "-") '\(comment)'")
         }
         notificationObservers.append(errLogObs)
 
@@ -212,7 +211,7 @@ final class NativeAVPlayer: ObservableObject {
                   self.accessLogCount < 5,
                   let event = self.playerItem?.accessLog()?.events.last else { return }
             self.accessLogCount += 1
-            LogTap.shared.note("[NativeAVPlayer] accessLog uri=\(event.uri ?? "-") server=\(event.serverAddress ?? "-") bytes=\(event.numberOfBytesTransferred) reqs=\(event.numberOfMediaRequests)")
+            LogTap.shared.note("[NativeAVPlayer] #\(sid) accessLog uri=\(event.uri ?? "-") server=\(event.serverAddress ?? "-") bytes=\(event.numberOfBytesTransferred) reqs=\(event.numberOfMediaRequests)")
         }
         notificationObservers.append(accessLogObs)
 
@@ -223,7 +222,7 @@ final class NativeAVPlayer: ObservableObject {
         ) { notification in
             let err = notification.userInfo?[AVPlayerItemFailedToPlayToEndTimeErrorKey] as? NSError
             let suffix = err.map { " \($0.domain)/\($0.code) '\($0.localizedDescription)'" } ?? ""
-            LogTap.shared.note("[NativeAVPlayer] failedToPlayToEndTime\(suffix)")
+            LogTap.shared.note("[NativeAVPlayer] #\(sid) failedToPlayToEndTime\(suffix)")
         }
         notificationObservers.append(failedToEndObs)
 
@@ -232,7 +231,7 @@ final class NativeAVPlayer: ObservableObject {
             object: item,
             queue: .main
         ) { _ in
-            LogTap.shared.note("[NativeAVPlayer] playbackStalled")
+            LogTap.shared.note("[NativeAVPlayer] #\(sid) playbackStalled")
         }
         notificationObservers.append(stalledObs)
 
@@ -259,14 +258,46 @@ final class NativeAVPlayer: ObservableObject {
         // with the item never advancing past .unknown — consistent
         // with the asset never beginning its async load. Forcing the
         // load explicitly removes that ambiguity.
+        //
+        // We load each key in a separate await so DrHurt's
+        // "1 success, 3 failures" log signature can be decoded down
+        // to "which key is the -1008 hitting on": isPlayable, tracks,
+        // or duration. With the batch load they all share one error
+        // and we can't tell which probe AVFoundation gave up on.
+        let urlStr = url.absoluteString
         Task { [weak self] in
-            do {
-                let _ = try await asset.load(.isPlayable, .tracks, .duration)
-                LogTap.shared.note("[NativeAVPlayer] asset.load completed: playable=\(asset.isPlayable)")
-            } catch {
-                let nsErr = error as NSError
-                LogTap.shared.note("[NativeAVPlayer] asset.load failed: \(nsErr.domain)/\(nsErr.code) '\(nsErr.localizedDescription)'")
-                _ = self
+            for key in ["isPlayable", "tracks", "duration"] {
+                do {
+                    switch key {
+                    case "isPlayable": _ = try await asset.load(.isPlayable)
+                    case "tracks":     _ = try await asset.load(.tracks)
+                    case "duration":   _ = try await asset.load(.duration)
+                    default: continue
+                    }
+                    let detail: String
+                    switch key {
+                    case "isPlayable": detail = "value=\(asset.isPlayable)"
+                    case "tracks":     detail = "count=\(asset.tracks.count)"
+                    case "duration":   detail = "seconds=\(asset.duration.seconds)"
+                    default: detail = "-"
+                    }
+                    LogTap.shared.note("[NativeAVPlayer] #\(sid) asset.load(\(key)) ok url=\(urlStr) \(detail)")
+                } catch {
+                    let nsErr = error as NSError
+                    LogTap.shared.note("[NativeAVPlayer] #\(sid) asset.load(\(key)) failed: \(nsErr.domain)/\(nsErr.code) '\(nsErr.localizedDescription)' url=\(urlStr)")
+                    if let underlying = nsErr.userInfo[NSUnderlyingErrorKey] as? NSError {
+                        LogTap.shared.note("[NativeAVPlayer] #\(sid) asset.load(\(key)) underlying=\(underlying.domain)/\(underlying.code) '\(underlying.localizedDescription)'")
+                    }
+                    // Dump whatever track info AVFoundation managed
+                    // to populate before the load gave up. Targets
+                    // DrHurt's -1008 stall: even on failure the
+                    // asset's first probe often surfaces the
+                    // sample-entry FourCC (hev1 vs hvc1, dvhe vs
+                    // dvh1) that explains the rejection.
+                    Self.dumpAssetTracks(asset, sid: sid, reason: "asset.load(\(key)).failed")
+                    _ = self
+                    return
+                }
             }
         }
 
@@ -350,6 +381,34 @@ final class NativeAVPlayer: ObservableObject {
         currentTime = 0
         duration = 0
         rate = 0
+    }
+
+    /// Log the asset's URL plus every track's media type, codec
+    /// FourCC, enabled flag, and playable flag. Called from both the
+    /// `item.status == .failed` path and the per-key `asset.load`
+    /// failure path so DrHurt's "AVPlayer stalls in waitingToPlay
+    /// instead of failing" sessions still surface the codec FourCCs
+    /// (item.status never going `.failed` was the reason d9b8aa5's
+    /// dump didn't fire in DrHurt's P5 MKV log).
+    private static func dumpAssetTracks(_ asset: AVAsset, sid: Int, reason: String) {
+        if let urlAsset = asset as? AVURLAsset {
+            LogTap.shared.note("[NativeAVPlayer] #\(sid) asset.url=\(urlAsset.url.absoluteString) (\(reason))")
+        }
+        let tracks = asset.tracks
+        if tracks.isEmpty {
+            LogTap.shared.note("[NativeAVPlayer] #\(sid) asset.tracks empty (\(reason))")
+            return
+        }
+        for track in tracks {
+            let fourcc: String
+            if let fmt = track.formatDescriptions.first {
+                let cm = fmt as! CMFormatDescription
+                fourcc = fourccString(CMFormatDescriptionGetMediaSubType(cm))
+            } else {
+                fourcc = "?"
+            }
+            LogTap.shared.note("[NativeAVPlayer] #\(sid) asset.track type=\(track.mediaType.rawValue) codec='\(fourcc)' enabled=\(track.isEnabled) playable=\(track.isPlayable) (\(reason))")
+        }
     }
 
     /// Render a 4-byte CoreMedia FourCC subtype (e.g. 'hvc1', 'hev1',
