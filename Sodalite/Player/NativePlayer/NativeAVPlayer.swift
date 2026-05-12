@@ -361,7 +361,21 @@ final class NativeAVPlayer: ObservableObject {
 
     func seek(to seconds: Double) {
         let target = CMTime(seconds: seconds, preferredTimescale: 600)
-        avPlayer.seek(to: target, toleranceBefore: .zero, toleranceAfter: .zero)
+        // Frame-accurate (toleranceBefore: .zero, toleranceAfter: .zero)
+        // forces AVPlayer to decode every frame from the segment's
+        // opening IDR up to the requested time. For our 6 s HLS-fMP4
+        // segments at 1080p HEVC that's 100-300 ms of decode pre-roll
+        // on the scrub commit's critical path — and on cold-fetch
+        // forward scrubs it stacks on top of the 150-200 ms cold AVIO
+        // chunk fetch the engine pays for the new byte position. The
+        // visual precision of a tvOS Siri Remote scrub is roughly one
+        // segment anyway (~5 s per pixel on a 2 h film), so trading
+        // sample-accuracy for AVPlayer's "most efficient" sync-sample
+        // snap is invisible to the user but eliminates the decode
+        // pre-roll. AVPlayer's HLS engine clips the snap to the
+        // nearest segment-start IDR rather than walking the whole
+        // file, so the max landing drift is one EXTINF (6 s).
+        avPlayer.seek(to: target, toleranceBefore: .positiveInfinity, toleranceAfter: .positiveInfinity)
     }
 
     func setRate(_ value: Float) {
