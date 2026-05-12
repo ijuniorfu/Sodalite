@@ -1194,14 +1194,17 @@ private struct VideoFormatBadge: View {
 private struct DiagnosticLogOverlay: View {
     @ObservedObject private var tap = LogTap.shared
 
-    /// Number of overlay rows rendered at once. 22 fits comfortably
-    /// on a 1080p / 4K TV without occluding the player controls,
-    /// while being deep enough to keep an asset.load failure burst
-    /// (~12 lines from `GET /seg0.mp4` through to
-    /// `item.error.underlying`) plus a couple of preceding context
-    /// lines visible together — the previous 14 cut off the seg0
-    /// fetch context so a screenshot at failure time lost it.
-    private let visibleCount = 22
+    /// Number of overlay rows rendered at once. 50 lines at the
+    /// current 16 pt monospaced row height fills roughly the top
+    /// 2/3 of a 1080p screen, which is what we want during
+    /// diagnostic-build investigation sessions: enough vertical
+    /// real estate to keep the full session preamble (engine
+    /// init.mp4 box summary, HLS server setup, asset.load probes)
+    /// AND the eventual AVPlayer failure landing on screen
+    /// simultaneously. The overlay only renders in
+    /// LogTap.isDiagnosticBuild (DEBUG + TestFlight), so the
+    /// occlusion never hits an App Store user.
+    private let visibleCount = 50
 
     var body: some View {
         VStack {
