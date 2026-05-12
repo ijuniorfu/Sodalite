@@ -29,6 +29,8 @@ final class PlaybackPreferences {
         static let subtitleBackground = "playback.subtitleBackground"
         static let subtitleDelaySeconds = "playback.subtitleDelaySeconds"
         static let pictureMode = "playback.pictureMode"
+        static let devForceHLSWrapper = "playback.dev.forceHLSWrapper"
+        static let devOmitCriteriaColorExtensions = "playback.dev.omitCriteriaColorExtensions"
     }
 
     // MARK: - Allowed Values
@@ -232,6 +234,36 @@ final class PlaybackPreferences {
         didSet { store.set(pictureMode.rawValue, forKey: Keys.pictureMode) }
     }
 
+    // MARK: - Developer toggles (TestFlight only)
+    //
+    // Surfaced in PlaybackSettingsView only when LogTap.isDiagnosticBuild
+    // is true, so end users in App Store builds never see or set them.
+    // Per-tester experimentation; default off keeps the production path
+    // identical to before.
+
+    /// Force the AetherEngine native-HLS wrapper for ANY HEVC / H.264
+    /// stream, not just Dolby Vision. Lets a tester compare the HLS
+    /// fMP4 remux path against the cheap `.directURL` AVPlayer route
+    /// on HDR10 / HDR10+ / HLG / SDR content, which is otherwise only
+    /// reachable through DV. DrHurt's ask from AetherEngine#2 — "open
+    /// up the HLS path to other HDR videos so I can test more video
+    /// types." When off, route selection is unchanged.
+    var devForceHLSWrapper: Bool {
+        didSet { store.set(devForceHLSWrapper, forKey: Keys.devForceHLSWrapper) }
+    }
+
+    /// Build the AVDisplayCriteria's CMVideoFormatDescription without
+    /// the hardcoded BT.2020 / PQ-or-HLG / 2020 YCbCr color
+    /// extensions. AVPlayer reads the actual bitstream's color
+    /// metadata at playback time and signals the panel anyway; the
+    /// extensions on the criteria are a pre-handshake hint. DrHurt's
+    /// hypothesis from AetherEngine#2 — the extensions may be
+    /// over-constraining the handshake on some panels. When off (the
+    /// default), behavior is unchanged from before this toggle.
+    var devOmitCriteriaColorExtensions: Bool {
+        didSet { store.set(devOmitCriteriaColorExtensions, forKey: Keys.devOmitCriteriaColorExtensions) }
+    }
+
     // MARK: - Init
 
     private let store: UserDefaults
@@ -255,5 +287,7 @@ final class PlaybackPreferences {
         self.subtitleDelaySeconds = store.object(forKey: Keys.subtitleDelaySeconds) as? Double ?? 0
         self.pictureMode = (store.string(forKey: Keys.pictureMode))
             .flatMap(PictureMode.init(rawValue:)) ?? .original
+        self.devForceHLSWrapper = store.object(forKey: Keys.devForceHLSWrapper) as? Bool ?? false
+        self.devOmitCriteriaColorExtensions = store.object(forKey: Keys.devOmitCriteriaColorExtensions) as? Bool ?? false
     }
 }

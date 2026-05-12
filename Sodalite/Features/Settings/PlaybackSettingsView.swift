@@ -173,6 +173,15 @@ struct PlaybackSettingsView: View {
                     ),
                     label: { String(localized: String.LocalizationValue($0.titleKey)) }
                 )
+
+                // Developer-only toggles, surfaced only in TestFlight /
+                // DEBUG builds so beta testers can A/B engine routing
+                // and display-criteria handshake variants without
+                // shipping the knobs to end users. App Store builds
+                // never render this section.
+                if LogTap.isDiagnosticBuild {
+                    developerSection
+                }
             }
             .padding(.horizontal, 80)
             .padding(.top, 60)
@@ -193,6 +202,41 @@ struct PlaybackSettingsView: View {
             .font(.largeTitle)
             .fontWeight(.bold)
             .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    // MARK: - Developer section
+    //
+    // Diagnostic-only toggles for routing experiments. Visibility
+    // is gated on LogTap.isDiagnosticBuild at the call site, so the
+    // section never renders in App Store builds.
+    @ViewBuilder
+    private var developerSection: some View {
+        // Strings stay English-only here on purpose: this section is
+        // only rendered in DEBUG / TestFlight builds, never App Store,
+        // so plumbing them through Localizable.xcstrings (and the
+        // 26 translations) would be wasted work for content nobody
+        // outside beta testing ever sees.
+        sectionHeader("Developer (TestFlight only)")
+
+        boolRow(
+            icon: "shippingbox.and.arrow.backward",
+            title: "Force HLS wrapper for all video",
+            subtitle: "Route every HEVC / H.264 source through AetherEngine's local HLS-fMP4 wrapper instead of directURL. Lets you test the HLS path with HDR10 / HDR10+ / HLG / SDR content too. Off = production routing.",
+            value: Binding(
+                get: { prefs.devForceHLSWrapper },
+                set: { prefs.devForceHLSWrapper = $0 }
+            )
+        )
+
+        boolRow(
+            icon: "paintpalette",
+            title: "Omit color extensions on display criteria",
+            subtitle: "Build the AVDisplayCriteria's format description with no hardcoded BT.2020 / PQ-or-HLG / matrix hint, letting AVPlayer infer the HDR mode from the bitstream metadata alone. Off = current behavior.",
+            value: Binding(
+                get: { prefs.devOmitCriteriaColorExtensions },
+                set: { prefs.devOmitCriteriaColorExtensions = $0 }
+            )
+        )
     }
 
     private func sectionHeader(_ key: LocalizedStringKey) -> some View {

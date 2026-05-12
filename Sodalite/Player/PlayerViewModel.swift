@@ -1370,6 +1370,18 @@ final class PlayerViewModel {
         // 2. native: DV-only path through AetherEngine's HLS-fMP4
         //    wrapper. Required when the container is something
         //    AVPlayer can't open (MKV / TS) but we still want DV mode.
+        //    The `devForceHLSWrapper` developer toggle widens the gate
+        //    to ANY HEVC / H.264 stream regardless of HDR profile, so
+        //    a tester can exercise the HLS-wrapper path with HDR10,
+        //    HDR10+, HLG, or SDR content too. Off by default; only
+        //    surfaced in PlaybackSettingsView on diagnostic builds.
+        let isHEVCorH264 = videoCodec == "hevc" || videoCodec == "h265" || videoCodec == "h264" || videoCodec == "avc"
+        if preferences.devForceHLSWrapper,
+           directOK,
+           isHEVCorH264,
+           hasCompatibleAudio {
+            return .native
+        }
         guard format == .dolbyVision else { return .aether }
         guard DisplayCapabilities.supportsDolbyVision else { return .aether }
         guard directOK else { return .aether }
@@ -1436,7 +1448,16 @@ final class PlayerViewModel {
         default:   kCVImageBufferTransferFunction_SMPTE_ST_2084_PQ
         }
 
-        let extensions: NSDictionary = [
+        // The hardcoded BT.2020 / transfer / YCbCr matrix in the
+        // format description gives tvOS an explicit hint for the
+        // pre-playback handshake. The `devOmitCriteriaColorExtensions`
+        // developer toggle drops them so AVPlayer falls back to
+        // reading the actual bitstream's color metadata at session
+        // start instead — DrHurt's hypothesis that the extensions
+        // might over-constrain the handshake on some panels. Off by
+        // default; surfaced in PlaybackSettingsView on diagnostic
+        // builds only.
+        let extensions: NSDictionary? = preferences.devOmitCriteriaColorExtensions ? nil : [
             kCMFormatDescriptionExtension_ColorPrimaries: kCVImageBufferColorPrimaries_ITU_R_2020,
             kCMFormatDescriptionExtension_TransferFunction: transferFunction,
             kCMFormatDescriptionExtension_YCbCrMatrix: kCVImageBufferYCbCrMatrix_ITU_R_2020,
