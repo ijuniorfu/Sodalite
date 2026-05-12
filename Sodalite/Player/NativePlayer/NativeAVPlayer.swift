@@ -361,21 +361,19 @@ final class NativeAVPlayer: ObservableObject {
 
     func seek(to seconds: Double) {
         let target = CMTime(seconds: seconds, preferredTimescale: 600)
-        // Frame-accurate (toleranceBefore: .zero, toleranceAfter: .zero)
-        // forces AVPlayer to decode every frame from the segment's
-        // opening IDR up to the requested time. For our 6 s HLS-fMP4
-        // segments at 1080p HEVC that's 100-300 ms of decode pre-roll
-        // on the scrub commit's critical path — and on cold-fetch
-        // forward scrubs it stacks on top of the 150-200 ms cold AVIO
-        // chunk fetch the engine pays for the new byte position. The
-        // visual precision of a tvOS Siri Remote scrub is roughly one
-        // segment anyway (~5 s per pixel on a 2 h film), so trading
-        // sample-accuracy for AVPlayer's "most efficient" sync-sample
-        // snap is invisible to the user but eliminates the decode
-        // pre-roll. AVPlayer's HLS engine clips the snap to the
-        // nearest segment-start IDR rather than walking the whole
-        // file, so the max landing drift is one EXTINF (6 s).
-        avPlayer.seek(to: target, toleranceBefore: .positiveInfinity, toleranceAfter: .positiveInfinity)
+        // Frame-accurate seek. Earlier experiment with
+        // `.positiveInfinity` tolerances to skip the IDR-to-target
+        // decode pre-roll caused AVPlayer to land on apparently-
+        // arbitrary sync samples far from the requested time — the
+        // user's TestFlight session showed the image "hanging" on
+        // wrong-position content during forward scrubs. AVPlayer's
+        // "most efficient seek" interpretation of unbounded tolerance
+        // appears to be undefined for HLS-fMP4 served over loopback,
+        // matching the long-standing openradar 44904505 bug report.
+        // Keep tolerances at zero until we have a different lever
+        // (predictive engine prefetch on scrub commit) that doesn't
+        // depend on tolerance semantics.
+        avPlayer.seek(to: target, toleranceBefore: .zero, toleranceAfter: .zero)
     }
 
     func setRate(_ value: Float) {
