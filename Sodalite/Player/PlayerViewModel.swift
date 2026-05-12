@@ -617,25 +617,41 @@ final class PlayerViewModel {
     /// Set `videoFormat` from the host's source-side detection.
     /// Called on the native / directURL routes where the engine
     /// doesn't decode video and would otherwise leave the badge at
-    /// `.sdr`. Honours the user's "Match Dynamic Range" preference:
-    /// when it's off, the TV stays in SDR, so the badge does too
-    /// to avoid a misleading "HDR10" label on what is in fact a
-    /// tonemapped SDR rendering. Sets `hostOverridesVideoFormat`
-    /// so the engine's `$videoFormat` subscription stops feeding
-    /// stale `.sdr` updates back into the badge state.
+    /// `.sdr`. Adjusts the source format to match what AVPlayer is
+    /// actually rendering on the current display:
+    ///   - Match Dynamic Range off: TV stays in SDR, badge `.sdr`.
+    ///   - DV source on a non-DV-capable display, or DV source on a
+    ///     DV display with Match Dynamic Range off: AVPlayer auto-
+    ///     tonemaps DV down to the HDR10 base layer (or to SDR),
+    ///     so the badge shows `.hdr10` to match what the panel
+    ///     actually receives. Vincent's Cars test caught this: the
+    ///     badge said "Dolby Vision" while the TV had switched to
+    ///     plain HDR mode, since the panel never engaged DV.
+    /// Sets `hostOverridesVideoFormat` so the engine's
+    /// `$videoFormat` subscription stops feeding stale `.sdr`
+    /// updates back into the badge state.
     private func applyHostVideoFormat(_ format: VideoFormat) {
         hostOverridesVideoFormat = true
+        var effective = format
         #if os(tvOS)
-        if format != .sdr {
-            let matchEnabled = displayWindow?.avDisplayManager
-                .isDisplayCriteriaMatchingEnabled ?? false
-            if !matchEnabled {
-                videoFormat = .sdr
-                return
-            }
+        let matchEnabled = displayWindow?.avDisplayManager
+            .isDisplayCriteriaMatchingEnabled ?? false
+        if effective != .sdr, !matchEnabled {
+            // Match Dynamic Range off: TV is locked to SDR, any HDR
+            // badge would be misleading.
+            videoFormat = .sdr
+            return
+        }
+        if effective == .dolbyVision,
+           !(DisplayCapabilities.supportsDolbyVision && matchEnabled) {
+            // DV source but the display path isn't engaging Dolby
+            // Vision (panel can't do it, or the user opted out).
+            // The media-playlist route AVPlayer takes in this case
+            // tone-maps DV to the HDR10 base layer.
+            effective = .hdr10
         }
         #endif
-        videoFormat = format
+        videoFormat = effective
     }
 
     func stopPlayback() async {
