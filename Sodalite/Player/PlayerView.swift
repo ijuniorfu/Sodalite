@@ -1205,27 +1205,35 @@ private struct DiagnosticLogOverlay: View {
 
     var body: some View {
         VStack {
-            HStack {
-                VStack(alignment: .leading, spacing: 2) {
-                    let visible = Array(tap.lines.suffix(visibleCount))
-                    ForEach(Array(visible.enumerated()), id: \.offset) { _, line in
-                        Text(line)
-                            .font(.system(size: 16, weight: .regular, design: .monospaced))
-                            .foregroundStyle(.white.opacity(0.95))
-                            .lineLimit(1)
-                            .truncationMode(.tail)
-                    }
+            // Full-width container so long diagnostic lines
+            // (per-packet failure dumps, init.mp4 box summaries,
+            // FFmpeg packet rescale traces) don't get truncated by
+            // the row's lineLimit(1). The previous bounded box
+            // truncated DrHurt's seg4 failure right before tb_out,
+            // hiding the field we actually needed to read. Side
+            // padding (60 left, 80 right) matches the player's
+            // safe-area gutters; nothing else uses the top-left
+            // quadrant when the overlay is visible.
+            VStack(alignment: .leading, spacing: 2) {
+                let visible = Array(tap.lines.suffix(visibleCount))
+                ForEach(Array(visible.enumerated()), id: \.offset) { _, line in
+                    Text(line)
+                        .font(.system(size: 16, weight: .regular, design: .monospaced))
+                        .foregroundStyle(.white.opacity(0.95))
+                        .lineLimit(1)
+                        .truncationMode(.tail)
+                        .frame(maxWidth: .infinity, alignment: .leading)
                 }
-                .padding(.horizontal, 12)
-                .padding(.vertical, 8)
-                .background(
-                    RoundedRectangle(cornerRadius: 6, style: .continuous)
-                        .fill(.black.opacity(0.55))
-                )
-                .padding(.leading, 60)
-                .padding(.top, 60)
-                Spacer()
             }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+            .background(
+                RoundedRectangle(cornerRadius: 6, style: .continuous)
+                    .fill(.black.opacity(0.55))
+            )
+            .padding(.leading, 60)
+            .padding(.trailing, 80)
+            .padding(.top, 60)
             Spacer()
         }
         .allowsHitTesting(false)
