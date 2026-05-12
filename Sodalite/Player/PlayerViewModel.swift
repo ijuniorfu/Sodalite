@@ -503,9 +503,30 @@ final class PlayerViewModel {
                 // picture. We also reset display criteria here so
                 // the TV doesn't stay in HDR/DV mode while the
                 // aether path renders content that may not need it.
+                //
+                // dvModeAvailable folds the user's "Match Dynamic
+                // Range" preference (queried via avDisplayManager
+                // .isDisplayCriteriaMatchingEnabled) into the engine
+                // call. When that's off, AVPlayer rejects `dvh1`-
+                // tagged fragments at asset-load time with
+                // `-11868 'Cannot Open'` even on a DV-capable TV,
+                // because tvOS won't switch the HDMI mode and the
+                // hardware DV decode path stays gated. Passing
+                // dvModeAvailable=false has the engine emit `hvc1`
+                // tags instead, so AVPlayer plays the HDR10 base
+                // layer with automatic tone-map to SDR via the
+                // layer's default preferredDynamicRange=standard.
+                let matchEnabled: Bool = {
+                    #if os(tvOS)
+                    return displayWindow?.avDisplayManager.isDisplayCriteriaMatchingEnabled ?? false
+                    #else
+                    return false
+                    #endif
+                }()
+                let dvModeAvailable = DisplayCapabilities.supportsDolbyVision && matchEnabled
                 do {
-                    let localhostURL = try player.startNativeVideoSession(url: url)
-                    LogTap.shared.note("[PlayerVM] native session started: \(localhostURL.absoluteString)")
+                    let localhostURL = try player.startNativeVideoSession(url: url, dvModeAvailable: dvModeAvailable)
+                    LogTap.shared.note("[PlayerVM] native session started: \(localhostURL.absoluteString) dvModeAvailable=\(dvModeAvailable)")
 
                     let np = NativeAVPlayer()
                     nativePlayer = np
