@@ -115,6 +115,17 @@ final class PlayerViewModel {
     // Video format (HDR/DV indicator)
     var videoFormat: VideoFormat = .sdr
 
+    /// True for native / directURL routes where the AetherEngine
+    /// isn't decoding video (it's either hosting HLS or doing
+    /// nothing at all). In those routes the engine's
+    /// `$videoFormat` publisher stays at its default `.sdr` and
+    /// would constantly clobber the host-side
+    /// `detectVideoFormat(from:)` result, hiding the HDR / DV badge
+    /// in the player UI even when the panel is in HDR mode. When
+    /// this flag is set the host owns `videoFormat` and the engine
+    /// subscription is suppressed.
+    private var hostOverridesVideoFormat = false
+
     // Next episode
     var nextEpisode: JellyfinItem?
     var showNextEpisodeOverlay = false
@@ -468,6 +479,7 @@ final class PlayerViewModel {
                 // criteria were already set above so the TV is in
                 // the right mode by the time the first frame lands.
                 LogTap.shared.note("[PlayerVM] directURL session: \(url.absoluteString)")
+                applyHostVideoFormat(detectedFormat)
 
                 let np = NativeAVPlayer()
                 nativePlayer = np
@@ -527,6 +539,7 @@ final class PlayerViewModel {
                 do {
                     let localhostURL = try player.startNativeVideoSession(url: url, dvModeAvailable: dvModeAvailable)
                     LogTap.shared.note("[PlayerVM] native session started: \(localhostURL.absoluteString) dvModeAvailable=\(dvModeAvailable)")
+                    applyHostVideoFormat(detectedFormat)
 
                     let np = NativeAVPlayer()
                     nativePlayer = np
@@ -601,9 +614,34 @@ final class PlayerViewModel {
         }
     }
 
+    /// Set `videoFormat` from the host's source-side detection.
+    /// Called on the native / directURL routes where the engine
+    /// doesn't decode video and would otherwise leave the badge at
+    /// `.sdr`. Honours the user's "Match Dynamic Range" preference:
+    /// when it's off, the TV stays in SDR, so the badge does too
+    /// to avoid a misleading "HDR10" label on what is in fact a
+    /// tonemapped SDR rendering. Sets `hostOverridesVideoFormat`
+    /// so the engine's `$videoFormat` subscription stops feeding
+    /// stale `.sdr` updates back into the badge state.
+    private func applyHostVideoFormat(_ format: VideoFormat) {
+        hostOverridesVideoFormat = true
+        #if os(tvOS)
+        if format != .sdr {
+            let matchEnabled = displayWindow?.avDisplayManager
+                .isDisplayCriteriaMatchingEnabled ?? false
+            if !matchEnabled {
+                videoFormat = .sdr
+                return
+            }
+        }
+        #endif
+        videoFormat = format
+    }
+
     func stopPlayback() async {
         stopProgressReporting()
         cancellables.removeAll()
+        hostOverridesVideoFormat = false
         // Capture position synchronously, then stop the engine, then
         // report. The capture-then-stop order is critical: player.stop()
         // resets currentTime to 0, so we'd lose the position if we read
@@ -769,6 +807,14 @@ final class PlayerViewModel {
             .receive(on: DispatchQueue.main)
             .sink { [weak self] format in
                 guard let self else { return }
+                // Native / directURL routes own `videoFormat` from
+                // their host-side `detectVideoFormat(from:)` result.
+                // The engine isn't decoding video in those routes,
+                // so its `$videoFormat` stream stays stuck at the
+                // default `.sdr` and would otherwise clobber the
+                // HDR / DV badge the user actually expects to see.
+                if self.hostOverridesVideoFormat { return }
+
                 // Reactive format upgrades happen when the engine
                 // discovers an HDR10+ T.35 SEI mid-playback (or, in
                 // theory, any other late-detected metadata). tvOS'
