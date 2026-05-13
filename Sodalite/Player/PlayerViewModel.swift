@@ -337,12 +337,14 @@ final class PlayerViewModel {
 
             totalTime = formatSeconds(effectiveDuration)
             // Audio track priority: preferred language → stream default → first.
-            // Engine has already picked the container's default; we only
-            // call selectAudioTrack if the user's preferred language is
-            // available and differs from that pick, which goes through
-            // the reload path (one extra ~1 s pipeline restart at session
-            // start). Common case: preferred language matches default,
-            // no reload happens.
+            // Engine has already picked the container's default (the
+            // DEFAULT=YES audio rendition in the master playlist); we
+            // only call selectAudioTrack if the user's preferred
+            // language is available and differs from that pick. The
+            // call goes through AVMediaSelection inside the engine and
+            // is seamless — no pipeline restart, no black frame. If
+            // it lands before the asset's media selection group is
+            // resolved, the engine queues it and applies once ready.
             let preferredAudio = effectivePreferredAudioLanguage()
             let chosenAudio = player.audioTracks.first(where: {
                 preferredAudio != nil && Self.languagesMatch($0.language, preferredAudio)
@@ -741,9 +743,10 @@ final class PlayerViewModel {
     func selectAudioTrack(id: Int) {
         // No optimistic `activeAudioIndex = id` here; the Combine
         // subscription on `player.$activeAudioTrackIndex` updates the
-        // picker once the engine actually settles on the new track.
-        // Setting it now would make the picker claim the switch already
-        // happened while the pipeline is still mid-reload.
+        // picker once the engine's AVMediaSelection call lands. The
+        // engine's selectAudioTrack does an optimistic local update
+        // then refreshes from the mediaSelectionDidChangeNotification,
+        // so the picker reflects truth within one main-actor hop.
         player.selectAudioTrack(index: id)
         // Re-run the auto-subtitle resolution so a manual mid-playback
         // language switch behaves like the initial load did. Without
