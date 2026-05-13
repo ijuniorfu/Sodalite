@@ -337,13 +337,18 @@ final class PlayerViewModel {
 
             totalTime = formatSeconds(effectiveDuration)
             // Audio track priority: preferred language → stream default → first.
+            // Engine has already picked the container's default; we only
+            // call selectAudioTrack if the user's preferred language is
+            // available and differs from that pick, which goes through
+            // the reload path (one extra ~1 s pipeline restart at session
+            // start). Common case: preferred language matches default,
+            // no reload happens.
             let preferredAudio = effectivePreferredAudioLanguage()
             let chosenAudio = player.audioTracks.first(where: {
                 preferredAudio != nil && Self.languagesMatch($0.language, preferredAudio)
             }) ?? player.audioTracks.first(where: { $0.isDefault })
               ?? player.audioTracks.first
-            if let chosenAudio {
-                activeAudioIndex = chosenAudio.id
+            if let chosenAudio, chosenAudio.id != player.activeAudioTrackIndex {
                 player.selectAudioTrack(index: chosenAudio.id)
             }
 
@@ -568,6 +573,20 @@ final class PlayerViewModel {
                 self.subtitleCues = cues
             }
             .store(in: &cancellables)
+
+        // Engine is the source of truth for which audio track is
+        // currently muxed: the picker reflects whatever the pipeline
+        // actually settled on, including the brief window during a
+        // mid-playback audio switch when the new HLSVideoEngine session
+        // is still spinning up. Without this mirror, the picker would
+        // claim the new track was active before AVPlayer had the new
+        // item loaded, which made early scrubs look broken.
+        player.$activeAudioTrackIndex
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] index in
+                self?.activeAudioIndex = index
+            }
+            .store(in: &cancellables)
     }
 
     // MARK: - Controls
@@ -720,7 +739,11 @@ final class PlayerViewModel {
     }
 
     func selectAudioTrack(id: Int) {
-        activeAudioIndex = id
+        // No optimistic `activeAudioIndex = id` here; the Combine
+        // subscription on `player.$activeAudioTrackIndex` updates the
+        // picker once the engine actually settles on the new track.
+        // Setting it now would make the picker claim the switch already
+        // happened while the pipeline is still mid-reload.
         player.selectAudioTrack(index: id)
         // Re-run the auto-subtitle resolution so a manual mid-playback
         // language switch behaves like the initial load did. Without
