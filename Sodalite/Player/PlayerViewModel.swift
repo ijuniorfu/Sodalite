@@ -329,13 +329,10 @@ final class PlayerViewModel {
             // handshake, AVPlayerLayer ownership, and refresh-rate
             // matching all live inside engine.load(url:options:) now.
             LogTap.shared.note("[PlayerVM] engine.load url=\(url.absoluteString)")
-            let options = LoadOptions(
-                omitCriteriaColorExtensions: preferences.devOmitCriteriaColorExtensions
-            )
             try await player.load(
                 url: url,
                 startPosition: startPos,
-                options: options
+                options: LoadOptions()
             )
 
             totalTime = formatSeconds(effectiveDuration)
