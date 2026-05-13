@@ -80,14 +80,11 @@ final class PlayerHostController: UIViewController {
 
     private var hasLaunched = false
 
-    /// Tracks the currently hosted video layer. AetherEngine can replace
-    /// the underlying layer on every load() (see its
-    /// `onVideoLayerReplaced` callback and the "undefined behavior"
-    /// warnings in SampleBufferRenderer). When that happens we need to
-    /// pull the old sublayer out of our view hierarchy and drop the new
-    /// one in, otherwise the host view keeps pointing at a stale layer
-    /// that AetherEngine no longer feeds.
-    private var hostedVideoLayer: CALayer?
+    /// Engine-owned render surface. The engine attaches its active
+    /// CALayer (AVPlayerLayer for native sessions; AVSampleBufferDisplay
+    /// Layer for legacy aether sessions) and swaps internally on
+    /// session changes. No layer mounting on this side anymore.
+    private let aetherView = AetherPlayerView()
 
     /// True only between `didEnterBackground` and the next
     /// `didBecomeActive`. The Apple TV app switcher (double Home)
@@ -115,64 +112,14 @@ final class PlayerHostController: UIViewController {
         super.viewDidLoad()
         view.backgroundColor = .black
 
-        // Video layer, set the frame before attaching so we don't
-        // hand the compositor a layer at 0×0. viewDidLayoutSubviews
-        // keeps it in sync after this, but the *first* frame the
-        // decoder emits has already been routed to this layer by
-        // then, and on an unlaidout layer that frame is dropped,
-        // the screen stays black until a seek re-primes the pipeline.
-        let layer = viewModel.activeVideoLayer
-        view.layoutIfNeeded()
-        layer.frame = view.bounds
-        view.layer.addSublayer(layer)
-        hostedVideoLayer = layer
-
-        // Active-layer change callback. PlayerViewModel fires this
-        // when either:
-        //  - the engine recreates its `AVSampleBufferDisplayLayer`
-        //    (the existing aether-path behaviour, prevents stale
-        //    state from leaking between sessions), or
-        //  - we enter / leave a `.native` route session and the
-        //    layer should switch between the engine's display layer
-        //    and the AVPlayer's `AVPlayerLayer`.
-        viewModel.onActiveVideoLayerChanged = { [weak self] newLayer in
-            if Thread.isMainThread {
-                self?.swapVideoLayer(to: newLayer)
-            } else {
-                DispatchQueue.main.async { self?.swapVideoLayer(to: newLayer) }
-            }
-        }
-
-        // Forward the engine's own layer-replaced events into the
-        // unified callback above. The engine recreates the layer on
-        // every aether-route load(), so this keeps PlayerView seeing
-        // the right layer without it having to know about engine vs
-        // native distinctions.
-        //
-        // Critical: when called from the main thread (the actual case,
-        // since engine.load() runs on the main actor), insert the
-        // layer SYNCHRONOUSLY. The previous `Task { @MainActor in … }`
-        // wrap opened a race window where load()'s subsequent
-        // synchronous setup (demuxer.open + decoder setup + audio
-        // engine + startDemuxLoop dispatch) could complete and the
-        // background demux loop produce + enqueue the first frame
-        // before the queued main-actor swap had a chance to run. The
-        // frame then landed in a layer that wasn't yet in the view
-        // hierarchy, the renderer marked `hasRenderedFirstFrame` true,
-        // load() returned satisfied, and the user got audio + black
-        // picture until a manual seek flushed the orphaned queue and
-        // re-primed the pipeline against the now-attached layer.
-        // The Thread.isMainThread fast path makes the swap synchronous
-        // in the common case while keeping a defensive async fallback
-        // if a future caller ever fires this off the main thread.
-        viewModel.player.onVideoLayerReplaced = { [weak self] newLayer in
-            // Defer to the unified active-layer callback rather than
-            // swapping directly, so the native path's AVPlayerLayer
-            // doesn't get clobbered when the engine recreates its
-            // own (unused) display layer mid-session.
-            guard let self = self else { return }
-            self.viewModel.onActiveVideoLayerChanged?(self.viewModel.activeVideoLayer)
-        }
+        // Engine-owned render surface. AetherPlayerView holds whichever
+        // CALayer the engine has active and swaps internally on session
+        // changes, so this side just mounts the view once and tells the
+        // engine which surface to drive.
+        view.addSubview(aetherView)
+        aetherView.frame = view.bounds
+        aetherView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        viewModel.player.bind(view: aetherView)
 
         // End-of-content auto-dismiss: a movie or the last episode of
         // a series rolling its credits leaves a black-screen-with-no-
@@ -262,42 +209,14 @@ final class PlayerHostController: UIViewController {
         view.addGestureRecognizer(tap)
     }
 
-    override func viewDidLayoutSubviews() {
-        super.viewDidLayoutSubviews()
-        CATransaction.begin()
-        CATransaction.setDisableActions(true)
-        hostedVideoLayer?.frame = view.bounds
-        CATransaction.commit()
-    }
-
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         // Only stop playback if the VC is actually being dismissed.
         // Display mode switches (HDR/SDR) briefly trigger viewWillDisappear
         // without actually dismissing, don't kill playback for that.
         guard isBeingDismissed || isMovingFromParent else { return }
-        hostedVideoLayer?.removeFromSuperlayer()
-        viewModel.player.onVideoLayerReplaced = nil
-        viewModel.onActiveVideoLayerChanged = nil
+        viewModel.player.unbind(view: aetherView)
         Task { await viewModel.stopPlayback() }
-    }
-
-    private func swapVideoLayer(to newLayer: CALayer) {
-        hostedVideoLayer?.removeFromSuperlayer()
-        // Force layout before reading view.bounds, swapVideoLayer can
-        // fire during the initial load while viewDidLayoutSubviews
-        // hasn't run yet, and view.bounds is still the nominal value
-        // from when the modal was presented. Inserting a layer with a
-        // zero-sized frame hides it until the next layout pass, and
-        // by then the decoder has already fed the first frame into
-        // the void, leaving the screen black until a seek re-primes.
-        view.layoutIfNeeded()
-        CATransaction.begin()
-        CATransaction.setDisableActions(true)
-        newLayer.frame = view.bounds
-        view.layer.insertSublayer(newLayer, at: 0)
-        CATransaction.commit()
-        hostedVideoLayer = newLayer
     }
 
     @objc private func appDidEnterBackground() {
@@ -661,10 +580,7 @@ final class PlayerHostController: UIViewController {
     }
 
     private func dismissPlayer() {
-        hostedVideoLayer?.removeFromSuperlayer()
-        viewModel.player.onVideoLayerReplaced = nil
-        viewModel.onActiveVideoLayerChanged = nil
-        viewModel.resetDisplayCriteria()
+        viewModel.player.unbind(view: aetherView)
         Task {
             await viewModel.stopPlayback()
             onDismiss()

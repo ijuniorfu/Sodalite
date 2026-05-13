@@ -424,156 +424,21 @@ final class PlayerViewModel {
                 resumePositionTicks = 0
             }
 
-            // Set display criteria BEFORE loading, the TV needs time to switch
-            // to HDR/DV mode before the first frame is decoded. Use Jellyfin's
-            // mediaStreams metadata for detection (available before decode).
-            //
-            // If the display won't actually switch (Match Content disabled,
-            // SDR panel, no window), we must tone-map HDR→SDR during decode.
-            // Without tone-mapping, AVSampleBufferDisplayLayer shows black
-            // because it can't map PQ values onto an SDR display.
-            let detectedFormat = detectVideoFormat(from: source)
-            let engineRoute = selectPlayerEngine(for: source, format: detectedFormat)
-            let routeLine = "[PlayerVM] engine=\(engineRoute.rawValue) (format=\(detectedFormat), container=\(source.container ?? "nil"), directPlay=\(source.supportsDirectPlay ?? false))"
-            print(routeLine)
-            LogTap.shared.note(routeLine)
-            var displayWillSwitchToHDR = false
-            if detectedFormat != .sdr {
-                // If content is DV but TV only supports HDR10, use HDR10 criteria
-                let displayFormat: VideoFormat
-                if detectedFormat == .dolbyVision && !DisplayCapabilities.supportsDolbyVision {
-                    displayFormat = .hdr10
-                } else {
-                    displayFormat = detectedFormat
-                }
-                displayWillSwitchToHDR = applyDisplayCriteria(format: displayFormat)
-                if displayWillSwitchToHDR {
-                    // waitForDisplayModeSwitch() polls
-                    // isDisplayModeSwitchInProgress every 100 ms and
-                    // returns immediately when the flag is false. So
-                    // if the TV is already in the target HDR mode (e.g.
-                    // user just watched another HDR film) it costs us
-                    // a single check, not the full pre-sleep + wait
-                    // dance. The previous unconditional 200 ms sleep
-                    // was paid even in that no-op case.
-                    await waitForDisplayModeSwitch()
-                }
-            }
-
-            // Tone-map when source is HDR but display stays in SDR.
-            let tonemapHDRToSDR = detectedFormat != .sdr && !displayWillSwitchToHDR
-            #if DEBUG
-            if tonemapHDRToSDR {
-                print("[PlayerVM] Tone-mapping HDR→SDR (display stays in SDR mode)")
-            }
-            #endif
-
-            if engineRoute == .directURL {
-                // Cheapest path: AVPlayer can open this container
-                // directly. We just hand it the Jellyfin direct-play
-                // URL with no engine, no HLS wrapper, no localhost
-                // server. AVPlayer reads the source's own dvcC /
-                // dvvC / hvcC boxes for HDR mode signalling, so
-                // HDR10 / HDR10+ / HLG / DV all engage on the HDMI
-                // handshake without us synthesising anything. Display
-                // criteria were already set above so the TV is in
-                // the right mode by the time the first frame lands.
-                LogTap.shared.note("[PlayerVM] directURL session: \(url.absoluteString)")
-                applyHostVideoFormat(detectedFormat)
-
-                let np = NativeAVPlayer()
-                nativePlayer = np
-                onActiveVideoLayerChanged?(np.playerLayer)
-                wireNativePlayerObservers(np)
-                np.load(url: url, startPosition: startPos)
-                np.play()
-
-                totalTime = formatSeconds(effectiveDuration)
-                isLoading = false
-                hasStartedPlaying = true
-                startObserving()
-                await reportStart()
-                startProgressReporting()
-                Task { [weak self] in await self?.loadEpisodeSegments() }
-                Task { [weak self] in await self?.loadSeasonEpisodes() }
-                return
-            }
-
-            if engineRoute == .native {
-                // Phase 5 of the hybrid rollout: route DV streams
-                // through AVPlayer for the HDMI handshake to "Dolby
-                // Vision". AetherEngine wraps the source as
-                // loopback HLS-fMP4 and returns the playlist URL;
-                // we hand it to NativeAVPlayer. Display criteria
-                // were set above in `applyDisplayCriteria` already,
-                // same as for the aether path.
-                //
-                // If the engine throws (P7 reject, malformed source,
-                // server bind failure), fall through to the aether
-                // path so the file still plays — the user gets HDR10
-                // base instead of true DV mode but at least gets a
-                // picture. We also reset display criteria here so
-                // the TV doesn't stay in HDR/DV mode while the
-                // aether path renders content that may not need it.
-                //
-                // dvModeAvailable folds the user's "Match Dynamic
-                // Range" preference (queried via avDisplayManager
-                // .isDisplayCriteriaMatchingEnabled) into the engine
-                // call. When that's off, AVPlayer rejects `dvh1`-
-                // tagged fragments at asset-load time with
-                // `-11868 'Cannot Open'` even on a DV-capable TV,
-                // because tvOS won't switch the HDMI mode and the
-                // hardware DV decode path stays gated. Passing
-                // dvModeAvailable=false has the engine emit `hvc1`
-                // tags instead, so AVPlayer plays the HDR10 base
-                // layer with automatic tone-map to SDR via the
-                // layer's default preferredDynamicRange=standard.
-                let matchEnabled: Bool = {
-                    #if os(tvOS)
-                    return displayWindow?.avDisplayManager.isDisplayCriteriaMatchingEnabled ?? false
-                    #else
-                    return false
-                    #endif
-                }()
-                let dvModeAvailable = DisplayCapabilities.supportsDolbyVision && matchEnabled
-                do {
-                    let localhostURL = try player.startNativeVideoSession(url: url, dvModeAvailable: dvModeAvailable)
-                    LogTap.shared.note("[PlayerVM] native session started: \(localhostURL.absoluteString) dvModeAvailable=\(dvModeAvailable)")
-                    applyHostVideoFormat(detectedFormat)
-
-                    let np = NativeAVPlayer()
-                    nativePlayer = np
-                    onActiveVideoLayerChanged?(np.playerLayer)
-                    wireNativePlayerObservers(np)
-                    np.load(url: localhostURL, startPosition: startPos)
-                    np.play()
-
-                    totalTime = formatSeconds(effectiveDuration)
-                    isLoading = false
-                    hasStartedPlaying = true
-                    startObserving()
-                    await reportStart()
-                    startProgressReporting()
-                    Task { [weak self] in await self?.loadEpisodeSegments() }
-                    Task { [weak self] in await self?.loadSeasonEpisodes() }
-                    return
-                } catch {
-                    LogTap.shared.note("[PlayerVM] native session failed: \(error.localizedDescription) — falling back to aether")
-                    print("[PlayerVM] native session failed: \(error)")
-                    resetDisplayCriteria()
-                    if displayWillSwitchToHDR {
-                        // Re-apply display criteria for the aether
-                        // fallback so the TV stays in HDR mode for
-                        // the actual playback we're about to start.
-                        displayWillSwitchToHDR = applyDisplayCriteria(format: detectedFormat == .dolbyVision ? .hdr10 : detectedFormat)
-                    }
-                }
-            }
-
+            // Single load path: hand the source to the engine and let
+            // it pick AVPlayer-backed native (the default) or fall
+            // through to its legacy aether sample-buffer path for
+            // codecs HLSVideoEngine still rejects (VP9 / AV1 until
+            // Phase 3; DV P7 always). Format detection, HDMI HDR
+            // handshake, AVPlayerLayer ownership, and refresh-rate
+            // matching all live inside engine.load(url:options:) now.
+            LogTap.shared.note("[PlayerVM] engine.load url=\(url.absoluteString)")
+            let options = LoadOptions(
+                omitCriteriaColorExtensions: preferences.devOmitCriteriaColorExtensions
+            )
             try await player.load(
                 url: url,
                 startPosition: startPos,
-                tonemapHDRToSDR: tonemapHDRToSDR
+                options: options
             )
 
             totalTime = formatSeconds(effectiveDuration)
@@ -657,7 +522,6 @@ final class PlayerViewModel {
     func stopPlayback() async {
         stopProgressReporting()
         cancellables.removeAll()
-        hostOverridesVideoFormat = false
         // Capture position synchronously, then stop the engine, then
         // report. The capture-then-stop order is critical: player.stop()
         // resets currentTime to 0, so we'd lose the position if we read
@@ -667,28 +531,11 @@ final class PlayerViewModel {
         // ~1-2s of trailing audio that the user heard during the
         // network round-trip.
         let finalTicks = currentPositionTicks
-        // Tear down the native session first if one is active. The
-        // engine's `stopNativeVideoSession` releases the loopback
-        // server's TCP port and the FFmpeg demuxer/muxer, the local
-        // wrapper releases its `AVPlayerItem`. Order: NativeAVPlayer
-        // first (so AVPlayer stops fetching from the server), then
-        // the engine's session (so the server can stop without
-        // mid-request races).
-        if let np = nativePlayer {
-            nativeCancellables.removeAll()
-            np.tearDown()
-            nativePlayer = nil
-            player.stopNativeVideoSession()
-            // Hand the active layer back to the engine's display
-            // layer so the next session (if any) starts clean.
-            onActiveVideoLayerChanged?(player.videoLayer)
-        }
+        // Engine handles native AVPlayer teardown + HLS server shutdown
+        // + AVDisplayManager criteria reset inside stopInternal(). The
+        // host just calls stop() and trusts the engine to leave the
+        // session in a clean state for the next playback.
         player.stop()
-        // Always revert the TV to SDR once playback ends. PlayerView's
-        // onDisappear also calls this, but if the app is backgrounded or
-        // the VC is torn down by other means, we still want the TV back in
-        // SDR mode so menus don't stay in HDR.
-        resetDisplayCriteria()
         await reportStop(positionTicks: finalTicks)
     }
 
