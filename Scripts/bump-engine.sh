@@ -71,10 +71,47 @@ if [ -z "$HUMAN_SUBJECT" ]; then
     HUMAN_SUBJECT="latest main"
 fi
 
-# Replace the SHA in-place. Substituting on the literal current SHA
-# scopes the change to the AetherEngine pin (SHAs are unique per
-# repo) without touching FFmpegBuild or any future deps.
+# Replace the AetherEngine SHA in-place. Substituting on the literal
+# current SHA scopes the change to the AetherEngine pin (SHAs are
+# unique per repo).
 sed -i '' "s/$CURRENT_SHA/$LATEST_SHA/" "$RESOLVED"
+
+# Cascade transitive deps. AetherEngine's own Package.resolved pins
+# FFmpegBuild to a specific commit; if the engine bumped that pin (new
+# muxer, new decoder, new option default) we need Sodalite to follow.
+# xcodebuild -resolvePackageDependencies alone won't pull a newer
+# transitive SHA because the existing pin is treated as authoritative.
+# Pull the engine's Package.resolved over raw.githubusercontent.com and
+# match each transitive's pin against Sodalite's; rewrite mismatches.
+TRANSITIVE_DEPS=("ffmpegbuild")
+for DEP in "${TRANSITIVE_DEPS[@]}"; do
+    ENGINE_DEP_SHA=$(curl -sf "https://raw.githubusercontent.com/superuser404notfound/AetherEngine/$LATEST_SHA/Package.resolved" 2>/dev/null | python3 -c "
+import json, sys
+try:
+    data = json.load(sys.stdin)
+    for pin in data['pins']:
+        if pin['identity'] == '$DEP':
+            print(pin['state']['revision'])
+            break
+except Exception:
+    pass
+")
+    if [ -z "$ENGINE_DEP_SHA" ]; then continue; fi
+
+    SODALITE_DEP_SHA=$(python3 -c "
+import json, sys
+with open('$RESOLVED') as f:
+    data = json.load(f)
+for pin in data['pins']:
+    if pin['identity'] == '$DEP':
+        print(pin['state']['revision'])
+        break
+")
+    if [ "$ENGINE_DEP_SHA" != "$SODALITE_DEP_SHA" ] && [ -n "$SODALITE_DEP_SHA" ]; then
+        echo "  ↳ transitive bump: $DEP ${SODALITE_DEP_SHA:0:7} → ${ENGINE_DEP_SHA:0:7}"
+        sed -i '' "s/$SODALITE_DEP_SHA/$ENGINE_DEP_SHA/" "$RESOLVED"
+    fi
+done
 
 cd "$PROJECT_DIR"
 
