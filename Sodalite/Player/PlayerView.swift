@@ -782,12 +782,12 @@ private struct PlayerOverlayView: View {
             // both are visible.
             topRightInfoColumn
 
-            // Diagnostic log overlay (top-left). Only visible in
-            // DEBUG and TestFlight builds, hidden in App Store
-            // builds. Lets a beta tester screenshot what the engine
-            // logged during playback when they have no Mac to pair
-            // with Console.app.
-            if LogTap.isDiagnosticBuild {
+            // Diagnostic log overlay (top-left). Two-gate: the build
+            // has to be DEBUG or TestFlight (App Store users can't
+            // even toggle this on), AND the user has to have flipped
+            // showDiagnosticOverlay in Settings, which defaults off
+            // so the overlay isn't on top of every TestFlight session.
+            if LogTap.isDiagnosticBuild && viewModel.preferences.showDiagnosticOverlay {
                 DiagnosticLogOverlay()
             }
 

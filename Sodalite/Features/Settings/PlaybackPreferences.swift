@@ -29,6 +29,7 @@ final class PlaybackPreferences {
         static let subtitleBackground = "playback.subtitleBackground"
         static let subtitleDelaySeconds = "playback.subtitleDelaySeconds"
         static let pictureMode = "playback.pictureMode"
+        static let showDiagnosticOverlay = "playback.showDiagnosticOverlay"
     }
 
     // MARK: - Allowed Values
@@ -232,6 +233,15 @@ final class PlaybackPreferences {
         didSet { store.set(pictureMode.rawValue, forKey: Keys.pictureMode) }
     }
 
+    /// Show the in-player engine log overlay (top-left). Default off
+    /// so the overlay doesn't ride along on every TestFlight build; the
+    /// `LogTap.isDiagnosticBuild` gate still hides the toggle entirely
+    /// in App Store builds, so this only takes effect in DEBUG and
+    /// TestFlight where the overlay is even mountable.
+    var showDiagnosticOverlay: Bool {
+        didSet { store.set(showDiagnosticOverlay, forKey: Keys.showDiagnosticOverlay) }
+    }
+
     // MARK: - Init
 
     private let store: UserDefaults
@@ -255,5 +265,6 @@ final class PlaybackPreferences {
         self.subtitleDelaySeconds = store.object(forKey: Keys.subtitleDelaySeconds) as? Double ?? 0
         self.pictureMode = (store.string(forKey: Keys.pictureMode))
             .flatMap(PictureMode.init(rawValue:)) ?? .original
+        self.showDiagnosticOverlay = store.object(forKey: Keys.showDiagnosticOverlay) as? Bool ?? false
     }
 }

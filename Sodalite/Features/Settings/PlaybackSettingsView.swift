@@ -174,6 +174,24 @@ struct PlaybackSettingsView: View {
                     label: { String(localized: String.LocalizationValue($0.titleKey)) }
                 )
 
+                // Diagnostic overlay toggle. Only mounted in DEBUG /
+                // TestFlight builds; App Store users never see this row
+                // because the overlay can't be enabled there at all
+                // (LogTap.isDiagnosticBuild is the upstream gate).
+                if LogTap.isDiagnosticBuild {
+                    sectionHeader("settings.playback.section.diagnostics")
+
+                    boolRow(
+                        icon: "ladybug",
+                        title: "settings.playback.diagnosticOverlay",
+                        subtitle: "settings.playback.diagnosticOverlay.subtitle",
+                        value: Binding(
+                            get: { prefs.showDiagnosticOverlay },
+                            set: { prefs.showDiagnosticOverlay = $0 }
+                        )
+                    )
+                }
+
             }
             .padding(.horizontal, 80)
             .padding(.top, 60)
