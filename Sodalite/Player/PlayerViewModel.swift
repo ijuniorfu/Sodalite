@@ -115,17 +115,6 @@ final class PlayerViewModel {
     // Video format (HDR/DV indicator)
     var videoFormat: VideoFormat = .sdr
 
-    /// True for native / directURL routes where the AetherEngine
-    /// isn't decoding video (it's either hosting HLS or doing
-    /// nothing at all). In those routes the engine's
-    /// `$videoFormat` publisher stays at its default `.sdr` and
-    /// would constantly clobber the host-side
-    /// `detectVideoFormat(from:)` result, hiding the HDR / DV badge
-    /// in the player UI even when the panel is in HDR mode. When
-    /// this flag is set the host owns `videoFormat` and the engine
-    /// subscription is suppressed.
-    private var hostOverridesVideoFormat = false
-
     // Next episode
     var nextEpisode: JellyfinItem?
     var showNextEpisodeOverlay = false
@@ -186,98 +175,6 @@ final class PlayerViewModel {
     var playSessionID: String?
     var activePlayMethod: PlayMethod = .directPlay
     var subtitleStreams: [MediaStream] = []
-
-    // MARK: - Native AVPlayer path (Dolby Vision)
-
-    /// Non-nil during a `.native` route session. Owns the AVPlayer +
-    /// AVPlayerLayer that drives Dolby Vision playback for sources
-    /// AetherEngine can demux but where we need the AVPlayer-only
-    /// HDMI handshake to engage true DV mode on a capable TV.
-    var nativePlayer: NativeAVPlayer?
-
-    /// Fired by PlayerViewModel whenever the active video layer
-    /// changes — either because the engine recreated its
-    /// `AVSampleBufferDisplayLayer` (the existing aether-path
-    /// behaviour) or because we entered/left a native session and
-    /// the host should swap to/from the `AVPlayerLayer`. The host
-    /// (`PlayerView`) assigns this in `viewDidLoad` and clears it
-    /// in `viewWillDisappear`.
-    var onActiveVideoLayerChanged: ((CALayer) -> Void)?
-
-    /// The CALayer the host should currently be showing. Either the
-    /// engine's display layer (aether path) or the native AVPlayer's
-    /// layer (native path). Read by `PlayerView.viewDidLoad` to
-    /// pick the initial sublayer.
-    var activeVideoLayer: CALayer {
-        if let np = nativePlayer {
-            return np.playerLayer
-        }
-        return player.videoLayer
-    }
-
-    /// Combine subscriptions held alive for as long as the current
-    /// `nativePlayer` is active. Cleared when the native session
-    /// ends so engine-driven aether sessions don't see leaked
-    /// observers.
-    var nativeCancellables = Set<AnyCancellable>()
-
-    /// Route a seek to whichever player is currently active. The
-    /// engine's `seek(to:)` is async (it serialises with the demux
-    /// loop); the native AVPlayer's is synchronous (AVPlayer queues
-    /// the seek internally and reports completion via the periodic
-    /// time observer). The Task wrapper hides that asymmetry from
-    /// callers — they always `Task { await viewModel.seekActivePlayer(...) }`.
-    func seekActivePlayer(to seconds: Double) async {
-        if let np = nativePlayer {
-            np.seek(to: seconds)
-        } else {
-            await player.seek(to: seconds)
-        }
-    }
-
-    /// Mirror NativeAVPlayer's published time / duration / failure
-    /// state into PlayerViewModel's existing fields so the player
-    /// chrome (scrub bar, total-time label, intro-skip detector,
-    /// next-episode-overlay countdown) keeps working without
-    /// branching on aether-vs-native at every read site. Called
-    /// once per native session, right after `nativePlayer` is set.
-    func wireNativePlayerObservers(_ np: NativeAVPlayer) {
-        nativeCancellables.removeAll()
-
-        np.$currentTime
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] time in
-                guard let self = self else { return }
-                self.playbackTime = time
-                self.updateIntroVisibility(time: time)
-                self.updateOutroAutoSkip(time: time)
-                self.checkForNextEpisode()
-                if !self.isScrubbing {
-                    self.currentTime = self.formatSeconds(time)
-                    let dur = self.effectiveDuration
-                    let rem = dur - time
-                    self.remainingTime = "-\(self.formatSeconds(max(0, rem)))"
-                    self.progress = dur > 0 ? Float(time / dur) : 0
-                }
-            }
-            .store(in: &nativeCancellables)
-
-        np.$duration
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] dur in
-                guard let self = self, dur > 0 else { return }
-                self.totalTime = self.formatSeconds(dur)
-            }
-            .store(in: &nativeCancellables)
-
-        np.$failureMessage
-            .receive(on: DispatchQueue.main)
-            .compactMap { $0 }
-            .sink { [weak self] message in
-                self?.errorMessage = message
-            }
-            .store(in: &nativeCancellables)
-    }
 
     init(
         item: JellyfinItem,
@@ -479,44 +376,21 @@ final class PlayerViewModel {
         }
     }
 
-    /// Set `videoFormat` from the host's source-side detection.
-    /// Called on the native / directURL routes where the engine
-    /// doesn't decode video and would otherwise leave the badge at
-    /// `.sdr`. Adjusts the source format to match what AVPlayer is
-    /// actually rendering on the current display:
-    ///   - Match Dynamic Range off: TV stays in SDR, badge `.sdr`.
-    ///   - DV source on a non-DV-capable display, or DV source on a
-    ///     DV display with Match Dynamic Range off: AVPlayer auto-
-    ///     tonemaps DV down to the HDR10 base layer (or to SDR),
-    ///     so the badge shows `.hdr10` to match what the panel
-    ///     actually receives. Vincent's Cars test caught this: the
-    ///     badge said "Dolby Vision" while the TV had switched to
-    ///     plain HDR mode, since the panel never engaged DV.
-    /// Sets `hostOverridesVideoFormat` so the engine's
-    /// `$videoFormat` subscription stops feeding stale `.sdr`
-    /// updates back into the badge state.
-    private func applyHostVideoFormat(_ format: VideoFormat) {
-        hostOverridesVideoFormat = true
-        var effective = format
+    /// Apple TV's "Match Dynamic Range" toggle. Read at the same
+    /// instant the host renders an HDR badge so the badge only shows
+    /// when the panel is actually engaging HDR mode for the current
+    /// session.
+    static var matchDynamicRangeEnabled: Bool {
         #if os(tvOS)
-        let matchEnabled = displayWindow?.avDisplayManager
-            .isDisplayCriteriaMatchingEnabled ?? false
-        if effective != .sdr, !matchEnabled {
-            // Match Dynamic Range off: TV is locked to SDR, any HDR
-            // badge would be misleading.
-            videoFormat = .sdr
-            return
-        }
-        if effective == .dolbyVision,
-           !(DisplayCapabilities.supportsDolbyVision && matchEnabled) {
-            // DV source but the display path isn't engaging Dolby
-            // Vision (panel can't do it, or the user opted out).
-            // The media-playlist route AVPlayer takes in this case
-            // tone-maps DV to the HDR10 base layer.
-            effective = .hdr10
-        }
+        guard let win = UIApplication.shared.connectedScenes
+            .compactMap({ $0 as? UIWindowScene })
+            .flatMap({ $0.windows })
+            .first
+        else { return false }
+        return win.avDisplayManager.isDisplayCriteriaMatchingEnabled
+        #else
+        return false
         #endif
-        videoFormat = effective
     }
 
     func stopPlayback() async {
@@ -574,26 +448,14 @@ final class PlayerViewModel {
                         self.startNextEpisodeCountdown(from: seconds)
                     } else if self.hasStartedPlaying,
                               self.nextEpisode == nil,
-                              !self.showNextEpisodeOverlay,
-                              self.nativePlayer == nil {
+                              !self.showNextEpisodeOverlay {
                         // Real end-of-content: a movie just finished, or
                         // the last episode of a series rolled credits.
-                        // Without this the player sits on a black frame
-                        // with no focus target, Menu still works to
-                        // exit, but the natural flow is to drop the user
-                        // back on the detail view they came from.
-                        //
-                        // Skipped for native (directURL / native HLS-
-                        // wrapper) sessions: the engine isn't driving
-                        // playback in those routes, it just hosts the
-                        // local HLS server, so its state stays `.idle`
-                        // the whole time. Without this guard the first
-                        // idle tick after np.play() incorrectly looked
-                        // like end-of-content and auto-dismissed the
-                        // player a fraction of a second after launch.
-                        // End-of-content for native sessions is detected
-                        // separately via the AVPlayer periodic time
-                        // observer comparing currentTime to duration.
+                        // The engine reaches .idle on stop(); for native
+                        // sessions, end-of-stream auto-dismiss currently
+                        // depends on the user / next-episode countdown
+                        // since AVPlayer's didPlayToEnd → engine state
+                        // wiring is a follow-up.
                         self.onPlaybackReachedEnd?()
                     }
                 case .loading:
@@ -670,40 +532,23 @@ final class PlayerViewModel {
             .receive(on: DispatchQueue.main)
             .sink { [weak self] format in
                 guard let self else { return }
-                // Native / directURL routes own `videoFormat` from
-                // their host-side `detectVideoFormat(from:)` result.
-                // The engine isn't decoding video in those routes,
-                // so its `$videoFormat` stream stays stuck at the
-                // default `.sdr` and would otherwise clobber the
-                // HDR / DV badge the user actually expects to see.
-                if self.hostOverridesVideoFormat { return }
-
-                // Reactive format upgrades happen when the engine
-                // discovers an HDR10+ T.35 SEI mid-playback (or, in
-                // theory, any other late-detected metadata). tvOS'
-                // `videoDynamicRange` has no HDR10+ value (HDR10+
-                // shares HDR10's mode), so we don't re-apply display
-                // criteria, but we do log the transition so a
-                // TestFlight diagnosis can tell "engine never saw
-                // HDR10+" apart from "engine saw HDR10+ but TV
-                // ignored it". Routed through LogTap so it appears
-                // in the in-app overlay as well as stdout.
+                // Engine sources videoFormat from its demuxer probe
+                // and from late-discovered HDR10+ T.35 SEI mid-stream,
+                // works for both backends. Log transitions for
+                // TestFlight diagnostics.
                 if format != self.videoFormat {
                     let line = "[PlayerVM] videoFormat changed: \(self.videoFormat) → \(format)"
                     print(line)
                     LogTap.shared.note(line)
                 }
-                // Only show the HDR badge if the display is actually in
-                // HDR mode. When "Match Dynamic Range" is off, the TV
-                // stays in SDR, showing "HDR10" would be misleading.
+                // Only show the HDR badge if the panel actually went
+                // to HDR mode. With Match Dynamic Range off, the TV
+                // stays in SDR even for an HDR source, so showing
+                // "HDR10" would be misleading.
                 #if os(tvOS)
-                if format != .sdr {
-                    let matchEnabled = self.displayWindow?.avDisplayManager
-                        .isDisplayCriteriaMatchingEnabled ?? false
-                    if !matchEnabled {
-                        self.videoFormat = .sdr
-                        return
-                    }
+                if format != .sdr, !Self.matchDynamicRangeEnabled {
+                    self.videoFormat = .sdr
+                    return
                 }
                 #endif
                 self.videoFormat = format
@@ -731,11 +576,7 @@ final class PlayerViewModel {
     // MARK: - Controls
 
     func togglePlayPause() {
-        if let np = nativePlayer {
-            np.toggle()
-        } else {
-            player.togglePlayPause()
-        }
+        player.togglePlayPause()
         reportProgressIfNeeded()
         showControls = true
         scheduleControlsHide()
@@ -878,7 +719,7 @@ final class PlayerViewModel {
     func selectChapter(at index: Int) {
         guard chapters.indices.contains(index) else { return }
         let target = chapters[index].startSeconds
-        Task { [weak self] in await self?.seekActivePlayer(to: target) }
+        Task { [weak self] in await self?.player.seek(to: target) }
     }
 
     func selectAudioTrack(id: Int) {
@@ -1015,7 +856,7 @@ final class PlayerViewModel {
     func skipIntro() {
         guard let seg = introSegment else { return }
         isInsideIntro = false
-        Task { [weak self] in await self?.seekActivePlayer(to: seg.endSeconds) }
+        Task { [weak self] in await self?.player.seek(to: seg.endSeconds) }
     }
 
     /// Outro equivalent to `updateIntroVisibility`, no Skip Outro UI
@@ -1045,7 +886,7 @@ final class PlayerViewModel {
                 await self?.playNextEpisode()
             }
         } else {
-            Task { [weak self] in await self?.seekActivePlayer(to: seg.endSeconds) }
+            Task { [weak self] in await self?.player.seek(to: seg.endSeconds) }
         }
     }
 
@@ -1209,118 +1050,6 @@ final class PlayerViewModel {
         }
     }
 
-    /// Detect video format from Jellyfin MediaSource metadata.
-    /// Available before player.load(), no decode needed.
-    private func detectVideoFormat(from source: PlaybackMediaSource) -> VideoFormat {
-        guard let videoStream = source.mediaStreams?.first(where: { $0.type == .video }) else {
-            return .sdr
-        }
-
-        // videoRangeType is more specific: "DOVI", "HDR10", "HDR10Plus", "HLG"
-        if let rangeType = videoStream.videoRangeType?.uppercased() {
-            // HDR10Plus must be checked before plain HDR10, its string
-            // contains "HDR10" too, so the order matters.
-            if rangeType.contains("HDR10PLUS") { return .hdr10Plus }
-            if rangeType.contains("DOVI") || rangeType.contains("DOV") { return .dolbyVision }
-            if rangeType.contains("HDR10") { return .hdr10 }
-            if rangeType.contains("HLG") { return .hlg }
-        }
-
-        // Fallback: videoRange is "HDR" or "SDR"
-        if videoStream.videoRange?.uppercased() == "HDR" { return .hdr10 }
-
-        return .sdr
-    }
-
-    /// Which playback engine should drive a given source.
-    ///
-    /// Decision order (most preferred first):
-    ///
-    /// 1. `.directURL`: source is an MP4 / M4V / MOV that AVPlayer
-    ///    can open natively, with HEVC or H.264 video and an
-    ///    AVPlayer-decodable audio track. Confirmed end-to-end on
-    ///    tvOS by ZeroQ-bit's testing on AetherEngine#2: every DV
-    ///    profile (P5, P8.1, P8.4) at every framerate (24 / 25 / 30
-    ///    / 50 / 120 fps) reaches readyToPlay with no wrapper.
-    ///    HDR10 / HDR10+ / HLG / DV mode all engage on the HDMI
-    ///    handshake automatically because the source's own codec
-    ///    config boxes (dvcC / dvvC / hvcC) drive it. No engine, no
-    ///    HLS, no localhost server.
-    ///
-    /// 2. `.native`: DV source in a container AVPlayer can't open
-    ///    directly (MKV, TS) or in MP4 with codec tags AVPlayer
-    ///    rejects (`hev1`, `dvhe`). AetherEngine wraps the source as
-    ///    loopback HLS-fMP4 and retags / repackages on the fly.
-    ///    Higher overhead than directURL but the only way to get
-    ///    DV mode on the HDMI handshake for non-MP4 sources.
-    ///
-    /// 3. `.aether`: universal fallback. Plays via FFmpeg +
-    ///    VideoToolbox + AVSampleBufferDisplayLayer. Cannot trigger
-    ///    DV mode on tvOS HDMI but plays everything that decodes,
-    ///    including TrueHD / DTS / DTS-HD-MA audio that AVPlayer
-    ///    refuses outright.
-    func selectPlayerEngine(for source: PlaybackMediaSource, format: VideoFormat) -> PlayerEngineRoute {
-        let videoStream = source.mediaStreams?.first(where: { $0.type == .video })
-        let videoCodec = videoStream?.codec?.lowercased()
-        let audioStreams = source.mediaStreams?.filter { $0.type == .audio } ?? []
-        let avplayerCompatibleAudio: Set<String> = [
-            "aac", "ac3", "eac3", "flac", "alac", "mp3", "opus",
-        ]
-        let hasCompatibleAudio = audioStreams.contains { stream in
-            guard let codec = stream.codec?.lowercased() else { return false }
-            return avplayerCompatibleAudio.contains(codec)
-        }
-        let directOK = (source.supportsDirectPlay == true) || (source.supportsDirectStream == true)
-        let avplayerOpenableContainer: Set<String> = ["mp4", "m4v", "mov"]
-        let container = source.container?.lowercased() ?? ""
-
-        // 1. directURL: cheapest possible path. Source is already an
-        //    MP4-family container with codecs AVPlayer accepts. We
-        //    just hand AVPlayer the URL. Display criteria are still
-        //    set up the same way; AVPlayer reads the source's own
-        //    dvcC / dvvC / hvcC boxes for HDR mode on the HDMI
-        //    handshake, no synthesis needed on our side.
-        //
-        //    Caveat (DrHurt, AetherEngine#2): MP4 with `hev1` or
-        //    `dvhe` sample-entry tags is rejected by AVPlayer even
-        //    though the codec is HEVC. Jellyfin's `codec` field
-        //    doesn't surface the FourCC tag, so we can't gate on it
-        //    pre-flight. If AVPlayer fails the directURL session at
-        //    runtime, the playback path falls through to .aether so
-        //    the file still plays (at HDR10 base for DV sources).
-        //    A later round can add a .native retag fallback for the
-        //    hev1 / dvhe case specifically.
-        if directOK,
-           avplayerOpenableContainer.contains(container),
-           videoCodec == "hevc" || videoCodec == "h265" || videoCodec == "h264" || videoCodec == "avc",
-           hasCompatibleAudio {
-            return .directURL
-        }
-
-        // 2. native: DV-only path through AetherEngine's HLS-fMP4
-        //    wrapper. Required when the container is something
-        //    AVPlayer can't open (MKV / TS) but we still want DV mode.
-        //    The `devForceHLSWrapper` developer toggle widens the gate
-        //    to ANY HEVC / H.264 stream regardless of HDR profile, so
-        //    a tester can exercise the HLS-wrapper path with HDR10,
-        //    HDR10+, HLG, or SDR content too. Off by default; only
-        //    surfaced in PlaybackSettingsView on diagnostic builds.
-        let isHEVCorH264 = videoCodec == "hevc" || videoCodec == "h265" || videoCodec == "h264" || videoCodec == "avc"
-        if preferences.devForceHLSWrapper,
-           directOK,
-           isHEVCorH264,
-           hasCompatibleAudio {
-            return .native
-        }
-        guard format == .dolbyVision else { return .aether }
-        guard DisplayCapabilities.supportsDolbyVision else { return .aether }
-        guard directOK else { return .aether }
-        guard videoCodec == "hevc" || videoCodec == "h265" else { return .aether }
-        guard hasCompatibleAudio else { return .aether }
-
-        return .native
-    }
-
     func formatSeconds(_ seconds: Double) -> String {
         let total = Int(max(0, seconds))
         let h = total / 3600
@@ -1329,165 +1058,6 @@ final class PlayerViewModel {
         if h > 0 { return String(format: "%d:%02d:%02d", h, m, s) }
         return String(format: "%02d:%02d", m, s)
     }
-
-    // MARK: - Display Mode Switching (tvOS)
-
-    /// Tell tvOS to switch the TV to HDR/DV/HLG mode via AVDisplayCriteria.
-    /// Must be called BEFORE playback starts so the TV has time to switch.
-    /// Uses public AVKit API, `UIWindow.avDisplayManager` (tvOS 11.2+).
-    ///
-    /// - Returns: `true` if the display will switch to HDR mode. `false` means
-    ///   the caller should tone-map HDR content down to SDR during decode
-    ///   (e.g. Match Content disabled, no window, or SDR content).
-    @discardableResult
-    func applyDisplayCriteria(format: VideoFormat, refreshRate: Float = 23.976) -> Bool {
-        #if os(tvOS)
-        guard #available(tvOS 17.0, *) else {
-            #if DEBUG
-            print("[PlayerVM] applyDisplayCriteria skipped: tvOS < 17")
-            #endif
-            return false
-        }
-        guard format != .sdr else { return false }
-
-        guard let window = displayWindow else {
-            #if DEBUG
-            print("[PlayerVM] applyDisplayCriteria skipped: no window")
-            #endif
-            return false
-        }
-
-        let displayManager = window.avDisplayManager
-
-        // Respect user's "Match Content" setting (Apple TV → Settings →
-        // Video and Audio → Match Content → Match Dynamic Range). When
-        // OFF, the system refuses to switch the display, so a
-        // preferredDisplayCriteria assignment would silently no-op and
-        // we'd ship HDR pixel data into an SDR-locked panel, which
-        // renders as black or massively over-saturated. Tonemap path
-        // is the safe fallback.
-        guard displayManager.isDisplayCriteriaMatchingEnabled else {
-            #if DEBUG
-            print("[PlayerVM] applyDisplayCriteria skipped: Match Content disabled in Apple TV settings, falling back to tonemap")
-            #endif
-            return false
-        }
-
-        let transferFunction: CFString = switch format {
-        case .hlg: kCVImageBufferTransferFunction_ITU_R_2100_HLG
-        default:   kCVImageBufferTransferFunction_SMPTE_ST_2084_PQ
-        }
-
-        // The hardcoded BT.2020 / transfer / YCbCr matrix in the
-        // format description gives tvOS an explicit hint for the
-        // pre-playback handshake. The `devOmitCriteriaColorExtensions`
-        // developer toggle drops them so AVPlayer falls back to
-        // reading the actual bitstream's color metadata at session
-        // start instead — DrHurt's hypothesis that the extensions
-        // might over-constrain the handshake on some panels. Off by
-        // default; surfaced in PlaybackSettingsView on diagnostic
-        // builds only.
-        let extensions: NSDictionary? = preferences.devOmitCriteriaColorExtensions ? nil : [
-            kCMFormatDescriptionExtension_ColorPrimaries: kCVImageBufferColorPrimaries_ITU_R_2020,
-            kCMFormatDescriptionExtension_TransferFunction: transferFunction,
-            kCMFormatDescriptionExtension_YCbCrMatrix: kCVImageBufferYCbCrMatrix_ITU_R_2020,
-        ]
-
-        // The codec FourCC encoded in the format description is what
-        // tvOS reads to pick the HDMI display mode: `'hvc1'` →
-        // HDR10/HDR10+/HLG; `'dvh1'` → Dolby Vision. Building a
-        // criteria with kCMVideoCodecType_HEVC for a DV source makes
-        // the TV negotiate plain HDR10 even though the bitstream
-        // carries a DV RPU, which is what DrHurt observed on a
-        // Philips DV TV: P8 MKV played end-to-end but the panel
-        // stayed in HDR mode instead of switching to Dolby Vision.
-        // For DV sources we override the codecType to the dvh1
-        // FourCC (0x64766831) so the handshake signals DV; for
-        // everything else we stay on HEVC. Color primaries / TF /
-        // matrix don't change — DV's base layer is still BT.2020 +
-        // ST 2084 PQ, the RPU just rides alongside.
-        // ref: Jellyfin issue #16179, KSPlayer issue #633.
-        let dvh1: CMVideoCodecType = 0x64766831  // 'dvh1'
-        let codecType: CMVideoCodecType = format == .dolbyVision ? dvh1 : kCMVideoCodecType_HEVC
-
-        var formatDesc: CMVideoFormatDescription?
-        CMVideoFormatDescriptionCreate(
-            allocator: kCFAllocatorDefault,
-            codecType: codecType,
-            width: 3840, height: 2160,
-            extensions: extensions,
-            formatDescriptionOut: &formatDesc
-        )
-        guard let desc = formatDesc else { return false }
-
-        let criteria = AVDisplayCriteria(refreshRate: refreshRate, formatDescription: desc)
-        displayManager.preferredDisplayCriteria = criteria
-
-        #if DEBUG
-        print("[PlayerVM] Display criteria SET: \(format), \(refreshRate) fps")
-        #endif
-        return true
-        #else
-        return false
-        #endif
-    }
-
-    /// Wait for the TV to finish switching display modes before starting playback.
-    func waitForDisplayModeSwitch() async {
-        #if os(tvOS)
-        guard let window = displayWindow else { return }
-        let displayManager = window.avDisplayManager
-        guard displayManager.isDisplayModeSwitchInProgress else { return }
-
-        // Wait up to 5 seconds for the switch, checking periodically
-        for _ in 0..<50 {
-            try? await Task.sleep(for: .milliseconds(100))
-            if !displayManager.isDisplayModeSwitchInProgress { break }
-        }
-        #endif
-    }
-
-    func resetDisplayCriteria() {
-        #if os(tvOS)
-        guard let window = displayWindow else { return }
-        window.avDisplayManager.preferredDisplayCriteria = nil
-        #if DEBUG
-        print("[PlayerVM] Display criteria RESET")
-        #endif
-        #endif
-    }
-
-    #if os(tvOS)
-    private var displayWindow: UIWindow? {
-        UIApplication.shared.connectedScenes
-            .compactMap { $0 as? UIWindowScene }
-            .flatMap { $0.windows }
-            .first
-    }
-    #endif
-}
-
-/// Which underlying playback technology will drive a given
-/// session.
-///
-/// - `.aether`: AetherEngine's FFmpeg + VideoToolbox + custom
-///   display-layer pipeline. Used as the universal fallback and
-///   for containers AVPlayer can't open natively (MKV / TS / AVI).
-/// - `.native`: AetherEngine's loopback HLS-fMP4 wrapper feeds
-///   AVPlayer. Used when the source needs muxer-level fixup (codec
-///   tag retagging, container conversion) before AVPlayer accepts
-///   it. Engages the HDMI Dolby Vision handshake on tvOS.
-/// - `.directURL`: AVPlayer fed the source URL directly with no
-///   wrapper. Lowest-overhead path. Used when the source is
-///   already an AVPlayer-openable container (MP4 / M4V / MOV) with
-///   compatible codec tags and audio. Engages every HDR mode
-///   AVPlayer supports natively (HDR10 / HDR10+ / HLG / DV) without
-///   our engine touching the bytes. Confirmed end-to-end by
-///   ZeroQ-bit on AetherEngine#2 across P5/P8.1/P8.4 at 24-120 fps.
-enum PlayerEngineRoute: String {
-    case aether
-    case native
-    case directURL
 }
 
 enum PlayerEngineError: LocalizedError {

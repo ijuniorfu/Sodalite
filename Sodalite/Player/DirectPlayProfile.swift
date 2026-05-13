@@ -1,4 +1,5 @@
 import Foundation
+import AetherEngine
 
 /// Jellyfin device profile for AetherEngine on Apple TV.
 ///
@@ -7,7 +8,8 @@ import Foundation
 /// reduces server-side transcoding, the server only needs to re-encode
 /// when the actual codec is unsupported (e.g. MPEG-2, VC-1).
 ///
-/// Two flavors based on display capabilities (see `DisplayCapabilities`):
+/// Two flavors based on display capabilities (see
+/// `AetherEngine.displayCapabilities`):
 ///
 /// - `permissiveHDRProfile`: HDR-capable display. Direct-play 4K HEVC
 ///   Main10 HDR10 / Dolby Vision / HLG with multichannel audio.
@@ -19,9 +21,10 @@ enum DirectPlayProfile {
 
     /// Picks the right profile based on the runtime display capabilities.
     static func current() -> [String: Any] {
-        let useHDR = DisplayCapabilities.supportsHDR
+        let caps = AetherEngine.displayCapabilities
+        let useHDR = caps.supportsHDR
         #if DEBUG
-        print("[Profile] Display: \(DisplayCapabilities.summary) → using \(useHDR ? "HDR" : "SDR") profile")
+        print("[Profile] Display: HDR=\(caps.supportsHDR) DV=\(caps.supportsDolbyVision) HDR10=\(caps.supportsHDR10) HLG=\(caps.supportsHLG) → using \(useHDR ? "HDR" : "SDR") profile")
         #endif
         return useHDR ? permissiveHDRProfile() : conservativeSDRProfile()
     }
