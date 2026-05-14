@@ -3,6 +3,7 @@ import Combine
 import Observation
 import AetherEngine
 import AVKit
+import MediaPlayer
 import os
 
 /// ViewModel that bridges AetherEngine with Jellyfin session reporting
@@ -175,6 +176,11 @@ final class PlayerViewModel {
     var playSessionID: String?
     var activePlayMethod: PlayMethod = .directPlay
     var subtitleStreams: [MediaStream] = []
+
+    /// Active `MPNowPlayingSession` for the current playback. Owns the
+    /// system Now Playing surface for the AVPlayer behind AetherEngine.
+    /// Retained for the session's lifetime; cleared in `stopPlayback`.
+    var nowPlayingSession: MPNowPlayingSession?
 
     init(
         item: JellyfinItem,
