@@ -142,6 +142,15 @@ final class PlayerHostController: AVPlayerViewController {
             }
         }
 
+        // Skip-Intro action surfaced through AVKit's `contextualActions`.
+        // The button shows in Apple's player chrome at the bottom of
+        // the screen while the user is inside the intro range and
+        // disappears once playback crosses introEnd (either via the
+        // tap or via natural advance).
+        viewModel.onIntroStateChanged = { [weak self] inside in
+            self?.updateSkipIntroAction(visible: inside)
+        }
+
         // SwiftUI overlays for the bits AVKit doesn't cover: subtitle
         // rendering for sidecar SRT, the next-episode countdown, the
         // diagnostic log overlay (DEBUG / TestFlight), and the error
@@ -235,6 +244,24 @@ final class PlayerHostController: AVPlayerViewController {
         // through viewWillDisappear instead.
         onDismiss()
     }
+
+    /// Add or remove the "Skip Intro" entry in
+    /// `AVPlayerViewController.contextualActions`. AVKit renders it as
+    /// a native focusable button inside its chrome.
+    private func updateSkipIntroAction(visible: Bool) {
+        guard visible else {
+            contextualActions = []
+            return
+        }
+        let title = String(localized: "player.skipIntro", defaultValue: "Skip Intro")
+        let action = UIAction(
+            title: title,
+            image: UIImage(systemName: "forward.end.fill")
+        ) { [weak self] _ in
+            self?.viewModel.skipIntro()
+        }
+        contextualActions = [action]
+    }
 }
 
 // MARK: - Overlay View (display-only SwiftUI)
@@ -315,15 +342,9 @@ private struct PlayerOverlayView: View {
                 DiagnosticLogOverlay()
             }
 
-            // Floating Skip Intro hint, only while the full controls
-            // are hidden. When they open, the skip action becomes a
-            // proper focusable button inside TransportBar instead.
-            if viewModel.isInsideIntro
-                && !viewModel.showControls
-                && viewModel.errorMessage == nil
-                && !viewModel.showNextEpisodeOverlay {
-                introSkipOverlay
-            }
+            // Skip Intro now lives in AVKit's `contextualActions`;
+            // PlayerHostController.updateSkipIntroAction adds the
+            // button to the player chrome when isInsideIntro flips.
 
             // Next episode overlay
             if viewModel.showNextEpisodeOverlay,

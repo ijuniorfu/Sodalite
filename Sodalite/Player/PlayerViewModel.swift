@@ -133,6 +133,12 @@ final class PlayerViewModel {
     /// hand the player to its AVPlayerViewController so AVKit can take
     /// over the chrome + Now Playing integration.
     var onAVPlayerReady: ((AVPlayer) -> Void)?
+
+    /// Fires whenever `isInsideIntro` flips. The host hooks this to
+    /// add / remove the "Skip Intro" entry in
+    /// `AVPlayerViewController.contextualActions`, the documented
+    /// tvOS surface for time-bound playback actions.
+    var onIntroStateChanged: ((Bool) -> Void)?
     var isCountdownActive = false
     var nextEpisodeTimer: Task<Void, Never>?
     var hasFetchedNextEpisode = false
@@ -888,12 +894,14 @@ final class PlayerViewModel {
     /// if it just disappeared, otherwise the user would be stuck on a
     /// button that's no longer in the row.
     private func setInsideIntro(_ newValue: Bool) {
+        let changed = isInsideIntro != newValue
         isInsideIntro = newValue
         if !newValue && controlsFocus == .skipIntroButton {
             if !player.audioTracks.isEmpty { controlsFocus = .audioButton }
             else if !subtitleStreams.isEmpty { controlsFocus = .subtitleButton }
             else { controlsFocus = .speedButton }
         }
+        if changed { onIntroStateChanged?(newValue) }
     }
 
     /// Jump past the intro. Triggered by the Skip Intro button.
