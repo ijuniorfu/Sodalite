@@ -102,8 +102,15 @@ final class PlayerHostController: AVPlayerViewController {
 
     /// Child host for the SwiftUI overlays we still own (next-episode
     /// countdown, sidecar SRT subtitle layer, diagnostic log, error
-    /// banner). Mounted into `contentOverlayView`.
+    /// banner). Mounted into `contentOverlayView`, non-interactive.
     private var overlayHost: UIViewController?
+
+    /// Separate host for the interactive Skip Intro button. Sized to
+    /// just the button's intrinsic dimensions and pinned to the
+    /// bottom-right corner so it doesn't intercept Siri-Remote
+    /// touches outside the button bounds. AVKit's chrome and our
+    /// button coexist in the focus engine.
+    private var skipIntroHost: UIViewController?
 
     init(
         viewModel: PlayerViewModel,
@@ -142,14 +149,16 @@ final class PlayerHostController: AVPlayerViewController {
             }
         }
 
-        // Skip-Intro action surfaced through AVKit's `contextualActions`.
-        // The button shows in Apple's player chrome at the bottom of
-        // the screen while the user is inside the intro range and
-        // disappears once playback crosses introEnd (either via the
-        // tap or via natural advance).
+        // Skip-Intro button via a dedicated SwiftUI host that's sized
+        // to just the button bounds and stays visible regardless of
+        // whether AVKit's chrome is up. `contextualActions` was the
+        // alternative path but it (a) only shows when chrome is
+        // visible and (b) truncates long localized strings like the
+        // German "Intro überspringen".
         viewModel.onIntroStateChanged = { [weak self] inside in
-            self?.updateSkipIntroAction(visible: inside)
+            self?.skipIntroHost?.view.isHidden = !inside
         }
+        mountSkipIntroButton()
 
         // SwiftUI overlays for the bits AVKit doesn't cover: subtitle
         // rendering for sidecar SRT, the next-episode countdown, the
@@ -245,22 +254,63 @@ final class PlayerHostController: AVPlayerViewController {
         onDismiss()
     }
 
-    /// Add or remove the "Skip Intro" entry in
-    /// `AVPlayerViewController.contextualActions`. AVKit renders it as
-    /// a native focusable button inside its chrome.
-    private func updateSkipIntroAction(visible: Bool) {
-        guard visible else {
-            contextualActions = []
-            return
+    /// Mount the interactive Skip Intro button as its own
+    /// `UIHostingController`. Sized to its intrinsic content
+    /// (avoiding a full-screen interactive overlay that would swallow
+    /// Siri-Remote gestures intended for AVKit) and pinned bottom-right.
+    /// Visibility is toggled by `viewModel.onIntroStateChanged` flipping
+    /// the host view's `isHidden` flag.
+    private func mountSkipIntroButton() {
+        let buttonView = SkipIntroButton {
+            [weak self] in self?.viewModel.skipIntro()
         }
-        let title = String(localized: "player.skipIntro", defaultValue: "Skip Intro")
-        let action = UIAction(
-            title: title,
-            image: UIImage(systemName: "forward.end.fill")
-        ) { [weak self] _ in
-            self?.viewModel.skipIntro()
+        let host = UIHostingController(rootView: buttonView)
+        host.view.backgroundColor = .clear
+        host.view.isUserInteractionEnabled = true
+        host.view.isHidden = true   // starts hidden until intro range
+        addChild(host)
+        let parent = contentOverlayView ?? view!
+        parent.addSubview(host.view)
+        host.view.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            host.view.trailingAnchor.constraint(equalTo: parent.trailingAnchor, constant: -80),
+            host.view.bottomAnchor.constraint(equalTo: parent.bottomAnchor, constant: -80),
+        ])
+        host.didMove(toParent: self)
+        skipIntroHost = host
+    }
+}
+
+/// Skip Intro overlay button. Uses SwiftUI's native focus system so
+/// it integrates with tvOS's focus engine — the Siri Remote will
+/// route to it the same way it routes to AVKit's chrome buttons.
+private struct SkipIntroButton: View {
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 10) {
+                Image(systemName: "forward.end.fill")
+                    .font(.body)
+                Text("player.skipIntro", bundle: .main)
+                    .font(.body)
+                    .fontWeight(.semibold)
+            }
+            .foregroundStyle(.white)
+            .padding(.horizontal, 28)
+            .padding(.vertical, 14)
+            .background(
+                Capsule()
+                    .fill(.ultraThinMaterial)
+                    .environment(\.colorScheme, .dark)
+            )
+            .overlay(
+                Capsule()
+                    .strokeBorder(.white.opacity(0.35), lineWidth: 1)
+            )
+            .shadow(color: .black.opacity(0.45), radius: 14, y: 6)
         }
-        contextualActions = [action]
+        .buttonStyle(.plain)
     }
 }
 
