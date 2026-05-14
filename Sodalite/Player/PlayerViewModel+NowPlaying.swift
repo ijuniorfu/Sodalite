@@ -1,75 +1,75 @@
 import Foundation
 import AVFoundation
-import Combine
 import MediaPlayer
 import UIKit
 import AetherEngine
 
-/// System Now-Playing integration matching Apple's "Becoming a Now
-/// Playable App" sample code (the official reference for non-AVKit
-/// custom players on tvOS).
+/// System Now-Playing integration via `MPNowPlayingSession`'s
+/// automatic-publishing path, the documented tvOS 14+ flow for non-AVKit
+/// custom players. The session reads metadata directly off the
+/// `AVPlayerItem.externalMetadata` and reads runtime state off the
+/// `AVPlayer` it was constructed with; the host never touches
+/// `MPNowPlayingInfoCenter.nowPlayingInfo`. That direct path was the
+/// crash surface in the earlier iterations — every manual write into
+/// `nowPlayingInfo` while AVPlayer was in its initial seek / buffer
+/// churn tripped `_dispatch_assert_queue_fail` somewhere inside
+/// MediaPlayer's deferred dispatch chain, regardless of whether the
+/// call went through `MainActor.run` or `DispatchQueue.main.async`.
 ///
-/// Two non-obvious points that took several iterations to land on:
-///
-/// 1. Every write to `MPNowPlayingInfoCenter.default().nowPlayingInfo`
-///    goes through `DispatchQueue.main.async`, never through
-///    `await MainActor.run`. MediaPlayer's internal code asserts the
-///    setter is invoked from `dispatch_get_main_queue()`. Swift
-///    Concurrency's MainActor executor runs on the main thread but
-///    has a different libdispatch identity, so callers nested inside
-///    `Task { @MainActor in ... }` or `MainActor.run` trip
-///    `_dispatch_assert_queue_fail` inside MediaPlayer's deferred
-///    barrier_async chain ~10-15 s into playback.
-///
-/// 2. Dynamic state (rate, elapsed, duration) is refreshed via a
-///    KVO observation on `AVPlayer.rate`, exactly like Apple's
-///    `AssetPlayer.swift`. Combine's `publisher(for:options:)` is
-///    a thin wrapper over `addObserver(forKeyPath:)`, so this matches
-///    Apple's sample without breaking the Combine-based shape of the
-///    rest of PlayerViewModel.
+/// Critical timing: `externalMetadata` is staged into the engine
+/// BEFORE `engine.load`, from `stageInitialNowPlayingMetadata`. The
+/// engine applies it to the AVPlayerItem before AVPlayer.replaceCurrentItem,
+/// so the asset-metadata-read window catches it on the first try.
+/// Setting `externalMetadata` after the asset is already loaded races
+/// AVPlayer's track-load and the system caches empty metadata.
 extension PlayerViewModel {
 
-    // MARK: - Configure
+    // MARK: - Stage / configure / teardown
+
+    /// Build static externalMetadata items (title, description) and
+    /// hand them to the engine BEFORE `engine.load`. Called from
+    /// `startPlayback` so the engine's load() can apply them to the
+    /// AVPlayerItem prior to `replaceCurrentItem`.
+    func stageInitialNowPlayingMetadata() {
+        let items = buildExternalMetadataItems(image: nil)
+        player.setExternalMetadata(items)
+    }
 
     func configureNowPlaying() {
         guard let avPlayer = player.currentAVPlayer else { return }
 
-        // Re-activate the audio session at the start of each playback
-        // session. Apple's NowPlayable sample does this in
-        // handleNowPlayableSessionStart(); MediaPlayer uses the session
-        // activation event to identify which AVPlayer is the active
-        // Now Playing source. Activating once at engine init and never
-        // again may leave MediaPlayer's state machine stale across
-        // playbacks.
+        // Re-activate the audio session so MediaPlayer's now-playing
+        // state machine treats this as a fresh playback session,
+        // matching Apple's "Becoming a Now Playable App" sample.
         do {
             try AVAudioSession.sharedInstance().setActive(true)
         } catch {
             LogTap.shared.note("[NowPlaying] AVAudioSession.setActive failed: \(error.localizedDescription)")
         }
 
-        bindRemoteCommands()
-        publishStaticMetadata(image: nil)
+        let session = MPNowPlayingSession(players: [avPlayer])
+        session.automaticallyPublishesNowPlayingInfo = true
+        nowPlayingSession = session
+        session.becomeActiveIfPossible { _ in /* result not actionable */ }
 
-        // KVO-on-rate via Combine. Re-publishes dynamic info on every
-        // rate change (play / pause / seek / buffer-resolve).
-        avPlayer.publisher(for: \.rate, options: [.initial])
-            .sink { [weak self] _ in
-                self?.publishDynamicMetadata()
-            }
-            .store(in: &cancellables)
+        bindRemoteCommands(session: session)
 
-        Task { [weak self] in await self?.fetchAndApplyArtwork() }
+        // Fetch artwork off-main, then re-stage externalMetadata with
+        // the cover added. The engine writes to the live AVPlayerItem;
+        // MPNowPlayingSession reads the updated externalMetadata
+        // automatically.
+        Task { [weak self] in await self?.refreshExternalMetadataWithArtwork() }
     }
 
-    /// Kept for the `PlayerViewModel.startObserving` state observer.
-    /// The KVO-on-rate path in `configureNowPlaying` already handles
-    /// state changes, so this is a no-op.
     func refreshNowPlayingProgress() {
-        // Intentionally empty. KVO drives updates.
+        // No-op. Auto-publish handles state tracking.
     }
 
     func teardownNowPlaying() {
-        let center = MPRemoteCommandCenter.shared()
+        let session = nowPlayingSession
+        nowPlayingSession = nil
+
+        let center = session?.remoteCommandCenter ?? MPRemoteCommandCenter.shared()
         center.playCommand.removeTarget(nil)
         center.pauseCommand.removeTarget(nil)
         center.togglePlayPauseCommand.removeTarget(nil)
@@ -77,101 +77,75 @@ extension PlayerViewModel {
         center.pauseCommand.isEnabled = false
         center.togglePlayPauseCommand.isEnabled = false
 
-        DispatchQueue.main.async {
-            MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
-        }
+        // Clear externalMetadata on the engine so a future session
+        // doesn't replay stale items.
+        player.setExternalMetadata([])
     }
 
-    // MARK: - Writes (all through DispatchQueue.main.async)
+    // MARK: - External metadata build
 
-    /// Replace title / artist / album / artwork. Preserves dynamic
-    /// fields read off the current dict so the dynamic publisher isn't
-    /// clobbered when artwork lands.
-    private func publishStaticMetadata(image: UIImage?) {
-        let title = item.name
-        let subtitle = displaySubtitle
-        let album = displayAlbum
-        let artwork = image.map { img in
-            MPMediaItemArtwork(boundsSize: img.size) { _ in img }
+    private func buildExternalMetadataItems(image: UIImage?) -> [AVMetadataItem] {
+        var items: [AVMetadataItem] = []
+        items.append(makeStringItem(.commonIdentifierTitle, item.name))
+        if let descriptionLine = displayDescriptionLine {
+            items.append(makeStringItem(.commonIdentifierDescription, descriptionLine))
         }
-        DispatchQueue.main.async {
-            let existing = MPNowPlayingInfoCenter.default().nowPlayingInfo ?? [:]
-            var info: [String: Any] = [:]
-            info[MPNowPlayingInfoPropertyMediaType] = MPNowPlayingInfoMediaType.video.rawValue
-            info[MPNowPlayingInfoPropertyIsLiveStream] = false
-            info[MPMediaItemPropertyTitle] = title
-            info[MPMediaItemPropertyArtist] = subtitle
-            info[MPMediaItemPropertyAlbumTitle] = album
-            info[MPMediaItemPropertyArtwork] = artwork
-            // Preserve dynamic keys.
-            for key in [
-                MPMediaItemPropertyPlaybackDuration,
-                MPNowPlayingInfoPropertyElapsedPlaybackTime,
-                MPNowPlayingInfoPropertyPlaybackRate,
-                MPNowPlayingInfoPropertyDefaultPlaybackRate,
-            ] where existing[key] != nil {
-                info[key] = existing[key]
+        if let image, let data = image.jpegData(compressionQuality: 0.85) {
+            items.append(makeArtworkItem(data: data))
+        }
+        return items
+    }
+
+    /// One-line context shown alongside the title. For episodes:
+    /// "SeriesName • Season 1 • Episode 3". For movies with a year:
+    /// "(2024)". Empty when neither applies.
+    private var displayDescriptionLine: String? {
+        if item.type == .episode {
+            var parts: [String] = []
+            if let series = item.seriesName, !series.isEmpty {
+                parts.append(series)
             }
-            MPNowPlayingInfoCenter.default().nowPlayingInfo = info
-        }
-    }
-
-    /// Patch the dynamic block (duration, elapsed, rate). Read-modify-write
-    /// so static fields aren't touched. Always reads fresh values off
-    /// AVPlayer rather than from PlayerViewModel state to match Apple's
-    /// sample exactly.
-    private func publishDynamicMetadata() {
-        guard let avPlayer = player.currentAVPlayer else { return }
-        let rate = avPlayer.rate
-        let position: Float = {
-            guard let item = avPlayer.currentItem else { return 0 }
-            let s = item.currentTime().seconds
-            return s.isFinite ? Float(s) : 0
-        }()
-        let duration: Float = {
-            guard let item = avPlayer.currentItem else { return 0 }
-            let s = item.duration.seconds
-            return s.isFinite ? Float(s) : 0
-        }()
-        DispatchQueue.main.async {
-            var info = MPNowPlayingInfoCenter.default().nowPlayingInfo ?? [:]
-            if duration > 0 {
-                info[MPMediaItemPropertyPlaybackDuration] = duration
+            if let season = item.parentIndexNumber {
+                parts.append("Season \(season)")
             }
-            info[MPNowPlayingInfoPropertyElapsedPlaybackTime] = position
-            info[MPNowPlayingInfoPropertyPlaybackRate] = rate
-            info[MPNowPlayingInfoPropertyDefaultPlaybackRate] = Float(1.0)
-            MPNowPlayingInfoCenter.default().nowPlayingInfo = info
-        }
-    }
-
-    // MARK: - Display strings
-
-    private var displaySubtitle: String? {
-        if item.type == .episode, let series = item.seriesName, !series.isEmpty {
-            return series
+            if let ep = item.indexNumber {
+                parts.append("Episode \(ep)")
+            }
+            return parts.isEmpty ? nil : parts.joined(separator: " • ")
         }
         if let year = item.productionYear {
-            return String(year)
+            return "(\(year))"
         }
         return nil
     }
 
-    private var displayAlbum: String? {
-        guard item.type == .episode else { return nil }
-        var parts: [String] = []
-        if let season = item.parentIndexNumber {
-            parts.append("Season \(season)")
-        }
-        if let ep = item.indexNumber {
-            parts.append("Episode \(ep)")
-        }
-        return parts.isEmpty ? nil : parts.joined(separator: " • ")
+    private func makeStringItem(_ identifier: AVMetadataIdentifier, _ value: String) -> AVMetadataItem {
+        let m = AVMutableMetadataItem()
+        m.identifier = identifier
+        m.value = value as NSString
+        m.extendedLanguageTag = "und"
+        return m
+    }
+
+    /// Artwork as JPEG bytes. We re-encode to JPEG ourselves
+    /// (via `UIImage.jpegData`) so the dataType hint is always
+    /// correct regardless of what Jellyfin originally served.
+    /// Feeding AVKit a wrong dataType (PNG hint on JPEG bytes)
+    /// was the original swipe-down crash trigger.
+    private func makeArtworkItem(data: Data) -> AVMetadataItem {
+        let m = AVMutableMetadataItem()
+        m.identifier = .commonIdentifierArtwork
+        m.value = data as NSData
+        m.dataType = kCMMetadataBaseDataType_JPEG as String
+        m.extendedLanguageTag = "und"
+        return m
     }
 
     // MARK: - Artwork fetch
 
-    private func fetchAndApplyArtwork() async {
+    /// Off-main fetch, then re-stage externalMetadata with the image.
+    /// Falls through silently on failure; the card stays text-only.
+    private func refreshExternalMetadataWithArtwork() async {
         guard let url = primaryImageURL() else {
             LogTap.shared.note("[NowPlaying] artwork: no URL for item id=\(item.id) type=\(item.type)")
             return
@@ -186,15 +160,9 @@ extension PlayerViewModel {
                 LogTap.shared.note("[NowPlaying] artwork: UIImage decode failed")
                 return
             }
-            // Hop through DispatchQueue.main.async (not MainActor.run)
-            // so the resulting MPNowPlayingInfoCenter write lands on
-            // the libdispatch main queue, matching MediaPlayer's
-            // internal queue assertions.
-            await withCheckedContinuation { continuation in
-                DispatchQueue.main.async { [weak self] in
-                    self?.publishStaticMetadata(image: image)
-                    continuation.resume()
-                }
+            await MainActor.run {
+                let items = self.buildExternalMetadataItems(image: image)
+                self.player.setExternalMetadata(items)
             }
         } catch {
             LogTap.shared.note("[NowPlaying] artwork: fetch failed: \(error.localizedDescription)")
@@ -217,8 +185,8 @@ extension PlayerViewModel {
 
     // MARK: - Remote commands
 
-    private func bindRemoteCommands() {
-        let center = MPRemoteCommandCenter.shared()
+    private func bindRemoteCommands(session: MPNowPlayingSession) {
+        let center = session.remoteCommandCenter
 
         center.playCommand.removeTarget(nil)
         center.playCommand.isEnabled = true
