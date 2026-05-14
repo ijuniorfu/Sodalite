@@ -36,7 +36,20 @@ extension PlayerViewModel {
         if duration > 0 {
             info[MPMediaItemPropertyPlaybackDuration] = duration
         }
-        info[MPNowPlayingInfoPropertyElapsedPlaybackTime] = playbackTime
+        // configureNowPlaying runs the moment engine.load returns, before
+        // AVPlayer's seek-to-resume has propagated into `playbackTime`.
+        // Reading playbackTime here would publish elapsed=0 and the OS
+        // would extrapolate the widget timer from there, showing 0:00,
+        // 0:01, ... while playback is actually at e.g. 18:00. The resume
+        // position we asked the engine to seek to is the right initial
+        // value; the one-shot .playing refresh below corrects any
+        // residual offset once AVPlayer is actually at the seeked PTS.
+        let initialElapsed: Double = {
+            if playbackTime > 0 { return playbackTime }
+            if resumePositionTicks > 0 { return resumePositionTicks.ticksToSeconds }
+            return 0
+        }()
+        info[MPNowPlayingInfoPropertyElapsedPlaybackTime] = initialElapsed
         info[MPNowPlayingInfoPropertyPlaybackRate] = isPlaying ? 1.0 : 0.0
         info[MPNowPlayingInfoPropertyMediaType] = MPNowPlayingInfoMediaType.video.rawValue
 
@@ -47,11 +60,27 @@ extension PlayerViewModel {
         Task { [weak self] in await self?.loadAndAttachArtwork() }
     }
 
-    /// No-op for now. Kept as the entry point the state observer calls
-    /// so a later commit can wire periodic / event-driven refresh back
-    /// in without touching PlayerViewModel.swift again.
+    /// Update elapsed-time and rate fields. Intended for ONE-SHOT use
+    /// (e.g. the first .playing state transition after load, so the
+    /// widget catches up with AVPlayer's actual seek target); per-tick
+    /// or per-buffering-bounce calls correlated with the earlier tvOS 26
+    /// libdispatch assertion, so resist the urge to wire this into a
+    /// recurring Combine sink. The OS extrapolates elapsed time from
+    /// the last published value + rate; one accurate publish after
+    /// playback latches at the right PTS is enough.
     func refreshNowPlayingProgress() {
-        // Intentionally empty during the tvOS 26 crash bisect.
+        let elapsed = playbackTime
+        let rate = isPlaying ? 1.0 : 0.0
+        let duration = effectiveDuration
+        DispatchQueue.main.async {
+            var info = MPNowPlayingInfoCenter.default().nowPlayingInfo ?? [:]
+            info[MPNowPlayingInfoPropertyElapsedPlaybackTime] = elapsed
+            info[MPNowPlayingInfoPropertyPlaybackRate] = rate
+            if duration > 0 {
+                info[MPMediaItemPropertyPlaybackDuration] = duration
+            }
+            MPNowPlayingInfoCenter.default().nowPlayingInfo = info
+        }
     }
 
     func teardownNowPlaying() {
