@@ -426,19 +426,10 @@ final class PlayerViewModel {
                 guard let self else { return }
                 switch state {
                 case .playing:
-                    let firstPlay = !self.hasStartedPlaying
                     self.hasStartedPlaying = true
                     self.isLoading = false
                     self.isPlaying = true
                     if self.showControls { self.scheduleControlsHide() }
-                    // One-shot: AVPlayer has now seeked to the resume
-                    // position and is actually playing; publish the
-                    // real elapsed time so the Now Playing widget stops
-                    // extrapolating from the initial resume estimate.
-                    // Per-bounce refresh during buffering toggles is what
-                    // tripped the tvOS 26 libdispatch assertion; first-
-                    // play only stays well clear of that.
-                    if firstPlay { self.refreshNowPlayingProgress() }
                 case .paused:
                     self.isLoading = false
                     self.isPlaying = false
