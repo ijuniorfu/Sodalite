@@ -358,10 +358,6 @@ final class PlayerViewModel {
             isPlaying = true
 
             startObserving()
-            // configureNowPlaying() temporarily disabled while we narrow
-            // down a tvOS 26 crash on the first segment fetch (Thread 29
-            // EXC_BREAKPOINT). Re-enable once the offending wiring is
-            // isolated; see PlayerViewModel+NowPlaying.swift.
             await reportStart()
             startProgressReporting()
 
@@ -401,8 +397,6 @@ final class PlayerViewModel {
 
     func stopPlayback() async {
         stopProgressReporting()
-        // teardownNowPlaying() paired with configureNowPlaying(); both
-        // disabled during the tvOS 26 crash investigation.
         cancellables.removeAll()
         // Capture position synchronously, then stop the engine, then
         // report. The capture-then-stop order is critical: player.stop()
