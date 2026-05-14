@@ -24,7 +24,6 @@ struct PlaybackMediaSource: Codable, Sendable, Identifiable {
     let supportsTranscoding: Bool?
     let transcodingUrl: String?
     let mediaStreams: [MediaStream]?
-    let eTag: String?
 
     enum CodingKeys: String, CodingKey {
         case id = "Id"
@@ -38,7 +37,6 @@ struct PlaybackMediaSource: Codable, Sendable, Identifiable {
         case supportsTranscoding = "SupportsTranscoding"
         case transcodingUrl = "TranscodingUrl"
         case mediaStreams = "MediaStreams"
-        case eTag = "ETag"
     }
 }
 

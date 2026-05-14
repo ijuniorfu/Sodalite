@@ -251,16 +251,11 @@ struct MediaStream: Codable, Sendable, Equatable, Identifiable {
     let isExternal: Bool?
     let height: Int?
     let width: Int?
-    let bitRate: Int?
     let channels: Int?
-    let sampleRate: Int?
     let videoRange: String?
-    let videoRangeType: String?
     let averageFrameRate: Double?
     let realFrameRate: Double?
     let profile: String?
-    let level: Double?
-    let pixelFormat: String?
 
     var id: Int { index }
 
@@ -276,16 +271,11 @@ struct MediaStream: Codable, Sendable, Equatable, Identifiable {
         case isExternal = "IsExternal"
         case height = "Height"
         case width = "Width"
-        case bitRate = "BitRate"
         case channels = "Channels"
-        case sampleRate = "SampleRate"
         case videoRange = "VideoRange"
-        case videoRangeType = "VideoRangeType"
         case averageFrameRate = "AverageFrameRate"
         case realFrameRate = "RealFrameRate"
         case profile = "Profile"
-        case level = "Level"
-        case pixelFormat = "PixelFormat"
     }
 }
 

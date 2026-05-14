@@ -3,8 +3,8 @@ import CoreGraphics
 import Observation
 
 /// Device-local playback preferences. Backed by `UserDefaults` so they
-/// survive app restarts; not synced via CloudSyncService because most of
-/// these are user-interaction tuning, not content choices.
+/// survive app restarts; intentionally device-local because these are
+/// user-interaction tuning, not content choices.
 ///
 /// Read/write from anywhere through `DependencyContainer.playbackPreferences`.
 /// The class is `@Observable`, so SwiftUI views update automatically when a

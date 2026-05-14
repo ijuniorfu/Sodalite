@@ -15,7 +15,6 @@ final class DependencyContainer {
     let jellyfinSearchService: JellyfinSearchServiceProtocol
     let jellyfinImageService: JellyfinImageService
     let jellyfinPlaybackService: JellyfinPlaybackServiceProtocol
-    let cloudSyncService: CloudSyncServiceProtocol
     let playbackPreferences: PlaybackPreferences
     let storeKitService: StoreKitServiceProtocol
     let appearancePreferences: AppearancePreferences
@@ -58,7 +57,6 @@ final class DependencyContainer {
             }
         )
         self.jellyfinPlaybackService = JellyfinPlaybackService(client: jellyfinClient)
-        self.cloudSyncService = CloudSyncService()
         self.playbackPreferences = PlaybackPreferences()
         self.storeKitService = StoreKitService()
         self.appearancePreferences = AppearancePreferences()
