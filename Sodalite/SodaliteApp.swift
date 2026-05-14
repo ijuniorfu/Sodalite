@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 import AetherEngine
 
 @main
@@ -43,10 +44,47 @@ struct SodaliteApp: App {
     /// Stash the id in AppState; AppRouter watches that field, fetches
     /// the full item, and presents the detail sheet once the session
     /// has finished restoring on cold launches.
+    ///
+    /// Synchronously tears down any active player modal before the
+    /// AppRouter task runs. Without this, a TopShelf tap that wakes
+    /// the app from a paused player loses ~10s to the player's own
+    /// `appDidBecomeActive` reload pipeline before AppRouter's
+    /// `.task(id:)` gets cycled in, and the user stares at the stale
+    /// session restarting before anything happens.
     private func handleDeepLink(_ url: URL) {
         guard url.scheme == "sodalite", url.host == "item" else { return }
         let id = url.pathComponents.dropFirst().first ?? ""
         guard !id.isEmpty else { return }
+        dismissActivePlayerModal()
+        appState.requestPlayerDismissal &+= 1
         appState.pendingDeepLinkItemID = id
+    }
+
+    /// Walk the active scene's window-level modal chain and dismiss
+    /// the `PlayerHostController` if one is presented. Called
+    /// synchronously from the URL handler so the teardown happens
+    /// before the engine reload kicks in.
+    private func dismissActivePlayerModal() {
+        guard let scene = UIApplication.shared.connectedScenes
+            .compactMap({ $0 as? UIWindowScene })
+            .first(where: { $0.activationState != .background }),
+              let window = scene.windows.first(where: { $0.isKeyWindow })
+                ?? scene.windows.first
+        else {
+            EngineLog.emit("[SodaliteApp] deep-link dismiss: no key window")
+            return
+        }
+
+        var presenter: UIViewController? = window.rootViewController
+        while let current = presenter {
+            guard let presented = current.presentedViewController else { break }
+            if presented is PlayerHostController {
+                EngineLog.emit("[SodaliteApp] deep-link dismiss: tearing down active player modal")
+                current.dismiss(animated: false)
+                return
+            }
+            presenter = presented
+        }
+        EngineLog.emit("[SodaliteApp] deep-link dismiss: no player in modal chain")
     }
 }
