@@ -1,27 +1,40 @@
 import Foundation
-import AVFoundation
 import MediaPlayer
 import UIKit
 import AetherEngine
 
-/// System Now-Playing integration following Apple's WWDC22 guidance
-/// ("Explore media metadata publishing and playback interactions"):
+/// System Now-Playing integration for Sodalite's custom player path
+/// (AetherEngine -> AVPlayer -> AVPlayerLayer; not AVPlayerViewController).
 ///
-/// 1. Hand the engine's `AVPlayer` instance to `MPNowPlayingSession`.
-/// 2. Enable `automaticallyPublishesNowPlayingInfo`. The session then
-///    tracks elapsed time, rate, and play / pause state directly off
-///    the AVPlayer and publishes them into the system Now Playing
-///    surface (Apple TV Control Center, nearby iPhone Lock-Screen
-///    widget, HomePod display, Siri voice control).
-/// 3. Publish *static* metadata (title, artwork) through
-///    `AVPlayerItem.externalMetadata` — NOT through
-///    `MPNowPlayingInfoCenter.nowPlayingInfo`. Mixing those two paths
-///    on tvOS 26 caused `_dispatch_assert_queue_fail` inside MediaPlayer
-///    every time we tried a second write to nowPlayingInfo.
+/// Architecture, after a multi-round bisect on tvOS 26:
 ///
-/// Static metadata is set exactly once per session, after the artwork
-/// fetch returns (or fails). One single point where the AVPlayerItem
-/// learns about title + cover.
+/// 1. `MPNowPlayingSession` wraps the engine's `AVPlayer` instance and
+///    is set to `automaticallyPublishesNowPlayingInfo = true`. The
+///    session keeps elapsed time, rate, and play / pause state in sync
+///    with the system Now Playing surface; we never write those fields
+///    ourselves. Verified: the iPhone Control Center widget shows live
+///    progress without any per-tick `MPNowPlayingInfoCenter` writes
+///    from us.
+///
+/// 2. Static metadata (title, artist, album, artwork) is written to
+///    `MPNowPlayingInfoCenter.default().nowPlayingInfo` exactly *once*
+///    per session, after the artwork fetch resolves. Auto-publish
+///    keeps the dynamic keys current via partial updates; our static
+///    keys live alongside them undisturbed.
+///
+/// 3. Multiple writes to `nowPlayingInfo` while the session is active
+///    reproducibly tripped `_dispatch_assert_queue_fail` inside
+///    MediaPlayer on tvOS 26 (Thread N EXC_BREAKPOINT in
+///    `-[MPNowPlayingInfoCenter ...]`). The single-write rule is the
+///    one invariant we hold tight on; refresh-on-state-change and
+///    delayed-artwork-attach are both banned for that reason.
+///
+/// 4. `AVPlayerItem.externalMetadata` is intentionally untouched.
+///    That surface drives the AVPlayerViewController-style in-player
+///    swipe-down info panel, which Sodalite doesn't use; and on the
+///    iPhone Control Center / Lock Screen widget side, the iPhone
+///    reads from MPNowPlayingInfoCenter directly, not from
+///    externalMetadata published by the tvOS app.
 extension PlayerViewModel {
 
     func configureNowPlaying() {
@@ -34,14 +47,16 @@ extension PlayerViewModel {
 
         bindRemoteCommands(session: session)
 
-        // Static metadata: fetch artwork in the background, then publish
-        // a single externalMetadata array containing whatever we have.
-        // No MPNowPlayingInfoCenter writes anywhere in this file.
-        Task { [weak self] in await self?.publishExternalMetadata() }
+        // Single static-metadata write per session. Artwork fetch lands
+        // first, then everything goes in one dict assignment.
+        Task { [weak self] in await self?.publishStaticInfo() }
     }
 
+    /// No-op. Auto-publish via `MPNowPlayingSession` keeps elapsed /
+    /// rate / state current; per-event `nowPlayingInfo` writes from us
+    /// re-enter MediaPlayer's internal serial queue and crash.
     func refreshNowPlayingProgress() {
-        // Intentionally empty. Auto-publish handles elapsed / rate.
+        // Intentionally empty.
     }
 
     func teardownNowPlaying() {
@@ -56,91 +71,105 @@ extension PlayerViewModel {
         center.pauseCommand.isEnabled = false
         center.togglePlayPauseCommand.isEnabled = false
 
-        player.setExternalMetadata([])
+        MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
     }
 
-    // MARK: - External metadata (single-write per session)
+    // MARK: - Single static-metadata write
 
-    private func publishExternalMetadata() async {
+    private func publishStaticInfo() async {
         let title = item.name
-        let subtitleLine = displaySubtitleLine
-        let artworkData = await fetchArtworkData()
+        let subtitle = displaySubtitle
+        let album = displayAlbum
+        let artwork = await fetchArtwork()
 
-        var items: [AVMetadataItem] = []
-        items.append(makeStringItem(.commonIdentifierTitle, title))
-        if let subtitle = subtitleLine {
-            // Use commonIdentifierDescription for the contextual line
-            // ("SeriesName • Season 1 • Episode 3" for episodes, year
-            // alone for movies). It's the safest string slot to fill.
-            items.append(makeStringItem(.commonIdentifierDescription, subtitle))
-        }
-        if let data = artworkData {
-            items.append(makeArtworkItem(data: data))
-        }
+        var info: [String: Any] = [:]
+        info[MPMediaItemPropertyTitle] = title
+        if let subtitle { info[MPMediaItemPropertyArtist] = subtitle }
+        if let album { info[MPMediaItemPropertyAlbumTitle] = album }
+        info[MPNowPlayingInfoPropertyMediaType] = MPNowPlayingInfoMediaType.video.rawValue
+        if let artwork { info[MPMediaItemPropertyArtwork] = artwork }
 
-        await MainActor.run { player.setExternalMetadata(items) }
+        await MainActor.run {
+            MPNowPlayingInfoCenter.default().nowPlayingInfo = info
+        }
     }
 
-    private func makeStringItem(_ identifier: AVMetadataIdentifier, _ value: String) -> AVMetadataItem {
-        let m = AVMutableMetadataItem()
-        m.identifier = identifier
-        m.value = value as NSString
-        m.extendedLanguageTag = "und"
-        return m
-    }
+    // MARK: - Display strings
 
-    /// Build the artwork metadata item. Detects JPEG vs PNG from the
-    /// magic bytes so the correct `dataType` hint can be set; AVKit
-    /// uses that hint to decode without sniffing the bytes itself,
-    /// and feeding it the wrong hint (PNG type on JPEG bytes) was the
-    /// crash trigger in the earlier in-player-overlay attempt.
-    private func makeArtworkItem(data: Data) -> AVMetadataItem {
-        let m = AVMutableMetadataItem()
-        m.identifier = .commonIdentifierArtwork
-        m.value = data as NSData
-        m.extendedLanguageTag = "und"
-        if data.count >= 4 {
-            let header = data.prefix(4)
-            if header.starts(with: [0x89, 0x50, 0x4E, 0x47]) {
-                m.dataType = kCMMetadataBaseDataType_PNG as String
-            } else if header.starts(with: [0xFF, 0xD8, 0xFF]) {
-                m.dataType = kCMMetadataBaseDataType_JPEG as String
-            }
-            // Otherwise leave dataType unset so AVKit probes the bytes.
-        }
-        return m
-    }
-
-    /// One-line context shown below the title. Series + "Season X •
-    /// Episode Y" for episodes, year for movies, nil for everything else.
-    private var displaySubtitleLine: String? {
-        if item.type == .episode {
-            var parts: [String] = []
-            if let series = item.seriesName, !series.isEmpty {
-                parts.append(series)
-            }
-            if let season = item.parentIndexNumber {
-                parts.append("Season \(season)")
-            }
-            if let ep = item.indexNumber {
-                parts.append("Episode \(ep)")
-            }
-            return parts.isEmpty ? nil : parts.joined(separator: " • ")
+    private var displaySubtitle: String? {
+        if item.type == .episode, let series = item.seriesName, !series.isEmpty {
+            return series
         }
         if let year = item.productionYear {
-            return "(\(year))"
+            return String(year)
+        }
+        return nil
+    }
+
+    private var displayAlbum: String? {
+        guard item.type == .episode else { return nil }
+        var parts: [String] = []
+        if let season = item.parentIndexNumber {
+            parts.append("Season \(season)")
+        }
+        if let ep = item.indexNumber {
+            parts.append("Episode \(ep)")
+        }
+        return parts.isEmpty ? nil : parts.joined(separator: " • ")
+    }
+
+    // MARK: - Artwork
+
+    /// Fetch the item's primary image, wrap in an `MPMediaItemArtwork`.
+    /// Pre-extracts the `CGImage` so the request handler never reads a
+    /// `UIImage` object across threads (CGImage is immutable and safe
+    /// to share). LogTap notes record the outcome for debugging.
+    private func fetchArtwork() async -> MPMediaItemArtwork? {
+        guard let url = primaryImageURL() else {
+            LogTap.shared.note("[NowPlaying] artwork: no URL for item id=\(item.id) type=\(item.type)")
+            return nil
+        }
+        LogTap.shared.note("[NowPlaying] artwork: GET \(url.absoluteString)")
+        let request = URLRequest(url: url, timeoutInterval: 5.0)
+        do {
+            let (data, response) = try await URLSession.shared.data(for: request)
+            let status = (response as? HTTPURLResponse)?.statusCode ?? -1
+            LogTap.shared.note("[NowPlaying] artwork: status=\(status) bytes=\(data.count)")
+            guard let image = UIImage(data: data) else {
+                LogTap.shared.note("[NowPlaying] artwork: UIImage decode failed")
+                return nil
+            }
+            guard let cg = image.cgImage else {
+                LogTap.shared.note("[NowPlaying] artwork: no CGImage on decoded UIImage")
+                return nil
+            }
+            let size = image.size
+            let scale = image.scale
+            return MPMediaItemArtwork(boundsSize: size) { _ in
+                UIImage(cgImage: cg, scale: scale, orientation: .up)
+            }
+        } catch {
+            LogTap.shared.note("[NowPlaying] artwork: fetch failed: \(error.localizedDescription)")
+            return nil
+        }
+    }
+
+    private func primaryImageURL() -> URL? {
+        guard let base = playbackService.baseURL?.absoluteString else { return nil }
+        if let tag = item.imageTags?.primary {
+            return URL(string: "\(base)/Items/\(item.id)/Images/Primary?tag=\(tag)&maxWidth=800&quality=85")
+        }
+        if let tags = item.backdropImageTags, let tag = tags.first {
+            return URL(string: "\(base)/Items/\(item.id)/Images/Backdrop?tag=\(tag)&maxWidth=800&quality=85")
+        }
+        if let tags = item.parentBackdropImageTags, let tag = tags.first, let seriesId = item.seriesId {
+            return URL(string: "\(base)/Items/\(seriesId)/Images/Backdrop?tag=\(tag)&maxWidth=800&quality=85")
         }
         return nil
     }
 
     // MARK: - Remote commands
 
-    /// Auto-publish handles outbound state, but the inbound transport
-    /// commands users issue via HomePod / Siri / iPhone Remote still
-    /// need explicit handlers to route into the engine. Callbacks defer
-    /// the engine call to main via DispatchQueue.main.async; mixing
-    /// dispatch hops with actor hops inside MediaPlayer's XPC reply
-    /// chain correlated with the earlier libdispatch assertion.
     private func bindRemoteCommands(session: MPNowPlayingSession) {
         let center = session.remoteCommandCenter
 
@@ -172,39 +201,5 @@ extension PlayerViewModel {
             }
             return .success
         }
-    }
-
-    // MARK: - Artwork fetch
-
-    private func fetchArtworkData() async -> Data? {
-        guard let url = primaryImageURL() else {
-            LogTap.shared.note("[NowPlaying] artwork: no URL for item id=\(item.id) type=\(item.type)")
-            return nil
-        }
-        LogTap.shared.note("[NowPlaying] artwork: GET \(url.absoluteString)")
-        let request = URLRequest(url: url, timeoutInterval: 5.0)
-        do {
-            let (data, response) = try await URLSession.shared.data(for: request)
-            let status = (response as? HTTPURLResponse)?.statusCode ?? -1
-            LogTap.shared.note("[NowPlaying] artwork: status=\(status) bytes=\(data.count)")
-            return data
-        } catch {
-            LogTap.shared.note("[NowPlaying] artwork: fetch failed: \(error.localizedDescription)")
-            return nil
-        }
-    }
-
-    private func primaryImageURL() -> URL? {
-        guard let base = playbackService.baseURL?.absoluteString else { return nil }
-        if let tag = item.imageTags?.primary {
-            return URL(string: "\(base)/Items/\(item.id)/Images/Primary?tag=\(tag)&maxWidth=800&quality=85")
-        }
-        if let tags = item.backdropImageTags, let tag = tags.first {
-            return URL(string: "\(base)/Items/\(item.id)/Images/Backdrop?tag=\(tag)&maxWidth=800&quality=85")
-        }
-        if let tags = item.parentBackdropImageTags, let tag = tags.first, let seriesId = item.seriesId {
-            return URL(string: "\(base)/Items/\(seriesId)/Images/Backdrop?tag=\(tag)&maxWidth=800&quality=85")
-        }
-        return nil
     }
 }
