@@ -41,13 +41,13 @@ extension PlayerViewModel {
         MPNowPlayingInfoCenter.default().nowPlayingInfo = info
 
         bindRemoteCommands(session: session)
-
-        // Artwork lands async; one follow-up write that patches the
-        // dict with the cover. With the session active, MediaPlayer is
-        // in its automatic-publishing mode and the static-field write
-        // path is far less reentrant than the per-tick refresh writes
-        // that crashed earlier.
-        Task { [weak self] in await self?.fetchAndAttachArtwork() }
+        // Artwork-fetch + follow-up dict-patch path removed: any second
+        // write to MPNowPlayingInfoCenter.nowPlayingInfo while the
+        // session was active crashed reproducibly inside MediaPlayer
+        // (Thread N EXC_BREAKPOINT, _dispatch_assert_queue_fail in
+        // -[MPNowPlayingInfoCenter ...]). Artwork needs to land through
+        // a different path; sketching the right approach before
+        // wiring it back in.
     }
 
     /// No-op. Auto-publish via MPNowPlayingSession tracks elapsed / rate
