@@ -38,6 +38,13 @@ final class AppState {
     /// their local `showPlayer` state on change.
     var requestPlayerDismissal: Int = 0
 
+    /// True while a deep-link is in flight (between the URL handler
+    /// dismissing the active player and the new detail sheet
+    /// presenting). AppRouter overlays a brief loading view so the
+    /// user never sees the prior detail view flash before the new
+    /// one slides up.
+    var isResolvingDeepLink: Bool = false
+
     var isSeerrConnected: Bool {
         activeSeerrServer != nil && activeSeerrUser != nil
     }

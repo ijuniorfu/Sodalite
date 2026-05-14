@@ -52,8 +52,24 @@ struct AppRouter: View {
                 SplashView()
                     .transition(.opacity)
             }
+
+            // Covers the previous detail view between the
+            // deep-link-driven player dismiss and the new fullScreenCover
+            // sliding in. Without this, the user sees the stale detail
+            // for ~1-2 s (TopShelf URL → player teardown → item fetch
+            // round-trip → cover present).
+            if appState.isResolvingDeepLink {
+                Color.black
+                    .ignoresSafeArea()
+                    .overlay {
+                        ProgressView()
+                            .tint(.white)
+                    }
+                    .transition(.opacity)
+            }
         }
         .animation(.easeOut(duration: 0.4), value: appState.isLoading)
+        .animation(.easeInOut(duration: 0.2), value: appState.isResolvingDeepLink)
         .task {
             guard !hasRestored else { return }
             hasRestored = true
@@ -168,6 +184,11 @@ struct AppRouter: View {
         )
         appState.pendingDeepLinkItemID = nil
         deepLinkItem = item
+        // Hold the overlay a beat past the fullScreenCover binding
+        // flip so the cover's slide-in fully obscures the underlying
+        // view before we fade our black overlay out.
+        try? await Task.sleep(for: .milliseconds(300))
+        appState.isResolvingDeepLink = false
     }
 
     /// Walk the active scene's window-level modal chain and dismiss

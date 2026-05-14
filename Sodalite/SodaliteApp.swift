@@ -57,6 +57,11 @@ struct SodaliteApp: App {
         guard !id.isEmpty else { return }
         dismissActivePlayerModal()
         appState.requestPlayerDismissal &+= 1
+        // Cover whatever's behind the dismissed player so the user
+        // doesn't see the prior detail view flash for the duration of
+        // the deep-link fetch + fullScreenCover slide-in. AppRouter
+        // clears this once the new sheet has taken over.
+        appState.isResolvingDeepLink = true
         appState.pendingDeepLinkItemID = id
     }
 

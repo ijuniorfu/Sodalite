@@ -120,6 +120,8 @@ Pick the `Sodalite` scheme, an Apple TV destination, and run. AetherEngine is wi
 
 Xcode 26+ and Swift 6.0+ are required.
 
+For engine-level debugging without an Apple TV in the loop, AetherEngine ships a standalone macOS CLI (`aetherctl probe / serve / validate <url>`). See the [AetherEngine README](https://github.com/superuser404notfound/AetherEngine#aetherctl) for usage.
+
 ## Roadmap
 
 - [x] Public TestFlight beta
