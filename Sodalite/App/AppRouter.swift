@@ -1,4 +1,6 @@
 import SwiftUI
+import UIKit
+import AetherEngine
 
 struct AppRouter: View {
     @Environment(\.appState) private var appState
@@ -143,13 +145,22 @@ struct AppRouter: View {
         // without this signal, the UIKit player modal stays on top
         // of the new SwiftUI fullScreenCover and the user sees the
         // stale session above the freshly routed item.
+        //
+        // Two-step dismissal: (1) increment the dismissal counter so
+        // detail views observing it flip their local showPlayer state
+        // (keeps the binding path consistent for when the user returns
+        // to the prior detail view); (2) walk the window's modal chain
+        // and dismiss any PlayerHostController directly, since the
+        // binding-driven dismiss alone proved unreliable across the
+        // scene-foreground transition.
         appState.requestPlayerDismissal &+= 1
-        // Give SwiftUI a tick to propagate the showPlayer = false
-        // binding and let UIKit finish dismissing the modal before
-        // we trigger the new fullScreenCover. Without this, the new
-        // presentation races the dismissal and SwiftUI logs the
-        // "presenting from a VC that is being dismissed" warning.
-        try? await Task.sleep(for: .milliseconds(150))
+        dismissActivePlayerModal()
+        // Give UIKit a frame to finish the dismiss before we trigger
+        // the new fullScreenCover. Without this, the new presentation
+        // can race the dismissal and SwiftUI logs the "presenting from
+        // a VC that is being dismissed" warning, or the new modal
+        // never lands.
+        try? await Task.sleep(for: .milliseconds(250))
 
         let item = try? await dependencies.jellyfinItemService.getItemDetail(
             userID: user.id,
@@ -157,6 +168,42 @@ struct AppRouter: View {
         )
         appState.pendingDeepLinkItemID = nil
         deepLinkItem = item
+    }
+
+    /// Walk the active scene's window-level modal chain and dismiss
+    /// the `PlayerHostController` if one is presented. Bypasses the
+    /// SwiftUI binding chain because the binding-only path proved
+    /// unreliable across the scene-foreground transition: a TopShelf
+    /// tap that resumes the app from a paused player would not always
+    /// dispatch the local-state mutation through to UIKit fast enough
+    /// to let the new fullScreenCover present on top.
+    ///
+    /// Calling `dismiss(animated:)` on the VC that directly presented
+    /// the player removes only that modal level; any other modals in
+    /// the chain are left alone. Logged via EngineLog so the
+    /// diagnostic overlay can confirm the path ran on TestFlight.
+    private func dismissActivePlayerModal() {
+        guard let scene = UIApplication.shared.connectedScenes
+            .compactMap({ $0 as? UIWindowScene })
+            .first(where: { $0.activationState != .background }),
+              let window = scene.windows.first(where: { $0.isKeyWindow })
+                ?? scene.windows.first
+        else {
+            EngineLog.emit("[AppRouter] deep-link dismiss: no key window")
+            return
+        }
+
+        var presenter: UIViewController? = window.rootViewController
+        while let current = presenter {
+            guard let presented = current.presentedViewController else { break }
+            if presented is PlayerHostController {
+                EngineLog.emit("[AppRouter] deep-link dismiss: tearing down active player modal")
+                current.dismiss(animated: false)
+                return
+            }
+            presenter = presented
+        }
+        EngineLog.emit("[AppRouter] deep-link dismiss: no player in modal chain")
     }
 
     private func restoreSession() async {
