@@ -1,35 +1,71 @@
 import Foundation
+import AVFoundation
+import Combine
 import MediaPlayer
 import UIKit
 import AetherEngine
 
-/// System Now-Playing integration. After several bisect rounds against
-/// tvOS 26, the only invariant that holds without `_dispatch_assert_queue_fail`
-/// inside MediaPlayer is *one write to MPNowPlayingInfoCenter.nowPlayingInfo
-/// per session*. Multiple writes — whether from a state observer, a
-/// throttled time observer, a separate artwork-attach path, or even
-/// just setStaticMetadata followed by setDynamicMetadata in the same
-/// runloop tick — reproducibly trip a libdispatch assert inside the
-/// MPNowPlayingInfoCenter setter's internal serial queue chain when the
-/// AVPlayer is in its initial seek / buffer churn. Swiftfin's per-tick
-/// pattern doesn't crash for them but does for us, presumably a
-/// timing-profile difference with AetherEngine's HLS loopback path.
+/// System Now-Playing integration matching Apple's "Becoming a Now
+/// Playable App" sample code (the official reference for non-AVKit
+/// custom players on tvOS).
 ///
-/// Single-write per session means we can't reflect live state changes
-/// (pause stays as rate=1 in the widget, manual scrubs aren't pushed).
-/// In exchange the card surfaces with title + series + season-episode
-/// + cover + initial position from the resume PTS, the OS extrapolates
-/// the timer forward at rate=1, and nothing crashes. That's the deal.
+/// Two non-obvious points that took several iterations to land on:
+///
+/// 1. Every write to `MPNowPlayingInfoCenter.default().nowPlayingInfo`
+///    goes through `DispatchQueue.main.async`, never through
+///    `await MainActor.run`. MediaPlayer's internal code asserts the
+///    setter is invoked from `dispatch_get_main_queue()`. Swift
+///    Concurrency's MainActor executor runs on the main thread but
+///    has a different libdispatch identity, so callers nested inside
+///    `Task { @MainActor in ... }` or `MainActor.run` trip
+///    `_dispatch_assert_queue_fail` inside MediaPlayer's deferred
+///    barrier_async chain ~10-15 s into playback.
+///
+/// 2. Dynamic state (rate, elapsed, duration) is refreshed via a
+///    KVO observation on `AVPlayer.rate`, exactly like Apple's
+///    `AssetPlayer.swift`. Combine's `publisher(for:options:)` is
+///    a thin wrapper over `addObserver(forKeyPath:)`, so this matches
+///    Apple's sample without breaking the Combine-based shape of the
+///    rest of PlayerViewModel.
 extension PlayerViewModel {
 
+    // MARK: - Configure
+
     func configureNowPlaying() {
+        guard let avPlayer = player.currentAVPlayer else { return }
+
+        // Re-activate the audio session at the start of each playback
+        // session. Apple's NowPlayable sample does this in
+        // handleNowPlayableSessionStart(); MediaPlayer uses the session
+        // activation event to identify which AVPlayer is the active
+        // Now Playing source. Activating once at engine init and never
+        // again may leave MediaPlayer's state machine stale across
+        // playbacks.
+        do {
+            try AVAudioSession.sharedInstance().setActive(true)
+        } catch {
+            LogTap.shared.note("[NowPlaying] AVAudioSession.setActive failed: \(error.localizedDescription)")
+        }
+
         bindRemoteCommands()
-        Task { [weak self] in await self?.publishOnce() }
+        publishStaticMetadata(image: nil)
+
+        // KVO-on-rate via Combine. Re-publishes dynamic info on every
+        // rate change (play / pause / seek / buffer-resolve).
+        avPlayer.publisher(for: \.rate, options: [.initial])
+            .sink { [weak self] _ in
+                self?.publishDynamicMetadata()
+            }
+            .store(in: &cancellables)
+
+        Task { [weak self] in await self?.fetchAndApplyArtwork() }
     }
 
-    /// No-op. We can't safely refresh after the single write.
+    /// Kept for the `PlayerViewModel.startObserving` state observer.
+    /// The KVO-on-rate path in `configureNowPlaying` already handles
+    /// state changes, so this is a no-op.
     func refreshNowPlayingProgress() {
-        // Intentionally empty.
+        // Intentionally empty. KVO drives updates.
     }
 
     func teardownNowPlaying() {
@@ -40,35 +76,71 @@ extension PlayerViewModel {
         center.playCommand.isEnabled = false
         center.pauseCommand.isEnabled = false
         center.togglePlayPauseCommand.isEnabled = false
-        MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
+
+        DispatchQueue.main.async {
+            MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
+        }
     }
 
-    // MARK: - Single-write publish
+    // MARK: - Writes (all through DispatchQueue.main.async)
 
-    private func publishOnce() async {
+    /// Replace title / artist / album / artwork. Preserves dynamic
+    /// fields read off the current dict so the dynamic publisher isn't
+    /// clobbered when artwork lands.
+    private func publishStaticMetadata(image: UIImage?) {
         let title = item.name
         let subtitle = displaySubtitle
         let album = displayAlbum
-        let duration = await MainActor.run { effectiveDuration }
-        let resumeSeconds = resumePositionTicks > 0
-            ? resumePositionTicks.ticksToSeconds
-            : 0.0
-        let artwork = await fetchArtwork()
-
-        var info: [String: Any] = [:]
-        info[MPNowPlayingInfoPropertyMediaType] = MPNowPlayingInfoMediaType.video.rawValue
-        info[MPMediaItemPropertyTitle] = title
-        if let subtitle { info[MPMediaItemPropertyArtist] = subtitle }
-        if let album { info[MPMediaItemPropertyAlbumTitle] = album }
-        if duration > 0 {
-            info[MPMediaItemPropertyPlaybackDuration] = Float(duration)
+        let artwork = image.map { img in
+            MPMediaItemArtwork(boundsSize: img.size) { _ in img }
         }
-        info[MPNowPlayingInfoPropertyElapsedPlaybackTime] = Float(resumeSeconds)
-        info[MPNowPlayingInfoPropertyPlaybackRate] = Float(1.0)
-        info[MPNowPlayingInfoPropertyDefaultPlaybackRate] = Float(1.0)
-        if let artwork { info[MPMediaItemPropertyArtwork] = artwork }
+        DispatchQueue.main.async {
+            let existing = MPNowPlayingInfoCenter.default().nowPlayingInfo ?? [:]
+            var info: [String: Any] = [:]
+            info[MPNowPlayingInfoPropertyMediaType] = MPNowPlayingInfoMediaType.video.rawValue
+            info[MPNowPlayingInfoPropertyIsLiveStream] = false
+            info[MPMediaItemPropertyTitle] = title
+            info[MPMediaItemPropertyArtist] = subtitle
+            info[MPMediaItemPropertyAlbumTitle] = album
+            info[MPMediaItemPropertyArtwork] = artwork
+            // Preserve dynamic keys.
+            for key in [
+                MPMediaItemPropertyPlaybackDuration,
+                MPNowPlayingInfoPropertyElapsedPlaybackTime,
+                MPNowPlayingInfoPropertyPlaybackRate,
+                MPNowPlayingInfoPropertyDefaultPlaybackRate,
+            ] where existing[key] != nil {
+                info[key] = existing[key]
+            }
+            MPNowPlayingInfoCenter.default().nowPlayingInfo = info
+        }
+    }
 
-        await MainActor.run {
+    /// Patch the dynamic block (duration, elapsed, rate). Read-modify-write
+    /// so static fields aren't touched. Always reads fresh values off
+    /// AVPlayer rather than from PlayerViewModel state to match Apple's
+    /// sample exactly.
+    private func publishDynamicMetadata() {
+        guard let avPlayer = player.currentAVPlayer else { return }
+        let rate = avPlayer.rate
+        let position: Float = {
+            guard let item = avPlayer.currentItem else { return 0 }
+            let s = item.currentTime().seconds
+            return s.isFinite ? Float(s) : 0
+        }()
+        let duration: Float = {
+            guard let item = avPlayer.currentItem else { return 0 }
+            let s = item.duration.seconds
+            return s.isFinite ? Float(s) : 0
+        }()
+        DispatchQueue.main.async {
+            var info = MPNowPlayingInfoCenter.default().nowPlayingInfo ?? [:]
+            if duration > 0 {
+                info[MPMediaItemPropertyPlaybackDuration] = duration
+            }
+            info[MPNowPlayingInfoPropertyElapsedPlaybackTime] = position
+            info[MPNowPlayingInfoPropertyPlaybackRate] = rate
+            info[MPNowPlayingInfoPropertyDefaultPlaybackRate] = Float(1.0)
             MPNowPlayingInfoCenter.default().nowPlayingInfo = info
         }
     }
@@ -97,16 +169,12 @@ extension PlayerViewModel {
         return parts.isEmpty ? nil : parts.joined(separator: " • ")
     }
 
-    // MARK: - Artwork
+    // MARK: - Artwork fetch
 
-    /// Fetch the item's primary image, decode, and build an
-    /// `MPMediaItemArtwork`. Returns nil on any failure; LogTap notes
-    /// record the outcome for debugging missing covers from the
-    /// Support screen.
-    private func fetchArtwork() async -> MPMediaItemArtwork? {
+    private func fetchAndApplyArtwork() async {
         guard let url = primaryImageURL() else {
             LogTap.shared.note("[NowPlaying] artwork: no URL for item id=\(item.id) type=\(item.type)")
-            return nil
+            return
         }
         LogTap.shared.note("[NowPlaying] artwork: GET \(url.absoluteString)")
         let request = URLRequest(url: url, timeoutInterval: 5.0)
@@ -116,22 +184,20 @@ extension PlayerViewModel {
             LogTap.shared.note("[NowPlaying] artwork: status=\(status) bytes=\(data.count)")
             guard let image = UIImage(data: data) else {
                 LogTap.shared.note("[NowPlaying] artwork: UIImage decode failed")
-                return nil
+                return
             }
-            // Pre-extract the CGImage so the request handler doesn't
-            // hold a UIImage across MediaPlayer's image-request thread.
-            guard let cg = image.cgImage else {
-                LogTap.shared.note("[NowPlaying] artwork: no CGImage on decoded UIImage")
-                return nil
-            }
-            let size = image.size
-            let scale = image.scale
-            return MPMediaItemArtwork(boundsSize: size) { _ in
-                UIImage(cgImage: cg, scale: scale, orientation: .up)
+            // Hop through DispatchQueue.main.async (not MainActor.run)
+            // so the resulting MPNowPlayingInfoCenter write lands on
+            // the libdispatch main queue, matching MediaPlayer's
+            // internal queue assertions.
+            await withCheckedContinuation { continuation in
+                DispatchQueue.main.async { [weak self] in
+                    self?.publishStaticMetadata(image: image)
+                    continuation.resume()
+                }
             }
         } catch {
             LogTap.shared.note("[NowPlaying] artwork: fetch failed: \(error.localizedDescription)")
-            return nil
         }
     }
 
