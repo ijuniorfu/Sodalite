@@ -13,18 +13,30 @@ import UIKit
 /// the in-player swipe-down info overlay, which Sodalite intentionally
 /// leaves bare (the detail sheet shows the same context the user would
 /// scroll back through during playback).
+///
+/// Threading note: every `MPNowPlayingInfoCenter.default().nowPlayingInfo =`
+/// write goes through `DispatchQueue.main.async`. The setter dispatches
+/// internal work via `dispatch_barrier_async` to its own serial queue
+/// and the follow-up work re-enters via `dispatch_after` /
+/// `dispatch_barrier_async`. Calling the setter directly from a Combine
+/// sink that just ran on main triggered a `_dispatch_assert_queue_fail`
+/// 10-15 s into playback on tvOS 26 (Thread 17 EXC_BREAKPOINT). Deferring
+/// every write to the next main-runloop tick breaks the reentrancy
+/// path. Same reasoning for the remote-command callbacks: hop via
+/// `DispatchQueue.main.async` instead of `Task { @MainActor in }` so we
+/// don't intermix dispatch queues with actor hops on the same callback.
 extension PlayerViewModel {
 
     // MARK: - Configure
 
     /// Call once after `engine.load` returns and the session is live.
-    /// Builds the initial Now-Playing dictionary, binds the three
-    /// transport-control remote commands, and kicks off an async
-    /// artwork fetch that fills in the cover when the image bytes land.
+    /// Binds remote commands first (so the system sees a Now-Playing-
+    /// eligible app before any info-dict write lands), then publishes
+    /// the initial dictionary, then kicks off an async artwork fetch.
     func configureNowPlaying() {
+        bindRemoteCommands()
         publishStaticNowPlayingFields()
         refreshNowPlayingProgress()
-        bindRemoteCommands()
         Task { [weak self] in await self?.loadAndAttachArtwork() }
     }
 
@@ -34,21 +46,25 @@ extension PlayerViewModel {
     /// episode change) is sufficient; per-tick updates would just churn
     /// the dictionary.
     func refreshNowPlayingProgress() {
-        var info = MPNowPlayingInfoCenter.default().nowPlayingInfo ?? [:]
-        info[MPNowPlayingInfoPropertyElapsedPlaybackTime] = playbackTime
-        info[MPNowPlayingInfoPropertyPlaybackRate] = isPlaying ? 1.0 : 0.0
-        let dur = effectiveDuration
-        if dur > 0 {
-            info[MPMediaItemPropertyPlaybackDuration] = dur
+        let elapsed = playbackTime
+        let rate = isPlaying ? 1.0 : 0.0
+        let duration = effectiveDuration
+        mutateNowPlayingInfo { info in
+            info[MPNowPlayingInfoPropertyElapsedPlaybackTime] = elapsed
+            info[MPNowPlayingInfoPropertyPlaybackRate] = rate
+            if duration > 0 {
+                info[MPMediaItemPropertyPlaybackDuration] = duration
+            }
         }
-        MPNowPlayingInfoCenter.default().nowPlayingInfo = info
     }
 
     /// Pair to `configureNowPlaying`. Clears the dictionary so the
     /// system surfaces drop the entry, and removes our remote-command
     /// handlers so a future PlayerView reload binds cleanly.
     func teardownNowPlaying() {
-        MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
+        DispatchQueue.main.async {
+            MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
+        }
         let center = MPRemoteCommandCenter.shared()
         center.playCommand.removeTarget(nil)
         center.pauseCommand.removeTarget(nil)
@@ -58,19 +74,30 @@ extension PlayerViewModel {
         center.togglePlayPauseCommand.isEnabled = false
     }
 
-    // MARK: - Dictionary build
+    // MARK: - Dictionary helpers
+
+    /// Deferred read-modify-write of the now-playing dictionary. Always
+    /// runs on main, always deferred via `async` so we can't be inside
+    /// `MPNowPlayingInfoCenter`'s internal serial queue while issuing
+    /// another write.
+    private func mutateNowPlayingInfo(_ mutate: @escaping (inout [String: Any]) -> Void) {
+        DispatchQueue.main.async {
+            var info = MPNowPlayingInfoCenter.default().nowPlayingInfo ?? [:]
+            mutate(&info)
+            MPNowPlayingInfoCenter.default().nowPlayingInfo = info
+        }
+    }
 
     private func publishStaticNowPlayingFields() {
-        var info: [String: Any] = [:]
-        info[MPMediaItemPropertyTitle] = displayTitle
-        if let subtitle = displaySubtitle {
-            info[MPMediaItemPropertyArtist] = subtitle
+        let title = displayTitle
+        let subtitle = displaySubtitle
+        let album = displayAlbum
+        mutateNowPlayingInfo { info in
+            info[MPMediaItemPropertyTitle] = title
+            if let subtitle { info[MPMediaItemPropertyArtist] = subtitle }
+            if let album { info[MPMediaItemPropertyAlbumTitle] = album }
+            info[MPNowPlayingInfoPropertyMediaType] = MPNowPlayingInfoMediaType.video.rawValue
         }
-        if let album = displayAlbum {
-            info[MPMediaItemPropertyAlbumTitle] = album
-        }
-        info[MPNowPlayingInfoPropertyMediaType] = MPNowPlayingInfoMediaType.video.rawValue
-        MPNowPlayingInfoCenter.default().nowPlayingInfo = info
     }
 
     // MARK: - Display strings
@@ -106,27 +133,36 @@ extension PlayerViewModel {
     // MARK: - Artwork
 
     /// Fetch the item's primary image, decode to UIImage, attach as
-    /// `MPMediaItemArtwork`. Off-main fetch, main-actor hop to mutate
-    /// the dictionary. Silent on failure; the Now Playing card just
-    /// shows text-only.
+    /// `MPMediaItemArtwork`. Off-main fetch, deferred mutate of the
+    /// dictionary. Silent on failure; LogTap notes record outcomes so
+    /// missing covers can be debugged from the in-app log buffer.
     private func loadAndAttachArtwork() async {
-        guard let url = primaryImageURL() else { return }
+        guard let url = primaryImageURL() else {
+            LogTap.shared.note("[NowPlaying] artwork: no URL for item id=\(item.id) type=\(item.type)")
+            return
+        }
+        LogTap.shared.note("[NowPlaying] artwork: GET \(url.absoluteString)")
         do {
-            let (data, _) = try await URLSession.shared.data(from: url)
-            guard let image = UIImage(data: data) else { return }
+            let (data, response) = try await URLSession.shared.data(from: url)
+            let status = (response as? HTTPURLResponse)?.statusCode ?? -1
+            LogTap.shared.note("[NowPlaying] artwork: status=\(status) bytes=\(data.count)")
+            guard let image = UIImage(data: data) else {
+                LogTap.shared.note("[NowPlaying] artwork: UIImage decode failed")
+                return
+            }
             await applyArtwork(image: image)
         } catch {
-            // Network failure / image decode failure: no card cover.
-            // Not worth surfacing to the user.
+            LogTap.shared.note("[NowPlaying] artwork: fetch failed: \(error.localizedDescription)")
         }
     }
 
     @MainActor
     private func applyArtwork(image: UIImage) {
-        let artwork = MPMediaItemArtwork(boundsSize: image.size) { _ in image }
-        var info = MPNowPlayingInfoCenter.default().nowPlayingInfo ?? [:]
-        info[MPMediaItemPropertyArtwork] = artwork
-        MPNowPlayingInfoCenter.default().nowPlayingInfo = info
+        let size = image.size
+        let artwork = MPMediaItemArtwork(boundsSize: size) { _ in image }
+        mutateNowPlayingInfo { info in
+            info[MPMediaItemPropertyArtwork] = artwork
+        }
     }
 
     /// Build the primary-image URL directly off `playbackService.baseURL`
@@ -149,17 +185,19 @@ extension PlayerViewModel {
 
     // MARK: - Remote commands
 
-    /// Bind play / pause / toggle to engine transport. Deliberately
-    /// limited to these three: skip-forward / skip-backward / position
-    /// scrubber commands are valuable but add surface; bring them in
-    /// once the basic three are confirmed stable on tvOS 26.
+    /// Bind play / pause / toggle to engine transport. Handlers defer
+    /// the engine call via `DispatchQueue.main.async` (not `Task @MainActor`)
+    /// so we don't intermix dispatch hops and actor hops inside the
+    /// MediaPlayer XPC reply chain. Scrubber and skip commands stay off
+    /// for now; bring them in once these three are confirmed stable on
+    /// tvOS 26.
     private func bindRemoteCommands() {
         let center = MPRemoteCommandCenter.shared()
 
         center.playCommand.removeTarget(nil)
         center.playCommand.isEnabled = true
         center.playCommand.addTarget { [weak self] _ in
-            Task { @MainActor in
+            DispatchQueue.main.async { [weak self] in
                 guard let self else { return }
                 if !self.isPlaying { self.togglePlayPause() }
             }
@@ -169,7 +207,7 @@ extension PlayerViewModel {
         center.pauseCommand.removeTarget(nil)
         center.pauseCommand.isEnabled = true
         center.pauseCommand.addTarget { [weak self] _ in
-            Task { @MainActor in
+            DispatchQueue.main.async { [weak self] in
                 guard let self else { return }
                 if self.isPlaying { self.togglePlayPause() }
             }
@@ -179,7 +217,9 @@ extension PlayerViewModel {
         center.togglePlayPauseCommand.removeTarget(nil)
         center.togglePlayPauseCommand.isEnabled = true
         center.togglePlayPauseCommand.addTarget { [weak self] _ in
-            Task { @MainActor in self?.togglePlayPause() }
+            DispatchQueue.main.async { [weak self] in
+                self?.togglePlayPause()
+            }
             return .success
         }
     }
