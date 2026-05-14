@@ -69,6 +69,12 @@ struct MovieDetailView: View {
                 }
             }
         }
+        // AppRouter bumps this counter on every deep-link arrival so
+        // a TopShelf tap on a different item can tear down the active
+        // player session and let the new detail sheet surface cleanly.
+        .onChange(of: appState.requestPlayerDismissal) { _, _ in
+            if showPlayer { showPlayer = false }
+        }
         // Loading-gate now blocks the play button from existing in
         // the view hierarchy at first paint, so the focus engine has
         // nothing to land on when the modal appears. Push the focus

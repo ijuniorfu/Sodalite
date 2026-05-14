@@ -237,6 +237,12 @@ struct SeriesDetailView: View {
                 playOriginatedFromPlayButton = false
             }
         }
+        // AppRouter bumps this counter on every deep-link arrival so
+        // a TopShelf tap on a different item can tear down the active
+        // player session and let the new detail sheet surface cleanly.
+        .onChange(of: appState.requestPlayerDismissal) { _, _ in
+            if showPlayer { showPlayer = false }
+        }
         .navigationDestination(item: $navigateToItem) { item in
             DetailRouterView(item: item)
         }

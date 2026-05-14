@@ -137,6 +137,20 @@ struct AppRouter: View {
             appState.pendingDeepLinkItemID = nil
             return
         }
+        // Ask any active player to dismiss before the new detail
+        // sheet is presented. The TopShelf path commonly fires while
+        // the app is backgrounded with a paused player on screen;
+        // without this signal, the UIKit player modal stays on top
+        // of the new SwiftUI fullScreenCover and the user sees the
+        // stale session above the freshly routed item.
+        appState.requestPlayerDismissal &+= 1
+        // Give SwiftUI a tick to propagate the showPlayer = false
+        // binding and let UIKit finish dismissing the modal before
+        // we trigger the new fullScreenCover. Without this, the new
+        // presentation races the dismissal and SwiftUI logs the
+        // "presenting from a VC that is being dismissed" warning.
+        try? await Task.sleep(for: .milliseconds(150))
+
         let item = try? await dependencies.jellyfinItemService.getItemDetail(
             userID: user.id,
             itemID: id

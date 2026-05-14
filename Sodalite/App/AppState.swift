@@ -28,6 +28,16 @@ final class AppState {
     /// existing TopShelf navigation path.
     var requestContinueWatching: Bool = false
 
+    /// Monotonic counter the deep-link path increments to ask any
+    /// currently presented player to dismiss before the new detail
+    /// sheet appears. Without this, a TopShelf tap on a different
+    /// item while a paused player is in the background brings the
+    /// app forward with the stale player still on top, hiding the
+    /// freshly presented detail sheet underneath it. Detail views
+    /// that drive a `PlayerLauncher` watch this counter and clear
+    /// their local `showPlayer` state on change.
+    var requestPlayerDismissal: Int = 0
+
     var isSeerrConnected: Bool {
         activeSeerrServer != nil && activeSeerrUser != nil
     }
