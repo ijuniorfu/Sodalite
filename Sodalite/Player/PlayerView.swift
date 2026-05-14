@@ -256,12 +256,12 @@ private struct PlayerOverlayView: View {
                 )
             }
 
-            if viewModel.isLoading {
-                Color.black
-                    .ignoresSafeArea()
-                    .overlay(ProgressView())
-                    .transition(.opacity)
-            }
+            // AVPlayerViewController owns its own loading indicator while
+            // buffering. The custom black-with-ProgressView overlay we
+            // used pre-migration sometimes lingered past first frame
+            // (state observer's `.loading` case re-flips `isLoading`
+            // during AVPlayer's waitingToPlay → readyToPlay transitions,
+            // even after playback has visibly started), so it's gone.
 
             if let error = viewModel.errorMessage {
                 VStack(spacing: 20) {
