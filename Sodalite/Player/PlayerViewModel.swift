@@ -3,7 +3,6 @@ import Combine
 import Observation
 import AetherEngine
 import AVKit
-import MediaPlayer
 import os
 
 /// ViewModel that bridges AetherEngine with Jellyfin session reporting
@@ -176,11 +175,6 @@ final class PlayerViewModel {
     var playSessionID: String?
     var activePlayMethod: PlayMethod = .directPlay
     var subtitleStreams: [MediaStream] = []
-
-    /// Active `MPNowPlayingSession` for the current playback. Owns the
-    /// system Now Playing surface for the AVPlayer behind AetherEngine.
-    /// Retained for the session's lifetime; cleared in `stopPlayback`.
-    var nowPlayingSession: MPNowPlayingSession?
 
     init(
         item: JellyfinItem,
@@ -436,9 +430,11 @@ final class PlayerViewModel {
                     self.isLoading = false
                     self.isPlaying = true
                     if self.showControls { self.scheduleControlsHide() }
+                    self.refreshNowPlayingProgress()
                 case .paused:
                     self.isLoading = false
                     self.isPlaying = false
+                    self.refreshNowPlayingProgress()
                 case .idle:
                     self.isPlaying = false
                     // Demux EOF, safety net countdown start for cases
