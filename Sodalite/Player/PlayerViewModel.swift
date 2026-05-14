@@ -340,6 +340,11 @@ final class PlayerViewModel {
             // handshake, AVPlayerLayer ownership, and refresh-rate
             // matching all live inside engine.load(url:options:) now.
             LogTap.shared.note("[PlayerVM] engine.load url=\(url.absoluteString)")
+            // Stage externalMetadata BEFORE engine.load so the engine
+            // applies it to the AVPlayerItem before AVPlayer.replaceCurrentItem.
+            // AVKit reads asset metadata at that point; setting it later
+            // races AVPlayer's track-load and AVKit caches empty metadata.
+            stageInitialNowPlayingMetadata()
             try await player.load(
                 url: url,
                 startPosition: startPos,
