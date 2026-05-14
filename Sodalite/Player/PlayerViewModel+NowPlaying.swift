@@ -1,49 +1,35 @@
 import Foundation
-import Combine
 import MediaPlayer
 import UIKit
 import AetherEngine
 
-/// System Now-Playing integration following the proven Jellyfin/Swiftfin
-/// pattern: direct writes to `MPNowPlayingInfoCenter.default().nowPlayingInfo`,
-/// no `MPNowPlayingSession`.
+/// System Now-Playing integration. After several bisect rounds against
+/// tvOS 26, the only invariant that holds without `_dispatch_assert_queue_fail`
+/// inside MediaPlayer is *one write to MPNowPlayingInfoCenter.nowPlayingInfo
+/// per session*. Multiple writes — whether from a state observer, a
+/// throttled time observer, a separate artwork-attach path, or even
+/// just setStaticMetadata followed by setDynamicMetadata in the same
+/// runloop tick — reproducibly trip a libdispatch assert inside the
+/// MPNowPlayingInfoCenter setter's internal serial queue chain when the
+/// AVPlayer is in its initial seek / buffer churn. Swiftfin's per-tick
+/// pattern doesn't crash for them but does for us, presumably a
+/// timing-profile difference with AetherEngine's HLS loopback path.
 ///
-/// Why not MPNowPlayingSession on tvOS 26: handing the engine's AVPlayer
-/// to a session with `automaticallyPublishesNowPlayingInfo=true` while
-/// also writing `nowPlayingInfo` manually races against MediaPlayer's
-/// internal serial queue and trips `_dispatch_assert_queue_fail`. The
-/// straight `MPNowPlayingInfoCenter` path that Swiftfin (and Apple's
-/// NowPlayable tutorial code) use accepts per-tick writes without
-/// crashing, so we use that.
-///
-/// Pattern (mirrors `Swiftfin/Shared/Objects/MediaPlayerManager/NowPlayable`):
-/// - Static fields (title, artist, album, artwork) are written in
-///   `setStaticMetadata`. Called twice per session: once at configure
-///   without artwork, once after the async image fetch lands. Reads the
-///   current dict first so dynamic fields written by the time-observer
-///   loop aren't clobbered.
-/// - Dynamic fields (duration, elapsed, rate) are written in
-///   `setDynamicMetadata`, driven by:
-///     - A `cancellables`-stored throttled Combine subscription on
-///       `player.$currentTime` (every 5 s while playing).
-///     - One-shot calls from `PlayerViewModel.startObserving`'s
-///       `.playing` / `.paused` state transitions (immediate response
-///       to user-initiated transport changes).
+/// Single-write per session means we can't reflect live state changes
+/// (pause stays as rate=1 in the widget, manual scrubs aren't pushed).
+/// In exchange the card surfaces with title + series + season-episode
+/// + cover + initial position from the resume PTS, the OS extrapolates
+/// the timer forward at rate=1, and nothing crashes. That's the deal.
 extension PlayerViewModel {
 
     func configureNowPlaying() {
         bindRemoteCommands()
-        setStaticMetadata(image: nil)
-        setDynamicMetadata()
-        startNowPlayingTimeObserver()
-        Task { [weak self] in await self?.fetchAndApplyArtwork() }
+        Task { [weak self] in await self?.publishOnce() }
     }
 
-    /// Called from `PlayerViewModel.startObserving` on `.playing` /
-    /// `.paused` transitions. Re-publishes the dynamic block so the
-    /// widget rate flips immediately when the user pauses or resumes.
+    /// No-op. We can't safely refresh after the single write.
     func refreshNowPlayingProgress() {
-        setDynamicMetadata()
+        // Intentionally empty.
     }
 
     func teardownNowPlaying() {
@@ -54,77 +40,37 @@ extension PlayerViewModel {
         center.playCommand.isEnabled = false
         center.pauseCommand.isEnabled = false
         center.togglePlayPauseCommand.isEnabled = false
-
         MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
     }
 
-    // MARK: - Static metadata write
+    // MARK: - Single-write publish
 
-    /// Replace title / artist / album / artwork. Reads the existing
-    /// dynamic fields (duration / elapsed / rate) off the current dict
-    /// and re-writes them so the second call (after artwork lands)
-    /// doesn't reset the widget's progress to zero.
-    private func setStaticMetadata(image: UIImage?) {
-        let existing = MPNowPlayingInfoCenter.default().nowPlayingInfo ?? [:]
+    private func publishOnce() async {
+        let title = item.name
+        let subtitle = displaySubtitle
+        let album = displayAlbum
+        let duration = await MainActor.run { effectiveDuration }
+        let resumeSeconds = resumePositionTicks > 0
+            ? resumePositionTicks.ticksToSeconds
+            : 0.0
+        let artwork = await fetchArtwork()
 
         var info: [String: Any] = [:]
         info[MPNowPlayingInfoPropertyMediaType] = MPNowPlayingInfoMediaType.video.rawValue
-        info[MPMediaItemPropertyTitle] = item.name
-        if let subtitle = displaySubtitle {
-            info[MPMediaItemPropertyArtist] = subtitle
-        }
-        if let album = displayAlbum {
-            info[MPMediaItemPropertyAlbumTitle] = album
-        }
-        if let image {
-            info[MPMediaItemPropertyArtwork] = MPMediaItemArtwork(boundsSize: image.size) { _ in image }
-        }
-        // Preserve dynamic fields the time-observer / state-observer
-        // already populated.
-        for key in [
-            MPMediaItemPropertyPlaybackDuration,
-            MPNowPlayingInfoPropertyElapsedPlaybackTime,
-            MPNowPlayingInfoPropertyPlaybackRate,
-            MPNowPlayingInfoPropertyDefaultPlaybackRate,
-        ] {
-            if let value = existing[key] {
-                info[key] = value
-            }
-        }
-        MPNowPlayingInfoCenter.default().nowPlayingInfo = info
-    }
-
-    // MARK: - Dynamic metadata write
-
-    /// Patch duration / elapsed / rate into the current dict. Read-modify-write
-    /// so the static fields title/artist/album/artwork aren't touched.
-    private func setDynamicMetadata() {
-        var info = MPNowPlayingInfoCenter.default().nowPlayingInfo ?? [:]
-        let duration = effectiveDuration
+        info[MPMediaItemPropertyTitle] = title
+        if let subtitle { info[MPMediaItemPropertyArtist] = subtitle }
+        if let album { info[MPMediaItemPropertyAlbumTitle] = album }
         if duration > 0 {
             info[MPMediaItemPropertyPlaybackDuration] = Float(duration)
         }
-        info[MPNowPlayingInfoPropertyElapsedPlaybackTime] = Float(playbackTime)
-        info[MPNowPlayingInfoPropertyPlaybackRate] = isPlaying ? Float(1.0) : Float(0.0)
+        info[MPNowPlayingInfoPropertyElapsedPlaybackTime] = Float(resumeSeconds)
+        info[MPNowPlayingInfoPropertyPlaybackRate] = Float(1.0)
         info[MPNowPlayingInfoPropertyDefaultPlaybackRate] = Float(1.0)
-        MPNowPlayingInfoCenter.default().nowPlayingInfo = info
-    }
+        if let artwork { info[MPMediaItemPropertyArtwork] = artwork }
 
-    // MARK: - Time observer
-
-    /// Subscribe to `player.$currentTime` and re-publish the dynamic
-    /// block every 5 s while playback advances. The OS extrapolates the
-    /// widget timer between updates from the last published elapsed +
-    /// rate, so per-second updates are unnecessary; 5 s is the cadence
-    /// Apple's NowPlayable tutorial uses and matches Swiftfin's
-    /// behavior.
-    private func startNowPlayingTimeObserver() {
-        player.$currentTime
-            .throttle(for: 5.0, scheduler: DispatchQueue.main, latest: true)
-            .sink { [weak self] _ in
-                self?.setDynamicMetadata()
-            }
-            .store(in: &cancellables)
+        await MainActor.run {
+            MPNowPlayingInfoCenter.default().nowPlayingInfo = info
+        }
     }
 
     // MARK: - Display strings
@@ -153,10 +99,14 @@ extension PlayerViewModel {
 
     // MARK: - Artwork
 
-    private func fetchAndApplyArtwork() async {
+    /// Fetch the item's primary image, decode, and build an
+    /// `MPMediaItemArtwork`. Returns nil on any failure; LogTap notes
+    /// record the outcome for debugging missing covers from the
+    /// Support screen.
+    private func fetchArtwork() async -> MPMediaItemArtwork? {
         guard let url = primaryImageURL() else {
             LogTap.shared.note("[NowPlaying] artwork: no URL for item id=\(item.id) type=\(item.type)")
-            return
+            return nil
         }
         LogTap.shared.note("[NowPlaying] artwork: GET \(url.absoluteString)")
         let request = URLRequest(url: url, timeoutInterval: 5.0)
@@ -166,11 +116,22 @@ extension PlayerViewModel {
             LogTap.shared.note("[NowPlaying] artwork: status=\(status) bytes=\(data.count)")
             guard let image = UIImage(data: data) else {
                 LogTap.shared.note("[NowPlaying] artwork: UIImage decode failed")
-                return
+                return nil
             }
-            await MainActor.run { self.setStaticMetadata(image: image) }
+            // Pre-extract the CGImage so the request handler doesn't
+            // hold a UIImage across MediaPlayer's image-request thread.
+            guard let cg = image.cgImage else {
+                LogTap.shared.note("[NowPlaying] artwork: no CGImage on decoded UIImage")
+                return nil
+            }
+            let size = image.size
+            let scale = image.scale
+            return MPMediaItemArtwork(boundsSize: size) { _ in
+                UIImage(cgImage: cg, scale: scale, orientation: .up)
+            }
         } catch {
             LogTap.shared.note("[NowPlaying] artwork: fetch failed: \(error.localizedDescription)")
+            return nil
         }
     }
 

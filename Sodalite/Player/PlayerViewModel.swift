@@ -430,11 +430,9 @@ final class PlayerViewModel {
                     self.isLoading = false
                     self.isPlaying = true
                     if self.showControls { self.scheduleControlsHide() }
-                    self.refreshNowPlayingProgress()
                 case .paused:
                     self.isLoading = false
                     self.isPlaying = false
-                    self.refreshNowPlayingProgress()
                 case .idle:
                     self.isPlaying = false
                     // Demux EOF, safety net countdown start for cases
