@@ -43,6 +43,8 @@ extension PlayerViewModel {
         DispatchQueue.main.async {
             MPNowPlayingInfoCenter.default().nowPlayingInfo = info
         }
+
+        Task { [weak self] in await self?.loadAndAttachArtwork() }
     }
 
     /// No-op for now. Kept as the entry point the state observer calls
@@ -126,5 +128,68 @@ extension PlayerViewModel {
             parts.append("Episode \(ep)")
         }
         return parts.isEmpty ? nil : parts.joined(separator: " • ")
+    }
+
+    // MARK: - Artwork
+
+    /// Fetch the item's primary image, decode to UIImage, attach as
+    /// `MPMediaItemArtwork`. Silent on failure; LogTap notes record
+    /// outcomes so a missing cover can be debugged from the Support
+    /// screen's log buffer.
+    private func loadAndAttachArtwork() async {
+        guard let url = primaryImageURL() else {
+            LogTap.shared.note("[NowPlaying] artwork: no URL for item id=\(item.id) type=\(item.type)")
+            return
+        }
+        LogTap.shared.note("[NowPlaying] artwork: GET \(url.absoluteString)")
+        do {
+            let (data, response) = try await URLSession.shared.data(from: url)
+            let status = (response as? HTTPURLResponse)?.statusCode ?? -1
+            LogTap.shared.note("[NowPlaying] artwork: status=\(status) bytes=\(data.count)")
+            guard let image = UIImage(data: data) else {
+                LogTap.shared.note("[NowPlaying] artwork: UIImage decode failed")
+                return
+            }
+            await applyArtwork(image: image)
+        } catch {
+            LogTap.shared.note("[NowPlaying] artwork: fetch failed: \(error.localizedDescription)")
+        }
+    }
+
+    /// Build the `MPMediaItemArtwork` and stage it onto the info dict
+    /// via a deferred main-queue write. Pre-extracts the `CGImage`
+    /// outside the request handler so the closure never has to read
+    /// the original `UIImage` from another thread; CGImage is immutable
+    /// and free to retain across threads, UIImage in general is not.
+    @MainActor
+    private func applyArtwork(image: UIImage) {
+        guard let cg = image.cgImage else {
+            LogTap.shared.note("[NowPlaying] artwork: no CGImage on decoded UIImage")
+            return
+        }
+        let size = image.size
+        let scale = image.scale
+        let artwork = MPMediaItemArtwork(boundsSize: size) { _ in
+            UIImage(cgImage: cg, scale: scale, orientation: .up)
+        }
+        DispatchQueue.main.async {
+            var info = MPNowPlayingInfoCenter.default().nowPlayingInfo ?? [:]
+            info[MPMediaItemPropertyArtwork] = artwork
+            MPNowPlayingInfoCenter.default().nowPlayingInfo = info
+        }
+    }
+
+    private func primaryImageURL() -> URL? {
+        guard let base = playbackService.baseURL?.absoluteString else { return nil }
+        if let tag = item.imageTags?.primary {
+            return URL(string: "\(base)/Items/\(item.id)/Images/Primary?tag=\(tag)&maxWidth=800&quality=85")
+        }
+        if let tags = item.backdropImageTags, let tag = tags.first {
+            return URL(string: "\(base)/Items/\(item.id)/Images/Backdrop?tag=\(tag)&maxWidth=800&quality=85")
+        }
+        if let tags = item.parentBackdropImageTags, let tag = tags.first, let seriesId = item.seriesId {
+            return URL(string: "\(base)/Items/\(seriesId)/Images/Backdrop?tag=\(tag)&maxWidth=800&quality=85")
+        }
+        return nil
     }
 }
