@@ -19,33 +19,15 @@ enum Changelog {
             highlights: [
                 ChangelogHighlight(
                     .new,
-                    "changelog.0_6_0.codecs.title",
-                    "changelog.0_6_0.codecs.body",
-                    icon: "play.tv.fill"
+                    "changelog.0_6_0.engine.title",
+                    "changelog.0_6_0.engine.body",
+                    icon: "gearshape.2.fill"
                 ),
                 ChangelogHighlight(
                     .improve,
-                    "changelog.0_6_0.audioSwitch.title",
-                    "changelog.0_6_0.audioSwitch.body",
-                    icon: "speaker.wave.2.fill"
-                ),
-                ChangelogHighlight(
-                    .improve,
-                    "changelog.0_6_0.hdrBadge.title",
-                    "changelog.0_6_0.hdrBadge.body",
-                    icon: "sparkles.tv.fill"
-                ),
-                ChangelogHighlight(
-                    .fix,
-                    "changelog.0_6_0.resume.title",
-                    "changelog.0_6_0.resume.body",
-                    icon: "play.rectangle.on.rectangle.fill"
-                ),
-                ChangelogHighlight(
-                    .fix,
-                    "changelog.0_6_0.scrub.title",
-                    "changelog.0_6_0.scrub.body",
-                    icon: "forward.fill"
+                    "changelog.0_6_0.playback.title",
+                    "changelog.0_6_0.playback.body",
+                    icon: "play.rectangle.fill"
                 ),
             ]
         ),
