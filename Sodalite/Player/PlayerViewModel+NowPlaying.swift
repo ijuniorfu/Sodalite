@@ -123,28 +123,59 @@ extension PlayerViewModel {
 
     // MARK: - External metadata for AVPlayerItem.externalMetadata
 
+    /// Build metadata items the tvOS swipe-down overlay reads. Restricted
+    /// to identifiers AVKit handles unambiguously across versions:
+    ///   - title: any string
+    ///   - description: any string
+    ///   - artwork: image data, system probes JPEG / PNG / HEIF itself
+    /// Rarer identifiers (creation-date, genre, content-rating, track
+    /// subtitle) live in MPNowPlayingInfo / outside the overlay; they
+    /// caused a swipe-down trap on tvOS 26 when value types didn't match
+    /// the identifier's expected type (e.g. "2024" as String into a
+    /// creation-date slot AVKit parsed as NSDate).
     private func buildExternalMetadataItems() -> [AVMetadataItem] {
         var items: [AVMetadataItem] = []
-        items.append(makeMetadataItem(identifier: .commonIdentifierTitle, value: displayTitle))
-        if let subtitle = displaySubtitle {
-            items.append(makeMetadataItem(identifier: .iTunesMetadataTrackSubTitle, value: subtitle))
-        }
-        if let overview = item.overview, !overview.isEmpty {
-            items.append(makeMetadataItem(identifier: .commonIdentifierDescription, value: overview))
-        }
-        if let year = item.productionYear {
-            items.append(makeMetadataItem(identifier: .commonIdentifierCreationDate, value: String(year)))
-        }
-        if let genre = item.genres?.first {
-            items.append(makeMetadataItem(identifier: .quickTimeMetadataGenre, value: genre))
-        }
-        if let rating = item.officialRating, !rating.isEmpty {
-            items.append(makeMetadataItem(identifier: .iTunesMetadataContentRating, value: rating))
+        items.append(makeStringMetadataItem(identifier: .commonIdentifierTitle, value: displayTitle))
+        // Episodes get a synthesized "Series • SxEy" line in the
+        // description so the overlay surfaces the same context the
+        // Control Center widget does, without needing a separate
+        // subtitle identifier the overlay may parse strictly.
+        let descriptionLines = [displayDescriptionPrefix, item.overview]
+            .compactMap { $0 }
+            .filter { !$0.isEmpty }
+        if !descriptionLines.isEmpty {
+            items.append(makeStringMetadataItem(
+                identifier: .commonIdentifierDescription,
+                value: descriptionLines.joined(separator: "\n\n")
+            ))
         }
         return items
     }
 
-    private func makeMetadataItem(identifier: AVMetadataIdentifier, value: String) -> AVMetadataItem {
+    /// One-line context prefix prepended to the description. For
+    /// episodes: "Series Name • Season X • Episode Y". For movies with
+    /// a year: "(2024)". Empty when neither applies.
+    private var displayDescriptionPrefix: String? {
+        if item.type == .episode {
+            var parts: [String] = []
+            if let series = item.seriesName, !series.isEmpty {
+                parts.append(series)
+            }
+            if let season = item.parentIndexNumber {
+                parts.append("Season \(season)")
+            }
+            if let ep = item.indexNumber {
+                parts.append("Episode \(ep)")
+            }
+            return parts.isEmpty ? nil : parts.joined(separator: " • ")
+        }
+        if let year = item.productionYear {
+            return "(\(year))"
+        }
+        return nil
+    }
+
+    private func makeStringMetadataItem(identifier: AVMetadataIdentifier, value: String) -> AVMetadataItem {
         let item = AVMutableMetadataItem()
         item.identifier = identifier
         item.value = value as NSString
@@ -152,12 +183,13 @@ extension PlayerViewModel {
         return item
     }
 
+    /// Artwork item with no explicit dataType so AVKit probes the bytes
+    /// itself. Jellyfin returns JPEG by default; an explicit PNG type
+    /// hint on JPEG bytes triggered the swipe-down crash on tvOS 26.
     private func makeArtworkMetadataItem(data: Data) -> AVMetadataItem {
         let item = AVMutableMetadataItem()
         item.identifier = .commonIdentifierArtwork
         item.value = data as NSData
-        item.dataType = kCMMetadataBaseDataType_PNG as String
-        item.extendedLanguageTag = "und"
         return item
     }
 
