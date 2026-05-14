@@ -127,6 +127,12 @@ final class PlayerViewModel {
     /// frame with no focus target and the user has to mash Menu to
     /// get back to the detail screen they came from.
     var onPlaybackReachedEnd: (() -> Void)?
+
+    /// Fires once after `engine.load` returns with the native AVPlayer
+    /// instance ready. The host (`PlayerHostController`) uses this to
+    /// hand the player to its AVPlayerViewController so AVKit can take
+    /// over the chrome + Now Playing integration.
+    var onAVPlayerReady: ((AVPlayer) -> Void)?
     var isCountdownActive = false
     var nextEpisodeTimer: Task<Void, Never>?
     var hasFetchedNextEpisode = false
@@ -339,6 +345,12 @@ final class PlayerViewModel {
                 startPosition: startPos,
                 options: LoadOptions()
             )
+
+            // Hand the engine's AVPlayer to the host so AVPlayerViewController
+            // can take over the chrome + Now Playing surface.
+            if let avPlayer = player.currentAVPlayer {
+                onAVPlayerReady?(avPlayer)
+            }
 
             totalTime = formatSeconds(effectiveDuration)
             // Audio track priority: preferred language → stream default → first.
