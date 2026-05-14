@@ -65,8 +65,13 @@ extension PlayerViewModel {
         session.becomeActiveIfPossible { _ in /* result not actionable */ }
 
         bindRemoteCommands(session: session)
-
-        Task { [weak self] in await self?.publishStaticOnceAfterSettle() }
+        // publishStaticOnceAfterSettle() removed: even with a 2 s
+        // settle delay the single MPNowPlayingInfoCenter write trips
+        // the tvOS 26 libdispatch assert in MediaPlayer when paired
+        // with our HLS-loopback AVPlayer. The session's auto-publish
+        // alone gives us progress / pause state; static title +
+        // artwork require either AVPlayerViewController migration or
+        // accepting the gap.
     }
 
     func refreshNowPlayingProgress() {
