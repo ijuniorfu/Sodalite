@@ -132,22 +132,25 @@ final class PlayerHostController: UIViewController {
         aetherView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         viewModel.player.bind(view: aetherView)
 
-        // Hidden Now-Playing proxy. AVPlayerViewController needs to be
-        // in the view hierarchy for AVKit to activate its system Now
-        // Playing integration, but we don't want its chrome visible —
-        // our custom TransportBar owns the player UI. Mount it 1x1 in
-        // the corner, behind aetherView, with no user interaction.
-        // viewModel.onAVPlayerReady hands it the AVPlayer once the
-        // engine has it; AVKit reads externalMetadata from the
-        // AVPlayerItem and publishes the system Now Playing surface
-        // automatically.
+        // Now-Playing proxy. AVPlayerViewController needs to be in the
+        // view hierarchy AND its view needs to claim real screen
+        // estate for AVKit to consider it the active player and
+        // activate Now Playing integration — 1x1 / alpha=0 in the
+        // first attempt was too unobtrusive, AVKit ignored it.
+        // Mount it full-size behind aetherView; aetherView (which
+        // is also full-size and renders the engine's own AVPlayerLayer)
+        // covers the proxy's video output completely, and we disable
+        // user interaction so the proxy's chrome gesture recognizers
+        // can't reach the screen. Our custom TransportBar renders
+        // on top of aetherView via the SwiftUI overlay.
         addChild(nowPlayingProxy)
         view.insertSubview(nowPlayingProxy.view, belowSubview: aetherView)
-        nowPlayingProxy.view.frame = CGRect(x: 0, y: 0, width: 1, height: 1)
+        nowPlayingProxy.view.frame = view.bounds
+        nowPlayingProxy.view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         nowPlayingProxy.view.isUserInteractionEnabled = false
-        nowPlayingProxy.view.alpha = 0
         nowPlayingProxy.didMove(toParent: self)
         viewModel.onAVPlayerReady = { [weak self] avPlayer in
+            avPlayer.allowsExternalPlayback = true
             self?.nowPlayingProxy.player = avPlayer
         }
 
