@@ -73,44 +73,38 @@ final class PlayerLauncherHostVC: UIViewController {
 /// This is critical: UIKit modals allow UITapGestureRecognizer to intercept
 /// the Menu button, while SwiftUI fullScreenCover steals it at the
 /// presentation level.
-/// Full-screen video player. Subclasses `AVPlayerViewController` so we
-/// inherit Apple's native tvOS player chrome (transport bar, scrubber,
-/// audio / subtitle / speed pickers, system info panel) along with the
-/// automatic `MPNowPlayingInfoCenter` integration that's gated behind
-/// AVKit on tvOS. Custom SwiftUI overlays (next-episode countdown,
-/// subtitle rendering for sidecar SRT, diagnostic log, error banner)
-/// layer over `contentOverlayView` so they sit between the video and
-/// AVKit's chrome.
-///
-/// Presented via UIKit `present(_:animated:)`, NOT SwiftUI
-/// `fullScreenCover`, so the Menu button delivery via
-/// `pressesBegan` still works for AVKit's own dismissal handling.
 @MainActor
-final class PlayerHostController: AVPlayerViewController {
+final class PlayerHostController: UIViewController {
     private let viewModel: PlayerViewModel
     private let tintColor: Color?
     private let onDismiss: () -> Void
 
     private var hasLaunched = false
 
+    /// Engine-owned render surface. The engine attaches its active
+    /// CALayer (AVPlayerLayer for native sessions; AVSampleBufferDisplay
+    /// Layer for legacy aether sessions) and swaps internally on
+    /// session changes. No layer mounting on this side anymore.
+    private let aetherView = AetherPlayerView()
+
+    /// Hidden `AVPlayerViewController` mounted as a child VC purely to
+    /// hand AVKit the active AVPlayer so the system Now Playing surface
+    /// (iPhone Lock-Screen / Control Center widget, HomePod, Siri) gets
+    /// populated. Its `view` is sized 1x1 and clamped behind everything;
+    /// AVKit's chrome never reaches the screen, but the controller is
+    /// alive in the responder chain so its internal Now-Playing
+    /// integration registers normally. Disney+ / Netflix-style pattern
+    /// for custom UI + free Now Playing integration.
+    private let nowPlayingProxy = AVPlayerViewController()
+
     /// True only between `didEnterBackground` and the next
     /// `didBecomeActive`. The Apple TV app switcher (double Home)
     /// fires `willResignActive` but NOT `didEnterBackground`, so it
     /// leaves this false, and we use that signal to skip the
-    /// reload-and-pause routine.
+    /// reload-and-pause routine. Pure full-background returns
+    /// (Home button, screensaver, AirPlay nag handing focus away)
+    /// keep the existing pause-on-resume behaviour.
     private var wasFullyBackgrounded = false
-
-    /// Child host for the SwiftUI overlays we still own (next-episode
-    /// countdown, sidecar SRT subtitle layer, diagnostic log, error
-    /// banner). Mounted into `contentOverlayView`, non-interactive.
-    private var overlayHost: UIViewController?
-
-    /// Separate host for the interactive Skip Intro button. Sized to
-    /// just the button's intrinsic dimensions and pinned to the
-    /// bottom-right corner so it doesn't intercept Siri-Remote
-    /// touches outside the button bounds. AVKit's chrome and our
-    /// button coexist in the focus engine.
-    private var skipIntroHost: UIViewController?
 
     init(
         viewModel: PlayerViewModel,
@@ -129,19 +123,49 @@ final class PlayerHostController: AVPlayerViewController {
         super.viewDidLoad()
         view.backgroundColor = .black
 
-        // The engine creates the AVPlayer inside `engine.load(url:)`;
-        // that finishes asynchronously after `startPlayback` runs.
-        // The viewmodel signals us via `onAVPlayerReady` when the
-        // player is available, and we hand it to AVKit. Until then
-        // AVPlayerViewController shows its native loading spinner.
+        // Engine-owned render surface. AetherPlayerView holds whichever
+        // CALayer the engine has active and swaps internally on session
+        // changes, so this side just mounts the view once and tells the
+        // engine which surface to drive.
+        view.addSubview(aetherView)
+        aetherView.frame = view.bounds
+        aetherView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        viewModel.player.bind(view: aetherView)
+
+        // Hidden Now-Playing proxy. AVPlayerViewController needs to be
+        // in the view hierarchy for AVKit to activate its system Now
+        // Playing integration, but we don't want its chrome visible —
+        // our custom TransportBar owns the player UI. Mount it 1x1 in
+        // the corner, behind aetherView, with no user interaction.
+        // viewModel.onAVPlayerReady hands it the AVPlayer once the
+        // engine has it; AVKit reads externalMetadata from the
+        // AVPlayerItem and publishes the system Now Playing surface
+        // automatically.
+        addChild(nowPlayingProxy)
+        view.insertSubview(nowPlayingProxy.view, belowSubview: aetherView)
+        nowPlayingProxy.view.frame = CGRect(x: 0, y: 0, width: 1, height: 1)
+        nowPlayingProxy.view.isUserInteractionEnabled = false
+        nowPlayingProxy.view.alpha = 0
+        nowPlayingProxy.didMove(toParent: self)
         viewModel.onAVPlayerReady = { [weak self] avPlayer in
-            self?.player = avPlayer
+            self?.nowPlayingProxy.player = avPlayer
         }
 
         // End-of-content auto-dismiss: a movie or the last episode of
         // a series rolling its credits leaves a black-screen-with-no-
-        // focus state behind. Suppressed in diagnostic builds so the
-        // log overlay stays readable after a failed-start session.
+        // focus state behind. Route it through the same dismissPlayer
+        // path the Menu button uses so the user lands back on the
+        // detail view they came from.
+        //
+        // Suppressed in diagnostic builds (DEBUG / TestFlight) so the
+        // log overlay remains readable after a failed-start session.
+        // Without this, a session that errors out within a second of
+        // launch dismisses the player before the tester can screenshot
+        // the diagnostic overlay (DrHurt: "Error messages literally
+        // flash for less than 1 sec before going back to movie info
+        // screen"). Menu still dismisses manually. App Store builds
+        // keep the auto-dismiss so end users aren't stranded on a
+        // black screen.
         viewModel.onPlaybackReachedEnd = { [weak self] in
             Task { @MainActor in
                 guard !LogTap.isDiagnosticBuild else { return }
@@ -149,29 +173,9 @@ final class PlayerHostController: AVPlayerViewController {
             }
         }
 
-        // Skip-Intro button via a dedicated SwiftUI host that's sized
-        // to just the button bounds and stays visible regardless of
-        // whether AVKit's chrome is up. `contextualActions` was the
-        // alternative path but it (a) only shows when chrome is
-        // visible and (b) truncates long localized strings like the
-        // German "Intro überspringen".
-        viewModel.onIntroStateChanged = { [weak self] inside in
-            guard let self else { return }
-            self.skipIntroHost?.view.isHidden = !inside
-            // Force tvOS's focus engine to re-evaluate when the
-            // button appears / disappears. Without this, AVKit's
-            // chrome (even hidden) holds focus and the Select press
-            // never reaches the button.
-            self.setNeedsFocusUpdate()
-            self.updateFocusIfNeeded()
-        }
-        mountSkipIntroButton()
-
-        // SwiftUI overlays for the bits AVKit doesn't cover: subtitle
-        // rendering for sidecar SRT, the next-episode countdown, the
-        // diagnostic log overlay (DEBUG / TestFlight), and the error
-        // banner. Mounted into `contentOverlayView` so AVKit's chrome
-        // can still draw on top.
+        // SwiftUI overlays (display-only). `.tint(...)` has to be
+        // applied here because this hosted view lives in a UIKit modal,
+        // the WindowGroup tint set on SodaliteApp never reaches it.
         let overlay = PlayerOverlayView(
             viewModel: viewModel,
             onDismiss: { [weak self] in self?.dismissPlayer() }
@@ -181,26 +185,35 @@ final class PlayerHostController: AVPlayerViewController {
         hosting.view.backgroundColor = .clear
         hosting.view.isUserInteractionEnabled = false
         addChild(hosting)
-        let host = contentOverlayView ?? view!
-        host.addSubview(hosting.view)
-        hosting.view.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            hosting.view.leadingAnchor.constraint(equalTo: host.leadingAnchor),
-            hosting.view.trailingAnchor.constraint(equalTo: host.trailingAnchor),
-            hosting.view.topAnchor.constraint(equalTo: host.topAnchor),
-            hosting.view.bottomAnchor.constraint(equalTo: host.bottomAnchor),
-        ])
+        view.addSubview(hosting.view)
+        hosting.view.frame = view.bounds
+        hosting.view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         hosting.didMove(toParent: self)
-        overlayHost = hosting
 
-        // Background / foreground observers. AVKit pauses on background
-        // automatically but the engine's HLS demuxer dies in suspension
-        // (VT + AVIO drop), so we reload from the current position when
-        // the app comes back.
+        // Gesture recognizers for ALL buttons including Menu
+        addPressGesture(.select, action: #selector(selectPressed))
+        addPressGesture(.playPause, action: #selector(playPausePressed))
+        addPressGesture(.menu, action: #selector(menuPressed))
+        addPressGesture(.leftArrow, action: #selector(leftPressed))
+        addPressGesture(.rightArrow, action: #selector(rightPressed))
+        addPressGesture(.upArrow, action: #selector(upPressed))
+        addPressGesture(.downArrow, action: #selector(downPressed))
+
+        // Touchpad pan gesture
+        let pan = UIPanGestureRecognizer(target: self, action: #selector(handlePan(_:)))
+        pan.allowedTouchTypes = [NSNumber(value: UITouch.TouchType.indirect.rawValue)]
+        view.addGestureRecognizer(pan)
+
+        // Background → engine stops demux loop (VT + AVIO die in suspension)
+        // Foreground → reload pipeline at current position
         NotificationCenter.default.addObserver(
             self, selector: #selector(appDidBecomeActive),
             name: UIApplication.didBecomeActiveNotification, object: nil
         )
+        // Distinguishes a real background trip (Home button, sleep,
+        // screensaver wake) from a transient inactive state like
+        // the Apple TV app switcher. didEnterBackground only fires
+        // for the former.
         NotificationCenter.default.addObserver(
             self, selector: #selector(appDidEnterBackground),
             name: UIApplication.didEnterBackgroundNotification, object: nil
@@ -209,22 +222,31 @@ final class PlayerHostController: AVPlayerViewController {
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        // Kick off playback as the modal *starts* appearing so the
-        // engine's load() overlaps with the present + layout sequence.
+        // Kick off playback as the modal *starts* appearing instead of
+        // waiting for the appear animation to fully complete. The
+        // present() call uses animated:false so the gap is small, but
+        // every ms of network/demuxer work that overlaps with the
+        // present-then-layout sequence is one ms the user doesn't
+        // wait at the end.
         guard !hasLaunched else { return }
         hasLaunched = true
         Task { await viewModel.startPlayback() }
     }
 
+    private func addPressGesture(_ type: UIPress.PressType, action: Selector) {
+        let tap = UITapGestureRecognizer(target: self, action: action)
+        tap.allowedPressTypes = [NSNumber(value: type.rawValue)]
+        view.addGestureRecognizer(tap)
+    }
+
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         // Only stop playback if the VC is actually being dismissed.
-        // Display mode switches (HDR / SDR) briefly trigger
-        // viewWillDisappear without actually dismissing; don't kill
-        // playback for that.
+        // Display mode switches (HDR/SDR) briefly trigger viewWillDisappear
+        // without actually dismissing, don't kill playback for that.
         guard isBeingDismissed || isMovingFromParent else { return }
+        viewModel.player.unbind(view: aetherView)
         Task { await viewModel.stopPlayback() }
-        onDismiss()
     }
 
     @objc private func appDidEnterBackground() {
@@ -233,107 +255,491 @@ final class PlayerHostController: AVPlayerViewController {
 
     @objc private func appDidBecomeActive() {
         guard viewModel.hasStartedPlaying else { return }
-        // App switcher (double Home, swipe between recents) lands here
-        // without ever firing didEnterBackground. Skip the reload.
+
+        // App switcher (double Home, swipe between recents) lands
+        // here without ever firing didEnterBackground. The decoder
+        // sessions are still alive, the audio is still synced, so
+        // there's nothing to rebuild and nothing to pause, let
+        // playback continue uninterrupted.
         guard wasFullyBackgrounded else { return }
         wasFullyBackgrounded = false
 
         // tvOS deactivates the app's AVAudioSession on background.
-        // Without explicit re-activation here, the post-reload
-        // pause / resume sequence drives an audio renderer with no
-        // live session and the user gets stuck on a frozen frame.
+        // Without an explicit re-activation here, the post-reload
+        // pause()/resume() sequence drives a synchronizer whose
+        // audio renderer has no live session to push samples
+        // through, the user pressed Play, the state machine
+        // flipped to .playing, but no audio came out and no
+        // frames advanced. Re-arming the session before the
+        // pipeline rebuild fixes it.
         try? AVAudioSession.sharedInstance().setActive(true)
 
-        // VT + AVIO sessions are dead, reload the pipeline at the
-        // current position. After the reload, hold the player paused
-        // so the user has to press Play deliberately.
+        // Real background return: VT + AVIO sessions are dead, so
+        // reload the pipeline from the current position. After the
+        // reload, hold the player paused on the resumed frame and
+        // surface the controls so the user has to press Play
+        // deliberately, auto-resuming after a sleep / Home /
+        // screensaver gap is startling.
+        //
+        // No artificial settle delay needed any more, AetherEngine's
+        // load() now blocks until audio is genuinely flowing through
+        // the pipeline (or 2s timeout) before resuming the caller,
+        // so pause() right after has a fully wired-up synchronizer
+        // to operate on.
         Task { @MainActor in
             try? await viewModel.player.reloadAtCurrentPosition()
             viewModel.player.pause()
+            viewModel.showControlsTemporarily()
         }
     }
 
-    /// Direct the focus engine at the Skip Intro button while it's
-    /// showing. AVKit's chrome holds focus by default; without this
-    /// override Select presses get swallowed by hidden chrome controls
-    /// and never reach our SwiftUI button.
-    override var preferredFocusEnvironments: [UIFocusEnvironment] {
-        if let host = skipIntroHost, !host.view.isHidden {
-            return [host.view]
+    // MARK: - Press Handlers (state machine)
+
+    @objc private func selectPressed() {
+        // Skip Intro takes priority over any transient scrub state.
+        // The Siri Remote touchpad reports a tiny pan in the milliseconds
+        // before its click registers, easily past the 40pt scrub
+        // threshold, which flips both showControls and isScrubbing
+        // true. Without this guard the user's tap to dismiss the intro
+        // would land in the commit-scrub branch and reopen the player
+        // UI instead of skipping. The hint overlay only shows when
+        // controls are hidden + the dropdown is closed, so we use the
+        // same gate to detect "user clearly intends Skip Intro" and
+        // discard the bogus partial scrub before acting.
+        if viewModel.isInsideIntro && !viewModel.isDropdownOpen
+           && (!viewModel.showControls || viewModel.controlsFocus == .progressBar) {
+            if viewModel.isScrubbing { viewModel.cancelScrub() }
+            viewModel.skipIntro()
+            return
         }
-        return super.preferredFocusEnvironments
+
+        // Next-episode commandeers Select only when the transport is
+        // hidden, otherwise the user is interacting with the control
+        // overlay (scrubbing, picking a track) and a surprise next
+        // would be destructive.
+        if !viewModel.showControls && !viewModel.isDropdownOpen {
+            if viewModel.showNextEpisodeOverlay {
+                Task { await viewModel.playNextEpisode() }
+                return
+            }
+        }
+        if viewModel.isDropdownOpen {
+            confirmDropdownSelection()
+        } else if viewModel.showControls && viewModel.controlsFocus != .progressBar {
+            switch viewModel.controlsFocus {
+            case .skipIntroButton: viewModel.skipIntro()
+            case .chapterButton: openChapterDropdown()
+            case .episodeButton: openEpisodeDropdown()
+            case .audioButton: openAudioDropdown()
+            case .subtitleButton: openSubtitleDropdown()
+            case .speedButton: openSpeedDropdown()
+            case .pictureButton: openPictureDropdown()
+            default: break
+            }
+        } else if viewModel.isScrubbing {
+            viewModel.commitScrub()
+        } else if viewModel.showControls {
+            viewModel.togglePlayPause()
+        } else {
+            viewModel.showControlsTemporarily()
+        }
+    }
+
+    @objc private func playPausePressed() {
+        viewModel.togglePlayPause()
+    }
+
+    @objc private func menuPressed() {
+        // Cancelling the next-episode countdown only hijacks Menu when
+        // the transport is hidden. With controls open, Menu behaves
+        // normally (close dropdown → abort scrub → step focus → hide
+        // controls) and the countdown keeps running in the corner.
+        if viewModel.showNextEpisodeOverlay && !viewModel.showControls && !viewModel.isDropdownOpen {
+            viewModel.cancelNextEpisode()
+            return
+        }
+        if viewModel.isDropdownOpen {
+            viewModel.trackDropdown = .none
+            viewModel.scheduleControlsHide()
+        } else if viewModel.isScrubbing {
+            viewModel.cancelScrub()
+        } else if viewModel.showControls {
+            if viewModel.controlsFocus != .progressBar {
+                viewModel.controlsFocus = .progressBar
+            } else {
+                viewModel.hideControls()
+            }
+        } else {
+            dismissPlayer()
+        }
+    }
+
+    @objc private func leftPressed() {
+        if viewModel.isDropdownOpen { return }
+        if viewModel.showControls && viewModel.controlsFocus != .progressBar {
+            stepTransportFocus(direction: -1)
+            viewModel.scheduleControlsHide()
+        } else {
+            viewModel.seekJumpByConfiguredInterval(direction: -1)
+        }
+    }
+
+    @objc private func rightPressed() {
+        if viewModel.isDropdownOpen { return }
+        if viewModel.showControls && viewModel.controlsFocus != .progressBar {
+            stepTransportFocus(direction: 1)
+            viewModel.scheduleControlsHide()
+        } else {
+            viewModel.seekJumpByConfiguredInterval(direction: 1)
+        }
+    }
+
+    /// Move focus one step through the available transport buttons.
+    /// Builds the list dynamically so a stream without audio or subtitle
+    /// tracks still leaves speed reachable without dead stops.
+    private func stepTransportFocus(direction: Int) {
+        var order: [PlayerViewModel.ControlsFocus] = []
+        if viewModel.isInsideIntro { order.append(.skipIntroButton) }
+        if viewModel.seasonEpisodes.count > 1 { order.append(.episodeButton) }
+        // Mirror TransportBar's chapter-button visibility gate, same
+        // "hide on series episodes" rule, otherwise focus could land on
+        // a button that isn't being rendered.
+        if viewModel.chapters.count > 1, viewModel.seasonEpisodes.count <= 1 {
+            order.append(.chapterButton)
+        }
+        if !viewModel.player.audioTracks.isEmpty { order.append(.audioButton) }
+        if !viewModel.subtitleStreams.isEmpty { order.append(.subtitleButton) }
+        order.append(.speedButton)
+        order.append(.pictureButton)
+        guard let current = order.firstIndex(of: viewModel.controlsFocus) else { return }
+        let next = current + direction
+        if next >= 0 && next < order.count {
+            viewModel.controlsFocus = order[next]
+        }
+    }
+
+    @objc private func upPressed() {
+        if viewModel.isDropdownOpen {
+            moveDropdownHighlight(by: -1)
+        } else if viewModel.showControls {
+            switch viewModel.controlsFocus {
+            case .progressBar:
+                // Preserve scrub state, user can confirm/cancel when returning
+                let hasAudio = !viewModel.player.audioTracks.isEmpty
+                let hasSubs = !viewModel.subtitleStreams.isEmpty
+                let hasEpisodes = viewModel.seasonEpisodes.count > 1
+                // Mirror the TransportBar visibility gate, chapter
+                // button is suppressed for series episodes.
+                let hasChapters = viewModel.chapters.count > 1 && !hasEpisodes
+                if viewModel.isInsideIntro { viewModel.controlsFocus = .skipIntroButton }
+                else if hasEpisodes { viewModel.controlsFocus = .episodeButton }
+                else if hasChapters { viewModel.controlsFocus = .chapterButton }
+                else if hasAudio { viewModel.controlsFocus = .audioButton }
+                else if hasSubs { viewModel.controlsFocus = .subtitleButton }
+                else { viewModel.controlsFocus = .speedButton }
+                viewModel.scheduleControlsHide()
+            case .skipIntroButton, .chapterButton, .episodeButton, .audioButton, .subtitleButton, .speedButton, .pictureButton:
+                viewModel.scheduleControlsHide()
+            }
+        } else {
+            viewModel.showControlsTemporarily()
+        }
+    }
+
+    @objc private func downPressed() {
+        if viewModel.isDropdownOpen {
+            moveDropdownHighlight(by: 1)
+        } else if viewModel.showControls {
+            if viewModel.controlsFocus != .progressBar {
+                viewModel.controlsFocus = .progressBar
+                viewModel.scheduleControlsHide()
+            } else {
+                viewModel.hideControls()
+            }
+        } else {
+            viewModel.showControlsTemporarily()
+        }
+    }
+
+    // MARK: - Dropdown Logic
+
+    private func openEpisodeDropdown() {
+        let episodes = viewModel.seasonEpisodes
+        guard episodes.count > 1 else { return }
+        viewModel.controlsTimer?.cancel()
+        // Default to the active episode so the highlight starts on
+        // the row the user is already watching, matching the audio
+        // and speed dropdown behaviour.
+        let currentIdx = episodes.firstIndex(where: { $0.id == viewModel.item.id }) ?? 0
+        viewModel.trackDropdown = .episode(highlighted: currentIdx)
+    }
+
+    private func openChapterDropdown() {
+        let chapters = viewModel.chapters
+        guard chapters.count > 1 else { return }
+        viewModel.controlsTimer?.cancel()
+        // Default to the chapter currently playing so the user lands
+        // on a row that matches the on-screen content rather than
+        // having to scroll to find it.
+        let nowSeconds = viewModel.player.currentTime
+        var currentIdx = 0
+        for (i, chapter) in chapters.enumerated() {
+            if chapter.startSeconds <= nowSeconds + 0.001 {
+                currentIdx = i
+            } else {
+                break
+            }
+        }
+        viewModel.trackDropdown = .chapter(highlighted: currentIdx)
+    }
+
+    private func openAudioDropdown() {
+        let tracks = viewModel.player.audioTracks
+        guard !tracks.isEmpty else { return }
+        viewModel.controlsTimer?.cancel()
+        let currentIdx = tracks.firstIndex(where: { $0.id == viewModel.activeAudioIndex }) ?? 0
+        viewModel.trackDropdown = .audio(highlighted: currentIdx)
+    }
+
+    private func openSubtitleDropdown() {
+        viewModel.controlsTimer?.cancel()
+        // Items: Off (index 0), then each subtitle stream (index 1...)
+        let currentIdx: Int
+        if let activeId = viewModel.activeSubtitleIndex,
+           let streamIdx = viewModel.subtitleStreams.firstIndex(where: { $0.index == activeId }) {
+            currentIdx = streamIdx + 1
+        } else {
+            currentIdx = 0
+        }
+        viewModel.trackDropdown = .subtitle(highlighted: currentIdx)
+    }
+
+    private func openSpeedDropdown() {
+        viewModel.controlsTimer?.cancel()
+        viewModel.trackDropdown = .speed(highlighted: viewModel.activeSpeedIndex)
+    }
+
+    private func openPictureDropdown() {
+        viewModel.controlsTimer?.cancel()
+        let modes = PlaybackPreferences.PictureMode.allCases
+        let currentIdx = modes.firstIndex(of: viewModel.pictureMode) ?? 0
+        viewModel.trackDropdown = .picture(highlighted: currentIdx)
+    }
+
+    private func moveDropdownHighlight(by offset: Int) {
+        switch viewModel.trackDropdown {
+        case .chapter(let idx):
+            let count = viewModel.chapters.count
+            guard count > 0 else { return }
+            let newIdx = max(0, min(count - 1, idx + offset))
+            viewModel.trackDropdown = .chapter(highlighted: newIdx)
+        case .episode(let idx):
+            let count = viewModel.seasonEpisodes.count
+            guard count > 0 else { return }
+            let newIdx = max(0, min(count - 1, idx + offset))
+            viewModel.trackDropdown = .episode(highlighted: newIdx)
+        case .audio(let idx):
+            let count = viewModel.player.audioTracks.count
+            guard count > 0 else { return }
+            let newIdx = max(0, min(count - 1, idx + offset))
+            viewModel.trackDropdown = .audio(highlighted: newIdx)
+        case .subtitle(let idx):
+            let count = viewModel.subtitleStreams.count + 1 // +1 for "Off"
+            guard count > 0 else { return }
+            let newIdx = max(0, min(count - 1, idx + offset))
+            viewModel.trackDropdown = .subtitle(highlighted: newIdx)
+        case .speed(let idx):
+            let count = PlayerViewModel.speedOptions.count
+            let newIdx = max(0, min(count - 1, idx + offset))
+            viewModel.trackDropdown = .speed(highlighted: newIdx)
+        case .picture(let idx):
+            let count = PlaybackPreferences.PictureMode.allCases.count
+            let newIdx = max(0, min(count - 1, idx + offset))
+            viewModel.trackDropdown = .picture(highlighted: newIdx)
+        case .none:
+            break
+        }
+    }
+
+    private func confirmDropdownSelection() {
+        switch viewModel.trackDropdown {
+        case .chapter(let idx):
+            viewModel.selectChapter(at: idx)
+            viewModel.trackDropdown = .none
+            viewModel.scheduleControlsHide()
+        case .episode(let idx):
+            viewModel.trackDropdown = .none
+            // Hand the actual switch off to a Task, selectEpisode tears
+            // down the existing playback session and starts a fresh one
+            // (network roundtrip + decoder restart). We don't want the
+            // confirm-button press to block the main thread on that.
+            Task { await viewModel.selectEpisode(at: idx) }
+        case .audio(let idx):
+            let tracks = viewModel.player.audioTracks
+            if idx < tracks.count {
+                viewModel.selectAudioTrack(id: tracks[idx].id)
+            }
+            viewModel.trackDropdown = .none
+            viewModel.scheduleControlsHide()
+        case .subtitle(let idx):
+            if idx == 0 {
+                viewModel.selectSubtitleTrack(id: nil)
+            } else {
+                let streams = viewModel.subtitleStreams
+                let streamIdx = idx - 1
+                if streamIdx < streams.count {
+                    viewModel.selectSubtitleTrack(id: streams[streamIdx].index)
+                }
+            }
+            viewModel.trackDropdown = .none
+            viewModel.scheduleControlsHide()
+        case .speed(let idx):
+            viewModel.selectSpeed(index: idx)
+            viewModel.trackDropdown = .none
+            viewModel.scheduleControlsHide()
+        case .picture(let idx):
+            let modes = PlaybackPreferences.PictureMode.allCases
+            if modes.indices.contains(idx) {
+                viewModel.selectPictureMode(modes[idx])
+            }
+            viewModel.trackDropdown = .none
+            viewModel.scheduleControlsHide()
+        case .none:
+            break
+        }
     }
 
     private func dismissPlayer() {
-        // Triggers the launcher's onDismiss closure, which calls
-        // host.dismiss(...) on PlayerLauncherHostVC and updates the
-        // SwiftUI binding. AVKit's own Menu-button dismissal goes
-        // through viewWillDisappear instead.
-        onDismiss()
-    }
-
-    /// Mount the interactive Skip Intro button as its own
-    /// `UIHostingController`. Sized to its intrinsic content
-    /// (avoiding a full-screen interactive overlay that would swallow
-    /// Siri-Remote gestures intended for AVKit) and pinned bottom-right.
-    /// Visibility is toggled by `viewModel.onIntroStateChanged` flipping
-    /// the host view's `isHidden` flag.
-    private func mountSkipIntroButton() {
-        let buttonView = SkipIntroButton {
-            [weak self] in self?.viewModel.skipIntro()
+        viewModel.player.unbind(view: aetherView)
+        Task {
+            await viewModel.stopPlayback()
+            onDismiss()
         }
-        let host = UIHostingController(rootView: buttonView)
-        host.view.backgroundColor = .clear
-        host.view.isUserInteractionEnabled = true
-        host.view.isHidden = true   // starts hidden until intro range
-        addChild(host)
-        let parent = contentOverlayView ?? view!
-        parent.addSubview(host.view)
-        host.view.translatesAutoresizingMaskIntoConstraints = false
-        // Position above AVKit's chrome (chrome takes ~200pt at the
-        // bottom). At -80 from bottom the button sits inside the
-        // chrome gradient and the two backgrounds collide visually
-        // ("abgeschnitten" appearance). -260 puts it cleanly above
-        // the chrome's title / progress / time row.
-        NSLayoutConstraint.activate([
-            host.view.trailingAnchor.constraint(equalTo: parent.trailingAnchor, constant: -80),
-            host.view.bottomAnchor.constraint(equalTo: parent.bottomAnchor, constant: -260),
-        ])
-        host.didMove(toParent: self)
-        skipIntroHost = host
     }
-}
 
-/// Skip Intro overlay button. Uses SwiftUI's native focus system so
-/// it integrates with tvOS's focus engine — the Siri Remote will
-/// route to it the same way it routes to AVKit's chrome buttons.
-private struct SkipIntroButton: View {
-    let action: () -> Void
+    // MARK: - Pan (Touchpad Scrubbing)
 
-    var body: some View {
-        Button(action: action) {
-            HStack(spacing: 10) {
-                Image(systemName: "forward.end.fill")
-                    .font(.body)
-                Text("player.skipIntro", bundle: .main)
-                    .font(.body)
-                    .fontWeight(.semibold)
+    private enum PanAxis { case undetermined, horizontal, vertical }
+
+    private var lastDropdownStep: CGFloat = 0
+    private var panAxis: PanAxis = .undetermined
+    private var verticalStepFired = false
+    private var horizontalStepFired = false
+
+    /// Travel (pt) before we commit a pan to one axis. Low enough to
+    /// feel responsive, high enough that a slightly-diagonal horizontal
+    /// swipe doesn't accidentally trigger vertical navigation.
+    private static let panAxisCommitThreshold: CGFloat = 40
+    /// Travel (pt) on the committed vertical axis before we fire an
+    /// up/down, one fire per gesture, matching the single-shot feel
+    /// of pressing the arrow keys.
+    private static let verticalFireThreshold: CGFloat = 150
+    /// Travel (pt) on a horizontal swipe before we fire left/right when
+    /// the swipe is being used for transport-button navigation rather
+    /// than scrubbing, same single-shot behaviour as vertical.
+    private static let horizontalFireThreshold: CGFloat = 150
+    /// Minimum velocity (pt/s) for a step-firing pan to count as an
+    /// intentional swipe. The Siri Remote's touchpad reports tiny
+    /// finger drift while the user is just resting their finger before
+    /// a click, over a second or two that drift can accumulate past
+    /// the distance threshold above and steal focus to the wrong
+    /// button. Requiring velocity as well filters out the slow drift
+    /// case while still letting any real swipe through (typical
+    /// directional swipes are well above 1000 pt/s).
+    private static let stepMinVelocity: CGFloat = 400
+
+    @objc private func handlePan(_ gesture: UIPanGestureRecognizer) {
+        if viewModel.isDropdownOpen {
+            // Vertical swipe navigates dropdown items.
+            // Uses total translation divided into steps, each 120pt of
+            // cumulative movement = one item. Prevents over-scrolling
+            // on fast swipes.
+            switch gesture.state {
+            case .began:
+                lastDropdownStep = 0
+            case .changed:
+                let ty = gesture.translation(in: view).y
+                let stepSize: CGFloat = 120
+                let currentStep = (ty / stepSize).rounded(.towardZero)
+                if currentStep != lastDropdownStep {
+                    let steps = Int(currentStep - lastDropdownStep)
+                    moveDropdownHighlight(by: steps)
+                    lastDropdownStep = currentStep
+                }
+            case .ended, .cancelled:
+                lastDropdownStep = 0
+            default:
+                break
             }
-            .foregroundStyle(.white)
-            .padding(.horizontal, 28)
-            .padding(.vertical, 14)
-            .background(
-                Capsule()
-                    .fill(.ultraThinMaterial)
-                    .environment(\.colorScheme, .dark)
-            )
-            .overlay(
-                Capsule()
-                    .strokeBorder(.white.opacity(0.35), lineWidth: 1)
-            )
-            .shadow(color: .black.opacity(0.45), radius: 14, y: 6)
+            return
         }
-        .buttonStyle(.plain)
+
+        // Lock the pan to a dominant axis on first meaningful movement
+        // and then act accordingly. Vertical is always arrow-key-style
+        // navigation. Horizontal is *conditional*:
+        //   - progress bar focused, or controls hidden → scrub timeline
+        //   - any other transport control focused → single-shot
+        //     left/right navigation between control buttons
+        // This lets users swipe between Skip Intro / Audio / Subs /
+        // Speed without the pan being interpreted as a scrub.
+        let horizontalScrubs =
+            !viewModel.showControls
+            || viewModel.controlsFocus == .progressBar
+
+        switch gesture.state {
+        case .began:
+            panAxis = .undetermined
+            verticalStepFired = false
+            horizontalStepFired = false
+        case .changed:
+            let t = gesture.translation(in: view)
+
+            if panAxis == .undetermined {
+                let absX = abs(t.x)
+                let absY = abs(t.y)
+                if max(absX, absY) >= Self.panAxisCommitThreshold {
+                    panAxis = absX > absY ? .horizontal : .vertical
+                }
+            }
+
+            switch panAxis {
+            case .horizontal:
+                if horizontalScrubs {
+                    let width = max(view.bounds.width, 1)
+                    viewModel.scrub(delta: t.x / width)
+                } else {
+                    let v = gesture.velocity(in: view)
+                    guard !horizontalStepFired,
+                          abs(t.x) >= Self.horizontalFireThreshold,
+                          abs(v.x) >= Self.stepMinVelocity
+                    else { return }
+                    horizontalStepFired = true
+                    if t.x < 0 { leftPressed() } else { rightPressed() }
+                }
+            case .vertical:
+                let v = gesture.velocity(in: view)
+                guard !verticalStepFired,
+                      abs(t.y) >= Self.verticalFireThreshold,
+                      abs(v.y) >= Self.stepMinVelocity
+                else { return }
+                verticalStepFired = true
+                if t.y < 0 { upPressed() } else { downPressed() }
+            case .undetermined:
+                break
+            }
+        case .ended, .cancelled:
+            // Only finalise a scrub when the pan was actually scrubbing,
+            // horizontal-into-navigation doesn't touch the timeline, so
+            // no scrubPanEnded() to commit or cancel.
+            if panAxis == .horizontal && horizontalScrubs {
+                viewModel.scrubPanEnded()
+            }
+            panAxis = .undetermined
+            verticalStepFired = false
+            horizontalStepFired = false
+        default:
+            break
+        }
     }
 }
 
@@ -356,12 +762,12 @@ private struct PlayerOverlayView: View {
                 )
             }
 
-            // AVPlayerViewController owns its own loading indicator while
-            // buffering. The custom black-with-ProgressView overlay we
-            // used pre-migration sometimes lingered past first frame
-            // (state observer's `.loading` case re-flips `isLoading`
-            // during AVPlayer's waitingToPlay → readyToPlay transitions,
-            // even after playback has visibly started), so it's gone.
+            if viewModel.isLoading {
+                Color.black
+                    .ignoresSafeArea()
+                    .overlay(ProgressView())
+                    .transition(.opacity)
+            }
 
             if let error = viewModel.errorMessage {
                 VStack(spacing: 20) {
@@ -395,16 +801,9 @@ private struct PlayerOverlayView: View {
                 .transition(.opacity)
             }
 
-            // Apple's native AVPlayerViewController chrome owns the
-            // transport bar now. The `viewModel.showControls` state
-            // is still used by the badges below as a visibility hint.
-
-            // Title in the top-left corner. AVKit shows its own title
-            // inside the bottom chrome, but only while the chrome is
-            // visible — this overlay keeps the episode / movie name
-            // anchored at the top of the screen even when the chrome
-            // hides, matching the pre-migration look.
-            topLeftTitleOverlay
+            if viewModel.showControls && !viewModel.isLoading && viewModel.errorMessage == nil {
+                controlsOverlay
+            }
 
             // Top-right info column, HDR badge (only with controls,
             // matches Apple TV's own player) and Speed badge (always
@@ -422,9 +821,15 @@ private struct PlayerOverlayView: View {
                 DiagnosticLogOverlay()
             }
 
-            // Skip Intro now lives in AVKit's `contextualActions`;
-            // PlayerHostController.updateSkipIntroAction adds the
-            // button to the player chrome when isInsideIntro flips.
+            // Floating Skip Intro hint, only while the full controls
+            // are hidden. When they open, the skip action becomes a
+            // proper focusable button inside TransportBar instead.
+            if viewModel.isInsideIntro
+                && !viewModel.showControls
+                && viewModel.errorMessage == nil
+                && !viewModel.showNextEpisodeOverlay {
+                introSkipOverlay
+            }
 
             // Next episode overlay
             if viewModel.showNextEpisodeOverlay,
@@ -577,73 +982,72 @@ private struct PlayerOverlayView: View {
         return URL(string: "\(baseURL)/Items/\(viewModel.item.id)/Images/Chapter/\(index)?tag=\(tag)&maxWidth=480&quality=80")
     }
 
+    private var controlsOverlay: some View {
+        ZStack {
+            VStack {
+                Spacer()
+                LinearGradient(
+                    colors: [.clear, .black.opacity(0.7)],
+                    startPoint: .top, endPoint: .bottom
+                )
+                .frame(height: 300)
+            }
+            .ignoresSafeArea()
+
+            VStack {
+                LinearGradient(
+                    colors: [.black.opacity(0.7), .clear],
+                    startPoint: .top, endPoint: .bottom
+                )
+                .frame(height: 200)
+                Spacer()
+            }
+            .ignoresSafeArea()
+
+            // Title (top left). HDR + Speed indicators live in a
+            // separate always-visible column so the speed badge can
+            // persist after the transport hides.
+            VStack {
+                HStack(alignment: .top) {
+                    PlayerTitleOverlay(item: viewModel.item)
+                    Spacer()
+                }
+                Spacer()
+            }
+
+            VStack {
+                Spacer()
+                TransportBar(
+                    progress: viewModel.displayedProgress,
+                    currentTime: viewModel.currentTime,
+                    remainingTime: viewModel.remainingTime,
+                    isScrubbing: viewModel.isScrubbing,
+                    scrubTime: viewModel.scrubTime,
+                    audioTracks: viewModel.player.audioTracks,
+                    subtitleStreams: viewModel.subtitleStreams,
+                    activeAudioIndex: viewModel.activeAudioIndex,
+                    activeSubtitleIndex: viewModel.activeSubtitleIndex,
+                    activeSpeedIndex: viewModel.activeSpeedIndex,
+                    controlsFocus: viewModel.controlsFocus,
+                    trackDropdown: viewModel.trackDropdown,
+                    showSkipIntroButton: viewModel.isInsideIntro,
+                    seasonEpisodes: viewModel.seasonEpisodes,
+                    activeEpisodeID: viewModel.item.id,
+                    episodeImageURL: { episodeThumbnailURL(for: $0) },
+                    chapters: viewModel.chapters,
+                    durationSeconds: viewModel.player.duration,
+                    chapterImageURL: { chapterThumbnailURL(for: $0) },
+                    pictureMode: viewModel.pictureMode
+                )
+            }
+        }
+        .transition(.opacity)
+    }
 }
 
 // MARK: - Top-Right Info Column
 
 private extension PlayerOverlayView {
-    /// Episode / movie title anchored top-left of the player view.
-    /// AVKit's own title display lives inside the bottom chrome and
-    /// only shows when the chrome is visible; this overlay keeps the
-    /// title persistently visible matching the pre-migration look.
-    /// For episodes shows "Series Name - SxEy - Episode Title", for
-    /// movies just the title.
-    var topLeftTitleOverlay: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            HStack(alignment: .top) {
-                VStack(alignment: .leading, spacing: 4) {
-                    if let line = titleLine {
-                        Text(line)
-                            .font(.title3)
-                            .fontWeight(.semibold)
-                            .foregroundStyle(.white)
-                            .shadow(color: .black.opacity(0.55), radius: 8, y: 2)
-                    }
-                    if let sub = titleSubtitleLine {
-                        Text(sub)
-                            .font(.callout)
-                            .foregroundStyle(.white.opacity(0.85))
-                            .shadow(color: .black.opacity(0.5), radius: 6, y: 2)
-                    }
-                }
-                Spacer()
-            }
-            .padding(.leading, 80)
-            .padding(.top, 68)
-            Spacer()
-        }
-        .allowsHitTesting(false)
-    }
-
-    /// Primary line. Movies / generic items show their `name` straight;
-    /// episodes show the series name so the top of the screen always
-    /// answers "what am I watching" before going into per-episode detail.
-    var titleLine: String? {
-        if viewModel.item.type == .episode, let series = viewModel.item.seriesName, !series.isEmpty {
-            return series
-        }
-        return viewModel.item.name
-    }
-
-    /// Secondary line. Episodes get "SxEy - Episode Title"; movies get
-    /// the production year (when known) so it can disambiguate remakes.
-    var titleSubtitleLine: String? {
-        if viewModel.item.type == .episode {
-            var parts: [String] = []
-            if let s = viewModel.item.parentIndexNumber, let e = viewModel.item.indexNumber {
-                parts.append("S\(s)E\(e)")
-            }
-            if !viewModel.item.name.isEmpty {
-                parts.append(viewModel.item.name)
-            }
-            return parts.isEmpty ? nil : parts.joined(separator: " · ")
-        }
-        if let year = viewModel.item.productionYear {
-            return String(year)
-        }
-        return nil
-    }
-
     /// Stack of informational badges in the top-right corner. The
     /// HDR badge follows the transport's visibility (Apple TV's own
     /// player does the same, informational, not action-required),
