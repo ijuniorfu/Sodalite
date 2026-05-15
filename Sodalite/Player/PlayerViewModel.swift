@@ -140,10 +140,12 @@ final class PlayerViewModel {
     /// tvOS surface for time-bound playback actions.
     var onIntroStateChanged: ((Bool) -> Void)?
 
-    /// Periodic time observer token for the Now Playing dynamic
-    /// patches. Held here so `teardownNowPlaying` can remove it from
-    /// the AVPlayer before the engine releases the player instance.
-    var nowPlayingTimeObserverToken: Any?
+    // (Removed: periodic time-observer token. Per Apple's NowPlayable
+    // docs, the system extrapolates elapsed time from the initial
+    // published value at the published rate. Per-tick updates are
+    // unnecessary AND they were what eventually tripped the libdispatch
+    // race in MediaPlayer on tvOS 26 — happened ~8 min into playback
+    // when the cumulative write count crossed some threshold.)
     var isCountdownActive = false
     var nextEpisodeTimer: Task<Void, Never>?
     var hasFetchedNextEpisode = false

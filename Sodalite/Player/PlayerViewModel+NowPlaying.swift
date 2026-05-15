@@ -39,16 +39,28 @@ extension PlayerViewModel {
     func configureNowPlaying() {
         bindRemoteCommands()
         publishStaticInitialInfo()
-        startNowPlayingTimeObserver()
-        Task { [weak self] in await self?.fetchAndApplyArtwork() }
+        // Artwork apply was the empirical crash trigger — happened
+        // 1-3 s into playback when AVPlayer was still in its track-load
+        // / segment-prefetch phase. Delay 30 s so the AVPlayer / HLS
+        // pipeline is fully settled before we touch nowPlayingInfo
+        // again. If the crash still fires, it's the write itself, not
+        // the timing.
+        Task { [weak self] in
+            try? await Task.sleep(for: .seconds(30))
+            await self?.fetchAndApplyArtwork()
+        }
     }
 
     func refreshNowPlayingProgress() {
-        patchDynamicNowPlaying()
+        // Empirically the per-event nowPlayingInfo patches kept tripping
+        // the libdispatch race in MediaPlayer regardless of pattern
+        // (full-replace, subscript, periodic, on-transition). Disabled
+        // until we have a way around the underlying conflict —
+        // probably needs the engine to stop using HLS-loopback or for
+        // us to migrate back to AVPlayerViewController.
     }
 
     func teardownNowPlaying() {
-        stopNowPlayingTimeObserver()
         let center = MPRemoteCommandCenter.shared()
         center.playCommand.removeTarget(nil)
         center.pauseCommand.removeTarget(nil)
@@ -107,27 +119,6 @@ extension PlayerViewModel {
         if duration > 0 {
             MPNowPlayingInfoCenter.default().nowPlayingInfo?[MPMediaItemPropertyPlaybackDuration] = duration
         }
-    }
-
-    // MARK: - Periodic time observer
-
-    /// Add a 1-Hz periodic time observer on the AVPlayer. Each tick
-    /// patches elapsed / rate via the dynamic path. Stops on teardown.
-    private func startNowPlayingTimeObserver() {
-        guard let avPlayer = player.currentAVPlayer else { return }
-        nowPlayingTimeObserverToken = avPlayer.addPeriodicTimeObserver(
-            forInterval: CMTime(seconds: 1, preferredTimescale: 600),
-            queue: .main
-        ) { [weak self] _ in
-            self?.patchDynamicNowPlaying()
-        }
-    }
-
-    private func stopNowPlayingTimeObserver() {
-        guard let avPlayer = player.currentAVPlayer,
-              let token = nowPlayingTimeObserverToken else { return }
-        avPlayer.removeTimeObserver(token)
-        nowPlayingTimeObserverToken = nil
     }
 
     // MARK: - Display strings
