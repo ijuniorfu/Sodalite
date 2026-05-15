@@ -156,7 +156,14 @@ final class PlayerHostController: AVPlayerViewController {
         // visible and (b) truncates long localized strings like the
         // German "Intro überspringen".
         viewModel.onIntroStateChanged = { [weak self] inside in
-            self?.skipIntroHost?.view.isHidden = !inside
+            guard let self else { return }
+            self.skipIntroHost?.view.isHidden = !inside
+            // Force tvOS's focus engine to re-evaluate when the
+            // button appears / disappears. Without this, AVKit's
+            // chrome (even hidden) holds focus and the Select press
+            // never reaches the button.
+            self.setNeedsFocusUpdate()
+            self.updateFocusIfNeeded()
         }
         mountSkipIntroButton()
 
@@ -246,6 +253,17 @@ final class PlayerHostController: AVPlayerViewController {
         }
     }
 
+    /// Direct the focus engine at the Skip Intro button while it's
+    /// showing. AVKit's chrome holds focus by default; without this
+    /// override Select presses get swallowed by hidden chrome controls
+    /// and never reach our SwiftUI button.
+    override var preferredFocusEnvironments: [UIFocusEnvironment] {
+        if let host = skipIntroHost, !host.view.isHidden {
+            return [host.view]
+        }
+        return super.preferredFocusEnvironments
+    }
+
     private func dismissPlayer() {
         // Triggers the launcher's onDismiss closure, which calls
         // host.dismiss(...) on PlayerLauncherHostVC and updates the
@@ -272,9 +290,14 @@ final class PlayerHostController: AVPlayerViewController {
         let parent = contentOverlayView ?? view!
         parent.addSubview(host.view)
         host.view.translatesAutoresizingMaskIntoConstraints = false
+        // Position above AVKit's chrome (chrome takes ~200pt at the
+        // bottom). At -80 from bottom the button sits inside the
+        // chrome gradient and the two backgrounds collide visually
+        // ("abgeschnitten" appearance). -260 puts it cleanly above
+        // the chrome's title / progress / time row.
         NSLayoutConstraint.activate([
             host.view.trailingAnchor.constraint(equalTo: parent.trailingAnchor, constant: -80),
-            host.view.bottomAnchor.constraint(equalTo: parent.bottomAnchor, constant: -80),
+            host.view.bottomAnchor.constraint(equalTo: parent.bottomAnchor, constant: -260),
         ])
         host.didMove(toParent: self)
         skipIntroHost = host
@@ -375,6 +398,13 @@ private struct PlayerOverlayView: View {
             // Apple's native AVPlayerViewController chrome owns the
             // transport bar now. The `viewModel.showControls` state
             // is still used by the badges below as a visibility hint.
+
+            // Title in the top-left corner. AVKit shows its own title
+            // inside the bottom chrome, but only while the chrome is
+            // visible — this overlay keeps the episode / movie name
+            // anchored at the top of the screen even when the chrome
+            // hides, matching the pre-migration look.
+            topLeftTitleOverlay
 
             // Top-right info column, HDR badge (only with controls,
             // matches Apple TV's own player) and Speed badge (always
@@ -552,6 +582,68 @@ private struct PlayerOverlayView: View {
 // MARK: - Top-Right Info Column
 
 private extension PlayerOverlayView {
+    /// Episode / movie title anchored top-left of the player view.
+    /// AVKit's own title display lives inside the bottom chrome and
+    /// only shows when the chrome is visible; this overlay keeps the
+    /// title persistently visible matching the pre-migration look.
+    /// For episodes shows "Series Name - SxEy - Episode Title", for
+    /// movies just the title.
+    var topLeftTitleOverlay: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(alignment: .top) {
+                VStack(alignment: .leading, spacing: 4) {
+                    if let line = titleLine {
+                        Text(line)
+                            .font(.title3)
+                            .fontWeight(.semibold)
+                            .foregroundStyle(.white)
+                            .shadow(color: .black.opacity(0.55), radius: 8, y: 2)
+                    }
+                    if let sub = titleSubtitleLine {
+                        Text(sub)
+                            .font(.callout)
+                            .foregroundStyle(.white.opacity(0.85))
+                            .shadow(color: .black.opacity(0.5), radius: 6, y: 2)
+                    }
+                }
+                Spacer()
+            }
+            .padding(.leading, 80)
+            .padding(.top, 68)
+            Spacer()
+        }
+        .allowsHitTesting(false)
+    }
+
+    /// Primary line. Movies / generic items show their `name` straight;
+    /// episodes show the series name so the top of the screen always
+    /// answers "what am I watching" before going into per-episode detail.
+    var titleLine: String? {
+        if viewModel.item.type == .episode, let series = viewModel.item.seriesName, !series.isEmpty {
+            return series
+        }
+        return viewModel.item.name
+    }
+
+    /// Secondary line. Episodes get "SxEy - Episode Title"; movies get
+    /// the production year (when known) so it can disambiguate remakes.
+    var titleSubtitleLine: String? {
+        if viewModel.item.type == .episode {
+            var parts: [String] = []
+            if let s = viewModel.item.parentIndexNumber, let e = viewModel.item.indexNumber {
+                parts.append("S\(s)E\(e)")
+            }
+            if !viewModel.item.name.isEmpty {
+                parts.append(viewModel.item.name)
+            }
+            return parts.isEmpty ? nil : parts.joined(separator: " · ")
+        }
+        if let year = viewModel.item.productionYear {
+            return String(year)
+        }
+        return nil
+    }
+
     /// Stack of informational badges in the top-right corner. The
     /// HDR badge follows the transport's visibility (Apple TV's own
     /// player does the same, informational, not action-required),
