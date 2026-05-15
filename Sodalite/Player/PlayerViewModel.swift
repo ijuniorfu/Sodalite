@@ -3,7 +3,6 @@ import Combine
 import Observation
 import AetherEngine
 import AVKit
-import MediaPlayer
 import os
 
 /// ViewModel that bridges AetherEngine with Jellyfin session reporting
@@ -183,13 +182,6 @@ final class PlayerViewModel {
     var playSessionID: String?
     var activePlayMethod: PlayMethod = .directPlay
     var subtitleStreams: [MediaStream] = []
-
-    /// Empty-player MPNowPlayingSession used as a side-channel for
-    /// CC skip-forward/backward commands. AVKit owns the AVPlayer
-    /// (and thus play/pause/scrub) via its internal session; ours
-    /// hosts no players to avoid the AVPlayer-ownership conflict
-    /// that crashed d30bace. See `bindRemoteSkipCommands`.
-    var nowPlayingSession: MPNowPlayingSession?
 
     init(
         item: JellyfinItem,
