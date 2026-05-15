@@ -127,12 +127,6 @@ final class PlayerViewModel {
     /// get back to the detail screen they came from.
     var onPlaybackReachedEnd: (() -> Void)?
 
-    /// Fires once after `engine.load` returns with the native AVPlayer
-    /// instance ready. The host (`PlayerHostController`) uses this to
-    /// hand the player to its AVPlayerViewController so AVKit can take
-    /// over the chrome + Now Playing integration.
-    var onAVPlayerReady: ((AVPlayer) -> Void)?
-
     /// Fires whenever `isInsideIntro` flips. The host hooks this to
     /// add / remove the "Skip Intro" entry in
     /// `AVPlayerViewController.contextualActions`, the documented
@@ -355,12 +349,6 @@ final class PlayerViewModel {
                 startPosition: startPos,
                 options: LoadOptions()
             )
-
-            // Hand the engine's AVPlayer to the host so AVPlayerViewController
-            // can take over the chrome + Now Playing surface.
-            if let avPlayer = player.currentAVPlayer {
-                onAVPlayerReady?(avPlayer)
-            }
 
             totalTime = formatSeconds(effectiveDuration)
             // Audio track priority: preferred language → stream default → first.
