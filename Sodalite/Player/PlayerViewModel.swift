@@ -228,11 +228,13 @@ final class PlayerViewModel {
         print("[PlayerVM] startPlayback: item=\(item.name), seriesId=\(item.seriesId ?? "nil"), type=\(item.type), chapters=\(chapters.count)")
         #endif
 
-        // Subscribe to the engine's published currentAVPlayer so the
-        // MPNowPlayingSession rebinds across audio-track-switch reloads.
-        // Idempotent across re-entry (selectEpisode calls startPlayback
-        // again); the cancellable is replaced rather than appended.
-        startNowPlayingSessionBinding()
+        // Explicit MPNowPlayingSession was conflicting with AVKit's
+        // internal session management of the same AVPlayer instance
+        // (CoreMediaErrorDomain -16046 fired on playback start in
+        // d30bace). Disabled while we verify whether AVKit's internal
+        // session activates at all with showsPlaybackControls=false
+        // — if not, we need showsPlaybackControls=true and chrome.
+        // startNowPlayingSessionBinding()
 
         do {
             let info: PlaybackInfoResponse
