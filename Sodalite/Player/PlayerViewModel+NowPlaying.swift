@@ -69,7 +69,14 @@ extension PlayerViewModel {
     /// breaking the title / cover / scrub display in CC. We log the
     /// activation outcome to find out.
     func bindRemoteSkipCommands() {
-        let session = MPNowPlayingSession(players: [])
+        // Empty players: [] is rejected with NSInternalInconsistencyException
+        // ("MPNowPlayingSession must be initialized with one or more
+        // AVPlayer instances."). Pass a fresh dummy AVPlayer instead
+        // — a separate instance from AVKit's player so there's no
+        // ownership conflict, and we never feed it any content so it
+        // sits idle for the duration of the session.
+        let dummyPlayer = AVPlayer()
+        let session = MPNowPlayingSession(players: [dummyPlayer])
         // Don't auto-publish — that would race manual nowPlayingInfo
         // mutations against AVKit's internal session and bring back
         // the libdispatch assert that brought down every prior
