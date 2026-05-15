@@ -87,15 +87,11 @@ final class PlayerHostController: UIViewController {
     /// session changes. No layer mounting on this side anymore.
     private let aetherView = AetherPlayerView()
 
-    /// Hidden `AVPlayerViewController` mounted as a child VC purely to
-    /// hand AVKit the active AVPlayer so the system Now Playing surface
-    /// (iPhone Lock-Screen / Control Center widget, HomePod, Siri) gets
-    /// populated. Its `view` is sized 1x1 and clamped behind everything;
-    /// AVKit's chrome never reaches the screen, but the controller is
-    /// alive in the responder chain so its internal Now-Playing
-    /// integration registers normally. Disney+ / Netflix-style pattern
-    /// for custom UI + free Now Playing integration.
-    private let nowPlayingProxy = AVPlayerViewController()
+    // Now-Playing surface is populated by the host-side
+    // `PlayerViewModel+NowPlaying.swift` via manual incremental writes
+    // to `MPNowPlayingInfoCenter` (KSPlayer's working tvOS pattern;
+    // subscript patches sidestep the libdispatch race full-dict-replace
+    // writes tripped earlier).
 
     /// True only between `didEnterBackground` and the next
     /// `didBecomeActive`. The Apple TV app switcher (double Home)
@@ -132,27 +128,11 @@ final class PlayerHostController: UIViewController {
         aetherView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         viewModel.player.bind(view: aetherView)
 
-        // Now-Playing proxy. AVPlayerViewController needs to be in the
-        // view hierarchy AND its view needs to claim real screen
-        // estate for AVKit to consider it the active player and
-        // activate Now Playing integration — 1x1 / alpha=0 in the
-        // first attempt was too unobtrusive, AVKit ignored it.
-        // Mount it full-size behind aetherView; aetherView (which
-        // is also full-size and renders the engine's own AVPlayerLayer)
-        // covers the proxy's video output completely, and we disable
-        // user interaction so the proxy's chrome gesture recognizers
-        // can't reach the screen. Our custom TransportBar renders
-        // on top of aetherView via the SwiftUI overlay.
-        addChild(nowPlayingProxy)
-        view.insertSubview(nowPlayingProxy.view, belowSubview: aetherView)
-        nowPlayingProxy.view.frame = view.bounds
-        nowPlayingProxy.view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        nowPlayingProxy.view.isUserInteractionEnabled = false
-        nowPlayingProxy.didMove(toParent: self)
-        viewModel.onAVPlayerReady = { [weak self] avPlayer in
-            avPlayer.allowsExternalPlayback = true
-            self?.nowPlayingProxy.player = avPlayer
-        }
+        // Now-Playing wiring lives entirely in PlayerViewModel+NowPlaying.swift.
+        // configureNowPlaying() (called from startPlayback after
+        // engine.load returns) writes title / artist / album /
+        // duration / artwork via subscript patches and binds the
+        // remote-command targets.
 
         // End-of-content auto-dismiss: a movie or the last episode of
         // a series rolling its credits leaves a black-screen-with-no-
