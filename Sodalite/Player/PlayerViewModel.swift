@@ -348,16 +348,17 @@ final class PlayerViewModel {
                 resumePositionTicks = 0
             }
 
-            // Write the Now Playing card (title / description / cover)
-            // to MPNowPlayingInfoCenter BEFORE engine.load. At this
-            // point no AVPlayer exists yet, so the libdispatch race
-            // that crashed every prior "write during AVPlayer reading"
-            // attempt cannot fire. MPNowPlayingSession picks up rate /
-            // elapsed / remote-command handling once the engine has
-            // produced its first AVPlayer; title / description / cover
-            // stay in the dict across session lifecycle changes.
-            let artwork = await artworkData
-            publishInitialNowPlayingInfo(artworkData: artwork)
+            // Drop the artwork pre-fetch result: even the pre-load
+            // MPNowPlayingInfoCenter write was crashing on tvOS 26.
+            // The race is wider than "AVPlayer reading from loopback"
+            // — DispatchQueue.main.async only schedules; the actual
+            // setter call happens after engine.load when AVPlayer is
+            // already alive, and MediaPlayer's internal
+            // dispatch_barrier_async then asserts on the wrong worker
+            // queue. Direct nowPlayingInfo writes are not safe from
+            // outside AVKit on tvOS 26, full stop. Await the task to
+            // dispose of it cleanly.
+            _ = await artworkData
 
             // Single load path: hand the source to the engine and let
             // it pick AVPlayer-backed native (the default) or fall
@@ -435,7 +436,14 @@ final class PlayerViewModel {
 
     func stopPlayback() async {
         stopProgressReporting()
-        teardownNowPlaying()
+        // Tear down the MPNowPlayingSession only. No direct
+        // MPNowPlayingInfoCenter nil-write either — even that
+        // tripped the libdispatch assert on tvOS 26 in some
+        // bisects. AVKit (when wired) clears its own
+        // registration on player = nil.
+        nowPlayingCancellable?.cancel()
+        nowPlayingCancellable = nil
+        nowPlayingSession = nil
         cancellables.removeAll()
         // Capture position synchronously, then stop the engine, then
         // report. The capture-then-stop order is critical: player.stop()

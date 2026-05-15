@@ -30,45 +30,6 @@ import AetherEngine
 /// without tripping the assertion (per memory).
 extension PlayerViewModel {
 
-    // MARK: - Pre-load write (title / description / artwork)
-
-    /// Single write to `MPNowPlayingInfoCenter.nowPlayingInfo`,
-    /// performed BEFORE `engine.load` creates the AVPlayer. Hand in
-    /// JPEG bytes from `prefetchArtworkData()` so the cover is
-    /// included in the initial card.
-    func publishInitialNowPlayingInfo(artworkData: Data?) {
-        let title = item.name
-        let subtitle = displaySubtitle
-        let album = displayAlbum
-
-        var artwork: MPMediaItemArtwork?
-        if let data = artworkData,
-           let image = UIImage(data: data),
-           let cg = image.cgImage {
-            let size = image.size
-            let scale = image.scale
-            artwork = MPMediaItemArtwork(boundsSize: size) { _ in
-                UIImage(cgImage: cg, scale: scale, orientation: .up)
-            }
-        }
-
-        // DispatchQueue.main.async, not MainActor.run: MediaPlayer's
-        // setter asserts on dispatch_get_main_queue() identity, which
-        // is different from MainActor's executor identity even though
-        // both run on the main thread. Empirically validated across
-        // the prior crash bisect.
-        DispatchQueue.main.async {
-            var info: [String: Any] = [:]
-            info[MPNowPlayingInfoPropertyMediaType] = MPNowPlayingInfoMediaType.video.rawValue
-            info[MPNowPlayingInfoPropertyIsLiveStream] = false
-            info[MPMediaItemPropertyTitle] = title
-            if let subtitle { info[MPMediaItemPropertyArtist] = subtitle }
-            if let album { info[MPMediaItemPropertyAlbumTitle] = album }
-            if let artwork { info[MPMediaItemPropertyArtwork] = artwork }
-            MPNowPlayingInfoCenter.default().nowPlayingInfo = info
-        }
-    }
-
     // MARK: - Post-load session (state / progress / remote commands)
 
     /// Subscribe to the engine's `$currentAVPlayer`. On each non-nil
@@ -99,21 +60,6 @@ extension PlayerViewModel {
             LogTap.shared.note("[NowPlaying] session active=\(success)")
         }
         nowPlayingSession = session
-    }
-
-    // MARK: - Teardown
-
-    func teardownNowPlaying() {
-        nowPlayingCancellable?.cancel()
-        nowPlayingCancellable = nil
-        nowPlayingSession = nil
-        // Nil-replace is the only full-dict assignment MediaPlayer
-        // accepts during teardown without tripping the libdispatch
-        // assertion. Wrapped in main-queue async for queue identity
-        // (see note in publishInitialNowPlayingInfo).
-        DispatchQueue.main.async {
-            MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
-        }
     }
 
     // MARK: - Artwork pre-fetch
