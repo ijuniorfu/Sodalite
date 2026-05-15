@@ -226,7 +226,9 @@ final class PlayerViewModel {
         // reads title/description/artwork off
         // `AVPlayerItem.externalMetadata`. The engine stages those
         // via setExternalMetadata pre-load; we refresh with cover
-        // post-load below.
+        // post-load below. The 10s skip remote commands are opt-in
+        // so we bind them explicitly on the shared command center.
+        bindRemoteSkipCommands()
 
         do {
             let info: PlaybackInfoResponse

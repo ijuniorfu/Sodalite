@@ -1,5 +1,6 @@
 import Foundation
 import AVFoundation
+import MediaPlayer
 import UIKit
 import AetherEngine
 
@@ -43,6 +44,43 @@ extension PlayerViewModel {
     func stageInitialNowPlayingMetadata() {
         let items = buildExternalMetadataItems(artworkData: nil)
         player.setExternalMetadata(items)
+    }
+
+    // MARK: - Remote commands
+
+    /// Wire the +10s / -10s skip remote commands on the shared
+    /// command center. AVKit's internal Now Playing session auto-
+    /// handles play / pause / scrubbing, but skip-forward and skip-
+    /// backward are opt-in (some apps want different intervals); we
+    /// bind them explicitly so the iPhone Control Center's 10s skip
+    /// buttons drive `engine.seek`. Targets on
+    /// `MPRemoteCommandCenter.shared()` are a different code path
+    /// from `MPNowPlayingInfoCenter.nowPlayingInfo` writes and
+    /// haven't tripped the libdispatch assertion in any prior bisect.
+    func bindRemoteSkipCommands() {
+        let center = MPRemoteCommandCenter.shared()
+
+        center.skipForwardCommand.removeTarget(nil)
+        center.skipForwardCommand.preferredIntervals = [10]
+        center.skipForwardCommand.isEnabled = true
+        center.skipForwardCommand.addTarget { [weak self] _ in
+            Task { @MainActor [weak self] in
+                guard let self else { return }
+                await self.player.seek(to: self.player.currentTime + 10)
+            }
+            return .success
+        }
+
+        center.skipBackwardCommand.removeTarget(nil)
+        center.skipBackwardCommand.preferredIntervals = [10]
+        center.skipBackwardCommand.isEnabled = true
+        center.skipBackwardCommand.addTarget { [weak self] _ in
+            Task { @MainActor [weak self] in
+                guard let self else { return }
+                await self.player.seek(to: max(0, self.player.currentTime - 10))
+            }
+            return .success
+        }
     }
 
     // MARK: - Post-load artwork refresh
