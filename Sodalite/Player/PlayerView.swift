@@ -871,15 +871,20 @@ final class PlayerHostController: AVPlayerViewController {
     }
 }
 
-// MARK: - AVPlayerViewControllerDelegate (remote skip routing)
+// MARK: - AVPlayerViewControllerDelegate (skip routing)
 
 extension PlayerHostController: AVPlayerViewControllerDelegate {
-    /// iPhone Control Center's 10s skip-forward button + Siri Remote
-    /// internal skip-forward both dispatch here when `skippingBehavior
-    /// = .skipItem`. We seek +10s on the engine; engine.seek goes
-    /// through AVPlayer.seek so AVKit + CC stay in sync.
+    /// `skippingBehavior = .skipItem` was the last documented Apple-
+    /// API attempt to route iPhone Control Center's 10s skip buttons
+    /// into our code. Verified on device: CC press does NOT dispatch
+    /// here. AVKit's internal Now Playing session enables the
+    /// skipForwardCommand on its own per-session command center
+    /// (which is why CC shows the buttons) but binds them to an
+    /// internal no-op handler we have no documented way to override.
+    /// Kept as the safe fallback in case other AVKit pathways (Siri
+    /// Remote skipItem chord, future tvOS evolution) actually fire
+    /// here — we'd rather seek than no-op.
     func skipToNextItem(for playerViewController: AVPlayerViewController) {
-        print("[NowPlaying] delegate skipToNextItem fired (+10s)")
         Task { @MainActor [weak self] in
             guard let self else { return }
             let target = self.viewModel.player.currentTime + 10
@@ -887,10 +892,7 @@ extension PlayerHostController: AVPlayerViewControllerDelegate {
         }
     }
 
-    /// Mirror for skip-backward. Floor at 0 so we don't seek past
-    /// the start of the asset.
     func skipToPreviousItem(for playerViewController: AVPlayerViewController) {
-        print("[NowPlaying] delegate skipToPreviousItem fired (-10s)")
         Task { @MainActor [weak self] in
             guard let self else { return }
             let target = max(0, self.viewModel.player.currentTime - 10)
