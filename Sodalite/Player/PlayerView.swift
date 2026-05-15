@@ -159,6 +159,15 @@ final class PlayerHostController: AVPlayerViewController {
         super.viewDidLoad()
         view.backgroundColor = .black
 
+        // Diagnostic: dump AVPlayerViewController's runtime ivars +
+        // properties + zero-arg methods so we can spot the internal
+        // MPNowPlayingSession accessor name without shipping the
+        // KVC hack itself. Output goes to Xcode console; gated to
+        // DEBUG so it never lands on the App Store.
+        #if DEBUG
+        Self.dumpAVKitRuntimeOnce()
+        #endif
+
         // AVKit configuration. showsPlaybackControls = true is
         // REQUIRED on tvOS to activate AVKit's internal Now Playing
         // session + AirPods detection + Enhance Dialogue + Atmos
@@ -868,6 +877,80 @@ final class PlayerHostController: AVPlayerViewController {
         default:
             break
         }
+    }
+
+    // MARK: - Runtime probe (DEBUG only)
+
+    /// One-shot dump of `AVPlayerViewController`'s ObjC runtime
+    /// surface so we can find the internal MPNowPlayingSession
+    /// accessor name (property / ivar / zero-arg method). Output
+    /// goes to stdout (visible in Xcode console). Walks 5 levels
+    /// up the class hierarchy in case the property lives on a
+    /// superclass like `_AVKitPlatformViewController`.
+    ///
+    /// Static-flag-gated so it only fires once per process even
+    /// across multiple playback sessions. Compiled out of release
+    /// builds via the `#if DEBUG` guard at the call site, so the
+    /// strings never ship.
+    private static var didDumpAVKitRuntime = false
+    fileprivate static func dumpAVKitRuntimeOnce() {
+        guard !didDumpAVKitRuntime else { return }
+        didDumpAVKitRuntime = true
+
+        print("=== AVKIT-RUNTIME-DUMP START ===")
+        var cls: AnyClass? = AVPlayerViewController.self
+        var depth = 0
+        while let current = cls, depth < 5 {
+            print("--- Class[\(depth)]: \(NSStringFromClass(current)) ---")
+
+            var propCount: UInt32 = 0
+            if let props = class_copyPropertyList(current, &propCount) {
+                for i in 0..<Int(propCount) {
+                    let name = String(cString: property_getName(props[i]))
+                    let attrs = property_getAttributes(props[i]).map { String(cString: $0) } ?? "?"
+                    print("  prop:   \(name) | \(attrs)")
+                }
+                free(props)
+            }
+
+            var ivarCount: UInt32 = 0
+            if let ivars = class_copyIvarList(current, &ivarCount) {
+                for i in 0..<Int(ivarCount) {
+                    let name = ivar_getName(ivars[i]).map { String(cString: $0) } ?? "?"
+                    let typeEnc = ivar_getTypeEncoding(ivars[i]).map { String(cString: $0) } ?? "?"
+                    print("  ivar:   \(name) | \(typeEnc)")
+                }
+                free(ivars)
+            }
+
+            var methodCount: UInt32 = 0
+            if let methods = class_copyMethodList(current, &methodCount) {
+                for i in 0..<Int(methodCount) {
+                    // Zero-arg methods only: candidates for property getters.
+                    // method_getNumberOfArguments returns 2 for (self, _cmd)
+                    // when the actual signature is no-arg.
+                    if method_getNumberOfArguments(methods[i]) == 2 {
+                        let sel = method_getName(methods[i])
+                        let name = NSStringFromSelector(sel)
+                        // Filter to anything containing "now", "playing",
+                        // "session", "remote", "command" — the relevant
+                        // accessors will hit one of these. Saves us from
+                        // wading through 300+ method names.
+                        let lower = name.lowercased()
+                        if lower.contains("now") || lower.contains("playing")
+                            || lower.contains("session") || lower.contains("remote")
+                            || lower.contains("command") {
+                            print("  method: \(name)")
+                        }
+                    }
+                }
+                free(methods)
+            }
+
+            cls = class_getSuperclass(current)
+            depth += 1
+        }
+        print("=== AVKIT-RUNTIME-DUMP END ===")
     }
 }
 
