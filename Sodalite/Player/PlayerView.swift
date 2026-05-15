@@ -885,6 +885,7 @@ extension PlayerHostController: AVPlayerViewControllerDelegate {
     /// Remote skipItem chord, future tvOS evolution) actually fire
     /// here — we'd rather seek than no-op.
     func skipToNextItem(for playerViewController: AVPlayerViewController) {
+        print("[NowPlaying] delegate skipToNextItem fired (+10s)")
         Task { @MainActor [weak self] in
             guard let self else { return }
             let target = self.viewModel.player.currentTime + 10
@@ -893,11 +894,40 @@ extension PlayerHostController: AVPlayerViewControllerDelegate {
     }
 
     func skipToPreviousItem(for playerViewController: AVPlayerViewController) {
+        print("[NowPlaying] delegate skipToPreviousItem fired (-10s)")
         Task { @MainActor [weak self] in
             guard let self else { return }
             let target = max(0, self.viewModel.player.currentTime - 10)
             await self.viewModel.player.seek(to: target)
         }
+    }
+
+    /// The Apple-documented "skip-style navigation" delegate hook.
+    /// Forum thread 651497 (Apple Media Engineer answering): this is
+    /// "the API that controls skip +/- 10". Description suggests it
+    /// fires for any user-initiated skip navigation — possibly
+    /// including iPhone Control Center. Return value modifies WHERE
+    /// the seek lands (return targetTime unmodified to let AVKit's
+    /// default seek go through; return oldTime to block).
+    /// Logging both args so we can verify CC dispatches here.
+    nonisolated func playerViewController(
+        _ playerViewController: AVPlayerViewController,
+        timeToSeekAfterUserNavigatedFrom oldTime: CMTime,
+        to targetTime: CMTime
+    ) -> CMTime {
+        print("[NowPlaying] delegate timeToSeek from=\(oldTime.seconds) to=\(targetTime.seconds)")
+        return targetTime
+    }
+
+    /// Companion notification hook: fires when the user-initiated
+    /// navigation resumes playback. Combined with timeToSeek above
+    /// they document AVKit's skip-navigation pipeline.
+    nonisolated func playerViewController(
+        _ playerViewController: AVPlayerViewController,
+        willResumePlaybackAfterUserNavigatedFrom oldTime: CMTime,
+        to targetTime: CMTime
+    ) {
+        print("[NowPlaying] delegate willResumePlayback from=\(oldTime.seconds) to=\(targetTime.seconds)")
     }
 }
 
