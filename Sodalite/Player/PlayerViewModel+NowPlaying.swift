@@ -1,6 +1,5 @@
 import Foundation
 import AVFoundation
-import MediaPlayer
 import UIKit
 import AetherEngine
 
@@ -57,52 +56,20 @@ extension PlayerViewModel {
     /// `MPRemoteCommandCenter.shared()` are a different code path
     /// from `MPNowPlayingInfoCenter.nowPlayingInfo` writes and
     /// haven't tripped the libdispatch assertion in any prior bisect.
-    func bindRemoteSkipCommands() {
-        let center = MPRemoteCommandCenter.shared()
-
-        center.skipForwardCommand.removeTarget(nil)
-        center.skipForwardCommand.preferredIntervals = [10]
-        center.skipForwardCommand.isEnabled = true
-        center.skipForwardCommand.addTarget { [weak self] _ in
-            print("[NowPlaying] skipForward fired")
-            Task { @MainActor [weak self] in
-                guard let self else { return }
-                await self.player.seek(to: self.player.currentTime + 10)
-            }
-            return .success
-        }
-
-        center.skipBackwardCommand.removeTarget(nil)
-        center.skipBackwardCommand.preferredIntervals = [10]
-        center.skipBackwardCommand.isEnabled = true
-        center.skipBackwardCommand.addTarget { [weak self] _ in
-            print("[NowPlaying] skipBackward fired")
-            Task { @MainActor [weak self] in
-                guard let self else { return }
-                await self.player.seek(to: max(0, self.player.currentTime - 10))
-            }
-            return .success
-        }
-
-        // Also add (but don't replace existing) play/pause observers
-        // on shared. If these fire from CC, shared is actually the
-        // active center (and skip just has some other issue). If none
-        // fire, it confirms AVKit's internal per-session command
-        // center is the routing target instead of shared. We DON'T
-        // call removeTarget(nil) on play/pause because AVKit may
-        // have its own targets bound to shared that we don't want to
-        // strip.
-        center.playCommand.addTarget { _ in
-            print("[NowPlaying] playCommand fired")
-            return .success
-        }
-        center.pauseCommand.addTarget { _ in
-            print("[NowPlaying] pauseCommand fired")
-            return .success
-        }
-
-        print("[NowPlaying] skip+play+pause targets bound on shared center")
-    }
+    /// No-op kept for the startPlayback call site. Earlier iteration
+    /// (c54fcb7) bound `skipForwardCommand` / `skipBackwardCommand`
+    /// targets on `MPRemoteCommandCenter.shared()`, expecting CC's
+    /// 10s skip buttons to route there. Diagnostic confirmed they
+    /// don't: AVKit's internal MPNowPlayingSession has its own
+    /// per-session command center and the system routes CC presses
+    /// there, not to shared. Our shared targets sat dormant. AVKit
+    /// auto-handles play / pause / scrubbing on its own center
+    /// (which is why those work from CC), but skip is opt-in and
+    /// AVKit does not expose its session for us to bind onto.
+    /// Left as a stub so the next decision (accept the limitation,
+    /// go private-API, or use `AVPlayerViewControllerDelegate.skipToNext/PreviousItem`)
+    /// can replace it cleanly.
+    func bindRemoteSkipCommands() {}
 
     // MARK: - Post-load artwork refresh
 
