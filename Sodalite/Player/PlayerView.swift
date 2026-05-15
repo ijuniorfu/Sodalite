@@ -116,6 +116,15 @@ final class PlayerHostController: AVPlayerViewController {
     private let aetherView = AetherPlayerView()
     private var aetherViewMounted = false
 
+    /// Track our own gesture recognizers so the AVKit-suppression
+    /// pass can disable everything *else* without touching ours.
+    /// AVPlayerViewController attaches its own recognizers (Siri
+    /// Remote arrow → 10s skip, select → play/pause toggle, touchpad
+    /// pan → scrub) to self.view and its internal subviews; with
+    /// chrome hidden these still fire silently and consume the
+    /// presses before our handlers ever see them.
+    private var ourGestureRecognizers: [UIGestureRecognizer] = []
+
     /// Combine subscriptions on the engine's `$currentAVPlayer` and
     /// `$playbackBackend`. currentAVPlayer fires on every internal
     /// reload (selectAudioTrack rebuilds NativeAVPlayerHost with a
@@ -246,6 +255,7 @@ final class PlayerHostController: AVPlayerViewController {
         let pan = UIPanGestureRecognizer(target: self, action: #selector(handlePan(_:)))
         pan.allowedTouchTypes = [NSNumber(value: UITouch.TouchType.indirect.rawValue)]
         view.addGestureRecognizer(pan)
+        ourGestureRecognizers.append(pan)
 
         // Background → engine stops demux loop (VT + AVIO die in suspension)
         // Foreground → reload pipeline at current position
@@ -303,6 +313,44 @@ final class PlayerHostController: AVPlayerViewController {
         let tap = UITapGestureRecognizer(target: self, action: action)
         tap.allowedPressTypes = [NSNumber(value: type.rawValue)]
         view.addGestureRecognizer(tap)
+        ourGestureRecognizers.append(tap)
+    }
+
+    /// Walk self.view and its internal AVKit-owned subviews disabling
+    /// every gesture recognizer that isn't one of ours. Called from
+    /// viewDidAppear once AVKit has finished wiring its built-in
+    /// recognizers (arrow → 10s skip, touchpad pan → scrub, select →
+    /// play/pause toggle, etc.); without this the chrome stays
+    /// invisible but the gestures still fire silently, consuming
+    /// presses before our handlers see them. Idempotent.
+    private func suppressAVKitGestures() {
+        let ours = Set(ourGestureRecognizers.map { ObjectIdentifier($0) })
+        suppressGestures(on: view, exclude: ours)
+    }
+
+    private func suppressGestures(on v: UIView, exclude: Set<ObjectIdentifier>) {
+        if let grs = v.gestureRecognizers {
+            for gr in grs where !exclude.contains(ObjectIdentifier(gr)) {
+                gr.isEnabled = false
+            }
+        }
+        for sub in v.subviews {
+            suppressGestures(on: sub, exclude: exclude)
+        }
+    }
+
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        suppressAVKitGestures()
+    }
+
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        // AVKit re-attaches recognizers on layout passes (eg. rotation,
+        // bounds changes). Re-run the suppression so they don't sneak
+        // back in. Cheap enough to call every layout; the inner walk
+        // is shallow.
+        suppressAVKitGestures()
     }
 
     override func viewWillDisappear(_ animated: Bool) {
