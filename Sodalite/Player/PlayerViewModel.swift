@@ -3,7 +3,6 @@ import Combine
 import Observation
 import AetherEngine
 import AVKit
-import MediaPlayer
 import os
 
 /// ViewModel that bridges AetherEngine with Jellyfin session reporting
@@ -172,10 +171,6 @@ final class PlayerViewModel {
     // MARK: - Internal State
 
     var cancellables = Set<AnyCancellable>()
-    /// Subscriptions wired by NowPlaying.startNowPlaying — held
-    /// here so the @MainActor VM owns lifetime; cleared by
-    /// teardownNowPlaying.
-    var nowPlayingCancellables = Set<AnyCancellable>()
     var progressTimer: Task<Void, Never>?
     var controlsTimer: Task<Void, Never>?
     var hasReportedStart = false
@@ -227,10 +222,13 @@ final class PlayerViewModel {
 
         // Now Playing is driven by AVKit's internal session: it
         // activates automatically when `showsPlaybackControls = true`
-        // Now Playing wiring happens after engine.load (see
-        // startNowPlaying() below) so we have a live AVPlayer and
-        // duration before binding commands and publishing the
-        // initial dict.
+        // (set on the host VC) and an AVPlayer is assigned, and
+        // reads title/description/artwork off
+        // `AVPlayerItem.externalMetadata`. The engine stages those
+        // via setExternalMetadata pre-load; we refresh with cover
+        // post-load below. The 10s skip remote commands are opt-in
+        // so we bind them explicitly on the shared command center.
+        bindRemoteSkipCommands()
 
         do {
             let info: PlaybackInfoResponse
@@ -340,6 +338,15 @@ final class PlayerViewModel {
                 resumePositionTicks = 0
             }
 
+            // Stage title / description as externalMetadata BEFORE
+            // engine.load so the engine applies it to the AVPlayerItem
+            // pre-replaceCurrentItem. Cover follows asynchronously
+            // post-load via refreshExternalMetadataWithArtwork(),
+            // which the engine writes onto the live AVPlayerItem;
+            // AVKit's internal Now Playing session re-reads
+            // externalMetadata automatically.
+            stageInitialNowPlayingMetadata()
+
             // Single load path: hand the source to the engine and let
             // it pick AVPlayer-backed native (the default) or fall
             // through to its legacy aether sample-buffer path for
@@ -377,12 +384,11 @@ final class PlayerViewModel {
             isPlaying = true
 
             startObserving()
-            // Now Playing wiring: bind remote commands + publish
-            // static info (title / description / duration). Dynamic
-            // (elapsed / rate) is driven by Combine subs on engine
-            // state. Artwork follows async.
-            startNowPlaying()
-            Task { [weak self] in await self?.refreshNowPlayingArtwork() }
+            // Cover fetch happens async post-load; the engine writes
+            // the updated externalMetadata to the live AVPlayerItem
+            // and the session republishes automatically when the
+            // task completes.
+            Task { [weak self] in await self?.refreshExternalMetadataWithArtwork() }
             await reportStart()
             startProgressReporting()
 
@@ -422,7 +428,11 @@ final class PlayerViewModel {
 
     func stopPlayback() async {
         stopProgressReporting()
-        teardownNowPlaying()
+        // AVKit clears its internal Now Playing registration when
+        // the host VC sets `player = nil` (done in dismissPlayer /
+        // viewWillDisappear). No manual MPNowPlayingInfoCenter
+        // writes here — those tripped the libdispatch assert on
+        // tvOS 26 regardless of timing.
         cancellables.removeAll()
         // Capture position synchronously, then stop the engine, then
         // report. The capture-then-stop order is critical: player.stop()

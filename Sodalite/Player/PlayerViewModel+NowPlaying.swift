@@ -1,139 +1,84 @@
 import Foundation
 import AVFoundation
-import Combine
-import MediaPlayer
 import UIKit
 import AetherEngine
 
-/// System Now Playing wiring, Swiftfin-pattern.
+/// System Now Playing wiring via `AVPlayerItem.externalMetadata`.
 ///
-/// Architecture: manual `MPNowPlayingInfoCenter.nowPlayingInfo` writes
-/// for title / description / artwork / duration / elapsed / rate,
-/// plus explicit targets on `MPRemoteCommandCenter.shared()` for
-/// play, pause, scrub, and 10s skip-forward / skip-backward. Mirrors
-/// Swiftfin's `NowPlayableObserver` 1:1.
-///
-/// This pattern was unsafe before AetherEngine's loopback was
-/// rewritten in BSD sockets (engine commit 962292d): manual writes
-/// from outside AVKit reproducibly tripped `_dispatch_assert_queue_fail`
-/// deep inside MediaPlayer whenever AVPlayer was reading from the
-/// previous `NWConnection`-backed loopback server. With the
-/// loopback rewritten on POSIX sockets the race window is gone and
-/// the documented Apple-pattern works the same way it does in
-/// Swiftfin (which avoids the issue entirely by using direct HTTPS
-/// to Jellyfin instead of a loopback).
-///
-/// AVPlayerViewController is still the playback host so we keep
-/// AirPods auto-detection, Enhance Dialogue, Reduce Loud Sounds,
-/// and synchronized Atmos. The visible chrome is suppressed via the
+/// AVKit's internal Now Playing session (activated by
+/// `AVPlayerViewController.showsPlaybackControls = true`) reads
+/// title / description / artwork from `AVPlayerItem.externalMetadata`
+/// and publishes them to MPNowPlayingInfoCenter, plus drives rate /
+/// elapsed time / remote-command targets directly off the AVPlayer.
+/// The host VC suppresses every visible AVKit chrome element via
 /// `playbackControlsIncludeTransportBar = false` /
-/// `playbackControlsIncludeInfoViews = false` subset flags.
+/// `playbackControlsIncludeInfoViews = false`, so the user only sees
+/// our custom UI; AVKit's backend stays active for the privileged
+/// features (AirPods auto-detection, Enhance Dialogue, Reduce Loud
+/// Sounds, synchronized Atmos).
 ///
 /// Flow:
-///   1. `bindRemoteCommands` (pre-load): wire all the
-///      `MPRemoteCommandCenter.shared()` targets to engine methods.
-///      Stays bound for the lifetime of the playback session.
-///   2. `publishStaticNowPlayingInfo(artworkData:)` (post-load,
-///      called twice — once with nil artwork, once with the JPEG
-///      after the async fetch resolves): title / description /
-///      artwork / duration. Writes a fresh dict each time.
-///   3. `publishDynamicNowPlayingInfo()` (post-load, throttled to
-///      1Hz via Combine sub on engine.$currentTime): merges
-///      elapsed / rate / duration into the existing dict.
-///   4. `teardownNowPlaying` (stopPlayback): remove targets, clear
-///      nowPlayingInfo.
+///   1. `stageInitialNowPlayingMetadata` (BEFORE engine.load):
+///      builds title + description as AVMetadataItems and hands them
+///      to the engine via `setExternalMetadata`. Engine applies them
+///      to the AVPlayerItem before AVPlayer.replaceCurrentItem so
+///      AVKit's first asset-metadata read catches them.
+///   2. `refreshExternalMetadataWithArtwork` (AFTER engine.load):
+///      async-fetches the cover and re-stages externalMetadata with
+///      artwork attached. Engine writes directly to the live
+///      AVPlayerItem.externalMetadata; AVKit re-reads automatically.
+///
+/// Across audio-track-switch reloads the engine builds a fresh
+/// NativeAVPlayerHost and replays pendingExternalMetadata onto the
+/// new AVPlayerItem, so title/cover stay across the switch without
+/// any extra host-side wiring.
 extension PlayerViewModel {
 
-    // MARK: - Lifecycle
+    // MARK: - Pre-load externalMetadata stage
 
-    /// One-shot entry point. Call once per startPlayback session.
-    /// Restartable across audio-track switch (engine.selectAudioTrack
-    /// reuses the same PlayerViewModel and re-fires currentAVPlayer
-    /// — we just re-publish dynamic info; static info doesn't change).
-    func startNowPlaying() {
-        bindRemoteCommands()
-        publishStaticNowPlayingInfo(artworkData: nil)
-
-        // Subscribe to engine state changes for dynamic
-        // (elapsed/rate) republish. Throttled at 1Hz: the engine
-        // emits currentTime every 100ms which would be overkill
-        // and could starve the dispatch queue.
-        nowPlayingCancellables.removeAll()
-        player.$currentTime
-            .throttle(for: .seconds(1), scheduler: DispatchQueue.main, latest: true)
-            .sink { [weak self] _ in
-                self?.publishDynamicNowPlayingInfo()
-            }
-            .store(in: &nowPlayingCancellables)
-        // Rate changes (play/pause/seek) should land immediately, not
-        // wait for the next 1Hz tick.
-        player.$state
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] _ in
-                self?.publishDynamicNowPlayingInfo()
-            }
-            .store(in: &nowPlayingCancellables)
+    /// Build static externalMetadata items (title, description) and
+    /// stash them on the engine BEFORE `engine.load`. Engine applies
+    /// them to the AVPlayerItem prior to replaceCurrentItem so the
+    /// asset-metadata read window catches them on the first try.
+    func stageInitialNowPlayingMetadata() {
+        let items = buildExternalMetadataItems(artworkData: nil)
+        player.setExternalMetadata(items)
     }
 
-    func teardownNowPlaying() {
-        nowPlayingCancellables.removeAll()
-        unbindRemoteCommands()
-        MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
-    }
+    // MARK: - Remote commands
 
-    // MARK: - Static info publish
+    /// Wire the +10s / -10s skip remote commands on the shared
+    /// command center. AVKit's internal Now Playing session auto-
+    /// handles play / pause / scrubbing, but skip-forward and skip-
+    /// backward are opt-in (some apps want different intervals); we
+    /// bind them explicitly so the iPhone Control Center's 10s skip
+    /// buttons drive `engine.seek`. Targets on
+    /// `MPRemoteCommandCenter.shared()` are a different code path
+    /// from `MPNowPlayingInfoCenter.nowPlayingInfo` writes and
+    /// haven't tripped the libdispatch assertion in any prior bisect.
+    /// No-op kept for the startPlayback call site. Earlier iteration
+    /// (c54fcb7) bound `skipForwardCommand` / `skipBackwardCommand`
+    /// targets on `MPRemoteCommandCenter.shared()`, expecting CC's
+    /// 10s skip buttons to route there. Diagnostic confirmed they
+    /// don't: AVKit's internal MPNowPlayingSession has its own
+    /// per-session command center and the system routes CC presses
+    /// there, not to shared. Our shared targets sat dormant. AVKit
+    /// auto-handles play / pause / scrubbing on its own center
+    /// (which is why those work from CC), but skip is opt-in and
+    /// AVKit does not expose its session for us to bind onto.
+    /// Left as a stub so the next decision (accept the limitation,
+    /// go private-API, or use `AVPlayerViewControllerDelegate.skipToNext/PreviousItem`)
+    /// can replace it cleanly.
+    func bindRemoteSkipCommands() {}
 
-    /// Write title / description / artwork / duration to
-    /// `MPNowPlayingInfoCenter`. Called once with nil artwork
-    /// pre-cover-fetch, then again with the JPEG once the async
-    /// fetch lands. Dynamic fields (elapsed/rate) are added by
-    /// `publishDynamicNowPlayingInfo` and survive across static
-    /// re-publishes via read-modify-write.
-    func publishStaticNowPlayingInfo(artworkData: Data?) {
-        let title = item.name
-        let subtitle = displaySubtitle
-        let album = displayAlbum
-        let duration = effectiveDuration
+    // MARK: - Post-load artwork refresh
 
-        var artwork: MPMediaItemArtwork?
-        if let data = artworkData, let image = UIImage(data: data) {
-            artwork = MPMediaItemArtwork(boundsSize: image.size) { _ in image }
-        }
-
-        var info: [String: Any] = MPNowPlayingInfoCenter.default().nowPlayingInfo ?? [:]
-        info[MPNowPlayingInfoPropertyMediaType] = MPNowPlayingInfoMediaType.video.rawValue
-        info[MPNowPlayingInfoPropertyIsLiveStream] = false
-        info[MPMediaItemPropertyTitle] = title
-        if let subtitle { info[MPMediaItemPropertyArtist] = subtitle }
-        if let album { info[MPMediaItemPropertyAlbumTitle] = album }
-        if let artwork { info[MPMediaItemPropertyArtwork] = artwork }
-        if duration > 0 { info[MPMediaItemPropertyPlaybackDuration] = duration }
-
-        MPNowPlayingInfoCenter.default().nowPlayingInfo = info
-    }
-
-    // MARK: - Dynamic info publish
-
-    /// Update elapsed / rate / duration. Idempotent. Called via
-    /// throttled Combine sink on engine.$currentTime + engine.$state.
-    func publishDynamicNowPlayingInfo() {
-        var info: [String: Any] = MPNowPlayingInfoCenter.default().nowPlayingInfo ?? [:]
-        info[MPNowPlayingInfoPropertyElapsedPlaybackTime] = player.currentTime
-        info[MPNowPlayingInfoPropertyPlaybackRate] = isPlaying ? 1.0 : 0.0
-        info[MPNowPlayingInfoPropertyDefaultPlaybackRate] = 1.0
-        let dur = effectiveDuration
-        if dur > 0 {
-            info[MPMediaItemPropertyPlaybackDuration] = dur
-        }
-        MPNowPlayingInfoCenter.default().nowPlayingInfo = info
-    }
-
-    // MARK: - Artwork pre-fetch
-
-    /// Async-fetch the primary image and re-publish the static info
-    /// with the artwork attached. Failures leave the title-only
-    /// metadata in place.
-    func refreshNowPlayingArtwork() async {
+    /// Fetch the primary image asynchronously and re-stage
+    /// externalMetadata with the artwork attached. Engine writes to
+    /// the live AVPlayerItem; AVKit's internal Now Playing session
+    /// re-reads on the next publish tick. Failures leave the
+    /// title-only metadata in place.
+    func refreshExternalMetadataWithArtwork() async {
         guard let url = primaryImageURL() else {
             LogTap.shared.note("[NowPlaying] artwork: no URL for item id=\(item.id)")
             return
@@ -150,133 +95,62 @@ extension PlayerViewModel {
                 return
             }
             await MainActor.run {
-                self.publishStaticNowPlayingInfo(artworkData: jpeg)
+                let items = self.buildExternalMetadataItems(artworkData: jpeg)
+                self.player.setExternalMetadata(items)
             }
         } catch {
             LogTap.shared.note("[NowPlaying] artwork: fetch failed: \(error.localizedDescription)")
         }
     }
 
-    // MARK: - Remote commands
+    // MARK: - External metadata builder
 
-    private func bindRemoteCommands() {
-        let center = MPRemoteCommandCenter.shared()
-
-        center.playCommand.removeTarget(nil)
-        center.playCommand.isEnabled = true
-        center.playCommand.addTarget { [weak self] _ in
-            Task { @MainActor [weak self] in
-                guard let self else { return }
-                if !self.isPlaying { self.togglePlayPause() }
-            }
-            return .success
+    private func buildExternalMetadataItems(artworkData: Data?) -> [AVMetadataItem] {
+        var items: [AVMetadataItem] = []
+        items.append(makeStringItem(.commonIdentifierTitle, item.name))
+        if let descriptionLine = displayDescriptionLine {
+            items.append(makeStringItem(.commonIdentifierDescription, descriptionLine))
         }
-
-        center.pauseCommand.removeTarget(nil)
-        center.pauseCommand.isEnabled = true
-        center.pauseCommand.addTarget { [weak self] _ in
-            Task { @MainActor [weak self] in
-                guard let self else { return }
-                if self.isPlaying { self.togglePlayPause() }
-            }
-            return .success
+        if let data = artworkData {
+            items.append(makeArtworkItem(data: data))
         }
-
-        center.togglePlayPauseCommand.removeTarget(nil)
-        center.togglePlayPauseCommand.isEnabled = true
-        center.togglePlayPauseCommand.addTarget { [weak self] _ in
-            Task { @MainActor [weak self] in
-                self?.togglePlayPause()
-            }
-            return .success
-        }
-
-        center.changePlaybackPositionCommand.removeTarget(nil)
-        center.changePlaybackPositionCommand.isEnabled = true
-        center.changePlaybackPositionCommand.addTarget { [weak self] event in
-            guard let event = event as? MPChangePlaybackPositionCommandEvent else {
-                return .commandFailed
-            }
-            Task { @MainActor [weak self] in
-                guard let self else { return }
-                await self.player.seek(to: event.positionTime)
-            }
-            return .success
-        }
-
-        center.skipForwardCommand.removeTarget(nil)
-        center.skipForwardCommand.preferredIntervals = [10]
-        center.skipForwardCommand.isEnabled = true
-        center.skipForwardCommand.addTarget { [weak self] event in
-            let interval: Double
-            if let skipEvent = event as? MPSkipIntervalCommandEvent {
-                interval = skipEvent.interval > 0 ? skipEvent.interval : 10
-            } else {
-                interval = 10
-            }
-            Task { @MainActor [weak self] in
-                guard let self else { return }
-                await self.player.seek(to: self.player.currentTime + interval)
-            }
-            return .success
-        }
-
-        center.skipBackwardCommand.removeTarget(nil)
-        center.skipBackwardCommand.preferredIntervals = [10]
-        center.skipBackwardCommand.isEnabled = true
-        center.skipBackwardCommand.addTarget { [weak self] event in
-            let interval: Double
-            if let skipEvent = event as? MPSkipIntervalCommandEvent {
-                interval = skipEvent.interval > 0 ? skipEvent.interval : 10
-            } else {
-                interval = 10
-            }
-            Task { @MainActor [weak self] in
-                guard let self else { return }
-                await self.player.seek(to: max(0, self.player.currentTime - interval))
-            }
-            return .success
-        }
+        return items
     }
 
-    private func unbindRemoteCommands() {
-        let center = MPRemoteCommandCenter.shared()
-        center.playCommand.removeTarget(nil)
-        center.pauseCommand.removeTarget(nil)
-        center.togglePlayPauseCommand.removeTarget(nil)
-        center.changePlaybackPositionCommand.removeTarget(nil)
-        center.skipForwardCommand.removeTarget(nil)
-        center.skipBackwardCommand.removeTarget(nil)
-        center.playCommand.isEnabled = false
-        center.pauseCommand.isEnabled = false
-        center.togglePlayPauseCommand.isEnabled = false
-        center.changePlaybackPositionCommand.isEnabled = false
-        center.skipForwardCommand.isEnabled = false
-        center.skipBackwardCommand.isEnabled = false
-    }
-
-    // MARK: - Display strings
-
-    private var displaySubtitle: String? {
-        if item.type == .episode, let series = item.seriesName, !series.isEmpty {
-            return series
+    private var displayDescriptionLine: String? {
+        if item.type == .episode {
+            var parts: [String] = []
+            if let series = item.seriesName, !series.isEmpty {
+                parts.append(series)
+            }
+            if let season = item.parentIndexNumber {
+                parts.append("Season \(season)")
+            }
+            if let ep = item.indexNumber {
+                parts.append("Episode \(ep)")
+            }
+            return parts.isEmpty ? nil : parts.joined(separator: " • ")
         }
         if let year = item.productionYear {
-            return String(year)
+            return "(\(year))"
         }
         return nil
     }
 
-    private var displayAlbum: String? {
-        guard item.type == .episode else { return nil }
-        var parts: [String] = []
-        if let season = item.parentIndexNumber {
-            parts.append("Season \(season)")
-        }
-        if let ep = item.indexNumber {
-            parts.append("Episode \(ep)")
-        }
-        return parts.isEmpty ? nil : parts.joined(separator: " • ")
+    private func makeStringItem(_ identifier: AVMetadataIdentifier, _ value: String) -> AVMetadataItem {
+        let m = AVMutableMetadataItem()
+        m.identifier = identifier
+        m.value = value as NSString
+        m.extendedLanguageTag = "und"
+        return m
+    }
+
+    private func makeArtworkItem(data: Data) -> AVMetadataItem {
+        let m = AVMutableMetadataItem()
+        m.identifier = .commonIdentifierArtwork
+        m.value = data as NSData
+        m.dataType = "public.jpeg"
+        return m
     }
 
     private func primaryImageURL() -> URL? {
