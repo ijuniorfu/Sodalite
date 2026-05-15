@@ -1,136 +1,173 @@
 import Foundation
 import AVFoundation
+import Combine
 import MediaPlayer
 import UIKit
 import AetherEngine
 
-/// System Now-Playing wiring for the AVPlayerViewController-hosted
-/// native path. We don't write to `MPNowPlayingInfoCenter` at all,
-/// and we don't bind remote commands ourselves. The host mounts an
-/// `AVPlayerViewController` with `showsPlaybackControls = false` and
-/// hands it `engine.currentAVPlayer`; AVKit's privileged code path
-/// then drives the system Now Playing surface (title, artwork,
-/// progress, rate, play/pause/skip remote commands) automatically by
-/// reading off `AVPlayerItem.externalMetadata` and the AVPlayer's own
-/// state.
+/// System Now Playing wiring.
 ///
-/// Manual MPNowPlayingInfoCenter writes are the surface that
-/// reproducibly tripped `_dispatch_assert_queue_fail` inside
-/// MediaPlayer on tvOS 26 across 13+ iterations. The AVKit auto-
-/// publish path doesn't go through the same deferred dispatch chain.
+/// Architecture: one manual `MPNowPlayingInfoCenter.nowPlayingInfo`
+/// write happens BEFORE `engine.load`. At that point no AVPlayer
+/// exists yet, so the libdispatch race that crashed every prior
+/// "write during AVPlayer reading from HLS-loopback" attempt cannot
+/// fire. Title / description / artwork all ship in this single write.
 ///
-/// Flow:
-///   1. `stageInitialNowPlayingMetadata` (BEFORE engine.load):
-///      build title / description metadata items and hand them to
-///      the engine via `setExternalMetadata`. The engine applies them
-///      to the AVPlayerItem before AVPlayer.replaceCurrentItem so
-///      AVKit's first asset-metadata read catches them.
-///   2. `refreshExternalMetadataWithArtwork` (AFTER engine.load):
-///      async-fetch the cover and re-call `setExternalMetadata` with
-///      the artwork attached. Engine writes directly to the live
-///      AVPlayerItem.externalMetadata, AVKit re-reads automatically.
-///   3. No teardown logic. The host drops the AVPlayer reference
-///      when the modal dismisses; AVKit clears its Now Playing
-///      registration on its own.
+/// After `engine.load`, an `MPNowPlayingSession` with
+/// `automaticallyPublishesNowPlayingInfo = true` takes over the rest:
+/// rate, elapsed time, duration, and the play / pause / scrubbing
+/// remote commands are all auto-handled directly off the AVPlayer
+/// (verified working without crashes across 731697f / 5c54524).
+///
+/// On audio-track switch the engine builds a fresh
+/// `NativeAVPlayerHost` with a new AVPlayer; `currentAVPlayer`
+/// publishes that swap and we rebuild the session against the new
+/// instance. Title / description / artwork stay in the
+/// MPNowPlayingInfoCenter dict across session changeover.
+///
+/// On dismiss a single `nowPlayingInfo = nil` write clears the card.
+/// Nil-replace is the only full assignment that MediaPlayer accepts
+/// without tripping the assertion (per memory).
 extension PlayerViewModel {
 
-    // MARK: - Stage initial metadata (pre-load)
+    // MARK: - Pre-load write (title / description / artwork)
 
-    /// Build static externalMetadata items (title, description) and
-    /// stash them on the engine BEFORE `engine.load`. The engine
-    /// applies them to the AVPlayerItem prior to replaceCurrentItem
-    /// so AVKit sees the metadata on its first asset-metadata read.
-    func stageInitialNowPlayingMetadata() {
-        let items = buildExternalMetadataItems(artworkData: nil)
-        player.setExternalMetadata(items)
+    /// Single write to `MPNowPlayingInfoCenter.nowPlayingInfo`,
+    /// performed BEFORE `engine.load` creates the AVPlayer. Hand in
+    /// JPEG bytes from `prefetchArtworkData()` so the cover is
+    /// included in the initial card.
+    func publishInitialNowPlayingInfo(artworkData: Data?) {
+        let title = item.name
+        let subtitle = displaySubtitle
+        let album = displayAlbum
+
+        var artwork: MPMediaItemArtwork?
+        if let data = artworkData,
+           let image = UIImage(data: data),
+           let cg = image.cgImage {
+            let size = image.size
+            let scale = image.scale
+            artwork = MPMediaItemArtwork(boundsSize: size) { _ in
+                UIImage(cgImage: cg, scale: scale, orientation: .up)
+            }
+        }
+
+        // DispatchQueue.main.async, not MainActor.run: MediaPlayer's
+        // setter asserts on dispatch_get_main_queue() identity, which
+        // is different from MainActor's executor identity even though
+        // both run on the main thread. Empirically validated across
+        // the prior crash bisect.
+        DispatchQueue.main.async {
+            var info: [String: Any] = [:]
+            info[MPNowPlayingInfoPropertyMediaType] = MPNowPlayingInfoMediaType.video.rawValue
+            info[MPNowPlayingInfoPropertyIsLiveStream] = false
+            info[MPMediaItemPropertyTitle] = title
+            if let subtitle { info[MPMediaItemPropertyArtist] = subtitle }
+            if let album { info[MPMediaItemPropertyAlbumTitle] = album }
+            if let artwork { info[MPMediaItemPropertyArtwork] = artwork }
+            MPNowPlayingInfoCenter.default().nowPlayingInfo = info
+        }
     }
 
-    // MARK: - Refresh with artwork (post-load)
+    // MARK: - Post-load session (state / progress / remote commands)
 
-    /// Fetch primary artwork off-main, then re-stage externalMetadata
-    /// with the cover attached. Called from `startPlayback` after
-    /// `engine.load` returns. The engine writes the updated items to
-    /// the live AVPlayerItem; AVKit picks up the change automatically.
-    func refreshExternalMetadataWithArtwork() async {
-        guard let url = primaryImageURL() else {
-            LogTap.shared.note("[NowPlaying] artwork: no URL for item id=\(item.id)")
-            return
+    /// Subscribe to the engine's `$currentAVPlayer`. On each non-nil
+    /// emission (initial load + every audio-track-switch rebuild) we
+    /// recreate the session against the live AVPlayer so the system
+    /// Now Playing card stays bound to the instance actually playing.
+    /// Title / description / artwork live in the MPNowPlayingInfoCenter
+    /// dict, independent of session lifetime, so session changeover
+    /// doesn't blank the card.
+    func startNowPlayingSessionBinding() {
+        nowPlayingCancellable = player.$currentAVPlayer
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] avPlayer in
+                guard let avPlayer else { return }
+                self?.activateNowPlayingSession(for: avPlayer)
+            }
+    }
+
+    private func activateNowPlayingSession(for avPlayer: AVPlayer) {
+        let session = MPNowPlayingSession(players: [avPlayer])
+        session.automaticallyPublishesNowPlayingInfo = true
+        // becomeActiveIfPossible's completion fires once the system
+        // has accepted us as the active Now Playing source; the
+        // boolean is not actionable for us (Apple offers no remedy
+        // for a denied activation), but logging the outcome helps
+        // diagnose CC blanks if they happen again.
+        session.becomeActiveIfPossible { success in
+            LogTap.shared.note("[NowPlaying] session active=\(success)")
         }
-        LogTap.shared.note("[NowPlaying] artwork: GET \(url.absoluteString)")
-        let request = URLRequest(url: url, timeoutInterval: 5.0)
+        nowPlayingSession = session
+    }
+
+    // MARK: - Teardown
+
+    func teardownNowPlaying() {
+        nowPlayingCancellable?.cancel()
+        nowPlayingCancellable = nil
+        nowPlayingSession = nil
+        // Nil-replace is the only full-dict assignment MediaPlayer
+        // accepts during teardown without tripping the libdispatch
+        // assertion. Wrapped in main-queue async for queue identity
+        // (see note in publishInitialNowPlayingInfo).
+        DispatchQueue.main.async {
+            MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
+        }
+    }
+
+    // MARK: - Artwork pre-fetch
+
+    /// Fetch the primary image as JPEG bytes with a hard timeout.
+    /// Called from `startPlayback` in parallel with the playback-info
+    /// request so the cover lands in time for the single pre-load
+    /// MPNowPlayingInfoCenter write without adding latency. Returns
+    /// nil if the request times out or fails; title-only Now Playing
+    /// is an acceptable degradation.
+    func prefetchArtworkData(timeoutSeconds: Double = 1.5) async -> Data? {
+        guard let url = primaryImageURL() else { return nil }
+        let request = URLRequest(url: url, timeoutInterval: timeoutSeconds)
         do {
             let (data, response) = try await URLSession.shared.data(for: request)
             let status = (response as? HTTPURLResponse)?.statusCode ?? -1
-            LogTap.shared.note("[NowPlaying] artwork: status=\(status) bytes=\(data.count)")
-            // Re-encode to JPEG so the dataType hint is always
-            // correct regardless of whether Jellyfin served JPEG /
-            // PNG / HEIF. AVMetadataItem with a wrong dataType
-            // sometimes silently fails the metadata pipeline.
+            LogTap.shared.note("[NowPlaying] artwork prefetch status=\(status) bytes=\(data.count)")
+            // Re-encode to JPEG so the data shape matches what
+            // MPMediaItemArtwork expects regardless of whether
+            // Jellyfin served PNG / HEIF.
             guard let image = UIImage(data: data),
                   let jpeg = image.jpegData(compressionQuality: 0.85) else {
-                LogTap.shared.note("[NowPlaying] artwork: decode/re-encode failed")
-                return
+                LogTap.shared.note("[NowPlaying] artwork prefetch: decode/re-encode failed")
+                return nil
             }
-            await MainActor.run {
-                let items = buildExternalMetadataItems(artworkData: jpeg)
-                self.player.setExternalMetadata(items)
-            }
+            return jpeg
         } catch {
-            LogTap.shared.note("[NowPlaying] artwork: fetch failed: \(error.localizedDescription)")
+            LogTap.shared.note("[NowPlaying] artwork prefetch failed: \(error.localizedDescription)")
+            return nil
         }
     }
 
-    // MARK: - Metadata builder
+    // MARK: - Display strings
 
-    private func buildExternalMetadataItems(artworkData: Data?) -> [AVMetadataItem] {
-        var items: [AVMetadataItem] = []
-        items.append(makeStringItem(.commonIdentifierTitle, item.name))
-        if let descriptionLine = displayDescriptionLine {
-            items.append(makeStringItem(.commonIdentifierDescription, descriptionLine))
-        }
-        if let data = artworkData {
-            items.append(makeArtworkItem(data: data))
-        }
-        return items
-    }
-
-    /// One-line context shown alongside the title in the Now Playing
-    /// card. For episodes: "SeriesName • Season 1 • Episode 3". For
-    /// movies with a year: "(2024)". Empty when neither applies.
-    private var displayDescriptionLine: String? {
-        if item.type == .episode {
-            var parts: [String] = []
-            if let series = item.seriesName, !series.isEmpty {
-                parts.append(series)
-            }
-            if let season = item.parentIndexNumber {
-                parts.append("Season \(season)")
-            }
-            if let ep = item.indexNumber {
-                parts.append("Episode \(ep)")
-            }
-            return parts.isEmpty ? nil : parts.joined(separator: " • ")
+    private var displaySubtitle: String? {
+        if item.type == .episode, let series = item.seriesName, !series.isEmpty {
+            return series
         }
         if let year = item.productionYear {
-            return "(\(year))"
+            return String(year)
         }
         return nil
     }
 
-    private func makeStringItem(_ identifier: AVMetadataIdentifier, _ value: String) -> AVMetadataItem {
-        let m = AVMutableMetadataItem()
-        m.identifier = identifier
-        m.value = value as NSString
-        m.extendedLanguageTag = "und"
-        return m
-    }
-
-    private func makeArtworkItem(data: Data) -> AVMetadataItem {
-        let m = AVMutableMetadataItem()
-        m.identifier = .commonIdentifierArtwork
-        m.value = data as NSData
-        m.dataType = "public.jpeg"
-        return m
+    private var displayAlbum: String? {
+        guard item.type == .episode else { return nil }
+        var parts: [String] = []
+        if let season = item.parentIndexNumber {
+            parts.append("Season \(season)")
+        }
+        if let ep = item.indexNumber {
+            parts.append("Episode \(ep)")
+        }
+        return parts.isEmpty ? nil : parts.joined(separator: " • ")
     }
 
     private func primaryImageURL() -> URL? {

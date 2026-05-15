@@ -3,6 +3,7 @@ import Combine
 import Observation
 import AetherEngine
 import AVKit
+import MediaPlayer
 import os
 
 /// ViewModel that bridges AetherEngine with Jellyfin session reporting
@@ -183,6 +184,13 @@ final class PlayerViewModel {
     var activePlayMethod: PlayMethod = .directPlay
     var subtitleStreams: [MediaStream] = []
 
+    /// Active MPNowPlayingSession. Recreated on every native-host
+    /// swap (audio-track switch tears down the old AVPlayer and
+    /// brings up a new one); the publisher chain in
+    /// `startNowPlayingSessionBinding` handles the rebind.
+    var nowPlayingSession: MPNowPlayingSession?
+    var nowPlayingCancellable: AnyCancellable?
+
     init(
         item: JellyfinItem,
         startFromBeginning: Bool,
@@ -219,6 +227,18 @@ final class PlayerViewModel {
         #if DEBUG
         print("[PlayerVM] startPlayback: item=\(item.name), seriesId=\(item.seriesId ?? "nil"), type=\(item.type), chapters=\(chapters.count)")
         #endif
+
+        // Subscribe to the engine's published currentAVPlayer so the
+        // MPNowPlayingSession rebinds across audio-track-switch reloads.
+        // Idempotent across re-entry (selectEpisode calls startPlayback
+        // again); the cancellable is replaced rather than appended.
+        startNowPlayingSessionBinding()
+
+        // Pre-fetch the cover concurrently with the playback-info
+        // request so the one-shot Now Playing write that follows
+        // engine.load has it ready. Bounded at 1.5s, the request
+        // resolves to nil on timeout and we ship title-only.
+        async let artworkData: Data? = prefetchArtworkData()
 
         do {
             let info: PlaybackInfoResponse
@@ -328,6 +348,17 @@ final class PlayerViewModel {
                 resumePositionTicks = 0
             }
 
+            // Write the Now Playing card (title / description / cover)
+            // to MPNowPlayingInfoCenter BEFORE engine.load. At this
+            // point no AVPlayer exists yet, so the libdispatch race
+            // that crashed every prior "write during AVPlayer reading"
+            // attempt cannot fire. MPNowPlayingSession picks up rate /
+            // elapsed / remote-command handling once the engine has
+            // produced its first AVPlayer; title / description / cover
+            // stay in the dict across session lifecycle changes.
+            let artwork = await artworkData
+            publishInitialNowPlayingInfo(artworkData: artwork)
+
             // Single load path: hand the source to the engine and let
             // it pick AVPlayer-backed native (the default) or fall
             // through to its legacy aether sample-buffer path for
@@ -335,14 +366,6 @@ final class PlayerViewModel {
             // Phase 3; DV P7 always). Format detection, HDMI HDR
             // handshake, AVPlayerLayer ownership, and refresh-rate
             // matching all live inside engine.load(url:options:) now.
-            // Stage title / description metadata on the engine BEFORE
-            // engine.load. The engine applies it to the AVPlayerItem
-            // before AVPlayer.replaceCurrentItem so AVKit's first
-            // asset-metadata read catches the title on the Now Playing
-            // surface. Artwork follows after load via
-            // refreshExternalMetadataWithArtwork().
-            stageInitialNowPlayingMetadata()
-
             LogTap.shared.note("[PlayerVM] engine.load url=\(url.absoluteString)")
             try await player.load(
                 url: url,
@@ -373,11 +396,6 @@ final class PlayerViewModel {
             isPlaying = true
 
             startObserving()
-            // Cover fetch is async and non-blocking; AVKit re-reads
-            // externalMetadata when the engine updates the live
-            // AVPlayerItem so the card lights up the moment the JPEG
-            // lands.
-            Task { [weak self] in await self?.refreshExternalMetadataWithArtwork() }
             await reportStart()
             startProgressReporting()
 
@@ -417,10 +435,7 @@ final class PlayerViewModel {
 
     func stopPlayback() async {
         stopProgressReporting()
-        // AVKit owns the Now Playing surface via the AVPlayer it
-        // hosts. Dropping the engine's AVPlayer (via player.stop in
-        // the host's dismissPlayer flow) clears the registration; we
-        // don't need to teardown nowPlayingInfo ourselves.
+        teardownNowPlaying()
         cancellables.removeAll()
         // Capture position synchronously, then stop the engine, then
         // report. The capture-then-stop order is critical: player.stop()
