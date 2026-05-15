@@ -177,6 +177,16 @@ final class PlayerHostController: AVPlayerViewController {
         contextualActions = []
         allowsPictureInPicturePlayback = false
 
+        // skippingBehavior = .skipItem routes AVKit's internal skip
+        // events to the delegate's skipToNextItem / skipToPreviousItem
+        // instead of AVKit's default 10s seek (which is a no-op for
+        // us — we don't have track listings). On iPhone CC the 10s
+        // skip buttons may then dispatch into our delegate as well,
+        // since they're driven off the same internal SkippingBehavior
+        // hook.
+        skippingBehavior = .skipItem
+        delegate = self
+
         // Subscribe to engine state. currentAVPlayer drives AVKit's
         // .player rebind across audio-track-switch reloads;
         // playbackBackend drives aetherView mounting for the SW path.
@@ -857,6 +867,34 @@ final class PlayerHostController: AVPlayerViewController {
             horizontalStepFired = false
         default:
             break
+        }
+    }
+}
+
+// MARK: - AVPlayerViewControllerDelegate (remote skip routing)
+
+extension PlayerHostController: AVPlayerViewControllerDelegate {
+    /// iPhone Control Center's 10s skip-forward button + Siri Remote
+    /// internal skip-forward both dispatch here when `skippingBehavior
+    /// = .skipItem`. We seek +10s on the engine; engine.seek goes
+    /// through AVPlayer.seek so AVKit + CC stay in sync.
+    func skipToNextItem(for playerViewController: AVPlayerViewController) {
+        print("[NowPlaying] delegate skipToNextItem fired (+10s)")
+        Task { @MainActor [weak self] in
+            guard let self else { return }
+            let target = self.viewModel.player.currentTime + 10
+            await self.viewModel.player.seek(to: target)
+        }
+    }
+
+    /// Mirror for skip-backward. Floor at 0 so we don't seek past
+    /// the start of the asset.
+    func skipToPreviousItem(for playerViewController: AVPlayerViewController) {
+        print("[NowPlaying] delegate skipToPreviousItem fired (-10s)")
+        Task { @MainActor [weak self] in
+            guard let self else { return }
+            let target = max(0, self.viewModel.player.currentTime - 10)
+            await self.viewModel.player.seek(to: target)
         }
     }
 }
