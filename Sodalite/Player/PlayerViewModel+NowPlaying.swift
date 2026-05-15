@@ -64,7 +64,7 @@ extension PlayerViewModel {
         center.skipForwardCommand.preferredIntervals = [10]
         center.skipForwardCommand.isEnabled = true
         center.skipForwardCommand.addTarget { [weak self] _ in
-            LogTap.shared.note("[NowPlaying] skipForward fired")
+            print("[NowPlaying] skipForward fired")
             Task { @MainActor [weak self] in
                 guard let self else { return }
                 await self.player.seek(to: self.player.currentTime + 10)
@@ -76,7 +76,7 @@ extension PlayerViewModel {
         center.skipBackwardCommand.preferredIntervals = [10]
         center.skipBackwardCommand.isEnabled = true
         center.skipBackwardCommand.addTarget { [weak self] _ in
-            LogTap.shared.note("[NowPlaying] skipBackward fired")
+            print("[NowPlaying] skipBackward fired")
             Task { @MainActor [weak self] in
                 guard let self else { return }
                 await self.player.seek(to: max(0, self.player.currentTime - 10))
@@ -84,7 +84,24 @@ extension PlayerViewModel {
             return .success
         }
 
-        LogTap.shared.note("[NowPlaying] skip targets bound on shared center")
+        // Also add (but don't replace existing) play/pause observers
+        // on shared. If these fire from CC, shared is actually the
+        // active center (and skip just has some other issue). If none
+        // fire, it confirms AVKit's internal per-session command
+        // center is the routing target instead of shared. We DON'T
+        // call removeTarget(nil) on play/pause because AVKit may
+        // have its own targets bound to shared that we don't want to
+        // strip.
+        center.playCommand.addTarget { _ in
+            print("[NowPlaying] playCommand fired")
+            return .success
+        }
+        center.pauseCommand.addTarget { _ in
+            print("[NowPlaying] pauseCommand fired")
+            return .success
+        }
+
+        print("[NowPlaying] skip+play+pause targets bound on shared center")
     }
 
     // MARK: - Post-load artwork refresh
