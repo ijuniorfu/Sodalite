@@ -1,47 +1,37 @@
 import Foundation
 import AVFoundation
-import Combine
-import MediaPlayer
 import UIKit
 import AetherEngine
 
-/// System Now Playing wiring.
+/// System Now Playing wiring via `AVPlayerItem.externalMetadata`.
 ///
-/// Architecture combines three Apple-supported mechanisms:
+/// AVKit's internal Now Playing session (activated by
+/// `AVPlayerViewController.showsPlaybackControls = true`) reads
+/// title / description / artwork from `AVPlayerItem.externalMetadata`
+/// and publishes them to MPNowPlayingInfoCenter, plus drives rate /
+/// elapsed time / remote-command targets directly off the AVPlayer.
+/// The host VC suppresses every visible AVKit chrome element via
+/// `playbackControlsIncludeTransportBar = false` /
+/// `playbackControlsIncludeInfoViews = false`, so the user only sees
+/// our custom UI; AVKit's backend stays active for the privileged
+/// features (AirPods auto-detection, Enhance Dialogue, Reduce Loud
+/// Sounds, synchronized Atmos).
 ///
-/// 1. **AVPlayerViewController hosts the AVPlayer.** With
-///    `showsPlaybackControls = false` AVKit's chrome and Siri Remote
-///    gestures stay off, but AVKit still "owns" the AVPlayer for
-///    audio routing — that's what unlocks tvOS 26's AirPods auto-
-///    detection, Enhance Dialogue, Reduce Loud Sounds, synchronized
-///    Atmos and the rest of the Apple-feature stack.
+/// Flow:
+///   1. `stageInitialNowPlayingMetadata` (BEFORE engine.load):
+///      builds title + description as AVMetadataItems and hands them
+///      to the engine via `setExternalMetadata`. Engine applies them
+///      to the AVPlayerItem before AVPlayer.replaceCurrentItem so
+///      AVKit's first asset-metadata read catches them.
+///   2. `refreshExternalMetadataWithArtwork` (AFTER engine.load):
+///      async-fetches the cover and re-stages externalMetadata with
+///      artwork attached. Engine writes directly to the live
+///      AVPlayerItem.externalMetadata; AVKit re-reads automatically.
 ///
-/// 2. **Explicit `MPNowPlayingSession` with auto-publish.** AVKit's
-///    internal session is gated on `showsPlaybackControls = true` on
-///    tvOS, so we drive the session ourselves against
-///    `engine.currentAVPlayer`. Auto-publish handles rate, elapsed
-///    time, duration, and the play / pause / scrubbing / seek remote
-///    commands automatically off the AVPlayer.
-///
-/// 3. **`AVPlayerItem.externalMetadata` for title / description /
-///    artwork.** The engine stages these via `setExternalMetadata`
-///    before each load (engine applies to the AVPlayerItem before
-///    AVPlayer.replaceCurrentItem so AVKit's first asset-metadata
-///    read catches them). After load an async cover fetch re-stages
-///    with the artwork attached; the engine writes directly to the
-///    live AVPlayerItem.externalMetadata and the session re-publishes
-///    automatically.
-///
-/// Zero direct writes to `MPNowPlayingInfoCenter.nowPlayingInfo` —
-/// that path reproducibly trips `_dispatch_assert_queue_fail` inside
-/// MediaPlayer's deferred dispatch chain on tvOS 26 in our setup,
-/// independent of timing.
-///
-/// On audio-track switch the engine rebuilds NativeAVPlayerHost with
-/// a fresh AVPlayer. `currentAVPlayer` publishes the swap and we
-/// rebuild the session against the new instance. externalMetadata
-/// is replayed by the engine onto the new AVPlayerItem so title /
-/// cover stay across the switch.
+/// Across audio-track-switch reloads the engine builds a fresh
+/// NativeAVPlayerHost and replays pendingExternalMetadata onto the
+/// new AVPlayerItem, so title/cover stay across the switch without
+/// any extra host-side wiring.
 extension PlayerViewModel {
 
     // MARK: - Pre-load externalMetadata stage
@@ -59,8 +49,9 @@ extension PlayerViewModel {
 
     /// Fetch the primary image asynchronously and re-stage
     /// externalMetadata with the artwork attached. Engine writes to
-    /// the live AVPlayerItem; the session's auto-publish picks up the
-    /// change. Failures leave the title-only metadata in place.
+    /// the live AVPlayerItem; AVKit's internal Now Playing session
+    /// re-reads on the next publish tick. Failures leave the
+    /// title-only metadata in place.
     func refreshExternalMetadataWithArtwork() async {
         guard let url = primaryImageURL() else {
             LogTap.shared.note("[NowPlaying] artwork: no URL for item id=\(item.id)")
@@ -84,32 +75,6 @@ extension PlayerViewModel {
         } catch {
             LogTap.shared.note("[NowPlaying] artwork: fetch failed: \(error.localizedDescription)")
         }
-    }
-
-    // MARK: - MPNowPlayingSession binding
-
-    /// Subscribe to the engine's `$currentAVPlayer`. On each non-nil
-    /// emission (initial load + every audio-track-switch rebuild) we
-    /// recreate the session against the live AVPlayer so the system
-    /// Now Playing card stays bound to the instance actually playing.
-    /// externalMetadata stays on the AVPlayerItem across this swap
-    /// (engine replays pendingExternalMetadata onto the new item).
-    func startNowPlayingSessionBinding() {
-        nowPlayingCancellable = player.$currentAVPlayer
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] avPlayer in
-                guard let avPlayer else { return }
-                self?.activateNowPlayingSession(for: avPlayer)
-            }
-    }
-
-    private func activateNowPlayingSession(for avPlayer: AVPlayer) {
-        let session = MPNowPlayingSession(players: [avPlayer])
-        session.automaticallyPublishesNowPlayingInfo = true
-        session.becomeActiveIfPossible { success in
-            LogTap.shared.note("[NowPlaying] session active=\(success)")
-        }
-        nowPlayingSession = session
     }
 
     // MARK: - External metadata builder

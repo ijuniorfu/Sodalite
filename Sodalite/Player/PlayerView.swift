@@ -71,21 +71,31 @@ final class PlayerLauncherHostVC: UIViewController {
 /// Full-screen video player that handles ALL Siri Remote input.
 ///
 /// Subclasses `AVPlayerViewController` with `showsPlaybackControls
-/// = false` so we get AVKit's privileged code path (audio routing,
-/// AirPods auto-detection, Enhance Dialogue, Atmos synchronization)
-/// without AVKit drawing its own chrome. AVKit's built-in Siri
-/// Remote gestures are disabled too at that setting, so our own
-/// UITapGestureRecognizers on `self.view` keep working without
-/// conflict.
+/// = true` (required on tvOS to activate AVKit's internal Now Playing
+/// session auto-publish, AirPods auto-detection, Enhance Dialogue,
+/// Reduce Loud Sounds, synchronized Atmos) BUT with all visible
+/// chrome turned off via:
+///   - `playbackControlsIncludeTransportBar = false`
+///   - `playbackControlsIncludeInfoViews = false`
+///   - `contextualActions = []`
 ///
-/// System Now Playing is published by an explicit `MPNowPlayingSession`
-/// constructed in `PlayerViewModel+NowPlaying.swift` against
-/// `engine.currentAVPlayer`. AVKit's internal auto-session is gated
-/// on `showsPlaybackControls = true` on tvOS (verified empty CC at
-/// c22b295), so we drive the session ourselves. Title / description
-/// / artwork flow through `AVPlayerItem.externalMetadata`, which the
-/// engine stages before each load and the session publishes via its
-/// `automaticallyPublishesNowPlayingInfo` reading off the player.
+/// AVKit's backend stays active for the privileged code paths; only
+/// the visible UI is suppressed. Apple-supported configuration on
+/// tvOS 11+ (DisableTransportBarDemo sample demonstrates the same
+/// approach). System Now Playing surfaces via AVKit's internal
+/// session reading `AVPlayerItem.externalMetadata`; the engine
+/// stages title / description before each load and refreshes with
+/// artwork post-load.
+///
+/// Earlier iterations failed because:
+///   - `showsPlaybackControls = false` disabled AVKit's auto-session
+///     entirely (verified empty CC at c22b295)
+///   - An explicit `MPNowPlayingSession(players:)` conflicted with
+///     AVKit's internal session (verified CoreMediaErrorDomain -16046
+///     at d30bace).
+///   - Manual `MPNowPlayingInfoCenter.nowPlayingInfo` writes tripped
+///     `_dispatch_assert_queue_fail` deep inside MediaPlayer
+///     regardless of timing.
 ///
 /// Presented via UIKit `present(_:animated:)`, NOT SwiftUI
 /// fullScreenCover. UIKit modals allow our Menu tap recognizer to
@@ -140,14 +150,20 @@ final class PlayerHostController: AVPlayerViewController {
         super.viewDidLoad()
         view.backgroundColor = .black
 
-        // AVKit configuration. showsPlaybackControls = false hides
-        // chrome AND disables AVKit's built-in Siri Remote gestures
-        // (per Apple's tvOS playback-experience guide), so our custom
-        // UITapGestureRecognizers on self.view take over input
-        // routing without conflict. appliesPreferredDisplayCriteria
-        // keeps HDR / DV display-mode handshake working in parallel
-        // with the engine's own DisplayCriteriaController.
-        showsPlaybackControls = false
+        // AVKit configuration. showsPlaybackControls = true is
+        // REQUIRED on tvOS to activate AVKit's internal Now Playing
+        // session + AirPods detection + Enhance Dialogue + Atmos
+        // sync. We suppress every visible chrome element so our
+        // custom UI dominates:
+        //   - transport bar hidden via the subset flag
+        //   - info views (top swipe-down) hidden via the subset flag
+        //   - contextual menu emptied
+        // appliesPreferredDisplayCriteriaAutomatically keeps HDR /
+        // DV display-mode handshake in step with the engine's own
+        // DisplayCriteriaController.
+        showsPlaybackControls = true
+        playbackControlsIncludeTransportBar = false
+        playbackControlsIncludeInfoViews = false
         appliesPreferredDisplayCriteriaAutomatically = true
         contextualActions = []
         allowsPictureInPicturePlayback = false
