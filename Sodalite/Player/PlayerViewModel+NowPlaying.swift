@@ -1,5 +1,6 @@
 import Foundation
 import AVFoundation
+import MediaPlayer
 import UIKit
 import AetherEngine
 
@@ -45,31 +46,88 @@ extension PlayerViewModel {
         player.setExternalMetadata(items)
     }
 
-    // MARK: - Remote commands
+    // MARK: - Remote commands (empty-session side-channel)
 
-    /// Wire the +10s / -10s skip remote commands on the shared
-    /// command center. AVKit's internal Now Playing session auto-
-    /// handles play / pause / scrubbing, but skip-forward and skip-
-    /// backward are opt-in (some apps want different intervals); we
-    /// bind them explicitly so the iPhone Control Center's 10s skip
-    /// buttons drive `engine.seek`. Targets on
-    /// `MPRemoteCommandCenter.shared()` are a different code path
-    /// from `MPNowPlayingInfoCenter.nowPlayingInfo` writes and
-    /// haven't tripped the libdispatch assertion in any prior bisect.
-    /// No-op kept for the startPlayback call site. Earlier iteration
-    /// (c54fcb7) bound `skipForwardCommand` / `skipBackwardCommand`
-    /// targets on `MPRemoteCommandCenter.shared()`, expecting CC's
-    /// 10s skip buttons to route there. Diagnostic confirmed they
-    /// don't: AVKit's internal MPNowPlayingSession has its own
-    /// per-session command center and the system routes CC presses
-    /// there, not to shared. Our shared targets sat dormant. AVKit
-    /// auto-handles play / pause / scrubbing on its own center
-    /// (which is why those work from CC), but skip is opt-in and
-    /// AVKit does not expose its session for us to bind onto.
-    /// Left as a stub so the next decision (accept the limitation,
-    /// go private-API, or use `AVPlayerViewControllerDelegate.skipToNext/PreviousItem`)
-    /// can replace it cleanly.
-    func bindRemoteSkipCommands() {}
+    /// Experimental: create an `MPNowPlayingSession` with NO players
+    /// (`players: []`) and bind skip-forward / skip-backward targets
+    /// on its own `remoteCommandCenter`. AVKit's internal session
+    /// still owns the AVPlayer for play / pause / scrub on iPhone CC;
+    /// our empty session sits alongside for the commands AVKit
+    /// doesn't expose to user code.
+    ///
+    /// Why this might work: prior attempts at an explicit
+    /// `MPNowPlayingSession(players: [avPlayer])` (d30bace) crashed
+    /// with CoreMediaErrorDomain -16046 because two sessions tried to
+    /// claim the same AVPlayer. The empty-player variant has no
+    /// AVPlayer ownership to conflict over. If the system routes CC
+    /// skip presses to ANY active session's command center, ours
+    /// could catch them while AVKit handles the rest.
+    ///
+    /// Why this might not work: per Apple docs "only one
+    /// MPNowPlayingSession is active at a time". Calling
+    /// `becomeActiveIfPossible` could deactivate AVKit's session,
+    /// breaking the title / cover / scrub display in CC. We log the
+    /// activation outcome to find out.
+    func bindRemoteSkipCommands() {
+        let session = MPNowPlayingSession(players: [])
+        // Don't auto-publish — that would race manual nowPlayingInfo
+        // mutations against AVKit's internal session and bring back
+        // the libdispatch assert that brought down every prior
+        // manual-write iteration.
+        session.automaticallyPublishesNowPlayingInfo = false
+        nowPlayingSession = session
+
+        let center = session.remoteCommandCenter
+
+        center.skipForwardCommand.removeTarget(nil)
+        center.skipForwardCommand.preferredIntervals = [10]
+        center.skipForwardCommand.isEnabled = true
+        center.skipForwardCommand.addTarget { [weak self] event in
+            let interval: Double
+            if let skipEvent = event as? MPSkipIntervalCommandEvent {
+                interval = skipEvent.interval > 0 ? skipEvent.interval : 10
+            } else {
+                interval = 10
+            }
+            print("[NowPlaying] empty-session skipForward fired interval=\(interval)")
+            Task { @MainActor [weak self] in
+                guard let self else { return }
+                await self.player.seek(to: self.player.currentTime + interval)
+            }
+            return .success
+        }
+
+        center.skipBackwardCommand.removeTarget(nil)
+        center.skipBackwardCommand.preferredIntervals = [10]
+        center.skipBackwardCommand.isEnabled = true
+        center.skipBackwardCommand.addTarget { [weak self] event in
+            let interval: Double
+            if let skipEvent = event as? MPSkipIntervalCommandEvent {
+                interval = skipEvent.interval > 0 ? skipEvent.interval : 10
+            } else {
+                interval = 10
+            }
+            print("[NowPlaying] empty-session skipBackward fired interval=\(interval)")
+            Task { @MainActor [weak self] in
+                guard let self else { return }
+                await self.player.seek(to: max(0, self.player.currentTime - interval))
+            }
+            return .success
+        }
+
+        session.becomeActiveIfPossible { success in
+            print("[NowPlaying] empty-session becomeActive=\(success)")
+        }
+    }
+
+    /// Tear down the empty session. Called from stopPlayback.
+    func unbindRemoteSkipCommands() {
+        if let session = nowPlayingSession {
+            session.remoteCommandCenter.skipForwardCommand.removeTarget(nil)
+            session.remoteCommandCenter.skipBackwardCommand.removeTarget(nil)
+        }
+        nowPlayingSession = nil
+    }
 
     // MARK: - Post-load artwork refresh
 

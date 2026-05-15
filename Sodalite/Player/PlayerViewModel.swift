@@ -3,6 +3,7 @@ import Combine
 import Observation
 import AetherEngine
 import AVKit
+import MediaPlayer
 import os
 
 /// ViewModel that bridges AetherEngine with Jellyfin session reporting
@@ -182,6 +183,13 @@ final class PlayerViewModel {
     var playSessionID: String?
     var activePlayMethod: PlayMethod = .directPlay
     var subtitleStreams: [MediaStream] = []
+
+    /// Empty-player MPNowPlayingSession used as a side-channel for
+    /// CC skip-forward/backward commands. AVKit owns the AVPlayer
+    /// (and thus play/pause/scrub) via its internal session; ours
+    /// hosts no players to avoid the AVPlayer-ownership conflict
+    /// that crashed d30bace. See `bindRemoteSkipCommands`.
+    var nowPlayingSession: MPNowPlayingSession?
 
     init(
         item: JellyfinItem,
@@ -428,11 +436,10 @@ final class PlayerViewModel {
 
     func stopPlayback() async {
         stopProgressReporting()
+        unbindRemoteSkipCommands()
         // AVKit clears its internal Now Playing registration when
         // the host VC sets `player = nil` (done in dismissPlayer /
-        // viewWillDisappear). No manual MPNowPlayingInfoCenter
-        // writes here — those tripped the libdispatch assert on
-        // tvOS 26 regardless of timing.
+        // viewWillDisappear).
         cancellables.removeAll()
         // Capture position synchronously, then stop the engine, then
         // report. The capture-then-stop order is critical: player.stop()
