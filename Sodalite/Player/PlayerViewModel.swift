@@ -234,12 +234,6 @@ final class PlayerViewModel {
         // again); the cancellable is replaced rather than appended.
         startNowPlayingSessionBinding()
 
-        // Pre-fetch the cover concurrently with the playback-info
-        // request so the one-shot Now Playing write that follows
-        // engine.load has it ready. Bounded at 1.5s, the request
-        // resolves to nil on timeout and we ship title-only.
-        async let artworkData: Data? = prefetchArtworkData()
-
         do {
             let info: PlaybackInfoResponse
             if let cached = cachedPlaybackInfo, !cached.mediaSources.isEmpty {
@@ -348,17 +342,13 @@ final class PlayerViewModel {
                 resumePositionTicks = 0
             }
 
-            // Drop the artwork pre-fetch result: even the pre-load
-            // MPNowPlayingInfoCenter write was crashing on tvOS 26.
-            // The race is wider than "AVPlayer reading from loopback"
-            // — DispatchQueue.main.async only schedules; the actual
-            // setter call happens after engine.load when AVPlayer is
-            // already alive, and MediaPlayer's internal
-            // dispatch_barrier_async then asserts on the wrong worker
-            // queue. Direct nowPlayingInfo writes are not safe from
-            // outside AVKit on tvOS 26, full stop. Await the task to
-            // dispose of it cleanly.
-            _ = await artworkData
+            // Stage title / description as externalMetadata BEFORE
+            // engine.load so the engine applies it to the AVPlayerItem
+            // pre-replaceCurrentItem. Cover follows asynchronously
+            // post-load via refreshExternalMetadataWithArtwork(),
+            // which the engine writes onto the live AVPlayerItem and
+            // MPNowPlayingSession re-publishes automatically.
+            stageInitialNowPlayingMetadata()
 
             // Single load path: hand the source to the engine and let
             // it pick AVPlayer-backed native (the default) or fall
@@ -397,6 +387,11 @@ final class PlayerViewModel {
             isPlaying = true
 
             startObserving()
+            // Cover fetch happens async post-load; the engine writes
+            // the updated externalMetadata to the live AVPlayerItem
+            // and the session republishes automatically when the
+            // task completes.
+            Task { [weak self] in await self?.refreshExternalMetadataWithArtwork() }
             await reportStart()
             startProgressReporting()
 

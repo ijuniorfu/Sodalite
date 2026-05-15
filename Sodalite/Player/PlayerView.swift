@@ -2,6 +2,7 @@ import SwiftUI
 import AetherEngine
 import AVFoundation
 import AVKit
+import Combine
 
 // MARK: - Player Launcher (UIKit modal presentation)
 
@@ -69,35 +70,49 @@ final class PlayerLauncherHostVC: UIViewController {
 
 /// Full-screen video player that handles ALL Siri Remote input.
 ///
+/// Subclasses `AVPlayerViewController` with `showsPlaybackControls
+/// = false` so we get AVKit's privileged code path (audio routing,
+/// AirPods auto-detection, Enhance Dialogue, Atmos synchronization)
+/// without AVKit drawing its own chrome. AVKit's built-in Siri
+/// Remote gestures are disabled too at that setting, so our own
+/// UITapGestureRecognizers on `self.view` keep working without
+/// conflict.
+///
+/// System Now Playing is published by an explicit `MPNowPlayingSession`
+/// constructed in `PlayerViewModel+NowPlaying.swift` against
+/// `engine.currentAVPlayer`. AVKit's internal auto-session is gated
+/// on `showsPlaybackControls = true` on tvOS (verified empty CC at
+/// c22b295), so we drive the session ourselves. Title / description
+/// / artwork flow through `AVPlayerItem.externalMetadata`, which the
+/// engine stages before each load and the session publishes via its
+/// `automaticallyPublishesNowPlayingInfo` reading off the player.
+///
 /// Presented via UIKit `present(_:animated:)`, NOT SwiftUI
 /// fullScreenCover. UIKit modals allow our Menu tap recognizer to
 /// fire; SwiftUI fullScreenCover would steal Menu at the
 /// presentation level.
-///
-/// Now Playing wiring lives entirely in
-/// `PlayerViewModel+NowPlaying.swift`: a single manual write to
-/// `MPNowPlayingInfoCenter` happens BEFORE `engine.load` (no AVPlayer
-/// exists yet, so the libdispatch race window doesn't apply), and an
-/// `MPNowPlayingSession` with auto-publish picks up rate / elapsed /
-/// remote-command handling once the engine has produced its first
-/// AVPlayer. This avoids AVPlayerViewController entirely, which
-/// either coupled chrome with Now Playing (`showsPlaybackControls=
-/// true` → chrome conflicts with custom UI) or disabled the auto-
-/// publish path (`showsPlaybackControls=false` → empty CC).
 @MainActor
-final class PlayerHostController: UIViewController {
+final class PlayerHostController: AVPlayerViewController {
     private let viewModel: PlayerViewModel
     private let tintColor: Color?
     private let onDismiss: () -> Void
 
     private var hasLaunched = false
 
-    /// Engine-owned render surface. Engine attaches its active CALayer
-    /// (AVPlayerLayer for native sessions, AVSampleBufferDisplayLayer
-    /// for software dav1d sessions) and swaps internally on session
-    /// changes. We mount the view once and let the engine drive the
-    /// layer hierarchy.
+    /// Engine-owned render surface. Mounted into `contentOverlayView`
+    /// only when the engine reports the software (dav1d) backend; for
+    /// the native path AVKit's own AVPlayerLayer renders directly off
+    /// the AVPlayer instance we hand it via `self.player`.
     private let aetherView = AetherPlayerView()
+    private var aetherViewMounted = false
+
+    /// Combine subscriptions on the engine's `$currentAVPlayer` and
+    /// `$playbackBackend`. currentAVPlayer fires on every internal
+    /// reload (selectAudioTrack rebuilds NativeAVPlayerHost with a
+    /// fresh AVPlayer); the sink rebinds AVKit's `.player` to the live
+    /// instance. playbackBackend signals when to mount aetherView for
+    /// the SW path.
+    private var engineSubscriptions: Set<AnyCancellable> = []
 
     /// True only between `didEnterBackground` and the next
     /// `didBecomeActive`. The Apple TV app switcher (double Home)
@@ -125,14 +140,43 @@ final class PlayerHostController: UIViewController {
         super.viewDidLoad()
         view.backgroundColor = .black
 
-        // Engine-owned render surface. AetherPlayerView holds whichever
-        // CALayer the engine has active and swaps internally on session
-        // changes, so this side just mounts the view once and tells the
-        // engine which surface to drive.
-        view.addSubview(aetherView)
-        aetherView.frame = view.bounds
-        aetherView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        viewModel.player.bind(view: aetherView)
+        // AVKit configuration. showsPlaybackControls = false hides
+        // chrome AND disables AVKit's built-in Siri Remote gestures
+        // (per Apple's tvOS playback-experience guide), so our custom
+        // UITapGestureRecognizers on self.view take over input
+        // routing without conflict. appliesPreferredDisplayCriteria
+        // keeps HDR / DV display-mode handshake working in parallel
+        // with the engine's own DisplayCriteriaController.
+        showsPlaybackControls = false
+        appliesPreferredDisplayCriteriaAutomatically = true
+        contextualActions = []
+        allowsPictureInPicturePlayback = false
+
+        // Subscribe to engine state. currentAVPlayer drives AVKit's
+        // .player rebind across audio-track-switch reloads;
+        // playbackBackend drives aetherView mounting for the SW path.
+        let engine = viewModel.player
+        engine.$currentAVPlayer
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] avPlayer in
+                guard let self, let avPlayer else { return }
+                avPlayer.allowsExternalPlayback = true
+                self.player = avPlayer
+            }
+            .store(in: &engineSubscriptions)
+
+        engine.$playbackBackend
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] backend in
+                guard let self else { return }
+                switch backend {
+                case .software, .aether:
+                    self.mountAetherViewIfNeeded()
+                case .native, .none:
+                    self.unmountAetherViewIfNeeded()
+                }
+            }
+            .store(in: &engineSubscriptions)
 
         // End-of-content auto-dismiss: a movie or the last episode of
         // a series rolling its credits leaves a black-screen-with-no-
@@ -203,6 +247,29 @@ final class PlayerHostController: UIViewController {
         )
     }
 
+    /// Add aetherView to AVKit's contentOverlayView for the software
+    /// (AVSampleBufferDisplayLayer / dav1d) path. Idempotent.
+    /// contentOverlayView sits between AVKit's player layer and its
+    /// chrome layer, so engine frames render on top of AVKit's empty
+    /// player surface and below our SwiftUI overlay (which lives on
+    /// self.view above contentOverlayView).
+    private func mountAetherViewIfNeeded() {
+        guard !aetherViewMounted else { return }
+        let host = contentOverlayView ?? view!
+        host.insertSubview(aetherView, at: 0)
+        aetherView.frame = host.bounds
+        aetherView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        viewModel.player.bind(view: aetherView)
+        aetherViewMounted = true
+    }
+
+    private func unmountAetherViewIfNeeded() {
+        guard aetherViewMounted else { return }
+        viewModel.player.unbind(view: aetherView)
+        aetherView.removeFromSuperview()
+        aetherViewMounted = false
+    }
+
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         // Kick off playback as the modal *starts* appearing instead of
@@ -228,7 +295,10 @@ final class PlayerHostController: UIViewController {
         // Display mode switches (HDR/SDR) briefly trigger viewWillDisappear
         // without actually dismissing, don't kill playback for that.
         guard isBeingDismissed || isMovingFromParent else { return }
-        viewModel.player.unbind(view: aetherView)
+        unmountAetherViewIfNeeded()
+        // Release AVKit's hosting + the explicit MPNowPlayingSession
+        // (cleared by stopPlayback below).
+        player = nil
         Task { await viewModel.stopPlayback() }
     }
 
@@ -593,7 +663,8 @@ final class PlayerHostController: UIViewController {
     }
 
     private func dismissPlayer() {
-        viewModel.player.unbind(view: aetherView)
+        unmountAetherViewIfNeeded()
+        player = nil
         Task {
             await viewModel.stopPlayback()
             onDismiss()
