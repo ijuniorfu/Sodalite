@@ -3,7 +3,6 @@ import Combine
 import Observation
 import AetherEngine
 import AVKit
-import MediaPlayer
 import os
 
 /// ViewModel that bridges AetherEngine with Jellyfin session reporting
@@ -140,12 +139,6 @@ final class PlayerViewModel {
     /// tvOS surface for time-bound playback actions.
     var onIntroStateChanged: ((Bool) -> Void)?
 
-    // (Removed: periodic time-observer token. Per Apple's NowPlayable
-    // docs, the system extrapolates elapsed time from the initial
-    // published value at the published rate. Per-tick updates are
-    // unnecessary AND they were what eventually tripped the libdispatch
-    // race in MediaPlayer on tvOS 26 — happened ~8 min into playback
-    // when the cumulative write count crossed some threshold.)
     var isCountdownActive = false
     var nextEpisodeTimer: Task<Void, Never>?
     var hasFetchedNextEpisode = false
@@ -195,10 +188,6 @@ final class PlayerViewModel {
     var playSessionID: String?
     var activePlayMethod: PlayMethod = .directPlay
     var subtitleStreams: [MediaStream] = []
-
-    /// Retained `MPNowPlayingSession` for the current playback. Owns
-    /// the system Now Playing surface for the engine's AVPlayer.
-    var nowPlayingSession: MPNowPlayingSession?
 
     init(
         item: JellyfinItem,
@@ -352,6 +341,14 @@ final class PlayerViewModel {
             // Phase 3; DV P7 always). Format detection, HDMI HDR
             // handshake, AVPlayerLayer ownership, and refresh-rate
             // matching all live inside engine.load(url:options:) now.
+            // Stage title / description metadata on the engine BEFORE
+            // engine.load. The engine applies it to the AVPlayerItem
+            // before AVPlayer.replaceCurrentItem so AVKit's first
+            // asset-metadata read catches the title on the Now Playing
+            // surface. Artwork follows after load via
+            // refreshExternalMetadataWithArtwork().
+            stageInitialNowPlayingMetadata()
+
             LogTap.shared.note("[PlayerVM] engine.load url=\(url.absoluteString)")
             try await player.load(
                 url: url,
@@ -388,7 +385,11 @@ final class PlayerViewModel {
             isPlaying = true
 
             startObserving()
-            configureNowPlaying()
+            // Cover fetch is async and non-blocking; AVKit re-reads
+            // externalMetadata when the engine updates the live
+            // AVPlayerItem so the card lights up the moment the JPEG
+            // lands.
+            Task { [weak self] in await self?.refreshExternalMetadataWithArtwork() }
             await reportStart()
             startProgressReporting()
 
@@ -428,7 +429,10 @@ final class PlayerViewModel {
 
     func stopPlayback() async {
         stopProgressReporting()
-        teardownNowPlaying()
+        // AVKit owns the Now Playing surface via the AVPlayer it
+        // hosts. Dropping the engine's AVPlayer (via player.stop in
+        // the host's dismissPlayer flow) clears the registration; we
+        // don't need to teardown nowPlayingInfo ourselves.
         cancellables.removeAll()
         // Capture position synchronously, then stop the engine, then
         // report. The capture-then-stop order is critical: player.stop()

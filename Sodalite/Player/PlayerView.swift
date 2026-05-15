@@ -83,15 +83,26 @@ final class PlayerHostController: UIViewController {
 
     /// Engine-owned render surface. The engine attaches its active
     /// CALayer (AVPlayerLayer for native sessions; AVSampleBufferDisplay
-    /// Layer for legacy aether sessions) and swaps internally on
-    /// session changes. No layer mounting on this side anymore.
+    /// Layer for software sessions) and swaps internally on session
+    /// changes. For native AVPlayer sessions `avPlayerVC` is mounted
+    /// on top and renders the same AVPlayer via its own internal
+    /// AVPlayerLayer; aetherView is occluded but stays bound so the
+    /// SW path falls back to it transparently.
     private let aetherView = AetherPlayerView()
 
-    // Now-Playing surface is populated by the host-side
-    // `PlayerViewModel+NowPlaying.swift` via manual incremental writes
-    // to `MPNowPlayingInfoCenter` (KSPlayer's working tvOS pattern;
-    // subscript patches sidestep the libdispatch race full-dict-replace
-    // writes tripped earlier).
+    /// AVKit player VC used purely as a Now-Playing host. Mounted as
+    /// a child VC once engine.load finishes and we have an AVPlayer
+    /// to hand it. `showsPlaybackControls = false` hides AVKit's
+    /// chrome AND disables its built-in Siri Remote gestures, so our
+    /// own UITapGestureRecognizers on `view` keep working. AVKit's
+    /// privileged code path then drives the system Now Playing
+    /// surface (title / artwork via `AVPlayerItem.externalMetadata`,
+    /// progress / rate / remote-commands via the AVPlayer instance)
+    /// automatically. This bypasses the manual MPNowPlayingInfoCenter
+    /// writes that reproducibly tripped `_dispatch_assert_queue_fail`
+    /// in MediaPlayer across 13+ iterations.
+    private let avPlayerVC = AVPlayerViewController()
+    private var didMountAVPlayerVC = false
 
     /// True only between `didEnterBackground` and the next
     /// `didBecomeActive`. The Apple TV app switcher (double Home)
@@ -122,17 +133,39 @@ final class PlayerHostController: UIViewController {
         // Engine-owned render surface. AetherPlayerView holds whichever
         // CALayer the engine has active and swaps internally on session
         // changes, so this side just mounts the view once and tells the
-        // engine which surface to drive.
+        // engine which surface to drive. Used directly as the visible
+        // surface for the software path; for the native AVPlayer path
+        // avPlayerVC is mounted on top once engine.load returns the
+        // AVPlayer.
         view.addSubview(aetherView)
         aetherView.frame = view.bounds
         aetherView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         viewModel.player.bind(view: aetherView)
 
-        // Now-Playing wiring lives entirely in PlayerViewModel+NowPlaying.swift.
-        // configureNowPlaying() (called from startPlayback after
-        // engine.load returns) writes title / artist / album /
-        // duration / artwork via subscript patches and binds the
-        // remote-command targets.
+        // AVKit-as-NowPlaying-host: configured once, mounted lazily
+        // when `onAVPlayerReady` fires (i.e. native AVPlayer path).
+        // We defer mounting because AVPlayerViewController draws a
+        // black background while its `player` is nil, which would
+        // occlude the engine's render surface during the software
+        // path or while engine.load is still in flight. Mounting only
+        // once we have a player avoids that flash and keeps SW
+        // playback unaffected.
+        avPlayerVC.showsPlaybackControls = false
+        avPlayerVC.appliesPreferredDisplayCriteriaAutomatically = true
+        avPlayerVC.contextualActions = []
+        avPlayerVC.view.isUserInteractionEnabled = false
+
+        // Engine fires this callback after `engine.load` returns with
+        // a non-nil currentAVPlayer (the native AVKit path). Software
+        // path leaves this unfired and aetherView keeps rendering.
+        viewModel.onAVPlayerReady = { [weak self] avPlayer in
+            guard let self else { return }
+            avPlayer.allowsExternalPlayback = true
+            self.avPlayerVC.player = avPlayer
+            if !self.didMountAVPlayerVC {
+                self.mountAVPlayerVC()
+            }
+        }
 
         // End-of-content auto-dismiss: a movie or the last episode of
         // a series rolling its credits leaves a black-screen-with-no-
@@ -203,6 +236,20 @@ final class PlayerHostController: UIViewController {
         )
     }
 
+    /// Add the AVPlayerViewController to the hierarchy on top of
+    /// aetherView but below the SwiftUI overlay. Called from the
+    /// `onAVPlayerReady` path so we only mount AVKit when there's an
+    /// actual AVPlayer to render; software-only sessions skip this
+    /// entirely and aetherView stays the visible surface.
+    private func mountAVPlayerVC() {
+        addChild(avPlayerVC)
+        view.insertSubview(avPlayerVC.view, aboveSubview: aetherView)
+        avPlayerVC.view.frame = view.bounds
+        avPlayerVC.view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        avPlayerVC.didMove(toParent: self)
+        didMountAVPlayerVC = true
+    }
+
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         // Kick off playback as the modal *starts* appearing instead of
@@ -229,6 +276,11 @@ final class PlayerHostController: UIViewController {
         // without actually dismissing, don't kill playback for that.
         guard isBeingDismissed || isMovingFromParent else { return }
         viewModel.player.unbind(view: aetherView)
+        // Release AVKit's Now Playing registration alongside the
+        // engine teardown. Setting player = nil triggers AVKit to
+        // clear its system Now Playing entry; otherwise the iPhone
+        // Control Center card would linger after the modal closed.
+        avPlayerVC.player = nil
         Task { await viewModel.stopPlayback() }
     }
 
@@ -594,6 +646,7 @@ final class PlayerHostController: UIViewController {
 
     private func dismissPlayer() {
         viewModel.player.unbind(view: aetherView)
+        avPlayerVC.player = nil
         Task {
             await viewModel.stopPlayback()
             onDismiss()
