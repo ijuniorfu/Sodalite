@@ -355,10 +355,21 @@ final class PlayerViewModel {
             // handshake, AVPlayerLayer ownership, and refresh-rate
             // matching all live inside engine.load(url:options:) now.
             LogTap.shared.note("[PlayerVM] engine.load url=\(url.absoluteString)")
+            // `matchContentEnabled` mirrors the tvOS Match Content
+            // master toggle (Dynamic Range OR Frame Rate). The engine
+            // uses it to gate master-playlist routing for HDR HEVC on
+            // non-DV displays: when the user has Match Dynamic Range
+            // OFF, the panel sits in SDR and AVPlayer would fail to
+            // open a master playlist that advertises VIDEO-RANGE=PQ
+            // (AVFoundationErrorDomain -11848, "Öffnen fehlgeschlagen").
+            // Falling back to media-playlist routing in that state
+            // lets AVPlayer open as generic HEVC and tone-map.
             try await player.load(
                 url: url,
                 startPosition: startPos,
-                options: LoadOptions()
+                options: LoadOptions(
+                    matchContentEnabled: Self.matchDynamicRangeEnabled
+                )
             )
 
             totalTime = formatSeconds(effectiveDuration)
