@@ -140,6 +140,10 @@ Everything happens in the open. No Discord, no closed garden.
 
 If you're not sure which to use, start a Discussion. Bugs get moved to Issues. Both are public, indexed by search engines, and stay tied to the project, so the next person with the same question can find the answer.
 
+## Support
+
+Sodalite is free and stays that way. If it's useful to you and you'd like to say thanks, there's a [Ko-fi](https://ko-fi.com/superuser404). The app also has an in-app Tip Jar and a Supporter Pack (cosmetics only, no gating).
+
 ## Related
 
 - [AetherEngine](https://github.com/superuser404notfound/AetherEngine): the video engine powering Sodalite
