@@ -16,6 +16,7 @@
   <img src="https://img.shields.io/badge/license-GPL--3.0%20%2B%20App%20Store%20Exception-lightgrey">
   <img src="https://img.shields.io/badge/languages-26-blue">
   <img src="https://img.shields.io/badge/status-public%20beta-orange">
+  <a href="https://ko-fi.com/superuser404"><img src="https://img.shields.io/badge/Ko--fi-Support-FF5E5B?logo=kofi&logoColor=white"></a>
 </p>
 
 > 🧪 **Public Beta is open.** Install via TestFlight: **https://testflight.apple.com/join/nWeQzmBX**
