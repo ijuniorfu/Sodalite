@@ -178,3 +178,82 @@ struct CatalogPickerSheet: View {
         }
     }
 }
+
+// MARK: - Multi-Select Sheet
+
+/// Multi-select sibling of `CatalogPickerSheet`. Tapping a row toggles
+/// its membership in the selection set instead of dismissing the sheet,
+/// the Menu-button (back) commits the current selection back to the
+/// caller. Used by the Tags picker, which lets users tag a request
+/// with one or more Sonarr/Radarr labels.
+struct CatalogMultiSelectSheet: View {
+    struct Option: Identifiable {
+        let id: String
+        let label: String
+    }
+
+    let title: String
+    let options: [Option]
+    let selectedIDs: Set<String>
+    let onCommit: (Set<String>) -> Void
+
+    @State private var selection: Set<String> = []
+    @FocusState private var focusedID: String?
+
+    var body: some View {
+        ZStack {
+            Color.black.opacity(0.9).ignoresSafeArea()
+
+            VStack(spacing: 32) {
+                Text(title)
+                    .font(.largeTitle)
+                    .fontWeight(.bold)
+                    .padding(.top, 60)
+
+                ScrollView {
+                    VStack(spacing: 12) {
+                        ForEach(options) { option in
+                            Button {
+                                if selection.contains(option.id) {
+                                    selection.remove(option.id)
+                                } else {
+                                    selection.insert(option.id)
+                                }
+                            } label: {
+                                HStack {
+                                    Text(option.label)
+                                        .font(.body)
+                                        .fontWeight(.medium)
+                                    Spacer()
+                                    if selection.contains(option.id) {
+                                        Image(systemName: "checkmark")
+                                            .foregroundStyle(.tint)
+                                    }
+                                }
+                                .padding(.horizontal, 24)
+                                .padding(.vertical, 18)
+                                .frame(maxWidth: .infinity)
+                                .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 12))
+                            }
+                            .buttonStyle(CatalogPickerButtonStyle())
+                            .focused($focusedID, equals: option.id)
+                        }
+                    }
+                    .frame(maxWidth: 720)
+                    .padding(.horizontal, 80)
+                    .padding(.bottom, 60)
+                }
+            }
+        }
+        .onExitCommand {
+            // Menu-button commits the current selection. Same UX as a
+            // tvOS form sheet, intentional and consistent: there is no
+            // explicit Cancel state for multi-select.
+            onCommit(selection)
+        }
+        .onAppear {
+            selection = selectedIDs
+            focusedID = options.first?.id
+        }
+    }
+}

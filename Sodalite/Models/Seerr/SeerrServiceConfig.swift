@@ -18,6 +18,15 @@ struct SeerrServiceDetails: Codable, Sendable {
     let profiles: [SeerrQualityProfile]
     let rootFolders: [SeerrRootFolder]
     let languageProfiles: [SeerrLanguageProfile]?
+    /// Sonarr/Radarr tag list. Jellyseerr forwards Radarr/Sonarr's
+    /// `/api/v3/tag` response here so the request body can attach
+    /// one or more tag ids to the resulting download.
+    let tags: [SeerrTag]?
+}
+
+struct SeerrTag: Codable, Sendable, Identifiable, Equatable, Hashable {
+    let id: Int
+    let label: String
 }
 
 struct SeerrQualityProfile: Codable, Sendable, Identifiable, Equatable, Hashable {

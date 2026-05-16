@@ -33,6 +33,10 @@ struct CatalogDetailView: View {
     @State private var serviceDetails: SeerrServiceDetails?
     @State private var selectedProfileID: Int?
     @State private var selectedRootFolder: String?
+    /// Sonarr/Radarr tag ids to attach to the download. Empty until
+    /// the user picks one; sent as nil when empty so older Jellyseerr
+    /// builds that don't recognise the field still accept the body.
+    @State private var selectedTagIDs: Set<Int> = []
 
     /// Presentation state for the picker sheets. SwiftUI's `Menu`
     /// hands focus off to a system-controlled overlay that the focus
@@ -43,6 +47,7 @@ struct CatalogDetailView: View {
     /// only the cover, and nothing leaks into the parent.
     @State private var isProfilePickerPresented = false
     @State private var isRootFolderPickerPresented = false
+    @State private var isTagPickerPresented = false
 
     var body: some View {
         ZStack {
@@ -164,6 +169,10 @@ struct CatalogDetailView: View {
                     profilePicker(details: details)
                     rootFolderPicker(details: details)
                 }
+
+                if let tags = details.tags, !tags.isEmpty {
+                    tagPicker(tags: tags)
+                }
             }
         }
     }
@@ -256,6 +265,56 @@ struct CatalogDetailView: View {
             return profile.name
         }
         return String(localized: "catalog.request.qualityProfile.default", defaultValue: "Default")
+    }
+
+    private func tagPicker(tags: [SeerrTag]) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text("catalog.request.tags")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+
+            Button {
+                isTagPickerPresented = true
+            } label: {
+                HStack {
+                    Text(selectedTagsLabel(tags: tags))
+                        .fontWeight(.medium)
+                        .lineLimit(1)
+                        .truncationMode(.tail)
+                    Spacer()
+                    Image(systemName: "chevron.up.chevron.down")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                .padding(.horizontal, 20)
+                .padding(.vertical, 14)
+                .frame(maxWidth: .infinity)
+                .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 12))
+            }
+            .buttonStyle(CatalogPickerButtonStyle())
+            .fullScreenCover(isPresented: $isTagPickerPresented) {
+                CatalogMultiSelectSheet(
+                    title: String(localized: "catalog.request.tags", defaultValue: "Tags"),
+                    options: tags.map { .init(id: "\($0.id)", label: $0.label) },
+                    selectedIDs: Set(selectedTagIDs.map(String.init)),
+                    onCommit: { ids in
+                        selectedTagIDs = Set(ids.compactMap(Int.init))
+                        isTagPickerPresented = false
+                    }
+                )
+            }
+        }
+        .frame(maxWidth: .infinity)
+    }
+
+    private func selectedTagsLabel(tags: [SeerrTag]) -> String {
+        if selectedTagIDs.isEmpty {
+            return String(localized: "catalog.request.tags.none", defaultValue: "None")
+        }
+        let names = tags
+            .filter { selectedTagIDs.contains($0.id) }
+            .map(\.label)
+        return names.joined(separator: ", ")
     }
 
     private func seasonSelection(seasons: [SeerrSeason]) -> some View {
@@ -758,7 +817,8 @@ struct CatalogDetailView: View {
                 serverID: serviceDetails?.server.id,
                 profileID: selectedProfileID,
                 rootFolder: selectedRootFolder,
-                languageProfileID: serviceDetails?.server.activeLanguageProfileId
+                languageProfileID: serviceDetails?.server.activeLanguageProfileId,
+                tags: selectedTagIDs.isEmpty ? nil : Array(selectedTagIDs)
             )
             didRequest = true
         } catch {

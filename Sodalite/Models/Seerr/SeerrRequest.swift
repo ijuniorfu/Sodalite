@@ -56,6 +56,11 @@ struct SeerrCreateRequestBody: Encodable, Sendable {
     let profileId: Int?
     let rootFolder: String?
     let languageProfileId: Int?
+    /// Sonarr/Radarr tag ids attached to the resulting download.
+    /// Empty array and nil both encode as "no tags", we send nil to
+    /// stay forwards-compatible with older Jellyseerr builds that
+    /// might not recognise the field.
+    let tags: [Int]?
 
     init(
         mediaType: SeerrMediaType,
@@ -64,7 +69,8 @@ struct SeerrCreateRequestBody: Encodable, Sendable {
         serverId: Int? = nil,
         profileId: Int? = nil,
         rootFolder: String? = nil,
-        languageProfileId: Int? = nil
+        languageProfileId: Int? = nil,
+        tags: [Int]? = nil
     ) {
         self.mediaType = mediaType
         self.mediaId = mediaId
@@ -73,5 +79,6 @@ struct SeerrCreateRequestBody: Encodable, Sendable {
         self.profileId = profileId
         self.rootFolder = rootFolder
         self.languageProfileId = languageProfileId
+        self.tags = tags
     }
 }

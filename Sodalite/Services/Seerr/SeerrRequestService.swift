@@ -8,7 +8,8 @@ protocol SeerrRequestServiceProtocol: Sendable {
         serverID: Int?,
         profileID: Int?,
         rootFolder: String?,
-        languageProfileID: Int?
+        languageProfileID: Int?,
+        tags: [Int]?
     ) async throws -> SeerrRequest
     func myRequests(userID: Int, take: Int, skip: Int) async throws -> SeerrRequestsResult
 }
@@ -28,7 +29,8 @@ final class SeerrRequestService: SeerrRequestServiceProtocol {
         serverID: Int? = nil,
         profileID: Int? = nil,
         rootFolder: String? = nil,
-        languageProfileID: Int? = nil
+        languageProfileID: Int? = nil,
+        tags: [Int]? = nil
     ) async throws -> SeerrRequest {
         let body = SeerrCreateRequestBody(
             mediaType: mediaType,
@@ -37,7 +39,8 @@ final class SeerrRequestService: SeerrRequestServiceProtocol {
             serverId: serverID,
             profileId: profileID,
             rootFolder: rootFolder,
-            languageProfileId: languageProfileID
+            languageProfileId: languageProfileID,
+            tags: tags
         )
         return try await client.request(
             endpoint: SeerrEndpoint.createRequest(body: body),
