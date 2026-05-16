@@ -136,12 +136,16 @@ final class PlayerHostController: AVPlayerViewController {
     /// Freeze-frame overlay shown during audio-track-switch reload to
     /// hide the ~1 s black frame the engine teardown produces. The
     /// captured frame is video-only (via `AVPlayerItemVideoOutput`)
-    /// so no UI chrome ends up in the snapshot. Faded out when the
-    /// new AVPlayer's rate goes non-zero (= engine called `.play()`,
-    /// pipeline is live again). A 5 s timeout removes the overlay
-    /// even if the reload fails.
+    /// so no UI chrome ends up in the snapshot. Faded when the new
+    /// AVPlayer's timebase first advances (= audio is audible),
+    /// using a periodic time observer instead of a rate KVO because
+    /// the engine may set `rate=1.0` before our `$currentAVPlayer`
+    /// sink registers the observation, in which case `options: [.new]`
+    /// never fires. A 5 s timeout removes the overlay even if the
+    /// reload fails.
     private var audioSwitchOverlay: UIView?
-    private var audioSwitchPlayerObservation: NSKeyValueObservation?
+    private var audioSwitchTimeObserver: Any?
+    private var audioSwitchObservedPlayer: AVPlayer?
     private var audioSwitchTimeoutTask: Task<Void, Never>?
 
     /// Per-AVPlayerItem video output attached in the `$currentAVPlayer`
@@ -461,30 +465,42 @@ final class PlayerHostController: AVPlayerViewController {
         }
     }
 
-    /// KVO the new AVPlayer's `rate` and fade out as soon as it
-    /// transitions to non-zero. That's the earliest signal that the
-    /// engine has finished its reload and called `.play()` on the
-    /// fresh player; using `timeControlStatus == .playing` waits
-    /// for the video decoder to catch up to audio which can be 2-3
-    /// seconds longer than the audio-resume moment.
+    /// Attach a periodic time observer to the new AVPlayer; fade as
+    /// soon as the player's timebase advances past its starting
+    /// position. The first observer callback fires immediately with
+    /// `currentTime() == startTime` (skipped); the next callback
+    /// fires once playback actually starts producing samples. This
+    /// reliably catches the audio-resume moment regardless of when
+    /// the engine called `.play()`, which a rate KVO can miss if
+    /// rate is set before our sink registers.
     private func observeNewPlayerForAudioSwitch(_ player: AVPlayer) {
-        audioSwitchPlayerObservation?.invalidate()
-        audioSwitchPlayerObservation = player.observe(
-            \.rate,
-            options: [.new]
-        ) { [weak self] _, change in
-            guard let new = change.newValue, new != 0 else { return }
-            Task { @MainActor [weak self] in
-                self?.removeAudioSwitchOverlay(animated: true)
-            }
+        cleanupAudioSwitchObservation()
+        let startTime = player.currentTime()
+        audioSwitchObservedPlayer = player
+        audioSwitchTimeObserver = player.addPeriodicTimeObserver(
+            forInterval: CMTime(value: 1, timescale: 20),
+            queue: .main
+        ) { [weak self] currentTime in
+            guard let self else { return }
+            guard currentTime.isNumeric, startTime.isNumeric else { return }
+            guard CMTimeCompare(currentTime, startTime) > 0 else { return }
+            self.removeAudioSwitchOverlay(animated: true)
         }
+    }
+
+    private func cleanupAudioSwitchObservation() {
+        if let observer = audioSwitchTimeObserver,
+           let player = audioSwitchObservedPlayer {
+            player.removeTimeObserver(observer)
+        }
+        audioSwitchTimeObserver = nil
+        audioSwitchObservedPlayer = nil
     }
 
     private func removeAudioSwitchOverlay(animated: Bool) {
         audioSwitchTimeoutTask?.cancel()
         audioSwitchTimeoutTask = nil
-        audioSwitchPlayerObservation?.invalidate()
-        audioSwitchPlayerObservation = nil
+        cleanupAudioSwitchObservation()
         guard let snap = audioSwitchOverlay else { return }
         audioSwitchOverlay = nil
         if animated {
