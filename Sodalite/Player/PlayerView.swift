@@ -203,13 +203,30 @@ final class PlayerHostController: AVPlayerViewController {
         // Subscribe to engine state. currentAVPlayer drives AVKit's
         // .player rebind across audio-track-switch reloads;
         // playbackBackend drives aetherView mounting for the SW path.
+        //
+        // The nil case is load-bearing: for the SW (dav1d / VP9 →
+        // `AVSampleBufferDisplayLayer`) path the engine never sets
+        // a `currentAVPlayer`, so it transitions to nil when a
+        // previous native session tore down. Without releasing
+        // AVKit's reference, AVKit holds the old, item-less AVPlayer
+        // and renders its own buffering spinner over our SW-decoded
+        // frames — the user-visible "AV1 plays but the loading
+        // indicator never goes away" bug. Setting `self.player = nil`
+        // when the engine drops `currentAVPlayer` clears AVKit's
+        // status machine; the AetherPlayerView (mounted into
+        // `contentOverlayView` by the `playbackBackend` sink below)
+        // continues rendering frames unaffected.
         let engine = viewModel.player
         engine.$currentAVPlayer
             .receive(on: DispatchQueue.main)
             .sink { [weak self] avPlayer in
-                guard let self, let avPlayer else { return }
-                avPlayer.allowsExternalPlayback = true
-                self.player = avPlayer
+                guard let self else { return }
+                if let avPlayer {
+                    avPlayer.allowsExternalPlayback = true
+                    self.player = avPlayer
+                } else {
+                    self.player = nil
+                }
             }
             .store(in: &engineSubscriptions)
 
