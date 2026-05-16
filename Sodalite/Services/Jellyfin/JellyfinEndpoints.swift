@@ -28,10 +28,9 @@ enum JellyfinEndpoint: APIEndpoint {
     case episodes(seriesID: String, seasonID: String, userID: String)
     case similarItems(itemID: String, userID: String, limit: Int)
 
-    // Genres, Studios & Tags
+    // Genres & Studios
     case genres(userID: String)
     case studios(userID: String)
-    case tags(userID: String)
 
     // Playback (playbackInfo handled directly in PlaybackService)
     case sessionPlaying(report: PlaybackStartReport)
@@ -89,8 +88,6 @@ enum JellyfinEndpoint: APIEndpoint {
             "/Genres"
         case .studios:
             "/Studios"
-        case .tags:
-            "/Tags"
         case .sessionPlaying:
             "/Sessions/Playing"
         case .sessionProgress:
@@ -208,13 +205,6 @@ enum JellyfinEndpoint: APIEndpoint {
                 URLQueryItem(name: "SortOrder", value: "Ascending"),
             ]
 
-        case .tags(let userID):
-            return [
-                URLQueryItem(name: "UserId", value: userID),
-                URLQueryItem(name: "SortBy", value: "SortName"),
-                URLQueryItem(name: "SortOrder", value: "Ascending"),
-            ]
-
         case .searchHints(let userID, let query, let limit):
             return [
                 URLQueryItem(name: "UserId", value: userID),
@@ -271,7 +261,6 @@ struct ItemQuery: Sendable {
     var searchTerm: String?
     var genres: [String]?
     var studioNames: [String]?
-    var tags: [String]?
     var isFavorite: Bool?
     /// Single-value provider-id match like "tmdb.123", used by the
     /// home-page smart provider filter to look up library items by
@@ -298,9 +287,6 @@ struct ItemQuery: Sendable {
         }
         if let studioNames {
             items.append(URLQueryItem(name: "Studios", value: studioNames.joined(separator: "|")))
-        }
-        if let tags {
-            items.append(URLQueryItem(name: "Tags", value: tags.joined(separator: "|")))
         }
         if let isFavorite { items.append(URLQueryItem(name: "IsFavorite", value: String(isFavorite))) }
         if let anyProviderIdEquals {

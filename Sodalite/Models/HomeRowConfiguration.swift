@@ -12,7 +12,6 @@ enum HomeRowType: String, Codable, Sendable, CaseIterable, Identifiable {
     case latestShows
     case discoverProviders
     case genres
-    case tags
     case collections
     case recentlyAdded
     case topRatedMovies
@@ -50,10 +49,10 @@ enum HomeRowType: String, Codable, Sendable, CaseIterable, Identifiable {
         }
     }
 
-    /// Genres and Tags show tag cards rather than media items.
+    /// Genres show tag cards rather than media items.
     var isTagRow: Bool {
         switch self {
-        case .genres, .tags:
+        case .genres:
             true
         default:
             false
@@ -80,7 +79,6 @@ enum HomeRowType: String, Codable, Sendable, CaseIterable, Identifiable {
         case .topRatedShows: "home.topRatedShows"
         case .recentlyAdded: "home.recentlyAdded"
         case .genres: "home.genres"
-        case .tags: "home.tags"
         case .collections: "home.collections"
         case .discoverProviders: "home.discoverProviders"
         }
@@ -99,7 +97,6 @@ enum HomeRowType: String, Codable, Sendable, CaseIterable, Identifiable {
         case .topRatedShows: "star.fill"
         case .recentlyAdded: "clock"
         case .genres: "tag"
-        case .tags: "tag.fill"
         case .collections: "rectangle.stack.fill"
         case .discoverProviders: "tv.badge.wifi"
         }

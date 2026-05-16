@@ -225,18 +225,6 @@ struct HomeView: View {
                 // Comedy, Drama, …) so it's a stable enough key.
                 cacheKey: FilterCacheKey.Home.genre(name: tag.name)
             )
-        case .tags:
-            FilterDestination(
-                title: tag.name,
-                query: ItemQuery(
-                    includeItemTypes: [.movie, .series],
-                    sortBy: "SortName",
-                    sortOrder: "Ascending",
-                    limit: 200,
-                    tags: [tag.name]
-                ),
-                cacheKey: FilterCacheKey.Home.tag(name: tag.name)
-            )
         default:
             FilterDestination(
                 title: tag.name,
@@ -278,7 +266,6 @@ extension ItemQuery: Hashable {
         hasher.combine(sortBy)
         hasher.combine(genres)
         hasher.combine(studioNames)
-        hasher.combine(tags)
     }
 
     static func == (lhs: ItemQuery, rhs: ItemQuery) -> Bool {
@@ -286,7 +273,6 @@ extension ItemQuery: Hashable {
         lhs.sortBy == rhs.sortBy &&
         lhs.genres == rhs.genres &&
         lhs.studioNames == rhs.studioNames &&
-        lhs.tags == rhs.tags &&
         lhs.isFavorite == rhs.isFavorite
     }
 }

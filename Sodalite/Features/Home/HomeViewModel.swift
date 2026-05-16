@@ -582,7 +582,7 @@ final class HomeViewModel {
                 let response = try await libraryService.getItems(userID: userID, query: query)
                 items = response.items
 
-            case .genres, .tags, .discoverProviders:
+            case .genres, .discoverProviders:
                 return nil
             }
 
@@ -599,38 +599,23 @@ final class HomeViewModel {
             case .genres:
                 let allGenres = try await libraryService.getGenres(userID: userID)
                 tags = allGenres.filter { GenreFilter.isPrimary($0.name) }
-            case .tags:
-                tags = try await libraryService.getTags(userID: userID)
             default:
                 return nil
             }
 
-            // Fetch one item per tag in parallel for matching backdrops.
-            // Genre rows filter by Genres=, Tag rows filter by Tags=, so
-            // the query has to know which case it's serving.
+            // Fetch one item per tag in parallel for matching backdrops
             let tagItems: [(String, JellyfinItem?)] = await withTaskGroup(
                 of: (String, JellyfinItem?).self,
                 returning: [(String, JellyfinItem?)].self
             ) { group in
                 for tag in tags {
                     group.addTask {
-                        let query: ItemQuery
-                        switch type {
-                        case .tags:
-                            query = ItemQuery(
-                                includeItemTypes: [.movie, .series],
-                                sortBy: "Random",
-                                limit: 1,
-                                tags: [tag.name]
-                            )
-                        default:
-                            query = ItemQuery(
-                                includeItemTypes: [.movie, .series],
-                                sortBy: "Random",
-                                limit: 1,
-                                genres: [tag.name]
-                            )
-                        }
+                        let query = ItemQuery(
+                            includeItemTypes: [.movie, .series],
+                            sortBy: "Random",
+                            limit: 1,
+                            genres: [tag.name]
+                        )
                         let item = try? await self.libraryService.getItems(userID: self.userID, query: query).items.first
                         return (tag.id, item)
                     }
