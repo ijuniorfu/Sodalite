@@ -42,6 +42,14 @@ final class PlayerViewModel {
     // Playback time (raw seconds, tracked by @Observable for subtitle sync)
     var playbackTime: Double = 0
 
+    /// Source-PTS time of the currently displayed frame, mirrored from
+    /// `AetherEngine.sourceTime`. On the native HLS path AVPlayer's
+    /// clock sits at `source_pts - producer.videoShiftPts`, so cues
+    /// from the side-demuxer (raw source PTS) need this view of the
+    /// timeline to render in sync. Equal to `playbackTime` on the SW
+    /// path where the clock and source PTS already match.
+    var subtitleTime: Double = 0
+
     // Scrubbing
     var isScrubbing = false
     var scrubProgress: Float = 0
@@ -515,6 +523,11 @@ final class PlayerViewModel {
                     self.isLoading = false
                 }
             }
+            .store(in: &cancellables)
+
+        player.$sourceTime
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] t in self?.subtitleTime = t }
             .store(in: &cancellables)
 
         player.$currentTime
