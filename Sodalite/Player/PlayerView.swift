@@ -133,6 +133,17 @@ final class PlayerHostController: AVPlayerViewController {
     /// the SW path.
     private var engineSubscriptions: Set<AnyCancellable> = []
 
+    /// Freeze-frame overlay shown during audio-track-switch reload to
+    /// hide the ~1 s black frame the engine teardown produces. Installed
+    /// by `viewModel.onAudioSwitchBegin` (which fires synchronously
+    /// while the old AVPlayer is still rendering), faded out when the
+    /// new AVPlayer reaches `timeControlStatus == .playing`. A 5 s
+    /// timeout removes the overlay even if the reload fails so the
+    /// user never gets stranded behind a frozen frame.
+    private var audioSwitchOverlay: UIView?
+    private var audioSwitchPlayerObservation: NSKeyValueObservation?
+    private var audioSwitchTimeoutTask: Task<Void, Never>?
+
     /// True only between `didEnterBackground` and the next
     /// `didBecomeActive`. The Apple TV app switcher (double Home)
     /// fires `willResignActive` but NOT `didEnterBackground`, so it
@@ -224,11 +235,22 @@ final class PlayerHostController: AVPlayerViewController {
                 if let avPlayer {
                     avPlayer.allowsExternalPlayback = true
                     self.player = avPlayer
+                    if self.audioSwitchOverlay != nil {
+                        self.observeNewPlayerForAudioSwitch(avPlayer)
+                    }
                 } else {
                     self.player = nil
                 }
             }
             .store(in: &engineSubscriptions)
+
+        // Host-side freeze-frame mask for audio-track-switch reloads.
+        // Fires synchronously from PlayerViewModel.selectAudioTrack
+        // BEFORE the engine reload begins, so the snapshot captures
+        // the still-live video surface.
+        viewModel.onAudioSwitchBegin = { [weak self] in
+            self?.installAudioSwitchOverlay()
+        }
 
         engine.$playbackBackend
             .receive(on: DispatchQueue.main)
@@ -334,6 +356,77 @@ final class PlayerHostController: AVPlayerViewController {
         viewModel.player.unbind(view: aetherView)
         aetherView.removeFromSuperview()
         aetherViewMounted = false
+    }
+
+    // MARK: - Audio-track-switch freeze-frame overlay
+
+    /// Snapshot the still-live player view and pin it over the video
+    /// surface so the user sees a frozen frame instead of a black
+    /// frame while the engine tears down + restarts the pipeline for
+    /// the audio track switch. Removed by `removeAudioSwitchOverlay`
+    /// when the new AVPlayer transitions to `.playing`, or by the
+    /// 5 s timeout if the reload never completes.
+    private func installAudioSwitchOverlay() {
+        guard audioSwitchOverlay == nil else { return }
+        // `afterScreenUpdates: false` captures the CURRENT screen
+        // contents without running pending render passes. The
+        // engine's selectAudioTrack call is async (`Task`-scheduled),
+        // so at this point AVPlayer is still rendering frames and
+        // the snapshot picks them up.
+        guard let snap = view.snapshotView(afterScreenUpdates: false) else {
+            return
+        }
+        let host = contentOverlayView ?? view!
+        snap.frame = host.bounds
+        snap.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        snap.isUserInteractionEnabled = false
+        // contentOverlayView sits above AVPlayer's video layer but
+        // below AVKit chrome; our SwiftUI overlay is added to
+        // self.view directly so it stays above this snapshot too.
+        host.addSubview(snap)
+        audioSwitchOverlay = snap
+
+        audioSwitchTimeoutTask?.cancel()
+        audioSwitchTimeoutTask = Task { @MainActor [weak self] in
+            try? await Task.sleep(for: .seconds(5))
+            guard !Task.isCancelled else { return }
+            self?.removeAudioSwitchOverlay(animated: false)
+        }
+    }
+
+    /// Subscribe to the new AVPlayer's `timeControlStatus` and fade
+    /// the snapshot out once frames are flowing again. KVO fires on
+    /// the thread that mutated the property, so dispatch to main
+    /// before touching UIView.
+    private func observeNewPlayerForAudioSwitch(_ player: AVPlayer) {
+        audioSwitchPlayerObservation?.invalidate()
+        audioSwitchPlayerObservation = player.observe(
+            \.timeControlStatus,
+            options: [.new]
+        ) { [weak self] _, change in
+            guard change.newValue == .playing else { return }
+            Task { @MainActor [weak self] in
+                self?.removeAudioSwitchOverlay(animated: true)
+            }
+        }
+    }
+
+    private func removeAudioSwitchOverlay(animated: Bool) {
+        audioSwitchTimeoutTask?.cancel()
+        audioSwitchTimeoutTask = nil
+        audioSwitchPlayerObservation?.invalidate()
+        audioSwitchPlayerObservation = nil
+        guard let snap = audioSwitchOverlay else { return }
+        audioSwitchOverlay = nil
+        if animated {
+            UIView.animate(
+                withDuration: 0.25,
+                animations: { snap.alpha = 0 },
+                completion: { _ in snap.removeFromSuperview() }
+            )
+        } else {
+            snap.removeFromSuperview()
+        }
     }
 
     override func viewWillAppear(_ animated: Bool) {
