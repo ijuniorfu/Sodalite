@@ -370,20 +370,29 @@ final class PlayerViewModel {
             // handshake, AVPlayerLayer ownership, and refresh-rate
             // matching all live inside engine.load(url:options:) now.
             LogTap.shared.note("[PlayerVM] engine.load url=\(url.absoluteString)")
-            // `matchContentEnabled` mirrors the tvOS Match Content
-            // master toggle (Dynamic Range OR Frame Rate). The engine
-            // uses it to gate master-playlist routing for HDR HEVC on
-            // non-DV displays: when the user has Match Dynamic Range
-            // OFF, the panel sits in SDR and AVPlayer would fail to
-            // open a master playlist that advertises VIDEO-RANGE=PQ
-            // (AVFoundationErrorDomain -11848, "Öffnen fehlgeschlagen").
-            // Falling back to media-playlist routing in that state
-            // lets AVPlayer open as generic HEVC and tone-map.
+            // Two panel-state inputs feed the engine's master-vs-media
+            // playlist routing:
+            // - `matchContentEnabled` mirrors the tvOS Match Content
+            //   master toggle (Dynamic Range OR Frame Rate). False means
+            //   tvOS keeps the panel locked in its current mode, so the
+            //   engine knows AVPlayer can't drive a panel-mode switch.
+            // - `panelIsInHDRMode` reflects whether the panel is right
+            //   now in HDR (EDR active). True means master-playlist
+            //   routing is safe regardless of the match flag, because
+            //   the panel already accepts HDR signaling and any
+            //   SUPPLEMENTAL-CODECS=dvh1 upgrade hint can land per
+            //   DrHurt's empirical test in AetherEngine#4. False (panel
+            //   currently SDR) means the engine falls back to media for
+            //   HDR sources unless match-content is on AND the display
+            //   can do HDR, since otherwise AVPlayer fails asset open
+            //   with `Cannot Open` (-11848) on a master that claims
+            //   HDR while the panel sits in SDR.
             try await player.load(
                 url: url,
                 startPosition: startPos,
                 options: LoadOptions(
-                    matchContentEnabled: Self.matchDynamicRangeEnabled
+                    matchContentEnabled: Self.matchDynamicRangeEnabled,
+                    panelIsInHDRMode: Self.panelIsInHDRMode
                 )
             )
 
@@ -447,6 +456,31 @@ final class PlayerViewModel {
             .first
         else { return false }
         return win.avDisplayManager.isDisplayCriteriaMatchingEnabled
+        #else
+        return false
+        #endif
+    }
+
+    /// Snapshot of whether the connected panel is currently presenting
+    /// in HDR (EDR active). Read off `UIScreen.currentEDRHeadroom`,
+    /// which AVKit / UIKit publishes per active display; > 1.0 means
+    /// the panel is in an HDR mode and accepting extended-range pixels
+    /// at this moment. Feeds the engine's master-vs-media playlist
+    /// routing as the strong signal that master-playlist routing is
+    /// safe even with Match Dynamic Range off (per DrHurt's
+    /// HDR10-locked-panel-upgrades-to-DV test in AetherEngine#4).
+    static var panelIsInHDRMode: Bool {
+        #if os(tvOS)
+        guard let win = UIApplication.shared.connectedScenes
+            .compactMap({ $0 as? UIWindowScene })
+            .flatMap({ $0.windows })
+            .first
+        else { return false }
+        // `currentEDRHeadroom == 1.0` means the panel is in SDR; > 1.0
+        // means HDR is active and the renderer can present brighter-
+        // than-paper-white pixels. Use a small epsilon to dodge a
+        // floating-point comparison glitch on the boundary.
+        return win.screen.currentEDRHeadroom > 1.001
         #else
         return false
         #endif
