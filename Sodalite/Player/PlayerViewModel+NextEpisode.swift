@@ -93,6 +93,7 @@ extension PlayerViewModel {
         nextEpisodeCountdown = max(1, seconds)
         isCountdownActive = true
         nextEpisodeTimer?.cancel()
+        LogTap.shared.note("[NextEp] countdown_start from=\(nextEpisodeCountdown)s nextId=\(nextEpisode?.id ?? "nil")")
         nextEpisodeTimer = Task {
             while nextEpisodeCountdown > 0, !Task.isCancelled {
                 try? await Task.sleep(for: .seconds(1))
@@ -100,6 +101,7 @@ extension PlayerViewModel {
                 nextEpisodeCountdown -= 1
             }
             guard !Task.isCancelled else { return }
+            LogTap.shared.note("[NextEp] countdown_fired")
             // Launch in a NEW task, if we called playNextEpisode() directly,
             // cancelling nextEpisodeTimer would cancel the playback startup
             // (CancellationError in player.load → "abgebrochen").
@@ -110,7 +112,11 @@ extension PlayerViewModel {
     }
 
     func playNextEpisode() async {
-        guard let next = nextEpisode else { return }
+        guard let next = nextEpisode else {
+            LogTap.shared.note("[NextEp] playNextEpisode: bailing, nextEpisode is nil")
+            return
+        }
+        LogTap.shared.note("[NextEp] playNextEpisode enter: from=\(item.id) to=\(next.id)")
         nextEpisodeTimer?.cancel()
         nextEpisodeTimer = nil
         showNextEpisodeOverlay = false
@@ -118,8 +124,31 @@ extension PlayerViewModel {
         // Stop current
         stopProgressReporting()
         cancellables.removeAll()
-        await reportStop()
+
+        // Fire-and-forget the stop report so a slow/flaky Jellyfin response
+        // can't stall the transition. reportStop()'s 30 s URLRequest timeout
+        // would otherwise leave the user staring at a hidden overlay with
+        // no spinner if the server hiccups at the session boundary.
+        let stopReport = PlaybackStopReport(
+            itemId: item.id,
+            mediaSourceId: mediaSourceID,
+            playSessionId: playSessionID,
+            positionTicks: currentPositionTicks
+        )
+        let svc = playbackService
+        Task {
+            do {
+                try await svc.reportPlaybackStopped(stopReport)
+                NotificationCenter.default.post(name: .playbackProgressDidChange, object: nil)
+                LogTap.shared.note("[NextEp] report_stop_done (background)")
+            } catch {
+                LogTap.shared.note("[NextEp] report_stop_failed (background): \(error.localizedDescription)")
+            }
+        }
+
+        LogTap.shared.note("[NextEp] engine_stop_start")
         player.stop()
+        LogTap.shared.note("[NextEp] engine_stop_done")
 
         // Reset state
         item = next
@@ -152,7 +181,9 @@ extension PlayerViewModel {
         didAutoSkipCurrentOutro = false
 
         // Start new
+        LogTap.shared.note("[NextEp] start_playback_enter id=\(item.id)")
         await startPlayback()
+        LogTap.shared.note("[NextEp] start_playback_exit error=\(errorMessage ?? "nil") isPlaying=\(isPlaying)")
     }
 
     func cancelNextEpisode() {
