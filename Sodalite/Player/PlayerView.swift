@@ -258,7 +258,20 @@ final class PlayerHostController: AVPlayerViewController {
                     // tears down the engine's nativeHost and brings up
                     // a fresh one) doesn't silently drop fill mode.
                     self.applyVideoGravity(for: self.viewModel.pictureMode)
-                    self.attachVideoOutput(for: avPlayer)
+                    // Deliberately do NOT attach AVPlayerItemVideoOutput
+                    // unconditionally: keeping one attached for the full
+                    // session means AVPlayer must keep decoding into a
+                    // 32BGRA pixel buffer (~24 MB per 4K frame) whether
+                    // we ever read it or not. That allocation pressure is
+                    // the current leading suspect for the ~3.8 MB/sec
+                    // RSS growth on long DV 8.1 SDR sessions that
+                    // survived both the per-frame HDR scoping fix and
+                    // the no-store Cache-Control fix. The output is
+                    // only used by `captureCurrentVideoFrame()` at the
+                    // start of an audio-track-switch (freeze-frame
+                    // overlay); attach lazily in
+                    // `installAudioSwitchOverlay()` and detach right
+                    // after the snapshot is captured.
                     if self.audioSwitchOverlay != nil {
                         self.observeNewPlayerForAudioSwitch(avPlayer)
                     }
