@@ -70,7 +70,14 @@ final class PlayerViewModel {
         case subtitleButton
         case speedButton
         case pictureButton
+        case infoButton
     }
+
+    /// True while the stats-for-nerds side panel is mounted. Toggled
+    /// by pressing the transport bar's info chip; the chip itself only
+    /// appears when `preferences.showStatsForNerds` is on so casual
+    /// users never see either.
+    var showStatsOverlay: Bool = false
 
     enum TrackDropdown: Equatable {
         case none

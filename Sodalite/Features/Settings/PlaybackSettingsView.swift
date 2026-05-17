@@ -186,6 +186,18 @@ struct PlaybackSettingsView: View {
                     label: { String(localized: String.LocalizationValue($0.titleKey)) }
                 )
 
+                sectionHeader("settings.playback.section.advanced")
+
+                boolRow(
+                    icon: "info.circle",
+                    title: "settings.playback.statsForNerds",
+                    subtitle: "settings.playback.statsForNerds.subtitle",
+                    value: Binding(
+                        get: { prefs.showStatsForNerds },
+                        set: { prefs.showStatsForNerds = $0 }
+                    )
+                )
+
                 // Diagnostic overlay toggle. Only mounted in DEBUG /
                 // TestFlight builds; App Store users never see this row
                 // because the overlay can't be enabled there at all

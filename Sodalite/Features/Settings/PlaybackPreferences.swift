@@ -36,6 +36,7 @@ final class PlaybackPreferences {
         static let subtitleDelaySeconds = "playback.subtitleDelaySeconds"
         static let subtitleVerticalOffsetPoints = "playback.subtitleVerticalOffsetPoints"
         static let pictureMode = "playback.pictureMode"
+        static let showStatsForNerds = "playback.showStatsForNerds"
         static let showDiagnosticOverlay = "playback.showDiagnosticOverlay"
     }
 
@@ -273,6 +274,17 @@ final class PlaybackPreferences {
         didSet { store.set(pictureMode.rawValue, forKey: Keys.pictureMode) }
     }
 
+    /// Mount an "i" button in the player transport bar that opens a
+    /// stats panel (codec, decoder, container, bitrate, …). Default off
+    /// because it's surface noise for casual users; enthusiasts who
+    /// want to keep tabs on what their files are doing flip it on.
+    /// Unlike `showDiagnosticOverlay` this is not gated by
+    /// `LogTap.isDiagnosticBuild`, the overlay is read-only and safe
+    /// to ship to the App Store.
+    var showStatsForNerds: Bool {
+        didSet { store.set(showStatsForNerds, forKey: Keys.showStatsForNerds) }
+    }
+
     /// Show the in-player engine log overlay (top-left). Default off
     /// so the overlay doesn't ride along on every TestFlight build; the
     /// `LogTap.isDiagnosticBuild` gate still hides the toggle entirely
@@ -333,6 +345,7 @@ final class PlaybackPreferences {
             : (allowed.min(by: { abs($0 - storedOffset) < abs($1 - storedOffset) }) ?? 0)
         self.pictureMode = (store.string(forKey: Keys.pictureMode))
             .flatMap(PictureMode.init(rawValue:)) ?? .original
+        self.showStatsForNerds = store.object(forKey: Keys.showStatsForNerds) as? Bool ?? false
         self.showDiagnosticOverlay = store.object(forKey: Keys.showDiagnosticOverlay) as? Bool ?? false
     }
 }

@@ -57,6 +57,16 @@ struct TransportBar: View {
     /// Currently-applied picture-fill mode. Mirrors
     /// `viewModel.pictureMode` and drives the picture button's label.
     let pictureMode: PlaybackPreferences.PictureMode
+    /// Whether to surface the "Stats for Nerds" info chip after the
+    /// picture button. Off by default in `PlaybackPreferences`; the
+    /// chip toggles a side-panel overlay rather than opening a
+    /// dropdown, so it's a no-dropdown trackButton.
+    let showsInfoButton: Bool
+    /// Whether the stats side-panel is currently shown. Used to give
+    /// the info chip a "pressed" look so the user can tell at a glance
+    /// that the overlay is mounted (toggling it off is just pressing
+    /// the chip again).
+    let isStatsOverlayOpen: Bool
 
     var body: some View {
         VStack(spacing: 10) {
@@ -155,6 +165,21 @@ struct TransportBar: View {
                     dropdown: pictureDropdownItems,
                     isOpen: isPictureDropdownOpen
                 )
+
+                if showsInfoButton {
+                    // Info chip — toggles the stats-for-nerds side
+                    // panel rather than opening a dropdown. The chip
+                    // looks "pressed" while the overlay is mounted so
+                    // the user can read the state visually instead of
+                    // remembering which click did what.
+                    trackButton(
+                        label: String(localized: "player.stats", defaultValue: "Stats"),
+                        icon: "info.circle",
+                        isFocused: controlsFocus == .infoButton || isStatsOverlayOpen,
+                        dropdown: [],
+                        isOpen: false
+                    )
+                }
             }
             .padding(.bottom, 4)
 

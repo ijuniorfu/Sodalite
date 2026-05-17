@@ -669,6 +669,9 @@ final class PlayerHostController: AVPlayerViewController {
             case .subtitleButton: openSubtitleDropdown()
             case .speedButton: openSpeedDropdown()
             case .pictureButton: openPictureDropdown()
+            case .infoButton:
+                viewModel.showStatsOverlay.toggle()
+                viewModel.scheduleControlsHide()
             default: break
             }
         } else if viewModel.isScrubbing {
@@ -691,6 +694,15 @@ final class PlayerHostController: AVPlayerViewController {
         // controls) and the countdown keeps running in the corner.
         if viewModel.showNextEpisodeOverlay && !viewModel.showControls && !viewModel.isDropdownOpen {
             viewModel.cancelNextEpisode()
+            return
+        }
+        // Stats panel intercepts Menu when it's the only thing open,
+        // same pattern as the next-episode prompt. Same press still
+        // counts as "close the stats panel" rather than "exit the
+        // player", so a curious user who toggled the panel can dismiss
+        // it without losing their place.
+        if viewModel.showStatsOverlay {
+            viewModel.showStatsOverlay = false
             return
         }
         if viewModel.isDropdownOpen {
@@ -746,6 +758,9 @@ final class PlayerHostController: AVPlayerViewController {
         if !viewModel.subtitleStreams.isEmpty { order.append(.subtitleButton) }
         order.append(.speedButton)
         order.append(.pictureButton)
+        if viewModel.preferences.showStatsForNerds {
+            order.append(.infoButton)
+        }
         guard let current = order.firstIndex(of: viewModel.controlsFocus) else { return }
         let next = current + direction
         if next >= 0 && next < order.count {
@@ -773,7 +788,7 @@ final class PlayerHostController: AVPlayerViewController {
                 else if hasSubs { viewModel.controlsFocus = .subtitleButton }
                 else { viewModel.controlsFocus = .speedButton }
                 viewModel.scheduleControlsHide()
-            case .skipIntroButton, .chapterButton, .episodeButton, .audioButton, .subtitleButton, .speedButton, .pictureButton:
+            case .skipIntroButton, .chapterButton, .episodeButton, .audioButton, .subtitleButton, .speedButton, .pictureButton, .infoButton:
                 viewModel.scheduleControlsHide()
             }
         } else {
@@ -1203,6 +1218,18 @@ private struct PlayerOverlayView: View {
                 controlsOverlay
             }
 
+            // Stats-for-nerds side panel (right-anchored). Mounted on
+            // top of the controls overlay so it stays readable when the
+            // transport bar's auto-hide timer fires; press the info
+            // chip or Menu to dismiss.
+            if viewModel.showStatsOverlay && viewModel.errorMessage == nil {
+                StatsOverlayView(
+                    player: viewModel.player,
+                    item: viewModel.item,
+                    activeSubtitleIndex: viewModel.activeSubtitleIndex
+                )
+            }
+
             // Top-right info column, HDR badge (only with controls,
             // matches Apple TV's own player) and Speed badge (always
             // when rate ≠ 1.0× so the user remembers they sped things
@@ -1239,6 +1266,7 @@ private struct PlayerOverlayView: View {
         .animation(.easeInOut(duration: 0.3), value: viewModel.showControls)
         .animation(.easeInOut(duration: 0.3), value: viewModel.showNextEpisodeOverlay)
         .animation(.easeInOut(duration: 0.25), value: viewModel.isInsideIntro)
+        .animation(.easeInOut(duration: 0.25), value: viewModel.showStatsOverlay)
     }
 
     private var introSkipOverlay: some View {
@@ -1435,7 +1463,9 @@ private struct PlayerOverlayView: View {
                     chapters: viewModel.chapters,
                     durationSeconds: viewModel.player.duration,
                     chapterImageURL: { chapterThumbnailURL(for: $0) },
-                    pictureMode: viewModel.pictureMode
+                    pictureMode: viewModel.pictureMode,
+                    showsInfoButton: viewModel.preferences.showStatsForNerds,
+                    isStatsOverlayOpen: viewModel.showStatsOverlay
                 )
             }
         }
