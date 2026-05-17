@@ -1155,7 +1155,8 @@ private struct PlayerOverlayView: View {
                     fontSize: viewModel.preferences.subtitleFontSize,
                     textColor: viewModel.preferences.subtitleColor,
                     background: viewModel.preferences.subtitleBackground,
-                    delaySeconds: viewModel.preferences.subtitleDelaySeconds
+                    delaySeconds: viewModel.preferences.subtitleDelaySeconds,
+                    verticalOffsetPoints: viewModel.preferences.subtitleVerticalOffsetPoints
                 )
             }
 

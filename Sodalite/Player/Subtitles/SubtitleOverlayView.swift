@@ -28,6 +28,11 @@ struct SubtitleOverlayView: View {
     /// Applied to both text and image cues so the user's setting works
     /// regardless of which decoder produced the cue.
     let delaySeconds: Double
+    /// Vertical-offset for the rendered cue, in points. Positive values
+    /// move the cue down (toward the bottom edge / into the letterbox
+    /// bar below wider-than-16:9 video); negative values lift it up
+    /// into the picture. Applied to both text and image cues.
+    let verticalOffsetPoints: Int
 
     var body: some View {
         GeometryReader { geo in
@@ -60,17 +65,20 @@ struct SubtitleOverlayView: View {
     private func textOverlay(_ text: String, in size: CGSize) -> some View {
         // Pinned to the bottom-centre of the video rect with a
         // ~80pt safe-area gap. Width is capped so long lines wrap
-        // with horizontal margins on either side.
+        // with horizontal margins on either side. The user's vertical
+        // offset shifts the baseline; positive values move the line
+        // down (toward / into the letterbox bar on cinemascope).
         let maxWidth = max(0, size.width - 240)
         // tvOS .title3 lands around 24-29pt depending on platform
         // metrics; the user-selected scale multiplies that for
         // small/medium/large/xlarge.
         let basePoints: CGFloat = 28
         let pointSize = basePoints * fontSize.scale
+        let baselineY = size.height - 100 + CGFloat(verticalOffsetPoints)
         return styledText(text, pointSize: pointSize)
             .frame(maxWidth: maxWidth)
             .frame(width: size.width, alignment: .center)
-            .position(x: size.width / 2, y: size.height - 100)
+            .position(x: size.width / 2, y: baselineY)
             .transition(.opacity)
     }
 
@@ -108,12 +116,23 @@ struct SubtitleOverlayView: View {
             }
             .padding(.horizontal, 20)
             .padding(.vertical, 6)
-        case .none:
+        case .shadow:
             Text(text)
                 .font(baseFont)
                 .foregroundStyle(foreground)
                 .multilineTextAlignment(.center)
                 .shadow(color: .black.opacity(0.85), radius: 3, x: 0, y: 1)
+                .padding(.horizontal, 20)
+                .padding(.vertical, 6)
+        case .none:
+            // Truly plain text. Legibility depends entirely on contrast
+            // between glyph colour and the underlying frame, picked by
+            // users who would rather lose a sub line than tint a single
+            // pixel of the picture.
+            Text(text)
+                .font(baseFont)
+                .foregroundStyle(foreground)
+                .multilineTextAlignment(.center)
                 .padding(.horizontal, 20)
                 .padding(.vertical, 6)
         }
@@ -149,7 +168,13 @@ struct SubtitleOverlayView: View {
         let frameW = image.position.width * size.width
         let frameH = image.position.height * size.height
         let originX = image.position.minX * size.width
-        let originY = image.position.minY * size.height
+        // Bitmap cues (PGS / DVB) carry source-baked positions: signs
+        // near the top, dialogue near the bottom. The user's vertical
+        // offset is applied uniformly anyway so the setting works as a
+        // single knob across decoders; large negative offsets on a
+        // top-of-frame sign card will clip into the visible picture,
+        // which is the user's call.
+        let originY = image.position.minY * size.height + CGFloat(verticalOffsetPoints)
 
         return Image(decorative: image.cgImage, scale: 1, orientation: .up)
             .resizable()

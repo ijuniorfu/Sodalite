@@ -160,6 +160,18 @@ struct PlaybackSettingsView: View {
                     label: PlaybackSettingsView.formatSubtitleDelay
                 )
 
+                valueRow(
+                    icon: "arrow.up.and.down",
+                    title: "settings.playback.subtitle.position",
+                    subtitle: "settings.playback.subtitle.position.subtitle",
+                    options: PlaybackPreferences.subtitleVerticalOffsetChoices,
+                    selection: Binding(
+                        get: { prefs.subtitleVerticalOffsetPoints },
+                        set: { prefs.subtitleVerticalOffsetPoints = $0 }
+                    ),
+                    label: PlaybackSettingsView.formatSubtitleVerticalOffset
+                )
+
                 sectionHeader("settings.playback.section.picture")
 
                 valueRow(
@@ -282,6 +294,16 @@ struct PlaybackSettingsView: View {
         }
         let sign = seconds < 0 ? "\u{2212}" : "+"
         return "\(sign)\(formatted) s"
+    }
+
+    /// Format a subtitle vertical-offset value for the picker chip.
+    /// Zero reads as "0 pt" (matches the delay row's "0 s" idiom), and
+    /// non-zero values use the proper Unicode minus sign (−, U+2212)
+    /// so the dash typography lines up with the "+" used for positives.
+    static func formatSubtitleVerticalOffset(_ points: Int) -> String {
+        if points == 0 { return "0 pt" }
+        let sign = points < 0 ? "\u{2212}" : "+"
+        return "\(sign)\(Swift.abs(points)) pt"
     }
 
     private func languageRow(

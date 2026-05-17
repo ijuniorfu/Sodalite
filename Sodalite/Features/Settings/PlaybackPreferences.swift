@@ -27,7 +27,14 @@ final class PlaybackPreferences {
         static let subtitleFontSize = "playback.subtitleFontSize"
         static let subtitleColor = "playback.subtitleColor"
         static let subtitleBackground = "playback.subtitleBackground"
+        /// Versioned key for `subtitleBackground` so the case split that
+        /// promoted the old "none" (which actually drew a shadow) to its
+        /// own `.shadow` case can land without silently flipping shadowed
+        /// users into truly-plain text. Read v2 first; if absent, migrate
+        /// the legacy v1 value (legacy "none" -> new .shadow).
+        static let subtitleBackgroundV2 = "playback.subtitleBackgroundV2"
         static let subtitleDelaySeconds = "playback.subtitleDelaySeconds"
+        static let subtitleVerticalOffsetPoints = "playback.subtitleVerticalOffsetPoints"
         static let pictureMode = "playback.pictureMode"
         static let showDiagnosticOverlay = "playback.showDiagnosticOverlay"
     }
@@ -45,6 +52,18 @@ final class PlaybackPreferences {
     /// the rare badly-muxed track.
     static let subtitleDelayChoices: [Double] = [
         -5, -3, -2, -1.5, -1, -0.5, -0.25, 0, 0.25, 0.5, 1, 1.5, 2, 3, 5
+    ]
+
+    /// Vertical-offset choices in points, applied on top of the default
+    /// subtitle baseline (which sits ~80 pt above the player rect's
+    /// bottom edge). Positive values push subtitles further down (toward
+    /// the bottom edge, into a letterbox bar on wider-than-16:9 content);
+    /// negative values lift them up into the picture. Range biased
+    /// downward because the main use case (per issue #10) is sliding the
+    /// text into the black bar below cinemascope content; the upward
+    /// range exists for users who want to clear burned-in lower-thirds.
+    static let subtitleVerticalOffsetChoices: [Int] = [
+        -200, -150, -100, -50, -25, 0, 25, 50, 100, 150, 200
     ]
 
     /// Shared language options, alphabetical by display name. ISO 639-2/B
@@ -139,13 +158,19 @@ final class PlaybackPreferences {
         var titleKey: String { "settings.playback.subtitle.color.\(rawValue)" }
     }
 
-    /// How the subtitle text reads against the video frame. Box is the
-    /// classic semi-transparent black backing; outline draws a thin
-    /// stroke around the glyphs without a fill (best when the video
-    /// has heavy contrast already); none is naked text (for users who
-    /// don't want anything obscuring the picture).
+    /// How the subtitle text reads against the video frame.
+    ///
+    /// - `box`: classic semi-transparent black backing.
+    /// - `outline`: thin black stroke around the glyphs, no fill, best
+    ///   when the video has heavy contrast already.
+    /// - `shadow`: soft drop shadow behind plain text. Used to be the
+    ///   behaviour of `.none` (which was a misnomer, the shadow was
+    ///   always there) and is preserved here so existing users see no
+    ///   visual change after the case split.
+    /// - `none`: truly naked text, no decoration. New case for users
+    ///   who explicitly don't want anything modifying the glyphs.
     enum SubtitleBackground: String, CaseIterable, Sendable, Identifiable {
-        case box, outline, none
+        case box, outline, shadow, none
         var id: String { rawValue }
         var titleKey: String { "settings.playback.subtitle.background.\(rawValue)" }
     }
@@ -212,7 +237,10 @@ final class PlaybackPreferences {
     }
 
     var subtitleBackground: SubtitleBackground {
-        didSet { store.set(subtitleBackground.rawValue, forKey: Keys.subtitleBackground) }
+        // Write the versioned key on every set. The legacy key is left
+        // alone, both to keep this writer minimal and to let users who
+        // downgrade to an older build still see something sensible.
+        didSet { store.set(subtitleBackground.rawValue, forKey: Keys.subtitleBackgroundV2) }
     }
 
     /// Offset applied to subtitle cue timing when rendering. Positive
@@ -223,6 +251,18 @@ final class PlaybackPreferences {
     /// the legacy HTTP/SRTParser fallback.
     var subtitleDelaySeconds: Double {
         didSet { store.set(subtitleDelaySeconds, forKey: Keys.subtitleDelaySeconds) }
+    }
+
+    /// Vertical-offset for the rendered subtitle in points, relative to
+    /// the default baseline (80 pt above the player rect's bottom edge).
+    /// Positive values push subtitles down (toward the bottom of the
+    /// screen, into the letterbox bar on wider-than-16:9 content);
+    /// negative values lift them up into the picture. Applies to both
+    /// text cues and bitmap (PGS / DVB) cues so the setting works
+    /// regardless of which decoder produced the cue, accepting that
+    /// pre-positioned bitmap subs will look skewed if shifted hard.
+    var subtitleVerticalOffsetPoints: Int {
+        didSet { store.set(subtitleVerticalOffsetPoints, forKey: Keys.subtitleVerticalOffsetPoints) }
     }
 
     /// Default picture-fill mode for new playback sessions. The
@@ -246,6 +286,27 @@ final class PlaybackPreferences {
 
     private let store: UserDefaults
 
+    /// Resolve the subtitle-background value, preferring the versioned
+    /// key when present and otherwise migrating from the legacy one.
+    /// Legacy `"none"` rendered with a soft drop shadow, so map it to
+    /// the new `.shadow` case to preserve appearance for existing users.
+    /// Anything unrecognised falls back to the default `.box`.
+    private static func loadSubtitleBackground(from store: UserDefaults) -> SubtitleBackground {
+        if let v2 = store.string(forKey: Keys.subtitleBackgroundV2),
+           let parsed = SubtitleBackground(rawValue: v2) {
+            return parsed
+        }
+        guard let legacy = store.string(forKey: Keys.subtitleBackground) else {
+            return .box
+        }
+        switch legacy {
+        case "none":    return .shadow
+        case "box":     return .box
+        case "outline": return .outline
+        default:        return .box
+        }
+    }
+
     init(store: UserDefaults = .standard) {
         self.store = store
         self.autoplayNextEpisode = store.object(forKey: Keys.autoplayNextEpisode) as? Bool ?? true
@@ -260,9 +321,16 @@ final class PlaybackPreferences {
             .flatMap(SubtitleFontSize.init(rawValue:)) ?? .medium
         self.subtitleColor = (store.string(forKey: Keys.subtitleColor))
             .flatMap(SubtitleColor.init(rawValue:)) ?? .white
-        self.subtitleBackground = (store.string(forKey: Keys.subtitleBackground))
-            .flatMap(SubtitleBackground.init(rawValue:)) ?? .box
+        self.subtitleBackground = Self.loadSubtitleBackground(from: store)
         self.subtitleDelaySeconds = store.object(forKey: Keys.subtitleDelaySeconds) as? Double ?? 0
+        let storedOffset = store.object(forKey: Keys.subtitleVerticalOffsetPoints) as? Int ?? 0
+        // Clamp against the published choice set so a stale value from
+        // a future build (or a manual UserDefaults edit) can't position
+        // subtitles off-screen on first run.
+        let allowed = PlaybackPreferences.subtitleVerticalOffsetChoices
+        self.subtitleVerticalOffsetPoints = allowed.contains(storedOffset)
+            ? storedOffset
+            : (allowed.min(by: { abs($0 - storedOffset) < abs($1 - storedOffset) }) ?? 0)
         self.pictureMode = (store.string(forKey: Keys.pictureMode))
             .flatMap(PictureMode.init(rawValue:)) ?? .original
         self.showDiagnosticOverlay = store.object(forKey: Keys.showDiagnosticOverlay) as? Bool ?? false
