@@ -842,16 +842,25 @@ final class PlayerViewModel {
         errorMessage = message
     }
 
-    /// Apply the current `pictureMode` to the engine's display layer.
-    /// Maps the host enum to AVLayerVideoGravity. Called on every
-    /// `startPlayback` (re-applies on each new session) and from
-    /// `selectPictureMode` (in-player picker).
+    /// Apply the current `pictureMode` to whichever layer is on screen.
+    /// Writes to the engine (which forwards to its native + software
+    /// surfaces) AND fires `onPictureModeChanged` so the host's
+    /// AVPlayerViewController can mirror the gravity onto AVKit's own
+    /// internal AVPlayerLayer. The AVKit-owned layer is what's actually
+    /// on screen for the native AVPlayer path, so without the callback
+    /// the toggle would be a no-op there.
     func applyPictureMode() {
         switch pictureMode {
         case .original: player.videoGravity = .resizeAspect
         case .fill:     player.videoGravity = .resizeAspectFill
         }
+        onPictureModeChanged?(pictureMode)
     }
+
+    /// Fired whenever `applyPictureMode` resolves a new gravity. The
+    /// `PlayerHostController` hooks this to update AVPlayerViewController's
+    /// own `videoGravity`, which controls the native path's rendering.
+    var onPictureModeChanged: ((PlaybackPreferences.PictureMode) -> Void)?
 
     /// In-player picker change. Mutates the session-local `pictureMode`
     /// and pushes it to the engine. Doesn't persist, the user's

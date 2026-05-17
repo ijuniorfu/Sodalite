@@ -250,6 +250,14 @@ final class PlayerHostController: AVPlayerViewController {
                 if let avPlayer {
                     avPlayer.allowsExternalPlayback = true
                     self.player = avPlayer
+                    // AVKit re-creates its internal AVPlayerLayer for
+                    // every `self.player` assignment, which resets
+                    // videoGravity to the default `.resizeAspect`.
+                    // Re-apply the user's picture-mode pick after each
+                    // rebind so an audio-track-switch reload (which
+                    // tears down the engine's nativeHost and brings up
+                    // a fresh one) doesn't silently drop fill mode.
+                    self.applyVideoGravity(for: self.viewModel.pictureMode)
                     self.attachVideoOutput(for: avPlayer)
                     if self.audioSwitchOverlay != nil {
                         self.observeNewPlayerForAudioSwitch(avPlayer)
@@ -268,6 +276,23 @@ final class PlayerHostController: AVPlayerViewController {
         viewModel.onAudioSwitchBegin = { [weak self] in
             self?.installAudioSwitchOverlay()
         }
+
+        // Picture-mode is applied to AVPlayerViewController directly
+        // because AVKit's internal AVPlayerLayer is what renders the
+        // native AVPlayer path — the engine's own AVPlayerLayer (which
+        // `engine.videoGravity` writes to) is allocated but never
+        // mounted in this host. The callback fires on every
+        // `applyPictureMode` invocation (session start, in-player
+        // picker change) so the toggle takes effect within a frame.
+        viewModel.onPictureModeChanged = { [weak self] mode in
+            self?.applyVideoGravity(for: mode)
+        }
+        // Seed the initial gravity from whatever the VM has resolved
+        // before this VC's init. `applyPictureMode` may have fired
+        // before our callback was wired, which would otherwise leave
+        // AVKit in its default `.resizeAspect` until the user toggles
+        // the picture button.
+        applyVideoGravity(for: viewModel.pictureMode)
 
         engine.$playbackBackend
             .receive(on: DispatchQueue.main)
@@ -350,6 +375,20 @@ final class PlayerHostController: AVPlayerViewController {
             self, selector: #selector(appDidEnterBackground),
             name: UIApplication.didEnterBackgroundNotification, object: nil
         )
+    }
+
+    /// Map the host's picture-mode enum to AVKit's videoGravity and
+    /// apply it directly to this AVPlayerViewController. AVKit owns
+    /// the on-screen AVPlayerLayer for the native path, so this is
+    /// the surface the gravity actually needs to land on. The engine's
+    /// own `nativeHost.playerLayer` carries the same value (set by
+    /// the engine's videoGravity setter) but that layer is unmounted
+    /// in this host configuration.
+    private func applyVideoGravity(for mode: PlaybackPreferences.PictureMode) {
+        switch mode {
+        case .original: self.videoGravity = .resizeAspect
+        case .fill:     self.videoGravity = .resizeAspectFill
+        }
     }
 
     /// Add aetherView to AVKit's contentOverlayView for the software
