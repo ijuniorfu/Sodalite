@@ -630,7 +630,24 @@ final class PlayerHostController: AVPlayerViewController {
 
     // MARK: - Press Handlers (state machine)
 
+    /// Stats side panel captures every press while mounted: it isn't
+    /// focusable in the SwiftUI sense (the transport bar's @objc press
+    /// gestures stand between SwiftUI and the remote), so navigation
+    /// has to be routed at the press-handler level. Up/down scroll the
+    /// panel through its section anchors, select and menu dismiss it,
+    /// left/right are intentionally inert (no horizontal nav).
+    private var statsOverlayCapturesPresses: Bool {
+        viewModel.showStatsOverlay
+    }
+
     @objc private func selectPressed() {
+        // Stats panel: Select closes it like Menu does. The chip on
+        // the transport bar still toggles when the panel is closed,
+        // but with the panel open every press goes here first.
+        if statsOverlayCapturesPresses {
+            viewModel.showStatsOverlay = false
+            return
+        }
         // Skip Intro takes priority over any transient scrub state.
         // The Siri Remote touchpad reports a tiny pan in the milliseconds
         // before its click registers, easily past the 40pt scrub
@@ -722,6 +739,11 @@ final class PlayerHostController: AVPlayerViewController {
     }
 
     @objc private func leftPressed() {
+        // Stats panel: horizontal nav is a no-op while the panel is
+        // open. No focusable rows behind it that left/right could
+        // target without confusing the user about what's actually
+        // capturing the press.
+        if statsOverlayCapturesPresses { return }
         if viewModel.isDropdownOpen { return }
         if viewModel.showControls && viewModel.controlsFocus != .progressBar {
             stepTransportFocus(direction: -1)
@@ -732,6 +754,7 @@ final class PlayerHostController: AVPlayerViewController {
     }
 
     @objc private func rightPressed() {
+        if statsOverlayCapturesPresses { return }
         if viewModel.isDropdownOpen { return }
         if viewModel.showControls && viewModel.controlsFocus != .progressBar {
             stepTransportFocus(direction: 1)
@@ -769,6 +792,14 @@ final class PlayerHostController: AVPlayerViewController {
     }
 
     @objc private func upPressed() {
+        // Stats panel: up moves the section cursor one step toward
+        // the top. ScrollViewReader inside StatsOverlayView watches
+        // `statsSectionIndex` and scrolls to the corresponding anchor.
+        if statsOverlayCapturesPresses {
+            let count = PlayerViewModel.statsSectionAnchors.count
+            viewModel.statsSectionIndex = max(0, min(count - 1, viewModel.statsSectionIndex - 1))
+            return
+        }
         if viewModel.isDropdownOpen {
             moveDropdownHighlight(by: -1)
         } else if viewModel.showControls {
@@ -797,6 +828,11 @@ final class PlayerHostController: AVPlayerViewController {
     }
 
     @objc private func downPressed() {
+        if statsOverlayCapturesPresses {
+            let count = PlayerViewModel.statsSectionAnchors.count
+            viewModel.statsSectionIndex = max(0, min(count - 1, viewModel.statsSectionIndex + 1))
+            return
+        }
         if viewModel.isDropdownOpen {
             moveDropdownHighlight(by: 1)
         } else if viewModel.showControls {
@@ -1226,7 +1262,8 @@ private struct PlayerOverlayView: View {
                 StatsOverlayView(
                     player: viewModel.player,
                     item: viewModel.item,
-                    activeSubtitleIndex: viewModel.activeSubtitleIndex
+                    activeSubtitleIndex: viewModel.activeSubtitleIndex,
+                    scrollSectionIndex: viewModel.statsSectionIndex
                 )
             }
 

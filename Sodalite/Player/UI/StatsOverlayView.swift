@@ -23,6 +23,11 @@ struct StatsOverlayView: View {
     /// Active subtitle stream's container index (matches
     /// `MediaStream.index`), or `nil` when subtitles are off.
     let activeSubtitleIndex: Int?
+    /// Cursor into `PlayerViewModel.statsSectionAnchors`, written by
+    /// the press handlers in `PlayerView` while the panel is open.
+    /// Used to drive the embedded `ScrollViewReader` to the section
+    /// the user navigated to with the Up/Down arrows.
+    let scrollSectionIndex: Int
 
     private var videoStream: MediaStream? {
         item.mediaStreams?.first { $0.type == .video }
@@ -50,28 +55,45 @@ struct StatsOverlayView: View {
                 .padding(.vertical, 40)
         }
         .transition(.move(edge: .trailing).combined(with: .opacity))
-        .allowsHitTesting(false)
+        // Pointer-style hit testing isn't needed (no tap targets), but
+        // we leave it enabled so the underlying focus engine sees the
+        // overlay as a layer that should consume gestures. Up/Down
+        // press routing happens in PlayerView's @objc handlers, gated
+        // on viewModel.showStatsOverlay.
     }
 
     private var panel: some View {
-        ScrollView(showsIndicators: false) {
-            VStack(alignment: .leading, spacing: 18) {
-                Text("player.stats.title")
-                    .font(.title3)
-                    .fontWeight(.bold)
-                    .foregroundStyle(.white)
+        ScrollViewReader { proxy in
+            ScrollView(showsIndicators: false) {
+                VStack(alignment: .leading, spacing: 18) {
+                    Text("player.stats.title")
+                        .font(.title3)
+                        .fontWeight(.bold)
+                        .foregroundStyle(.white)
 
-                playbackSection
-                videoSection
-                audioSection
-                subtitleSection
-                fileSection
+                    playbackSection.id(PlayerViewModel.statsSectionAnchors[0])
+                    videoSection.id(PlayerViewModel.statsSectionAnchors[1])
+                    audioSection.id(PlayerViewModel.statsSectionAnchors[2])
+                    subtitleSection.id(PlayerViewModel.statsSectionAnchors[3])
+                    fileSection.id(PlayerViewModel.statsSectionAnchors[4])
+                }
+                .padding(28)
+                .frame(width: 560, alignment: .topLeading)
             }
-            .padding(28)
-            .frame(width: 480, alignment: .topLeading)
+            .onChange(of: scrollSectionIndex) { _, newIndex in
+                let anchors = PlayerViewModel.statsSectionAnchors
+                guard anchors.indices.contains(newIndex) else { return }
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    // `.top` keeps the active section header at the top
+                    // edge of the visible area, mirroring how the
+                    // transport-bar dropdowns scroll their highlighted
+                    // row into view.
+                    proxy.scrollTo(anchors[newIndex], anchor: .top)
+                }
+            }
         }
         .frame(maxHeight: .infinity)
-        .frame(width: 480)
+        .frame(width: 560)
         .background(.ultraThinMaterial)
         .environment(\.colorScheme, .dark)
         .clipShape(RoundedRectangle(cornerRadius: 18))
@@ -207,16 +229,23 @@ struct StatsOverlayView: View {
     }
 
     private func row(_ labelKey: LocalizedStringKey, value: String) -> some View {
+        // 180pt label column carries the longer German + Romance-
+        // language terms ("Dynamikbereich", "Décodeur vidéo",
+        // "Decodificador de áudio") on a single line. English labels
+        // (~7 chars) read slightly loose at this width, an acceptable
+        // trade for not truncating mid-word in the other 25 locales.
         HStack(alignment: .firstTextBaseline, spacing: 12) {
             Text(labelKey)
                 .font(.caption)
                 .foregroundStyle(.white.opacity(0.55))
-                .frame(width: 140, alignment: .leading)
+                .frame(width: 180, alignment: .leading)
+                .lineLimit(2)
+                .fixedSize(horizontal: false, vertical: true)
             Text(value)
                 .font(.caption)
                 .foregroundStyle(.white)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .lineLimit(2)
+                .lineLimit(3)
                 .fixedSize(horizontal: false, vertical: true)
         }
     }
