@@ -1984,11 +1984,14 @@ final class DiagnosticDirectURLPlayerVC: AVPlayerViewController {
         let asset = AVURLAsset(url: url)
         let item = AVPlayerItem(asset: asset)
         let avPlayer = AVPlayer(playerItem: item)
-        // Match the same buffer-policy levers DrHurt suggested in
-        // his most recent comment, so this isolation test also
-        // controls for them at the AVPlayer level.
-        avPlayer.automaticallyWaitsToMinimizeStalling = false
-        item.preferredForwardBufferDuration = 0
+        // Defaults. First attempt at Part 2 used DrHurt's two
+        // suggested tweaks (automaticallyWaitsToMinimizeStalling
+        // false + preferredForwardBufferDuration 0) and the player
+        // reached readyToPlay but never rendered a frame; -12860
+        // (HEVC reference missing) fired twice and the decoder
+        // didn't recover. Reverting to defaults isolates the source
+        // / wrapper question first; we can re-test the buffer
+        // tweaks against the engine path separately if Part 2 PASS.
 
         self.player = avPlayer
         self.showsPlaybackControls = true
