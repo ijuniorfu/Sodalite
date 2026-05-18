@@ -16,13 +16,18 @@ import Combine
 /// `BarePlayerHostController` (plain UIViewController + manual
 /// AVPlayerLayer + no AVKit Now Playing) instead of the default
 /// `PlayerHostController` (AVPlayerViewController-based with full
-/// AVKit integration). Used to isolate AVKit's UI / Now Playing /
-/// chapter-artwork pipeline as a memory-leak source on long-form
-/// 4K HDR HEVC sessions, per Codex's tvOS 26 AVKit-UI-leak
-/// hypothesis. Flip to false (default) for production, true for
-/// the diagnostic measurement pass. Same AVPlayer instance and
-/// same HLS pipeline either way — only the wrapper changes.
-private let usePlayerHostBareDiagnostic = true
+/// AVKit integration). Same AVPlayer instance and same HLS
+/// pipeline either way — only the wrapper changes.
+///
+/// Tested 2026-05-18 against the 4K HDR HEVC reproducer: RSS grew
+/// at ~5.1 MB/sec (vs ~3.0 MB/sec on the AVKit path), with
+/// aggressive memory-warning sweeps keeping the process oscillating
+/// between 750-1200 MB instead of monotonic climb. Net result:
+/// AVKit is NOT the leak source; AVPlayer's HLS-fMP4 pipeline
+/// itself retains compressed bytes regardless of whether the UI
+/// wrapper is AVKit or plain UIView. Flag kept in place behind the
+/// false default in case it's useful for future isolation passes.
+private let usePlayerHostBareDiagnostic = false
 
 struct PlayerLauncher: UIViewControllerRepresentable {
     @Binding var isPresented: Bool
