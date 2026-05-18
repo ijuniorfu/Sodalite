@@ -48,9 +48,17 @@ private let usePlayerHostBareDiagnostic = false
 /// receiver mode in Part 1 didn't trip).
 ///
 /// Set to the LAN URL pointing at the Mac http server hosting the
-/// pre-produced HLS bundle from `/tmp/drhurt-test1/`. Nil for
-/// production.
-private let externalDiagnosticURL: String? = "http://10.20.30.32:8090/media.m3u8"
+/// pre-produced HLS bundle. Nil for production.
+///
+/// Tested 2026-05-18: with this set to the Mac http-server URL,
+/// `phys_footprint` stayed flat at 48 MB for 10+ min on the same
+/// 4K HDR HEVC source that ramps to OOM through the engine path.
+/// Definitive proof the leak is inside the AetherEngine pipeline,
+/// not on the AVPlayer / AVKit / tvOS side. Specific culprit:
+/// `HLSLocalServer.respondData` was concatenating header + segment
+/// via `Data.append(_:)`, force-materialising mmap-backed segment
+/// bytes into Swift heap on every fetch.
+private let externalDiagnosticURL: String? = nil
 
 struct PlayerLauncher: UIViewControllerRepresentable {
     @Binding var isPresented: Bool
