@@ -1997,8 +1997,55 @@ final class DiagnosticDirectURLPlayerVC: AVPlayerViewController {
         tap.allowedPressTypes = [NSNumber(value: UIPress.PressType.menu.rawValue)]
         view.addGestureRecognizer(tap)
 
-        LogTap.shared.note("[Diag] direct-URL player launched: \(url.absoluteString)")
+        let launchLine = "[Diag] direct-URL player launched: \(url.absoluteString)"
+        LogTap.shared.note(launchLine)
+        print(launchLine)
+
+        // Surface the AVPlayerItem status + error events so we can
+        // tell what the red-cross-out at the bottom-left of the
+        // player means (typically codec / network / permission).
+        NotificationCenter.default.addObserver(
+            forName: AVPlayerItem.failedToPlayToEndTimeNotification,
+            object: item,
+            queue: .main
+        ) { notification in
+            let err = notification.userInfo?[AVPlayerItemFailedToPlayToEndTimeErrorKey] as? NSError
+            let msg = err.map { "domain=\($0.domain) code=\($0.code) desc='\($0.localizedDescription)'" } ?? "nil"
+            let line = "[Diag] item.failedToPlayToEnd: \(msg)"
+            LogTap.shared.note(line)
+            print(line)
+        }
+        NotificationCenter.default.addObserver(
+            forName: AVPlayerItem.newErrorLogEntryNotification,
+            object: item,
+            queue: .main
+        ) { _ in
+            guard let event = item.errorLog()?.events.last else { return }
+            let comment = event.errorComment ?? "no comment"
+            let line = "[Diag] errorLog code=\(event.errorStatusCode) domain=\(event.errorDomain) uri=\(event.uri ?? "-") '\(comment)'"
+            LogTap.shared.note(line)
+            print(line)
+        }
+        // Status KVO — printed once per transition so we see the
+        // sequence: unknown → readyToPlay (success) or unknown →
+        // failed (with the underlying error).
+        let statusObs = item.observe(\.status, options: [.new]) { item, _ in
+            let s: String
+            switch item.status {
+            case .unknown: s = "unknown"
+            case .readyToPlay: s = "readyToPlay"
+            case .failed: s = "failed"
+            @unknown default: s = "@unknown"
+            }
+            let err = (item.error as NSError?).map { " err=\($0.domain)/\($0.code) '\($0.localizedDescription)'" } ?? ""
+            let line = "[Diag] item.status=\(s)\(err)"
+            LogTap.shared.note(line)
+            print(line)
+        }
+        self.statusObservation = statusObs
     }
+
+    private var statusObservation: NSKeyValueObservation?
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
