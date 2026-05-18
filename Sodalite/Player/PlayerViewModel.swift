@@ -230,13 +230,23 @@ final class PlayerViewModel {
     var activePlayMethod: PlayMethod = .directPlay
     var subtitleStreams: [MediaStream] = []
 
+    /// DIAGNOSTIC: when true, skip the stageInitialNowPlayingMetadata
+    /// + post-load artwork refresh path entirely. AVPlayerItem.
+    /// externalMetadata stays empty for the session. Set by
+    /// BarePlayerHostController to isolate the AVKit Now Playing /
+    /// chapter-artwork pipeline as a potential memory-leak source on
+    /// long-form 4K HDR HEVC sessions (tvOS 26 AVKit-UI-leak
+    /// hypothesis). No effect on PlayerHostController path.
+    var disableNowPlayingMetadata: Bool = false
+
     init(
         item: JellyfinItem,
         startFromBeginning: Bool,
         playbackService: JellyfinPlaybackServiceProtocol,
         userID: String,
         preferences: PlaybackPreferences,
-        cachedPlaybackInfo: PlaybackInfoResponse? = nil
+        cachedPlaybackInfo: PlaybackInfoResponse? = nil,
+        disableNowPlayingMetadata: Bool = false
     ) {
         self.item = item
         self.player = DependencyContainer.playerEngine
@@ -245,6 +255,7 @@ final class PlayerViewModel {
         self.userID = userID
         self.preferences = preferences
         self.cachedPlaybackInfo = cachedPlaybackInfo
+        self.disableNowPlayingMetadata = disableNowPlayingMetadata
     }
 
     // MARK: - Lifecycle
@@ -392,7 +403,15 @@ final class PlayerViewModel {
             // which the engine writes onto the live AVPlayerItem;
             // AVKit's internal Now Playing session re-reads
             // externalMetadata automatically.
-            stageInitialNowPlayingMetadata()
+            //
+            // BarePlayerHostController sets disableNowPlayingMetadata
+            // so this whole pipeline is skipped — AVPlayerItem stays
+            // metadata-free for the duration of the session. Used to
+            // isolate the AVKit Now Playing / chapter-artwork pipeline
+            // as a memory-leak suspect on tvOS 26.
+            if !disableNowPlayingMetadata {
+                stageInitialNowPlayingMetadata()
+            }
 
             // Single load path: hand the source to the engine and let
             // it pick AVPlayer-backed native (the default) or fall
@@ -454,8 +473,11 @@ final class PlayerViewModel {
             // Cover fetch happens async post-load; the engine writes
             // the updated externalMetadata to the live AVPlayerItem
             // and the session republishes automatically when the
-            // task completes.
-            Task { [weak self] in await self?.refreshExternalMetadataWithArtwork() }
+            // task completes. Skipped in the bare-host diagnostic
+            // path so externalMetadata stays empty for the session.
+            if !disableNowPlayingMetadata {
+                Task { [weak self] in await self?.refreshExternalMetadataWithArtwork() }
+            }
             await reportStart()
             startProgressReporting()
 

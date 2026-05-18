@@ -12,6 +12,18 @@ import Combine
 /// presentation level, pressesBegan, .onExitCommand, and gesture recognizers
 /// on child VCs never receive it. UIKit modals don't have this problem:
 /// UITapGestureRecognizer for .menu on the presented VC's view works.
+/// DIAGNOSTIC: when true, the player launcher creates a
+/// `BarePlayerHostController` (plain UIViewController + manual
+/// AVPlayerLayer + no AVKit Now Playing) instead of the default
+/// `PlayerHostController` (AVPlayerViewController-based with full
+/// AVKit integration). Used to isolate AVKit's UI / Now Playing /
+/// chapter-artwork pipeline as a memory-leak source on long-form
+/// 4K HDR HEVC sessions, per Codex's tvOS 26 AVKit-UI-leak
+/// hypothesis. Flip to false (default) for production, true for
+/// the diagnostic measurement pass. Same AVPlayer instance and
+/// same HLS pipeline either way — only the wrapper changes.
+private let usePlayerHostBareDiagnostic = true
+
 struct PlayerLauncher: UIViewControllerRepresentable {
     @Binding var isPresented: Bool
     let item: JellyfinItem?
@@ -37,17 +49,34 @@ struct PlayerLauncher: UIViewControllerRepresentable {
                 playbackService: playbackService,
                 userID: userID,
                 preferences: preferences,
-                cachedPlaybackInfo: cachedPlaybackInfo
+                cachedPlaybackInfo: cachedPlaybackInfo,
+                // Bare diagnostic mode suppresses the externalMetadata
+                // pipeline so AVKit's chapter-artwork / Now Playing
+                // state machine isn't fed anything to retain.
+                disableNowPlayingMetadata: usePlayerHostBareDiagnostic
             )
-            let playerVC = PlayerHostController(
-                viewModel: vm,
-                tintColor: tintColor,
-                onDismiss: {
-                    host.dismiss(animated: false) {
-                        isPresented = false
+            let playerVC: UIViewController
+            if usePlayerHostBareDiagnostic {
+                playerVC = BarePlayerHostController(
+                    viewModel: vm,
+                    tintColor: tintColor,
+                    onDismiss: {
+                        host.dismiss(animated: false) {
+                            isPresented = false
+                        }
                     }
-                }
-            )
+                )
+            } else {
+                playerVC = PlayerHostController(
+                    viewModel: vm,
+                    tintColor: tintColor,
+                    onDismiss: {
+                        host.dismiss(animated: false) {
+                            isPresented = false
+                        }
+                    }
+                )
+            }
             playerVC.modalPresentationStyle = .fullScreen
             host.present(playerVC, animated: false)
         } else if !isPresented, host.presentedViewController != nil {
@@ -1703,5 +1732,167 @@ private struct DiagnosticLogOverlay: View {
             Spacer()
         }
         .allowsHitTesting(false)
+    }
+}
+
+// MARK: - Bare Player Host Controller (DIAGNOSTIC)
+
+/// Plain UIViewController + AVPlayerLayer alternative to
+/// `PlayerHostController`. Bypasses AVKit (no AVPlayerViewController,
+/// no Now Playing auto-publish, no AVKit gesture stack, no
+/// externalMetadata pipeline).
+///
+/// Same AVPlayer instance, same AVPlayerItem, same HLS pipeline from
+/// AetherEngine. Only the wrapper around AVPlayer changes — used to
+/// isolate AVKit's UI / Now Playing / chapter-artwork pipeline as a
+/// potential memory-leak source on tvOS 26 + long-form 4K HDR HEVC,
+/// per Codex's review of the test matrix in AetherEngine#4.
+///
+/// Diagnostic flow: flip `usePlayerHostBareDiagnostic` to true,
+/// rebuild, play the same source. If RSS stays bounded, the leak is
+/// AVKit-side and the production path is to manually rebuild Now
+/// Playing + AirPods routing on top of plain AVPlayer. If RSS still
+/// climbs at ~3 MB/sec, AVPlayer itself is the leak source and the
+/// next pivot is the VT-bypass migration.
+@MainActor
+final class BarePlayerHostController: UIViewController {
+    private let viewModel: PlayerViewModel
+    private let tintColor: Color?
+    private let onDismiss: () -> Void
+
+    /// Manual AVPlayerLayer — replaces the one AVPlayerViewController
+    /// would mount internally. Hooked to the engine's
+    /// $currentAVPlayer Combine sink so audio-track-switch reloads
+    /// keep the layer pointed at the live instance.
+    private let playerLayer = AVPlayerLayer()
+    private var hasLaunched = false
+
+    private var engineSubscriptions: Set<AnyCancellable> = []
+    private var ourGestureRecognizers: [UIGestureRecognizer] = []
+
+    init(
+        viewModel: PlayerViewModel,
+        tintColor: Color? = nil,
+        onDismiss: @escaping () -> Void
+    ) {
+        self.viewModel = viewModel
+        self.tintColor = tintColor
+        self.onDismiss = onDismiss
+        super.init(nibName: nil, bundle: nil)
+    }
+
+    required init?(coder: NSCoder) { fatalError() }
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        view.backgroundColor = .black
+
+        // Manual player layer. videoGravity matches the engine's
+        // current picture-mode pick; updated via the
+        // onPictureModeChanged callback below so the user-toggle in
+        // the SwiftUI overlay still works.
+        playerLayer.videoGravity = .resizeAspect
+        playerLayer.frame = view.bounds
+        view.layer.addSublayer(playerLayer)
+
+        // Subscribe to engine's current AVPlayer. Same pattern as
+        // PlayerHostController — currentAVPlayer fires on initial
+        // load and on every internal reload (audio-track switch
+        // rebuilds NativeAVPlayerHost with a fresh AVPlayer). Layer
+        // re-binds to the live instance each time.
+        let engine = viewModel.player
+        engine.$currentAVPlayer
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] avPlayer in
+                guard let self else { return }
+                self.playerLayer.player = avPlayer
+            }
+            .store(in: &engineSubscriptions)
+
+        viewModel.onPictureModeChanged = { [weak self] mode in
+            self?.applyVideoGravity(for: mode)
+        }
+        applyVideoGravity(for: viewModel.pictureMode)
+
+        viewModel.onPlaybackReachedEnd = { [weak self] in
+            Task { @MainActor in
+                guard !LogTap.isDiagnosticBuild else { return }
+                self?.dismissPlayer()
+            }
+        }
+
+        // SwiftUI overlay — same one PlayerHostController mounts, so
+        // user-facing transport controls keep working. allowsHitTesting
+        // is left at SwiftUI defaults because we want the overlay's
+        // own buttons to receive presses even though our UIPress
+        // recognizers below fire first for non-overlay-button areas.
+        let overlay = PlayerOverlayView(
+            viewModel: viewModel,
+            onDismiss: { [weak self] in self?.dismissPlayer() }
+        )
+            .tint(tintColor)
+        let hosting = UIHostingController(rootView: overlay)
+        hosting.view.backgroundColor = .clear
+        hosting.view.isUserInteractionEnabled = false
+        addChild(hosting)
+        view.addSubview(hosting.view)
+        hosting.view.frame = view.bounds
+        hosting.view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        hosting.didMove(toParent: self)
+
+        // Minimal gesture set: only what's needed to start/stop the
+        // diagnostic test session. Skip-intro / dropdowns / scrub-bar
+        // focus state are PlayerHostController-specific UI flows that
+        // don't matter for measuring the RSS curve. Menu dismisses,
+        // Select / PlayPause toggle playback. Everything else is a
+        // no-op for the diagnostic.
+        addPressGesture(.menu, action: #selector(menuPressed))
+        addPressGesture(.select, action: #selector(togglePlayPausePressed))
+        addPressGesture(.playPause, action: #selector(togglePlayPausePressed))
+    }
+
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        playerLayer.frame = view.bounds
+    }
+
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        if !hasLaunched {
+            hasLaunched = true
+            Task { await viewModel.startPlayback() }
+        }
+    }
+
+    private func applyVideoGravity(for mode: PlaybackPreferences.PictureMode) {
+        switch mode {
+        case .original: playerLayer.videoGravity = .resizeAspect
+        case .fill:     playerLayer.videoGravity = .resizeAspectFill
+        }
+    }
+
+    private func addPressGesture(_ type: UIPress.PressType, action: Selector) {
+        let g = UITapGestureRecognizer(target: self, action: action)
+        g.allowedPressTypes = [NSNumber(value: type.rawValue)]
+        view.addGestureRecognizer(g)
+        ourGestureRecognizers.append(g)
+    }
+
+    @objc private func menuPressed() {
+        dismissPlayer()
+    }
+
+    @objc private func togglePlayPausePressed() {
+        viewModel.togglePlayPause()
+    }
+
+    private func dismissPlayer() {
+        playerLayer.player = nil
+        Task {
+            await viewModel.stopPlayback()
+            await MainActor.run {
+                self.onDismiss()
+            }
+        }
     }
 }
