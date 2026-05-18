@@ -29,6 +29,29 @@ import Combine
 /// false default in case it's useful for future isolation passes.
 private let usePlayerHostBareDiagnostic = false
 
+/// DIAGNOSTIC: when non-nil, the player launcher bypasses the
+/// AetherEngine pipeline entirely (no Demuxer / HLSSegmentProducer
+/// / SegmentCache / HLSLocalServer / loopback HTTP) and hands the
+/// URL directly to a stock `AVPlayerViewController`. Matches
+/// DrHurt's Part 2 isolation from AetherEngine#4: feed our tvOS
+/// AVPlayer the same Mac-served fmp4 HLS that QuickTime + AirPlay
+/// played through cleanly in Part 1 (no OOM over 15+ minutes), and
+/// see whether the leak appears on the AVPlayer side or stays on
+/// the Mac-server side.
+///
+/// If RSS stays bounded with this flag set, the AetherEngine
+/// pipeline (producer, cache, or NWConnection HTTP server) is the
+/// leak source, narrowed from the broader "everything on our side"
+/// finding of Part 1. If RSS still climbs at ~3 MB/sec, the leak
+/// is in Sodalite-side integration (NativeAVPlayerHost observers,
+/// AVKit setup, or some tvOS-specific behaviour that AirPlay-
+/// receiver mode in Part 1 didn't trip).
+///
+/// Set to the LAN URL pointing at the Mac http server hosting the
+/// pre-produced HLS bundle from `/tmp/drhurt-test1/`. Nil for
+/// production.
+private let externalDiagnosticURL: String? = "http://10.20.30.32:8090/media.m3u8"
+
 struct PlayerLauncher: UIViewControllerRepresentable {
     @Binding var isPresented: Bool
     let item: JellyfinItem?
@@ -48,6 +71,25 @@ struct PlayerLauncher: UIViewControllerRepresentable {
 
     func updateUIViewController(_ host: PlayerLauncherHostVC, context: Context) {
         if isPresented, let item, host.presentedViewController == nil {
+            // DIAGNOSTIC: when externalDiagnosticURL is set, skip
+            // the AetherEngine pipeline entirely and hand the URL
+            // directly to a stock AVPlayerViewController. Isolates
+            // the engine pipeline (producer / cache / NWConnection
+            // HTTP server) as a memory-leak source.
+            if let urlString = externalDiagnosticURL,
+               let url = URL(string: urlString) {
+                let diagVC = DiagnosticDirectURLPlayerVC(
+                    url: url,
+                    onDismiss: {
+                        host.dismiss(animated: false) {
+                            isPresented = false
+                        }
+                    }
+                )
+                diagVC.modalPresentationStyle = .fullScreen
+                host.present(diagVC, animated: false)
+                return
+            }
             let vm = PlayerViewModel(
                 item: item,
                 startFromBeginning: startFromBeginning,
@@ -1899,5 +1941,109 @@ final class BarePlayerHostController: UIViewController {
                 self.onDismiss()
             }
         }
+    }
+}
+
+// MARK: - Diagnostic Direct URL Player VC
+
+/// DIAGNOSTIC: stock `AVPlayerViewController` that loads a remote
+/// HLS URL directly, bypassing the entire AetherEngine pipeline
+/// (no Demuxer / HLSSegmentProducer / SegmentCache / HLSLocalServer
+/// / loopback HTTP). Matches the structure that QuickTime + AirPlay
+/// uses to play through the same Mac-served HLS bundle in DrHurt's
+/// Part 1 cleanly — only difference now is that tvOS's AVPlayer
+/// drives playback directly instead of being told what to do by an
+/// AirPlay session from the Mac.
+///
+/// Runs a 30 s memprobe loop that logs RSS to LogTap so the same
+/// measurement surface as the engine's memprobe is available. RSS
+/// is read via `task_info()` (same mechanism the engine uses).
+///
+/// Activated by setting `externalDiagnosticURL` at the top of
+/// PlayerView.swift to the Mac http-server URL.
+@MainActor
+final class DiagnosticDirectURLPlayerVC: AVPlayerViewController {
+
+    private let url: URL
+    private let onDismiss: () -> Void
+    private var memprobeTask: Task<Void, Never>?
+    private var hasStarted = false
+
+    init(url: URL, onDismiss: @escaping () -> Void) {
+        self.url = url
+        self.onDismiss = onDismiss
+        super.init(nibName: nil, bundle: nil)
+    }
+
+    required init?(coder: NSCoder) { fatalError() }
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        view.backgroundColor = .black
+
+        let asset = AVURLAsset(url: url)
+        let item = AVPlayerItem(asset: asset)
+        let avPlayer = AVPlayer(playerItem: item)
+        // Match the same buffer-policy levers DrHurt suggested in
+        // his most recent comment, so this isolation test also
+        // controls for them at the AVPlayer level.
+        avPlayer.automaticallyWaitsToMinimizeStalling = false
+        item.preferredForwardBufferDuration = 0
+
+        self.player = avPlayer
+        self.showsPlaybackControls = true
+
+        let tap = UITapGestureRecognizer(target: self, action: #selector(menuPressed))
+        tap.allowedPressTypes = [NSNumber(value: UIPress.PressType.menu.rawValue)]
+        view.addGestureRecognizer(tap)
+
+        LogTap.shared.note("[Diag] direct-URL player launched: \(url.absoluteString)")
+    }
+
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        guard !hasStarted else { return }
+        hasStarted = true
+        player?.play()
+        startMemprobe()
+    }
+
+    @objc private func menuPressed() {
+        memprobeTask?.cancel()
+        player?.pause()
+        player = nil
+        onDismiss()
+    }
+
+    /// 30 s memprobe loop modelled on the engine's. RSS via
+    /// `task_info` so the absolute value lines up with what the
+    /// engine reports on the non-diagnostic path.
+    private func startMemprobe() {
+        memprobeTask?.cancel()
+        let start = Date()
+        memprobeTask = Task { @MainActor [weak self] in
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .seconds(30))
+                if Task.isCancelled { return }
+                guard self != nil else { return }
+                let elapsed = Int(Date().timeIntervalSince(start))
+                let rssMB = Self.residentMemoryMB()
+                let line = "[Diag] memprobe t=\(elapsed)s rss=\(rssMB)MB url=remote-direct"
+                LogTap.shared.note(line)
+                print(line)
+            }
+        }
+    }
+
+    private static func residentMemoryMB() -> Int {
+        var info = task_vm_info_data_t()
+        var count = mach_msg_type_number_t(MemoryLayout<task_vm_info_data_t>.size / MemoryLayout<Int32>.size)
+        let kerr = withUnsafeMutablePointer(to: &info) {
+            $0.withMemoryRebound(to: integer_t.self, capacity: Int(count)) {
+                task_info(mach_task_self_, task_flavor_t(TASK_VM_INFO), $0, &count)
+            }
+        }
+        guard kerr == KERN_SUCCESS else { return 0 }
+        return Int(info.phys_footprint / (1024 * 1024))
     }
 }
