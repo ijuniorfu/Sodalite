@@ -22119,7 +22119,7 @@
         }
       }
     },
-    "Console logs prefixed [Diag] memprobe carry RSS / vmInt every 30 s, matching the engine path's memprobe schema for direct comparison." : {
+    "Console logs prefixed `[Diag] memprobe` carry physFP / vmInt every 30 s, matching the engine path's memprobe schema for direct comparison." : {
 
     },
     "Continue Watching" : {
@@ -28784,9 +28784,6 @@
         }
       }
     },
-    "HLS playlist (.m3u8) or any URL AVPlayer can open directly." : {
-
-    },
     "Hold MENU on the remote to dismiss the player." : {
 
     },
@@ -32512,9 +32509,6 @@
           }
         }
       }
-    },
-    "http://10.20.30.x:8090/playlist.m3u8" : {
-
     },
     "Open" : {
       "extractionState" : "manual",
@@ -66636,6 +66630,9 @@
           }
         }
       }
+    },
+    "The play button below uses the dev-LAN Mac http server. Edit `defaultURL` in QuickPlayView.swift to repoint." : {
+
     },
     "URL" : {
 
