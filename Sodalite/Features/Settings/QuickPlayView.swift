@@ -17,9 +17,15 @@ struct QuickPlayView: View {
 
     private static let lastURLKey = "QuickPlay.lastURL"
 
-    @State private var urlString: String = UserDefaults.standard.string(forKey: Self.lastURLKey) ?? ""
+    /// Sensible default for the long-form 4K HDR leak-isolation
+    /// test: the Mac http server hosting `/tmp/drhurt-test1/` on the
+    /// development LAN. UserDefaults overrides this when the user
+    /// edits the field, so a different LAN setup just needs to be
+    /// typed once and it sticks.
+    private static let defaultURL = "http://10.20.30.32:8090/media.m3u8"
+
+    @State private var urlString: String = UserDefaults.standard.string(forKey: Self.lastURLKey) ?? Self.defaultURL
     @State private var presentingPlayer: Bool = false
-    @FocusState private var urlFieldFocused: Bool
 
     var body: some View {
         ScrollView {
@@ -43,7 +49,6 @@ struct QuickPlayView: View {
                 urlString: urlString
             )
         )
-        .onAppear { urlFieldFocused = true }
     }
 
     private var header: some View {
@@ -57,17 +62,30 @@ struct QuickPlayView: View {
         }
     }
 
+    /// tvOS TextField quirks:
+    /// * `@FocusState` + `.onAppear` programmatic focus triggers a
+    ///   re-render every time the system keyboard reports a key
+    ///   press back, which destroys the field state and the
+    ///   keyboard closes after the first character. Don't do it.
+    /// * `.keyboardType(.URL)` is iOS-only; calling it on tvOS is a
+    ///   no-op but the modifier chain still compiles. Drop it to
+    ///   keep the chain tidy.
+    /// * `.textInputAutocapitalization(.never)` is iOS-only; gate
+    ///   with `#if os(iOS)`.
+    /// * Just let the user tap the field. The matching tvOS system
+    ///   keyboard opens, they enter, hit Done. Mirrors `LoginView`
+    ///   which has the same shape and works.
     private var urlField: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("URL")
                 .font(.callout)
                 .foregroundStyle(.secondary)
-            TextField("https://10.20.30.x:8090/playlist.m3u8", text: $urlString)
-                .textContentType(.URL)
-                .keyboardType(.URL)
+            TextField("http://10.20.30.x:8090/playlist.m3u8", text: $urlString)
                 .autocorrectionDisabled()
+                #if os(iOS)
                 .textInputAutocapitalization(.never)
-                .focused($urlFieldFocused)
+                .keyboardType(.URL)
+                #endif
         }
     }
 
