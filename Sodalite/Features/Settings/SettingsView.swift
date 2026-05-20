@@ -159,6 +159,19 @@ struct SettingsView: View {
             ) {
                 ChangelogListView()
             }
+
+            // Diagnostic-only: enter any media URL and hand it
+            // straight to a stock AVPlayerViewController, bypassing
+            // the engine pipeline. Used for the long-form 4K HDR
+            // HEVC leak isolation work. Safe to leave shipping
+            // because the tile is harmless without a URL.
+            SettingsTile(
+                icon: "bolt.fill",
+                title: "QuickPlay (Diag)",
+                subtitle: "Bypass engine, play any URL via AVPlayer"
+            ) {
+                QuickPlayView()
+            }
         }
     }
 

@@ -84,13 +84,12 @@ struct PlayerLauncher: UIViewControllerRepresentable {
     }
 }
 
-/// Diagnostic-only LAN URL pointing at a Mac http server hosting a
-/// pre-muxed HLS-fMP4 bundle. Nil disables the diagnostic and the
-/// player launches normally through AetherEngine. Set this and
-/// rebuild to A/B test the engine path against a stock-AVPlayer +
-/// Mac-produced-segments path. Must be `let` so the compiler
-/// strips both the constant and the if-branch in production builds
-/// where it stays nil.
+/// Legacy hardcoded-URL hatch for the direct-AVPlayer diagnostic.
+/// Stays nil now that the diagnostic is reachable through
+/// `Settings → QuickPlay`, which doesn't require rebuilding the
+/// app to swap URLs. Left in place because forcibly bypassing the
+/// engine through code is sometimes faster than nav-stack
+/// roundtripping when you're iterating.
 private let externalDiagnosticURL: String? = nil
 
 /// Bypasses the entire AetherEngine pipeline (Demuxer /
