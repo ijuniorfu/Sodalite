@@ -6,8 +6,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/superuser404notfound/AetherEngine",
       "state" : {
-        "branch" : "main",
-        "revision" : "cdde830f3e3eb5564058731467d6498589ddcc19"
+        "branch" : "hybrid-spike",
+        "revision" : "aa1efd6a968776dee1391f94fca1bbe73966ae91"
       }
     },
     {
@@ -17,15 +17,6 @@
       "state" : {
         "branch" : "main",
         "revision" : "75600a51a02d122a89aea612809dcbdadb6d16cf"
-      }
-    },
-    {
-      "identity" : "gcdwebserver",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/yene/GCDWebServer",
-      "state" : {
-        "revision" : "c2f837b30038ef716b77225f40cc8d104b6ff645",
-        "version" : "3.5.7"
       }
     }
   ],

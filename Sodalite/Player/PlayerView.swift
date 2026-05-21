@@ -312,7 +312,10 @@ final class PlayerHostController: AVPlayerViewController {
             .sink { [weak self] backend in
                 guard let self else { return }
                 switch backend {
-                case .software, .aether:
+                case .software, .aether, .hybrid:
+                    // Hybrid path renders video through the engine's own
+                    // AVSampleBufferDisplayLayer just like the software
+                    // path; AVKit's player layer stays unmounted.
                     self.mountAetherViewIfNeeded()
                 case .native, .none:
                     self.unmountAetherViewIfNeeded()
