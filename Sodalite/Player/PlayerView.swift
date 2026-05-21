@@ -226,6 +226,15 @@ final class PlayerHostController: AVPlayerViewController {
         skippingBehavior = .skipItem
         delegate = self
 
+        // Explicit nil-assignment before the currentAVPlayer sink wires
+        // up. Without this AVKit shows its internal buffering spinner
+        // over the contentOverlayView for the hybrid path: the sink's
+        // initial-value delivery is nil-to-nil for the first session
+        // (no previous AVPlayer ever existed) and Combine treats that
+        // as a no-op, so the `else self.player = nil` branch never
+        // fires and AVKit's default item-less spinner stays mounted.
+        self.player = nil
+
         // Subscribe to engine state. currentAVPlayer drives AVKit's
         // .player rebind across audio-track-switch reloads;
         // playbackBackend drives aetherView mounting for the SW path.
