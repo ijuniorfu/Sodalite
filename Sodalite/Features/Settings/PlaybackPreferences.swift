@@ -38,6 +38,11 @@ final class PlaybackPreferences {
         static let pictureMode = "playback.pictureMode"
         static let showStatsForNerds = "playback.showStatsForNerds"
         static let showDiagnosticOverlay = "playback.showDiagnosticOverlay"
+        /// Experiment H: route AVPlayer through engine's single-file
+        /// fMP4 endpoint (chunked HTTP) instead of HLS playlist.
+        /// Diagnostic only; tests CFNetwork libnetwork pool retention
+        /// for progressive-download vs HLS pipeline.
+        static let useSingleFileMode = "playback.useSingleFileMode"
     }
 
     // MARK: - Allowed Values
@@ -294,6 +299,16 @@ final class PlaybackPreferences {
         didSet { store.set(showDiagnosticOverlay, forKey: Keys.showDiagnosticOverlay) }
     }
 
+    /// Experiment H: route AVPlayer through the engine's single-file
+    /// chunked fMP4 endpoint instead of the HLS playlist. Diagnostic
+    /// only; default OFF. No seek support in this mode (chunked = no
+    /// Range header). Tests whether CFNetwork's libnetwork buffer pool
+    /// retention behaves differently for progressive-download vs HLS
+    /// fetch patterns.
+    var useSingleFileMode: Bool {
+        didSet { store.set(useSingleFileMode, forKey: Keys.useSingleFileMode) }
+    }
+
     // MARK: - Init
 
     private let store: UserDefaults
@@ -347,5 +362,6 @@ final class PlaybackPreferences {
             .flatMap(PictureMode.init(rawValue:)) ?? .original
         self.showStatsForNerds = store.object(forKey: Keys.showStatsForNerds) as? Bool ?? false
         self.showDiagnosticOverlay = store.object(forKey: Keys.showDiagnosticOverlay) as? Bool ?? false
+        self.useSingleFileMode = store.object(forKey: Keys.useSingleFileMode) as? Bool ?? false
     }
 }

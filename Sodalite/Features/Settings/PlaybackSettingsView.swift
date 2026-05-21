@@ -214,6 +214,20 @@ struct PlaybackSettingsView: View {
                             set: { prefs.showDiagnosticOverlay = $0 }
                         )
                     )
+
+                    // Experiment H: single-file fMP4 mode. Routes AVPlayer
+                    // through engine's chunked single-file endpoint
+                    // instead of HLS. Diagnostic only — no seek support
+                    // in this mode. Takes effect on the next session.
+                    boolRow(
+                        icon: "doc",
+                        title: "settings.playback.singleFileMode",
+                        subtitle: "settings.playback.singleFileMode.subtitle",
+                        value: Binding(
+                            get: { prefs.useSingleFileMode },
+                            set: { prefs.useSingleFileMode = $0 }
+                        )
+                    )
                 }
 
             }

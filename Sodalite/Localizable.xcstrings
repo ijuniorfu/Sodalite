@@ -56892,6 +56892,40 @@
         }
       }
     },
+    "settings.playback.singleFileMode" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Single-File Modus (Spike)"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Single-File Mode (Spike)"
+          }
+        }
+      }
+    },
+    "settings.playback.singleFileMode.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "AVPlayer über einen chunked Single-File-Stream statt HLS. Diagnose-Modus zur Memory-Leak-Untersuchung. Kein Seek. Bei nächster Wiedergabe aktiv."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Route AVPlayer through a chunked single-file stream instead of HLS. Diagnostic memory-leak experiment. No seek support. Takes effect on next playback."
+          }
+        }
+      }
+    },
     "settings.profile.current" : {
       "comment" : "Label above the currently-signed-in profile card",
       "extractionState" : "manual",
