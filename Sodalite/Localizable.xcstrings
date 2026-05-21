@@ -36063,6 +36063,17 @@
         }
       }
     },
+    "player.stats.backend.hybrid" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Hybrid (engine video + AVPlayer audio)"
+          }
+        }
+      }
+    },
     "player.stats.backend.native" : {
       "extractionState" : "manual",
       "localizations" : {
