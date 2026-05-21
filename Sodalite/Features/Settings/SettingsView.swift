@@ -159,19 +159,6 @@ struct SettingsView: View {
             ) {
                 ChangelogListView()
             }
-
-            // Engineering spike for the long-form playback memory leak.
-            // Tests AVAssetResourceLoaderDelegate as a bypass of the
-            // libnetwork buffer-pool retention. Not localized on purpose
-            // — diagnostic surface, English only, removable once the
-            // architecture decision lands.
-            SettingsTile(
-                icon: "stethoscope",
-                title: "fMP4 ResourceLoader Spike",
-                subtitle: "Engineering diagnostic: bypass HTTP loopback"
-            ) {
-                FMP4SpikeView()
-            }
         }
     }
 
