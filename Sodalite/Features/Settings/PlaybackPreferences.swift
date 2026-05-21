@@ -38,13 +38,6 @@ final class PlaybackPreferences {
         static let pictureMode = "playback.pictureMode"
         static let showStatsForNerds = "playback.showStatsForNerds"
         static let showDiagnosticOverlay = "playback.showDiagnosticOverlay"
-        /// Opt-in spike flag: route playback through the engine's hybrid
-        /// path (engine video + audio-only AVPlayer) instead of the
-        /// default native AVPlayer-HLS path. Diagnostic only; intended
-        /// to A/B the AVPlayer HLS-fMP4 libnetwork buffer pool leak
-        /// against the audio-only-AVPlayer variant. No UI yet; toggle
-        /// via `defaults write de.superuser404.Sodalite playback.useHybridPlayback -bool YES`.
-        static let useHybridPlayback = "playback.useHybridPlayback"
     }
 
     // MARK: - Allowed Values
@@ -301,17 +294,6 @@ final class PlaybackPreferences {
         didSet { store.set(showDiagnosticOverlay, forKey: Keys.showDiagnosticOverlay) }
     }
 
-    /// Opt-in spike flag for the hybrid playback path (engine video +
-    /// audio-only AVPlayer). Diagnostic only; default OFF. Routes the
-    /// next session through AetherEngine's HybridPlaybackHost so the
-    /// AVPlayer-HLS libnetwork buffer pool leak can be A/B'd against
-    /// the audio-only-AVPlayer variant. No UI yet; toggle via
-    /// `defaults write de.superuser404.Sodalite playback.useHybridPlayback -bool YES`
-    /// then start a new playback session.
-    var useHybridPlayback: Bool {
-        didSet { store.set(useHybridPlayback, forKey: Keys.useHybridPlayback) }
-    }
-
     // MARK: - Init
 
     private let store: UserDefaults
@@ -365,6 +347,5 @@ final class PlaybackPreferences {
             .flatMap(PictureMode.init(rawValue:)) ?? .original
         self.showStatsForNerds = store.object(forKey: Keys.showStatsForNerds) as? Bool ?? false
         self.showDiagnosticOverlay = store.object(forKey: Keys.showDiagnosticOverlay) as? Bool ?? false
-        self.useHybridPlayback = store.object(forKey: Keys.useHybridPlayback) as? Bool ?? false
     }
 }

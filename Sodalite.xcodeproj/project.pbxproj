@@ -562,7 +562,7 @@
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/superuser404notfound/AetherEngine";
 			requirement = {
-				branch = "hybrid-spike";
+				branch = "larger-segments";
 				kind = branch;
 			};
 		};

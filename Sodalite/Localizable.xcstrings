@@ -36063,17 +36063,6 @@
         }
       }
     },
-    "player.stats.backend.hybrid" : {
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Hybrid (engine video + AVPlayer audio)"
-          }
-        }
-      }
-    },
     "player.stats.backend.native" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -56899,40 +56888,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "播放設定"
-          }
-        }
-      }
-    },
-    "settings.playback.useHybridPlayback" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Hybrid-Wiedergabe (Spike)"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Hybrid Playback (Spike)"
-          }
-        }
-      }
-    },
-    "settings.playback.useHybridPlayback.subtitle" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Engine-seitiges Video plus Audio-only-AVPlayer als Workaround für den AVPlayer-HLS Memory-Leak. Nimmt eine neue Wiedergabesitzung zum Aktivieren."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Engine-side video plus audio-only AVPlayer as workaround for the AVPlayer-HLS memory leak. Restart playback for the toggle to take effect."
           }
         }
       }

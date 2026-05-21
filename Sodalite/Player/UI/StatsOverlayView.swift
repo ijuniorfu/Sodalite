@@ -258,8 +258,6 @@ struct StatsOverlayView: View {
             return String(localized: "player.stats.backend.native", defaultValue: "Native (AVPlayer)")
         case .software:
             return String(localized: "player.stats.backend.software", defaultValue: "Software (dav1d / FFmpeg)")
-        case .hybrid:
-            return String(localized: "player.stats.backend.hybrid", defaultValue: "Hybrid (engine video + AVPlayer audio)")
         case .aether, .none:
             // .aether is the legacy backend the engine no longer
             // dispatches to; reachable only via a stale enum value.

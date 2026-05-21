@@ -6,8 +6,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/superuser404notfound/AetherEngine",
       "state" : {
-        "branch" : "hybrid-spike",
-        "revision" : "a57b6ae64734d508128dfdaf894c89ba1da8c9dd"
+        "branch" : "larger-segments",
+        "revision" : "c2a72926adf9bee4b2d895d1dec3a173283351a8"
       }
     },
     {

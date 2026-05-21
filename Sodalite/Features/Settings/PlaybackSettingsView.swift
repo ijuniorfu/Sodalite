@@ -214,23 +214,6 @@ struct PlaybackSettingsView: View {
                             set: { prefs.showDiagnosticOverlay = $0 }
                         )
                     )
-
-                    // Hybrid playback opt-in. Routes the next session
-                    // through HybridPlaybackHost (engine video +
-                    // audio-only AVPlayer) as a workaround for the
-                    // AVPlayer-HLS libnetwork buffer pool leak. Diag
-                    // build only; safe to flip mid-session because the
-                    // engine reads the flag once at load() time, so
-                    // the toggle only takes effect on the next start.
-                    boolRow(
-                        icon: "wand.and.stars",
-                        title: "settings.playback.useHybridPlayback",
-                        subtitle: "settings.playback.useHybridPlayback.subtitle",
-                        value: Binding(
-                            get: { prefs.useHybridPlayback },
-                            set: { prefs.useHybridPlayback = $0 }
-                        )
-                    )
                 }
 
             }
