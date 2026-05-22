@@ -660,10 +660,25 @@ final class PlayerHostController: AVPlayerViewController {
     private func hideChrome(on v: UIView, preserve: Set<ObjectIdentifier>) {
         if preserve.contains(ObjectIdentifier(v)) { return }
         let typeName = String(describing: type(of: v))
+        // Keyword set tuned against the runtime view hierarchy AVKit
+        // builds on tvOS:
+        //   - `_AVPlayerControlsView`      → transport bar / play-pause
+        //   - `_AVPlayerTransportBarView`  → scrubber band
+        //   - `_AVPlayerInfoView`          → title + subtitle text
+        //   - `AVInfoMenuCell`             → audio / subtitle picker rows
+        //   - `_AVFocusContainerView`      → wraps the chrome stack so
+        //                                    the focus engine can find it
+        //   - `_AVPlayerViewControllerContainerView` → wraps the focus
+        //                                    container; matching `Container`
+        //                                    here would be too broad, so we
+        //                                    match Focus instead and walk
+        //                                    upward via the Focus match.
         let isChrome = typeName.contains("Controls")
             || typeName.contains("Transport")
             || typeName.contains("Chrome")
-            || typeName.contains("InfoView")
+            || typeName.contains("Info")
+            || typeName.contains("Focus")
+            || typeName.contains("Menu")
         if isChrome {
             v.alpha = 0
             return
