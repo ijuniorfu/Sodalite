@@ -125,6 +125,13 @@ final class PlayerHostController: AVPlayerViewController {
     /// presses before our handlers ever see them.
     private var ourGestureRecognizers: [UIGestureRecognizer] = []
 
+    /// Weak ref to our SwiftUI overlay's hosting view so the chrome
+    /// suppression pass can skip it. Mounted into self.view alongside
+    /// AVKit's own private chrome views; the class-name heuristic in
+    /// `suppressAVKitChrome` is broad enough to catch it without
+    /// this guard.
+    private weak var overlayHostingView: UIView?
+
     /// Combine subscriptions on the engine's `$currentAVPlayer` and
     /// `$playbackBackend`. currentAVPlayer fires on every internal
     /// reload (selectAudioTrack rebuilds NativeAVPlayerHost with a
@@ -369,6 +376,7 @@ final class PlayerHostController: AVPlayerViewController {
         hosting.view.frame = view.bounds
         hosting.view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         hosting.didMove(toParent: self)
+        overlayHostingView = hosting.view
 
         // Gesture recognizers for ALL buttons including Menu
         addPressGesture(.select, action: #selector(selectPressed))
@@ -620,9 +628,55 @@ final class PlayerHostController: AVPlayerViewController {
         }
     }
 
+    /// Walk self.view, find AVKit's chrome views (transport bar, info
+    /// view) and force them to alpha=0. We need
+    /// `playbackControlsIncludeTransportBar = true` on tvOS for AVKit
+    /// to wire the iPhone Control Center 10s skip handler (Now Playing
+    /// session forwards CC's skipForward / skipBackward commands only
+    /// when the transport-bar flag is set). With the flag true AVKit
+    /// also renders its own chrome on user interaction, doubling with
+    /// our custom transport bar. The skip handler lives on
+    /// `AVPlayerViewController` itself, not on the chrome views, so
+    /// hiding the chrome optically (alpha=0) doesn't break CC skips.
+    /// Class-name string matching is runtime introspection, not
+    /// private-API selector dispatch; App Store review consistently
+    /// allows this pattern.
+    private func suppressAVKitChrome() {
+        let preserved: Set<ObjectIdentifier> = {
+            var ids: Set<ObjectIdentifier> = [
+                ObjectIdentifier(aetherView)
+            ]
+            if let host = overlayHostingView {
+                ids.insert(ObjectIdentifier(host))
+            }
+            if let overlay = contentOverlayView {
+                ids.insert(ObjectIdentifier(overlay))
+            }
+            return ids
+        }()
+        hideChrome(on: view, preserve: preserved)
+    }
+
+    private func hideChrome(on v: UIView, preserve: Set<ObjectIdentifier>) {
+        if preserve.contains(ObjectIdentifier(v)) { return }
+        let typeName = String(describing: type(of: v))
+        let isChrome = typeName.contains("Controls")
+            || typeName.contains("Transport")
+            || typeName.contains("Chrome")
+            || typeName.contains("InfoView")
+        if isChrome {
+            v.alpha = 0
+            return
+        }
+        for sub in v.subviews {
+            hideChrome(on: sub, preserve: preserve)
+        }
+    }
+
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         suppressAVKitGestures()
+        suppressAVKitChrome()
     }
 
     override func viewDidLayoutSubviews() {
@@ -632,6 +686,11 @@ final class PlayerHostController: AVPlayerViewController {
         // back in. Cheap enough to call every layout; the inner walk
         // is shallow.
         suppressAVKitGestures()
+        // Chrome views fade in/out on interaction; re-zero the alpha on
+        // every layout pass to snap them back to invisible. Won't catch
+        // mid-animation alpha values between layout passes, but covers
+        // the steady state after AVKit's fade transitions settle.
+        suppressAVKitChrome()
     }
 
     override func viewWillDisappear(_ animated: Bool) {
