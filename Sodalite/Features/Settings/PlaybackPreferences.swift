@@ -39,6 +39,7 @@ final class PlaybackPreferences {
         static let pictureMode = "playback.pictureMode"
         static let showStatsForNerds = "playback.showStatsForNerds"
         static let showDiagnosticOverlay = "playback.showDiagnosticOverlay"
+        static let focusDiagnosticOverlayOnDV = "playback.focusDiagnosticOverlayOnDV"
         static let preferLosslessAudioBridge = "playback.preferLosslessAudioBridge"
     }
 
@@ -296,6 +297,16 @@ final class PlaybackPreferences {
         didSet { store.set(showDiagnosticOverlay, forKey: Keys.showDiagnosticOverlay) }
     }
 
+    /// When ON, the diagnostic log overlay filters down to the DV / HDR
+    /// / routing chain (engine dispatch, HLS routing state, item track
+    /// dumps, panel criteria, audio route). When OFF, every line from
+    /// the ring buffer is rendered, including per-segment cache /
+    /// muxer chatter. Default ON because the focus surface is what's
+    /// usually being photographed for support reports.
+    var focusDiagnosticOverlayOnDV: Bool {
+        didSet { store.set(focusDiagnosticOverlayOnDV, forKey: Keys.focusDiagnosticOverlayOnDV) }
+    }
+
     /// When ON, the audio bridge uses lossless FLAC encoding for
     /// sources that can't stream-copy into fMP4 (TrueHD, DTS, DTS-HD MA,
     /// MP3, Opus). Lossless quality, up to 7.1 channels.
@@ -376,6 +387,7 @@ final class PlaybackPreferences {
             .flatMap(PictureMode.init(rawValue:)) ?? .original
         self.showStatsForNerds = store.object(forKey: Keys.showStatsForNerds) as? Bool ?? false
         self.showDiagnosticOverlay = store.object(forKey: Keys.showDiagnosticOverlay) as? Bool ?? false
+        self.focusDiagnosticOverlayOnDV = store.object(forKey: Keys.focusDiagnosticOverlayOnDV) as? Bool ?? true
         self.preferLosslessAudioBridge = store.object(forKey: Keys.preferLosslessAudioBridge) as? Bool ?? false
     }
 }

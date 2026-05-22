@@ -226,6 +226,18 @@ struct PlaybackSettingsView: View {
                             set: { prefs.showDiagnosticOverlay = $0 }
                         )
                     )
+
+                    if prefs.showDiagnosticOverlay {
+                        boolRow(
+                            icon: "viewfinder",
+                            title: "settings.playback.diagnosticOverlay.focusDV",
+                            subtitle: "settings.playback.diagnosticOverlay.focusDV.subtitle",
+                            value: Binding(
+                                get: { prefs.focusDiagnosticOverlayOnDV },
+                                set: { prefs.focusDiagnosticOverlayOnDV = $0 }
+                            )
+                        )
+                    }
                 }
 
             }

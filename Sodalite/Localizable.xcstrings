@@ -44471,6 +44471,328 @@
         }
       }
     },
+    "settings.playback.diagnosticOverlay.focusDV" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zaměření na Dolby Vision"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fokus på Dolby Vision"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Auf Dolby Vision fokussieren"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Εστίαση σε Dolby Vision"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Focus on Dolby Vision"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Centrar en Dolby Vision"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keskity Dolby Visioniin"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Centrer sur Dolby Vision"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fokus na Dolby Vision"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dolby Vision fókusz"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Concentra su Dolby Vision"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dolby Vision に集中"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dolby Vision에 집중"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fokuser på Dolby Vision"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Focus op Dolby Vision"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Skupienie na Dolby Vision"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Foco em Dolby Vision"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Foco em Dolby Vision"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Focalizare pe Dolby Vision"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Фокус на Dolby Vision"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zameranie na Dolby Vision"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fokus på Dolby Vision"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dolby Vision'a odaklan"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Фокус на Dolby Vision"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "聚焦 Dolby Vision"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "聚焦 Dolby Vision"
+          }
+        }
+      }
+    },
+    "settings.playback.diagnosticOverlay.focusDV.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filtruje překryv na logy DV / HDR routingu. Užitečné pro screenshoty podpory; vypněte pro všechny logy."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filtrerer overlayet til DV / HDR-routinglogs. Nyttig til supportskærmbilleder; sluk for at se alle logs."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filtert das Overlay auf DV / HDR Routing-Logs. Nützlich für Support-Screenshots; ausschalten für alle Engine-Logs."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Φιλτράρει την επικάλυψη σε αρχεία DV / HDR. Χρήσιμο για στιγμιότυπα υποστήριξης; απενεργοποιήστε για πλήρη καταγραφή."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filters the overlay to DV / HDR routing logs. Useful for support screenshots; turn off to see all engine output."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filtra la superposición a registros DV / HDR. Útil para capturas de soporte; apágalo para ver todos los registros."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Suodattaa peitteen DV / HDR -lokeihin. Hyödyllinen tukiruutukaappauksiin; pois päältä koko lokin näkemiseksi."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filtre la superposition aux journaux DV / HDR. Utile pour les captures de support; désactivez pour tout voir."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filtrira prekrivač na DV / HDR zapisnike. Korisno za snimke zaslona podrške; isključi za sve zapise."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A fedvényt DV / HDR útválasztási naplókra szűri. Támogatási képernyőképekhez hasznos; kikapcsolva minden napló látszik."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filtra l'overlay sui log DV / HDR. Utile per screenshot di supporto; disattiva per vedere tutti i log."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "オーバーレイを DV / HDR のルーティングログにフィルタリング。サポート用スクリーンショットに便利。すべてのログを見るにはオフ。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "오버레이를 DV / HDR 라우팅 로그로 필터링. 지원 스크린샷에 유용. 전체 로그를 보려면 끄기."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filtrerer overlegget til DV / HDR-rutingslogger. Nyttig for støtteskjermbilder; slå av for å se alle logger."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filtert de overlay op DV / HDR-routinglogboeken. Handig voor supportscreenshots; uit voor alle logs."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filtruje nakładkę do logów DV / HDR. Przydatne do zrzutów wsparcia; wyłącz, aby zobaczyć wszystkie logi."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filtra a sobreposição para logs de DV / HDR. Útil para screenshots de suporte; desligue para ver todos os logs."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filtra a sobreposição para registos DV / HDR. Útil para capturas de suporte; desligue para ver todos os registos."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filtrează suprapunerea la jurnalele DV / HDR. Util pentru capturi de suport; dezactivează pentru toate jurnalele."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Фильтрует оверлей по логам маршрутизации DV / HDR. Полезно для скриншотов поддержки; отключите для всех логов."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filtruje prekrytie na logy smerovania DV / HDR. Užitočné pre snímky obrazovky podpory; vypnite pre všetky logy."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filtrerar överlägget till DV / HDR-routingloggar. Användbart för supportskärmdumpar; stäng av för alla loggar."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kaplamayı DV / HDR yönlendirme günlüklerine filtreler. Destek ekran görüntüleri için faydalı; tüm günlükler için kapatın."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Фільтрує накладку за журналами маршрутизації DV / HDR. Корисно для скріншотів підтримки; вимкніть для всіх журналів."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "将叠加层过滤为 DV / HDR 路由日志。对支持截图有用；关闭以查看所有日志。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "將疊加層過濾為 DV / HDR 路由日誌。對支援截圖有用；關閉以查看所有日誌。"
+          }
+        }
+      }
+    },
     "settings.playback.diagnosticOverlay.subtitle" : {
       "extractionState" : "manual",
       "localizations" : {

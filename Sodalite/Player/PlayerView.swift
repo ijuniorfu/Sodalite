@@ -1417,7 +1417,7 @@ private struct PlayerOverlayView: View {
             // showDiagnosticOverlay in Settings, which defaults off
             // so the overlay isn't on top of every TestFlight session.
             if LogTap.isDiagnosticBuild && viewModel.preferences.showDiagnosticOverlay {
-                DiagnosticLogOverlay()
+                DiagnosticLogOverlay(focusOnDV: viewModel.preferences.focusDiagnosticOverlayOnDV)
             }
 
             // Floating Skip Intro hint, only while the full controls
@@ -1743,6 +1743,7 @@ private struct VideoFormatBadge: View {
 /// Apple TV to a Mac for Console.app.
 private struct DiagnosticLogOverlay: View {
     @ObservedObject private var tap = LogTap.shared
+    let focusOnDV: Bool
 
     /// Number of overlay rows rendered at once. 50 lines at the
     /// current 16 pt monospaced row height fills roughly the top
@@ -1756,6 +1757,37 @@ private struct DiagnosticLogOverlay: View {
     /// occlusion never hits an App Store user.
     private let visibleCount = 50
 
+    /// Substring matchers for the DV / HDR focus mode. A line is
+    /// retained when it contains ANY of these. Picked so the diagnostic
+    /// chain a remote tester would photograph for a support thread
+    /// (engine dispatch, HLS routing state, item tracks, audio route,
+    /// display criteria, panel mode signaling) stays in frame while
+    /// per-segment cache / muxer chatter falls off. The cost of an
+    /// over-narrow filter is a missing data point in a screenshot;
+    /// the cost of an over-wide filter is the focus being defeated.
+    /// This is the conservative middle.
+    private static let focusSubstrings: [String] = [
+        "[HLSVideoEngine]",
+        "[NativeAVPlayerHost]",
+        "[DisplayCriteria]",
+        "[Profile]",
+        "[AetherEngine] dispatch",
+        "[AetherEngine] AVAudioSession",
+        "[AetherEngine] HDR10+",
+        "[AudioBridge]",
+        "DV source",
+        "WARNING",
+    ]
+
+    private var renderedLines: [String] {
+        if focusOnDV {
+            return tap.lines.filter { line in
+                Self.focusSubstrings.contains { line.contains($0) }
+            }.suffix(visibleCount).map { $0 }
+        }
+        return Array(tap.lines.suffix(visibleCount))
+    }
+
     var body: some View {
         VStack {
             // Full-width container so long diagnostic lines
@@ -1768,7 +1800,7 @@ private struct DiagnosticLogOverlay: View {
             // safe-area gutters; nothing else uses the top-left
             // quadrant when the overlay is visible.
             VStack(alignment: .leading, spacing: 2) {
-                let visible = Array(tap.lines.suffix(visibleCount))
+                let visible = renderedLines
                 ForEach(Array(visible.enumerated()), id: \.offset) { _, line in
                     Text(line)
                         .font(.system(size: 16, weight: .regular, design: .monospaced))
