@@ -56892,36 +56892,36 @@
         }
       }
     },
-    "settings.playback.singleFileMode" : {
+    "settings.playback.itemRecycle" : {
       "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Single-File Modus (Spike)"
+            "value" : "AVPlayer-Item Recycle (Spike)"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Single-File Mode (Spike)"
+            "value" : "AVPlayer Item Recycle (Spike)"
           }
         }
       }
     },
-    "settings.playback.singleFileMode.subtitle" : {
+    "settings.playback.itemRecycle.subtitle" : {
       "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "AVPlayer über einen chunked Single-File-Stream statt HLS. Diagnose-Modus zur Memory-Leak-Untersuchung. Kein Seek. Bei nächster Wiedergabe aktiv."
+            "value" : "Periodischer Item-Recycle auf derselben AVPlayer-Instanz zum Test der libnetwork Memory-Leak-Hypothese. Atmos und DV bleiben aktiv. Kurzer Loading-Indikator je Recycle."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Route AVPlayer through a chunked single-file stream instead of HLS. Diagnostic memory-leak experiment. No seek support. Takes effect on next playback."
+            "value" : "Periodic item recycle on the same AVPlayer instance to test the libnetwork pool-drain hypothesis. Atmos and DV stay active. Brief loading indicator per recycle."
           }
         }
       }

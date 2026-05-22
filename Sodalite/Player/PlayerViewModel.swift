@@ -426,7 +426,7 @@ final class PlayerViewModel {
                 options: LoadOptions(
                     matchContentEnabled: Self.matchDynamicRangeEnabled,
                     panelIsInHDRMode: Self.panelIsInHDRMode,
-                    useSingleFileMode: preferences.useSingleFileMode
+                    itemRecycleIntervalSeconds: preferences.itemRecycleIntervalSeconds
                 )
             )
 

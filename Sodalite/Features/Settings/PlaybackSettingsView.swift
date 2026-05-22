@@ -215,18 +215,24 @@ struct PlaybackSettingsView: View {
                         )
                     )
 
-                    // Experiment H: single-file fMP4 mode. Routes AVPlayer
-                    // through engine's chunked single-file endpoint
-                    // instead of HLS. Diagnostic only — no seek support
-                    // in this mode. Takes effect on the next session.
-                    boolRow(
-                        icon: "doc",
-                        title: "settings.playback.singleFileMode",
-                        subtitle: "settings.playback.singleFileMode.subtitle",
-                        value: Binding(
-                            get: { prefs.useSingleFileMode },
-                            set: { prefs.useSingleFileMode = $0 }
-                        )
+                    // Architecture P spike: periodic AVPlayerItem recycle.
+                    // Tests whether libnetwork CFNetwork pool drains at
+                    // AVPlayerItem teardown. Visible UX per recycle:
+                    // brief ~200-500ms loading indicator. Diagnostic only.
+                    valueRow(
+                        icon: "arrow.triangle.2.circlepath",
+                        title: "settings.playback.itemRecycle",
+                        subtitle: "settings.playback.itemRecycle.subtitle",
+                        options: PlaybackPreferences.itemRecycleChoices,
+                        selection: Binding(
+                            get: { prefs.itemRecycleIntervalSeconds },
+                            set: { prefs.itemRecycleIntervalSeconds = $0 }
+                        ),
+                        label: { seconds in
+                            if seconds == 0 { return "Off" }
+                            let minutes = Int(seconds / 60)
+                            return "\(minutes) min"
+                        }
                     )
                 }
 
