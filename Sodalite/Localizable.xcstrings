@@ -51577,6 +51577,489 @@
         }
       }
     },
+    "settings.playback.section.audio" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zvuk"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lyd"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ton"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ήχος"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Audio"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Audio"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ääni"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Audio"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zvuk"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hang"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Audio"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "オーディオ"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "오디오"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lyd"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Audio"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dźwięk"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Áudio"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Áudio"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Audio"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Звук"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zvuk"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ljud"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ses"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Звук"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "音频"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "音訊"
+          }
+        }
+      }
+    },
+    "settings.playback.preferLossless" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Upřednostnit bezeztrátový zvuk"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Foretræk tabsfri lyd"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verlustfreies Audio bevorzugen"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Προτίμηση ήχου χωρίς απώλειες"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Prefer Lossless Audio"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Preferir audio sin pérdidas"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Suosi häviötöntä ääntä"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Préférer l’audio sans perte"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Preferiraj zvuk bez gubitaka"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Veszteségmentes hang előnyben részesítése"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Preferisci audio lossless"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ロスレスオーディオを優先"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "무손실 오디오 선호"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Foretrekk tapsfri lyd"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Voorkeur voor lossless audio"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Preferuj dźwięk bezstratny"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Preferir áudio sem perdas"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Preferir áudio sem perdas"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Preferă audio fără pierderi"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Предпочитать аудио без потерь"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uprednostniť bezstratový zvuk"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Föredra förlustfritt ljud"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kayıpsız sesi tercih et"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Перевага аудіо без втрат"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "优先使用无损音频"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "優先使用無損音訊"
+          }
+        }
+      }
+    },
+    "settings.playback.preferLossless.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Překóduje TrueHD, DTS-HD MA a další nepřenositelné prostorové formáty jako bezeztrátový FLAC až 7.1 kanálů. Doporučeno pro AVR, které přijímají vícekanálové LPCM přes HDMI. Vypněte (výchozí) pro soundbary; místo toho se použije EAC3 5.1, aby prostorový zvuk fungoval na více zařízeních."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Omkoder TrueHD, DTS-HD MA og andre ikke-streambare surroundformater til tabsfri FLAC med op til 7.1 kanaler. Anbefales til AVR’er, der accepterer flerkanals-LPCM via HDMI. Slå fra (standard) ved soundbars; bruger i stedet EAC3 5.1, så surround virker på flere enheder."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kodiert TrueHD, DTS-HD MA und andere nicht streamingfähige Surround-Formate als verlustfreies FLAC mit bis zu 7.1 Kanälen neu. Empfohlen für AVRs, die mehrkanaliges LPCM über HDMI akzeptieren. Deaktiviere die Option (Standard) bei Soundbars; stattdessen wird EAC3 5.1 verwendet, damit Surround auf mehr Geräten funktioniert."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Επανακωδικοποιεί TrueHD, DTS-HD MA και άλλα μη μεταδόσιμα surround ως FLAC χωρίς απώλειες έως 7.1 κανάλια. Συνιστάται για AVR που δέχονται πολυκάναλο LPCM μέσω HDMI. Απενεργοποιήστε το (προεπιλογή) για soundbar· χρησιμοποιεί EAC3 5.1, ώστε ο ήχος surround να λειτουργεί σε περισσότερες συσκευές."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Re-encodes TrueHD, DTS-HD MA and other non-streamable surround as lossless FLAC up to 7.1 channels. Recommended for AVRs that accept multichannel LPCM via HDMI. Turn off (default) for soundbars; uses EAC3 5.1 instead so surround works on more devices."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recodifica TrueHD, DTS-HD MA y otros formatos envolventes no transmisibles como FLAC sin pérdidas con hasta 7.1 canales. Recomendado para AVR que aceptan LPCM multicanal por HDMI. Desactívalo (predeterminado) para barras de sonido; en su lugar utiliza EAC3 5.1 para que el sonido envolvente funcione en más dispositivos."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Koodaa TrueHD, DTS-HD MA ja muut suoratoistoon kelpaamattomat surround-muodot uudelleen häviöttömäksi FLAC-ääneksi enintään 7.1-kanavaisena. Suositellaan AVR-vahvistimille, jotka hyväksyvät monikanavaisen LPCM:n HDMI:n kautta. Poista käytöstä (oletus) soundbareilla; käyttää EAC3 5.1:tä, jotta surround toimii useammilla laitteilla."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Réencode les pistes TrueHD, DTS-HD MA et autres formats surround non diffusables en FLAC sans perte jusqu’à 7.1 canaux. Recommandé pour les AVR qui acceptent le LPCM multicanal via HDMI. Désactivez (par défaut) pour les barres de son; utilise plutôt EAC3 5.1, afin que le surround fonctionne sur plus d’appareils."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ponovno kodira TrueHD, DTS-HD MA i druge surround formate koji se ne mogu strujati u bezgubitni FLAC do 7.1 kanala. Preporučeno za AVR uređaje koji prihvaćaju višekanalni LPCM putem HDMI-ja. Isključite (zadano) za soundbarove; umjesto toga koristi EAC3 5.1 kako bi surround radio na više uređaja."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A TrueHD, DTS-HD MA és más, nem streamelhető térhatású formátumokat veszteségmentes FLAC-ként kódolja át, akár 7.1 csatornáig. Olyan AVR-ekhez ajánlott, amelyek HDMI-n keresztül elfogadják a többcsatornás LPCM jelet. Kapcsold ki (alapértelmezett) hangprojektorokhoz; helyette EAC3 5.1 használatos, hogy a térhatás több eszközön működjön."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ricodifica TrueHD, DTS-HD MA e altri formati surround non trasmissibili come FLAC lossless fino a 7.1 canali. Consigliato per AVR che accettano LPCM multicanale via HDMI. Disattiva (impostazione predefinita) per le soundbar; usa invece EAC3 5.1, così il surround funziona su più dispositivi."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "TrueHD、DTS-HD MA、その他ストリーミングできないサラウンドを、最大7.1チャンネルのロスレスFLACに再エンコードします。HDMI経由でマルチチャンネルLPCMを受け入れるAVRに推奨。サウンドバーではオフ（既定）にしてください。代わりにEAC3 5.1を使用し、より多くの機器でサラウンドが機能します。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "TrueHD, DTS-HD MA 및 기타 스트리밍 불가 서라운드를 최대 7.1채널 무손실 FLAC로 다시 인코딩합니다. HDMI를 통해 다채널 LPCM을 지원하는 AVR에 권장됩니다. 사운드바에서는 끄세요(기본값). 대신 EAC3 5.1을 사용하여 더 많은 기기에서 서라운드가 작동합니다."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Omkoder TrueHD, DTS-HD MA og andre surroundformater som ikke kan strømmes til tapsfri FLAC med opptil 7.1 kanaler. Anbefales for AVR-er som godtar flerkanals LPCM via HDMI. Slå av (standard) for lydplanker; bruker i stedet EAC3 5.1, slik at surround fungerer på flere enheter."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hercodeert TrueHD, DTS-HD MA en andere niet-streambare surroundformaten als lossless FLAC tot 7.1 kanalen. Aanbevolen voor AVR’s die multichannel LPCM via HDMI accepteren. Schakel uit (standaard) voor soundbars; gebruikt in plaats daarvan EAC3 5.1, zodat surround op meer apparaten werkt."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ponownie koduje TrueHD, DTS-HD MA i inne formaty przestrzenne, których nie można przesyłać strumieniowo, jako bezstratny FLAC do 7.1 kanałów. Zalecane dla amplitunerów AVR akceptujących wielokanałowy LPCM przez HDMI. Wyłącz (domyślnie) dla soundbarów; zamiast tego używa EAC3 5.1, dzięki czemu dźwięk przestrzenny działa na większej liczbie urządzeń."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recodifica TrueHD, DTS-HD MA e outros formatos surround não transmissíveis como FLAC sem perdas com até 7.1 canais. Recomendado para AVRs que aceitam LPCM multicanal via HDMI. Desative (padrão) para soundbars; usa EAC3 5.1, para que o surround funcione em mais dispositivos."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recodifica TrueHD, DTS-HD MA e outros formatos surround não transmissíveis como FLAC sem perdas até 7.1 canais. Recomendado para AVRs que aceitam LPCM multicanal por HDMI. Desative (predefinição) para barras de som; usa EAC3 5.1, para que o surround funcione em mais dispositivos."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recodifică TrueHD, DTS-HD MA și alte formate surround netransmisibile ca FLAC fără pierderi, până la 7.1 canale. Recomandat pentru AVR-uri care acceptă LPCM multicanal prin HDMI. Dezactivează (implicit) pentru soundbar-uri; folosește EAC3 5.1, astfel încât sunetul surround să funcționeze pe mai multe dispozitive."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Перекодирует TrueHD, DTS-HD MA и другие непригодные для потоковой передачи объёмные форматы в FLAC без потерь с числом каналов до 7.1. Рекомендуется для AVR, принимающих многоканальный LPCM через HDMI. Отключите (по умолчанию) для саундбаров; вместо этого используется EAC3 5.1, чтобы объёмный звук работал на большем числе устройств."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Prekóduje TrueHD, DTS-HD MA a ďalšie nestreamovateľné priestorové formáty ako bezstratový FLAC až do 7.1 kanálov. Odporúčané pre AVR prijímače, ktoré akceptujú viackanálový LPCM cez HDMI. Vypnite (predvolené) pre soundbary; namiesto toho sa použije EAC3 5.1, aby priestorový zvuk fungoval na viacerých zariadeniach."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Omkodar TrueHD, DTS-HD MA och andra surroundformat som inte kan strömmas till förlustfri FLAC med upp till 7.1 kanaler. Rekommenderas för AVR-mottagare som accepterar flerkanals LPCM via HDMI. Stäng av (standard) för soundbars; använder i stället EAC3 5.1, så att surround fungerar på fler enheter."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "TrueHD, DTS-HD MA ve diğer akış için uygun olmayan surround formatlarını 7.1 kanala kadar kayıpsız FLAC olarak yeniden kodlar. HDMI üzerinden çok kanallı LPCM kabul eden AVR’ler için önerilir. Soundbar’lar için kapatın (varsayılan); bunun yerine EAC3 5.1 kullanılır, böylece surround daha fazla cihazda çalışır."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Перекодовує TrueHD, DTS-HD MA та інші непридатні для потокового передавання об’ємні формати у FLAC без втрат до 7.1 каналів. Рекомендовано для AVR, які приймають багатоканальний LPCM через HDMI. Вимкніть (типово) для саундбарів; натомість використовується EAC3 5.1, щоб об’ємний звук працював на більшій кількості пристроїв."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "将 TrueHD、DTS-HD MA 等无法直接流传输的环绕声重新编码为最高 7.1 声道的无损 FLAC。建议用于通过 HDMI 接收多声道 LPCM 的 AVR。回音壁请关闭（默认）；改用 EAC3 5.1，使环绕声在更多设备上可用。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "將 TrueHD、DTS-HD MA 等無法直接串流的環繞聲重新編碼為最高 7.1 聲道的無損 FLAC。建議用於透過 HDMI 接收多聲道 LPCM 的 AVR。Soundbar 請關閉（預設）；改用 EAC3 5.1，讓環繞聲在更多裝置上可用。"
+          }
+        }
+      }
+    },
     "settings.playback.section.controls" : {
       "extractionState" : "manual",
       "localizations" : {

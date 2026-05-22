@@ -186,6 +186,18 @@ struct PlaybackSettingsView: View {
                     label: { String(localized: String.LocalizationValue($0.titleKey)) }
                 )
 
+                sectionHeader("settings.playback.section.audio")
+
+                boolRow(
+                    icon: "hifispeaker",
+                    title: "settings.playback.preferLossless",
+                    subtitle: "settings.playback.preferLossless.subtitle",
+                    value: Binding(
+                        get: { prefs.preferLosslessAudioBridge },
+                        set: { prefs.preferLosslessAudioBridge = $0 }
+                    )
+                )
+
                 sectionHeader("settings.playback.section.advanced")
 
                 boolRow(

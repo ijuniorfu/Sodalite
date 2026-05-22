@@ -425,7 +425,8 @@ final class PlayerViewModel {
                 startPosition: startPos,
                 options: LoadOptions(
                     matchContentEnabled: Self.matchDynamicRangeEnabled,
-                    panelIsInHDRMode: Self.panelIsInHDRMode
+                    panelIsInHDRMode: Self.panelIsInHDRMode,
+                    audioBridgeMode: preferences.audioBridgeMode
                 )
             )
 

@@ -1,6 +1,7 @@
 import Foundation
 import CoreGraphics
 import Observation
+import AetherEngine
 
 /// Device-local playback preferences. Backed by `UserDefaults` so they
 /// survive app restarts; intentionally device-local because these are
@@ -38,6 +39,7 @@ final class PlaybackPreferences {
         static let pictureMode = "playback.pictureMode"
         static let showStatsForNerds = "playback.showStatsForNerds"
         static let showDiagnosticOverlay = "playback.showDiagnosticOverlay"
+        static let preferLosslessAudioBridge = "playback.preferLosslessAudioBridge"
     }
 
     // MARK: - Allowed Values
@@ -294,6 +296,33 @@ final class PlaybackPreferences {
         didSet { store.set(showDiagnosticOverlay, forKey: Keys.showDiagnosticOverlay) }
     }
 
+    /// When ON, the audio bridge uses lossless FLAC encoding for
+    /// sources that can't stream-copy into fMP4 (TrueHD, DTS, DTS-HD MA,
+    /// MP3, Opus). Lossless quality, up to 7.1 channels.
+    ///
+    /// Caveat: AVPlayer decodes FLAC to LPCM and routes via the active
+    /// HDMI port's LPCM channel capacity. On devices that only accept
+    /// stereo LPCM via HDMI (Sonos Arc, most consumer soundbars), the
+    /// multichannel LPCM gets downmixed to stereo before output.
+    ///
+    /// When OFF (default), the bridge uses lossy EAC3 5.1 at 384 kbps.
+    /// AVPlayer hands the encoded bitstream to HDMI; the sink decodes
+    /// its own 5.1 mix. Works on essentially every modern soundbar
+    /// and AVR, including those that don't accept multichannel LPCM,
+    /// but caps 7.1 sources to 5.1.
+    ///
+    /// Recommended ON only if you have an AVR (Denon / Marantz / NAD)
+    /// that accepts multichannel LPCM via HDMI; OFF is the safer
+    /// default for soundbars and basic AVRs.
+    var preferLosslessAudioBridge: Bool {
+        didSet { store.set(preferLosslessAudioBridge, forKey: Keys.preferLosslessAudioBridge) }
+    }
+
+    /// Map the user-facing toggle to the engine's `AudioBridgeMode`.
+    var audioBridgeMode: AudioBridgeMode {
+        preferLosslessAudioBridge ? .lossless : .surroundCompat
+    }
+
     // MARK: - Init
 
     private let store: UserDefaults
@@ -347,5 +376,6 @@ final class PlaybackPreferences {
             .flatMap(PictureMode.init(rawValue:)) ?? .original
         self.showStatsForNerds = store.object(forKey: Keys.showStatsForNerds) as? Bool ?? false
         self.showDiagnosticOverlay = store.object(forKey: Keys.showDiagnosticOverlay) as? Bool ?? false
+        self.preferLosslessAudioBridge = store.object(forKey: Keys.preferLosslessAudioBridge) as? Bool ?? false
     }
 }
