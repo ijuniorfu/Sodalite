@@ -98,20 +98,12 @@ struct StatsOverlayView: View {
                 .strokeBorder(.white.opacity(0.08), lineWidth: 1)
         )
         .shadow(color: .black.opacity(0.4), radius: 18, y: 6)
-        // Marks the panel as its own focus container so the focus
-        // engine prefers focusable children inside the panel over
-        // the transport bar behind. Without this the info chip on
-        // the transport bar keeps focus when the overlay opens and
-        // up/down arrows fall through to the transport-bar handlers
-        // (Vincent reported "no navigation").
-        .focusSection()
-        // Deferred focus pull so the panel's slide-in transition has
-        // settled before the focus engine reframes the focused
-        // section. onAppear ran inside the transition tick which
-        // produced a half-visible panel that snapped into place a
-        // moment later. .task fires after layout completes and
-        // assigns focus cleanly.
-        .task {
+        .onAppear {
+            // Pull focus into the panel so the focus engine's up/down
+            // arrows navigate between sections instead of falling
+            // through to the transport bar behind. .playback is always
+            // rendered (no conditional gate) so this never lands on a
+            // non-existent target.
             focusedSection = .playback
         }
     }

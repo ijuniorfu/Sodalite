@@ -825,24 +825,7 @@ final class PlayerHostController: AVPlayerViewController {
             case .pictureButton: openPictureDropdown()
             case .infoButton:
                 viewModel.showStatsOverlay.toggle()
-                if viewModel.showStatsOverlay {
-                    // Hide the transport bar immediately when the
-                    // stats overlay opens. Two reasons:
-                    //   1. The bar covers the bottom portion of the
-                    //      right-anchored panel until it fades, so
-                    //      the panel reads as half-visible for the
-                    //      first ~2 s of the appearance.
-                    //   2. The bar's info chip stays focused while
-                    //      visible, and the focus engine doesn't
-                    //      pull focus into the overlay's focusable
-                    //      sections as long as a competing focus
-                    //      target is on screen. Hiding the bar
-                    //      lets the .task focus assignment in
-                    //      StatsOverlayView land on .playback.
-                    viewModel.showControls = false
-                } else {
-                    viewModel.scheduleControlsHide()
-                }
+                viewModel.scheduleControlsHide()
             default: break
             }
         } else if viewModel.isScrubbing {
