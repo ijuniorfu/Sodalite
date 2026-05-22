@@ -51905,157 +51905,157 @@
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Překóduje TrueHD, DTS-HD MA a další nepřenositelné prostorové formáty jako bezeztrátový FLAC až 7.1 kanálů. Doporučeno pro AVR, které přijímají vícekanálové LPCM přes HDMI. Vypněte (výchozí) pro soundbary; místo toho se použije EAC3 5.1, aby prostorový zvuk fungoval na více zařízeních."
+            "value" : "Bezztrátové FLAC až do 7.1 kanálů. Doporučeno pro AVR s vícekanálovým LPCM přes HDMI. Vypnuto použije EAC3 5.1 pro soundbary."
           }
         },
         "da" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Omkoder TrueHD, DTS-HD MA og andre ikke-streambare surroundformater til tabsfri FLAC med op til 7.1 kanaler. Anbefales til AVR’er, der accepterer flerkanals-LPCM via HDMI. Slå fra (standard) ved soundbars; bruger i stedet EAC3 5.1, så surround virker på flere enheder."
+            "value" : "Tabsfri FLAC op til 7.1 kanaler. Anbefales til AVR'er med flerkanals LPCM via HDMI. Fra bruger EAC3 5.1 til soundbar-kompatibilitet."
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Kodiert TrueHD, DTS-HD MA und andere nicht streamingfähige Surround-Formate als verlustfreies FLAC mit bis zu 7.1 Kanälen neu. Empfohlen für AVRs, die mehrkanaliges LPCM über HDMI akzeptieren. Deaktiviere die Option (Standard) bei Soundbars; stattdessen wird EAC3 5.1 verwendet, damit Surround auf mehr Geräten funktioniert."
+            "value" : "Verlustfreies FLAC bis zu 7.1 Kanäle. Empfohlen für AVRs mit Mehrkanal-LPCM über HDMI. Aus nutzt EAC3 5.1 für Soundbar-Kompatibilität."
           }
         },
         "el" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Επανακωδικοποιεί TrueHD, DTS-HD MA και άλλα μη μεταδόσιμα surround ως FLAC χωρίς απώλειες έως 7.1 κανάλια. Συνιστάται για AVR που δέχονται πολυκάναλο LPCM μέσω HDMI. Απενεργοποιήστε το (προεπιλογή) για soundbar· χρησιμοποιεί EAC3 5.1, ώστε ο ήχος surround να λειτουργεί σε περισσότερες συσκευές."
+            "value" : "FLAC χωρίς απώλειες έως 7.1 κανάλια. Προτείνεται για AVR με πολυκάναλο LPCM μέσω HDMI. Ανενεργό: EAC3 5.1 για soundbar."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Re-encodes TrueHD, DTS-HD MA and other non-streamable surround as lossless FLAC up to 7.1 channels. Recommended for AVRs that accept multichannel LPCM via HDMI. Turn off (default) for soundbars; uses EAC3 5.1 instead so surround works on more devices."
+            "value" : "Lossless FLAC up to 7.1 channels. Recommended for AVRs with multichannel LPCM over HDMI. Off uses EAC3 5.1 for soundbar compatibility."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Recodifica TrueHD, DTS-HD MA y otros formatos envolventes no transmisibles como FLAC sin pérdidas con hasta 7.1 canales. Recomendado para AVR que aceptan LPCM multicanal por HDMI. Desactívalo (predeterminado) para barras de sonido; en su lugar utiliza EAC3 5.1 para que el sonido envolvente funcione en más dispositivos."
+            "value" : "FLAC sin pérdida hasta 7.1 canales. Recomendado para AVR con LPCM multicanal por HDMI. Desactivado usa EAC3 5.1 para barras de sonido."
           }
         },
         "fi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Koodaa TrueHD, DTS-HD MA ja muut suoratoistoon kelpaamattomat surround-muodot uudelleen häviöttömäksi FLAC-ääneksi enintään 7.1-kanavaisena. Suositellaan AVR-vahvistimille, jotka hyväksyvät monikanavaisen LPCM:n HDMI:n kautta. Poista käytöstä (oletus) soundbareilla; käyttää EAC3 5.1:tä, jotta surround toimii useammilla laitteilla."
+            "value" : "Häviötön FLAC jopa 7.1 kanavaa. Suositellaan AVR-laitteille, joissa monikanavainen LPCM HDMI:n kautta. Pois: EAC3 5.1 soundbareille."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Réencode les pistes TrueHD, DTS-HD MA et autres formats surround non diffusables en FLAC sans perte jusqu’à 7.1 canaux. Recommandé pour les AVR qui acceptent le LPCM multicanal via HDMI. Désactivez (par défaut) pour les barres de son; utilise plutôt EAC3 5.1, afin que le surround fonctionne sur plus d’appareils."
+            "value" : "FLAC sans perte jusqu'à 7.1 canaux. Recommandé pour AVR avec LPCM multicanal via HDMI. Désactivé utilise EAC3 5.1 pour les barres de son."
           }
         },
         "hr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ponovno kodira TrueHD, DTS-HD MA i druge surround formate koji se ne mogu strujati u bezgubitni FLAC do 7.1 kanala. Preporučeno za AVR uređaje koji prihvaćaju višekanalni LPCM putem HDMI-ja. Isključite (zadano) za soundbarove; umjesto toga koristi EAC3 5.1 kako bi surround radio na više uređaja."
+            "value" : "Bezgubitni FLAC do 7.1 kanala. Preporučeno za AVR uređaje s višekanalnim LPCM preko HDMI. Isključeno koristi EAC3 5.1 za soundbarove."
           }
         },
         "hu" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "A TrueHD, DTS-HD MA és más, nem streamelhető térhatású formátumokat veszteségmentes FLAC-ként kódolja át, akár 7.1 csatornáig. Olyan AVR-ekhez ajánlott, amelyek HDMI-n keresztül elfogadják a többcsatornás LPCM jelet. Kapcsold ki (alapértelmezett) hangprojektorokhoz; helyette EAC3 5.1 használatos, hogy a térhatás több eszközön működjön."
+            "value" : "Veszteségmentes FLAC akár 7.1 csatornáig. AVR-ekhez ajánlott többcsatornás LPCM HDMI-n át. Ki: EAC3 5.1 hangprojektorokhoz."
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ricodifica TrueHD, DTS-HD MA e altri formati surround non trasmissibili come FLAC lossless fino a 7.1 canali. Consigliato per AVR che accettano LPCM multicanale via HDMI. Disattiva (impostazione predefinita) per le soundbar; usa invece EAC3 5.1, così il surround funziona su più dispositivi."
+            "value" : "FLAC senza perdita fino a 7.1 canali. Consigliato per AVR con LPCM multicanale via HDMI. Off usa EAC3 5.1 per le soundbar."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "TrueHD、DTS-HD MA、その他ストリーミングできないサラウンドを、最大7.1チャンネルのロスレスFLACに再エンコードします。HDMI経由でマルチチャンネルLPCMを受け入れるAVRに推奨。サウンドバーではオフ（既定）にしてください。代わりにEAC3 5.1を使用し、より多くの機器でサラウンドが機能します。"
+            "value" : "ロスレスFLAC、最大7.1チャンネル。HDMI経由のマルチチャンネルLPCM対応AVRに推奨。オフではサウンドバー互換のEAC3 5.1を使用。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "TrueHD, DTS-HD MA 및 기타 스트리밍 불가 서라운드를 최대 7.1채널 무손실 FLAC로 다시 인코딩합니다. HDMI를 통해 다채널 LPCM을 지원하는 AVR에 권장됩니다. 사운드바에서는 끄세요(기본값). 대신 EAC3 5.1을 사용하여 더 많은 기기에서 서라운드가 작동합니다."
+            "value" : "무손실 FLAC, 최대 7.1채널. HDMI 멀티채널 LPCM AVR에 권장. 끄면 사운드바 호환을 위해 EAC3 5.1 사용."
           }
         },
         "nb" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Omkoder TrueHD, DTS-HD MA og andre surroundformater som ikke kan strømmes til tapsfri FLAC med opptil 7.1 kanaler. Anbefales for AVR-er som godtar flerkanals LPCM via HDMI. Slå av (standard) for lydplanker; bruker i stedet EAC3 5.1, slik at surround fungerer på flere enheter."
+            "value" : "Tapsfri FLAC opptil 7.1 kanaler. Anbefales for AVR-er med flerkanals LPCM over HDMI. Av bruker EAC3 5.1 for soundbar-kompatibilitet."
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Hercodeert TrueHD, DTS-HD MA en andere niet-streambare surroundformaten als lossless FLAC tot 7.1 kanalen. Aanbevolen voor AVR’s die multichannel LPCM via HDMI accepteren. Schakel uit (standaard) voor soundbars; gebruikt in plaats daarvan EAC3 5.1, zodat surround op meer apparaten werkt."
+            "value" : "Lossless FLAC tot 7.1 kanalen. Aanbevolen voor AVR's met meerkanaals LPCM via HDMI. Uit gebruikt EAC3 5.1 voor soundbar-compatibiliteit."
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ponownie koduje TrueHD, DTS-HD MA i inne formaty przestrzenne, których nie można przesyłać strumieniowo, jako bezstratny FLAC do 7.1 kanałów. Zalecane dla amplitunerów AVR akceptujących wielokanałowy LPCM przez HDMI. Wyłącz (domyślnie) dla soundbarów; zamiast tego używa EAC3 5.1, dzięki czemu dźwięk przestrzenny działa na większej liczbie urządzeń."
+            "value" : "Bezstratny FLAC do 7.1 kanałów. Zalecane dla AVR z wielokanałowym LPCM przez HDMI. Wył.: EAC3 5.1 dla zgodności z soundbarami."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Recodifica TrueHD, DTS-HD MA e outros formatos surround não transmissíveis como FLAC sem perdas com até 7.1 canais. Recomendado para AVRs que aceitam LPCM multicanal via HDMI. Desative (padrão) para soundbars; usa EAC3 5.1, para que o surround funcione em mais dispositivos."
+            "value" : "FLAC sem perdas até 7.1 canais. Recomendado para AVRs com LPCM multicanal via HDMI. Desativado usa EAC3 5.1 para soundbars."
           }
         },
         "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Recodifica TrueHD, DTS-HD MA e outros formatos surround não transmissíveis como FLAC sem perdas até 7.1 canais. Recomendado para AVRs que aceitam LPCM multicanal por HDMI. Desative (predefinição) para barras de som; usa EAC3 5.1, para que o surround funcione em mais dispositivos."
+            "value" : "FLAC sem perdas até 7.1 canais. Recomendado para AVRs com LPCM multicanal via HDMI. Desativado usa EAC3 5.1 para soundbars."
           }
         },
         "ro" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Recodifică TrueHD, DTS-HD MA și alte formate surround netransmisibile ca FLAC fără pierderi, până la 7.1 canale. Recomandat pentru AVR-uri care acceptă LPCM multicanal prin HDMI. Dezactivează (implicit) pentru soundbar-uri; folosește EAC3 5.1, astfel încât sunetul surround să funcționeze pe mai multe dispozitive."
+            "value" : "FLAC fără pierderi până la 7.1 canale. Recomandat pentru AVR cu LPCM multicanal prin HDMI. Dezactivat: EAC3 5.1 pentru soundbar."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Перекодирует TrueHD, DTS-HD MA и другие непригодные для потоковой передачи объёмные форматы в FLAC без потерь с числом каналов до 7.1. Рекомендуется для AVR, принимающих многоканальный LPCM через HDMI. Отключите (по умолчанию) для саундбаров; вместо этого используется EAC3 5.1, чтобы объёмный звук работал на большем числе устройств."
+            "value" : "FLAC без потерь до 7.1 каналов. Рекомендуется для AVR с многоканальным LPCM через HDMI. Выкл.: EAC3 5.1 для саундбаров."
           }
         },
         "sk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Prekóduje TrueHD, DTS-HD MA a ďalšie nestreamovateľné priestorové formáty ako bezstratový FLAC až do 7.1 kanálov. Odporúčané pre AVR prijímače, ktoré akceptujú viackanálový LPCM cez HDMI. Vypnite (predvolené) pre soundbary; namiesto toho sa použije EAC3 5.1, aby priestorový zvuk fungoval na viacerých zariadeniach."
+            "value" : "Bezstratové FLAC až do 7.1 kanálov. Odporúčané pre AVR s viackanálovým LPCM cez HDMI. Vypnuté použije EAC3 5.1 pre soundbary."
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Omkodar TrueHD, DTS-HD MA och andra surroundformat som inte kan strömmas till förlustfri FLAC med upp till 7.1 kanaler. Rekommenderas för AVR-mottagare som accepterar flerkanals LPCM via HDMI. Stäng av (standard) för soundbars; använder i stället EAC3 5.1, så att surround fungerar på fler enheter."
+            "value" : "Förlustfri FLAC upp till 7.1 kanaler. Rekommenderas för AVR med flerkanals LPCM via HDMI. Av använder EAC3 5.1 för soundbars."
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "TrueHD, DTS-HD MA ve diğer akış için uygun olmayan surround formatlarını 7.1 kanala kadar kayıpsız FLAC olarak yeniden kodlar. HDMI üzerinden çok kanallı LPCM kabul eden AVR’ler için önerilir. Soundbar’lar için kapatın (varsayılan); bunun yerine EAC3 5.1 kullanılır, böylece surround daha fazla cihazda çalışır."
+            "value" : "Kayıpsız FLAC, 7.1 kanala kadar. HDMI üzerinden çok kanallı LPCM destekli AVR'ler için önerilir. Kapalı: soundbar için EAC3 5.1."
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Перекодовує TrueHD, DTS-HD MA та інші непридатні для потокового передавання об’ємні формати у FLAC без втрат до 7.1 каналів. Рекомендовано для AVR, які приймають багатоканальний LPCM через HDMI. Вимкніть (типово) для саундбарів; натомість використовується EAC3 5.1, щоб об’ємний звук працював на більшій кількості пристроїв."
+            "value" : "FLAC без втрат до 7.1 каналів. Рекомендовано для AVR з багатоканальним LPCM через HDMI. Вимк.: EAC3 5.1 для саундбарів."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "将 TrueHD、DTS-HD MA 等无法直接流传输的环绕声重新编码为最高 7.1 声道的无损 FLAC。建议用于通过 HDMI 接收多声道 LPCM 的 AVR。回音壁请关闭（默认）；改用 EAC3 5.1，使环绕声在更多设备上可用。"
+            "value" : "无损 FLAC,最高 7.1 声道。建议用于通过 HDMI 支持多声道 LPCM 的 AVR。关闭时使用 EAC3 5.1 以兼容音箱条。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "將 TrueHD、DTS-HD MA 等無法直接串流的環繞聲重新編碼為最高 7.1 聲道的無損 FLAC。建議用於透過 HDMI 接收多聲道 LPCM 的 AVR。Soundbar 請關閉（預設）；改用 EAC3 5.1，讓環繞聲在更多裝置上可用。"
+            "value" : "無損 FLAC,最高 7.1 聲道。建議用於透過 HDMI 支援多聲道 LPCM 的 AVR。關閉時使用 EAC3 5.1 以相容 Soundbar。"
           }
         }
       }
