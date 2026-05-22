@@ -1232,6 +1232,44 @@ final class PlayerHostController: AVPlayerViewController {
     private static let stepMinVelocity: CGFloat = 400
 
     @objc private func handlePan(_ gesture: UIPanGestureRecognizer) {
+        // Stats overlay open: route vertical swipes to the section
+        // cursor, swallow horizontal swipes so they don't scrub the
+        // timeline behind the panel. Same gating as the @objc up /
+        // down / select handlers (statsOverlayCapturesPresses).
+        if statsOverlayCapturesPresses {
+            switch gesture.state {
+            case .began:
+                panAxis = .undetermined
+                verticalStepFired = false
+            case .changed:
+                let t = gesture.translation(in: view)
+                if panAxis == .undetermined {
+                    let absX = abs(t.x)
+                    let absY = abs(t.y)
+                    if max(absX, absY) >= Self.panAxisCommitThreshold {
+                        panAxis = absX > absY ? .horizontal : .vertical
+                    }
+                }
+                if panAxis == .vertical, !verticalStepFired {
+                    let v = gesture.velocity(in: view)
+                    if abs(t.y) >= Self.verticalFireThreshold,
+                       abs(v.y) >= Self.stepMinVelocity {
+                        verticalStepFired = true
+                        if t.y < 0 { upPressed() } else { downPressed() }
+                    }
+                }
+                // Horizontal axis: swallow without acting, the overlay
+                // has no left/right navigation and the user shouldn't
+                // accidentally scrub the timeline behind it.
+            case .ended, .cancelled:
+                panAxis = .undetermined
+                verticalStepFired = false
+            default:
+                break
+            }
+            return
+        }
+
         if viewModel.isDropdownOpen {
             // Vertical swipe navigates dropdown items.
             // Uses total translation divided into steps, each 120pt of
