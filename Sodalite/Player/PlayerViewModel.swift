@@ -80,36 +80,7 @@ final class PlayerViewModel {
     /// captures all remote presses (up/down scroll, menu/select
     /// dismiss) so the player UI behind it stays inert until the
     /// user closes the panel.
-    var showStatsOverlay: Bool = false {
-        didSet {
-            // Reset the scroll cursor each time the overlay opens so
-            // the user always starts at the Playback section regardless
-            // of where they were last time. Closing doesn't need to
-            // reset; the next open clears it.
-            if showStatsOverlay && !oldValue {
-                statsSectionIndex = 0
-            }
-        }
-    }
-
-    /// Section anchor cursor for the stats-for-nerds side panel. 0
-    /// addresses the first section (Playback), N-1 the last (File).
-    /// Up/down arrow presses while the panel is open shift this index;
-    /// `StatsOverlayView` watches it via `scrollTo`. Range is clamped
-    /// by `statsSectionAnchors.count`.
-    var statsSectionIndex: Int = 0
-
-    /// Ordered anchor IDs the stats panel attaches to each section.
-    /// Up/down cursor jumps move between these, so the user pages
-    /// through Playback → Video → Audio → Subtitles → File without
-    /// needing per-row focus.
-    static let statsSectionAnchors: [String] = [
-        "stats.section.playback",
-        "stats.section.video",
-        "stats.section.audio",
-        "stats.section.subtitle",
-        "stats.section.file",
-    ]
+    var showStatsOverlay: Bool = false
 
     enum TrackDropdown: Equatable {
         case none

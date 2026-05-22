@@ -929,14 +929,13 @@ final class PlayerHostController: AVPlayerViewController {
     }
 
     @objc private func upPressed() {
-        // Stats panel: up moves the section cursor one step toward
-        // the top. ScrollViewReader inside StatsOverlayView watches
-        // `statsSectionIndex` and scrolls to the corresponding anchor.
-        if statsOverlayCapturesPresses {
-            let count = PlayerViewModel.statsSectionAnchors.count
-            viewModel.statsSectionIndex = max(0, min(count - 1, viewModel.statsSectionIndex - 1))
-            return
-        }
+        // Stats panel: the focus engine handles up/down between its
+        // focusable sections natively (each section is its own
+        // FocusableSection element, the engine auto-scrolls them into
+        // view). Our handler only runs here when the engine had no
+        // focusable target above the current section, i.e. focus was
+        // on the first section already; nothing to do.
+        if statsOverlayCapturesPresses { return }
         if viewModel.isDropdownOpen {
             moveDropdownHighlight(by: -1)
         } else if viewModel.showControls {
@@ -965,11 +964,9 @@ final class PlayerHostController: AVPlayerViewController {
     }
 
     @objc private func downPressed() {
-        if statsOverlayCapturesPresses {
-            let count = PlayerViewModel.statsSectionAnchors.count
-            viewModel.statsSectionIndex = max(0, min(count - 1, viewModel.statsSectionIndex + 1))
-            return
-        }
+        // See upPressed comment: focus engine drives section navigation
+        // when stats is open; our handler is a no-op for arrow keys.
+        if statsOverlayCapturesPresses { return }
         if viewModel.isDropdownOpen {
             moveDropdownHighlight(by: 1)
         } else if viewModel.showControls {
@@ -1399,8 +1396,7 @@ private struct PlayerOverlayView: View {
                 StatsOverlayView(
                     player: viewModel.player,
                     item: viewModel.item,
-                    activeSubtitleIndex: viewModel.activeSubtitleIndex,
-                    scrollSectionIndex: viewModel.statsSectionIndex
+                    activeSubtitleIndex: viewModel.activeSubtitleIndex
                 )
             }
 
