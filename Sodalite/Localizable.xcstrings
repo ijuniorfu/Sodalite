@@ -56892,40 +56892,6 @@
         }
       }
     },
-    "settings.playback.itemRecycle" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "AVPlayer-Item Recycle (Spike)"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "AVPlayer Item Recycle (Spike)"
-          }
-        }
-      }
-    },
-    "settings.playback.itemRecycle.subtitle" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Periodischer Item-Recycle auf derselben AVPlayer-Instanz zum Test der libnetwork Memory-Leak-Hypothese. Atmos und DV bleiben aktiv. Kurzer Loading-Indikator je Recycle."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Periodic item recycle on the same AVPlayer instance to test the libnetwork pool-drain hypothesis. Atmos and DV stay active. Brief loading indicator per recycle."
-          }
-        }
-      }
-    },
     "settings.profile.current" : {
       "comment" : "Label above the currently-signed-in profile card",
       "extractionState" : "manual",

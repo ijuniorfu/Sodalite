@@ -38,12 +38,6 @@ final class PlaybackPreferences {
         static let pictureMode = "playback.pictureMode"
         static let showStatsForNerds = "playback.showStatsForNerds"
         static let showDiagnosticOverlay = "playback.showDiagnosticOverlay"
-        /// Architecture P spike: periodic AVPlayerItem recycle interval
-        /// in seconds. 0 = disabled. Recommended values 300-600 (5-10
-        /// min). Diagnostic only; tests whether libnetwork CFNetwork
-        /// buffer pool drains at AVPlayerItem teardown vs requiring
-        /// full AVPlayer release.
-        static let itemRecycleIntervalSeconds = "playback.itemRecycleIntervalSeconds"
     }
 
     // MARK: - Allowed Values
@@ -51,10 +45,6 @@ final class PlaybackPreferences {
     /// 0 = disabled (countdown doesn't appear), otherwise countdown seconds.
     static let countdownChoices: [Int] = [0, 5, 10, 15]
     static let skipIntervalChoices: [Int] = [5, 10, 15, 30]
-
-    /// Architecture P recycle interval choices in seconds. 0 disables.
-    /// Diagnostic spike values: off, 3 min, 5 min, 10 min, 15 min.
-    static let itemRecycleChoices: [Double] = [0, 180, 300, 600, 900]
 
     /// Subtitle-delay choices in seconds. Negative shifts subs *earlier*
     /// (they appear before the audio line they're translating); positive
@@ -304,17 +294,6 @@ final class PlaybackPreferences {
         didSet { store.set(showDiagnosticOverlay, forKey: Keys.showDiagnosticOverlay) }
     }
 
-    /// Architecture P spike: periodic AVPlayerItem recycle interval.
-    /// Default 0 (disabled). Recommended diagnostic values 300-600
-    /// (5-10 min). Tests whether AVPlayer's libnetwork CFNetwork buffer
-    /// pool drains at item teardown (vs requiring full player release).
-    /// If yes: bounded memory while Atmos / DV / Now Playing all stay
-    /// active across recycles (AVPlayer instance unchanged). Visible
-    /// UX per recycle: ~200-500 ms loading indicator.
-    var itemRecycleIntervalSeconds: Double {
-        didSet { store.set(itemRecycleIntervalSeconds, forKey: Keys.itemRecycleIntervalSeconds) }
-    }
-
     // MARK: - Init
 
     private let store: UserDefaults
@@ -368,6 +347,5 @@ final class PlaybackPreferences {
             .flatMap(PictureMode.init(rawValue:)) ?? .original
         self.showStatsForNerds = store.object(forKey: Keys.showStatsForNerds) as? Bool ?? false
         self.showDiagnosticOverlay = store.object(forKey: Keys.showDiagnosticOverlay) as? Bool ?? false
-        self.itemRecycleIntervalSeconds = store.object(forKey: Keys.itemRecycleIntervalSeconds) as? Double ?? 0
     }
 }
