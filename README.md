@@ -87,7 +87,7 @@ Sodalite is a thin native shell over a custom video stack: Apple's frameworks pl
 | UI | SwiftUI + UIKit interop where needed |
 | Video engine | [AetherEngine](https://github.com/superuser404notfound/AetherEngine): FFmpeg demux, AVPlayer + VideoToolbox for HEVC / H.264 / HW-AV1, dav1d + libavcodec for AV1 / VP9 software fallback |
 | Display | `AVPlayer` + `AVPlayerLayer` for the native path; `AVSampleBufferDisplayLayer` + `AVSampleBufferRenderSynchronizer` for the AV1 / VP9 software path |
-| Audio | `AVPlayer` over local HLS-fMP4 for the native path (Atmos as MAT 2.0, FLAC bridge for Opus / TrueHD / DTS / DTS-HD MA / MP3); `AVSampleBufferAudioRenderer` for the software path |
+| Audio | `AVPlayer` over local HLS-fMP4 for the native path (Atmos as MAT 2.0, EAC3 5.1 bridge by default for Opus / TrueHD / DTS / DTS-HD MA / MP3 so surround works on every modern soundbar via the bitstream tunnel; optional lossless FLAC bridge for AVRs that accept multichannel LPCM over HDMI); `AVSampleBufferAudioRenderer` for the software path |
 | Networking | `URLSession` against the Jellyfin REST API |
 | Persistence | Keychain for credentials, no telemetry storage |
 | Media server | [Jellyfin](https://jellyfin.org) |
