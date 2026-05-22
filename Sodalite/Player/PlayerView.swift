@@ -210,7 +210,18 @@ final class PlayerHostController: AVPlayerViewController {
         // before the panel times out its 5 s negotiation budget
         // (verified working but with less margin).
         showsPlaybackControls = true
-        playbackControlsIncludeTransportBar = false
+        // SPIKE (CC 10s skip on iPhone): flip transport bar flag to
+        // true to test the theory that AVKit's internal skip handler
+        // is gated on this flag. When false (previous shipped state)
+        // CC's skip-button press lands at no documented entry point.
+        // When true the delegate's `timeToSeekAfterUserNavigatedFrom`
+        // / `skipToNextItem` should fire — and / or AVKit will seek
+        // the underlying AVPlayer (which we observe via Combine on
+        // currentTime). Visible side-effect: AVKit's transport bar
+        // renders on top of our custom UI. Tolerable for the spike;
+        // if the delegate fires we iterate on focus-engine + visual
+        // hiding next.
+        playbackControlsIncludeTransportBar = true
         playbackControlsIncludeInfoViews = false
         appliesPreferredDisplayCriteriaAutomatically = true
         contextualActions = []
