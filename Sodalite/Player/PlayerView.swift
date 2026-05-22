@@ -777,6 +777,63 @@ final class PlayerHostController: AVPlayerViewController {
         viewModel.showStatsOverlay
     }
 
+    /// Indices into `PlayerViewModel.statsSectionAnchors` whose
+    /// matching section is currently rendered for this source. Mirrors
+    /// the @ViewBuilder gates inside `StatsOverlayView`:
+    /// - 0 playback: always rendered
+    /// - 1 video: media has a video stream
+    /// - 2 audio: media has an active audio track
+    /// - 3 subtitle: subtitles are on
+    /// - 4 file: media source is present
+    /// Used by `advanceStatsCursor` so up/down steps land only on
+    /// anchors that actually have a view to scroll to; otherwise
+    /// `ScrollViewReader.scrollTo` no-ops silently and the user sees
+    /// the cursor "stick" on that step (Vincent's "up doesn't work"
+    /// repro).
+    private var availableStatsSectionIndices: [Int] {
+        var indices: [Int] = [0]
+        let item = viewModel.item
+        if item.mediaStreams?.contains(where: { $0.type == .video }) == true {
+            indices.append(1)
+        }
+        let hasEngineAudio = viewModel.player.audioTracks.contains {
+            $0.id == viewModel.player.activeAudioTrackIndex
+        }
+        let hasJellyfinAudio = item.mediaStreams?.contains(where: { $0.type == .audio }) == true
+        if hasEngineAudio || hasJellyfinAudio {
+            indices.append(2)
+        }
+        if viewModel.activeSubtitleIndex != nil {
+            indices.append(3)
+        }
+        if item.mediaSources?.first != nil {
+            indices.append(4)
+        }
+        return indices
+    }
+
+    /// Step the stats cursor by `delta` through `availableStatsSectionIndices`
+    /// so each up/down press lands on the next rendered anchor. Clamps
+    /// at the ends. If the current index isn't in the available list
+    /// (which can happen briefly when subtitles are toggled while the
+    /// overlay is open), snaps to the closest available index instead
+    /// of getting stuck.
+    private func advanceStatsCursor(by delta: Int) {
+        let avail = availableStatsSectionIndices
+        guard !avail.isEmpty else { return }
+        let current = viewModel.statsSectionIndex
+        let pos: Int
+        if let exact = avail.firstIndex(of: current) {
+            pos = exact
+        } else {
+            // Current index dropped out of the rendered set. Snap to
+            // the closest available position by absolute distance.
+            pos = avail.enumerated().min(by: { abs($0.element - current) < abs($1.element - current) })?.offset ?? 0
+        }
+        let newPos = max(0, min(avail.count - 1, pos + delta))
+        viewModel.statsSectionIndex = avail[newPos]
+    }
+
     @objc private func selectPressed() {
         // Stats panel: Select closes it like Menu does. The chip on
         // the transport bar still toggles when the panel is closed,
@@ -930,11 +987,14 @@ final class PlayerHostController: AVPlayerViewController {
 
     @objc private func upPressed() {
         // Stats panel: up moves the section cursor one step toward
-        // the top. ScrollViewReader inside StatsOverlayView watches
-        // `statsSectionIndex` and scrolls to the corresponding anchor.
+        // the top, skipping sections that aren't currently rendered
+        // (subtitle section absent when subs off, etc.). Without the
+        // skip, the cursor steps into an absent anchor and the
+        // ScrollViewReader's scrollTo no-ops silently, so the user
+        // sees "up doesn't move" on that step. Fix: increment through
+        // the *rendered* index list only.
         if statsOverlayCapturesPresses {
-            let count = PlayerViewModel.statsSectionAnchors.count
-            viewModel.statsSectionIndex = max(0, min(count - 1, viewModel.statsSectionIndex - 1))
+            advanceStatsCursor(by: -1)
             return
         }
         if viewModel.isDropdownOpen {
@@ -966,8 +1026,7 @@ final class PlayerHostController: AVPlayerViewController {
 
     @objc private func downPressed() {
         if statsOverlayCapturesPresses {
-            let count = PlayerViewModel.statsSectionAnchors.count
-            viewModel.statsSectionIndex = max(0, min(count - 1, viewModel.statsSectionIndex + 1))
+            advanceStatsCursor(by: 1)
             return
         }
         if viewModel.isDropdownOpen {

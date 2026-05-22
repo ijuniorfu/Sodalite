@@ -71,11 +71,21 @@ struct StatsOverlayView: View {
                         .fontWeight(.bold)
                         .foregroundStyle(.white)
 
-                    playbackSection.id(PlayerViewModel.statsSectionAnchors[0])
-                    videoSection.id(PlayerViewModel.statsSectionAnchors[1])
-                    audioSection.id(PlayerViewModel.statsSectionAnchors[2])
-                    subtitleSection.id(PlayerViewModel.statsSectionAnchors[3])
-                    fileSection.id(PlayerViewModel.statsSectionAnchors[4])
+                    playbackSection
+                        .id(PlayerViewModel.statsSectionAnchors[0])
+                        .modifier(StatsSectionHighlight(isCurrent: scrollSectionIndex == 0))
+                    videoSection
+                        .id(PlayerViewModel.statsSectionAnchors[1])
+                        .modifier(StatsSectionHighlight(isCurrent: scrollSectionIndex == 1))
+                    audioSection
+                        .id(PlayerViewModel.statsSectionAnchors[2])
+                        .modifier(StatsSectionHighlight(isCurrent: scrollSectionIndex == 2))
+                    subtitleSection
+                        .id(PlayerViewModel.statsSectionAnchors[3])
+                        .modifier(StatsSectionHighlight(isCurrent: scrollSectionIndex == 3))
+                    fileSection
+                        .id(PlayerViewModel.statsSectionAnchors[4])
+                        .modifier(StatsSectionHighlight(isCurrent: scrollSectionIndex == 4))
                 }
                 .padding(28)
                 .frame(width: 560, alignment: .topLeading)
@@ -299,5 +309,32 @@ struct StatsOverlayView: View {
         let gb = Double(bytes) / 1_073_741_824
         if gb >= 1 { return String(format: "%.1f GB", gb) }
         return String(format: "%.0f MB", Double(bytes) / 1_048_576)
+    }
+}
+
+/// Highlights the section the up/down cursor currently sits on with a
+/// background fill + accent-tint stroke. Read-only visual indicator,
+/// not focusable: the sections aren't reachable through the focus
+/// engine (the AVKit-host gesture recognizers eat arrow-key presses
+/// before the engine sees them), so the cursor is driven by the same
+/// @objc press handlers that drive scrollTo. This modifier just makes
+/// the cursor's position visible.
+private struct StatsSectionHighlight: ViewModifier {
+    let isCurrent: Bool
+
+    func body(content: Content) -> some View {
+        content
+            .padding(.horizontal, 14)
+            .padding(.vertical, 12)
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(isCurrent ? .white.opacity(0.12) : .clear)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .strokeBorder(.tint, lineWidth: 3)
+                    .opacity(isCurrent ? 1 : 0)
+            )
+            .animation(.easeInOut(duration: 0.18), value: isCurrent)
     }
 }
