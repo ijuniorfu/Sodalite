@@ -62,6 +62,17 @@ struct StatsOverlayView: View {
         // on viewModel.showStatsOverlay.
     }
 
+    /// Latches true once the panel's slide-in transition has settled,
+    /// gating the ScrollViewReader's `scrollTo` so it doesn't race
+    /// the entrance animation. Without the gate, the
+    /// `statsSectionIndex = 0` reset in `PlayerViewModel.showStatsOverlay`'s
+    /// didSet (which fires the same render cycle the overlay mounts)
+    /// triggered a scrollTo whose own 0.2 s animation fought the
+    /// panel's 0.25 s `.move(edge: .trailing)` transition, sometimes
+    /// leaving the panel stuck halfway in for ~1 s. After the latch
+    /// flips the user's up / down navigation drives scrollTo normally.
+    @State private var didFinishAppearTransition = false
+
     private var panel: some View {
         ScrollViewReader { proxy in
             ScrollView(showsIndicators: false) {
@@ -91,6 +102,14 @@ struct StatsOverlayView: View {
                 .frame(width: 560, alignment: .topLeading)
             }
             .onChange(of: scrollSectionIndex) { _, newIndex in
+                // Skip the auto-scroll while the panel is still
+                // sliding in; the mount-time reset to index 0 fires
+                // this change during the entrance transition and the
+                // two animations conflict. The content's already at
+                // the top anyway since the ScrollView mounts there
+                // by default, so suppressing the initial scrollTo
+                // costs nothing.
+                guard didFinishAppearTransition else { return }
                 let anchors = PlayerViewModel.statsSectionAnchors
                 guard anchors.indices.contains(newIndex) else { return }
                 withAnimation(.easeInOut(duration: 0.2)) {
@@ -112,6 +131,15 @@ struct StatsOverlayView: View {
                 .strokeBorder(.white.opacity(0.08), lineWidth: 1)
         )
         .shadow(color: .black.opacity(0.4), radius: 18, y: 6)
+        .task {
+            // Wait past the entrance transition (0.25 s in PlayerView's
+            // `.animation(.easeInOut(duration: 0.25), value:
+            // viewModel.showStatsOverlay)`) plus a small buffer before
+            // unlatching the scrollTo gate. After this point user
+            // navigation triggers scrolls normally.
+            try? await Task.sleep(for: .milliseconds(300))
+            didFinishAppearTransition = true
+        }
     }
 
     // MARK: - Sections
