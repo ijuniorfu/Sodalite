@@ -1614,6 +1614,7 @@ private struct PlayerOverlayView: View {
                 }
                 Spacer()
             }
+            .ignoresSafeArea()
 
             VStack {
                 Spacer()
@@ -1642,6 +1643,7 @@ private struct PlayerOverlayView: View {
                     isStatsOverlayOpen: viewModel.showStatsOverlay
                 )
             }
+            .ignoresSafeArea()
         }
         .transition(.opacity)
     }
