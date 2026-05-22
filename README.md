@@ -63,6 +63,8 @@ The Seerr integration isn't a tacked-on link to a web view. It's a first-class p
 - **Subtitles, all formats, client-side**: text codecs (SubRip, ASS, SSA, WebVTT, mov_text) decoded inline in AetherEngine as packets flow through the demuxer, no server extraction lag on first hit. Bitmap subtitles (PGS, HDMV PGS, DVB, DVD) rendered as native images at the right position on the frame, no more relying on the server having Tesseract installed for Blu-ray rips. Sidecar `.srt` / `.ass` / `.vtt` files parsed by FFmpeg as well. Track switching mid-playback, with auto-resolution against your preferred audio / subtitle language.
 - **Audio track switcher**: pick the language or surround mix you want, mid-playback
 - **Native player UI**: same transport bar, scrub preview and info panel as Apple TV+
+- **Stats for Nerds overlay**: optional info panel during playback showing container, video codec / range / framerate / bitrate / decoder, audio codec / channels / decoder, subtitle codec. Enable in Settings → Playback → Advanced.
+- **iPhone Control Center skip**: 10-second forward and backward skip buttons in the iPhone's Now Playing widget route through to the engine via `MPRemoteCommandCenter`, App Store compliant (no private API). Useful when the Siri Remote is across the room.
 
 ### 📨 Request what's missing
 - **Seerr integration**: browse trending and popular media right inside the app
@@ -85,7 +87,7 @@ Sodalite is a thin native shell over a custom video stack: Apple's frameworks pl
 | UI | SwiftUI + UIKit interop where needed |
 | Video engine | [AetherEngine](https://github.com/superuser404notfound/AetherEngine): FFmpeg demux, AVPlayer + VideoToolbox for HEVC / H.264 / HW-AV1, dav1d + libavcodec for AV1 / VP9 software fallback |
 | Display | `AVPlayer` + `AVPlayerLayer` for the native path; `AVSampleBufferDisplayLayer` + `AVSampleBufferRenderSynchronizer` for the AV1 / VP9 software path |
-| Audio | `AVPlayer` over local HLS-fMP4 for the native path (Atmos as MAT 2.0, FLAC bridge for Opus / TrueHD); `AVSampleBufferAudioRenderer` for the software path |
+| Audio | `AVPlayer` over local HLS-fMP4 for the native path (Atmos as MAT 2.0, FLAC bridge for Opus / TrueHD / DTS / DTS-HD MA / MP3); `AVSampleBufferAudioRenderer` for the software path |
 | Networking | `URLSession` against the Jellyfin REST API |
 | Persistence | Keychain for credentials, no telemetry storage |
 | Media server | [Jellyfin](https://jellyfin.org) |
