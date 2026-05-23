@@ -53999,157 +53999,157 @@
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Kvalita, zvuk a titulky"
+            "value" : "Zvuk, titulky, obraz, epizody a další"
           }
         },
         "da" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Kvalitet, lyd og undertekster"
+            "value" : "Lyd, undertekster, billede, episoder og mere"
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Qualität, Audio und Untertitel"
+            "value" : "Audio, Untertitel, Bild, Episoden und mehr"
           }
         },
         "el" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ποιότητα, ήχος και υπότιτλοι"
+            "value" : "Ήχος, υπότιτλοι, εικόνα, επεισόδια και άλλα"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Quality, audio and subtitles"
+            "value" : "Audio, subtitles, picture, episodes and more"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Calidad, audio y subtítulos"
+            "value" : "Audio, subtítulos, imagen, episodios y más"
           }
         },
         "fi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Laatu, ääni ja tekstitys"
+            "value" : "Ääni, tekstitys, kuva, jaksot ja muuta"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Qualité, audio et sous-titres"
+            "value" : "Audio, sous-titres, image, épisodes et plus"
           }
         },
         "hr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Kvaliteta, zvuk i titlovi"
+            "value" : "Zvuk, titlovi, slika, epizode i više"
           }
         },
         "hu" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Minőség, hang és feliratok"
+            "value" : "Hang, feliratok, kép, epizódok és több"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Qualità, audio e sottotitoli"
+            "value" : "Audio, sottotitoli, immagine, episodi e altro"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "品質、音声、字幕"
+            "value" : "音声、字幕、映像、エピソード、その他"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "화질, 오디오, 자막"
+            "value" : "오디오, 자막, 화면, 에피소드 외"
           }
         },
         "nb" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Kvalitet, lyd og undertekster"
+            "value" : "Lyd, undertekster, bilde, episoder og mer"
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Kwaliteit, audio en ondertiteling"
+            "value" : "Audio, ondertiteling, beeld, afleveringen en meer"
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Jakość, dźwięk i napisy"
+            "value" : "Dźwięk, napisy, obraz, odcinki i więcej"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Qualidade, áudio e legendas"
+            "value" : "Áudio, legendas, imagem, episódios e mais"
           }
         },
         "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Qualidade, áudio e legendas"
+            "value" : "Áudio, legendas, imagem, episódios e mais"
           }
         },
         "ro" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Calitate, audio și subtitrări"
+            "value" : "Audio, subtitrări, imagine, episoade și altele"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Качество, аудио и субтитры"
+            "value" : "Аудио, субтитры, изображение, эпизоды и др."
           }
         },
         "sk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Kvalita, zvuk a titulky"
+            "value" : "Zvuk, titulky, obraz, epizódy a ďalšie"
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Kvalitet, ljud och undertexter"
+            "value" : "Ljud, undertexter, bild, avsnitt och mer"
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Kalite, ses ve altyazı"
+            "value" : "Ses, altyazı, görüntü, bölümler ve daha fazlası"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Якість, аудіо та субтитри"
+            "value" : "Аудіо, субтитри, зображення, епізоди та більше"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "画质、音频和字幕"
+            "value" : "音频、字幕、画面、剧集等"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "畫質、音訊與字幕"
+            "value" : "音訊、字幕、畫面、劇集等"
           }
         }
       }
