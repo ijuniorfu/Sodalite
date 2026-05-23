@@ -344,18 +344,17 @@ final class PlayerHostController: AVPlayerViewController {
         // path the Menu button uses so the user lands back on the
         // detail view they came from.
         //
-        // Suppressed in diagnostic builds (DEBUG / TestFlight) so the
-        // log overlay remains readable after a failed-start session.
-        // Without this, a session that errors out within a second of
-        // launch dismisses the player before the tester can screenshot
-        // the diagnostic overlay (DrHurt: "Error messages literally
-        // flash for less than 1 sec before going back to movie info
-        // screen"). Menu still dismisses manually. App Store builds
-        // keep the auto-dismiss so end users aren't stranded on a
-        // black screen.
+        // Fires only on natural end-of-stream (state = .idle after
+        // hasStartedPlaying flipped true, with no next episode queued).
+        // Error paths take state = .error which surfaces the inline
+        // error overlay with its own Back button; they never reach
+        // this callback. Previously gated on LogTap.isDiagnosticBuild
+        // to protect a tester-screenshot use case for fast-erroring
+        // sessions that no longer flows through here, the guard left
+        // TestFlight users stuck at the last second of the last
+        // episode of a series.
         viewModel.onPlaybackReachedEnd = { [weak self] in
             Task { @MainActor in
-                guard !LogTap.isDiagnosticBuild else { return }
                 self?.dismissPlayer()
             }
         }
