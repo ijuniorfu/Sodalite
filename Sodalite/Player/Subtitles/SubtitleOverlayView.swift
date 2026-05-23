@@ -28,11 +28,19 @@ struct SubtitleOverlayView: View {
     /// Applied to both text and image cues so the user's setting works
     /// regardless of which decoder produced the cue.
     let delaySeconds: Double
-    /// Vertical-offset for the rendered cue, in points. Positive values
-    /// move the cue down (toward the bottom edge / into the letterbox
-    /// bar below wider-than-16:9 video); negative values lift it up
-    /// into the picture. Applied to both text and image cues.
-    let verticalOffsetPoints: Int
+    /// User-selected vertical position. `default` preserves the
+    /// historical text baseline (height − 100) and the source-baked
+    /// position of bitmap cues. The other cases anchor the text
+    /// baseline to a fraction of the overlay rect height (measured
+    /// from the bottom edge) and shift bitmap cues by the delta
+    /// between that anchor and their source position, so the same
+    /// dial works across both decoders.
+    let verticalPosition: PlaybackPreferences.SubtitleVerticalPosition
+    /// User-selected subtitle font. `system` uses tvOS SF Pro;
+    /// `highLegibility` uses bundled Atkinson Hyperlegible. Only
+    /// affects text cues, bitmap cues are pre-rendered by the source
+    /// decoder and ignore this.
+    let font: PlaybackPreferences.SubtitleFont
 
     var body: some View {
         GeometryReader { geo in
@@ -63,23 +71,34 @@ struct SubtitleOverlayView: View {
     // MARK: - Text branch
 
     private func textOverlay(_ text: String, in size: CGSize) -> some View {
-        // Pinned to the bottom-centre of the video rect with a
-        // ~80pt safe-area gap. Width is capped so long lines wrap
-        // with horizontal margins on either side. The user's vertical
-        // offset shifts the baseline; positive values move the line
-        // down (toward / into the letterbox bar on cinemascope).
+        // Pinned to the bottom-centre of the video rect. Width is
+        // capped so long lines wrap with horizontal margins on either
+        // side. Baseline Y picks one of two anchors: the historical
+        // height − 100 fallback (Default), or a fraction of overlay
+        // height measured from the bottom edge (Bottom / +1 / +2 / +3).
         let maxWidth = max(0, size.width - 240)
         // tvOS .title3 lands around 24-29pt depending on platform
         // metrics; the user-selected scale multiplies that for
         // small/medium/large/xlarge.
         let basePoints: CGFloat = 28
         let pointSize = basePoints * fontSize.scale
-        let baselineY = size.height - 100 + CGFloat(verticalOffsetPoints)
+        let baselineY = textBaselineY(in: size)
         return styledText(text, pointSize: pointSize)
             .frame(maxWidth: maxWidth)
             .frame(width: size.width, alignment: .center)
             .position(x: size.width / 2, y: baselineY)
             .transition(.opacity)
+    }
+
+    /// Anchor Y for the text baseline in overlay coordinates (top-left
+    /// origin). Default = the historical ~80 pt gap above the bottom;
+    /// the other cases anchor at `(1 - fraction) * height` so the
+    /// subtitle sits `fraction * height` above the bottom edge.
+    private func textBaselineY(in size: CGSize) -> CGFloat {
+        if let fraction = verticalPosition.fractionFromBottom {
+            return size.height * (1 - CGFloat(fraction))
+        }
+        return size.height - 100
     }
 
     /// Compose the text view itself, font + colour + the chosen
@@ -89,7 +108,7 @@ struct SubtitleOverlayView: View {
     @ViewBuilder
     private func styledText(_ text: String, pointSize: CGFloat) -> some View {
         let foreground = foregroundColor
-        let baseFont = Font.system(size: pointSize, weight: .semibold)
+        let baseFont = subtitleBaseFont(pointSize: pointSize)
 
         switch background {
         case .box:
@@ -146,6 +165,20 @@ struct SubtitleOverlayView: View {
         }
     }
 
+    /// Pick the base font for the active subtitle-font preference.
+    /// `system` uses tvOS SF Pro semibold; `highLegibility` uses the
+    /// bundled Atkinson Hyperlegible (Bold weight to match SF Pro
+    /// semibold's visual weight). The PostScript names match the
+    /// names registered via Info.plist `UIAppFonts`.
+    private func subtitleBaseFont(pointSize: CGFloat) -> Font {
+        switch font {
+        case .system:
+            return Font.system(size: pointSize, weight: .semibold)
+        case .highLegibility:
+            return Font.custom("AtkinsonHyperlegible-Bold", size: pointSize)
+        }
+    }
+
     /// Eight-direction offsets for the outline-style background. Two
     /// pixels at TV viewing distance reads as a solid edge without
     /// looking like a dropshadow.
@@ -168,19 +201,30 @@ struct SubtitleOverlayView: View {
         let frameW = image.position.width * size.width
         let frameH = image.position.height * size.height
         let originX = image.position.minX * size.width
-        // Bitmap cues (PGS / DVB) carry source-baked positions: signs
-        // near the top, dialogue near the bottom. The user's vertical
-        // offset is applied uniformly anyway so the setting works as a
-        // single knob across decoders; large negative offsets on a
-        // top-of-frame sign card will clip into the visible picture,
-        // which is the user's call.
-        let originY = image.position.minY * size.height + CGFloat(verticalOffsetPoints)
+        let originY = image.position.minY * size.height + bitmapVerticalShift(in: size, cueHeight: frameH)
 
         return Image(decorative: image.cgImage, scale: 1, orientation: .up)
             .resizable()
             .interpolation(.high)
             .frame(width: frameW, height: frameH)
             .offset(x: originX, y: originY)
+    }
+
+    /// Vertical shift applied to a bitmap cue's source-baked Y so the
+    /// active vertical-position step also moves PGS / DVB / DVD
+    /// renderings. `default` returns 0 so source layouts are preserved
+    /// exactly (signs at the top, dialogue at the bottom, karaoke
+    /// wherever the disc placed it).
+    ///
+    /// Non-default cases apply a uniform shift of `-fraction * height`,
+    /// which lifts a bottom-aligned source cue so its bottom edge
+    /// lands at the same Y the text branch picks for that step. Cues
+    /// that the source placed near the top of frame get dragged up by
+    /// the same delta, which can clip on the steeper steps; users
+    /// picking a non-default position have opted into the override.
+    private func bitmapVerticalShift(in size: CGSize, cueHeight: CGFloat) -> CGFloat {
+        guard let fraction = verticalPosition.fractionFromBottom else { return 0 }
+        return -CGFloat(fraction) * size.height
     }
 
     // MARK: - Active-cue lookup

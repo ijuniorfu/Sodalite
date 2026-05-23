@@ -1440,7 +1440,8 @@ private struct PlayerOverlayView: View {
                     textColor: viewModel.preferences.subtitleColor,
                     background: viewModel.preferences.subtitleBackground,
                     delaySeconds: viewModel.preferences.subtitleDelaySeconds,
-                    verticalOffsetPoints: viewModel.preferences.subtitleVerticalOffsetPoints
+                    verticalPosition: viewModel.preferences.subtitleVerticalPosition,
+                    font: viewModel.preferences.subtitleFont
                 )
             }
 

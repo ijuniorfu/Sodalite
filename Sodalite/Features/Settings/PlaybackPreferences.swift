@@ -35,7 +35,12 @@ final class PlaybackPreferences {
         /// the legacy v1 value (legacy "none" -> new .shadow).
         static let subtitleBackgroundV2 = "playback.subtitleBackgroundV2"
         static let subtitleDelaySeconds = "playback.subtitleDelaySeconds"
+        /// Legacy ±200 pt slider. v2 supersedes it with a semantic enum;
+        /// existing values are not migrated (clean reset on first launch
+        /// of the new build, see SubtitleVerticalPosition for why).
         static let subtitleVerticalOffsetPoints = "playback.subtitleVerticalOffsetPoints"
+        static let subtitleVerticalPosition = "playback.subtitleVerticalPosition"
+        static let subtitleFont = "playback.subtitleFont"
         static let pictureMode = "playback.pictureMode"
         static let showStatsForNerds = "playback.showStatsForNerds"
         static let showDiagnosticOverlay = "playback.showDiagnosticOverlay"
@@ -58,17 +63,12 @@ final class PlaybackPreferences {
         -5, -3, -2, -1.5, -1, -0.5, -0.25, 0, 0.25, 0.5, 1, 1.5, 2, 3, 5
     ]
 
-    /// Vertical-offset choices in points, applied on top of the default
-    /// subtitle baseline (which sits ~80 pt above the player rect's
-    /// bottom edge). Positive values push subtitles further down (toward
-    /// the bottom edge, into a letterbox bar on wider-than-16:9 content);
-    /// negative values lift them up into the picture. Range biased
-    /// downward because the main use case (per issue #10) is sliding the
-    /// text into the black bar below cinemascope content; the upward
-    /// range exists for users who want to clear burned-in lower-thirds.
-    static let subtitleVerticalOffsetChoices: [Int] = [
-        -200, -150, -100, -50, -25, 0, 25, 50, 100, 150, 200
-    ]
+    // Legacy `subtitleVerticalOffsetChoices` (±200 pt slider) replaced
+    // by `SubtitleVerticalPosition`. Kept the storage key in `Keys`
+    // for posterity, but no migration: the pt-to-fraction math is
+    // ambiguous on the asymmetric new scale, and TestFlight users
+    // re-picking the setting once is cheaper than carrying broken
+    // migrated state.
 
     /// Shared language options, alphabetical by display name. ISO 639-2/B
     /// bibliographic codes (Jellyfin's convention: "deu" not "ger", "cze"
@@ -179,6 +179,56 @@ final class PlaybackPreferences {
         var titleKey: String { "settings.playback.subtitle.background.\(rawValue)" }
     }
 
+    /// Vertical placement of the rendered subtitle, as a step on a
+    /// downward-only scale. `default` is the no-override case (text
+    /// uses the historical baseline of ~80 pt above the player rect's
+    /// bottom edge, bitmap cues stay at their source-baked position).
+    /// `bottom` and the `stepN` cases anchor the baseline to a fraction
+    /// of the player rect height measured from the bottom edge, so the
+    /// position scales identically on 1080p and 2160p panels.
+    ///
+    /// Scale shape per issue #10 feedback: no negative half (no
+    /// real-world use case surfaced for lifting subs into the picture),
+    /// explicit "Default" instead of "0 pt" so users can opt out of the
+    /// override entirely (important for PGS / DVB / DVD where the
+    /// source carries layout-sensitive positions like sign translations
+    /// at frame-top).
+    enum SubtitleVerticalPosition: String, CaseIterable, Sendable, Identifiable {
+        case `default`
+        case bottom
+        case step1
+        case step2
+        case step3
+
+        var id: String { rawValue }
+        var titleKey: String { "settings.playback.subtitle.position.\(rawValue)" }
+
+        /// Fraction of the player rect height (measured from the
+        /// bottom edge) where the subtitle baseline should sit, or
+        /// `nil` for "no override". `nil` falls back to the historical
+        /// text baseline and leaves bitmap cues alone.
+        var fractionFromBottom: Double? {
+            switch self {
+            case .default: return nil
+            case .bottom:  return 0.01
+            case .step1:   return 0.10
+            case .step2:   return 0.20
+            case .step3:   return 0.30
+            }
+        }
+    }
+
+    /// Subtitle text font. `system` uses tvOS's SF Pro; `highLegibility`
+    /// uses the bundled Atkinson Hyperlegible (Braille Institute,
+    /// designed for low-vision readers but legible for everyone). The
+    /// custom font only affects text cues; PGS / DVB / DVD bitmap cues
+    /// come pre-rendered from the source and ignore this setting.
+    enum SubtitleFont: String, CaseIterable, Sendable, Identifiable {
+        case system, highLegibility
+        var id: String { rawValue }
+        var titleKey: String { "settings.playback.subtitle.font.\(rawValue)" }
+    }
+
     /// How the rendered video frame fills the available player area.
     /// `original` preserves the source aspect ratio with letterbox /
     /// pillarbox bars where needed (the safe default, never hides
@@ -257,16 +307,19 @@ final class PlaybackPreferences {
         didSet { store.set(subtitleDelaySeconds, forKey: Keys.subtitleDelaySeconds) }
     }
 
-    /// Vertical-offset for the rendered subtitle in points, relative to
-    /// the default baseline (80 pt above the player rect's bottom edge).
-    /// Positive values push subtitles down (toward the bottom of the
-    /// screen, into the letterbox bar on wider-than-16:9 content);
-    /// negative values lift them up into the picture. Applies to both
-    /// text cues and bitmap (PGS / DVB) cues so the setting works
-    /// regardless of which decoder produced the cue, accepting that
-    /// pre-positioned bitmap subs will look skewed if shifted hard.
-    var subtitleVerticalOffsetPoints: Int {
-        didSet { store.set(subtitleVerticalOffsetPoints, forKey: Keys.subtitleVerticalOffsetPoints) }
+    /// Vertical placement of the rendered subtitle on screen. Five
+    /// downward-only steps plus an explicit `default` (no override).
+    /// Persisted as the enum's raw string value. See
+    /// `SubtitleVerticalPosition` for the scale rationale.
+    var subtitleVerticalPosition: SubtitleVerticalPosition {
+        didSet { store.set(subtitleVerticalPosition.rawValue, forKey: Keys.subtitleVerticalPosition) }
+    }
+
+    /// Subtitle text font for text-cue rendering. Bitmap cues
+    /// (PGS / DVB / DVD) are unaffected because the source ships
+    /// pre-rendered pixels.
+    var subtitleFont: SubtitleFont {
+        didSet { store.set(subtitleFont.rawValue, forKey: Keys.subtitleFont) }
     }
 
     /// Default picture-fill mode for new playback sessions. The
@@ -375,14 +428,10 @@ final class PlaybackPreferences {
             .flatMap(SubtitleColor.init(rawValue:)) ?? .white
         self.subtitleBackground = Self.loadSubtitleBackground(from: store)
         self.subtitleDelaySeconds = store.object(forKey: Keys.subtitleDelaySeconds) as? Double ?? 0
-        let storedOffset = store.object(forKey: Keys.subtitleVerticalOffsetPoints) as? Int ?? 0
-        // Clamp against the published choice set so a stale value from
-        // a future build (or a manual UserDefaults edit) can't position
-        // subtitles off-screen on first run.
-        let allowed = PlaybackPreferences.subtitleVerticalOffsetChoices
-        self.subtitleVerticalOffsetPoints = allowed.contains(storedOffset)
-            ? storedOffset
-            : (allowed.min(by: { abs($0 - storedOffset) < abs($1 - storedOffset) }) ?? 0)
+        self.subtitleVerticalPosition = (store.string(forKey: Keys.subtitleVerticalPosition))
+            .flatMap(SubtitleVerticalPosition.init(rawValue:)) ?? .default
+        self.subtitleFont = (store.string(forKey: Keys.subtitleFont))
+            .flatMap(SubtitleFont.init(rawValue:)) ?? .system
         self.pictureMode = (store.string(forKey: Keys.pictureMode))
             .flatMap(PictureMode.init(rawValue:)) ?? .original
         self.showStatsForNerds = store.object(forKey: Keys.showStatsForNerds) as? Bool ?? false
