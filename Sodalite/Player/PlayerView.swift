@@ -1581,16 +1581,18 @@ private struct PlayerOverlayView: View {
             }
         }
         // ignoresSafeArea so the hint stays pinned to the actual screen
-        // bottom-right corner even while AVPlayerViewController's native
-        // chrome is briefly visible at session start. AVKit widens its
-        // contentOverlayView's safe-area inset when the chrome is up
-        // to push custom content off the chrome, which would otherwise
-        // lift the Spacer's bottom edge by the chrome's height and
-        // park the hint somewhere in the middle of the screen for the
-        // first few seconds. The hint is `.allowsHitTesting(false)`
-        // anyway (Select on the remote is what actually triggers the
-        // skip), so briefly sitting behind the chrome is the right
-        // trade vs floating mid-screen.
+        // bottom-right corner. `suppressAVKitChrome` sets AVKit's
+        // chrome views to alpha=0 (so the iPhone Control Center +10s
+        // handler still wires up via `playbackControlsIncludeTransportBar`
+        // without showing duplicate transport bars), but the chrome
+        // views still exist in the view tree and AVKit still widens
+        // contentOverlayView's bottom safe-area inset to "make room"
+        // for them. With the widened inset our `VStack { Spacer() }`
+        // layout shifts the hint up by the chrome's nominal height,
+        // parking it in the middle of the screen at session start.
+        // Ignoring safe-area at the overlay level pins the hint to
+        // the true screen bottom regardless of the phantom inset.
+        // The chrome is alpha=0 so nothing visual gets occluded.
         .ignoresSafeArea()
         .transition(.move(edge: .bottom).combined(with: .opacity))
         .allowsHitTesting(false)
