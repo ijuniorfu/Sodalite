@@ -1580,6 +1580,18 @@ private struct PlayerOverlayView: View {
                 .padding(.bottom, 80)
             }
         }
+        // ignoresSafeArea so the hint stays pinned to the actual screen
+        // bottom-right corner even while AVPlayerViewController's native
+        // chrome is briefly visible at session start. AVKit widens its
+        // contentOverlayView's safe-area inset when the chrome is up
+        // to push custom content off the chrome, which would otherwise
+        // lift the Spacer's bottom edge by the chrome's height and
+        // park the hint somewhere in the middle of the screen for the
+        // first few seconds. The hint is `.allowsHitTesting(false)`
+        // anyway (Select on the remote is what actually triggers the
+        // skip), so briefly sitting behind the chrome is the right
+        // trade vs floating mid-screen.
+        .ignoresSafeArea()
         .transition(.move(edge: .bottom).combined(with: .opacity))
         .allowsHitTesting(false)
     }
