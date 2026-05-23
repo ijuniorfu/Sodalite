@@ -1446,10 +1446,22 @@ private struct PlayerOverlayView: View {
             }
 
             if viewModel.isLoading {
-                Color.black
-                    .ignoresSafeArea()
-                    .overlay(ProgressView())
-                    .transition(.opacity)
+                // Inner ZStack so the spinner lives in the same coord
+                // space as the full-screen black backdrop, then the
+                // whole stack ignoresSafeArea together. Earlier form
+                // (`Color.black.ignoresSafeArea().overlay(ProgressView())`)
+                // centered the spinner on Color.black's *layout*
+                // bounds, which still respect safe-area insets, so when
+                // an outgoing overlay (next-episode card transitioning
+                // out) shifted the parent's effective insets the
+                // spinner landed in the top half of the screen instead
+                // of the visible centre.
+                ZStack {
+                    Color.black
+                    ProgressView()
+                }
+                .ignoresSafeArea()
+                .transition(.opacity)
             }
 
             if let error = viewModel.errorMessage {
