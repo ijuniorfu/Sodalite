@@ -84,7 +84,18 @@ struct MediaDeletionSheet: View {
             .padding(48)
             .frame(maxWidth: 800)
 
-            if let toast = toast {
+            // Bottom status capsule. While the async delete is in flight
+            // a "Lösche…" indicator stays visible regardless of where
+            // tvOS pushes focus (the Delete button briefly disables
+            // when pressed and focus jumps away from it). Once the
+            // operation completes the same slot renders the outcome
+            // toast instead.
+            if isDeleting {
+                deletingIndicator
+                    .padding(.bottom, 24)
+                    .padding(.horizontal, 48)
+                    .transition(.opacity)
+            } else if let toast = toast {
                 toastView(toast)
                     .padding(.bottom, 24)
                     .padding(.horizontal, 48)
@@ -94,6 +105,22 @@ struct MediaDeletionSheet: View {
         .background(.ultraThinMaterial)
         .clipShape(RoundedRectangle(cornerRadius: 24))
         .animation(.easeInOut(duration: 0.2), value: toast)
+        .animation(.easeInOut(duration: 0.2), value: isDeleting)
+    }
+
+    private var deletingIndicator: some View {
+        HStack(spacing: 12) {
+            ProgressView()
+                .controlSize(.small)
+            Text("delete.toast.deleting")
+                .font(.callout)
+                .foregroundStyle(.white)
+        }
+        .padding(.horizontal, 24)
+        .padding(.vertical, 14)
+        .frame(maxWidth: .infinity)
+        .background(Color.white.opacity(0.15))
+        .clipShape(RoundedRectangle(cornerRadius: 16))
     }
 
     // MARK: - Subviews

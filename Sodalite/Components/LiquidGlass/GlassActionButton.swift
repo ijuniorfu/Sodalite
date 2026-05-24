@@ -39,8 +39,15 @@ struct GlassActionButton: View {
         } label: {
             HStack(spacing: 10) {
                 if isLoading {
+                    // Spinner alongside the title so the button keeps
+                    // its size + remains recognisable; replacing the
+                    // whole label with a small spinner made the button
+                    // shrink and visually disappear during the wait.
                     ProgressView()
-                        .frame(minWidth: 80)
+                        .controlSize(.small)
+                    Text(title)
+                        .font(.callout)
+                        .fontWeight(.medium)
                 } else {
                     Image(systemName: systemImage)
                         .font(.body)
