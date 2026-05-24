@@ -37,6 +37,28 @@ struct SeriesDetailView: View {
     /// auto-land on at first paint. We push focus explicitly via
     /// .onChange below.
     @FocusState private var playButtonFocused: Bool
+    @State private var isPresentingDeleteSheet: Bool = false
+
+    /// True when the active user has Jellyfin's EnableContentDeletion
+    /// flag (or is an administrator). Read reactively from
+    /// AppState.activeUser, so a profile switch updates the visibility
+    /// without a manual refresh.
+    private var canDelete: Bool {
+        appState.activeUser?.canDeleteContent == true
+    }
+
+    /// Convert engine-side season objects into the shape
+    /// MediaDeletionSheet wants for its multi-select picker.
+    private func deletionSeasonOptions(from seasons: [JellyfinItem]) -> [MediaDeletionSheet.SeasonOption] {
+        seasons.map { season in
+            MediaDeletionSheet.SeasonOption(
+                id: season.id,
+                seasonNumber: season.indexNumber ?? 0,
+                title: season.name
+            )
+        }
+    }
+
     @State private var episodeRedirectDone = false
     /// Sticky flag: set when the episode row had focus so that the
     /// season bar's onChange can tell "user scrolled up from episodes"
@@ -279,6 +301,60 @@ struct SeriesDetailView: View {
             }
         }
         .onChange(of: selectedEpisode?.id) { _, _ in updateBackdropURL() }
+        .sheet(isPresented: $isPresentingDeleteSheet) {
+            if let vm = viewModel {
+                let popDetail = dismiss
+                MediaDeletionSheet(
+                    mode: .series(
+                        itemID: vm.item.id,
+                        tmdbID: vm.item.tmdbID,
+                        title: vm.item.name,
+                        seasons: deletionSeasonOptions(from: vm.seasons)
+                    ),
+                    onConfirm: { request in
+                        do {
+                            if request.deleteEntireSeries {
+                                try await dependencies.mediaDeletionService.deleteSeries(
+                                    itemID: vm.item.id,
+                                    tmdbID: vm.item.tmdbID,
+                                    cascadeToArrStack: request.cascadeToArrStack
+                                )
+                            } else {
+                                try await dependencies.mediaDeletionService.deleteSeasons(
+                                    seasonItemIDs: request.seasonItemIDs,
+                                    cascadeToArrStack: false
+                                )
+                            }
+                            // Only pop the detail view when the whole
+                            // series was deleted. For seasons-only
+                            // deletion the user might still want to
+                            // view what's left.
+                            if request.deleteEntireSeries {
+                                Task { @MainActor in
+                                    try? await Task.sleep(for: .milliseconds(1100))
+                                    popDetail()
+                                }
+                            }
+                            return .success
+                        } catch let error as MediaDeletionError {
+                            if error.partialSuccess {
+                                return .partialSuccess(
+                                    message: String(localized: "delete.toast.partialSuccess")
+                                )
+                            } else {
+                                return .failure(
+                                    message: String(localized: "delete.toast.failure")
+                                )
+                            }
+                        } catch {
+                            return .failure(
+                                message: String(localized: "delete.toast.failure")
+                            )
+                        }
+                    }
+                )
+            }
+        }
     }
 
     private func updateBackdropURL() {
@@ -362,6 +438,15 @@ struct SeriesDetailView: View {
                     }
                 )
                 .focused($playButtonFocused)
+
+                if canDelete && !isShowingEpisode {
+                    Button(role: .destructive) {
+                        isPresentingDeleteSheet = true
+                    } label: {
+                        Label("detail.delete.button", systemImage: "trash")
+                    }
+                    .buttonStyle(.bordered)
+                }
 
                 if !isShowingEpisode {
                     GlassActionButton(
