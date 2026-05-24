@@ -947,7 +947,24 @@ EOF
 ### Task 12: Add the new sections to `StatsOverlayView`
 
 **Files:**
+- Modify: `Sodalite/Models/Jellyfin/JellyfinItem.swift` (add `bitRate` field to `MediaStream`)
 - Modify: `Sodalite/Player/UI/StatsOverlayView.swift`
+
+- [ ] **Step 0: Add `bitRate` to `MediaStream`**
+
+The Jellyfin API returns `BitRate` per stream but Sodalite's `MediaStream` struct currently ignores it. Open `Sodalite/Models/Jellyfin/JellyfinItem.swift`. Find `struct MediaStream` around line 242. Add this property in the same `let` block (e.g. just below `profile: String?`):
+
+```swift
+    let bitRate: Int?
+```
+
+And add the matching `CodingKey` entry (e.g. after `case profile = "Profile"`):
+
+```swift
+        case bitRate = "BitRate"
+```
+
+This is needed for the audio bitrate row in Step 4 below, and also makes a more honest per-stream value available if the Video section later wants stream-specific (vs. container) bitrate.
 
 - [ ] **Step 1: Update the section sequence**
 
@@ -1050,6 +1067,24 @@ Below the existing `private var playbackSection: some View { ... }` block (inser
         }
     }
 ```
+
+- [ ] **Step 3b: Extend the existing `audioSection` with a bitrate row**
+
+Find `private var audioSection: some View` in `StatsOverlayView.swift` (around line 184 of the existing file). Inside the existing `section("detail.tech.audio") { ... }` block, add a bitrate row after the channels row and before the language row. Use the `engineTrack` / `activeAudioStream` fallback pattern the rest of the section already uses:
+
+```swift
+                let bitrate = engineTrack?.bitrate ?? activeAudioStream?.bitRate
+                if let bps = bitrate, bps > 0 {
+                    row("detail.tech.bitrate", value: Self.formatBitrate(bps))
+                }
+```
+
+Two notes:
+1. `engineTrack?.bitrate` reads from AetherEngine's `TrackInfo.bitrate`. If `TrackInfo` doesn't have a `bitrate` field yet, drop the `engineTrack?.bitrate ??` prefix — the Jellyfin-side `bitRate` is enough for now. (Check by greping the engine: `grep "bitrate\|let bitrate" ~/Dev/AetherEngine/Sources/AetherEngine/PlayerState.swift`)
+2. `Self.formatBitrate` already exists in `StatsOverlayView` (used by the video section); reuse it.
+3. The localisation key `detail.tech.bitrate` already exists from the video section, no new key needed.
+
+This is the audio bitrate addition that wasn't in the original spec; included here because Jellyfin reliably reports per-audio-stream bitrate and surfacing it next to channels reads as obviously useful.
 
 - [ ] **Step 4: Add the three diagnostic sections**
 
