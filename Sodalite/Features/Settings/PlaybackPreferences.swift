@@ -179,20 +179,26 @@ final class PlaybackPreferences {
         var titleKey: String { "settings.playback.subtitle.background.\(rawValue)" }
     }
 
-    /// Vertical placement of the rendered subtitle, as a step on a
-    /// downward-only scale. `default` is the no-override case (text
+    /// Vertical placement of the rendered subtitle, as an ordinal step
+    /// on a low-to-high scale. `default` is the no-override case (text
     /// uses the historical baseline of ~80 pt above the player rect's
     /// bottom edge, bitmap cues stay at their source-baked position).
-    /// `bottom` and the `stepN` cases anchor the baseline to a fraction
-    /// of the player rect height measured from the bottom edge, so the
-    /// position scales identically on 1080p and 2160p panels.
+    /// `bottom`, `step1`, `step2`, `step3` anchor the baseline to a
+    /// fraction of the player rect height measured from the bottom
+    /// edge, so the position scales identically on 1080p and 2160p
+    /// panels.
     ///
-    /// Scale shape per issue #10 feedback: no negative half (no
-    /// real-world use case surfaced for lifting subs into the picture),
-    /// explicit "Default" instead of "0 pt" so users can opt out of the
-    /// override entirely (important for PGS / DVB / DVD where the
-    /// source carries layout-sensitive positions like sign translations
-    /// at frame-top).
+    /// Localized labels (en): Default / Bottom Edge / Low / Mid-Low /
+    /// Mid. The raw case names stay stable for persisted UserDefaults
+    /// values; only the display strings in Localizable.xcstrings carry
+    /// the descriptive naming.
+    ///
+    /// Scale shape: no negative half (no real-world use case surfaced
+    /// for lifting subs into the picture's upper half), explicit
+    /// `default` instead of a "0" entry so users can opt out of the
+    /// override entirely. The opt-out matters for PGS / DVB / DVD
+    /// where the source carries layout-sensitive positions like sign
+    /// translations at frame-top.
     enum SubtitleVerticalPosition: String, CaseIterable, Sendable, Identifiable {
         case `default`
         case bottom
