@@ -202,20 +202,20 @@ final class PlayerHostController: AVPlayerViewController {
         //   - contextual menu emptied
         //
         // `appliesPreferredDisplayCriteriaAutomatically = true` is
-        // load-bearing: AVKit reads each track's sample-entry codec
-        // FourCC + color extensions and programs
-        // `AVDisplayManager.preferredDisplayCriteria` to match, on
-        // top of the engine's own pre-load assignment from
-        // `DisplayCriteriaController.apply()`. AetherEngine's DV
-        // classification picks `codecTagOverride` to align with
-        // what AVKit will read here — bare `dvh1` for DV-capable
-        // displays (P5 / P8.1 / P8.4), plain `hvc1` for SDR / HDR10
-        // / HLG on non-DV displays. If you flip this to false the
-        // engine still programs criteria but AVKit no longer
-        // doubles up; the DV mode handshake then depends entirely
-        // on the engine's one-shot pre-load `apply()` happening
-        // before the panel times out its 5 s negotiation budget
-        // (verified working but with less margin).
+        // now the SOLE driver of the HDMI HDR/DV mode handshake.
+        // AVKit reads each track's sample-entry codec FourCC + color
+        // extensions from the live AVPlayerItem and programs
+        // `AVDisplayManager.preferredDisplayCriteria` to match.
+        // The engine's `DisplayCriteriaController.apply()` is
+        // suppressed via `LoadOptions.suppressDisplayCriteria=true`
+        // from PlayerViewModel; the previous double-apply pattern
+        // (engine pre-flight + AVKit auto) caused a second HDMI
+        // re-negotiate ~2 s after play start because AVKit
+        // overwrote the engine's criteria once asset.load reached
+        // readyToPlay. With specs-compliant bitstream + manifest
+        // (correct sample entries dvh1 for P5 / hvc1 for P8.x,
+        // SUPPLEMENTAL-CODECS for P8 DV), AVKit's auto path
+        // derives the right criteria on its own.
         showsPlaybackControls = true
         // SPIKE (CC 10s skip on iPhone): flip transport bar flag to
         // true to test the theory that AVKit's internal skip handler

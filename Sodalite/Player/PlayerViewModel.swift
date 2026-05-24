@@ -424,10 +424,22 @@ final class PlayerViewModel {
             //   can do HDR, since otherwise AVPlayer fails asset open
             //   with `Cannot Open` (-11848) on a master that claims
             //   HDR while the panel sits in SDR.
+            // suppressDisplayCriteria: rely on AVPlayerViewController's
+            // appliesPreferredDisplayCriteriaAutomatically instead of
+            // the engine's pre-flight apply. With both active, AVKit
+            // overwrites the engine's criteria after asset.load, which
+            // triggers a second HDMI re-negotiate ~2s after play start
+            // (DrHurt's "TV switches mode 2s later" symptom on Build
+            // 170). Now that the bitstream + manifest are specs-compliant
+            // (correct sample-entry FourCC, SUPPLEMENTAL-CODECS), AVKit
+            // can derive the right criteria from the live AVPlayerItem
+            // FormatDescription without our help. Single assignment,
+            // no race.
             try await player.load(
                 url: url,
                 startPosition: startPos,
                 options: LoadOptions(
+                    suppressDisplayCriteria: true,
                     matchContentEnabled: Self.matchDynamicRangeEnabled,
                     panelIsInHDRMode: Self.panelIsInHDRMode,
                     audioBridgeMode: preferences.audioBridgeMode
