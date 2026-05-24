@@ -197,7 +197,11 @@ struct StatsOverlayView: View {
                 row("player.stats.fpsObserved", value: String(format: "%.2f fps", fps))
             }
             if let gap = telemetry?.avSyncGapMs {
-                row("player.stats.avGap", value: Self.formatAVGap(gap))
+                row(
+                    "player.stats.avGap",
+                    value: Self.formatAVGap(gap),
+                    valueColor: Self.avGapColor(gap)
+                )
             }
         }
     }
@@ -374,6 +378,19 @@ struct StatsOverlayView: View {
     }
 
     private func row(_ labelKey: LocalizedStringKey, value: String) -> some View {
+        row(labelKey, value: value, valueColor: .white)
+    }
+
+    /// Same as `row(_:value:)` but lets the caller tint the value column.
+    /// Currently used by the live A/V-gap row to colour-code the gap
+    /// magnitude (green / yellow / red); other callers stay at white via
+    /// the convenience overload above. The label column is intentionally
+    /// not coloured: it has to stay legible across all locales.
+    private func row(
+        _ labelKey: LocalizedStringKey,
+        value: String,
+        valueColor: Color
+    ) -> some View {
         // 180pt label column carries the longer German + Romance-
         // language terms ("Dynamikbereich", "Décodeur vidéo",
         // "Decodificador de áudio") on a single line. English labels
@@ -388,7 +405,7 @@ struct StatsOverlayView: View {
                 .fixedSize(horizontal: false, vertical: true)
             Text(value)
                 .font(.caption)
-                .foregroundStyle(.white)
+                .foregroundStyle(valueColor)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .lineLimit(3)
                 .fixedSize(horizontal: false, vertical: true)
@@ -466,6 +483,16 @@ struct StatsOverlayView: View {
 
     private static func formatAVGap(_ ms: Double) -> String {
         return String(format: "%.0f ms", ms)
+    }
+
+    /// Tints the live A/V-gap value by magnitude. Thresholds mirror the
+    /// engine's existing `abs(gapMs) > 50` warn-log site, so the user-
+    /// visible "this is hot" cue matches what we'd log internally.
+    private static func avGapColor(_ ms: Double) -> Color {
+        let abs = Swift.abs(ms)
+        if abs < 50 { return .green }
+        if abs < 150 { return .yellow }
+        return .red
     }
 
     private static func formatByteCount(_ bytes: Int64) -> String {
