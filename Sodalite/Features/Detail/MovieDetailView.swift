@@ -146,6 +146,11 @@ struct MovieDetailView: View {
                             }
                             return .success
                         } catch let error as MediaDeletionError {
+                            if error.reason == .seerrNotSignedIn {
+                                return .partialSuccess(
+                                    message: String(localized: "delete.toast.seerrNotSignedIn")
+                                )
+                            }
                             if error.partialSuccess {
                                 return .partialSuccess(
                                     message: String(localized: "delete.toast.partialSuccess")
@@ -288,12 +293,12 @@ struct MovieDetailView: View {
                 // where new seasons may still land.
 
                 if canDelete {
-                    Button(role: .destructive) {
-                        isPresentingDeleteSheet = true
-                    } label: {
-                        Label("detail.delete.button", systemImage: "trash")
-                    }
-                    .buttonStyle(.bordered)
+                    GlassActionButton(
+                        title: "detail.delete.button",
+                        systemImage: "trash",
+                        isDestructive: true,
+                        action: { isPresentingDeleteSheet = true }
+                    )
                 }
             }
             .padding(.top, 4)

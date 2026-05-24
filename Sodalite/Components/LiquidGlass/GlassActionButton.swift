@@ -4,6 +4,14 @@ struct GlassActionButton: View {
     let title: LocalizedStringKey
     let systemImage: String
     var isProminent: Bool = false
+    /// When `true`, the prominent variant wears the system destructive
+    /// red instead of the accent colour. Used by the delete-confirmation
+    /// sheet's Delete button so the destructive intent is unambiguous;
+    /// non-prominent destructive buttons fall back to the neutral grey
+    /// fill (with destructive role still applied for VoiceOver). Keeps
+    /// the visual language consistent with the rest of the action-row
+    /// buttons that never use a non-accent prominent fill.
+    var isDestructive: Bool = false
     /// Optional inline secondary label, used by the detail-view
     /// resume button to surface "S1E5 · 12:34" without breaking row
     /// height. Renders in caption + 0.75 opacity so it reads as
@@ -26,7 +34,7 @@ struct GlassActionButton: View {
     let action: () -> Void
 
     var body: some View {
-        Button {
+        Button(role: isDestructive ? .destructive : nil) {
             action()
         } label: {
             HStack(spacing: 10) {
@@ -52,6 +60,7 @@ struct GlassActionButton: View {
         }
         .buttonStyle(GlassButtonStyle(
             isProminent: isProminent,
+            isDestructive: isDestructive,
             progressFraction: progressFraction
         ))
         .disabled(isLoading)
@@ -60,6 +69,11 @@ struct GlassActionButton: View {
 
 struct GlassButtonStyle: ButtonStyle {
     var isProminent: Bool = false
+    /// Pairs with `isProminent`. When true, the prominent fill becomes
+    /// the system destructive red instead of the accent colour. Non-
+    /// prominent destructive buttons stay on the neutral grey fill;
+    /// the destructive role on the parent Button handles VoiceOver.
+    var isDestructive: Bool = false
     /// 0…1, ignored when nil. Drives the resume-progress fill rendered
     /// behind the label. The bar wears the accent tint so it picks up
     /// whatever colour the user has selected for the rest of the UI.
@@ -108,7 +122,8 @@ struct GlassButtonStyle: ButtonStyle {
 
     private var backgroundFill: AnyShapeStyle {
         if effectivelyProminent {
-            return AnyShapeStyle(isFocused ? Color.accentColor.opacity(0.9) : Color.accentColor.opacity(0.7))
+            let fill: Color = isDestructive ? .red : .accentColor
+            return AnyShapeStyle(isFocused ? fill.opacity(0.9) : fill.opacity(0.7))
         }
         return AnyShapeStyle(isFocused ? .white.opacity(0.2) : .white.opacity(0.1))
     }

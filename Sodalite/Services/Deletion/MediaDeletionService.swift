@@ -24,13 +24,22 @@ protocol MediaDeletionServiceProtocol: Sendable {
 final class MediaDeletionService: MediaDeletionServiceProtocol {
     private let jellyfinItems: any JellyfinItemServiceProtocol
     private let seerrMedia: any SeerrMediaServiceProtocol
+    /// Returns true when the host currently has an active Seerr session
+    /// cookie. Read each call so the result reacts live to session
+    /// expiry / sign-out without the service caching a stale boolean.
+    /// Implemented as a closure (rather than a SeerrClient injection)
+    /// so the service stays decoupled from the client; the
+    /// DependencyContainer wires it to `seerrClient.sessionCookie != nil`.
+    private let isSeerrAuthenticated: @MainActor () -> Bool
 
     init(
         jellyfinItems: any JellyfinItemServiceProtocol,
-        seerrMedia: any SeerrMediaServiceProtocol
+        seerrMedia: any SeerrMediaServiceProtocol,
+        isSeerrAuthenticated: @escaping @MainActor () -> Bool
     ) {
         self.jellyfinItems = jellyfinItems
         self.seerrMedia = seerrMedia
+        self.isSeerrAuthenticated = isSeerrAuthenticated
     }
 
     func deleteMovie(itemID: String, tmdbID: Int?, cascadeToArrStack: Bool) async throws {
@@ -40,6 +49,13 @@ final class MediaDeletionService: MediaDeletionServiceProtocol {
             throw MediaDeletionError(stage: .jellyfin, underlying: error)
         }
         guard cascadeToArrStack, let tmdbID = tmdbID else { return }
+        // Pre-flight: the cascade call requires an active Seerr session
+        // (MANAGE_REQUESTS permission on the Seerr user). Surface the
+        // missing-session case as a typed reason so the UI can render
+        // a specific toast instead of the generic "could not remove".
+        guard isSeerrAuthenticated() else {
+            throw MediaDeletionError(stage: .seerr, reason: .seerrNotSignedIn)
+        }
         do {
             _ = try await seerrMedia.removeMovieFromRadarr(tmdbID: tmdbID)
         } catch {
@@ -54,6 +70,9 @@ final class MediaDeletionService: MediaDeletionServiceProtocol {
             throw MediaDeletionError(stage: .jellyfin, underlying: error)
         }
         guard cascadeToArrStack, let tmdbID = tmdbID else { return }
+        guard isSeerrAuthenticated() else {
+            throw MediaDeletionError(stage: .seerr, reason: .seerrNotSignedIn)
+        }
         do {
             _ = try await seerrMedia.removeSeriesFromSonarr(tmdbID: tmdbID)
         } catch {

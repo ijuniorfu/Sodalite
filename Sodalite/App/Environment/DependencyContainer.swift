@@ -78,7 +78,14 @@ final class DependencyContainer {
 
         self.mediaDeletionService = MediaDeletionService(
             jellyfinItems: self.jellyfinItemService,
-            seerrMedia: self.seerrMediaService
+            seerrMedia: self.seerrMediaService,
+            isSeerrAuthenticated: { [weak seerrClient] in
+                // sessionCookie is non-nil after a successful Seerr
+                // login and cleared on logout / session restore failure.
+                // Pre-flight check; the live value is read on every
+                // invocation (no caching).
+                seerrClient?.sessionCookie != nil
+            }
         )
     }
 

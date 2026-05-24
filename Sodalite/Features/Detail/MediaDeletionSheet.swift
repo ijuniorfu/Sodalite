@@ -7,8 +7,15 @@ import SwiftUI
 /// Visibility of the parent Delete button is gated on the active
 /// user's `canDeleteContent` property, which already reacts to profile
 /// switches (AppState.activeUser is @Observable). The server is the
-/// final authority -- a 403 from Jellyfin during a stale-policy window
+/// final authority — a 403 from Jellyfin during a stale-policy window
 /// surfaces as the standard partial-failure toast.
+///
+/// Visual language: all interactive rows use `BoolPillRow` (defined
+/// below, focus-friendly capsule with white text + accent stroke).
+/// All footer buttons use `GlassActionButton` so the sheet matches the
+/// detail-view's own action row. Native `Toggle` and `.bordered` /
+/// `.borderedProminent` were tried first and rendered with invisible
+/// labels on tvOS focus state, hence the bespoke rows.
 struct MediaDeletionSheet: View {
     /// Scope of the deletion. The view's body branches on this.
     enum Mode: Equatable {
@@ -59,31 +66,34 @@ struct MediaDeletionSheet: View {
     @State private var toast: DeletionOutcome?
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 32) {
-            header
+        ZStack(alignment: .bottom) {
+            VStack(alignment: .leading, spacing: 28) {
+                header
 
-            switch mode {
-            case .movie:
-                movieBody
-            case .series(_, _, _, let seasons):
-                seriesBody(seasons: seasons)
+                switch mode {
+                case .movie:
+                    movieBody
+                case .series(_, _, _, let seasons):
+                    seriesBody(seasons: seasons)
+                }
+
+                Spacer()
+
+                footer
             }
+            .padding(48)
+            .frame(maxWidth: 800)
 
-            Spacer()
-
-            footer
-        }
-        .padding(48)
-        .frame(maxWidth: 800)
-        .background(.ultraThinMaterial)
-        .clipShape(RoundedRectangle(cornerRadius: 24))
-        .overlay(alignment: .top) {
             if let toast = toast {
                 toastView(toast)
-                    .padding(.top, 24)
-                    .transition(.move(edge: .top).combined(with: .opacity))
+                    .padding(.bottom, 24)
+                    .padding(.horizontal, 48)
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
             }
         }
+        .background(.ultraThinMaterial)
+        .clipShape(RoundedRectangle(cornerRadius: 24))
+        .animation(.easeInOut(duration: 0.2), value: toast)
     }
 
     // MARK: - Subviews
@@ -107,36 +117,53 @@ struct MediaDeletionSheet: View {
     }
 
     private var movieBody: some View {
-        VStack(alignment: .leading, spacing: 24) {
-            cascadeToggle(disabled: false)
+        VStack(alignment: .leading, spacing: 16) {
+            cascadePillRow(disabled: false)
             Text("delete.confirm.movie.body")
-                .font(.body)
-                .foregroundStyle(.primary)
+                .font(.callout)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
         }
     }
 
     private func seriesBody(seasons: [SeasonOption]) -> some View {
         VStack(alignment: .leading, spacing: 16) {
-            Toggle(isOn: $deleteEntireSeries) {
-                Text("delete.confirm.series.entire")
-                    .font(.headline)
-            }
+            BoolPillRow(
+                title: "delete.confirm.series.entire",
+                isOn: $deleteEntireSeries,
+                disabled: false
+            )
             .onChange(of: deleteEntireSeries) { _, newValue in
                 // Switching to whole-series clears any season selection
                 // so the visual state stays coherent.
                 if newValue { selectedSeasonIDs.removeAll() }
             }
 
-            seasonList(seasons: seasons)
-                .disabled(deleteEntireSeries)
-                .opacity(deleteEntireSeries ? 0.4 : 1.0)
+            if !deleteEntireSeries {
+                seasonList(seasons: seasons)
+            }
 
-            cascadeToggle(disabled: !deleteEntireSeries)
+            cascadePillRow(disabled: !deleteEntireSeries)
+
             if !deleteEntireSeries {
                 Text("delete.confirm.cascade.seasonsFootnote")
                     .font(.caption)
                     .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
             }
+        }
+    }
+
+    private func cascadePillRow(disabled: Bool) -> some View {
+        BoolPillRow(
+            title: "delete.confirm.cascade.title",
+            isOn: $cascadeToArrStack,
+            disabled: disabled
+        )
+        .onChange(of: disabled) { _, isDisabled in
+            // Force off when disabled so the parent never sees a
+            // cascade=true with seasons-only selection.
+            if isDisabled { cascadeToArrStack = false }
         }
     }
 
@@ -147,70 +174,41 @@ struct MediaDeletionSheet: View {
                 .foregroundStyle(.secondary)
                 .textCase(.uppercase)
             ForEach(seasons) { season in
-                Button {
-                    if selectedSeasonIDs.contains(season.id) {
-                        selectedSeasonIDs.remove(season.id)
-                    } else {
-                        selectedSeasonIDs.insert(season.id)
-                    }
-                } label: {
-                    HStack(spacing: 16) {
-                        Image(systemName: selectedSeasonIDs.contains(season.id)
-                            ? "checkmark.square.fill"
-                            : "square")
-                            .font(.title3)
-                        Text(season.title)
-                            .font(.body)
-                        Spacer()
-                    }
-                }
-                .buttonStyle(.borderless)
+                BoolPillRow(
+                    title: LocalizedStringKey(season.title),
+                    isOn: Binding(
+                        get: { selectedSeasonIDs.contains(season.id) },
+                        set: { isOn in
+                            if isOn {
+                                selectedSeasonIDs.insert(season.id)
+                            } else {
+                                selectedSeasonIDs.remove(season.id)
+                            }
+                        }
+                    ),
+                    disabled: false
+                )
             }
-        }
-    }
-
-    private func cascadeToggle(disabled: Bool) -> some View {
-        Toggle(isOn: $cascadeToArrStack) {
-            VStack(alignment: .leading, spacing: 2) {
-                Text("delete.confirm.cascade.title")
-                Text("delete.confirm.cascade.subtitle")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-        }
-        .disabled(disabled)
-        .opacity(disabled ? 0.4 : 1.0)
-        .onChange(of: disabled) { _, isDisabled in
-            // Force off when disabled so the parent never sees a
-            // cascade=true with seasons-only selection.
-            if isDisabled { cascadeToArrStack = false }
         }
     }
 
     private var footer: some View {
         HStack(spacing: 24) {
-            Button {
-                dismiss()
-            } label: {
-                Text("common.cancel")
-                    .frame(minWidth: 200)
-            }
-            .buttonStyle(.bordered)
+            GlassActionButton(
+                title: "common.cancel",
+                systemImage: "xmark",
+                action: { dismiss() }
+            )
             .disabled(isDeleting)
 
-            Button(role: .destructive) {
-                Task { await performDelete() }
-            } label: {
-                if isDeleting {
-                    ProgressView()
-                        .frame(minWidth: 200)
-                } else {
-                    Text("delete.confirm.deleteButton")
-                        .frame(minWidth: 200)
-                }
-            }
-            .buttonStyle(.borderedProminent)
-            .tint(.red)
+            GlassActionButton(
+                title: "delete.confirm.deleteButton",
+                systemImage: "trash",
+                isProminent: true,
+                isDestructive: true,
+                isLoading: isDeleting,
+                action: { Task { await performDelete() } }
+            )
             .disabled(isDeleting || !canConfirm)
         }
     }
@@ -227,11 +225,14 @@ struct MediaDeletionSheet: View {
             }
         }()
         return Text(text)
+            .font(.callout)
+            .multilineTextAlignment(.center)
             .padding(.horizontal, 24)
-            .padding(.vertical, 12)
-            .background(color.opacity(0.85))
+            .padding(.vertical, 14)
+            .frame(maxWidth: .infinity)
+            .background(color.opacity(0.9))
             .foregroundStyle(.white)
-            .clipShape(Capsule())
+            .clipShape(RoundedRectangle(cornerRadius: 16))
     }
 
     // MARK: - State helpers
@@ -267,5 +268,57 @@ struct MediaDeletionSheet: View {
             try? await Task.sleep(for: .seconds(1))
             dismiss()
         }
+    }
+}
+
+// MARK: - BoolPillRow
+
+/// Focus-friendly inline toggle styled to match `GlassActionButton`.
+/// tvOS's native `Toggle` renders with a pink fill in the focused state
+/// that hides the row's label entirely; this bespoke row keeps the
+/// label visible by using the same `.white` foreground the action-row
+/// buttons use. Trailing icon shows the on/off state at a glance.
+private struct BoolPillRow: View {
+    let title: LocalizedStringKey
+    @Binding var isOn: Bool
+    var disabled: Bool = false
+
+    @FocusState private var focused: Bool
+
+    var body: some View {
+        Button {
+            isOn.toggle()
+        } label: {
+            HStack(spacing: 16) {
+                Image(systemName: isOn ? "checkmark.circle.fill" : "circle")
+                    .font(.title3)
+                    .foregroundStyle(isOn ? Color.accentColor : .white.opacity(0.5))
+                Text(title)
+                    .font(.callout)
+                    .fontWeight(.medium)
+                    .foregroundStyle(.white)
+                    .multilineTextAlignment(.leading)
+                Spacer(minLength: 12)
+            }
+            .padding(.horizontal, 24)
+            .padding(.vertical, 16)
+            .background(
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(focused ? Color.white.opacity(0.2) : Color.white.opacity(0.08))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 16)
+                    .strokeBorder(.tint, lineWidth: 3)
+                    .opacity(focused ? 1 : 0)
+            )
+            .scaleEffect(focused ? 1.02 : 1.0)
+            .shadow(color: .black.opacity(focused ? 0.25 : 0), radius: 10, y: 5)
+        }
+        .buttonStyle(.plain)
+        .focused($focused)
+        .disabled(disabled)
+        .opacity(disabled ? 0.4 : 1.0)
+        .animation(.easeInOut(duration: 0.15), value: focused)
+        .animation(.easeInOut(duration: 0.15), value: isOn)
     }
 }
