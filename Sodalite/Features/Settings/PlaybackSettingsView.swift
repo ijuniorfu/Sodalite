@@ -234,6 +234,18 @@ struct PlaybackSettingsView: View {
                     )
                 )
 
+                boolRow(
+                    icon: "waveform.path.ecg",
+                    title: "settings.playback.engineDiagnostics.title",
+                    subtitle: "settings.playback.engineDiagnostics.subtitle",
+                    value: Binding(
+                        get: { prefs.showEngineDiagnostics },
+                        set: { prefs.showEngineDiagnostics = $0 }
+                    )
+                )
+                .disabled(!prefs.showStatsForNerds)
+                .padding(.leading, 24)
+
                 // Diagnostic overlay toggle. Only mounted in DEBUG /
                 // TestFlight builds; App Store users never see this row
                 // because the overlay can't be enabled there at all
