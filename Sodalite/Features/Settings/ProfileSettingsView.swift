@@ -312,10 +312,24 @@ struct ProfileSettingsView: View {
     }
 
     private func refreshUserDetails(userID: String, serverID: String) async {
-        let tag = await fetchFreshImageTag(for: userID)
+        // /Users/Me returns the full user including the Policy block;
+        // /Users/Public is the imageTag-only fallback for older
+        // Jellyfin versions / legacy installs. The Policy refresh is
+        // what the File Management permission gate (canDeleteContent)
+        // reads, without it the activeUser stays on the keychain stub
+        // with policy: nil after every profile switch.
+        let me: JellyfinUser? = try? await dependencies.jellyfinAuthService.getCurrentUser()
+        let directTag: String? = (me?.id == userID) ? me?.primaryImageTag : nil
+        let fallbackTag: String? = directTag == nil ? await fetchFreshImageTag(for: userID) : nil
+        let tag = directTag ?? fallbackTag
+
         guard appState.activeUser?.id == userID else { return }
         guard let current = appState.activeUser else { return }
-        guard current.primaryImageTag != tag else { return }
+
+        let freshPolicy = (me?.id == userID) ? me?.policy : current.policy
+        let tagChanged = current.primaryImageTag != tag
+        let policyChanged = current.policy != freshPolicy
+        guard tagChanged || policyChanged else { return }
 
         let fresh = JellyfinUser(
             id: current.id,
@@ -323,7 +337,7 @@ struct ProfileSettingsView: View {
             serverID: current.serverID,
             hasPassword: current.hasPassword,
             primaryImageTag: tag,
-            policy: current.policy
+            policy: freshPolicy
         )
         appState.activeUser = fresh
         if let tag, !tag.isEmpty {

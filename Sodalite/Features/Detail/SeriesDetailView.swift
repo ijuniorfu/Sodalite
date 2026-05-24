@@ -449,15 +449,6 @@ struct SeriesDetailView: View {
                 )
                 .focused($playButtonFocused)
 
-                if canDelete && !isShowingEpisode {
-                    GlassActionButton(
-                        title: "detail.delete.button",
-                        systemImage: "trash",
-                        isDestructive: true,
-                        action: { isPresentingDeleteSheet = true }
-                    )
-                }
-
                 if !isShowingEpisode {
                     GlassActionButton(
                         title: vm.isFavorite ? "detail.unfavorite" : "detail.favorite",
@@ -486,6 +477,18 @@ struct SeriesDetailView: View {
                         action: {
                             navigateToSeerrRequest = .stub(tmdbID: tmdbID, mediaType: .tv)
                         }
+                    )
+                }
+
+                // Delete sits last in the row, matching MovieDetailView,
+                // so the destructive action is visually furthest from
+                // Play and any positive-action buttons.
+                if canDelete && !isShowingEpisode {
+                    GlassActionButton(
+                        title: "detail.delete.button",
+                        systemImage: "trash",
+                        isDestructive: true,
+                        action: { isPresentingDeleteSheet = true }
                     )
                 }
             }
