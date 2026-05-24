@@ -286,7 +286,8 @@ struct AppRouter: View {
             name: userName,
             serverID: server.id,
             hasPassword: nil,
-            primaryImageTag: imageTag
+            primaryImageTag: imageTag,
+            policy: nil
         )
 
         // Migrate pre-0.3.0 sessions into the remembered-profiles
@@ -338,7 +339,8 @@ struct AppRouter: View {
                 name: target.name,
                 serverID: server.id,
                 hasPassword: nil,
-                primaryImageTag: target.imageTag
+                primaryImageTag: target.imageTag,
+                policy: nil
             )
             appState.setAuthenticated(server: server, user: user)
         } else if remembered.count > 1 {

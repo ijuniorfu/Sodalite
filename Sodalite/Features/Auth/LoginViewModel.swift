@@ -85,7 +85,8 @@ final class LoginViewModel {
             name: user.name,
             serverID: user.serverID,
             hasPassword: user.hasPassword,
-            primaryImageTag: tag
+            primaryImageTag: tag,
+            policy: user.policy
         )
     }
 

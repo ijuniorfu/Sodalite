@@ -286,7 +286,8 @@ struct ProfileSettingsView: View {
                 name: user.name,
                 serverID: server.id,
                 hasPassword: nil,
-                primaryImageTag: user.imageTag
+                primaryImageTag: user.imageTag,
+                policy: nil
             )
             appState.setAuthenticated(server: server, user: jf)
             refresh()
@@ -321,7 +322,8 @@ struct ProfileSettingsView: View {
             name: current.name,
             serverID: current.serverID,
             hasPassword: current.hasPassword,
-            primaryImageTag: tag
+            primaryImageTag: tag,
+            policy: current.policy
         )
         appState.activeUser = fresh
         if let tag, !tag.isEmpty {
