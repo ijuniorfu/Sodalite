@@ -27,6 +27,10 @@ enum JellyfinEndpoint: APIEndpoint {
     case seasons(seriesID: String, userID: String)
     case episodes(seriesID: String, seasonID: String, userID: String)
     case similarItems(itemID: String, userID: String, limit: Int)
+    /// DELETE /Items/{itemID} — server-side delete. Jellyfin handles
+    /// the cascade (series -> seasons -> episodes) on its own; we call
+    /// this once per item.
+    case deleteItem(itemID: String)
 
     // Genres & Studios
     case genres(userID: String)
@@ -84,6 +88,8 @@ enum JellyfinEndpoint: APIEndpoint {
             "/Shows/\(seriesID)/Episodes"
         case .similarItems(let itemID, _, _):
             "/Items/\(itemID)/Similar"
+        case .deleteItem(let itemID):
+            "/Items/\(itemID)"
         case .genres:
             "/Genres"
         case .studios:
@@ -110,7 +116,7 @@ enum JellyfinEndpoint: APIEndpoint {
         case .authenticateByName, .quickConnectInitiate, .quickConnectAuthenticate, .markFavorite,
              .sessionPlaying, .sessionProgress, .sessionStopped:
             .post
-        case .unmarkFavorite:
+        case .unmarkFavorite, .deleteItem:
             .delete
         default:
             .get
