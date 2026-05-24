@@ -50,6 +50,12 @@ final class HomeViewModel {
     /// Latest Series, etc.) never shows up until the app restarts.
     var lastLoadedAt: Date?
 
+    /// Bumped on every loadContent entry; the for-await loop checks
+    /// this before publishing each row so a re-entrant loadContent
+    /// (profile switch, refresh-while-loading) supersedes the older
+    /// run instead of letting both write into rows/tagRows.
+    private var loadGeneration: Int = 0
+
     private let libraryService: JellyfinLibraryServiceProtocol
     private let imageService: JellyfinImageService
     private let discoverService: SeerrDiscoverServiceProtocol?
@@ -69,6 +75,9 @@ final class HomeViewModel {
     }
 
     func loadContent() async {
+        loadGeneration += 1
+        let myGen = loadGeneration
+
         let isFirstLoad = rows.isEmpty && tagRows.isEmpty
         if isFirstLoad {
             isLoading = true
@@ -84,8 +93,8 @@ final class HomeViewModel {
         // only after the previous one returned, so a 7-row config
         // took roughly 7× the slowest call. Tasks come back in
         // completion order; orderedSections() drives display order
-        // from the config sortOrder, so the source arrays don't
-        // need to be ordered.
+        // from the config sortOrder, so arrival order doesn't affect
+        // layout, only paint timing.
         enum RowResult: Sendable {
             case media(HomeRowData)
             case tag(HomeTagRowData)
@@ -106,7 +115,29 @@ final class HomeViewModel {
             return (config.type, config.type.isTagRow)
         }
 
-        let results = await withTaskGroup(of: RowResult.self, returning: [RowResult].self) { group in
+        let plannedMediaTypes = Set(plan.filter { !$0.isTag }.map { $0.type })
+        let plannedTagTypes = Set(plan.filter { $0.isTag }.map { $0.type })
+
+        // Drop any rows whose config was disabled since the previous
+        // load so the disappearance is instant rather than waiting on
+        // the new fan-out to finish. Stale rows for still-enabled
+        // types stay on screen and get replaced in-place as their
+        // fresh result lands.
+        rows.removeAll { !plannedMediaTypes.contains($0.type) }
+        tagRows.removeAll { !plannedTagTypes.contains($0.type) }
+
+        var sawAnyResult = false
+
+        // Progressive publish: upsert each row as its fetch completes
+        // instead of awaiting the full TaskGroup before swapping.
+        // On a slow CDN-backed Jellyfin, fast rows (Continue Watching,
+        // a few hundred ms) paint immediately while the slowest call
+        // (Latest Movies/Series on a 1 PB library, 10+ s) keeps
+        // streaming. ForEach diffs by HomeRowData.id (type rawValue),
+        // so replacing a row in place preserves AsyncImage state for
+        // subviews that were already mounted; new rows insert at the
+        // position orderedSections() places them.
+        await withTaskGroup(of: RowResult.self) { group in
             for entry in plan {
                 group.addTask { [weak self] in
                     guard let self else { return .empty }
@@ -122,51 +153,54 @@ final class HomeViewModel {
                     return .empty
                 }
             }
-            var collected: [RowResult] = []
-            for await result in group { collected.append(result) }
-            return collected
-        }
-
-        var newRows: [HomeRowData] = []
-        var newTagRows: [HomeTagRowData] = []
-        for result in results {
-            switch result {
-            case .media(let row): newRows.append(row)
-            case .tag(let row): newTagRows.append(row)
-            case .empty: break
+            for await result in group {
+                // Stale guard: a newer loadContent has superseded
+                // this one; drop the rest of its results on the floor
+                // so we don't fight the newer run for the rows array.
+                guard loadGeneration == myGen else { return }
+                switch result {
+                case .media(let row):
+                    if let idx = rows.firstIndex(where: { $0.type == row.type }) {
+                        rows[idx] = row
+                    } else {
+                        rows.append(row)
+                    }
+                    sawAnyResult = true
+                    isLoading = false
+                    errorMessage = nil
+                case .tag(let row):
+                    if let idx = tagRows.firstIndex(where: { $0.type == row.type }) {
+                        tagRows[idx] = row
+                    } else {
+                        tagRows.append(row)
+                    }
+                    sawAnyResult = true
+                    isLoading = false
+                    errorMessage = nil
+                case .empty:
+                    break
+                }
             }
         }
 
-        // If we had rows configured *and* every single fan-out came
-        // back empty, the most likely cause is the server is
-        // unreachable, `loadRow`/`loadTagRow` both swallow errors and
-        // return nil, so a fan-out full of nils looks identical to a
-        // total network failure. Surface the existing retry overlay
-        // when that happens. On a *refresh* we keep the previously-
-        // rendered rows on screen instead of wiping them (better UX
-        // for a transient hiccup).
+        guard loadGeneration == myGen else { return }
+
+        // Total-failure path: every fan-out came back empty or threw.
+        // loadRow/loadTagRow swallow errors and return nil, so "all
+        // nils" looks the same as "server unreachable". Surface the
+        // retry overlay only on a first load; on refresh we keep
+        // whatever rows are already on screen so a transient CDN
+        // hiccup doesn't wipe the home page.
         let hadConfiguredFetchableRows = !plan.isEmpty
-        let totalFailure = hadConfiguredFetchableRows
-            && newRows.isEmpty
-            && newTagRows.isEmpty
-        if totalFailure {
-            if isFirstLoad {
-                errorMessage = String(
-                    localized: "home.error.unreachable",
-                    defaultValue: "Couldn't reach your server. Check the connection and try again."
-                )
-            }
+        if hadConfiguredFetchableRows && !sawAnyResult && isFirstLoad {
+            errorMessage = String(
+                localized: "home.error.unreachable",
+                defaultValue: "Couldn't reach your server. Check the connection and try again."
+            )
             isLoading = false
             return
         }
 
-        // Atomic swap -- old images stay visible until new data is ready.
-        // ForEach diffs by HomeRowData.id (stable) so AsyncImage
-        // subviews are reused when rows are refetched; no .id() on the
-        // LazyVStack, which would otherwise recreate the whole subtree
-        // and force every AsyncImage back into its empty phase.
-        rows = newRows
-        tagRows = newTagRows
         isLoading = false
         lastLoadedAt = .now
 
@@ -179,25 +213,44 @@ final class HomeViewModel {
         providerCountsTask?.cancel()
         genreCachesTask?.cancel()
 
+        // All three background passes deferred so the server isn't
+        // hammered with secondary queries right as the user is
+        // tapping into their first detail page. On a fast homelab
+        // Jellyfin this delay is imperceptible (the user is still
+        // looking at the rows); on a slow CDN-backed Jellyfin
+        // (Sodalite#12) it keeps the backend free for whatever the
+        // user does next instead of forcing the heavy precompute
+        // queries to compete with their navigation. .utility
+        // priority drops these below user-initiated work in the
+        // Swift cooperative scheduler too.
+
         // Best-effort: fan out one Studios query per provider so
         // the streaming-provider row can render a sample backdrop
         // from the local library. Failures and gaps in metadata
         // are tolerated, the tile falls back to the logo-only
         // style for any provider that doesn't resolve.
-        backdropTask = Task { [weak self] in
+        backdropTask = Task(priority: .utility) { [weak self] in
+            try? await Task.sleep(for: .seconds(2))
+            if Task.isCancelled { return }
             await self?.loadProviderBackdrops()
         }
         // Pre-resolve every provider tile in the background so the
         // empty-tile-hide pass on the home view has data to act on
         // *before* the user has tapped each one. Throttled to one
-        // run per session.
-        providerCountsTask = Task { [weak self] in
+        // run per session. Heaviest of the three (one 10 000-item
+        // all-library query plus per-provider studio + TMDB matches),
+        // deferred longest.
+        providerCountsTask = Task(priority: .utility) { [weak self] in
+            try? await Task.sleep(for: .seconds(5))
+            if Task.isCancelled { return }
             await self?.precomputeProviderCounts()
         }
         // Pre-warm the genre tile grids the same way: one Studios
         // query per genre so the first tap renders straight from the
         // cache instead of paying a network roundtrip.
-        genreCachesTask = Task { [weak self] in
+        genreCachesTask = Task(priority: .utility) { [weak self] in
+            try? await Task.sleep(for: .seconds(5))
+            if Task.isCancelled { return }
             await self?.precomputeGenreCaches()
         }
     }

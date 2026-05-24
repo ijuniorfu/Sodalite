@@ -44,19 +44,38 @@ final class HTTPClient: HTTPClientProtocol, @unchecked Sendable {
             config.httpShouldSetCookies = false
             config.httpCookieStorage = nil
 
-            // No response caching for API traffic. URLSession's
-            // default shared cache is disk-backed, so a Jellyfin
-            // response to /Items/Latest or /Users/{id}/Items that
-            // came back with a permissive Cache-Control header
-            // would continue serving stale data across app
-            // restarts, newly added movies and episodes stayed
-            // invisible until the cache naturally evicted. Blob
-            // sizes for JSON are small; always hitting the network
-            // is the right tradeoff for a "feels current"
-            // experience. Image caching lives in AsyncCachedImage
-            // on a separate session and is unaffected.
-            config.urlCache = nil
-            config.requestCachePolicy = .reloadIgnoringLocalCacheData
+            // Response caching with always-revalidate policy.
+            // The earlier hard-disable was a heavy hammer for one
+            // specific symptom: Jellyfin /Items responses being
+            // served stale across app restarts because URLSession
+            // honoured the server's Cache-Control max-age without
+            // checking back. The fix isn't "no caching" — it's
+            // "always ask the server but skip the body if nothing
+            // changed". `.reloadRevalidatingCacheData` makes
+            // URLSession send a conditional GET (If-None-Match /
+            // If-Modified-Since) on every request; the server
+            // replies 304 + ~200 bytes if the resource is unchanged
+            // and URLSession serves the cached body, otherwise 200
+            // + full payload and the cache is rewritten. The
+            // freshness guarantee is identical to the no-cache
+            // policy (server is the authority on every request);
+            // the win is body bytes on unchanged metadata, which
+            // on a 1 PB CDN-backed Jellyfin (Sodalite#12) trims
+            // /Items/Latest, /Users/Me, /Items/{id} from multi-MB
+            // payloads to a 304 stub.
+            //
+            // Sizes match a typical Jellyfin metadata working set:
+            // 10 MB memory keeps the hot rows of the home page
+            // resident; 50 MB disk survives app restarts so a cold
+            // launch can revalidate (cheap) instead of refetching
+            // (expensive). Image caching is still separate
+            // (AsyncCachedImage on its own session).
+            config.urlCache = URLCache(
+                memoryCapacity: 10 * 1024 * 1024,
+                diskCapacity: 50 * 1024 * 1024,
+                diskPath: "sodalite-http-cache"
+            )
+            config.requestCachePolicy = .reloadRevalidatingCacheData
             self.session = URLSession(configuration: config)
         }
 

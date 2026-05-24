@@ -111,6 +111,25 @@ final class DetailViewModel {
             }
         }
 
+        // Snapshot-paint deadline. If the detail / seasons / collection
+        // fetches haven't all settled within this budget, flip
+        // isLoading=false and paint from the JellyfinItem snapshot
+        // we already have in hand from the navigating row. Fast
+        // servers (homelab Jellyfin, sub-300 ms detail) still hit
+        // the original quiet single-render path because they complete
+        // before the deadline fires. Slow servers (CDN-backed libraries
+        // that take 10+ s for a detail roundtrip, per Sodalite#12)
+        // stop showing the 30 s spinner; the hero region paints from
+        // the snapshot immediately and overview / cast / seasons /
+        // episodes fade in as their fetches settle. Accepted tradeoff:
+        // a brief field-fill repaint on slow servers, vs. the
+        // 30-second hard wall before.
+        Task { [weak self] in
+            try? await Task.sleep(for: .milliseconds(500))
+            guard let self, self.isLoading else { return }
+            self.isLoading = false
+        }
+
         if let detail = await detailTask.value {
             item = detail
             isFavorite = detail.userData?.isFavorite ?? false
@@ -121,7 +140,10 @@ final class DetailViewModel {
         }
 
         // Wait for the parallel chains to finish so isLoading flips
-        // false only after every above-the-fold section has data.
+        // false at the latest once every section has its data. On
+        // fast servers this fires before the deadline above; on slow
+        // servers the deadline already flipped it false and this is
+        // a no-op.
         await seriesContentTask?.value
         await collectionContentTask?.value
 
