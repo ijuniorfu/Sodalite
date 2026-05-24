@@ -9,9 +9,18 @@ struct MovieDetailView: View {
     @State private var navigateToItem: JellyfinItem?
     @State private var showPlayer = false
     @State private var playFromBeginning = false
+    @State private var isPresentingDeleteSheet: Bool = false
     @FocusState private var playButtonFocused: Bool
 
     let item: JellyfinItem
+
+    /// True when the active user has Jellyfin's EnableContentDeletion
+    /// flag (or is an administrator). Read reactively from
+    /// AppState.activeUser, so a profile switch updates the visibility
+    /// without a manual refresh.
+    private var canDelete: Bool {
+        appState.activeUser?.canDeleteContent == true
+    }
 
     var body: some View {
         ZStack {
@@ -106,6 +115,48 @@ struct MovieDetailView: View {
                     playbackService: dependencies.jellyfinPlaybackService
                 )
                 Task { await viewModel?.loadFullDetail() }
+            }
+        }
+        .sheet(isPresented: $isPresentingDeleteSheet) {
+            if let vm = viewModel {
+                let popDetail = dismiss
+                MediaDeletionSheet(
+                    mode: .movie(
+                        itemID: vm.item.id,
+                        tmdbID: vm.item.tmdbID,
+                        title: vm.item.name
+                    ),
+                    onConfirm: { request in
+                        do {
+                            try await dependencies.mediaDeletionService.deleteMovie(
+                                itemID: vm.item.id,
+                                tmdbID: vm.item.tmdbID,
+                                cascadeToArrStack: request.cascadeToArrStack
+                            )
+                            // Pop the detail view after the sheet's
+                            // success-toast hold completes.
+                            Task { @MainActor in
+                                try? await Task.sleep(for: .milliseconds(1100))
+                                popDetail()
+                            }
+                            return .success
+                        } catch let error as MediaDeletionError {
+                            if error.partialSuccess {
+                                return .partialSuccess(
+                                    message: String(localized: "delete.toast.partialSuccess")
+                                )
+                            } else {
+                                return .failure(
+                                    message: String(localized: "delete.toast.failure")
+                                )
+                            }
+                        } catch {
+                            return .failure(
+                                message: String(localized: "delete.toast.failure")
+                            )
+                        }
+                    }
+                )
             }
         }
     }
@@ -230,6 +281,15 @@ struct MovieDetailView: View {
                 // the request flow has nothing meaningful to offer. The
                 // button stays on the series detail for continuing shows
                 // where new seasons may still land.
+
+                if canDelete {
+                    Button(role: .destructive) {
+                        isPresentingDeleteSheet = true
+                    } label: {
+                        Label("detail.delete.button", systemImage: "trash")
+                    }
+                    .buttonStyle(.bordered)
+                }
             }
             .padding(.top, 4)
         }
