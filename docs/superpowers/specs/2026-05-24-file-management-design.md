@@ -45,7 +45,7 @@ Sodalite
 
 `MediaDeletionService` is the single boundary the rest of the app talks to. Detail views never call Jellyfin or Seerr directly for deletion.
 
-`DependencyContainer` keeps `currentUserPolicy: JellyfinUser.Policy?` populated from the most recent `getCurrentUser()` response. The detail views read it via the dependency container, not via re-fetching.
+Permission state piggy-backs on the existing `AppState.activeUser: JellyfinUser?` (already `@Observable`-published, already replaced atomically on profile switch / login / logout). Adding `policy` as a sub-field on `JellyfinUser` means the existing multi-profile reactivity carries it along for free; no second source of truth.
 
 ## Permission detection
 
@@ -61,17 +61,35 @@ extension JellyfinUser {
 }
 ```
 
-The `Policy` field is optional because some Jellyfin API responses don't include it (e.g. `/Users/Public`). `getCurrentUser()` always returns it.
+The `Policy` field is optional because some Jellyfin API responses don't include it (e.g. `/Users/Public` returns sparse user objects without policy). `getCurrentUser()` always returns it.
 
-`DependencyContainer.currentUserPolicy` is a published value that mirrors the most recent successful `getCurrentUser()`. It's nil before login, populated after, cleared on logout / server switch.
+### Reactivity across profile switches
 
-Permission gate for the delete UI:
+`AppState.activeUser` is `@Observable` and gets replaced atomically by the existing auth flow at three points:
+1. **Login** (`AppState.setAuthenticated(server:user:)` line 52 of `AppState.swift`) → sets `activeUser` to the new user with their policy.
+2. **Logout** (`AppState.signOut()` line 60) → sets `activeUser` to `nil`.
+3. **Profile switch** (`LaunchProfilePickerView` → `AppRouter` → `DependencyContainer.switchToUser` → eventually `setAuthenticated` with the new user) → replaces `activeUser` atomically.
 
+Because `activeUser` is `@Observable` and detail views read it via SwiftUI's environment, **the delete button's visibility recomputes automatically on every transition.** No imperative refresh, no cache invalidation:
+
+```swift
+private var canDelete: Bool {
+    guard let policy = appState.activeUser?.policy else { return false }
+    return policy.isAdministrator || policy.enableContentDeletion
+}
 ```
-let canDelete = policy?.isAdministrator == true || policy?.enableContentDeletion == true
-```
+
+When `activeUser` flips from User A (admin) to User B (regular), the `canDelete` computed property re-evaluates and SwiftUI re-renders the detail view, removing the button. The reverse holds. Same for the in-flight case where a Delete confirmation sheet is already open: SwiftUI keeps the sheet's local state but the underlying detail view's button visibility tracks the live policy. If the policy goes from yes→no mid-confirmation, the worst case is the user can still confirm; the server-side `DELETE /Items/{id}` then returns 403 and the partial-success toast surfaces the denial. We do not chase the in-flight case in the UI; the server is the final gate.
 
 The `isAdministrator` shortcut covers admins whose individual `enableContentDeletion` flag is incidentally false (admins implicitly have all rights in Jellyfin).
+
+### What happens during the policy-fetch window
+
+There's a brief window between "auth succeeded" and "getCurrentUser() returned". During that window `activeUser` could either be nil or the cached value from a prior session. To keep the button visibility honest:
+
+- The login flow calls `getCurrentUser()` as part of its handshake (`JellyfinAuthService.getCurrentUser()` is already invoked at line 64 of `JellyfinAuthService.swift`), so `activeUser` is only ever set with a policy already attached.
+- Profile-switch goes through the same path. The window doesn't exist in practice.
+- For the legacy session-restore path (returning to an existing session at app launch), the cached `JellyfinUser` may pre-date the policy decode. The first `getCurrentUser()` call after launch updates `activeUser` with a fresh user-object. Until then, `activeUser.policy` is nil → `canDelete` is false → button hidden. Conservative default.
 
 ## MediaDeletionService
 
@@ -170,6 +188,15 @@ No test target. Manual verification:
 7. Confirm the cascade toggle is disabled and explained when only seasons (not the whole series) are selected.
 8. Network down during the Seerr call: confirm partial-success toast.
 9. After delete, confirm the library/home cache refreshes and the deleted item no longer appears.
+
+**Profile-switch verification (this matters because Sodalite has a multi-profile launch picker):**
+
+10. Have two Jellyfin users configured on the same server: User A (admin or `EnableContentDeletion = true`) and User B (`EnableContentDeletion = false`).
+11. Log in as User A. Open a movie detail. Confirm the Delete button is visible.
+12. Without closing the app, go back to the launch profile picker and switch to User B. Re-open the same movie detail. Confirm the Delete button has disappeared.
+13. Switch back to User A. Confirm the Delete button returns.
+14. Cold-launch the app while session-restore is active. During the brief window before `getCurrentUser()` completes, confirm the Delete button is hidden (conservative default), then watch it appear once the policy lands. Should be visually imperceptible on a fast network.
+15. Log out completely from the Settings screen. Re-log in as User B. Confirm the button stays hidden.
 
 ## Risk and trade-offs
 
