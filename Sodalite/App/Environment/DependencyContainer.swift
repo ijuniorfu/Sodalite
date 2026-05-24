@@ -29,6 +29,11 @@ final class DependencyContainer {
     let seerrServiceConfigService: SeerrServiceConfigServiceProtocol
     let seerrSearchService: SeerrSearchServiceProtocol
 
+    /// File-deletion service that fronts Jellyfin and Seerr. Used by
+    /// MovieDetailView and SeriesDetailView when the active user has
+    /// content-deletion rights (see JellyfinUser.canDeleteContent).
+    let mediaDeletionService: any MediaDeletionServiceProtocol
+
     init(
         keychainService: KeychainServiceProtocol = KeychainService(),
         httpClient: HTTPClientProtocol = HTTPClient()
@@ -70,6 +75,11 @@ final class DependencyContainer {
         self.seerrRequestService = SeerrRequestService(client: seerrClient)
         self.seerrServiceConfigService = SeerrServiceConfigService(client: seerrClient)
         self.seerrSearchService = SeerrSearchService(client: seerrClient)
+
+        self.mediaDeletionService = MediaDeletionService(
+            jellyfinItems: self.jellyfinItemService,
+            seerrMedia: self.seerrMediaService
+        )
     }
 
     /// `try?` is intentional here: a missing or unreadable Keychain entry
