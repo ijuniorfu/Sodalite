@@ -325,6 +325,11 @@ struct SeriesDetailView: View {
                                     cascadeToArrStack: false
                                 )
                             }
+                            // Drop the on-disk filter cache so the
+                            // Library + Home rows don't keep showing
+                            // the deleted item(s) until natural
+                            // eviction. Active rows re-fetch on focus.
+                            FilterCache.shared.clearAll()
                             // Only pop the detail view when the whole
                             // series was deleted. For seasons-only
                             // deletion the user might still want to

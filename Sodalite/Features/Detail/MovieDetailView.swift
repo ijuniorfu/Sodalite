@@ -133,6 +133,11 @@ struct MovieDetailView: View {
                                 tmdbID: vm.item.tmdbID,
                                 cascadeToArrStack: request.cascadeToArrStack
                             )
+                            // Drop the on-disk filter cache so the
+                            // Library + Home rows don't keep showing
+                            // the deleted movie until natural eviction.
+                            // Active rows re-fetch on next focus.
+                            FilterCache.shared.clearAll()
                             // Pop the detail view after the sheet's
                             // success-toast hold completes.
                             Task { @MainActor in
