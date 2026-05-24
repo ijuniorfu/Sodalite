@@ -1519,7 +1519,8 @@ private struct PlayerOverlayView: View {
                     player: viewModel.player,
                     item: viewModel.item,
                     activeSubtitleIndex: viewModel.activeSubtitleIndex,
-                    scrollSectionIndex: viewModel.statsSectionIndex
+                    scrollSectionIndex: viewModel.statsSectionIndex,
+                    showEngineDiagnostics: viewModel.preferences.showEngineDiagnostics
                 )
             }
 

@@ -28,6 +28,10 @@ struct StatsOverlayView: View {
     /// Used to drive the embedded `ScrollViewReader` to the section
     /// the user navigated to with the Up/Down arrows.
     let scrollSectionIndex: Int
+    /// Whether to render the Engine/Buffer/Network diagnostic sections
+    /// at the bottom of the panel. Driven by
+    /// `PlaybackPreferences.showEngineDiagnostics`.
+    let showEngineDiagnostics: Bool
 
     private var videoStream: MediaStream? {
         item.mediaStreams?.first { $0.type == .video }
@@ -82,21 +86,35 @@ struct StatsOverlayView: View {
                         .fontWeight(.bold)
                         .foregroundStyle(.white)
 
-                    playbackSection
+                    liveSection
                         .id(PlayerViewModel.statsSectionAnchors[0])
                         .modifier(StatsSectionHighlight(isCurrent: scrollSectionIndex == 0))
-                    videoSection
+                    playbackSection
                         .id(PlayerViewModel.statsSectionAnchors[1])
                         .modifier(StatsSectionHighlight(isCurrent: scrollSectionIndex == 1))
-                    audioSection
+                    videoSection
                         .id(PlayerViewModel.statsSectionAnchors[2])
                         .modifier(StatsSectionHighlight(isCurrent: scrollSectionIndex == 2))
-                    subtitleSection
+                    audioSection
                         .id(PlayerViewModel.statsSectionAnchors[3])
                         .modifier(StatsSectionHighlight(isCurrent: scrollSectionIndex == 3))
-                    fileSection
+                    subtitleSection
                         .id(PlayerViewModel.statsSectionAnchors[4])
                         .modifier(StatsSectionHighlight(isCurrent: scrollSectionIndex == 4))
+                    fileSection
+                        .id(PlayerViewModel.statsSectionAnchors[5])
+                        .modifier(StatsSectionHighlight(isCurrent: scrollSectionIndex == 5))
+                    if showEngineDiagnostics {
+                        engineSection
+                            .id(PlayerViewModel.statsSectionAnchors[6])
+                            .modifier(StatsSectionHighlight(isCurrent: scrollSectionIndex == 6))
+                        bufferSection
+                            .id(PlayerViewModel.statsSectionAnchors[7])
+                            .modifier(StatsSectionHighlight(isCurrent: scrollSectionIndex == 7))
+                        networkSection
+                            .id(PlayerViewModel.statsSectionAnchors[8])
+                            .modifier(StatsSectionHighlight(isCurrent: scrollSectionIndex == 8))
+                    }
                 }
                 .padding(28)
                 .frame(width: 560, alignment: .topLeading)
@@ -143,6 +161,46 @@ struct StatsOverlayView: View {
     }
 
     // MARK: - Sections
+
+    @ViewBuilder
+    private var liveSection: some View {
+        section("player.stats.section.live") {
+            let telemetry = player.liveTelemetry
+            // Bitrate (instant + average)
+            row(
+                "player.stats.bitrate",
+                value: Self.formatBitratePair(
+                    instant: telemetry?.instantBitrateMbps,
+                    average: telemetry?.averageBitrateMbps
+                )
+            )
+            // Buffer (seconds + cached MB)
+            row(
+                "player.stats.buffer",
+                value: Self.formatBufferPair(
+                    seconds: telemetry?.forwardBufferSeconds,
+                    cachedBytes: telemetry?.cachedBytes
+                )
+            )
+            // Network (throughput + transferred bytes)
+            row(
+                "player.stats.network",
+                value: Self.formatNetworkPair(
+                    mbps: telemetry?.networkThroughputMbps,
+                    transferred: telemetry?.networkTransferredBytes
+                )
+            )
+            if let dropped = telemetry?.droppedFrameCount {
+                row("player.stats.droppedFrames", value: "\(dropped)")
+            }
+            if let fps = telemetry?.observedFps {
+                row("player.stats.fpsObserved", value: String(format: "%.2f fps", fps))
+            }
+            if let gap = telemetry?.avSyncGapMs {
+                row("player.stats.avGap", value: Self.formatAVGap(gap))
+            }
+        }
+    }
 
     private var playbackSection: some View {
         section("player.stats.section.playback") {
@@ -204,6 +262,9 @@ struct StatsOverlayView: View {
                             : Self.channelLayoutLabel(channels)
                     )
                 }
+                if let bps = activeAudioStream?.bitRate, bps > 0 {
+                    row("detail.tech.bitrate", value: Self.formatBitrate(bps))
+                }
                 if let lang = activeAudioStream?.displayTitle
                     ?? engineTrack?.language
                     ?? activeAudioStream?.language {
@@ -245,6 +306,52 @@ struct StatsOverlayView: View {
                    let filename = path.split(separator: "/").last {
                     row("detail.tech.filename", value: String(filename))
                 }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var engineSection: some View {
+        if let telemetry = player.liveTelemetry {
+            section("player.stats.section.engine") {
+                row("player.stats.producerRestarts", value: "\(telemetry.producerRestartCount)")
+                row("player.stats.rss", value: "\(telemetry.rssMb) MB")
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var bufferSection: some View {
+        if let telemetry = player.liveTelemetry {
+            section("player.stats.section.buffer") {
+                row(
+                    "player.stats.demuxerBytes",
+                    value: Self.formatByteCount(telemetry.demuxerBytesFetched)
+                )
+                row(
+                    "player.stats.muxedBytes",
+                    value: Self.formatByteCount(telemetry.muxedBytesLifetime)
+                )
+                row(
+                    "player.stats.audioBridge",
+                    value: Self.formatByteCountShort(telemetry.audioBridgeLiveBytes)
+                )
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var networkSection: some View {
+        if let telemetry = player.liveTelemetry {
+            section("player.stats.section.network") {
+                row(
+                    "player.stats.serverSent",
+                    value: Self.formatByteCount(telemetry.serverBytesSentLifetime)
+                )
+                row(
+                    "player.stats.serverRequests",
+                    value: "\(telemetry.serverRequestCount)"
+                )
             }
         }
     }
@@ -337,6 +444,40 @@ struct StatsOverlayView: View {
         let gb = Double(bytes) / 1_073_741_824
         if gb >= 1 { return String(format: "%.1f GB", gb) }
         return String(format: "%.0f MB", Double(bytes) / 1_048_576)
+    }
+
+    private static func formatBitratePair(instant: Double?, average: Double?) -> String {
+        let inst = instant.map { String(format: "%.1f Mbps", $0) } ?? "—"
+        let avg = average.map { String(format: "%.1f", $0) } ?? "—"
+        return "\(inst)  ·  avg \(avg) Mbps"
+    }
+
+    private static func formatBufferPair(seconds: Double?, cachedBytes: Int64?) -> String {
+        let sec = seconds.map { String(format: "+%.1f s", $0) } ?? "—"
+        let mb = cachedBytes.map { String(format: "%d MB", $0 / 1_048_576) } ?? "—"
+        return "\(sec)  ·  \(mb) cached"
+    }
+
+    private static func formatNetworkPair(mbps: Double?, transferred: Int64?) -> String {
+        let m = mbps.map { String(format: "%.1f Mbps", $0) } ?? "—"
+        let t = transferred.map { Self.formatByteCount($0) } ?? "—"
+        return "\(m)  ·  \(t)"
+    }
+
+    private static func formatAVGap(_ ms: Double) -> String {
+        return String(format: "%.0f ms", ms)
+    }
+
+    private static func formatByteCount(_ bytes: Int64) -> String {
+        let gb = Double(bytes) / 1_073_741_824
+        if gb >= 1 { return String(format: "%.2f GB", gb) }
+        let mb = Double(bytes) / 1_048_576
+        if mb >= 1 { return String(format: "%.0f MB", mb) }
+        return String(format: "%.0f KB", Double(bytes) / 1024)
+    }
+
+    private static func formatByteCountShort(_ bytes: Int) -> String {
+        return formatByteCount(Int64(bytes))
     }
 }
 

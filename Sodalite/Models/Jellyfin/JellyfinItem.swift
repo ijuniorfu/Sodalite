@@ -256,6 +256,7 @@ struct MediaStream: Codable, Sendable, Equatable, Identifiable {
     let averageFrameRate: Double?
     let realFrameRate: Double?
     let profile: String?
+    let bitRate: Int?
 
     var id: Int { index }
 
@@ -276,6 +277,7 @@ struct MediaStream: Codable, Sendable, Equatable, Identifiable {
         case averageFrameRate = "AverageFrameRate"
         case realFrameRate = "RealFrameRate"
         case profile = "Profile"
+        case bitRate = "BitRate"
     }
 }
 
