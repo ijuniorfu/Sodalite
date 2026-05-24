@@ -34,6 +34,15 @@ enum SeerrEndpoint: APIEndpoint {
     case sonarrServers
     case sonarrDetails(serverID: Int)
 
+    /// DELETE /api/v1/media/{id}/file — Jellyseerr proxies this to
+    /// Radarr's `removeMovie` or Sonarr's `removeSeries`, both invoked
+    /// with `deleteFiles: true`. Since Jellyfin already removed the
+    /// file before we get here, the file-delete attempt is a no-op
+    /// on the *arr side; the database-entry removal is the
+    /// side-effect we want. Requires the Seerr user to have the
+    /// MANAGE_REQUESTS permission.
+    case mediaFileDelete(seerrMediaID: Int)
+
     var path: String {
         switch self {
         case .status: "/api/v1/status"
@@ -63,6 +72,7 @@ enum SeerrEndpoint: APIEndpoint {
         case .radarrDetails(let id): "/api/v1/service/radarr/\(id)"
         case .sonarrServers: "/api/v1/service/sonarr"
         case .sonarrDetails(let id): "/api/v1/service/sonarr/\(id)"
+        case .mediaFileDelete(let id): "/api/v1/media/\(id)/file"
         }
     }
 
@@ -70,6 +80,7 @@ enum SeerrEndpoint: APIEndpoint {
         switch self {
         case .authJellyfin, .createRequest: .post
         case .authLogout: .post
+        case .mediaFileDelete: .delete
         default: .get
         }
     }
@@ -114,6 +125,11 @@ enum SeerrEndpoint: APIEndpoint {
                 // silently matched zero requests on every call.
                 URLQueryItem(name: "requestedBy", value: String(userID)),
             ]
+
+        case .mediaFileDelete:
+            // is4k is required by the Jellyseerr endpoint; Sodalite has
+            // no 4K-profile distinction in its flow, always false.
+            return [URLQueryItem(name: "is4k", value: "false")]
 
         default:
             return nil
