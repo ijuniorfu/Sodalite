@@ -215,7 +215,6 @@ struct StatsOverlayView: View {
             if let decoder = player.activeAudioDecoder {
                 row("player.stats.audioDecoder", value: decoder)
             }
-            row("player.stats.dynamicRange", value: dynamicRangeLabel)
         }
     }
 
@@ -239,6 +238,7 @@ struct StatsOverlayView: View {
                 if let bps = mediaSource?.bitrate {
                     row("detail.tech.bitrate", value: Self.formatBitrate(bps))
                 }
+                row("player.stats.dynamicRange", value: videoRangeLabel(stream: v))
             }
         }
     }
@@ -429,14 +429,24 @@ struct StatsOverlayView: View {
         }
     }
 
-    private var dynamicRangeLabel: String {
+    /// Engine-detected runtime range, refined with Jellyfin's source
+    /// DV profile when the engine reports Dolby Vision (engine knows
+    /// "it's DV" via RPU detection; profile number comes from the
+    /// source's container metadata). Examples: "SDR", "HDR10+",
+    /// "Dolby Vision P5", "Dolby Vision P8".
+    private func videoRangeLabel(stream: MediaStream) -> String {
+        let base: String
         switch player.videoFormat {
-        case .sdr:        return "SDR"
-        case .hdr10:      return "HDR10"
-        case .hdr10Plus:  return "HDR10+"
-        case .dolbyVision: return "Dolby Vision"
-        case .hlg:        return "HLG"
+        case .sdr:        base = "SDR"
+        case .hdr10:      base = "HDR10"
+        case .hdr10Plus:  base = "HDR10+"
+        case .dolbyVision: base = "Dolby Vision"
+        case .hlg:        base = "HLG"
         }
+        if player.videoFormat == .dolbyVision, let p = stream.dvProfile {
+            return "\(base) P\(p)"
+        }
+        return base
     }
 
     // MARK: - Formatters
