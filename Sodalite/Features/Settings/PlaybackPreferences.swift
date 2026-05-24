@@ -44,6 +44,7 @@ final class PlaybackPreferences {
         static let subtitleWeight = "playback.subtitleWeight"
         static let pictureMode = "playback.pictureMode"
         static let showStatsForNerds = "playback.showStatsForNerds"
+        static let showEngineDiagnostics = "playback.showEngineDiagnostics"
         static let showDiagnosticOverlay = "playback.showDiagnosticOverlay"
         static let focusDiagnosticOverlayOnDV = "playback.focusDiagnosticOverlayOnDV"
         static let preferLosslessAudioBridge = "playback.preferLosslessAudioBridge"
@@ -369,6 +370,10 @@ final class PlaybackPreferences {
         didSet { store.set(showStatsForNerds, forKey: Keys.showStatsForNerds) }
     }
 
+    var showEngineDiagnostics: Bool {
+        didSet { store.set(showEngineDiagnostics, forKey: Keys.showEngineDiagnostics) }
+    }
+
     /// Show the in-player engine log overlay (top-left). Default off
     /// so the overlay doesn't ride along on every TestFlight build; the
     /// `LogTap.isDiagnosticBuild` gate still hides the toggle entirely
@@ -465,6 +470,7 @@ final class PlaybackPreferences {
         self.pictureMode = (store.string(forKey: Keys.pictureMode))
             .flatMap(PictureMode.init(rawValue:)) ?? .original
         self.showStatsForNerds = store.object(forKey: Keys.showStatsForNerds) as? Bool ?? false
+        self.showEngineDiagnostics = store.object(forKey: Keys.showEngineDiagnostics) as? Bool ?? false
         self.showDiagnosticOverlay = store.object(forKey: Keys.showDiagnosticOverlay) as? Bool ?? false
         self.focusDiagnosticOverlayOnDV = store.object(forKey: Keys.focusDiagnosticOverlayOnDV) as? Bool ?? true
         self.preferLosslessAudioBridge = store.object(forKey: Keys.preferLosslessAudioBridge) as? Bool ?? false
