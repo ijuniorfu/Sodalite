@@ -22282,168 +22282,6 @@
         }
       }
     },
-    "delete.confirm.cascade.subtitle" : {
-      "comment" : "Explanation under the cascade-delete toggle",
-      "extractionState" : "manual",
-      "localizations" : {
-        "cs" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Odebere záznam, aby ho *arr stack přestal sledovat."
-          }
-        },
-        "da" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Fjerner posten, så *arr-stakken holder op med at overvåge den."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Entfernt den Eintrag, damit der *arr-Stack die Datei nicht erneut herunterlädt."
-          }
-        },
-        "el" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Αφαιρεί την καταχώρηση ώστε η στοίβα *arr να σταματήσει να την παρακολουθεί."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Removes the entry so the *arr stack stops monitoring it."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Elimina la entrada para que el stack *arr deje de monitorizarla."
-          }
-        },
-        "fi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Poistaa merkinnän, jotta *arr-pino lakkaa valvomasta sitä."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Retire l'entrée pour que la stack *arr cesse de la surveiller."
-          }
-        },
-        "hr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Uklanja unos kako bi ga *arr stack prestao pratiti."
-          }
-        },
-        "hu" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Eltávolítja a bejegyzést, hogy az *arr verem ne kövesse tovább."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Rimuove la voce affinché lo stack *arr smetta di monitorarla."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "*arrスタックがエントリを監視しないように削除します。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "*arr 스택이 항목을 더 이상 모니터링하지 않도록 제거합니다."
-          }
-        },
-        "nb" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Fjerner oppføringen så *arr-stakken slutter å overvåke den."
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Verwijdert de vermelding zodat de *arr-stack hem niet meer volgt."
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Usuwa wpis, aby *arr stack przestał go monitorować."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Remove a entrada para que o stack *arr pare de monitorá-la."
-          }
-        },
-        "pt-PT" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Remove a entrada para que a stack *arr deixe de a monitorizar."
-          }
-        },
-        "ro" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Elimină intrarea pentru ca stiva *arr să nu o mai monitorizeze."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Удаляет запись, чтобы стек *arr перестал её отслеживать."
-          }
-        },
-        "sk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Odstráni záznam, aby ho *arr stack prestal sledovať."
-          }
-        },
-        "sv" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tar bort posten så att *arr-stacken slutar bevaka den."
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Girdiyi kaldırır, böylece *arr yığını izlemeyi durdurur."
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Видаляє запис, щоб *arr стек припинив його відстежувати."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "移除条目,使 *arr 套件不再监控它。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "移除項目,使 *arr 套件不再監控它。"
-          }
-        }
-      }
-    },
     "delete.confirm.cascade.title" : {
       "comment" : "Title of the cascade-delete toggle (also remove from Radarr / Sonarr)",
       "extractionState" : "manual",
@@ -23736,6 +23574,168 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "已從 Jellyfin 中移除,但無法移除 Radarr / Sonarr 中的項目。"
+          }
+        }
+      }
+    },
+    "delete.toast.seerrNotSignedIn" : {
+      "comment" : "Toast when cascade was requested but Seerr session is missing",
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Odstraněno z Jellyfin. Přihlaste se do Seerr v Nastavení, abyste mohli také odebrat záznam z Radarr / Sonarr."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fjernet fra Jellyfin. Log ind på Seerr i Indstillinger for også at fjerne Radarr / Sonarr-posten."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aus Jellyfin entfernt. Melde dich bei Seerr an, um den Radarr / Sonarr-Eintrag mit zu entfernen."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Αφαιρέθηκε από το Jellyfin. Συνδεθείτε στο Seerr στις Ρυθμίσεις για να αφαιρέσετε και την καταχώρηση στο Radarr / Sonarr."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Removed from Jellyfin. Sign in to Seerr in Settings to also clean up the Radarr / Sonarr entry."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Eliminado de Jellyfin. Inicia sesión en Seerr en Ajustes para limpiar también la entrada de Radarr / Sonarr."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Poistettu Jellyfinistä. Kirjaudu Seerriin Asetuksissa poistaaksesi myös Radarr / Sonarr -merkinnän."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Supprimé de Jellyfin. Connectez-vous à Seerr dans Réglages pour supprimer également l'entrée Radarr / Sonarr."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uklonjeno iz Jellyfina. Prijavite se u Seerr u Postavkama kako biste uklonili i unos u Radarr / Sonarr."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Eltávolítva a Jellyfinből. Jelentkezzen be a Seerrbe a Beállításokban a Radarr / Sonarr bejegyzés eltávolításához is."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rimosso da Jellyfin. Accedi a Seerr nelle Impostazioni per rimuovere anche la voce in Radarr / Sonarr."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jellyfinから削除しました。設定でSeerrにサインインして、Radarr / Sonarrのエントリも削除してください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jellyfin에서 제거되었습니다. Radarr / Sonarr 항목도 정리하려면 설정에서 Seerr에 로그인하세요."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fjernet fra Jellyfin. Logg inn på Seerr i Innstillinger for å også fjerne Radarr / Sonarr-oppføringen."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verwijderd uit Jellyfin. Log in bij Seerr in Instellingen om ook de Radarr / Sonarr-vermelding op te ruimen."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Usunięto z Jellyfin. Zaloguj się do Seerr w Ustawieniach, aby usunąć także wpis w Radarr / Sonarr."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Removido do Jellyfin. Faça login no Seerr em Configurações para também limpar a entrada no Radarr / Sonarr."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Removido do Jellyfin. Inicie sessão no Seerr nas Definições para também remover a entrada no Radarr / Sonarr."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Eliminat din Jellyfin. Conectați-vă la Seerr din Setări pentru a elimina și intrarea din Radarr / Sonarr."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Удалено из Jellyfin. Войдите в Seerr в Настройках, чтобы также удалить запись в Radarr / Sonarr."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Odstránené z Jellyfin. Prihláste sa do Seerr v Nastaveniach, aby ste mohli odstrániť aj záznam v Radarr / Sonarr."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Borttagen från Jellyfin. Logga in på Seerr i Inställningar för att även rensa Radarr / Sonarr-posten."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jellyfin'den kaldırıldı. Radarr / Sonarr kaydını da temizlemek için Ayarlar'dan Seerr'e giriş yapın."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Видалено з Jellyfin. Увійдіть у Seerr у Налаштуваннях, щоб також видалити запис у Radarr / Sonarr."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已从 Jellyfin 中移除。请在设置中登录 Seerr 以同时清理 Radarr / Sonarr 中的条目。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已從 Jellyfin 中移除。請在設定中登入 Seerr 以同時清理 Radarr / Sonarr 中的項目。"
           }
         }
       }
