@@ -55,6 +55,26 @@ final class AppState {
         isAuthenticated = true
     }
 
+    /// Replaces `activeUser.policy` while preserving every other field
+    /// (id, name, server, image tag, etc.). Called after a profile
+    /// switch or session restore once `getCurrentUser()` returns a
+    /// fresh `JellyfinUser` whose `Policy` block reflects the current
+    /// server-side rights. Without this, the activeUser is the
+    /// keychain-bootstrapped stub with `policy: nil`, and the
+    /// permission-gated UI (delete button, future admin surfaces)
+    /// stays hidden until a full logout/login cycle.
+    func updateActiveUserPolicy(_ policy: JellyfinUser.Policy?) {
+        guard let current = activeUser else { return }
+        activeUser = JellyfinUser(
+            id: current.id,
+            name: current.name,
+            serverID: current.serverID,
+            hasPassword: current.hasPassword,
+            primaryImageTag: current.primaryImageTag,
+            policy: policy
+        )
+    }
+
     func logout() {
         activeServer = nil
         activeUser = nil

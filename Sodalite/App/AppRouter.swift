@@ -343,6 +343,7 @@ struct AppRouter: View {
                 policy: nil
             )
             appState.setAuthenticated(server: server, user: user)
+            Task { await refreshActiveUserPolicy(expectedUserID: user.id) }
         } else if remembered.count > 1 {
             launchPickerServer = server
             // Fall through, Seerr restore is independent of which
@@ -353,6 +354,7 @@ struct AppRouter: View {
             // Enter the app directly, no point showing a picker
             // with one card on it.
             appState.setAuthenticated(server: server, user: restored)
+            Task { await refreshActiveUserPolicy(expectedUserID: restored.id) }
         }
 
         // Seerr restore, prefer the profile-scoped session when the
@@ -393,5 +395,24 @@ struct AppRouter: View {
                 try? dependencies.clearSeerrSession()
             }
         }
+    }
+
+    /// Calls `/Users/Me` to refresh the active user's Policy block.
+    /// `expectedUserID` guards against a profile switch that races
+    /// the fetch: if the active profile changed between dispatch and
+    /// response, we discard the result instead of applying another
+    /// user's policy to the now-current user.
+    ///
+    /// Existed since the File Management feature added a permission
+    /// gate driven by `JellyfinUser.canDeleteContent`. The keychain-
+    /// bootstrapped restore + profile-switch paths construct the
+    /// active user with `policy: nil`; without this refresh, the
+    /// permission-gated UI stays hidden until a full logout/login.
+    private func refreshActiveUserPolicy(expectedUserID: String) async {
+        guard let me = try? await dependencies.jellyfinAuthService.getCurrentUser(),
+              me.id == expectedUserID,
+              appState.activeUser?.id == expectedUserID
+        else { return }
+        appState.updateActiveUserPolicy(me.policy)
     }
 }

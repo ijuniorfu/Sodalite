@@ -151,9 +151,11 @@ struct LaunchProfilePickerView: View {
             // stays disconnected and the Catalog tab shows the "set
             // up Seerr" empty state.
             Task { await restoreSeerrForProfile(userID: user.id, serverID: server.id) }
-            // Backfill a missing PrimaryImageTag from the server so
-            // the Settings avatar switches to the actual picture
-            // instead of staying on the initials.
+            // Backfill a missing PrimaryImageTag AND the server-side
+            // Policy block (drives the File Management permission
+            // gate) from /Users/Me. Without the Policy refresh, the
+            // delete button stays hidden after switching back to a
+            // profile that has the right.
             Task { await refreshUserDetails(userID: user.id, serverID: server.id) }
         } catch {
             switchError = error.localizedDescription
@@ -161,10 +163,28 @@ struct LaunchProfilePickerView: View {
     }
 
     private func refreshUserDetails(userID: String, serverID: String) async {
-        let tag = await fetchFreshImageTag(for: userID)
+        // /Users/Me returns the full user including the Policy block;
+        // /Users/Public is the fallback for legacy / public-only
+        // configurations that only expose the imageTag. The Policy
+        // path is the one the File Management permission gate
+        // depends on.
+        let me: JellyfinUser? = try? await dependencies.jellyfinAuthService.getCurrentUser()
+        let directTag: String? = (me?.id == userID) ? me?.primaryImageTag : nil
+        let fallbackTag: String? = directTag == nil ? await fetchFreshImageTagFromPublic(for: userID) : nil
+        let tag = directTag ?? fallbackTag
+
         guard appState.activeUser?.id == userID else { return }
         guard let current = appState.activeUser else { return }
-        guard current.primaryImageTag != tag else { return }
+
+        // Always apply the freshly fetched policy when /Users/Me
+        // succeeded; only fall back to the existing value when the
+        // fetch failed (current was previously nil during restore,
+        // so falling back to it preserves a no-op rather than a
+        // regression).
+        let freshPolicy = (me?.id == userID) ? me?.policy : current.policy
+        let tagChanged = current.primaryImageTag != tag
+        let policyChanged = current.policy != freshPolicy
+        guard tagChanged || policyChanged else { return }
 
         let fresh = JellyfinUser(
             id: current.id,
@@ -172,7 +192,7 @@ struct LaunchProfilePickerView: View {
             serverID: current.serverID,
             hasPassword: current.hasPassword,
             primaryImageTag: tag,
-            policy: current.policy
+            policy: freshPolicy
         )
         appState.activeUser = fresh
         if let tag, !tag.isEmpty {
@@ -195,7 +215,12 @@ struct LaunchProfilePickerView: View {
         }
     }
 
-    private func fetchFreshImageTag(for userID: String) async -> String? {
+    /// Fallback path when `/Users/Me` did not return the active user
+    /// (legacy server, stale token, or the public-users endpoint is
+    /// all we have access to). Caller already attempts `/Users/Me`
+    /// first via `refreshUserDetails`, so this only runs when that
+    /// failed. Returns nil if neither endpoint has a match.
+    private func fetchFreshImageTagFromPublic(for userID: String) async -> String? {
         if let me = try? await dependencies.jellyfinAuthService.getCurrentUser(),
            me.id == userID,
            let tag = me.primaryImageTag, !tag.isEmpty {
