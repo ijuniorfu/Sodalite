@@ -184,6 +184,18 @@ struct PlaybackSettingsView: View {
                     label: { String(localized: String.LocalizationValue($0.titleKey)) }
                 )
 
+                valueRow(
+                    icon: "bold",
+                    title: "settings.playback.subtitle.weight",
+                    subtitle: "settings.playback.subtitle.weight.subtitle",
+                    options: PlaybackPreferences.SubtitleWeight.allCases,
+                    selection: Binding(
+                        get: { prefs.subtitleWeight },
+                        set: { prefs.subtitleWeight = $0 }
+                    ),
+                    label: { String(localized: String.LocalizationValue($0.titleKey)) }
+                )
+
                 sectionHeader("settings.playback.section.picture")
 
                 valueRow(

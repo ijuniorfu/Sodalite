@@ -41,6 +41,7 @@ final class PlaybackPreferences {
         static let subtitleVerticalOffsetPoints = "playback.subtitleVerticalOffsetPoints"
         static let subtitleVerticalPosition = "playback.subtitleVerticalPosition"
         static let subtitleFont = "playback.subtitleFont"
+        static let subtitleWeight = "playback.subtitleWeight"
         static let pictureMode = "playback.pictureMode"
         static let showStatsForNerds = "playback.showStatsForNerds"
         static let showDiagnosticOverlay = "playback.showDiagnosticOverlay"
@@ -235,6 +236,19 @@ final class PlaybackPreferences {
         var titleKey: String { "settings.playback.subtitle.font.\(rawValue)" }
     }
 
+    /// Subtitle text weight. `regular` is the default and matches
+    /// surrounding tvOS UI weight, `bold` is the legacy semibold-ish
+    /// rendering that some users prefer for higher contrast against
+    /// busy backgrounds. Applied to both the system and the
+    /// high-legibility font (SF Pro regular / semibold, or Atkinson
+    /// Hyperlegible Regular / Bold). Only affects text cues, bitmap
+    /// cues are pre-rendered and ignore weight just like font choice.
+    enum SubtitleWeight: String, CaseIterable, Sendable, Identifiable {
+        case regular, bold
+        var id: String { rawValue }
+        var titleKey: String { "settings.playback.subtitle.weight.\(rawValue)" }
+    }
+
     /// How the rendered video frame fills the available player area.
     /// `original` preserves the source aspect ratio with letterbox /
     /// pillarbox bars where needed (the safe default, never hides
@@ -326,6 +340,14 @@ final class PlaybackPreferences {
     /// pre-rendered pixels.
     var subtitleFont: SubtitleFont {
         didSet { store.set(subtitleFont.rawValue, forKey: Keys.subtitleFont) }
+    }
+
+    /// Subtitle text weight. Defaults to `.regular` so subtitles read
+    /// at tvOS UI weight; `.bold` brings back the older heavier
+    /// rendering for users who want more contrast against busy
+    /// backgrounds.
+    var subtitleWeight: SubtitleWeight {
+        didSet { store.set(subtitleWeight.rawValue, forKey: Keys.subtitleWeight) }
     }
 
     /// Default picture-fill mode for new playback sessions. The
@@ -438,6 +460,8 @@ final class PlaybackPreferences {
             .flatMap(SubtitleVerticalPosition.init(rawValue:)) ?? .default
         self.subtitleFont = (store.string(forKey: Keys.subtitleFont))
             .flatMap(SubtitleFont.init(rawValue:)) ?? .system
+        self.subtitleWeight = (store.string(forKey: Keys.subtitleWeight))
+            .flatMap(SubtitleWeight.init(rawValue:)) ?? .regular
         self.pictureMode = (store.string(forKey: Keys.pictureMode))
             .flatMap(PictureMode.init(rawValue:)) ?? .original
         self.showStatsForNerds = store.object(forKey: Keys.showStatsForNerds) as? Bool ?? false

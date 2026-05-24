@@ -41,6 +41,11 @@ struct SubtitleOverlayView: View {
     /// affects text cues, bitmap cues are pre-rendered by the source
     /// decoder and ignore this.
     let font: PlaybackPreferences.SubtitleFont
+    /// User-selected subtitle weight. `.regular` is the default and
+    /// reads at tvOS UI weight, `.bold` brings back the heavier
+    /// rendering some users prefer for contrast against busy
+    /// backgrounds. Applied to both font choices.
+    let weight: PlaybackPreferences.SubtitleWeight
 
     var body: some View {
         GeometryReader { geo in
@@ -165,17 +170,23 @@ struct SubtitleOverlayView: View {
         }
     }
 
-    /// Pick the base font for the active subtitle-font preference.
-    /// `system` uses tvOS SF Pro semibold; `highLegibility` uses the
-    /// bundled Atkinson Hyperlegible (Bold weight to match SF Pro
-    /// semibold's visual weight). The PostScript names match the
-    /// names registered via Info.plist `UIAppFonts`.
+    /// Pick the base font for the active subtitle-font and -weight
+    /// preferences. SF Pro uses `.regular` / `.semibold`; Atkinson
+    /// Hyperlegible uses its bundled Regular / Bold PostScript faces
+    /// (matching `UIAppFonts` registration). The heavier cut on SF
+    /// Pro is `.semibold` rather than `.bold` because true `.bold`
+    /// reads as caption-pasted-on rather than caption-burned-in at
+    /// player point sizes.
     private func subtitleBaseFont(pointSize: CGFloat) -> Font {
         switch font {
         case .system:
-            return Font.system(size: pointSize, weight: .semibold)
+            let systemWeight: Font.Weight = (weight == .bold) ? .semibold : .regular
+            return Font.system(size: pointSize, weight: systemWeight)
         case .highLegibility:
-            return Font.custom("AtkinsonHyperlegible-Bold", size: pointSize)
+            let postScriptName = (weight == .bold)
+                ? "AtkinsonHyperlegible-Bold"
+                : "AtkinsonHyperlegible-Regular"
+            return Font.custom(postScriptName, size: pointSize)
         }
     }
 
