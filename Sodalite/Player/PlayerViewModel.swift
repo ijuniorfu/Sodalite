@@ -104,11 +104,15 @@ final class PlayerViewModel {
     /// through Playback → Video → Audio → Subtitles → File without
     /// needing per-row focus.
     static let statsSectionAnchors: [String] = [
-        "stats.section.playback",
-        "stats.section.video",
-        "stats.section.audio",
-        "stats.section.subtitle",
-        "stats.section.file",
+        "stats.section.live",       // 0 — always shown when stats on
+        "stats.section.playback",   // 1
+        "stats.section.video",      // 2
+        "stats.section.audio",      // 3
+        "stats.section.subtitle",   // 4
+        "stats.section.file",       // 5
+        "stats.section.engine",     // 6 — gated by showEngineDiagnostics
+        "stats.section.buffer",     // 7 — gated by showEngineDiagnostics
+        "stats.section.network",    // 8 — gated by showEngineDiagnostics
     ]
 
     enum TrackDropdown: Equatable {

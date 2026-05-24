@@ -790,23 +790,32 @@ final class PlayerHostController: AVPlayerViewController {
     /// the cursor "stick" on that step (Vincent's "up doesn't work"
     /// repro).
     private var availableStatsSectionIndices: [Int] {
-        var indices: [Int] = [0]
+        var indices: [Int] = []
+        // 0 — Live is always rendered (the panel only appears when stats are on).
+        indices.append(0)
+        // 1 — Playback (always)
+        indices.append(1)
         let item = viewModel.item
         if item.mediaStreams?.contains(where: { $0.type == .video }) == true {
-            indices.append(1)
+            indices.append(2)
         }
         let hasEngineAudio = viewModel.player.audioTracks.contains {
             $0.id == viewModel.player.activeAudioTrackIndex
         }
         let hasJellyfinAudio = item.mediaStreams?.contains(where: { $0.type == .audio }) == true
         if hasEngineAudio || hasJellyfinAudio {
-            indices.append(2)
-        }
-        if viewModel.activeSubtitleIndex != nil {
             indices.append(3)
         }
-        if item.mediaSources?.first != nil {
+        if viewModel.activeSubtitleIndex != nil {
             indices.append(4)
+        }
+        if item.mediaSources?.first != nil {
+            indices.append(5)
+        }
+        if viewModel.preferences.showEngineDiagnostics {
+            indices.append(6)
+            indices.append(7)
+            indices.append(8)
         }
         return indices
     }
