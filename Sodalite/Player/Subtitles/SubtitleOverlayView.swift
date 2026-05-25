@@ -76,34 +76,40 @@ struct SubtitleOverlayView: View {
     // MARK: - Text branch
 
     private func textOverlay(_ text: String, in size: CGSize) -> some View {
-        // Pinned to the bottom-centre of the video rect. Width is
-        // capped so long lines wrap with horizontal margins on either
-        // side. Baseline Y picks one of two anchors: the historical
-        // height − 100 fallback (Default), or a fraction of overlay
-        // height measured from the bottom edge (Bottom / +1 / +2 / +3).
+        // Anchored to the bottom-centre of the video rect: the text
+        // block's bottom edge sits `bottomInset` above the overlay
+        // bottom, and the block grows upward as it wraps to more lines.
+        // Center-anchoring (the old `.position` approach) clipped 3-line
+        // cues at large font when "Bottom Edge" put the center at 99 %
+        // of height, because half the block extended past the screen.
+        // Width is capped so long lines wrap with horizontal margins on
+        // either side.
         let maxWidth = max(0, size.width - 240)
         // tvOS .title3 lands around 24-29pt depending on platform
         // metrics; the user-selected scale multiplies that for
         // small/medium/large/xlarge.
         let basePoints: CGFloat = 28
         let pointSize = basePoints * fontSize.scale
-        let baselineY = textBaselineY(in: size)
+        let bottomInset = textBottomInset(in: size)
         return styledText(text, pointSize: pointSize)
             .frame(maxWidth: maxWidth)
-            .frame(width: size.width, alignment: .center)
-            .position(x: size.width / 2, y: baselineY)
+            .padding(.bottom, bottomInset)
+            .frame(width: size.width, height: size.height, alignment: .bottom)
             .transition(.opacity)
     }
 
-    /// Anchor Y for the text baseline in overlay coordinates (top-left
-    /// origin). Default = the historical ~80 pt gap above the bottom;
-    /// the other cases anchor at `(1 - fraction) * height` so the
-    /// subtitle sits `fraction * height` above the bottom edge.
-    private func textBaselineY(in size: CGSize) -> CGFloat {
+    /// Distance from the overlay's bottom edge to the bottom of the
+    /// text block. Default keeps the historical ~80 pt gap so existing
+    /// users don't see a position shift; the other cases use
+    /// `fraction * height` so "Bottom Edge" sits 1 % above the bottom,
+    /// "Low" 10 %, etc. Bottom-anchoring (vs. center-anchoring) means
+    /// the value also caps the lowest pixel the text can reach, so
+    /// multi-line cues at large font no longer clip off-screen.
+    private func textBottomInset(in size: CGSize) -> CGFloat {
         if let fraction = verticalPosition.fractionFromBottom {
-            return size.height * (1 - CGFloat(fraction))
+            return size.height * CGFloat(fraction)
         }
-        return size.height - 100
+        return 80
     }
 
     /// Compose the text view itself, font + colour + the chosen
