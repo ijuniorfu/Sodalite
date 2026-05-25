@@ -46,6 +46,18 @@ final class CatalogViewModel {
     var allRequestsCounts: [SeerrRequestFilter: Int] = [:]
     var isLoadingAllRequests: Bool = false
     var isLoadingMoreAllRequests: Bool = false
+    /// Surface for the toast layer in `CatalogAllRequestsView`. Mutated
+    /// by the four admin actions below; consumed via `.onChange` and
+    /// cleared by the view after a short display window.
+    enum AdminRequestOutcome: Equatable {
+        case approved
+        case declined
+        case deleted
+        case updated
+        case failed(message: String)
+        case permissionDenied
+    }
+    var lastAdminRequestOutcome: AdminRequestOutcome?
     private var allRequestsTotal: Int = 0
     private var allRequestsSkip: Int = 0
     private let allRequestsPageSize: Int = 50
@@ -482,5 +494,96 @@ final class CatalogViewModel {
         if let a = results.1 { allRequestsCounts[.approved] = a.pageInfo.results }
         if let d = results.2 { allRequestsCounts[.declined] = d.pageInfo.results }
         if let x = results.3 { allRequestsCounts[.all]      = x.pageInfo.results }
+    }
+
+    // MARK: - Admin mutations
+
+    func approveRequest(_ request: SeerrRequest) async {
+        await runAdminMutation(originalRequest: request, outcome: .approved) {
+            try await self.requestService.approveRequest(requestID: request.id)
+        }
+    }
+
+    func declineRequest(_ request: SeerrRequest) async {
+        await runAdminMutation(originalRequest: request, outcome: .declined) {
+            try await self.requestService.declineRequest(requestID: request.id)
+        }
+    }
+
+    func deleteRequest(_ request: SeerrRequest) async {
+        // Optimistic remove; restore on failure so the user can retry.
+        let snapshot = allRequests
+        allRequests.removeAll { $0.id == request.id }
+        do {
+            try await requestService.deleteRequest(requestID: request.id)
+            lastAdminRequestOutcome = .deleted
+            await refreshAllRequestsCounts()
+        } catch let error as APIError where error.isUnauthorized {
+            allRequests = snapshot
+            lastAdminRequestOutcome = .permissionDenied
+        } catch {
+            allRequests = snapshot
+            lastAdminRequestOutcome = .failed(message: error.localizedDescription)
+        }
+    }
+
+    func updateRequest(_ request: SeerrRequest, body: SeerrRequestUpdateBody) async -> SeerrRequest? {
+        do {
+            let updated = try await requestService.updateRequest(
+                requestID: request.id,
+                body: body
+            )
+            replaceRequest(updated)
+            lastAdminRequestOutcome = .updated
+            return updated
+        } catch let error as APIError where error.isUnauthorized {
+            lastAdminRequestOutcome = .permissionDenied
+            return nil
+        } catch {
+            lastAdminRequestOutcome = .failed(message: error.localizedDescription)
+            return nil
+        }
+    }
+
+    /// Shared body for approve/decline. Optimistically replaces the
+    /// row with the server's response. If the new status no longer
+    /// matches the active filter, drops the row from the local list.
+    /// Restores on failure so the row stays visible for retry.
+    private func runAdminMutation(
+        originalRequest: SeerrRequest,
+        outcome: AdminRequestOutcome,
+        action: @escaping () async throws -> SeerrRequest
+    ) async {
+        let snapshot = allRequests
+        do {
+            let updated = try await action()
+            replaceRequest(updated)
+            if !filterMatches(updated, filter: allRequestsFilter) {
+                allRequests.removeAll { $0.id == updated.id }
+            }
+            lastAdminRequestOutcome = outcome
+            await refreshAllRequestsCounts()
+        } catch let error as APIError where error.isUnauthorized {
+            allRequests = snapshot
+            lastAdminRequestOutcome = .permissionDenied
+        } catch {
+            allRequests = snapshot
+            lastAdminRequestOutcome = .failed(message: error.localizedDescription)
+        }
+    }
+
+    private func replaceRequest(_ updated: SeerrRequest) {
+        if let idx = allRequests.firstIndex(where: { $0.id == updated.id }) {
+            allRequests[idx] = updated
+        }
+    }
+
+    private func filterMatches(_ request: SeerrRequest, filter: SeerrRequestFilter) -> Bool {
+        switch filter {
+        case .all:      return true
+        case .pending:  return request.status == .pendingApproval
+        case .approved: return request.status == .approved
+        case .declined: return request.status == .declined
+        }
     }
 }

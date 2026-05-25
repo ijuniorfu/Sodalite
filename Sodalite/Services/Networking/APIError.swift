@@ -47,6 +47,18 @@ enum APIError: LocalizedError, Sendable {
     /// "Media server has not been set up yet", …) instead of the
     /// generic HTTP-code fallback. Falls back to a truncated raw
     /// body when the response isn't JSON with a message/error field.
+    /// True for both `.unauthorized` (401) and `.httpError(403, _)`.
+    /// The Seerr admin gates surface as 403; cookie expiry surfaces
+    /// as 401. Both should drop the user back to a permission-denied
+    /// toast.
+    var isUnauthorized: Bool {
+        switch self {
+        case .unauthorized:                                return true
+        case .httpError(let code, _) where code == 403:   return true
+        default:                                           return false
+        }
+    }
+
     static func extractErrorMessage(from data: Data?) -> String? {
         guard let data, !data.isEmpty else { return nil }
         if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
