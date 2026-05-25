@@ -422,12 +422,12 @@ final class CatalogViewModel {
     // MARK: - Admin requests
 
     func loadAllRequests(reset: Bool) async {
+        guard !isLoadingAllRequests else { return }
         if reset {
             allRequestsSkip = 0
             allRequests = []
             allRequestsTotal = 0
         }
-        guard !isLoadingAllRequests else { return }
         isLoadingAllRequests = true
         defer { isLoadingAllRequests = false }
 
