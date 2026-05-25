@@ -145,8 +145,38 @@ struct SeerrRequestEditSheet: View {
     private func pickerSection(model: SeerrRequestEditModel) -> some View {
         VStack(alignment: .leading, spacing: 16) {
             serverPicker(model: model)
-            // profile + root folder + seasons land in Task 14-15.
+            profilePicker(model: model)
+            rootFolderPicker(model: model)
+            if request.type == .tv {
+                seasonsPicker(model: model)
+            }
         }
+    }
+
+    private func profilePicker(model: SeerrRequestEditModel) -> some View {
+        EditPickerRow(
+            title: "catalog.allRequests.edit.profile",
+            options: model.profiles,
+            selected: model.profiles.first(where: { $0.id == model.profileID }),
+            label: { $0.name },
+            onSelect: { profile in model.profileID = profile.id }
+        )
+    }
+
+    private func rootFolderPicker(model: SeerrRequestEditModel) -> some View {
+        EditPickerRow(
+            title: "catalog.allRequests.edit.rootFolder",
+            options: model.rootFolders,
+            selected: model.rootFolders.first(where: { $0.path == model.rootFolder }),
+            label: { $0.path },
+            onSelect: { folder in model.rootFolder = folder.path }
+        )
+    }
+
+    @ViewBuilder
+    private func seasonsPicker(model: SeerrRequestEditModel) -> some View {
+        // Placeholder until Task 15 fills this in.
+        EmptyView()
     }
 
     private func serverPicker(model: SeerrRequestEditModel) -> some View {
