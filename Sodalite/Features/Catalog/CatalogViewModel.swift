@@ -526,6 +526,10 @@ final class CatalogViewModel {
             // entirely. We do not flip the local tab off here because that
             // is the AppRouter's job once it reloads activeSeerrUser.
             Task { await refreshActiveSeerrUserPermissions() }
+        } catch let error as APIError where error.isNotFound {
+            // Already gone server-side — keep the optimistic remove.
+            lastAdminRequestOutcome = .deleted
+            await refreshAllRequestsCounts()
         } catch {
             allRequests = snapshot
             lastAdminRequestOutcome = .failed(message: error.localizedDescription)
@@ -548,6 +552,9 @@ final class CatalogViewModel {
             // entirely. We do not flip the local tab off here because that
             // is the AppRouter's job once it reloads activeSeerrUser.
             Task { await refreshActiveSeerrUserPermissions() }
+            return nil
+        } catch let error as APIError where error.isNotFound {
+            await loadAllRequests(reset: true)
             return nil
         } catch {
             lastAdminRequestOutcome = .failed(message: error.localizedDescription)
@@ -581,6 +588,11 @@ final class CatalogViewModel {
             // entirely. We do not flip the local tab off here because that
             // is the AppRouter's job once it reloads activeSeerrUser.
             Task { await refreshActiveSeerrUserPermissions() }
+        } catch let error as APIError where error.isNotFound {
+            // Stale row, another admin already deleted/changed it.
+            // Reload the current filter silently; the row will disappear.
+            allRequests = snapshot
+            await loadAllRequests(reset: true)
         } catch {
             allRequests = snapshot
             lastAdminRequestOutcome = .failed(message: error.localizedDescription)

@@ -59,6 +59,14 @@ enum APIError: LocalizedError, Sendable {
         }
     }
 
+    /// True for `.httpError(404, _)`. Used by admin mutation paths to
+    /// silently reload the list when another admin already deleted
+    /// or modified the request.
+    var isNotFound: Bool {
+        if case .httpError(404, _) = self { return true }
+        return false
+    }
+
     static func extractErrorMessage(from data: Data?) -> String? {
         guard let data, !data.isEmpty else { return nil }
         if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
