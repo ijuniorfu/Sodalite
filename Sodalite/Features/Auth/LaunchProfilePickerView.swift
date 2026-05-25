@@ -52,7 +52,6 @@ struct LaunchProfilePickerView: View {
             } message: { message in
                 Text(message)
             }
-            .coordinatesPresentation(switchError != nil, appState: appState)
             .onAppear {
                 rememberedUsers = dependencies.listRememberedUsers(serverID: server.id)
             }

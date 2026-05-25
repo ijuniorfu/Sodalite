@@ -201,7 +201,7 @@ struct CatalogDetailView: View {
                 .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 12))
             }
             .buttonStyle(CatalogPickerButtonStyle())
-            .coordinatedFullScreenCover(isPresented: $isProfilePickerPresented, appState: appState) {
+            .fullScreenCover(isPresented: $isProfilePickerPresented) {
                 CatalogPickerSheet(
                     title: String(localized: "catalog.request.qualityProfile", defaultValue: "Quality profile"),
                     options: details.profiles.map { .init(id: "\($0.id)", label: $0.name) },
@@ -244,7 +244,7 @@ struct CatalogDetailView: View {
                 .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 12))
             }
             .buttonStyle(CatalogPickerButtonStyle())
-            .coordinatedFullScreenCover(isPresented: $isRootFolderPickerPresented, appState: appState) {
+            .fullScreenCover(isPresented: $isRootFolderPickerPresented) {
                 CatalogPickerSheet(
                     title: String(localized: "catalog.request.rootFolder", defaultValue: "Root folder"),
                     options: details.rootFolders.map { .init(id: $0.path, label: $0.path) },
@@ -293,7 +293,7 @@ struct CatalogDetailView: View {
                 .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 12))
             }
             .buttonStyle(CatalogPickerButtonStyle())
-            .coordinatedFullScreenCover(isPresented: $isTagPickerPresented, appState: appState) {
+            .fullScreenCover(isPresented: $isTagPickerPresented) {
                 CatalogMultiSelectSheet(
                     title: String(localized: "catalog.request.tags", defaultValue: "Tags"),
                     options: tags.map { .init(id: "\($0.id)", label: $0.label) },

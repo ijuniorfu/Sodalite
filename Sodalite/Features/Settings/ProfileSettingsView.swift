@@ -68,7 +68,6 @@ struct ProfileSettingsView: View {
         } message: { message in
             Text(message)
         }
-        .coordinatesPresentation(actionError != nil, appState: appState)
         .onAppear(perform: refresh)
         .onReceive(NotificationCenter.default.publisher(for: .loginDidComplete)) { _ in
             // LoginView just flipped activeUser to the brand-new

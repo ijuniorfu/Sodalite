@@ -301,7 +301,7 @@ struct SeriesDetailView: View {
             }
         }
         .onChange(of: selectedEpisode?.id) { _, _ in updateBackdropURL() }
-        .coordinatedSheet(isPresented: $isPresentingDeleteSheet, appState: appState) {
+        .sheet(isPresented: $isPresentingDeleteSheet) {
             if let vm = viewModel {
                 let popDetail = dismiss
                 MediaDeletionSheet(

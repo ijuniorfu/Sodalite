@@ -117,7 +117,7 @@ struct MovieDetailView: View {
                 Task { await viewModel?.loadFullDetail() }
             }
         }
-        .coordinatedSheet(isPresented: $isPresentingDeleteSheet, appState: appState) {
+        .sheet(isPresented: $isPresentingDeleteSheet) {
             if let vm = viewModel {
                 let popDetail = dismiss
                 MediaDeletionSheet(

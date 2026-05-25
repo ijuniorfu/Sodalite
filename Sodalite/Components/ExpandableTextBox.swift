@@ -30,7 +30,7 @@ struct ExpandableTextBox: View {
             .onLongPressGesture(minimumDuration: 0) {
                 showFullText = true
             }
-            .coordinatedFullScreenCover(isPresented: $showFullText, appState: appState) {
+            .fullScreenCover(isPresented: $showFullText) {
                 TextOverlay(text: text, isPresented: $showFullText)
             }
     }
