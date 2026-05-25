@@ -201,24 +201,38 @@ final class PlayerHostController: AVPlayerViewController {
         //   - info views (top swipe-down) hidden via the subset flag
         //   - contextual menu emptied
         //
-        // `appliesPreferredDisplayCriteriaAutomatically = true` is
-        // the SOLE driver of the HDMI HDR/DV mode handshake. AVKit
-        // reads the live AVPlayerItem's sample-entry FourCC + color
-        // extensions and programs `AVDisplayManager.preferredDisplayCriteria`
-        // to match. AetherEngine's pre-flight `DisplayCriteriaController.apply()`
-        // is suppressed via `LoadOptions.suppressDisplayCriteria=true`
-        // from PlayerViewModel.
+        // `appliesPreferredDisplayCriteriaAutomatically = false`
+        // disables AVKit's post-asset-load auto-criteria pass so
+        // AetherEngine's `DisplayCriteriaController` is the sole
+        // writer of `AVDisplayManager.preferredDisplayCriteria`.
+        // The engine pre-flight fires from `AetherEngine.load()`
+        // BEFORE the AVPlayerItem is created and blocks on the
+        // two-stage `waitForSwitch` (AetherEngine c08dcfc) until
+        // the panel actually reaches the target dynamic range.
+        // By the time `nativeHost?.play()` fires, the panel is in
+        // the right mode. AVKit's auto path can only fire AFTER
+        // asset.load reaches readyToPlay, which is too late for
+        // DV5 cold-start (panel must already be in DV mode before
+        // the DV layer hits the decoder, per DrHurt's AetherEngine#4
+        // Build 172 testing).
         //
-        // History: commit 7f225e74 (2026-05-25) flipped this to false
-        // and re-enabled the engine pre-flight to fix DV5 cold-start
-        // per DrHurt's AetherEngine#4 Build 172 testing. That fix
-        // regressed DV8.1 + HDR10 panel + Match Dynamic Range on:
-        // master-playlist HDR HEVC asset.load failed with "Cannot
-        // Open". The engine sole-writer path is correct in principle
-        // but interacts badly with AVPlayerViewController's HDR
-        // pipeline activation when auto-criteria is off. DV8.1 is
-        // far more common content than DV5 cold-start, so we revert
-        // to AVKit-auto until a fix exists that handles both cases.
+        // History:
+        // - b1ec8839 (2026-05-24): AVKit-sole; DV5 cold-start broken.
+        // - 7f225e74 (2026-05-25): engine-sole; DV8.1 broken on
+        //   HDR10 panel + match-content because waitForSwitch had
+        //   an async-handshake race that let asset.load proceed
+        //   before the panel switched out of SDR.
+        // - fd3368c8 (2026-05-25): reverted to AVKit-sole; DV8.1
+        //   working, DV5 cold-start still broken.
+        // - c08dcfc on AetherEngine (2026-05-25): two-stage
+        //   waitForSwitch fixes the race.
+        // - This commit: re-flip to engine-sole now that the race
+        //   is fixed. Handles both DV5 cold-start AND DV8.1.
+        //
+        // Don't flip this back to true without also re-suppressing
+        // the engine pre-flight via `LoadOptions.suppressDisplayCriteria`,
+        // otherwise both writers fight for AVDisplayManager and the
+        // late re-negotiate symptom (DrHurt Build 170) returns.
         showsPlaybackControls = true
         // SPIKE (CC 10s skip on iPhone): flip transport bar flag to
         // true to test the theory that AVKit's internal skip handler
@@ -233,7 +247,7 @@ final class PlayerHostController: AVPlayerViewController {
         // hiding next.
         playbackControlsIncludeTransportBar = true
         playbackControlsIncludeInfoViews = false
-        appliesPreferredDisplayCriteriaAutomatically = true
+        appliesPreferredDisplayCriteriaAutomatically = false
         contextualActions = []
         allowsPictureInPicturePlayback = false
 
