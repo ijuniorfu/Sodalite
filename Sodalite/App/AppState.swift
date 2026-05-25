@@ -45,15 +45,16 @@ final class AppState {
     /// one slides up.
     var isResolvingDeepLink: Bool = false
 
-    /// Number of modal sheets / full-screen covers currently presented.
-    /// Counter (not Bool) so nested presentations stay accurate -- e.g.,
-    /// a detail sheet that presents a deletion confirmation. Bumped /
-    /// decremented by the coordinated-sheet view modifiers in
-    /// `Components/ModalCoordinator.swift`. Read by AppRouter to apply
-    /// a soft blur to the underlying content while any modal is up.
-    var presentedModalCount: Int = 0
+    /// IDs of modal sheets / full-screen covers currently presented.
+    /// Set (not Int counter) because the UIKit-bridge observer in
+    /// `Components/ModalCoordinator.swift` and the SwiftUI `.onChange`
+    /// safety net both write to this collection -- Set insert/remove
+    /// are idempotent so a double-fire from both paths doesn't
+    /// double-decrement. Read by AppRouter to apply the root blur
+    /// while any modal is up.
+    var presentedModalIDs: Set<UUID> = []
 
-    var isAnyModalPresented: Bool { presentedModalCount > 0 }
+    var isAnyModalPresented: Bool { !presentedModalIDs.isEmpty }
 
     var isSeerrConnected: Bool {
         activeSeerrServer != nil && activeSeerrUser != nil
