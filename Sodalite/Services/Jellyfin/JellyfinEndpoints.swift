@@ -123,6 +123,24 @@ enum JellyfinEndpoint: APIEndpoint {
         }
     }
 
+    /// Session-reporting writes run detached / fire-and-forget after
+    /// the user has dismissed the player (stopPlayback) or as a
+    /// background timer (progress). They no longer block any UI, so
+    /// the 30 s default is overly aggressive — if a slow CDN origin
+    /// stalls for 35 s, the position write is dropped and Jellyfin
+    /// keeps the stale resume point. 90 s gives the server enough
+    /// grace to accept the write even on hiccupping origins, per
+    /// DrHurt's caution on Sodalite#12 ("don't timeout on it too
+    /// soon"). Everything else keeps the 30 s default.
+    var timeoutInterval: TimeInterval? {
+        switch self {
+        case .sessionPlaying, .sessionProgress, .sessionStopped:
+            return 90
+        default:
+            return nil
+        }
+    }
+
     var queryItems: [URLQueryItem]? {
         switch self {
         case .quickConnectCheck(let secret):

@@ -553,10 +553,12 @@ final class PlayerViewModel {
     /// work (progress reporting, KVO, engine stop) finishes inline;
     /// the network "reportStop" round-trip is detached into a
     /// background Task so a slow / hiccupping Jellyfin server can't
-    /// stall the dismiss path. Up to 30 s URLRequest timeout on the
-    /// report would otherwise leave the user staring at a still-up
-    /// player after their back press on a slow CDN (DrHurt #12).
-    /// Same fire-and-forget shape `playNextEpisode` already uses.
+    /// stall the dismiss path. The default 30 s URLRequest timeout on
+    /// the report would otherwise leave the user staring at a still-up
+    /// player after their back press on a slow CDN (DrHurt #12). Same
+    /// fire-and-forget shape `playNextEpisode` already uses. The
+    /// session endpoints also opt into a 90 s timeout so the position
+    /// write survives a slow origin without being silently dropped.
     func stopPlayback() {
         stopProgressReporting()
         progressReportOnDemandTask?.cancel()
@@ -572,6 +574,20 @@ final class PlayerViewModel {
         // lose the position if we read it inside reportStop after
         // the stop.
         let finalTicks = currentPositionTicks
+        // Snapshot the report payload + service BEFORE engine teardown
+        // and detach with a strong capture. If we used `[weak self]`,
+        // PlayerView's dismissal could deallocate the view model before
+        // the @MainActor hop ran, dropping the position write silently
+        // (precisely DrHurt's "don't timeout on it too soon" concern,
+        // just via lifecycle instead of network). The detached task
+        // owns everything it needs to complete on its own.
+        let svc = playbackService
+        let stopReport = PlaybackStopReport(
+            itemId: item.id,
+            mediaSourceId: mediaSourceID,
+            playSessionId: playSessionID,
+            positionTicks: finalTicks
+        )
         // Engine handles native AVPlayer teardown + HLS server shutdown
         // + AVDisplayManager criteria reset inside stopInternal(). The
         // host just calls stop() and trusts the engine to leave the
@@ -580,9 +596,17 @@ final class PlayerViewModel {
         // Fire-and-forget: caller (dismissPlayer / viewWillDisappear)
         // returns immediately so the SwiftUI dismiss animation can
         // start without waiting on Jellyfin's PlaybackStopped endpoint.
-        let positionTicks = finalTicks
-        Task { @MainActor [weak self] in
-            await self?.reportStop(positionTicks: positionTicks)
+        Task.detached {
+            do {
+                try await svc.reportPlaybackStopped(stopReport)
+                await MainActor.run {
+                    NotificationCenter.default.post(name: .playbackProgressDidChange, object: nil)
+                }
+            } catch {
+                #if DEBUG
+                print("[SessionReport] Stop FAILED: \(error)")
+                #endif
+            }
         }
     }
 

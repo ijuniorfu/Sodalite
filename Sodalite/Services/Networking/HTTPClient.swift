@@ -156,7 +156,11 @@ final class HTTPClient: HTTPClientProtocol, @unchecked Sendable {
 
         var request = URLRequest(url: url)
         request.httpMethod = endpoint.method.rawValue
-        request.timeoutInterval = 30
+        // Endpoint may opt into a longer timeout when 30 s is too
+        // aggressive (e.g. fire-and-forget session-progress writes
+        // that must survive a slow CDN hiccup, Sodalite#12). All
+        // other calls keep the 30 s default.
+        request.timeoutInterval = endpoint.timeoutInterval ?? 30
 
         for (key, value) in headers {
             request.setValue(value, forHTTPHeaderField: key)
