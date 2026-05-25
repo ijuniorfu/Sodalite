@@ -95,20 +95,193 @@ struct SeerrRequestEditSheet: View {
     @State private var model: SeerrRequestEditModel?
 
     var body: some View {
-        VStack(spacing: 24) {
-            Text("Edit sheet placeholder, pickers land in Task 13-15")
-            Button("common.cancel") { dismiss() }
+        if let model = model {
+            sheetBody(model: model)
+        } else {
+            ProgressView()
+                .frame(minWidth: 600, minHeight: 400)
+                .task {
+                    let m = SeerrRequestEditModel(
+                        request: request,
+                        configService: dependencies.seerrServiceConfigService
+                    )
+                    self.model = m
+                    await m.bootstrap()
+                }
+        }
+    }
+
+    @ViewBuilder
+    private func sheetBody(model: SeerrRequestEditModel) -> some View {
+        VStack(alignment: .leading, spacing: 28) {
+            VStack(alignment: .leading, spacing: 6) {
+                Text("catalog.allRequests.edit.title")
+                    .font(.title2)
+                    .fontWeight(.semibold)
+                Text(viewModel.title(for: request) ?? "#\(request.id)")
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+            }
+
+            if let error = model.loadError {
+                errorView(message: error, retry: { Task { await model.bootstrap() } })
+            } else if model.isLoading {
+                ProgressView().frame(maxWidth: .infinity, minHeight: 120)
+            } else {
+                pickerSection(model: model)
+            }
+
+            Spacer()
+
+            footer(model: model)
         }
         .padding(48)
-        .task {
-            if model == nil {
-                let m = SeerrRequestEditModel(
-                    request: request,
-                    configService: dependencies.seerrServiceConfigService
-                )
-                self.model = m
-                await m.bootstrap()
+        .frame(maxWidth: 800)
+        .background(.ultraThinMaterial)
+        .clipShape(RoundedRectangle(cornerRadius: 24))
+    }
+
+    @ViewBuilder
+    private func pickerSection(model: SeerrRequestEditModel) -> some View {
+        VStack(alignment: .leading, spacing: 16) {
+            serverPicker(model: model)
+            // profile + root folder + seasons land in Task 14-15.
+        }
+    }
+
+    private func serverPicker(model: SeerrRequestEditModel) -> some View {
+        EditPickerRow(
+            title: request.type == .movie
+                ? "catalog.allRequests.edit.server.radarr"
+                : "catalog.allRequests.edit.server.sonarr",
+            options: model.servers,
+            selected: model.servers.first(where: { $0.id == model.serverID }),
+            label: { $0.name },
+            onSelect: { server in
+                Task { await model.selectServer(server.id) }
+            }
+        )
+    }
+
+    private func footer(model: SeerrRequestEditModel) -> some View {
+        HStack(spacing: 24) {
+            GlassActionButton(
+                title: "common.cancel",
+                systemImage: "xmark",
+                action: { dismiss() }
+            )
+            .disabled(model.isSaving)
+
+            GlassActionButton(
+                title: "catalog.allRequests.edit.save",
+                systemImage: "checkmark",
+                isProminent: true,
+                isLoading: model.isSaving,
+                action: { Task { await save(model: model) } }
+            )
+            .disabled(model.isSaving || model.serverID == nil)
+        }
+    }
+
+    private func errorView(message: String, retry: @escaping () -> Void) -> some View {
+        VStack(spacing: 16) {
+            Image(systemName: "exclamationmark.triangle")
+                .font(.system(size: 36))
+                .foregroundStyle(.tint)
+            Text("catalog.allRequests.edit.serverLoadError")
+                .font(.body)
+            Text(message)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+                .frame(maxWidth: 600)
+            Button("home.retry", action: retry)
+                .buttonStyle(SettingsTileButtonStyle())
+        }
+        .frame(maxWidth: .infinity, minHeight: 200)
+    }
+
+    private func save(model: SeerrRequestEditModel) async {
+        model.isSaving = true
+        defer { model.isSaving = false }
+        let body = model.buildUpdateBody()
+        let updated = await viewModel.updateRequest(request, body: body)
+        if updated != nil {
+            dismiss()
+        }
+    }
+}
+
+// MARK: - EditPickerRow
+
+/// Generic single-select picker row for the Edit sheet. Same focus
+/// conventions as ValuePickerRow: left/right cycles, .tint stroke,
+/// .tint-tinted fill when focused.
+private struct EditPickerRow<Option: Identifiable & Equatable>: View {
+    let title: LocalizedStringKey
+    let options: [Option]
+    let selected: Option?
+    let label: (Option) -> String
+    let onSelect: (Option) -> Void
+
+    @FocusState private var focused: Bool
+
+    var body: some View {
+        HStack(spacing: 20) {
+            Text(title)
+                .font(.body)
+                .fontWeight(.medium)
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+            HStack(spacing: 12) {
+                Image(systemName: "chevron.left")
+                    .font(.caption)
+                    .foregroundStyle(focused ? Color.white : Color.secondary)
+                    .opacity(canMoveBackward ? 1 : 0.25)
+                Text(selected.map(label) ?? String(localized: "catalog.allRequests.edit.loading", defaultValue: "Loading..."))
+                    .font(.body)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(.white)
+                    .frame(minWidth: 180, alignment: .center)
+                    .lineLimit(1)
+                Image(systemName: "chevron.right")
+                    .font(.caption)
+                    .foregroundStyle(focused ? Color.white : Color.secondary)
+                    .opacity(canMoveForward ? 1 : 0.25)
             }
         }
+        .padding(.horizontal, 24)
+        .padding(.vertical, 16)
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(focused
+                      ? AnyShapeStyle(TintShapeStyle.tint.opacity(0.18))
+                      : AnyShapeStyle(Color.white.opacity(0.08)))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .strokeBorder(.tint, lineWidth: 3)
+                .opacity(focused ? 1 : 0)
+        )
+        .focusable(!options.isEmpty)
+        .focused($focused)
+        .onMoveCommand { direction in
+            switch direction {
+            case .left:  advance(by: -1)
+            case .right: advance(by: 1)
+            default: break
+            }
+        }
+        .animation(.easeInOut(duration: 0.15), value: focused)
+    }
+
+    private var currentIndex: Int? { options.firstIndex(where: { $0 == selected }) }
+    private var canMoveBackward: Bool { (currentIndex ?? 0) > 0 }
+    private var canMoveForward: Bool { (currentIndex ?? -1) < options.count - 1 }
+
+    private func advance(by step: Int) {
+        guard let idx = currentIndex else { return }
+        let new = max(0, min(options.count - 1, idx + step))
+        if new != idx { onSelect(options[new]) }
     }
 }
