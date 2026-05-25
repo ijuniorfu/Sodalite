@@ -424,22 +424,22 @@ final class PlayerViewModel {
             //   can do HDR, since otherwise AVPlayer fails asset open
             //   with `Cannot Open` (-11848) on a master that claims
             //   HDR while the panel sits in SDR.
-            // suppressDisplayCriteria: rely on AVPlayerViewController's
-            // appliesPreferredDisplayCriteriaAutomatically instead of
-            // the engine's pre-flight apply. With both active, AVKit
-            // overwrites the engine's criteria after asset.load, which
-            // triggers a second HDMI re-negotiate ~2s after play start
-            // (DrHurt's "TV switches mode 2s later" symptom on Build
-            // 170). Now that the bitstream + manifest are specs-compliant
-            // (correct sample-entry FourCC, SUPPLEMENTAL-CODECS), AVKit
-            // can derive the right criteria from the live AVPlayerItem
-            // FormatDescription without our help. Single assignment,
-            // no race.
+            // Engine drives the criteria pre-flight; AVKit's auto path
+            // is disabled on PlayerHostController so only one writer
+            // touches AVDisplayManager.preferredDisplayCriteria per
+            // session. The engine's apply() fires BEFORE asset.load
+            // (with waitForSwitch blocking up to 5 s for the panel to
+            // settle), which is the only way to guarantee the panel
+            // is in DV mode before AVPlayer attempts to decode the
+            // first DV5 frame. AVKit's auto path can only write after
+            // asset.load reaches readyToPlay, which on a cold-start
+            // panel-mode mismatch is too late and shows up as
+            // DrHurt's "first attempt fails, retry works" symptom
+            // (AetherEngine#4 Build 172 testing).
             try await player.load(
                 url: url,
                 startPosition: startPos,
                 options: LoadOptions(
-                    suppressDisplayCriteria: true,
                     matchContentEnabled: Self.matchDynamicRangeEnabled,
                     panelIsInHDRMode: Self.panelIsInHDRMode,
                     audioBridgeMode: preferences.audioBridgeMode

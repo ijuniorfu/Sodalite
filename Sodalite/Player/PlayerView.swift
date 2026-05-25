@@ -201,21 +201,24 @@ final class PlayerHostController: AVPlayerViewController {
         //   - info views (top swipe-down) hidden via the subset flag
         //   - contextual menu emptied
         //
-        // `appliesPreferredDisplayCriteriaAutomatically = true` is
-        // now the SOLE driver of the HDMI HDR/DV mode handshake.
-        // AVKit reads each track's sample-entry codec FourCC + color
-        // extensions from the live AVPlayerItem and programs
-        // `AVDisplayManager.preferredDisplayCriteria` to match.
-        // The engine's `DisplayCriteriaController.apply()` is
-        // suppressed via `LoadOptions.suppressDisplayCriteria=true`
-        // from PlayerViewModel; the previous double-apply pattern
-        // (engine pre-flight + AVKit auto) caused a second HDMI
-        // re-negotiate ~2 s after play start because AVKit
-        // overwrote the engine's criteria once asset.load reached
-        // readyToPlay. With specs-compliant bitstream + manifest
-        // (correct sample entries dvh1 for P5 / hvc1 for P8.x,
-        // SUPPLEMENTAL-CODECS for P8 DV), AVKit's auto path
-        // derives the right criteria on its own.
+        // `appliesPreferredDisplayCriteriaAutomatically = false`
+        // disables AVKit's post-asset-load auto-criteria pass so
+        // AetherEngine's `DisplayCriteriaController` is the sole
+        // writer of `AVDisplayManager.preferredDisplayCriteria`.
+        // The engine pre-flight fires from `AetherEngine.load()`
+        // BEFORE the AVPlayerItem is created and blocks on
+        // `waitForSwitch` until the panel settles. AVKit's auto
+        // path could only fire AFTER asset.load reaches
+        // readyToPlay, which is too late for DV5 cold-start (panel
+        // must already be in DV mode before the DV layer hits the
+        // decoder). Single-writer pattern, no race with AVKit, no
+        // 2 s re-negotiate from a second criteria write — see
+        // AetherEngine#4 Build 170 / 172 testing for the history.
+        //
+        // Don't flip this back to true without also re-suppressing
+        // the engine pre-flight via `LoadOptions.suppressDisplayCriteria`,
+        // otherwise both writers fight for AVDisplayManager and the
+        // late-re-negotiate symptom returns.
         showsPlaybackControls = true
         // SPIKE (CC 10s skip on iPhone): flip transport bar flag to
         // true to test the theory that AVKit's internal skip handler
@@ -230,7 +233,7 @@ final class PlayerHostController: AVPlayerViewController {
         // hiding next.
         playbackControlsIncludeTransportBar = true
         playbackControlsIncludeInfoViews = false
-        appliesPreferredDisplayCriteriaAutomatically = true
+        appliesPreferredDisplayCriteriaAutomatically = false
         contextualActions = []
         allowsPictureInPicturePlayback = false
 
