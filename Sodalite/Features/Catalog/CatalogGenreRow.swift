@@ -47,6 +47,8 @@ private struct GenreTile: View {
     let genre: SeerrGenreSlide
     let action: () -> Void
 
+    @Environment(\.dependencies) private var dependencies
+
     private let width: CGFloat = 320
     private let height: CGFloat = 180
 
@@ -95,8 +97,14 @@ private struct GenreTile: View {
     }
 
     private var fallbackBackground: some View {
-        LinearGradient(
-            colors: [Color.accentColor.opacity(0.5), Color.accentColor.opacity(0.2)],
+        // LinearGradient(colors:) requires [Color], so resolve the
+        // effective tint here. Falls back to Color.accentColor only
+        // when the user has no custom tint selected (.system path).
+        let tint = dependencies.appearancePreferences.effectiveTint(
+            isSupporter: dependencies.storeKitService.isSupporter
+        ) ?? Color.accentColor
+        return LinearGradient(
+            colors: [tint.opacity(0.5), tint.opacity(0.2)],
             startPoint: .topLeading,
             endPoint: .bottomTrailing
         )

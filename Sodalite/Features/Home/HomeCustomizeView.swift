@@ -103,7 +103,7 @@ struct HomeCustomizeView: View {
                             )
                             .overlay(
                                 RoundedRectangle(cornerRadius: 12)
-                                    .stroke(movingType == config.type ? Color.accentColor.opacity(0.6) : .clear, lineWidth: 2)
+                                    .stroke(movingType == config.type ? AnyShapeStyle(.tint.opacity(0.6)) : AnyShapeStyle(Color.clear), lineWidth: 2)
                             )
                             .overlay(
                                 // Accent focus stroke, same 3pt treatment
@@ -180,10 +180,10 @@ struct HomeCustomizeView: View {
 
     // MARK: - Helpers
 
-    private func tileBackground(isFocused: Bool, isMoving: Bool) -> Color {
-        if isMoving { return Color.accentColor.opacity(0.12) }
-        if isFocused { return .white.opacity(0.12) }
-        return .white.opacity(0.05)
+    private func tileBackground(isFocused: Bool, isMoving: Bool) -> AnyShapeStyle {
+        if isMoving { return AnyShapeStyle(TintShapeStyle.tint.opacity(0.12)) }
+        if isFocused { return AnyShapeStyle(Color.white.opacity(0.12)) }
+        return AnyShapeStyle(Color.white.opacity(0.05))
     }
 
     private var enabledRows: [HomeRowConfig] {

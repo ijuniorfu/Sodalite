@@ -1034,7 +1034,7 @@ struct EpisodeLandscapeCard: View {
     /// Color values (selected/current) behind the same .strokeBorder.
     private var strokeStyle: AnyShapeStyle {
         if isFocused { return AnyShapeStyle(TintShapeStyle.tint) }
-        if isSelected { return AnyShapeStyle(Color.accentColor.opacity(0.8)) }
+        if isSelected { return AnyShapeStyle(TintShapeStyle.tint.opacity(0.8)) }
         if isCurrent { return AnyShapeStyle(Color.green.opacity(0.8)) }
         return AnyShapeStyle(Color.clear)
     }
