@@ -9,7 +9,7 @@ struct CatalogView: View {
     @State private var selectedSection: Section = .discover
 
     private enum Section: Hashable {
-        case discover, myRequests
+        case discover, myRequests, allRequests
     }
 
     var body: some View {
@@ -22,6 +22,9 @@ struct CatalogView: View {
                         Picker("", selection: $selectedSection) {
                             Text("catalog.tab.discover").tag(Section.discover)
                             Text("catalog.tab.myRequests").tag(Section.myRequests)
+                            if appState.activeSeerrUser?.canManageRequests == true {
+                                Text("catalog.tab.allRequests").tag(Section.allRequests)
+                            }
                         }
                         .pickerStyle(.segmented)
                         .padding(.horizontal, 80)
@@ -36,6 +39,8 @@ struct CatalogView: View {
                             )
                         case .myRequests:
                             CatalogMyRequestsView(viewModel: vm)
+                        case .allRequests:
+                            CatalogAllRequestsView(viewModel: vm)
                         }
                     }
                 } else {
@@ -52,12 +57,21 @@ struct CatalogView: View {
         }
         .onAppear(perform: bootstrap)
         .onChange(of: selectedSection) { _, newValue in
-            guard newValue == .myRequests,
-                  let vm = viewModel,
-                  vm.myRequests.isEmpty,
-                  let userID = appState.activeSeerrUser?.id
-            else { return }
-            Task { await vm.loadMyRequests(userID: userID) }
+            guard let vm = viewModel else { return }
+            switch newValue {
+            case .myRequests:
+                guard vm.myRequests.isEmpty,
+                      let userID = appState.activeSeerrUser?.id else { return }
+                Task { await vm.loadMyRequests(userID: userID) }
+            case .allRequests:
+                guard vm.allRequests.isEmpty else { return }
+                Task {
+                    await vm.loadAllRequests(reset: true)
+                    await vm.refreshAllRequestsCounts()
+                }
+            case .discover:
+                break
+            }
         }
         .onChange(of: appState.activeUser?.id) { _, _ in
             // Profile switch, the Jellyfin user changed, so any

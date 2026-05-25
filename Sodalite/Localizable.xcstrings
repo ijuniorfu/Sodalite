@@ -12336,6 +12336,23 @@
         }
       }
     },
+    "catalog.tab.allRequests" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alle Anfragen"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "All Requests"
+          }
+        }
+      }
+    },
     "catalog.tab.discover" : {
       "comment" : "Catalog tab label",
       "extractionState" : "manual",
