@@ -230,8 +230,19 @@ struct SeerrRequestEditSheet: View {
                 isLoading: model.isSaving,
                 action: { Task { await save(model: model) } }
             )
-            .disabled(model.isSaving || model.serverID == nil)
+            .disabled(model.isSaving || model.serverID == nil || isSeasonSelectionInvalid(model: model))
         }
+    }
+
+    /// TV requests must have at least one season selected; otherwise
+    /// Jellyseerr's update endpoint accepts `seasons: []` and clears
+    /// the request to zero requested seasons, which is a destructive
+    /// foot-gun the spec does not intend. Movie requests are always
+    /// valid (selectedSeasons is empty by design).
+    private func isSeasonSelectionInvalid(model: SeerrRequestEditModel) -> Bool {
+        guard request.type == .tv else { return false }
+        guard request.seasons?.isEmpty == false else { return false }
+        return model.selectedSeasons.isEmpty
     }
 
     private func errorView(message: String, retry: @escaping () -> Void) -> some View {
