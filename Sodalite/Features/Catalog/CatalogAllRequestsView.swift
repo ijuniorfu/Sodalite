@@ -29,6 +29,12 @@ struct CatalogAllRequestsView: View {
             }
         }
         .animation(.easeInOut(duration: 0.2), value: toastMessage)
+        .task {
+            if viewModel.allRequests.isEmpty {
+                await viewModel.loadAllRequests(reset: true)
+                await viewModel.refreshAllRequestsCounts()
+            }
+        }
         .alert(
             "catalog.allRequests.confirm.decline.title",
             isPresented: declineAlertBinding,
