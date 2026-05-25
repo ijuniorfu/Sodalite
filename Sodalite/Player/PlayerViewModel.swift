@@ -424,22 +424,25 @@ final class PlayerViewModel {
             //   can do HDR, since otherwise AVPlayer fails asset open
             //   with `Cannot Open` (-11848) on a master that claims
             //   HDR while the panel sits in SDR.
-            // Engine drives the criteria pre-flight; AVKit's auto path
-            // is disabled on PlayerHostController so only one writer
-            // touches AVDisplayManager.preferredDisplayCriteria per
-            // session. The engine's apply() fires BEFORE asset.load
-            // (with waitForSwitch blocking up to 5 s for the panel to
-            // settle), which is the only way to guarantee the panel
-            // is in DV mode before AVPlayer attempts to decode the
-            // first DV5 frame. AVKit's auto path can only write after
-            // asset.load reaches readyToPlay, which on a cold-start
-            // panel-mode mismatch is too late and shows up as
-            // DrHurt's "first attempt fails, retry works" symptom
-            // (AetherEngine#4 Build 172 testing).
+            // suppressDisplayCriteria: rely on AVPlayerViewController's
+            // appliesPreferredDisplayCriteriaAutomatically=true instead
+            // of the engine's pre-flight apply. With both active, AVKit
+            // overwrites the engine's criteria after asset.load, which
+            // triggers a second HDMI re-negotiate ~2 s after play start
+            // (DrHurt's "TV switches mode 2 s later" symptom, Build 170).
+            //
+            // Reverted from commit 7f225e74 (engine sole writer, AVKit
+            // auto off). That change fixed DV5 cold-start but broke
+            // DV8.1 master-playlist asset.load on HDR10 panels with
+            // Match Dynamic Range on — AVPlayerViewController's HDR
+            // pipeline activation appears tied to the auto-criteria
+            // path. DV8.1 is far more common than DV5 cold-start, so
+            // we keep the AVKit-auto path as the single writer.
             try await player.load(
                 url: url,
                 startPosition: startPos,
                 options: LoadOptions(
+                    suppressDisplayCriteria: true,
                     matchContentEnabled: Self.matchDynamicRangeEnabled,
                     panelIsInHDRMode: Self.panelIsInHDRMode,
                     audioBridgeMode: preferences.audioBridgeMode

@@ -244,7 +244,6 @@ struct PlaybackSettingsView: View {
                     )
                 )
                 .disabled(!prefs.showStatsForNerds)
-                .padding(.leading, 24)
 
                 // Diagnostic overlay toggle. Only mounted in DEBUG /
                 // TestFlight builds; App Store users never see this row

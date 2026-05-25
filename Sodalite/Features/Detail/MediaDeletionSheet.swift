@@ -277,11 +277,13 @@ struct MediaDeletionSheet: View {
 
 // MARK: - BoolPillRow
 
-/// Focus-friendly inline toggle styled to match `GlassActionButton`.
-/// tvOS's native `Toggle` renders with a pink fill in the focused state
-/// that hides the row's label entirely; this bespoke row keeps the
-/// label visible by using the same `.white` foreground the action-row
-/// buttons use. Trailing icon shows the on/off state at a glance.
+/// Focus-friendly inline toggle. Mirrors `ValuePickerRow` from
+/// `PlaybackSettingsView` so both surfaces feel the same under focus.
+/// Uses `.focusable(true)` rather than a `Button` because tvOS's
+/// `Button` focus chrome (a bright pill outline) bleeds through even
+/// with `.focusEffectDisabled()` on top of `.ultraThinMaterial` — the
+/// raw focusable surface lets our accent stroke be the only focus
+/// indicator. Trailing icon shows the on/off state at a glance.
 private struct BoolPillRow: View {
     let title: LocalizedStringKey
     @Binding var isOn: Bool
@@ -290,44 +292,48 @@ private struct BoolPillRow: View {
     @FocusState private var focused: Bool
 
     var body: some View {
-        Button {
-            isOn.toggle()
-        } label: {
-            HStack(spacing: 16) {
-                Image(systemName: isOn ? "checkmark.circle.fill" : "circle")
-                    .font(.title3)
-                    .foregroundStyle(isOn ? Color.accentColor : .white.opacity(0.5))
-                Text(title)
-                    .font(.callout)
-                    .fontWeight(.medium)
-                    .foregroundStyle(.white)
-                    .multilineTextAlignment(.leading)
-                Spacer(minLength: 12)
-            }
-            .padding(.horizontal, 24)
-            .padding(.vertical, 16)
-            .background(
-                RoundedRectangle(cornerRadius: 16)
-                    .fill(focused ? Color.white.opacity(0.2) : Color.white.opacity(0.08))
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: 16)
-                    .strokeBorder(.tint, lineWidth: 3)
-                    .opacity(focused ? 1 : 0)
-            )
-            .scaleEffect(focused ? 1.02 : 1.0)
-            .shadow(color: .black.opacity(focused ? 0.25 : 0), radius: 10, y: 5)
+        HStack(spacing: 16) {
+            Image(systemName: isOn ? "checkmark.circle.fill" : "circle")
+                .font(.title3)
+                .foregroundStyle(isOn ? Color.accentColor : .white.opacity(0.5))
+            Text(title)
+                .font(.callout)
+                .fontWeight(.medium)
+                .foregroundStyle(.white)
+                .multilineTextAlignment(.leading)
+            Spacer(minLength: 12)
         }
-        .buttonStyle(.plain)
-        // Suppress the default tvOS focus chrome (a thick white pill
-        // outline) so only our custom accent stroke renders. Without
-        // this the row has two competing focus indicators and the
-        // white one obscures the label.
-        .focusEffectDisabled()
+        .padding(.horizontal, 24)
+        .padding(.vertical, 16)
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(focused ? Color.accentColor.opacity(0.18) : Color.white.opacity(0.08))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .strokeBorder(Color.accentColor, lineWidth: 3)
+                .opacity(focused ? 1 : 0)
+        )
+        .scaleEffect(focused ? 1.02 : 1.0)
+        .shadow(color: .black.opacity(focused ? 0.25 : 0), radius: 10, y: 5)
+        .focusable(!disabled)
         .focused($focused)
         .disabled(disabled)
         .opacity(disabled ? 0.4 : 1.0)
         .animation(.easeInOut(duration: 0.15), value: focused)
         .animation(.easeInOut(duration: 0.15), value: isOn)
+        #if os(tvOS)
+        // Siri Remote click toggles the binding. minimumDuration: 0.01
+        // matches ValuePickerRow's pattern (a near-zero long-press
+        // gesture is how tvOS Swift surfaces the clickpad press to a
+        // non-Button focusable view).
+        .onLongPressGesture(minimumDuration: 0.01) {
+            if !disabled { isOn.toggle() }
+        }
+        #else
+        .onTapGesture {
+            if !disabled { isOn.toggle() }
+        }
+        #endif
     }
 }

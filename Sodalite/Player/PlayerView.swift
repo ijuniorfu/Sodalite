@@ -201,24 +201,24 @@ final class PlayerHostController: AVPlayerViewController {
         //   - info views (top swipe-down) hidden via the subset flag
         //   - contextual menu emptied
         //
-        // `appliesPreferredDisplayCriteriaAutomatically = false`
-        // disables AVKit's post-asset-load auto-criteria pass so
-        // AetherEngine's `DisplayCriteriaController` is the sole
-        // writer of `AVDisplayManager.preferredDisplayCriteria`.
-        // The engine pre-flight fires from `AetherEngine.load()`
-        // BEFORE the AVPlayerItem is created and blocks on
-        // `waitForSwitch` until the panel settles. AVKit's auto
-        // path could only fire AFTER asset.load reaches
-        // readyToPlay, which is too late for DV5 cold-start (panel
-        // must already be in DV mode before the DV layer hits the
-        // decoder). Single-writer pattern, no race with AVKit, no
-        // 2 s re-negotiate from a second criteria write — see
-        // AetherEngine#4 Build 170 / 172 testing for the history.
+        // `appliesPreferredDisplayCriteriaAutomatically = true` is
+        // the SOLE driver of the HDMI HDR/DV mode handshake. AVKit
+        // reads the live AVPlayerItem's sample-entry FourCC + color
+        // extensions and programs `AVDisplayManager.preferredDisplayCriteria`
+        // to match. AetherEngine's pre-flight `DisplayCriteriaController.apply()`
+        // is suppressed via `LoadOptions.suppressDisplayCriteria=true`
+        // from PlayerViewModel.
         //
-        // Don't flip this back to true without also re-suppressing
-        // the engine pre-flight via `LoadOptions.suppressDisplayCriteria`,
-        // otherwise both writers fight for AVDisplayManager and the
-        // late-re-negotiate symptom returns.
+        // History: commit 7f225e74 (2026-05-25) flipped this to false
+        // and re-enabled the engine pre-flight to fix DV5 cold-start
+        // per DrHurt's AetherEngine#4 Build 172 testing. That fix
+        // regressed DV8.1 + HDR10 panel + Match Dynamic Range on:
+        // master-playlist HDR HEVC asset.load failed with "Cannot
+        // Open". The engine sole-writer path is correct in principle
+        // but interacts badly with AVPlayerViewController's HDR
+        // pipeline activation when auto-criteria is off. DV8.1 is
+        // far more common content than DV5 cold-start, so we revert
+        // to AVKit-auto until a fix exists that handles both cases.
         showsPlaybackControls = true
         // SPIKE (CC 10s skip on iPhone): flip transport bar flag to
         // true to test the theory that AVKit's internal skip handler
@@ -233,7 +233,7 @@ final class PlayerHostController: AVPlayerViewController {
         // hiding next.
         playbackControlsIncludeTransportBar = true
         playbackControlsIncludeInfoViews = false
-        appliesPreferredDisplayCriteriaAutomatically = false
+        appliesPreferredDisplayCriteriaAutomatically = true
         contextualActions = []
         allowsPictureInPicturePlayback = false
 
@@ -1478,34 +1478,36 @@ private struct PlayerOverlayView: View {
             }
 
             if let error = viewModel.errorMessage {
-                VStack(spacing: 20) {
-                    Image(systemName: viewModel.errorIcon ?? "exclamationmark.triangle")
-                        .font(.system(size: 64))
-                        .foregroundStyle(.tint)
-                    if let title = viewModel.errorTitle {
-                        Text(title)
-                            .font(.title2)
-                            .fontWeight(.semibold)
-                            .foregroundStyle(.white)
-                    }
-                    Text(error)
-                        .font(.body)
-                        .foregroundStyle(.white.opacity(0.7))
-                        .multilineTextAlignment(.center)
-                        .frame(maxWidth: 720)
-                    Button {
-                        onDismiss()
-                    } label: {
-                        Text("player.error.back")
+                ZStack {
+                    Color.black
+                    VStack(spacing: 20) {
+                        Image(systemName: viewModel.errorIcon ?? "exclamationmark.triangle")
+                            .font(.system(size: 64))
+                            .foregroundStyle(.tint)
+                        if let title = viewModel.errorTitle {
+                            Text(title)
+                                .font(.title2)
+                                .fontWeight(.semibold)
+                                .foregroundStyle(.white)
+                        }
+                        Text(error)
                             .font(.body)
-                            .padding(.horizontal, 32)
-                            .padding(.vertical, 12)
+                            .foregroundStyle(.white.opacity(0.7))
+                            .multilineTextAlignment(.center)
+                            .frame(maxWidth: 720)
+                        Button {
+                            onDismiss()
+                        } label: {
+                            Text("player.error.back")
+                                .font(.body)
+                                .padding(.horizontal, 32)
+                                .padding(.vertical, 12)
+                        }
+                        .buttonStyle(SettingsTileButtonStyle())
+                        .padding(.top, 8)
                     }
-                    .buttonStyle(SettingsTileButtonStyle())
-                    .padding(.top, 8)
                 }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .background(.black)
+                .ignoresSafeArea()
                 .transition(.opacity)
             }
 
