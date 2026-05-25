@@ -1639,6 +1639,16 @@ private struct PlayerOverlayView: View {
                     .padding(.bottom, viewModel.showControls ? 300 : 40)
             }
         }
+        // ignoresSafeArea for the same reason as introSkipOverlay
+        // above. When `playNextEpisode` kicks in at the end of the
+        // countdown, the new session's startup briefly widens AVKit's
+        // contentOverlayView bottom safe-area inset to accommodate
+        // the (alpha=0) chrome views. Without ignoring the safe area
+        // here the `VStack { Spacer() }` layout shifts the card up
+        // by the chrome's nominal height for the duration of the
+        // overlay's slide-out transition, parking it visibly at
+        // mid-right before it finishes fading out.
+        .ignoresSafeArea()
         .transition(.move(edge: .trailing).combined(with: .opacity))
     }
 
