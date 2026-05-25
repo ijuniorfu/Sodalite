@@ -62,11 +62,7 @@ private struct CoordinatedSheetModifier<Item: Identifiable, Sheet: View>: ViewMo
     let content: (Item) -> Sheet
 
     func body(content body: Content) -> some View {
-        body
-            .sheet(item: $item, content: content)
-            .onChange(of: item == nil) { oldIsNil, newIsNil in
-                applyDelta(oldIsNil: oldIsNil, newIsNil: newIsNil, appState: appState)
-            }
+        body.sheet(item: trackedItemBinding($item, appState: appState), content: content)
     }
 }
 
@@ -78,11 +74,7 @@ private struct CoordinatedSheetBoolModifier<Sheet: View>: ViewModifier {
     let content: () -> Sheet
 
     func body(content body: Content) -> some View {
-        body
-            .sheet(isPresented: $isPresented, content: content)
-            .onChange(of: isPresented) { oldValue, newValue in
-                applyDelta(oldIsNil: !oldValue, newIsNil: !newValue, appState: appState)
-            }
+        body.sheet(isPresented: trackedBoolBinding($isPresented, appState: appState), content: content)
     }
 }
 
@@ -94,11 +86,7 @@ private struct CoordinatedFullScreenCoverModifier<Item: Identifiable, Cover: Vie
     let content: (Item) -> Cover
 
     func body(content body: Content) -> some View {
-        body
-            .fullScreenCover(item: $item, content: content)
-            .onChange(of: item == nil) { oldIsNil, newIsNil in
-                applyDelta(oldIsNil: oldIsNil, newIsNil: newIsNil, appState: appState)
-            }
+        body.fullScreenCover(item: trackedItemBinding($item, appState: appState), content: content)
     }
 }
 
@@ -110,12 +98,52 @@ private struct CoordinatedFullScreenCoverBoolModifier<Cover: View>: ViewModifier
     let content: () -> Cover
 
     func body(content body: Content) -> some View {
-        body
-            .fullScreenCover(isPresented: $isPresented, content: content)
-            .onChange(of: isPresented) { oldValue, newValue in
-                applyDelta(oldIsNil: !oldValue, newIsNil: !newValue, appState: appState)
-            }
+        body.fullScreenCover(isPresented: trackedBoolBinding($isPresented, appState: appState), content: content)
     }
+}
+
+// MARK: - Tracked binding factories
+
+/// Wraps an optional-item presentation binding so the counter delta
+/// fires inside the binding's setter rather than via a downstream
+/// `.onChange`. SwiftUI invokes the binding setter at the START of a
+/// sheet dismiss on tvOS 26, before the system animation runs. The
+/// previous `.onChange(of: item == nil)` pattern observed the value
+/// only after SwiftUI's animation propagation cycle, which arrived
+/// well after the modal had finished sliding out and left the blur
+/// fading on an empty screen for hundreds of milliseconds.
+@MainActor
+private func trackedItemBinding<Item>(
+    _ binding: Binding<Item?>,
+    appState: AppState
+) -> Binding<Item?> {
+    Binding(
+        get: { binding.wrappedValue },
+        set: { newValue in
+            let oldIsNil = binding.wrappedValue == nil
+            let newIsNil = newValue == nil
+            applyDelta(oldIsNil: oldIsNil, newIsNil: newIsNil, appState: appState)
+            binding.wrappedValue = newValue
+        }
+    )
+}
+
+@MainActor
+private func trackedBoolBinding(
+    _ binding: Binding<Bool>,
+    appState: AppState
+) -> Binding<Bool> {
+    Binding(
+        get: { binding.wrappedValue },
+        set: { newValue in
+            applyDelta(
+                oldIsNil: !binding.wrappedValue,
+                newIsNil: !newValue,
+                appState: appState
+            )
+            binding.wrappedValue = newValue
+        }
+    )
 }
 
 // MARK: - Arbitrary-boolean presentation counter
