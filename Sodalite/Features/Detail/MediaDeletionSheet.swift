@@ -295,7 +295,7 @@ private struct BoolPillRow: View {
         HStack(spacing: 16) {
             Image(systemName: isOn ? "checkmark.circle.fill" : "circle")
                 .font(.title3)
-                .foregroundStyle(isOn ? Color.accentColor : .white.opacity(0.5))
+                .foregroundStyle(isOn ? AnyShapeStyle(.tint) : AnyShapeStyle(Color.white.opacity(0.5)))
             Text(title)
                 .font(.callout)
                 .fontWeight(.medium)
@@ -305,13 +305,19 @@ private struct BoolPillRow: View {
         }
         .padding(.horizontal, 24)
         .padding(.vertical, 16)
+        // Background + stroke read `.tint` from the environment
+        // (`SodaliteApp` sets `.tint(effectiveTint(...))` at WindowGroup
+        // level so the user's chosen accent / supporter color applies).
+        // Don't use `Color.accentColor` here — that reads the static
+        // `AccentColor` asset, which is hard-coded to system blue and
+        // doesn't follow the per-session tint.
         .background(
             RoundedRectangle(cornerRadius: 16)
-                .fill(focused ? Color.accentColor.opacity(0.18) : Color.white.opacity(0.08))
+                .fill(focused ? AnyShapeStyle(TintShapeStyle.tint.opacity(0.18)) : AnyShapeStyle(Color.white.opacity(0.08)))
         )
         .overlay(
             RoundedRectangle(cornerRadius: 16)
-                .strokeBorder(Color.accentColor, lineWidth: 3)
+                .strokeBorder(.tint, lineWidth: 3)
                 .opacity(focused ? 1 : 0)
         )
         .scaleEffect(focused ? 1.02 : 1.0)
