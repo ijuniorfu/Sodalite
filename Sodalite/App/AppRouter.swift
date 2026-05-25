@@ -69,12 +69,21 @@ struct AppRouter: View {
             }
         }
         .blur(radius: appState.isAnyModalPresented ? 10 : 0)
-        // Symmetric 280 ms. Sheet present/dismiss timing is observed
-        // at the UIKit lifecycle layer in `Components/ModalCoordinator.swift`
-        // (PresentationLifecycleObserver) so the counter flips at
-        // the start of the system animation, not at the end. No
-        // asymmetric-duration workaround needed.
-        .animation(.easeInOut(duration: 0.28), value: appState.isAnyModalPresented)
+        // Asymmetric timing: 280 ms easeInOut on open (syncs with
+        // sheet slide-in), 80 ms easeOut on dismiss. SwiftUI flips
+        // the sheet binding at the END of its slide-out animation
+        // and the UIKit-lifecycle observer in
+        // `Components/ModalCoordinator.swift` was hypothesised to
+        // fire earlier but in practice SwiftUI defers the child VC
+        // removal too. A fast easeOut on dismiss clears in ~5 frames
+        // so the residual ghost on an empty screen is below the
+        // perceptual threshold.
+        .animation(
+            appState.isAnyModalPresented
+                ? .easeInOut(duration: 0.28)
+                : .easeOut(duration: 0.08),
+            value: appState.isAnyModalPresented
+        )
         .animation(.easeOut(duration: 0.4), value: appState.isLoading)
         .animation(.easeInOut(duration: 0.2), value: appState.isResolvingDeepLink)
         .task {
