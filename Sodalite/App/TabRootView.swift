@@ -47,7 +47,6 @@ struct TabRootView: View {
                 } label: {
                     Label {
                         Text(tab.labelKey)
-                            .foregroundStyle(.tint)
                     } icon: {
                         // tvOS re-tints SF Symbols inside Tab labels,
                         // ignoring SwiftUI's .foregroundStyle. Baking the
@@ -58,6 +57,7 @@ struct TabRootView: View {
                 }
             }
         }
+        .tint(iconColor)
     }
 
     private func tabIcon(name: String, color: Color) -> Image {
