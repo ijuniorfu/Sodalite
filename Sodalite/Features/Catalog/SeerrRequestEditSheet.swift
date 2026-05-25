@@ -95,19 +95,27 @@ struct SeerrRequestEditSheet: View {
     @State private var model: SeerrRequestEditModel?
 
     var body: some View {
-        if let model = model {
-            sheetBody(model: model)
-        } else {
-            ProgressView()
-                .frame(minWidth: 600, minHeight: 400)
-                .task {
-                    let m = SeerrRequestEditModel(
-                        request: request,
-                        configService: dependencies.seerrServiceConfigService
-                    )
-                    self.model = m
-                    await m.bootstrap()
-                }
+        Group {
+            if let model = model {
+                sheetBody(model: model)
+            } else {
+                ProgressView()
+                    .frame(minWidth: 600, minHeight: 400)
+            }
+        }
+        // .task must live on the outer Group, not on the ProgressView branch.
+        // Assigning self.model triggers a re-render that unmounts the ProgressView,
+        // which would cancel the still-running bootstrap() URLSession call if the
+        // task were attached to it. The Group stays mounted across the conditional
+        // swap, so bootstrap() always runs to completion.
+        .task {
+            guard model == nil else { return }
+            let m = SeerrRequestEditModel(
+                request: request,
+                configService: dependencies.seerrServiceConfigService
+            )
+            self.model = m
+            await m.bootstrap()
         }
     }
 
@@ -257,8 +265,11 @@ struct SeerrRequestEditSheet: View {
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
                 .frame(maxWidth: 600)
-            Button("home.retry", action: retry)
-                .buttonStyle(SettingsTileButtonStyle())
+            GlassActionButton(
+                title: "home.retry",
+                systemImage: "arrow.clockwise",
+                action: retry
+            )
         }
         .frame(maxWidth: .infinity, minHeight: 200)
     }
