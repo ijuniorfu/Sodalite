@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct CatalogAllRequestsView: View {
+    @Environment(\.appState) private var appState
     @Bindable var viewModel: CatalogViewModel
     @State private var requestPendingDecline: SeerrRequest?
     @State private var requestPendingDelete: SeerrRequest?
@@ -65,7 +66,7 @@ struct CatalogAllRequestsView: View {
                 viewModel.title(for: request) ?? "#\(request.id)"
             ))
         }
-        .sheet(item: $requestBeingEdited) { request in
+        .coordinatedSheet(item: $requestBeingEdited, appState: appState) { request in
             SeerrRequestEditSheet(request: request, viewModel: viewModel)
         }
         .onChange(of: viewModel.lastAdminRequestOutcome) { _, outcome in

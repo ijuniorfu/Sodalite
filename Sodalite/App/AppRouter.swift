@@ -68,6 +68,9 @@ struct AppRouter: View {
                     .transition(.opacity)
             }
         }
+        .blur(radius: appState.isAnyModalPresented ? 10 : 0)
+        .scaleEffect(appState.isAnyModalPresented ? 0.99 : 1.0)
+        .animation(.easeInOut(duration: 0.28), value: appState.isAnyModalPresented)
         .animation(.easeOut(duration: 0.4), value: appState.isLoading)
         .animation(.easeInOut(duration: 0.2), value: appState.isResolvingDeepLink)
         .task {
@@ -81,12 +84,12 @@ struct AppRouter: View {
         .task(id: appState.requestContinueWatching) {
             await resolveContinueWatchingRequest()
         }
-        .fullScreenCover(item: $deepLinkItem) { item in
+        .coordinatedFullScreenCover(item: $deepLinkItem, appState: appState) { item in
             NavigationStack {
                 DetailRouterView(item: item)
             }
         }
-        .fullScreenCover(isPresented: $showWhatsNew) {
+        .coordinatedFullScreenCover(isPresented: $showWhatsNew, appState: appState) {
             if let entry = Changelog.latest {
                 WhatsNewView(entry: entry) {
                     ChangelogPreferences.markCurrentSeen()

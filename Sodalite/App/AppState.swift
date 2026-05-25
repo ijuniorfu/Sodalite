@@ -45,6 +45,16 @@ final class AppState {
     /// one slides up.
     var isResolvingDeepLink: Bool = false
 
+    /// Number of modal sheets / full-screen covers currently presented.
+    /// Counter (not Bool) so nested presentations stay accurate -- e.g.,
+    /// a detail sheet that presents a deletion confirmation. Bumped /
+    /// decremented by the coordinated-sheet view modifiers in
+    /// `Components/ModalCoordinator.swift`. Read by AppRouter to apply
+    /// a soft blur to the underlying content while any modal is up.
+    var presentedModalCount: Int = 0
+
+    var isAnyModalPresented: Bool { presentedModalCount > 0 }
+
     var isSeerrConnected: Bool {
         activeSeerrServer != nil && activeSeerrUser != nil
     }

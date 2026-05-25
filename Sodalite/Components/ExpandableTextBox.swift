@@ -2,6 +2,7 @@ import SwiftUI
 
 struct ExpandableTextBox: View {
     let text: String
+    @Environment(\.appState) private var appState
     @State private var showFullText = false
     @FocusState private var isFocused: Bool
 
@@ -29,7 +30,7 @@ struct ExpandableTextBox: View {
             .onLongPressGesture(minimumDuration: 0) {
                 showFullText = true
             }
-            .fullScreenCover(isPresented: $showFullText) {
+            .coordinatedFullScreenCover(isPresented: $showFullText, appState: appState) {
                 TextOverlay(text: text, isPresented: $showFullText)
             }
     }

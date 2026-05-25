@@ -2,6 +2,7 @@ import SwiftUI
 
 struct CatalogDetailView: View {
     let media: SeerrMedia
+    @Environment(\.appState) private var appState
     @Environment(\.dependencies) private var dependencies
     @Environment(\.dismiss) private var dismiss
 
@@ -200,7 +201,7 @@ struct CatalogDetailView: View {
                 .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 12))
             }
             .buttonStyle(CatalogPickerButtonStyle())
-            .fullScreenCover(isPresented: $isProfilePickerPresented) {
+            .coordinatedFullScreenCover(isPresented: $isProfilePickerPresented, appState: appState) {
                 CatalogPickerSheet(
                     title: String(localized: "catalog.request.qualityProfile", defaultValue: "Quality profile"),
                     options: details.profiles.map { .init(id: "\($0.id)", label: $0.name) },
@@ -243,7 +244,7 @@ struct CatalogDetailView: View {
                 .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 12))
             }
             .buttonStyle(CatalogPickerButtonStyle())
-            .fullScreenCover(isPresented: $isRootFolderPickerPresented) {
+            .coordinatedFullScreenCover(isPresented: $isRootFolderPickerPresented, appState: appState) {
                 CatalogPickerSheet(
                     title: String(localized: "catalog.request.rootFolder", defaultValue: "Root folder"),
                     options: details.rootFolders.map { .init(id: $0.path, label: $0.path) },
@@ -292,7 +293,7 @@ struct CatalogDetailView: View {
                 .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 12))
             }
             .buttonStyle(CatalogPickerButtonStyle())
-            .fullScreenCover(isPresented: $isTagPickerPresented) {
+            .coordinatedFullScreenCover(isPresented: $isTagPickerPresented, appState: appState) {
                 CatalogMultiSelectSheet(
                     title: String(localized: "catalog.request.tags", defaultValue: "Tags"),
                     options: tags.map { .init(id: "\($0.id)", label: $0.label) },
