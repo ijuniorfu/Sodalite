@@ -29,6 +29,25 @@ enum SeerrEndpoint: APIEndpoint {
     case createRequest(body: SeerrCreateRequestBody)
     case myRequests(userID: Int, take: Int, skip: Int)
 
+    /// GET /api/v1/request. Admin view of all users' requests.
+    /// `filter` is the status filter; Jellyseerr also accepts
+    /// `unavailable` and `available` but we don't surface those.
+    /// Requires the caller to have MANAGE_REQUESTS or ADMIN.
+    case allRequests(filter: SeerrRequestFilter, take: Int, skip: Int)
+    /// POST /api/v1/request/:id/approve. Flips a pending request
+    /// to approved, sends it to Radarr/Sonarr. 200 with the updated
+    /// SeerrRequest body. 403 if caller lacks MANAGE_REQUESTS.
+    case approveRequest(requestID: Int)
+    /// POST /api/v1/request/:id/decline. Flips a pending request
+    /// to declined. Same response shape as approve.
+    case declineRequest(requestID: Int)
+    /// DELETE /api/v1/request/:id. Removes the request entry. Does
+    /// not delete the media file if already downloaded.
+    case deleteRequest(requestID: Int)
+    /// PUT /api/v1/request/:id. Modify target server, profile,
+    /// root folder, or seasons. Partial body, only changed fields sent.
+    case updateRequest(requestID: Int, body: SeerrRequestUpdateBody)
+
     case radarrServers
     case radarrDetails(serverID: Int)
     case sonarrServers
@@ -68,6 +87,11 @@ enum SeerrEndpoint: APIEndpoint {
         case .discoverTVByWatchProvider: "/api/v1/discover/tv"
         case .createRequest: "/api/v1/request"
         case .myRequests: "/api/v1/request"
+        case .allRequests: "/api/v1/request"
+        case .approveRequest(let id): "/api/v1/request/\(id)/approve"
+        case .declineRequest(let id): "/api/v1/request/\(id)/decline"
+        case .deleteRequest(let id): "/api/v1/request/\(id)"
+        case .updateRequest(let id, _): "/api/v1/request/\(id)"
         case .radarrServers: "/api/v1/service/radarr"
         case .radarrDetails(let id): "/api/v1/service/radarr/\(id)"
         case .sonarrServers: "/api/v1/service/sonarr"
@@ -80,7 +104,9 @@ enum SeerrEndpoint: APIEndpoint {
         switch self {
         case .authJellyfin, .createRequest: .post
         case .authLogout: .post
-        case .mediaFileDelete: .delete
+        case .mediaFileDelete, .deleteRequest: .delete
+        case .approveRequest, .declineRequest: .post
+        case .updateRequest: .put
         default: .get
         }
     }
@@ -126,6 +152,14 @@ enum SeerrEndpoint: APIEndpoint {
                 URLQueryItem(name: "requestedBy", value: String(userID)),
             ]
 
+        case .allRequests(let filter, let take, let skip):
+            return [
+                URLQueryItem(name: "take", value: String(take)),
+                URLQueryItem(name: "skip", value: String(skip)),
+                URLQueryItem(name: "filter", value: filter.rawValue),
+                URLQueryItem(name: "sort", value: "added"),
+            ]
+
         case .mediaFileDelete:
             // is4k is required by the Jellyseerr endpoint; Sodalite has
             // no 4K-profile distinction in its flow, always false.
@@ -140,6 +174,7 @@ enum SeerrEndpoint: APIEndpoint {
         switch self {
         case .authJellyfin(let body): body
         case .createRequest(let body): body
+        case .updateRequest(_, let body): body
         default: nil
         }
     }
