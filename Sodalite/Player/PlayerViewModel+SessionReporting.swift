@@ -106,8 +106,14 @@ extension PlayerViewModel {
     }
 
     /// Report progress on pause/seek so Jellyfin always has the latest position.
+    /// Tracks the Task handle so it can be cancelled in stopPlayback(), preventing
+    /// an orphaned report from running to completion (or timeout) after the player
+    /// has already dismissed on a slow CDN.
     func reportProgressIfNeeded() {
-        Task { await reportProgress() }
+        progressReportOnDemandTask?.cancel()
+        progressReportOnDemandTask = Task { @MainActor [weak self] in
+            await self?.reportProgress()
+        }
     }
 
     func stopProgressReporting() {

@@ -64,6 +64,10 @@ struct AsyncCachedImage<Content: View, Placeholder: View>: View {
         // catalog, studio logos from third-party CDNs) must not
         // see our token.
         var request = URLRequest(url: url)
+        // 15 s is generous for any reasonable CDN; the 60 s default
+        // meant a single hanging poster held the row in placeholder
+        // state for a full minute on a hiccupping connection.
+        request.timeoutInterval = 15
         if url.host == dependencies.jellyfinClient.baseURL?.host,
            let token = dependencies.jellyfinClient.accessToken,
            !token.isEmpty {
@@ -223,6 +227,7 @@ extension ImageCache {
         jfHost: String?
     ) async {
         var request = URLRequest(url: url)
+        request.timeoutInterval = 15
         if let token, !token.isEmpty, url.host == jfHost {
             request.setValue(token, forHTTPHeaderField: "X-Emby-Token")
         }

@@ -237,7 +237,28 @@ extension PlayerViewModel {
 
         stopProgressReporting()
         cancellables.removeAll()
-        await reportStop()
+
+        // Fire-and-forget the stop report so a slow/flaky Jellyfin response
+        // can't stall the transition. reportStop()'s 30 s URLRequest timeout
+        // would otherwise leave the picker row unresponsive on a slow CDN
+        // (DrHurt #12). Mirrors the same pattern playNextEpisode uses.
+        let stopReport = PlaybackStopReport(
+            itemId: item.id,
+            mediaSourceId: mediaSourceID,
+            playSessionId: playSessionID,
+            positionTicks: currentPositionTicks
+        )
+        let svc = playbackService
+        Task {
+            do {
+                try await svc.reportPlaybackStopped(stopReport)
+                NotificationCenter.default.post(name: .playbackProgressDidChange, object: nil)
+                LogTap.shared.note("[SeasonPicker] report_stop_done (background)")
+            } catch {
+                LogTap.shared.note("[SeasonPicker] report_stop_failed (background): \(error.localizedDescription)")
+            }
+        }
+
         player.stop()
 
         // Same reset surface playNextEpisode uses, the only

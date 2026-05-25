@@ -223,6 +223,7 @@ final class PlayerViewModel {
 
     var cancellables = Set<AnyCancellable>()
     var progressTimer: Task<Void, Never>?
+    var progressReportOnDemandTask: Task<Void, Never>?
     var controlsTimer: Task<Void, Never>?
     var hasReportedStart = false
     var hasStartedPlaying = false
@@ -546,6 +547,8 @@ final class PlayerViewModel {
     /// Same fire-and-forget shape `playNextEpisode` already uses.
     func stopPlayback() {
         stopProgressReporting()
+        progressReportOnDemandTask?.cancel()
+        progressReportOnDemandTask = nil
         unbindRemoteSkipCommands()
         // AVKit clears its internal Now Playing registration when
         // the host VC sets `player = nil` (done in dismissPlayer /
