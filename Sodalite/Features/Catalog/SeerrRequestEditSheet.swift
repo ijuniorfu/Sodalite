@@ -175,8 +175,29 @@ struct SeerrRequestEditSheet: View {
 
     @ViewBuilder
     private func seasonsPicker(model: SeerrRequestEditModel) -> some View {
-        // Placeholder until Task 15 fills this in.
-        EmptyView()
+        if let seasons = request.seasons, !seasons.isEmpty {
+            VStack(alignment: .leading, spacing: 8) {
+                Text("catalog.allRequests.edit.seasons")
+                    .font(.body)
+                    .fontWeight(.medium)
+                    .padding(.horizontal, 24)
+                ForEach(seasons.sorted(by: { $0.seasonNumber < $1.seasonNumber })) { season in
+                    SeasonCheckboxRow(
+                        seasonNumber: season.seasonNumber,
+                        isOn: model.selectedSeasons.contains(season.seasonNumber),
+                        toggle: {
+                            if model.selectedSeasons.contains(season.seasonNumber) {
+                                model.selectedSeasons.remove(season.seasonNumber)
+                            } else {
+                                model.selectedSeasons.insert(season.seasonNumber)
+                            }
+                        }
+                    )
+                }
+            }
+        } else {
+            EmptyView()
+        }
     }
 
     private func serverPicker(model: SeerrRequestEditModel) -> some View {
@@ -239,6 +260,57 @@ struct SeerrRequestEditSheet: View {
         if updated != nil {
             dismiss()
         }
+    }
+}
+
+// MARK: - SeasonCheckboxRow
+
+/// Focusable checkbox row for one season. Follows the
+/// feedback_sodalite_ui_focus_and_tint rules: `.focusable(true)`
+/// not Button, `.tint` stroke, `.tint`-tinted fill when focused.
+private struct SeasonCheckboxRow: View {
+    let seasonNumber: Int
+    let isOn: Bool
+    let toggle: () -> Void
+
+    @FocusState private var focused: Bool
+
+    var body: some View {
+        HStack(spacing: 14) {
+            Image(systemName: isOn ? "checkmark.circle.fill" : "circle")
+                .font(.title3)
+                .foregroundStyle(isOn ? AnyShapeStyle(.tint) : AnyShapeStyle(Color.white.opacity(0.5)))
+            Text(String(
+                format: String(localized: "catalog.allRequests.edit.season.format", defaultValue: "Season %d"),
+                seasonNumber
+            ))
+            .font(.callout)
+            .fontWeight(.medium)
+            .foregroundStyle(.white)
+            Spacer(minLength: 12)
+        }
+        .padding(.horizontal, 24)
+        .padding(.vertical, 14)
+        .background(
+            RoundedRectangle(cornerRadius: 14)
+                .fill(focused
+                      ? AnyShapeStyle(TintShapeStyle.tint.opacity(0.18))
+                      : AnyShapeStyle(Color.white.opacity(0.08)))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 14)
+                .strokeBorder(.tint, lineWidth: 3)
+                .opacity(focused ? 1 : 0)
+        )
+        .focusable(true)
+        .focused($focused)
+        #if os(tvOS)
+        .onLongPressGesture(minimumDuration: 0.01) { toggle() }
+        #else
+        .onTapGesture { toggle() }
+        #endif
+        .animation(.easeInOut(duration: 0.15), value: focused)
+        .animation(.easeInOut(duration: 0.15), value: isOn)
     }
 }
 
