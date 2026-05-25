@@ -734,7 +734,7 @@ final class PlayerHostController: AVPlayerViewController {
         // Release AVKit's hosting + the explicit MPNowPlayingSession
         // (cleared by stopPlayback below).
         player = nil
-        Task { await viewModel.stopPlayback() }
+        viewModel.stopPlayback()
     }
 
     @objc private func appDidEnterBackground() {
@@ -1219,10 +1219,14 @@ final class PlayerHostController: AVPlayerViewController {
     private func dismissPlayer() {
         unmountAetherViewIfNeeded()
         player = nil
-        Task {
-            await viewModel.stopPlayback()
-            onDismiss()
-        }
+        // stopPlayback now fire-and-forgets the reportStop network
+        // call so the dismiss isn't blocked on Jellyfin's slow CDN
+        // response (DrHurt #12). Calling it inline (no Task wrapper)
+        // means the synchronous tear-down completes before onDismiss
+        // fires, so the user's back press hits the SwiftUI dismiss
+        // animation immediately.
+        viewModel.stopPlayback()
+        onDismiss()
     }
 
     // MARK: - Pan (Touchpad Scrubbing)

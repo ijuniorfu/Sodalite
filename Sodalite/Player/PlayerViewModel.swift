@@ -536,7 +536,15 @@ final class PlayerViewModel {
         #endif
     }
 
-    func stopPlayback() async {
+    /// Tear down the active playback session. Synchronous local
+    /// work (progress reporting, KVO, engine stop) finishes inline;
+    /// the network "reportStop" round-trip is detached into a
+    /// background Task so a slow / hiccupping Jellyfin server can't
+    /// stall the dismiss path. Up to 30 s URLRequest timeout on the
+    /// report would otherwise leave the user staring at a still-up
+    /// player after their back press on a slow CDN (DrHurt #12).
+    /// Same fire-and-forget shape `playNextEpisode` already uses.
+    func stopPlayback() {
         stopProgressReporting()
         unbindRemoteSkipCommands()
         // AVKit clears its internal Now Playing registration when
@@ -544,20 +552,23 @@ final class PlayerViewModel {
         // viewWillDisappear).
         cancellables.removeAll()
         // Capture position synchronously, then stop the engine, then
-        // report. The capture-then-stop order is critical: player.stop()
-        // resets currentTime to 0, so we'd lose the position if we read
-        // it inside reportStop after the stop. By passing the captured
-        // ticks explicitly we keep the proven progress-sync correctness
-        // of the old "report before stop" flow, while killing the
-        // ~1-2s of trailing audio that the user heard during the
-        // network round-trip.
+        // fire-and-forget the report. The capture-then-stop order is
+        // critical: player.stop() resets currentTime to 0, so we'd
+        // lose the position if we read it inside reportStop after
+        // the stop.
         let finalTicks = currentPositionTicks
         // Engine handles native AVPlayer teardown + HLS server shutdown
         // + AVDisplayManager criteria reset inside stopInternal(). The
         // host just calls stop() and trusts the engine to leave the
         // session in a clean state for the next playback.
         player.stop()
-        await reportStop(positionTicks: finalTicks)
+        // Fire-and-forget: caller (dismissPlayer / viewWillDisappear)
+        // returns immediately so the SwiftUI dismiss animation can
+        // start without waiting on Jellyfin's PlaybackStopped endpoint.
+        let positionTicks = finalTicks
+        Task { @MainActor [weak self] in
+            await self?.reportStop(positionTicks: positionTicks)
+        }
     }
 
     // MARK: - State Observation (Combine)
