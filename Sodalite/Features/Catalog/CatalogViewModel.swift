@@ -35,6 +35,21 @@ final class CatalogViewModel {
     var studioBackdrops: [Int: String] = [:]
     var myRequests: [SeerrRequest] = []
 
+    // MARK: - Admin requests (Phase B)
+    /// Loaded via `SeerrRequestService.allRequests(filter:)`. Visible
+    /// only when the active SeerrUser has MANAGE_REQUESTS or ADMIN.
+    var allRequests: [SeerrRequest] = []
+    var allRequestsFilter: SeerrRequestFilter = .pending
+    /// Per-filter total count for the chip badges. Fetched in parallel
+    /// on initial load + after each successful mutation so the badges
+    /// stay accurate without a full reload of the visible page.
+    var allRequestsCounts: [SeerrRequestFilter: Int] = [:]
+    var isLoadingAllRequests: Bool = false
+    var isLoadingMoreAllRequests: Bool = false
+    private var allRequestsTotal: Int = 0
+    private var allRequestsSkip: Int = 0
+    private let allRequestsPageSize: Int = 50
+
     /// Per-request enrichment keyed by tmdbID. Populated in the
     /// background after loadMyRequests returns so the list can
     /// switch from "#42" placeholders to "Dune · 2021" with a
@@ -390,5 +405,82 @@ final class CatalogViewModel {
         case .upcomingMovies: upcomingMovies = new
         case .upcomingTV: upcomingTV = new
         }
+    }
+
+    // MARK: - Admin requests
+
+    func loadAllRequests(reset: Bool) async {
+        if reset {
+            allRequestsSkip = 0
+            allRequests = []
+            allRequestsTotal = 0
+        }
+        guard !isLoadingAllRequests else { return }
+        isLoadingAllRequests = true
+        defer { isLoadingAllRequests = false }
+
+        do {
+            let result = try await requestService.allRequests(
+                filter: allRequestsFilter,
+                take: allRequestsPageSize,
+                skip: allRequestsSkip
+            )
+            allRequests = result.results
+            allRequestsTotal = result.pageInfo.results
+            allRequestsSkip = result.results.count
+            Task { await enrichRequestMetadata(for: result.results) }
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    func loadMoreAllRequests() async {
+        guard allRequests.count < allRequestsTotal,
+              !isLoadingMoreAllRequests,
+              !isLoadingAllRequests else { return }
+        isLoadingMoreAllRequests = true
+        defer { isLoadingMoreAllRequests = false }
+
+        do {
+            let result = try await requestService.allRequests(
+                filter: allRequestsFilter,
+                take: allRequestsPageSize,
+                skip: allRequestsSkip
+            )
+            // Dedupe against the visible list. Seerr occasionally
+            // returns the same record on adjacent pages when the
+            // status counts shift between fetches.
+            let existing = Set(allRequests.map(\.id))
+            let additions = result.results.filter { !existing.contains($0.id) }
+            allRequests.append(contentsOf: additions)
+            allRequestsTotal = result.pageInfo.results
+            allRequestsSkip += result.results.count
+            Task { await enrichRequestMetadata(for: additions) }
+        } catch {
+            // Mid-scroll error stays silent; the user still has the
+            // visible page and can pull-to-retry by switching filters.
+        }
+    }
+
+    func setAllRequestsFilter(_ filter: SeerrRequestFilter) async {
+        guard allRequestsFilter != filter else { return }
+        allRequestsFilter = filter
+        await loadAllRequests(reset: true)
+    }
+
+    /// Fetch the `pageInfo.results` count for each filter in parallel
+    /// using `take=0`. Cheap (no `results` array transferred) and
+    /// drives the filter-chip badges. Failures leave the existing
+    /// badge values in place. Better stale than blanked out.
+    func refreshAllRequestsCounts() async {
+        async let pending  = try? requestService.allRequests(filter: .pending,  take: 0, skip: 0)
+        async let approved = try? requestService.allRequests(filter: .approved, take: 0, skip: 0)
+        async let declined = try? requestService.allRequests(filter: .declined, take: 0, skip: 0)
+        async let all      = try? requestService.allRequests(filter: .all,      take: 0, skip: 0)
+        let results = await (pending, approved, declined, all)
+        if let p = results.0 { allRequestsCounts[.pending]  = p.pageInfo.results }
+        if let a = results.1 { allRequestsCounts[.approved] = a.pageInfo.results }
+        if let d = results.2 { allRequestsCounts[.declined] = d.pageInfo.results }
+        if let x = results.3 { allRequestsCounts[.all]      = x.pageInfo.results }
     }
 }
