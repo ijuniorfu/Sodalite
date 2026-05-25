@@ -69,14 +69,13 @@ struct AppRouter: View {
             }
         }
         .blur(radius: appState.isAnyModalPresented ? 10 : 0)
-        // Asymmetric duration: 280 ms on present (eases in alongside
-        // the sheet's slide-in), 140 ms on dismiss (clears before the
-        // system sheet finishes sliding away, otherwise the blur
-        // lingers visibly on an empty screen after the modal is gone).
-        .animation(
-            .easeInOut(duration: appState.isAnyModalPresented ? 0.28 : 0.14),
-            value: appState.isAnyModalPresented
-        )
+        // Symmetric 280 ms. Synchronisation with the sheet's open/close
+        // is guaranteed by `Components/ModalCoordinator.swift`'s
+        // tracked-binding setters, which fire the counter delta at
+        // the START of the system dismiss (not after the .onChange
+        // observation cycle). No need for an asymmetric close-fast
+        // workaround anymore.
+        .animation(.easeInOut(duration: 0.28), value: appState.isAnyModalPresented)
         .animation(.easeOut(duration: 0.4), value: appState.isLoading)
         .animation(.easeInOut(duration: 0.2), value: appState.isResolvingDeepLink)
         .task {
