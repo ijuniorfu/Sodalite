@@ -437,10 +437,22 @@ final class PlayerViewModel {
             // implementation had an async-handshake race that broke
             // DV8.1 on HDR10 panels (commit 7f225e74 → fd3368c8
             // revert); c08dcfc's two-stage poll closes that gap.
+            // AVKit is the sole criteria writer (host has
+            // appliesPreferredDisplayCriteriaAutomatically=true on
+            // PlayerHostController), engine pre-flight is OFF via
+            // suppressDisplayCriteria=true. AVKit reads the live
+            // AVPlayerItem.formatDescription (which has dvcC parsed
+            // from the fMP4 sample entry via private CoreMedia hooks)
+            // and writes correct DV criteria the panel actually
+            // honours. The engine's job shrinks to GATING play() on
+            // the panel handshake completion (AetherEngine 5d60dbb).
+            // See PlayerHostController's init comment for the full
+            // architecture rationale.
             try await player.load(
                 url: url,
                 startPosition: startPos,
                 options: LoadOptions(
+                    suppressDisplayCriteria: true,
                     matchContentEnabled: Self.matchDynamicRangeEnabled,
                     panelIsInHDRMode: Self.panelIsInHDRMode,
                     audioBridgeMode: preferences.audioBridgeMode

@@ -201,38 +201,52 @@ final class PlayerHostController: AVPlayerViewController {
         //   - info views (top swipe-down) hidden via the subset flag
         //   - contextual menu emptied
         //
-        // `appliesPreferredDisplayCriteriaAutomatically = false`
-        // disables AVKit's post-asset-load auto-criteria pass so
-        // AetherEngine's `DisplayCriteriaController` is the sole
-        // writer of `AVDisplayManager.preferredDisplayCriteria`.
-        // The engine pre-flight fires from `AetherEngine.load()`
-        // BEFORE the AVPlayerItem is created and blocks on the
-        // two-stage `waitForSwitch` (AetherEngine c08dcfc) until
-        // the panel actually reaches the target dynamic range.
-        // By the time `nativeHost?.play()` fires, the panel is in
-        // the right mode. AVKit's auto path can only fire AFTER
-        // asset.load reaches readyToPlay, which is too late for
-        // DV5 cold-start (panel must already be in DV mode before
-        // the DV layer hits the decoder, per DrHurt's AetherEngine#4
-        // Build 172 testing).
+        // `appliesPreferredDisplayCriteriaAutomatically = true` plus
+        // `LoadOptions.suppressDisplayCriteria = true` in
+        // PlayerViewModel: AVKit is the sole criteria writer, the
+        // engine pre-flight is OFF. AVKit reads the live
+        // AVPlayerItem.formatDescription (which has dvcC parsed
+        // from the fMP4 sample entry via private CoreMedia hooks)
+        // and writes the correct DV criteria for P5 / P8.1 / P8.4.
+        // The engine's only criteria-related job now is to GATE
+        // play() on the panel handshake settling (AetherEngine
+        // 5d60dbb adds `await displayCriteria.waitForSwitch()` before
+        // every `nativeHost?.play()`, with a 1000 ms Stage 1 grace
+        // so AVKit's late-firing auto write is caught reliably).
+        //
+        // Why this architecture: empirically validated by DrHurt's
+        // Build 173 testing on AetherEngine#4. Build 173 had AVKit-
+        // sole-writer (same flags as here) and was the ONLY build
+        // in the 159-175 sweep where SDR -> DV switching worked
+        // correctly for P8.4. The synthetic CMVideoFormatDescription
+        // the engine constructed for its pre-flight write had
+        // BT.2020 + PQ color extensions that matched Apple's HDR10
+        // mandatory triplet exactly, so the panel treated the
+        // criteria as HDR10 regardless of the dvh1 FourCC. AVKit's
+        // private CoreMedia path doesn't have that problem, it
+        // reads dvcC directly. See research notes in this commit's
+        // message for the Apple HDR Metadata For Apple Devices spec
+        // citation.
         //
         // History:
-        // - b1ec8839 (2026-05-24): AVKit-sole; DV5 cold-start broken.
+        // - b1ec8839 (2026-05-24): AVKit-sole; DV5 cold-start broken
+        //   because there was no play() gate.
         // - 7f225e74 (2026-05-25): engine-sole; DV8.1 broken on
-        //   HDR10 panel + match-content because waitForSwitch had
-        //   an async-handshake race that let asset.load proceed
-        //   before the panel switched out of SDR.
-        // - fd3368c8 (2026-05-25): reverted to AVKit-sole; DV8.1
-        //   working, DV5 cold-start still broken.
-        // - c08dcfc on AetherEngine (2026-05-25): two-stage
-        //   waitForSwitch fixes the race.
-        // - This commit: re-flip to engine-sole now that the race
-        //   is fixed. Handles both DV5 cold-start AND DV8.1.
+        //   HDR10 panel because waitForSwitch had an async-handshake
+        //   race.
+        // - fd3368c8 (2026-05-25): reverted to AVKit-sole.
+        // - e65f189d (2026-05-25): engine-sole again, c08dcfc fixed
+        //   the race. Build 175 still showed wrong panel modes for
+        //   P5 / P8.4 on DV-capable panels (extensions-triplet bug).
+        // - This commit: AVKit-sole, plus engine play()-gate that
+        //   waits for the panel handshake to settle before AVPlayer
+        //   starts pulling frames. Lands DrHurt's Build 173 + play-
+        //   delay proposal.
         //
-        // Don't flip this back to true without also re-suppressing
-        // the engine pre-flight via `LoadOptions.suppressDisplayCriteria`,
-        // otherwise both writers fight for AVDisplayManager and the
-        // late re-negotiate symptom (DrHurt Build 170) returns.
+        // Don't flip this back to false without also dropping
+        // suppressDisplayCriteria=true in PlayerViewModel, otherwise
+        // the engine pre-flight + AVKit auto both write criteria and
+        // the late re-negotiate symptom (DrHurt Build 170) returns.
         showsPlaybackControls = true
         // SPIKE (CC 10s skip on iPhone): flip transport bar flag to
         // true to test the theory that AVKit's internal skip handler
@@ -247,7 +261,7 @@ final class PlayerHostController: AVPlayerViewController {
         // hiding next.
         playbackControlsIncludeTransportBar = true
         playbackControlsIncludeInfoViews = false
-        appliesPreferredDisplayCriteriaAutomatically = false
+        appliesPreferredDisplayCriteriaAutomatically = true
         contextualActions = []
         allowsPictureInPicturePlayback = false
 
