@@ -118,6 +118,35 @@ private struct CoordinatedFullScreenCoverBoolModifier<Cover: View>: ViewModifier
     }
 }
 
+// MARK: - Arbitrary-boolean presentation counter
+
+extension View {
+    /// Registers an arbitrary boolean expression with the modal-
+    /// presentation counter so the root view's blur stays applied for
+    /// the duration. Use for `.alert(...)`, `.confirmationDialog(...)`,
+    /// or any other modal-style UI that doesn't go through the
+    /// `coordinatedSheet` / `coordinatedFullScreenCover` modifiers.
+    ///
+    /// Pass the same expression you'd use to drive the alert's
+    /// `isPresented`: bool, optional-not-nil check, etc. The view
+    /// observes value changes and bumps the counter on each
+    /// false-to-true / true-to-false transition.
+    func coordinatesPresentation(_ isPresented: Bool, appState: AppState) -> some View {
+        modifier(CoordinatesPresentationModifier(isPresented: isPresented, appState: appState))
+    }
+}
+
+private struct CoordinatesPresentationModifier: ViewModifier {
+    let isPresented: Bool
+    let appState: AppState
+
+    func body(content: Content) -> some View {
+        content.onChange(of: isPresented) { oldValue, newValue in
+            applyDelta(oldIsNil: !oldValue, newIsNil: !newValue, appState: appState)
+        }
+    }
+}
+
 // MARK: - Shared delta application
 
 /// Translates a (oldIsNil, newIsNil) pair into a counter delta.

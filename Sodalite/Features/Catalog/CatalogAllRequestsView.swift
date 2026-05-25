@@ -48,6 +48,7 @@ struct CatalogAllRequestsView: View {
                 viewModel.title(for: request) ?? "#\(request.id)"
             ))
         }
+        .coordinatesPresentation(requestPendingDecline != nil, appState: appState)
         .alert(
             "catalog.allRequests.confirm.delete.title",
             isPresented: deleteAlertBinding,
@@ -66,6 +67,7 @@ struct CatalogAllRequestsView: View {
                 viewModel.title(for: request) ?? "#\(request.id)"
             ))
         }
+        .coordinatesPresentation(requestPendingDelete != nil, appState: appState)
         .coordinatedSheet(item: $requestBeingEdited, appState: appState) { request in
             SeerrRequestEditSheet(request: request, viewModel: viewModel)
         }
