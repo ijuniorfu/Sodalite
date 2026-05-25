@@ -58,6 +58,36 @@ struct TabRootView: View {
             }
         }
         .tint(iconColor)
+        .onAppear {
+            configureTabBarItemAppearance()
+        }
+        .onChange(of: iconColor) { _, _ in
+            // Re-apply when the user changes their accent in
+            // Appearance settings; UITabBarItem.appearance() reads
+            // the values at configure time, not live.
+            configureTabBarItemAppearance()
+        }
+    }
+
+    /// Drives the tab bar's per-state text + icon colors via UIKit's
+    /// appearance proxy. SwiftUI's `.tint(...)` on `TabView` covers
+    /// the focused state on tvOS but not the "selected but not
+    /// focused" state, which falls back to `Color.accentColor` (the
+    /// asset, hard-coded to system blue) and shows up as the
+    /// blue-text-after-modal bug. The UIKit appearance API sets all
+    /// three states explicitly and persists across SwiftUI re-renders.
+    private func configureTabBarItemAppearance() {
+        let tintUIColor = UIColor(iconColor)
+        let normalAttrs: [NSAttributedString.Key: Any] = [
+            .foregroundColor: UIColor.white
+        ]
+        let selectedAttrs: [NSAttributedString.Key: Any] = [
+            .foregroundColor: tintUIColor
+        ]
+        let appearance = UITabBarItem.appearance()
+        appearance.setTitleTextAttributes(normalAttrs, for: .normal)
+        appearance.setTitleTextAttributes(selectedAttrs, for: .selected)
+        appearance.setTitleTextAttributes(selectedAttrs, for: .focused)
     }
 
     private func tabIcon(name: String, color: Color) -> Image {
