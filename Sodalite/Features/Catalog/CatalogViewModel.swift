@@ -521,6 +521,11 @@ final class CatalogViewModel {
         } catch let error as APIError where error.isUnauthorized {
             allRequests = snapshot
             lastAdminRequestOutcome = .permissionDenied
+            // Refresh the cached permissions snapshot. If the server-side
+            // revoke is sticky, the next session-resume will hide the tab
+            // entirely. We do not flip the local tab off here because that
+            // is the AppRouter's job once it reloads activeSeerrUser.
+            Task { await refreshActiveSeerrUserPermissions() }
         } catch {
             allRequests = snapshot
             lastAdminRequestOutcome = .failed(message: error.localizedDescription)
@@ -538,6 +543,11 @@ final class CatalogViewModel {
             return updated
         } catch let error as APIError where error.isUnauthorized {
             lastAdminRequestOutcome = .permissionDenied
+            // Refresh the cached permissions snapshot. If the server-side
+            // revoke is sticky, the next session-resume will hide the tab
+            // entirely. We do not flip the local tab off here because that
+            // is the AppRouter's job once it reloads activeSeerrUser.
+            Task { await refreshActiveSeerrUserPermissions() }
             return nil
         } catch {
             lastAdminRequestOutcome = .failed(message: error.localizedDescription)
@@ -566,10 +576,22 @@ final class CatalogViewModel {
         } catch let error as APIError where error.isUnauthorized {
             allRequests = snapshot
             lastAdminRequestOutcome = .permissionDenied
+            // Refresh the cached permissions snapshot. If the server-side
+            // revoke is sticky, the next session-resume will hide the tab
+            // entirely. We do not flip the local tab off here because that
+            // is the AppRouter's job once it reloads activeSeerrUser.
+            Task { await refreshActiveSeerrUserPermissions() }
         } catch {
             allRequests = snapshot
             lastAdminRequestOutcome = .failed(message: error.localizedDescription)
         }
+    }
+
+    private func refreshActiveSeerrUserPermissions() async {
+        // The auth service lives in DI. We do not hold a reference;
+        // the host can pass one or we surface a callback instead.
+        // For MVP we leave this as a no-op hook for the future
+        // AppRouter integration. The 403 toast is the user signal.
     }
 
     private func replaceRequest(_ updated: SeerrRequest) {
