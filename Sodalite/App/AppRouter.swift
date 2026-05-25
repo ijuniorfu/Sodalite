@@ -69,13 +69,17 @@ struct AppRouter: View {
             }
         }
         .blur(radius: appState.isAnyModalPresented ? 10 : 0)
-        // Symmetric 280 ms. Synchronisation with the sheet's open/close
-        // is guaranteed by `Components/ModalCoordinator.swift`'s
-        // tracked-binding setters, which fire the counter delta at
-        // the START of the system dismiss (not after the .onChange
-        // observation cycle). No need for an asymmetric close-fast
-        // workaround anymore.
-        .animation(.easeInOut(duration: 0.28), value: appState.isAnyModalPresented)
+        // Asymmetric: 280 ms easeInOut on present (eases in alongside
+        // the sheet slide-in), 80 ms easeOut on dismiss. SwiftUI's
+        // .onChange-driven counter decrement fires at the end of the
+        // sheet's slide-out animation rather than at the start, so
+        // the dismiss-side blur fade lingers visibly if we use the
+        // same 280 ms here. The fast easeOut clears in ~5 frames so
+        // the residual ghost is below perceptual threshold.
+        .animation(
+            .easeInOut(duration: appState.isAnyModalPresented ? 0.28 : 0.08),
+            value: appState.isAnyModalPresented
+        )
         .animation(.easeOut(duration: 0.4), value: appState.isLoading)
         .animation(.easeInOut(duration: 0.2), value: appState.isResolvingDeepLink)
         .task {
