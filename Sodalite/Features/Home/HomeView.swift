@@ -15,6 +15,14 @@ struct HomeView: View {
     /// arrives at it from below.
     @FocusState private var focusedRowIndex: Int?
 
+    /// Debounce task for the focus-left-rows → scroll-to-top action.
+    /// Cancelled and respawned every time `focusedRowIndex` changes.
+    /// Without this debounce, transient nil states between row
+    /// transitions (the focus engine briefly has no focused descendant
+    /// during fast up / down navigation) trigger spurious scroll-to-top
+    /// snaps that fight with the user's scroll direction.
+    @State private var scrollResetTask: Task<Void, Never>?
+
     /// How long the home feed is considered fresh before a revisit
     /// triggers an automatic reload.
     private static let refreshStaleSeconds: TimeInterval = 60
@@ -192,7 +200,19 @@ struct HomeView: View {
                 // tab bar; scroll content to the top so the tab bar
                 // is fully visible (not clipped by partially-scrolled
                 // content beneath the translucent tab bar background).
-                if newValue == nil {
+                //
+                // Debounced because fast up / down navigation can
+                // produce transient nil states between rows that
+                // would otherwise fire spurious scroll-to-top snaps
+                // and fight the user's scroll direction. 100 ms is
+                // longer than any inter-row focus transition observed
+                // on tvOS 26.5 but short enough that the actual
+                // tab-bar arrival still feels immediate.
+                scrollResetTask?.cancel()
+                guard newValue == nil else { return }
+                scrollResetTask = Task { @MainActor in
+                    try? await Task.sleep(for: .milliseconds(100))
+                    guard !Task.isCancelled else { return }
                     withAnimation(.easeOut(duration: 0.25)) {
                         proxy.scrollTo("top", anchor: .top)
                     }
