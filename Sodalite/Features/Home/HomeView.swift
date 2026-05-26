@@ -192,7 +192,28 @@ struct HomeView: View {
                     }
                 }
                 }
-                .padding(.vertical, 40)
+                // Top padding 40 (header breathing room), bottom
+                // padding 300 because SwiftUI's focus-driven ScrollView
+                // anchors the focused row at a fixed offset from the
+                // visible top. For the second-to-last row, that anchor
+                // is reachable without capping (content extends below),
+                // producing the "ideal" position. For the last row,
+                // the same anchor would require scrolling past content
+                // end; ScrollView caps at max-scroll, which positions
+                // the last row HIGHER on screen than the second-to-last
+                // — visible as the jarring "second-to-last row scrolls
+                // way down with empty space below, last row snaps back
+                // up" behaviour Vincent reported 2026-05-26.
+                //
+                // Extending the bottom by 300 (well past one row's
+                // height + spacing) makes the anchor reachable for
+                // the last row too. Both rows now use the same anchor
+                // and the layout stays consistent as the user
+                // navigates between them. The padding area is empty
+                // and non-focusable, so the user can't navigate into
+                // it; it only exists to give the scroll math room.
+                .padding(.top, 40)
+                .padding(.bottom, 300)
             }
             .onChange(of: focusedRowIndex) { oldValue, newValue in
                 // Scroll content to top only when focus left specifically
