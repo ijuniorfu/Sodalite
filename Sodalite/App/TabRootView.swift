@@ -70,26 +70,67 @@ struct TabRootView: View {
     }
 
     /// Drives the tab bar's per-state text color via UIKit's appearance
-    /// proxy. All states render white — selection / focus is indicated
-    /// by the system's focus pill background, not by tinting the text.
-    /// Tinting the text on the selected / focused state left the
-    /// previously-focused tab stuck in tint after focus moved away
-    /// ("der text hat immer die zuletzt ausgewählte farbe" report
-    /// 2026-05-26 from Vincent's Samsung), because tvOS UITabBar
-    /// doesn't reliably revert state-keyed attributes when focus
-    /// leaves an item. Forcing white on every state ([.normal,
-    /// .selected, .focused, [.selected, .focused]]) eliminates the
-    /// state-machine race entirely; the pill is the only selection
-    /// indicator the UX needs.
+    /// proxy AND walks the active window's existing UITabBar instances
+    /// to update them in place. The proxy alone only affects future
+    /// `UITabBarItem` constructions; existing items (the live tab bar
+    /// the user is looking at) keep whatever attributes they had at
+    /// construction time. That's the "tab text shows the previous
+    /// accent color until app restart" symptom — accent flips in
+    /// Settings → effectiveTint changes → onChange fires → proxy
+    /// updates but the visible tab bar doesn't repaint because its
+    /// items were created with the old proxy values.
+    ///
+    /// Live update: walk every UIWindow's view hierarchy, find any
+    /// UITabBar, and set the title attributes on each of its items
+    /// for all relevant states. Cheap (one TabRootView in the app, ~4
+    /// items each, runs only on accent change and initial appear).
     private func configureTabBarItemAppearance() {
-        let whiteAttrs: [NSAttributedString.Key: Any] = [
+        let tintUIColor = UIColor(iconColor)
+        let normalAttrs: [NSAttributedString.Key: Any] = [
             .foregroundColor: UIColor.white
         ]
-        let appearance = UITabBarItem.appearance()
-        appearance.setTitleTextAttributes(whiteAttrs, for: .normal)
-        appearance.setTitleTextAttributes(whiteAttrs, for: .selected)
-        appearance.setTitleTextAttributes(whiteAttrs, for: .focused)
-        appearance.setTitleTextAttributes(whiteAttrs, for: [.selected, .focused])
+        let selectedAttrs: [NSAttributedString.Key: Any] = [
+            .foregroundColor: tintUIColor
+        ]
+
+        // Future instances pick up new values from the proxy.
+        let proxy = UITabBarItem.appearance()
+        proxy.setTitleTextAttributes(normalAttrs, for: .normal)
+        proxy.setTitleTextAttributes(selectedAttrs, for: .selected)
+        proxy.setTitleTextAttributes(selectedAttrs, for: .focused)
+        proxy.setTitleTextAttributes(selectedAttrs, for: [.selected, .focused])
+
+        // Existing items need explicit per-instance updates because
+        // the proxy doesn't retroactively rewrite already-allocated
+        // UITabBarItem attribute dictionaries.
+        for scene in UIApplication.shared.connectedScenes {
+            guard let windowScene = scene as? UIWindowScene else { continue }
+            for window in windowScene.windows {
+                Self.applyTabBarItemAttributes(
+                    in: window,
+                    normal: normalAttrs,
+                    selected: selectedAttrs
+                )
+            }
+        }
+    }
+
+    private static func applyTabBarItemAttributes(
+        in view: UIView,
+        normal: [NSAttributedString.Key: Any],
+        selected: [NSAttributedString.Key: Any]
+    ) {
+        if let tabBar = view as? UITabBar {
+            for item in tabBar.items ?? [] {
+                item.setTitleTextAttributes(normal, for: .normal)
+                item.setTitleTextAttributes(selected, for: .selected)
+                item.setTitleTextAttributes(selected, for: .focused)
+                item.setTitleTextAttributes(selected, for: [.selected, .focused])
+            }
+        }
+        for subview in view.subviews {
+            applyTabBarItemAttributes(in: subview, normal: normal, selected: selected)
+        }
     }
 
     private func tabIcon(name: String, color: Color) -> Image {
