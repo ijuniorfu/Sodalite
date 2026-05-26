@@ -215,6 +215,16 @@ final class PlayerViewModel {
     /// through the couple of seconds between the marker and the seek
     /// landing on outro.endSeconds.
     var didAutoSkipCurrentOutro: Bool = false
+    /// Set to `introSegment.endSeconds` while a Skip-Intro seek is in
+    /// flight. `updateIntroVisibility` honors this as a "ignore stale
+    /// pre-seek currentTime reports" guard, otherwise the time ticks
+    /// arriving between `skipIntro`'s synchronous `isInsideIntro = false`
+    /// and the async seek landing flip the flag back to true for a
+    /// frame or two and the user sees the Skip Intro pill briefly
+    /// re-appear (fade-out → fade-in → fade-out) after the tap.
+    /// Cleared once `currentTime` reaches the target OR drops below
+    /// the intro start (backward scrub past the intro).
+    var pendingIntroSkipTarget: Double?
 
     // MARK: - Dependencies
 
@@ -1133,7 +1143,23 @@ final class PlayerViewModel {
     func updateIntroVisibility(time: Double) {
         guard let seg = introSegment else {
             if isInsideIntro { setInsideIntro(false) }
+            pendingIntroSkipTarget = nil
             return
+        }
+        // Skip-Intro post-tap guard: while the engine's currentTime
+        // still reflects the pre-seek position, ignore all intro
+        // evaluation. The seek lands when `time` reaches the target
+        // (or the user scrubbed back below the intro, which also
+        // means the post-skip transition is over). Without this
+        // guard, stale time ticks between `skipIntro`'s optimistic
+        // flag flip and the seek completion re-set isInsideIntro
+        // back to true and the user sees the pill briefly reappear.
+        if let target = pendingIntroSkipTarget {
+            if time >= target - 0.5 || time < seg.startSeconds {
+                pendingIntroSkipTarget = nil
+            } else {
+                return
+            }
         }
         // Plugin sometimes reports introStart=0 on episodes with a
         // pre-title cold-open → button would pop up the instant the
@@ -1175,6 +1201,7 @@ final class PlayerViewModel {
     func skipIntro() {
         guard let seg = introSegment else { return }
         isInsideIntro = false
+        pendingIntroSkipTarget = seg.endSeconds
         Task { [weak self] in await self?.player.seek(to: seg.endSeconds) }
     }
 
