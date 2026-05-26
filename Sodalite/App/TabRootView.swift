@@ -69,25 +69,27 @@ struct TabRootView: View {
         }
     }
 
-    /// Drives the tab bar's per-state text + icon colors via UIKit's
-    /// appearance proxy. SwiftUI's `.tint(...)` on `TabView` covers
-    /// the focused state on tvOS but not the "selected but not
-    /// focused" state, which falls back to `Color.accentColor` (the
-    /// asset, hard-coded to system blue) and shows up as the
-    /// blue-text-after-modal bug. The UIKit appearance API sets all
-    /// three states explicitly and persists across SwiftUI re-renders.
+    /// Drives the tab bar's per-state text color via UIKit's appearance
+    /// proxy. All states render white — selection / focus is indicated
+    /// by the system's focus pill background, not by tinting the text.
+    /// Tinting the text on the selected / focused state left the
+    /// previously-focused tab stuck in tint after focus moved away
+    /// ("der text hat immer die zuletzt ausgewählte farbe" report
+    /// 2026-05-26 from Vincent's Samsung), because tvOS UITabBar
+    /// doesn't reliably revert state-keyed attributes when focus
+    /// leaves an item. Forcing white on every state ([.normal,
+    /// .selected, .focused, [.selected, .focused]]) eliminates the
+    /// state-machine race entirely; the pill is the only selection
+    /// indicator the UX needs.
     private func configureTabBarItemAppearance() {
-        let tintUIColor = UIColor(iconColor)
-        let normalAttrs: [NSAttributedString.Key: Any] = [
+        let whiteAttrs: [NSAttributedString.Key: Any] = [
             .foregroundColor: UIColor.white
         ]
-        let selectedAttrs: [NSAttributedString.Key: Any] = [
-            .foregroundColor: tintUIColor
-        ]
         let appearance = UITabBarItem.appearance()
-        appearance.setTitleTextAttributes(normalAttrs, for: .normal)
-        appearance.setTitleTextAttributes(selectedAttrs, for: .selected)
-        appearance.setTitleTextAttributes(selectedAttrs, for: .focused)
+        appearance.setTitleTextAttributes(whiteAttrs, for: .normal)
+        appearance.setTitleTextAttributes(whiteAttrs, for: .selected)
+        appearance.setTitleTextAttributes(whiteAttrs, for: .focused)
+        appearance.setTitleTextAttributes(whiteAttrs, for: [.selected, .focused])
     }
 
     private func tabIcon(name: String, color: Color) -> Image {
