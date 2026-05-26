@@ -189,6 +189,14 @@ final class PlayerViewModel {
     var hasFetchedNextEpisode = false
     var nextEpisodeCancelled = false
 
+    /// Last `currentTime` observed by the next-episode visibility
+    /// hook. Used to detect backward time movement (user scrubs back
+    /// from the trigger window) so the overlay + countdown can reset.
+    /// Without this the show-logic is one-way ("if remaining < 30
+    /// and overlay hidden, show it") and the overlay sticks on screen
+    /// when the user scrubs out of the end window.
+    var lastPlaybackTimeForNextEpisode: Double = 0
+
     // Intro skip + outro-aware next-episode trigger, both populated
     // from Jellyfin Media Segments / intro-skipper plugin in one call.
     var introSegment: MediaSegment?
@@ -681,6 +689,21 @@ final class PlayerViewModel {
                 self.checkForNextEpisode()
                 let dur = self.effectiveDuration
                 let remaining = dur - time
+
+                // Detect backward time movement (scrub-back) and reset
+                // the next-episode overlay + countdown so the user
+                // sees the same fresh trigger when they return to the
+                // end. Tolerate small jitter from AVPlayer's internal
+                // precision; only > 1 s backward counts as a real
+                // scrub. The forward-trigger logic below re-fires
+                // naturally on the next tick once the user reaches
+                // the trigger window again.
+                let movedBackward = time + 1.0 < self.lastPlaybackTimeForNextEpisode
+                self.lastPlaybackTimeForNextEpisode = time
+                if movedBackward, self.showNextEpisodeOverlay {
+                    self.resetNextEpisodeOverlayState()
+                }
+
                 if self.nextEpisode != nil && !self.nextEpisodeCancelled && dur > 0 && remaining > 0 {
                     // Two separate UI-visibility flows depending on
                     // whether the server gave us an outro marker.

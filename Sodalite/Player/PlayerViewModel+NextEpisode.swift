@@ -194,6 +194,20 @@ extension PlayerViewModel {
         nextEpisodeCancelled = true
     }
 
+    /// Tear down the overlay + countdown when the user scrubs back
+    /// out of the end-window. Distinct from `cancelNextEpisode` in
+    /// that it does NOT set `nextEpisodeCancelled = true` — the
+    /// overlay should re-trigger naturally if the user plays forward
+    /// back into the trigger window. Same fresh `nextEpisodeCountdown
+    /// = 10` reset so the next show starts a clean countdown.
+    func resetNextEpisodeOverlayState() {
+        nextEpisodeTimer?.cancel()
+        nextEpisodeTimer = nil
+        showNextEpisodeOverlay = false
+        isCountdownActive = false
+        nextEpisodeCountdown = 10
+    }
+
     // MARK: - Season Episode Picker
 
     /// Loads every episode of the currently-playing item's season,
