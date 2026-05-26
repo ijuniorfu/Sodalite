@@ -53,7 +53,7 @@ enum DirectPlayProfile {
                 [
                     "Container": "mp4,m4v,mov,mkv,matroska,avi,mpegts,ts,m2ts,mts,3gp,3g2,vob,ogg,webm,flv",
                     "Type": "Video",
-                    "VideoCodec": "h264,hevc,av1,vp9,mpeg4,mpeg2video,vc1",
+                    "VideoCodec": "h264,hevc,av1,vp9,vp8,mpeg4,mpeg2video,vc1",
                     // Jellyfin reports DTS variants inconsistently, some
                     // builds use `dts`, some `dca`, some `dts-hd`. Listing
                     // every spelling we've seen stops the server from
@@ -122,7 +122,7 @@ enum DirectPlayProfile {
                 [
                     "Container": "mp4,m4v,mov,mkv,matroska,avi,mpegts,ts,m2ts,mts,3gp,3g2,vob,ogg,webm,flv",
                     "Type": "Video",
-                    "VideoCodec": "h264,hevc,av1,vp9,mpeg4,mpeg2video,vc1",
+                    "VideoCodec": "h264,hevc,av1,vp9,vp8,mpeg4,mpeg2video,vc1",
                     // Jellyfin reports DTS variants inconsistently, some
                     // builds use `dts`, some `dca`, some `dts-hd`. Listing
                     // every spelling we've seen stops the server from
