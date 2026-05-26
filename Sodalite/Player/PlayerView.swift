@@ -261,7 +261,18 @@ final class PlayerHostController: AVPlayerViewController {
         // hiding next.
         playbackControlsIncludeTransportBar = true
         playbackControlsIncludeInfoViews = false
-        appliesPreferredDisplayCriteriaAutomatically = true
+        // Engine drives display criteria (LoadOptions.suppressDisplayCriteria =
+        // false in PlayerViewModel). AVKit-auto would race the engine's
+        // synchronous pre-flight apply() + waitForSwitch, and on tvOS 26.5+
+        // the HLS variant validator rejects items synchronously at
+        // playlist-parse when no display criteria are active for the
+        // VIDEO-RANGE the master advertises (item.failed -11868, no errorLog
+        // events, no init.mp4 fetched). Apple Tech Talk 503: criteria first,
+        // THEN AVPlayerItem assignment. Engine-driven sole-writer satisfies
+        // that contract; AVKit-auto cannot because it has nothing to read
+        // criteria from until init.mp4 parses, which never happens if the
+        // variant is rejected first.
+        appliesPreferredDisplayCriteriaAutomatically = false
         contextualActions = []
         allowsPictureInPicturePlayback = false
 

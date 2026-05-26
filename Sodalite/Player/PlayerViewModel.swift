@@ -452,7 +452,7 @@ final class PlayerViewModel {
                 url: url,
                 startPosition: startPos,
                 options: LoadOptions(
-                    suppressDisplayCriteria: true,
+                    suppressDisplayCriteria: false,
                     matchContentEnabled: Self.matchDynamicRangeEnabled,
                     panelIsInHDRMode: Self.panelIsInHDRMode,
                     audioBridgeMode: preferences.audioBridgeMode
