@@ -7,6 +7,14 @@ struct HomeView: View {
     @State private var selectedItem: JellyfinItem?
     @State private var selectedFilter: FilterDestination?
 
+    /// Tracks which content row currently holds focus. Goes `nil`
+    /// when focus moves out of the rows (typically: user pressed Up
+    /// at the top row and the focus engine jumped to the tab bar).
+    /// Used to drive an auto-scroll-to-top so the tab bar is fully
+    /// visible (not clipped by scrolled-down content) when the user
+    /// arrives at it from below.
+    @FocusState private var focusedRowIndex: Int?
+
     /// How long the home feed is considered fresh before a revisit
     /// triggers an automatic reload.
     private static let refreshStaleSeconds: TimeInterval = 60
@@ -112,9 +120,15 @@ struct HomeView: View {
     }
 
     private func contentView(vm: HomeViewModel) -> some View {
-        ScrollView(.vertical, showsIndicators: false) {
-            LazyVStack(alignment: .leading, spacing: 40) {
-                ForEach(vm.orderedSections()) { section in
+        ScrollViewReader { proxy in
+            ScrollView(.vertical, showsIndicators: false) {
+                // Invisible top anchor for programmatic scroll-to-top
+                // when focus leaves the rows (user arrives at the
+                // tab bar from below). Zero-height + `Color.clear`
+                // so it doesn't affect layout.
+                Color.clear.frame(height: 0).id("top")
+                LazyVStack(alignment: .leading, spacing: 40) {
+                    ForEach(Array(vm.orderedSections().enumerated()), id: \.element.id) { idx, section in
                     switch section {
                     case .media(let row):
                         HorizontalMediaRow(
@@ -124,6 +138,7 @@ struct HomeView: View {
                             onItemSelected: { selectedItem = $0 },
                             cardStyle: row.type.cardStyle
                         )
+                        .focused($focusedRowIndex, equals: idx)
 
                     case .tags(let tagRow):
                         TagRow(
@@ -133,6 +148,7 @@ struct HomeView: View {
                                 selectedFilter = makeFilter(for: tagData, type: tagRow.type)
                             }
                         )
+                        .focused($focusedRowIndex, equals: idx)
 
                     case .discoverProviders:
                         // Hide tiles whose resolved match count is
@@ -163,11 +179,25 @@ struct HomeView: View {
                                     vm.providerBackdrops[provider.id]
                                 }
                             )
+                            .focused($focusedRowIndex, equals: idx)
                         }
                     }
                 }
+                }
+                .padding(.vertical, 40)
             }
-            .padding(.vertical, 40)
+            .onChange(of: focusedRowIndex) { _, newValue in
+                // Focus left every row (newValue == nil). The focus
+                // engine routes Up-press from the topmost row to the
+                // tab bar; scroll content to the top so the tab bar
+                // is fully visible (not clipped by partially-scrolled
+                // content beneath the translucent tab bar background).
+                if newValue == nil {
+                    withAnimation(.easeOut(duration: 0.25)) {
+                        proxy.scrollTo("top", anchor: .top)
+                    }
+                }
+            }
         }
     }
 
