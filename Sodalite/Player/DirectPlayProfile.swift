@@ -3,10 +3,11 @@ import AetherEngine
 
 /// Jellyfin device profile for AetherEngine on Apple TV.
 ///
-/// AetherEngine demuxes MKV/MP4/AVI/TS natively via FFmpeg, so we can
-/// direct-play far more containers than AVPlayer. This drastically
-/// reduces server-side transcoding, the server only needs to re-encode
-/// when the actual codec is unsupported (e.g. MPEG-2, VC-1).
+/// AetherEngine demuxes MKV/MP4/AVI/TS/VOB/3GP/M2TS natively via FFmpeg
+/// and dispatches to either the native AVPlayer HLS path (HEVC, H.264,
+/// AV1 with HW decode) or the SW pipeline (AV1 without HW, VP9, MPEG-4
+/// Part 2, MPEG-2 video, VC-1). Server-side transcoding is reserved for
+/// codecs outside this set (WMV3, Theora, RealVideo, etc.).
 ///
 /// Two flavors based on display capabilities (see
 /// `AetherEngine.displayCapabilities`):
@@ -42,18 +43,25 @@ enum DirectPlayProfile {
             "MusicStreamingTranscodingBitrate": 384_000,
 
             // AetherEngine (FFmpeg) handles these containers natively.
+            // Video codecs match the engine's dispatch table in
+            // `AetherEngine.swift`: HEVC / H.264 / AV1 (HW) go to the
+            // native AVPlayer HLS path; AV1 (no HW), VP9, MPEG-4 Part 2,
+            // MPEG-2 video, and VC-1 take the SW pipeline. Listing them
+            // here stops Jellyfin from server-transcoding XVID / DivX,
+            // MPEG-2 broadcast remuxes, and VC-1 BD rips.
             "DirectPlayProfiles": [
                 [
-                    "Container": "mp4,m4v,mov,mkv,matroska,avi,mpegts,ts,ogg,webm,flv",
+                    "Container": "mp4,m4v,mov,mkv,matroska,avi,mpegts,ts,m2ts,mts,3gp,3g2,vob,ogg,webm,flv",
                     "Type": "Video",
-                    "VideoCodec": "h264,hevc,av1,vp9",
+                    "VideoCodec": "h264,hevc,av1,vp9,mpeg4,mpeg2video,vc1",
                     // Jellyfin reports DTS variants inconsistently, some
                     // builds use `dts`, some `dca`, some `dts-hd`. Listing
                     // every spelling we've seen stops the server from
                     // kicking DTS-HD MA into a transcode just because our
                     // profile didn't happen to use the exact string it
-                    // chose this release.
-                    "AudioCodec": "aac,ac3,eac3,mp3,flac,opus,vorbis,alac,truehd,mlp,dts,dca,dts-hd,dtshd,pcm_s16le,pcm_s24le,pcm_f32le",
+                    // chose this release. mp2 pairs with MPEG-2 video
+                    // (broadcast / VOB sources).
+                    "AudioCodec": "aac,ac3,eac3,mp3,mp2,flac,opus,vorbis,alac,truehd,mlp,dts,dca,dts-hd,dtshd,pcm_s16le,pcm_s24le,pcm_f32le",
                 ],
                 [
                     "Container": "mp3,aac,m4a,m4b,flac,alac,wav,opus,ogg",
@@ -108,18 +116,21 @@ enum DirectPlayProfile {
             "MusicStreamingTranscodingBitrate": 384_000,
 
             // AetherEngine (FFmpeg) handles these containers natively.
+            // Video codecs match the engine's dispatch table; see HDR
+            // profile comment for the SW vs native split.
             "DirectPlayProfiles": [
                 [
-                    "Container": "mp4,m4v,mov,mkv,matroska,avi,mpegts,ts,ogg,webm,flv",
+                    "Container": "mp4,m4v,mov,mkv,matroska,avi,mpegts,ts,m2ts,mts,3gp,3g2,vob,ogg,webm,flv",
                     "Type": "Video",
-                    "VideoCodec": "h264,hevc,av1,vp9",
+                    "VideoCodec": "h264,hevc,av1,vp9,mpeg4,mpeg2video,vc1",
                     // Jellyfin reports DTS variants inconsistently, some
                     // builds use `dts`, some `dca`, some `dts-hd`. Listing
                     // every spelling we've seen stops the server from
                     // kicking DTS-HD MA into a transcode just because our
                     // profile didn't happen to use the exact string it
-                    // chose this release.
-                    "AudioCodec": "aac,ac3,eac3,mp3,flac,opus,vorbis,alac,truehd,mlp,dts,dca,dts-hd,dtshd,pcm_s16le,pcm_s24le,pcm_f32le",
+                    // chose this release. mp2 pairs with MPEG-2 video
+                    // (broadcast / VOB sources).
+                    "AudioCodec": "aac,ac3,eac3,mp3,mp2,flac,opus,vorbis,alac,truehd,mlp,dts,dca,dts-hd,dtshd,pcm_s16le,pcm_s24le,pcm_f32le",
                 ],
                 [
                     "Container": "mp3,aac,m4a,m4b,flac,alac,wav,opus,ogg",
