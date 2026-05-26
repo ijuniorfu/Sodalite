@@ -7,7 +7,7 @@
       "location" : "https://github.com/superuser404notfound/AetherEngine",
       "state" : {
         "branch" : "main",
-        "revision" : "fabf7784490bd65c17af57be8e242c05a936b7b5"
+        "revision" : "41904458dd03f8376c616e42a41187da7d542961"
       }
     },
     {
@@ -16,7 +16,7 @@
       "location" : "https://github.com/superuser404notfound/FFmpegBuild",
       "state" : {
         "branch" : "main",
-        "revision" : "7f91e6f262a507612b0f2df4b4ace6ff6d11e289"
+        "revision" : "1a28db361995b0a0662d7b1f8c6e15ad61455dc4"
       }
     }
   ],
