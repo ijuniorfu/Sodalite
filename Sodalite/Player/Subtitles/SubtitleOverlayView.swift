@@ -46,6 +46,20 @@ struct SubtitleOverlayView: View {
     /// rendering some users prefer for contrast against busy
     /// backgrounds. Applied to both font choices.
     let weight: PlaybackPreferences.SubtitleWeight
+    /// True while the transport bar / player chrome is visible. When
+    /// set, text cues snap to a fixed clearance above the UI so the
+    /// transport bar never occludes dialogue. The user's chosen
+    /// vertical position is intentionally overridden while the UI is
+    /// up so positions above the bar don't end up wastefully high and
+    /// positions below the bar don't end up hidden. Bitmap cues keep
+    /// their source-baked layout (signs / songs at the top of frame
+    /// would never be occluded anyway).
+    let controlsVisible: Bool
+
+    /// Fixed bottom inset for text cues while the transport bar is
+    /// visible. Sits above the transport-bar gradient band (300 pt
+    /// from the bottom edge) with a small breathing margin.
+    private static let controlsVisibleBottomInset: CGFloat = 280
 
     var body: some View {
         GeometryReader { geo in
@@ -106,6 +120,9 @@ struct SubtitleOverlayView: View {
     /// the value also caps the lowest pixel the text can reach, so
     /// multi-line cues at large font no longer clip off-screen.
     private func textBottomInset(in size: CGSize) -> CGFloat {
+        if controlsVisible {
+            return Self.controlsVisibleBottomInset
+        }
         if let fraction = verticalPosition.fractionFromBottom {
             return size.height * CGFloat(fraction)
         }

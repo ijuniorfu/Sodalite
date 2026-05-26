@@ -1497,7 +1497,8 @@ private struct PlayerOverlayView: View {
                     delaySeconds: viewModel.preferences.subtitleDelaySeconds,
                     verticalPosition: viewModel.preferences.subtitleVerticalPosition,
                     font: viewModel.preferences.subtitleFont,
-                    weight: viewModel.preferences.subtitleWeight
+                    weight: viewModel.preferences.subtitleWeight,
+                    controlsVisible: viewModel.showControls
                 )
             }
 
