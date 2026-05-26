@@ -1659,26 +1659,38 @@ private struct PlayerOverlayView: View {
     }
 
     private func nextEpisodeOverlay(_ episode: JellyfinItem) -> some View {
-        VStack {
-            Spacer()
-            HStack {
-                Spacer()
-                cardBody(for: episode)
-                    .padding(.trailing, viewModel.showControls ? 60 : 40)
-                    .padding(.bottom, viewModel.showControls ? 300 : 40)
-            }
-        }
-        // ignoresSafeArea for the same reason as introSkipOverlay
-        // above. When `playNextEpisode` kicks in at the end of the
-        // countdown, the new session's startup briefly widens AVKit's
-        // contentOverlayView bottom safe-area inset to accommodate
-        // the (alpha=0) chrome views. Without ignoring the safe area
-        // here the `VStack { Spacer() }` layout shifts the card up
-        // by the chrome's nominal height for the duration of the
-        // overlay's slide-out transition, parking it visibly at
-        // mid-right before it finishes fading out.
-        .ignoresSafeArea()
-        .transition(.move(edge: .trailing).combined(with: .opacity))
+        cardBody(for: episode)
+            .padding(.trailing, viewModel.showControls ? 60 : 40)
+            .padding(.bottom, viewModel.showControls ? 300 : 40)
+            // Single-property alignment instead of a VStack { Spacer();
+            // HStack { Spacer(); ... } } chain. SwiftUI interpolates
+            // every Spacer's flexible space during animations; when the
+            // parent container reflows mid-transition (AVKit's
+            // contentOverlayView safe-area inset shifts when chrome
+            // becomes alpha=0 visible at end-of-playback), the
+            // Spacer-based layout briefly recalculates "bottom-right"
+            // against the shrunken bounds, parking the card visibly
+            // toward the center for a beat. A frame with
+            // `alignment: .bottomTrailing` is one attribute, not an
+            // interpolated layout, so it stays nailed to the corner
+            // even while the parent reflows.
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
+            .ignoresSafeArea()
+            // Asymmetric transition: slide in from the right on
+            // appear (the nice "here's the next episode" entry), but
+            // only fade out on disappear. The original symmetric
+            // `.move(edge: .trailing)` removal was the second contributor
+            // to the "jump to middle" symptom (Vincent report
+            // 2026-05-26): when `playNextEpisode` flips the visibility
+            // bool at end-of-playback, the move-to-trailing trajectory
+            // gets composed with the parent reflow happening at the
+            // same moment, and the visual result is the card drifting
+            // toward the middle of the screen before vanishing. A
+            // straight fade-out has no spatial component to disrupt.
+            .transition(.asymmetric(
+                insertion: .move(edge: .trailing).combined(with: .opacity),
+                removal: .opacity
+            ))
     }
 
     private func cardBody(for episode: JellyfinItem) -> some View {
