@@ -1051,17 +1051,32 @@ final class PlayerViewModel {
     }
 
     /// Lower rank wins. See `bestSubtitleMatch` for the rationale.
+    ///
+    /// Encoded as `descriptorRank * 2 + bitmapPenalty` so the
+    /// descriptor axis (full > SDH > forced > signs/songs) stays
+    /// dominant and codec (text < bitmap) is only a tiebreaker. Full
+    /// bitmap still wins over forced text because complete dialog
+    /// coverage matters more than appearance customization; full text
+    /// wins over full bitmap because the user's font / colour /
+    /// background / position / delay settings only apply to text cues
+    /// (bitmap cues come pre-rendered from the source).
     private static func subtitleAutoPickRank(_ stream: MediaStream) -> Int {
         let title = stream.title?.lowercased() ?? ""
-        let isSpecialPurpose = ["signs", "songs", "music", "musik", "commentary"]
-            .contains(where: { title.contains($0) })
-        if isSpecialPurpose { return 3 }
-        let isForced = stream.isForced == true || title.contains("forced")
-        if isForced { return 2 }
-        let isSDH = ["sdh", "cc", "hearing"]
-            .contains(where: { title.contains($0) })
-        if isSDH { return 1 }
-        return 0
+        let descriptorRank: Int = {
+            let isSpecialPurpose = ["signs", "songs", "music", "musik", "commentary"]
+                .contains(where: { title.contains($0) })
+            if isSpecialPurpose { return 3 }
+            let isForced = stream.isForced == true || title.contains("forced")
+            if isForced { return 2 }
+            let isSDH = ["sdh", "cc", "hearing"]
+                .contains(where: { title.contains($0) })
+            if isSDH { return 1 }
+            return 0
+        }()
+        let codec = stream.codec?.lowercased() ?? ""
+        let isBitmap = ["pgs", "hdmv", "dvb_sub", "dvbsub", "dvd_sub", "dvdsub", "vobsub", "xsub"]
+            .contains(where: { codec.contains($0) })
+        return descriptorRank * 2 + (isBitmap ? 1 : 0)
     }
 
     /// Resolves the effective "preferred audio language" used for the
