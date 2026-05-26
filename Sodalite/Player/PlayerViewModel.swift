@@ -1013,7 +1013,7 @@ final class PlayerViewModel {
     ///    a switch back to native audio).
     private func applyPreferredSubtitle(forAudioLanguage audioLanguage: String?) {
         if let explicit = preferences.preferredSubtitleLanguage {
-            if let match = subtitleStreams.first(where: { Self.languagesMatch($0.language, explicit) }) {
+            if let match = bestSubtitleMatch(forLanguage: explicit) {
                 selectSubtitleTrack(id: match.index)
             }
             return
@@ -1022,9 +1022,46 @@ final class PlayerViewModel {
               let preferredAudio = effectivePreferredAudioLanguage(),
               !Self.languagesMatch(audioLanguage, preferredAudio)
         else { return }
-        if let match = subtitleStreams.first(where: { Self.languagesMatch($0.language, preferredAudio) }) {
+        if let match = bestSubtitleMatch(forLanguage: preferredAudio) {
             selectSubtitleTrack(id: match.index)
         }
+    }
+
+    /// Picks the most useful subtitle track in a given language for a
+    /// viewer who needs subs to follow the dialog. Plain "full" tracks
+    /// win, SDH / CC come next (still cover all dialog), forced tracks
+    /// are last-resort because they only translate foreign-language
+    /// snippets inside an otherwise-understood audio track, and
+    /// signs / songs / commentary tracks are excluded from the
+    /// auto-pick entirely since they don't carry general dialog.
+    ///
+    /// `min(by:)` is stable for ties in Swift, so when multiple
+    /// candidates share the best rank the one appearing first in
+    /// `subtitleStreams` (which preserves the server's source order)
+    /// wins, matching prior behavior for releases where every track
+    /// happens to carry the same descriptor.
+    private func bestSubtitleMatch(forLanguage language: String) -> MediaStream? {
+        let candidates = subtitleStreams.filter {
+            Self.languagesMatch($0.language, language)
+        }
+        guard !candidates.isEmpty else { return nil }
+        return candidates.min(by: {
+            Self.subtitleAutoPickRank($0) < Self.subtitleAutoPickRank($1)
+        })
+    }
+
+    /// Lower rank wins. See `bestSubtitleMatch` for the rationale.
+    private static func subtitleAutoPickRank(_ stream: MediaStream) -> Int {
+        let title = stream.title?.lowercased() ?? ""
+        let isSpecialPurpose = ["signs", "songs", "music", "musik", "commentary"]
+            .contains(where: { title.contains($0) })
+        if isSpecialPurpose { return 3 }
+        let isForced = stream.isForced == true || title.contains("forced")
+        if isForced { return 2 }
+        let isSDH = ["sdh", "cc", "hearing"]
+            .contains(where: { title.contains($0) })
+        if isSDH { return 1 }
+        return 0
     }
 
     /// Resolves the effective "preferred audio language" used for the
