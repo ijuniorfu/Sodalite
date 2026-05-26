@@ -179,6 +179,7 @@ extension PlayerViewModel {
         isInsideIntro = false
         didAutoSkipCurrentIntro = false
         didAutoSkipCurrentOutro = false
+        didSkipCurrentIntro = false
 
         // Start new
         LogTap.shared.note("[NextEp] start_playback_enter id=\(item.id)")
@@ -305,6 +306,7 @@ extension PlayerViewModel {
         isInsideIntro = false
         didAutoSkipCurrentIntro = false
         didAutoSkipCurrentOutro = false
+        didSkipCurrentIntro = false
 
         await startPlayback()
     }

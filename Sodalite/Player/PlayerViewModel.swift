@@ -215,16 +215,15 @@ final class PlayerViewModel {
     /// through the couple of seconds between the marker and the seek
     /// landing on outro.endSeconds.
     var didAutoSkipCurrentOutro: Bool = false
-    /// Set to `introSegment.endSeconds` while a Skip-Intro seek is in
-    /// flight. `updateIntroVisibility` honors this as a "ignore stale
-    /// pre-seek currentTime reports" guard, otherwise the time ticks
-    /// arriving between `skipIntro`'s synchronous `isInsideIntro = false`
-    /// and the async seek landing flip the flag back to true for a
-    /// frame or two and the user sees the Skip Intro pill briefly
-    /// re-appear (fade-out → fade-in → fade-out) after the tap.
-    /// Cleared once `currentTime` reaches the target OR drops below
-    /// the intro start (backward scrub past the intro).
-    var pendingIntroSkipTarget: Double?
+    /// Latches once the user (or auto-skip) has skipped this episode's
+    /// intro. While set, `updateIntroVisibility` refuses to flip
+    /// `isInsideIntro` back to true regardless of the currentTime
+    /// value reported, so stale pre-seek ticks arriving between
+    /// `skipIntro`'s synchronous flag flip and the actual seek landing
+    /// cannot revive the Skip Intro pill mid-fade-out. Cleared on
+    /// episode change and on a backward scrub past the intro start
+    /// (deliberate re-entry should re-offer the pill).
+    var didSkipCurrentIntro: Bool = false
 
     // MARK: - Dependencies
 
@@ -1143,24 +1142,30 @@ final class PlayerViewModel {
     func updateIntroVisibility(time: Double) {
         guard let seg = introSegment else {
             if isInsideIntro { setInsideIntro(false) }
-            pendingIntroSkipTarget = nil
+            didSkipCurrentIntro = false
             return
         }
-        // Skip-Intro post-tap guard: while the engine's currentTime
-        // still reflects the pre-seek position, ignore all intro
-        // evaluation. The seek lands when `time` reaches the target
-        // (or the user scrubbed back below the intro, which also
-        // means the post-skip transition is over). Without this
-        // guard, stale time ticks between `skipIntro`'s optimistic
-        // flag flip and the seek completion re-set isInsideIntro
-        // back to true and the user sees the pill briefly reappear.
-        if let target = pendingIntroSkipTarget {
-            if time >= target - 0.5 || time < seg.startSeconds {
-                pendingIntroSkipTarget = nil
+
+        // Skip-lockout: once the user (or auto-skip) has skipped this
+        // intro, keep the pill hidden regardless of currentTime
+        // reports. Clears only when the playhead moves below the
+        // intro start (deliberate back-scrub past the intro) so a
+        // user who scrubs back into the intro range still gets the
+        // pill. Without this lockout, stale pre-seek currentTime
+        // ticks arriving between `skipIntro`'s synchronous flag flip
+        // and the seek landing re-flip isInsideIntro back to true
+        // for a frame or two and the user sees the pill briefly
+        // re-appear (fade-out → fade-in → fade-out) after the tap.
+        if didSkipCurrentIntro {
+            if time < seg.startSeconds {
+                didSkipCurrentIntro = false
+                // fall through to normal evaluation
             } else {
+                if isInsideIntro { setInsideIntro(false) }
                 return
             }
         }
+
         // Plugin sometimes reports introStart=0 on episodes with a
         // pre-title cold-open → button would pop up the instant the
         // episode starts, before the titles even play. Give it a tiny
@@ -1201,7 +1206,7 @@ final class PlayerViewModel {
     func skipIntro() {
         guard let seg = introSegment else { return }
         isInsideIntro = false
-        pendingIntroSkipTarget = seg.endSeconds
+        didSkipCurrentIntro = true
         Task { [weak self] in await self?.player.seek(to: seg.endSeconds) }
     }
 
@@ -1243,6 +1248,7 @@ final class PlayerViewModel {
     func loadEpisodeSegments() async {
         didAutoSkipCurrentIntro = false
         didAutoSkipCurrentOutro = false
+        didSkipCurrentIntro = false
         do {
             let segments = try await playbackService.getEpisodeSegments(itemID: item.id)
             introSegment = segments.intro
