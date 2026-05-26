@@ -194,24 +194,38 @@ struct HomeView: View {
                 }
                 .padding(.vertical, 40)
             }
-            .onChange(of: focusedRowIndex) { _, newValue in
-                // Focus left every row (newValue == nil). The focus
-                // engine routes Up-press from the topmost row to the
-                // tab bar; scroll content to the top so the tab bar
-                // is fully visible (not clipped by partially-scrolled
-                // content beneath the translucent tab bar background).
+            .onChange(of: focusedRowIndex) { oldValue, newValue in
+                // Scroll content to top only when focus left specifically
+                // the topmost row (oldValue == 0) and stayed away long
+                // enough to be a real tab-bar arrival (not a transient
+                // nil between row materializations).
                 //
-                // Debounced because fast up / down navigation can
-                // produce transient nil states between rows that
-                // would otherwise fire spurious scroll-to-top snaps
-                // and fight the user's scroll direction. 100 ms is
-                // longer than any inter-row focus transition observed
-                // on tvOS 26.5 but short enough that the actual
-                // tab-bar arrival still feels immediate.
+                // Two constraints, both needed:
+                //
+                // 1. `oldValue == 0`: the focus engine only routes Up
+                //    from the topmost row to the tab bar. Up from row N
+                //    (N > 0) goes to row N-1, not to the tab bar. If
+                //    focusedRowIndex transitions row-N → nil while
+                //    N > 0, the nil is a transient between row
+                //    materializations (LazyVStack lays out the next
+                //    row), NOT an actual tab-bar arrival. Filtering on
+                //    oldValue == 0 eliminates those false triggers
+                //    during normal down-scrolling.
+                //
+                // 2. 200 ms debounce via cancellable Task: even for
+                //    a legitimate row-0 → tab-bar transition, the focus
+                //    engine briefly has no focused descendant. If the
+                //    user is scrolling DOWN from row 0 to row 1, the
+                //    state may also pass through nil for a beat. The
+                //    debounce gives the focus engine time to settle on
+                //    the next row before we commit to scroll-to-top.
+                //    200 ms is comfortably longer than any inter-row
+                //    transient observed and still feels immediate when
+                //    the user actually parks focus on the tab bar.
                 scrollResetTask?.cancel()
-                guard newValue == nil else { return }
+                guard newValue == nil, oldValue == 0 else { return }
                 scrollResetTask = Task { @MainActor in
-                    try? await Task.sleep(for: .milliseconds(100))
+                    try? await Task.sleep(for: .milliseconds(200))
                     guard !Task.isCancelled else { return }
                     withAnimation(.easeOut(duration: 0.25)) {
                         proxy.scrollTo("top", anchor: .top)
