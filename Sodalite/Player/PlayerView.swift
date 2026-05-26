@@ -1659,34 +1659,45 @@ private struct PlayerOverlayView: View {
     }
 
     private func nextEpisodeOverlay(_ episode: JellyfinItem) -> some View {
-        cardBody(for: episode)
-            .padding(.trailing, viewModel.showControls ? 60 : 40)
-            .padding(.bottom, viewModel.showControls ? 300 : 40)
-            // Single-property alignment instead of a VStack { Spacer();
-            // HStack { Spacer(); ... } } chain. SwiftUI interpolates
-            // every Spacer's flexible space during animations; when the
-            // parent container reflows mid-transition (AVKit's
-            // contentOverlayView safe-area inset shifts when chrome
-            // becomes alpha=0 visible at end-of-playback), the
-            // Spacer-based layout briefly recalculates "bottom-right"
-            // against the shrunken bounds, parking the card visibly
-            // toward the center for a beat. A frame with
-            // `alignment: .bottomTrailing` is one attribute, not an
-            // interpolated layout, so it stays nailed to the corner
-            // even while the parent reflows.
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
+        // Absolute screen-relative positioning instead of any
+        // parent-geometry-dependent layout. `UIScreen.main.bounds`
+        // is fixed for the playback session on tvOS (1920x1080 or
+        // 3840x2160 depending on Apple TV gen); the card sits at a
+        // computed (x, y) center point that doesn't recompute when
+        // the SwiftUI parent reflows.
+        //
+        // Vincent report 2026-05-26 follow-up: the prior
+        // `.frame(maxWidth: .infinity, maxHeight: .infinity,
+        // alignment: .bottomTrailing)` fix improved things but the
+        // card still jumped toward the middle for the last few
+        // frames before `playNextEpisode` swaps the player item.
+        // Root cause: at end-of-playback `playNextEpisode` calls
+        // `player.stop()` + tears down the AVKit chrome before the
+        // new session starts, and during that ~100 ms window the
+        // SwiftUI parent's frame collapses around AVKit's shrinking
+        // contentOverlayView. Any frame-based or alignment-based
+        // anchor recomputes against the smaller frame and the card
+        // ends up at "bottom-trailing of a near-empty parent" =
+        // mid-screen. Absolute `.position(x:, y:)` against
+        // `UIScreen.main.bounds` removes the dependency entirely.
+        let screen = UIScreen.main.bounds.size
+        let cardW: CGFloat = 380
+        let cardH: CGFloat = 214
+        let marginX: CGFloat = viewModel.showControls ? 60 : 40
+        let marginY: CGFloat = viewModel.showControls ? 300 : 40
+        return cardBody(for: episode)
+            .position(
+                x: screen.width - cardW / 2 - marginX,
+                y: screen.height - cardH / 2 - marginY
+            )
             .ignoresSafeArea()
             // Asymmetric transition: slide in from the right on
-            // appear (the nice "here's the next episode" entry), but
-            // only fade out on disappear. The original symmetric
-            // `.move(edge: .trailing)` removal was the second contributor
-            // to the "jump to middle" symptom (Vincent report
-            // 2026-05-26): when `playNextEpisode` flips the visibility
-            // bool at end-of-playback, the move-to-trailing trajectory
-            // gets composed with the parent reflow happening at the
-            // same moment, and the visual result is the card drifting
-            // toward the middle of the screen before vanishing. A
-            // straight fade-out has no spatial component to disrupt.
+            // appear (nice "here's the next episode" entry), only
+            // fade out on disappear. The original symmetric
+            // `.move(edge: .trailing)` removal composed with the
+            // parent reflow at end-of-playback and made the
+            // "drifting to middle" symptom visible. Fade-only
+            // removal has no spatial component to disrupt.
             .transition(.asymmetric(
                 insertion: .move(edge: .trailing).combined(with: .opacity),
                 removal: .opacity
