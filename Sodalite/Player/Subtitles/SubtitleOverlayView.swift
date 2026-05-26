@@ -77,7 +77,7 @@ struct SubtitleOverlayView: View {
                     ForEach(activeCues, id: \.id) { cue in
                         switch cue.body {
                         case .text(let text):
-                            textOverlay(text, in: geo.size)
+                            textOverlay(text, in: geo.size, safeAreaInsets: geo.safeAreaInsets)
                         case .image(let image):
                             imageOverlay(image, in: geo.size)
                         }
@@ -89,44 +89,60 @@ struct SubtitleOverlayView: View {
 
     // MARK: - Text branch
 
-    private func textOverlay(_ text: String, in size: CGSize) -> some View {
+    private func textOverlay(_ text: String, in size: CGSize, safeAreaInsets: EdgeInsets) -> some View {
         // Anchored to the bottom-centre of the video rect: the text
-        // block's bottom edge sits `bottomInset` above the overlay
-        // bottom, and the block grows upward as it wraps to more lines.
-        // Center-anchoring (the old `.position` approach) clipped 3-line
-        // cues at large font when "Bottom Edge" put the center at 99 %
-        // of height, because half the block extended past the screen.
-        // Width is capped so long lines wrap with horizontal margins on
-        // either side.
+        // block's bottom edge sits the chosen distance above the actual
+        // screen bottom, and the block grows upward as it wraps to more
+        // lines. Center-anchoring (the old `.position` approach) clipped
+        // 3-line cues at large font when "Bottom Edge" put the center at
+        // 99 % of height, because half the block extended past the
+        // screen. Width is capped so long lines wrap with horizontal
+        // margins on either side.
         let maxWidth = max(0, size.width - 240)
         // tvOS .title3 lands around 24-29pt depending on platform
         // metrics; the user-selected scale multiplies that for
         // small/medium/large/xlarge.
         let basePoints: CGFloat = 28
         let pointSize = basePoints * fontSize.scale
-        let bottomInset = textBottomInset(in: size)
+        let placement = textBottomPlacement(in: size, safeAreaInsets: safeAreaInsets)
         return styledText(text, pointSize: pointSize)
             .frame(maxWidth: maxWidth)
-            .padding(.bottom, bottomInset)
+            .padding(.bottom, placement.padding)
             .frame(width: size.width, height: size.height, alignment: .bottom)
+            .offset(y: placement.offsetBelowSafeArea)
             .transition(.opacity)
     }
 
-    /// Distance from the overlay's bottom edge to the bottom of the
-    /// text block. Default keeps the historical ~80 pt gap so existing
-    /// users don't see a position shift; the other cases use
-    /// `fraction * height` so "Bottom Edge" sits 1 % above the bottom,
-    /// "Low" 10 %, etc. Bottom-anchoring (vs. center-anchoring) means
-    /// the value also caps the lowest pixel the text can reach, so
-    /// multi-line cues at large font no longer clip off-screen.
-    private func textBottomInset(in size: CGSize) -> CGFloat {
+    /// Distance from the actual screen bottom to the bottom of the
+    /// text block, expressed as a `(padding, offsetBelowSafeArea)`
+    /// pair. The overlay's `size` is safe-area-reduced (tvOS insets
+    /// ~60 pt vertically), so positions close to the screen bottom
+    /// have to bleed past the safe area into the letterbox bar via
+    /// `.offset(y:)`; positions further up are inside the safe area
+    /// and use ordinary bottom padding.
+    ///
+    /// Default keeps the historical ~80 pt gap above the safe area
+    /// bottom so existing users see no shift. Fraction-based cases
+    /// ("Bottom Edge", "Low", etc.) are interpreted relative to the
+    /// *full screen* height so "Bottom Edge" (1 %) actually lands ~10 pt
+    /// above the screen bottom (inside the letterbox for letterboxed
+    /// content). Earlier code used `size.height * fraction`, which
+    /// effectively meant "1 % above the safe area bottom" ≈ 70 pt
+    /// above the screen bottom, well above the letterbox bar.
+    private func textBottomPlacement(in size: CGSize, safeAreaInsets: EdgeInsets) -> (padding: CGFloat, offsetBelowSafeArea: CGFloat) {
         if controlsVisible {
-            return Self.controlsVisibleBottomInset
+            return (Self.controlsVisibleBottomInset, 0)
         }
         if let fraction = verticalPosition.fractionFromBottom {
-            return size.height * CGFloat(fraction)
+            let fullScreenHeight = size.height + safeAreaInsets.top + safeAreaInsets.bottom
+            let desiredAboveScreenBottom = fullScreenHeight * CGFloat(fraction)
+            let safeBottom = safeAreaInsets.bottom
+            if desiredAboveScreenBottom >= safeBottom {
+                return (desiredAboveScreenBottom - safeBottom, 0)
+            }
+            return (0, safeBottom - desiredAboveScreenBottom)
         }
-        return 80
+        return (80, 0)
     }
 
     /// Compose the text view itself, font + colour + the chosen
