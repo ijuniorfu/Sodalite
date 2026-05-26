@@ -53,7 +53,7 @@ The Seerr integration isn't a tacked-on link to a web view. It's a first-class p
 - **Image caching & prefetching**: posters and backdrops load before you focus them
 
 ### 🎬 Watch
-- **Direct Play** for almost every codec on your server: H.264, HEVC, HEVC Main10, AV1, VP9
+- **Direct Play** for almost every codec on your server: H.264, HEVC, HEVC Main10, AV1, VP9, VP8, MPEG-4 Part 2 (XVID / DIVX), MPEG-2, VC-1. Containers: MKV, MP4, MOV, AVI, MPEG-TS, M2TS, VOB, 3GP, WebM, OGG, FLV. Server-side transcoding stays reserved for fringe codecs (WMV3, Theora, RealVideo).
 - **HDR10, HDR10+, Dolby Vision, HLG**: auto-detected, sent through with full color metadata. HDR10+ streams forward per-frame ST 2094-40 dynamic metadata so HDR10+ TVs apply the source's tone-mapping curves; Dolby Vision streams signal as `dvh1` so DV-capable TVs switch into Dolby Vision mode for Profile 5, 8.1 and 8.4. The display switches to the matching HDR mode automatically (Match Content).
 - **Dolby Atmos** via EAC3+JOC, wrapped as Dolby MAT 2.0 so your AVR's Atmos light actually comes on
 - **Multichannel surround**: 5.1, 7.1 with correct channel layout
@@ -85,9 +85,9 @@ Sodalite is a thin native shell over a custom video stack: Apple's frameworks pl
 | Component | Technology |
 |---|---|
 | UI | SwiftUI + UIKit interop where needed |
-| Video engine | [AetherEngine](https://github.com/superuser404notfound/AetherEngine): FFmpeg demux, AVPlayer + VideoToolbox for HEVC / H.264 / HW-AV1, dav1d + libavcodec for AV1 / VP9 software fallback |
-| Display | `AVPlayer` + `AVPlayerLayer` for the native path; `AVSampleBufferDisplayLayer` + `AVSampleBufferRenderSynchronizer` for the AV1 / VP9 software path |
-| Audio | `AVPlayer` over local HLS-fMP4 for the native path (Atmos as MAT 2.0, EAC3 5.1 bridge by default for Opus / TrueHD / DTS / DTS-HD MA / MP3 so surround works on every modern soundbar via the bitstream tunnel; optional lossless FLAC bridge for AVRs that accept multichannel LPCM over HDMI); `AVSampleBufferAudioRenderer` for the software path |
+| Video engine | [AetherEngine](https://github.com/superuser404notfound/AetherEngine): FFmpeg demux, AVPlayer + VideoToolbox for HEVC / H.264 / HW-AV1, dav1d + libavcodec for AV1 / VP9 / VP8 / MPEG-4 Part 2 / MPEG-2 / VC-1 software fallback |
+| Display | `AVPlayer` + `AVPlayerLayer` for the native path; `AVSampleBufferDisplayLayer` + `AVSampleBufferRenderSynchronizer` for the software path |
+| Audio | `AVPlayer` over local HLS-fMP4 for the native path (Atmos as MAT 2.0, EAC3 5.1 bridge by default for Opus / TrueHD / MLP / DTS / DTS-HD MA / MP2 / MP3 so surround works on every modern soundbar via the bitstream tunnel; optional lossless FLAC bridge for AVRs that accept multichannel LPCM over HDMI); `AVSampleBufferAudioRenderer` for the software path |
 | Networking | `URLSession` against the Jellyfin REST API |
 | Persistence | Keychain for credentials, no telemetry storage |
 | Media server | [Jellyfin](https://jellyfin.org) |
