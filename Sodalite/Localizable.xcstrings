@@ -26490,6 +26490,2092 @@
         }
       }
     },
+    "changelog.0_7_0.adminRequests.body" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Jellyseerr admins get a new All Requests tab in Catalog to approve, decline, delete, and edit the profile or seasons of any user's request."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Jellyseerr admins get a new All Requests tab in Catalog to approve, decline, delete, and edit the profile or seasons of any user's request."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mit Admin-Rechten in Jellyseerr siehst du im Katalog alle Anfragen, kannst genehmigen, ablehnen oder löschen und Profil sowie Staffeln direkt anpassen."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Jellyseerr admins get a new All Requests tab in Catalog to approve, decline, delete, and edit the profile or seasons of any user's request."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jellyseerr admins get a new All Requests tab in Catalog to approve, decline, delete, and edit the profile or seasons of any user's request."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Jellyseerr admins get a new All Requests tab in Catalog to approve, decline, delete, and edit the profile or seasons of any user's request."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Jellyseerr admins get a new All Requests tab in Catalog to approve, decline, delete, and edit the profile or seasons of any user's request."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Jellyseerr admins get a new All Requests tab in Catalog to approve, decline, delete, and edit the profile or seasons of any user's request."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Jellyseerr admins get a new All Requests tab in Catalog to approve, decline, delete, and edit the profile or seasons of any user's request."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Jellyseerr admins get a new All Requests tab in Catalog to approve, decline, delete, and edit the profile or seasons of any user's request."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Jellyseerr admins get a new All Requests tab in Catalog to approve, decline, delete, and edit the profile or seasons of any user's request."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Jellyseerr admins get a new All Requests tab in Catalog to approve, decline, delete, and edit the profile or seasons of any user's request."
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Jellyseerr admins get a new All Requests tab in Catalog to approve, decline, delete, and edit the profile or seasons of any user's request."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Jellyseerr admins get a new All Requests tab in Catalog to approve, decline, delete, and edit the profile or seasons of any user's request."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Jellyseerr admins get a new All Requests tab in Catalog to approve, decline, delete, and edit the profile or seasons of any user's request."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Jellyseerr admins get a new All Requests tab in Catalog to approve, decline, delete, and edit the profile or seasons of any user's request."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Jellyseerr admins get a new All Requests tab in Catalog to approve, decline, delete, and edit the profile or seasons of any user's request."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Jellyseerr admins get a new All Requests tab in Catalog to approve, decline, delete, and edit the profile or seasons of any user's request."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Jellyseerr admins get a new All Requests tab in Catalog to approve, decline, delete, and edit the profile or seasons of any user's request."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Jellyseerr admins get a new All Requests tab in Catalog to approve, decline, delete, and edit the profile or seasons of any user's request."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Jellyseerr admins get a new All Requests tab in Catalog to approve, decline, delete, and edit the profile or seasons of any user's request."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Jellyseerr admins get a new All Requests tab in Catalog to approve, decline, delete, and edit the profile or seasons of any user's request."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Jellyseerr admins get a new All Requests tab in Catalog to approve, decline, delete, and edit the profile or seasons of any user's request."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Jellyseerr admins get a new All Requests tab in Catalog to approve, decline, delete, and edit the profile or seasons of any user's request."
+          }
+        }
+      }
+    },
+    "changelog.0_7_0.adminRequests.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Manage all requests"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Manage all requests"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alle Anfragen verwalten"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Manage all requests"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Manage all requests"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Manage all requests"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Manage all requests"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Manage all requests"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Manage all requests"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Manage all requests"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Manage all requests"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Manage all requests"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Manage all requests"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Manage all requests"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Manage all requests"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Manage all requests"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Manage all requests"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Manage all requests"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Manage all requests"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Manage all requests"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Manage all requests"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Manage all requests"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Manage all requests"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Manage all requests"
+          }
+        }
+      }
+    },
+    "changelog.0_7_0.deletion.body" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Remove movies, series, or individual seasons from your library. When Jellyseerr is connected, matching Radarr and Sonarr entries are cleaned up too."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Remove movies, series, or individual seasons from your library. When Jellyseerr is connected, matching Radarr and Sonarr entries are cleaned up too."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Entferne Filme, Serien oder einzelne Staffeln aus deiner Bibliothek. Bei verbundenem Jellyseerr werden passende Radarr- und Sonarr-Einträge gleich mit aufgeräumt."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Remove movies, series, or individual seasons from your library. When Jellyseerr is connected, matching Radarr and Sonarr entries are cleaned up too."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remove movies, series, or individual seasons from your library. When Jellyseerr is connected, matching Radarr and Sonarr entries are cleaned up too."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Remove movies, series, or individual seasons from your library. When Jellyseerr is connected, matching Radarr and Sonarr entries are cleaned up too."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Remove movies, series, or individual seasons from your library. When Jellyseerr is connected, matching Radarr and Sonarr entries are cleaned up too."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Remove movies, series, or individual seasons from your library. When Jellyseerr is connected, matching Radarr and Sonarr entries are cleaned up too."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Remove movies, series, or individual seasons from your library. When Jellyseerr is connected, matching Radarr and Sonarr entries are cleaned up too."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Remove movies, series, or individual seasons from your library. When Jellyseerr is connected, matching Radarr and Sonarr entries are cleaned up too."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Remove movies, series, or individual seasons from your library. When Jellyseerr is connected, matching Radarr and Sonarr entries are cleaned up too."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Remove movies, series, or individual seasons from your library. When Jellyseerr is connected, matching Radarr and Sonarr entries are cleaned up too."
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Remove movies, series, or individual seasons from your library. When Jellyseerr is connected, matching Radarr and Sonarr entries are cleaned up too."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Remove movies, series, or individual seasons from your library. When Jellyseerr is connected, matching Radarr and Sonarr entries are cleaned up too."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Remove movies, series, or individual seasons from your library. When Jellyseerr is connected, matching Radarr and Sonarr entries are cleaned up too."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Remove movies, series, or individual seasons from your library. When Jellyseerr is connected, matching Radarr and Sonarr entries are cleaned up too."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Remove movies, series, or individual seasons from your library. When Jellyseerr is connected, matching Radarr and Sonarr entries are cleaned up too."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Remove movies, series, or individual seasons from your library. When Jellyseerr is connected, matching Radarr and Sonarr entries are cleaned up too."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Remove movies, series, or individual seasons from your library. When Jellyseerr is connected, matching Radarr and Sonarr entries are cleaned up too."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Remove movies, series, or individual seasons from your library. When Jellyseerr is connected, matching Radarr and Sonarr entries are cleaned up too."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Remove movies, series, or individual seasons from your library. When Jellyseerr is connected, matching Radarr and Sonarr entries are cleaned up too."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Remove movies, series, or individual seasons from your library. When Jellyseerr is connected, matching Radarr and Sonarr entries are cleaned up too."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Remove movies, series, or individual seasons from your library. When Jellyseerr is connected, matching Radarr and Sonarr entries are cleaned up too."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Remove movies, series, or individual seasons from your library. When Jellyseerr is connected, matching Radarr and Sonarr entries are cleaned up too."
+          }
+        }
+      }
+    },
+    "changelog.0_7_0.deletion.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Delete media from Sodalite"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Delete media from Sodalite"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Medien aus Sodalite löschen"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Delete media from Sodalite"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete media from Sodalite"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Delete media from Sodalite"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Delete media from Sodalite"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Delete media from Sodalite"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Delete media from Sodalite"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Delete media from Sodalite"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Delete media from Sodalite"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Delete media from Sodalite"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Delete media from Sodalite"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Delete media from Sodalite"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Delete media from Sodalite"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Delete media from Sodalite"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Delete media from Sodalite"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Delete media from Sodalite"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Delete media from Sodalite"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Delete media from Sodalite"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Delete media from Sodalite"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Delete media from Sodalite"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Delete media from Sodalite"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Delete media from Sodalite"
+          }
+        }
+      }
+    },
+    "changelog.0_7_0.formats.body" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "VP8, MPEG-4, MPEG-2, and VC-1 now play directly. BD and DVD containers are recognised, and MLP and MP2 audio tracks are supported."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "VP8, MPEG-4, MPEG-2, and VC-1 now play directly. BD and DVD containers are recognised, and MLP and MP2 audio tracks are supported."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "VP8, MPEG-4, MPEG-2 und VC-1 spielen jetzt direkt; BD- und DVD-Container werden erkannt; MLP und MP2 sind als Tonspuren ergänzt."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "VP8, MPEG-4, MPEG-2, and VC-1 now play directly. BD and DVD containers are recognised, and MLP and MP2 audio tracks are supported."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "VP8, MPEG-4, MPEG-2, and VC-1 now play directly. BD and DVD containers are recognised, and MLP and MP2 audio tracks are supported."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "VP8, MPEG-4, MPEG-2, and VC-1 now play directly. BD and DVD containers are recognised, and MLP and MP2 audio tracks are supported."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "VP8, MPEG-4, MPEG-2, and VC-1 now play directly. BD and DVD containers are recognised, and MLP and MP2 audio tracks are supported."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "VP8, MPEG-4, MPEG-2, and VC-1 now play directly. BD and DVD containers are recognised, and MLP and MP2 audio tracks are supported."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "VP8, MPEG-4, MPEG-2, and VC-1 now play directly. BD and DVD containers are recognised, and MLP and MP2 audio tracks are supported."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "VP8, MPEG-4, MPEG-2, and VC-1 now play directly. BD and DVD containers are recognised, and MLP and MP2 audio tracks are supported."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "VP8, MPEG-4, MPEG-2, and VC-1 now play directly. BD and DVD containers are recognised, and MLP and MP2 audio tracks are supported."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "VP8, MPEG-4, MPEG-2, and VC-1 now play directly. BD and DVD containers are recognised, and MLP and MP2 audio tracks are supported."
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "VP8, MPEG-4, MPEG-2, and VC-1 now play directly. BD and DVD containers are recognised, and MLP and MP2 audio tracks are supported."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "VP8, MPEG-4, MPEG-2, and VC-1 now play directly. BD and DVD containers are recognised, and MLP and MP2 audio tracks are supported."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "VP8, MPEG-4, MPEG-2, and VC-1 now play directly. BD and DVD containers are recognised, and MLP and MP2 audio tracks are supported."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "VP8, MPEG-4, MPEG-2, and VC-1 now play directly. BD and DVD containers are recognised, and MLP and MP2 audio tracks are supported."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "VP8, MPEG-4, MPEG-2, and VC-1 now play directly. BD and DVD containers are recognised, and MLP and MP2 audio tracks are supported."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "VP8, MPEG-4, MPEG-2, and VC-1 now play directly. BD and DVD containers are recognised, and MLP and MP2 audio tracks are supported."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "VP8, MPEG-4, MPEG-2, and VC-1 now play directly. BD and DVD containers are recognised, and MLP and MP2 audio tracks are supported."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "VP8, MPEG-4, MPEG-2, and VC-1 now play directly. BD and DVD containers are recognised, and MLP and MP2 audio tracks are supported."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "VP8, MPEG-4, MPEG-2, and VC-1 now play directly. BD and DVD containers are recognised, and MLP and MP2 audio tracks are supported."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "VP8, MPEG-4, MPEG-2, and VC-1 now play directly. BD and DVD containers are recognised, and MLP and MP2 audio tracks are supported."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "VP8, MPEG-4, MPEG-2, and VC-1 now play directly. BD and DVD containers are recognised, and MLP and MP2 audio tracks are supported."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "VP8, MPEG-4, MPEG-2, and VC-1 now play directly. BD and DVD containers are recognised, and MLP and MP2 audio tracks are supported."
+          }
+        }
+      }
+    },
+    "changelog.0_7_0.formats.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Broader format support"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Broader format support"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mehr Formate unterstützt"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Broader format support"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Broader format support"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Broader format support"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Broader format support"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Broader format support"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Broader format support"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Broader format support"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Broader format support"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Broader format support"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Broader format support"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Broader format support"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Broader format support"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Broader format support"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Broader format support"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Broader format support"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Broader format support"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Broader format support"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Broader format support"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Broader format support"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Broader format support"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Broader format support"
+          }
+        }
+      }
+    },
+    "changelog.0_7_0.hdrRouting.body" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Cleaner Profile 5, 8.1, and 8.4 handling on non-DV panels, more accurate HDR10+ metadata, and steadier display-mode switches between episodes."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Cleaner Profile 5, 8.1, and 8.4 handling on non-DV panels, more accurate HDR10+ metadata, and steadier display-mode switches between episodes."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sauberere Behandlung von Profil 5, 8.1 und 8.4 auf Nicht-DV-Panels, genauere HDR10+-Metadaten und verlässlichere Display-Mode-Wechsel zwischen Episoden."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Cleaner Profile 5, 8.1, and 8.4 handling on non-DV panels, more accurate HDR10+ metadata, and steadier display-mode switches between episodes."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cleaner Profile 5, 8.1, and 8.4 handling on non-DV panels, more accurate HDR10+ metadata, and steadier display-mode switches between episodes."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Cleaner Profile 5, 8.1, and 8.4 handling on non-DV panels, more accurate HDR10+ metadata, and steadier display-mode switches between episodes."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Cleaner Profile 5, 8.1, and 8.4 handling on non-DV panels, more accurate HDR10+ metadata, and steadier display-mode switches between episodes."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Cleaner Profile 5, 8.1, and 8.4 handling on non-DV panels, more accurate HDR10+ metadata, and steadier display-mode switches between episodes."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Cleaner Profile 5, 8.1, and 8.4 handling on non-DV panels, more accurate HDR10+ metadata, and steadier display-mode switches between episodes."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Cleaner Profile 5, 8.1, and 8.4 handling on non-DV panels, more accurate HDR10+ metadata, and steadier display-mode switches between episodes."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Cleaner Profile 5, 8.1, and 8.4 handling on non-DV panels, more accurate HDR10+ metadata, and steadier display-mode switches between episodes."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Cleaner Profile 5, 8.1, and 8.4 handling on non-DV panels, more accurate HDR10+ metadata, and steadier display-mode switches between episodes."
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Cleaner Profile 5, 8.1, and 8.4 handling on non-DV panels, more accurate HDR10+ metadata, and steadier display-mode switches between episodes."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Cleaner Profile 5, 8.1, and 8.4 handling on non-DV panels, more accurate HDR10+ metadata, and steadier display-mode switches between episodes."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Cleaner Profile 5, 8.1, and 8.4 handling on non-DV panels, more accurate HDR10+ metadata, and steadier display-mode switches between episodes."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Cleaner Profile 5, 8.1, and 8.4 handling on non-DV panels, more accurate HDR10+ metadata, and steadier display-mode switches between episodes."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Cleaner Profile 5, 8.1, and 8.4 handling on non-DV panels, more accurate HDR10+ metadata, and steadier display-mode switches between episodes."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Cleaner Profile 5, 8.1, and 8.4 handling on non-DV panels, more accurate HDR10+ metadata, and steadier display-mode switches between episodes."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Cleaner Profile 5, 8.1, and 8.4 handling on non-DV panels, more accurate HDR10+ metadata, and steadier display-mode switches between episodes."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Cleaner Profile 5, 8.1, and 8.4 handling on non-DV panels, more accurate HDR10+ metadata, and steadier display-mode switches between episodes."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Cleaner Profile 5, 8.1, and 8.4 handling on non-DV panels, more accurate HDR10+ metadata, and steadier display-mode switches between episodes."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Cleaner Profile 5, 8.1, and 8.4 handling on non-DV panels, more accurate HDR10+ metadata, and steadier display-mode switches between episodes."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Cleaner Profile 5, 8.1, and 8.4 handling on non-DV panels, more accurate HDR10+ metadata, and steadier display-mode switches between episodes."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Cleaner Profile 5, 8.1, and 8.4 handling on non-DV panels, more accurate HDR10+ metadata, and steadier display-mode switches between episodes."
+          }
+        }
+      }
+    },
+    "changelog.0_7_0.hdrRouting.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Smarter HDR and Dolby Vision routing"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Smarter HDR and Dolby Vision routing"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bessere HDR- und Dolby-Vision-Erkennung"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Smarter HDR and Dolby Vision routing"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Smarter HDR and Dolby Vision routing"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Smarter HDR and Dolby Vision routing"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Smarter HDR and Dolby Vision routing"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Smarter HDR and Dolby Vision routing"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Smarter HDR and Dolby Vision routing"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Smarter HDR and Dolby Vision routing"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Smarter HDR and Dolby Vision routing"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Smarter HDR and Dolby Vision routing"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Smarter HDR and Dolby Vision routing"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Smarter HDR and Dolby Vision routing"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Smarter HDR and Dolby Vision routing"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Smarter HDR and Dolby Vision routing"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Smarter HDR and Dolby Vision routing"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Smarter HDR and Dolby Vision routing"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Smarter HDR and Dolby Vision routing"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Smarter HDR and Dolby Vision routing"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Smarter HDR and Dolby Vision routing"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Smarter HDR and Dolby Vision routing"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Smarter HDR and Dolby Vision routing"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Smarter HDR and Dolby Vision routing"
+          }
+        }
+      }
+    },
+    "changelog.0_7_0.liveStats.body" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Stats for Nerds now show live A/V sync, bitrate, and buffer figures. Toggle the optional Engine Diagnostics section for a deeper look."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Stats for Nerds now show live A/V sync, bitrate, and buffer figures. Toggle the optional Engine Diagnostics section for a deeper look."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Stats for Nerds zeigen jetzt Live-Werte zu A/V-Sync, Bitrate und Puffer. Optional kannst du eine zusätzliche Engine-Diagnose-Sektion einblenden."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Stats for Nerds now show live A/V sync, bitrate, and buffer figures. Toggle the optional Engine Diagnostics section for a deeper look."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stats for Nerds now show live A/V sync, bitrate, and buffer figures. Toggle the optional Engine Diagnostics section for a deeper look."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Stats for Nerds now show live A/V sync, bitrate, and buffer figures. Toggle the optional Engine Diagnostics section for a deeper look."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Stats for Nerds now show live A/V sync, bitrate, and buffer figures. Toggle the optional Engine Diagnostics section for a deeper look."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Stats for Nerds now show live A/V sync, bitrate, and buffer figures. Toggle the optional Engine Diagnostics section for a deeper look."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Stats for Nerds now show live A/V sync, bitrate, and buffer figures. Toggle the optional Engine Diagnostics section for a deeper look."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Stats for Nerds now show live A/V sync, bitrate, and buffer figures. Toggle the optional Engine Diagnostics section for a deeper look."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Stats for Nerds now show live A/V sync, bitrate, and buffer figures. Toggle the optional Engine Diagnostics section for a deeper look."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Stats for Nerds now show live A/V sync, bitrate, and buffer figures. Toggle the optional Engine Diagnostics section for a deeper look."
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Stats for Nerds now show live A/V sync, bitrate, and buffer figures. Toggle the optional Engine Diagnostics section for a deeper look."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Stats for Nerds now show live A/V sync, bitrate, and buffer figures. Toggle the optional Engine Diagnostics section for a deeper look."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Stats for Nerds now show live A/V sync, bitrate, and buffer figures. Toggle the optional Engine Diagnostics section for a deeper look."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Stats for Nerds now show live A/V sync, bitrate, and buffer figures. Toggle the optional Engine Diagnostics section for a deeper look."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Stats for Nerds now show live A/V sync, bitrate, and buffer figures. Toggle the optional Engine Diagnostics section for a deeper look."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Stats for Nerds now show live A/V sync, bitrate, and buffer figures. Toggle the optional Engine Diagnostics section for a deeper look."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Stats for Nerds now show live A/V sync, bitrate, and buffer figures. Toggle the optional Engine Diagnostics section for a deeper look."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Stats for Nerds now show live A/V sync, bitrate, and buffer figures. Toggle the optional Engine Diagnostics section for a deeper look."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Stats for Nerds now show live A/V sync, bitrate, and buffer figures. Toggle the optional Engine Diagnostics section for a deeper look."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Stats for Nerds now show live A/V sync, bitrate, and buffer figures. Toggle the optional Engine Diagnostics section for a deeper look."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Stats for Nerds now show live A/V sync, bitrate, and buffer figures. Toggle the optional Engine Diagnostics section for a deeper look."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Stats for Nerds now show live A/V sync, bitrate, and buffer figures. Toggle the optional Engine Diagnostics section for a deeper look."
+          }
+        }
+      }
+    },
+    "changelog.0_7_0.liveStats.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Live playback stats"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Live playback stats"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Live-Stats im Player"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Live playback stats"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Live playback stats"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Live playback stats"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Live playback stats"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Live playback stats"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Live playback stats"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Live playback stats"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Live playback stats"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Live playback stats"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Live playback stats"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Live playback stats"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Live playback stats"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Live playback stats"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Live playback stats"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Live playback stats"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Live playback stats"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Live playback stats"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Live playback stats"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Live playback stats"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Live playback stats"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Live playback stats"
+          }
+        }
+      }
+    },
+    "changelog.0_7_0.playerFixes.body" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Skip-Intro flicker gone, the next-episode overlay stays pinned, subtitles land cleanly on screen, and slow CDNs no longer stall the UI."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Skip-Intro flicker gone, the next-episode overlay stays pinned, subtitles land cleanly on screen, and slow CDNs no longer stall the UI."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Skip-Intro-Flackern weg, Next-Episode-Overlay bleibt fest an seinem Platz, Untertitel landen sauber im Bild, und langsame CDNs hängen die UI nicht mehr auf."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Skip-Intro flicker gone, the next-episode overlay stays pinned, subtitles land cleanly on screen, and slow CDNs no longer stall the UI."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Skip-Intro flicker gone, the next-episode overlay stays pinned, subtitles land cleanly on screen, and slow CDNs no longer stall the UI."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Skip-Intro flicker gone, the next-episode overlay stays pinned, subtitles land cleanly on screen, and slow CDNs no longer stall the UI."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Skip-Intro flicker gone, the next-episode overlay stays pinned, subtitles land cleanly on screen, and slow CDNs no longer stall the UI."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Skip-Intro flicker gone, the next-episode overlay stays pinned, subtitles land cleanly on screen, and slow CDNs no longer stall the UI."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Skip-Intro flicker gone, the next-episode overlay stays pinned, subtitles land cleanly on screen, and slow CDNs no longer stall the UI."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Skip-Intro flicker gone, the next-episode overlay stays pinned, subtitles land cleanly on screen, and slow CDNs no longer stall the UI."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Skip-Intro flicker gone, the next-episode overlay stays pinned, subtitles land cleanly on screen, and slow CDNs no longer stall the UI."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Skip-Intro flicker gone, the next-episode overlay stays pinned, subtitles land cleanly on screen, and slow CDNs no longer stall the UI."
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Skip-Intro flicker gone, the next-episode overlay stays pinned, subtitles land cleanly on screen, and slow CDNs no longer stall the UI."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Skip-Intro flicker gone, the next-episode overlay stays pinned, subtitles land cleanly on screen, and slow CDNs no longer stall the UI."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Skip-Intro flicker gone, the next-episode overlay stays pinned, subtitles land cleanly on screen, and slow CDNs no longer stall the UI."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Skip-Intro flicker gone, the next-episode overlay stays pinned, subtitles land cleanly on screen, and slow CDNs no longer stall the UI."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Skip-Intro flicker gone, the next-episode overlay stays pinned, subtitles land cleanly on screen, and slow CDNs no longer stall the UI."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Skip-Intro flicker gone, the next-episode overlay stays pinned, subtitles land cleanly on screen, and slow CDNs no longer stall the UI."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Skip-Intro flicker gone, the next-episode overlay stays pinned, subtitles land cleanly on screen, and slow CDNs no longer stall the UI."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Skip-Intro flicker gone, the next-episode overlay stays pinned, subtitles land cleanly on screen, and slow CDNs no longer stall the UI."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Skip-Intro flicker gone, the next-episode overlay stays pinned, subtitles land cleanly on screen, and slow CDNs no longer stall the UI."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Skip-Intro flicker gone, the next-episode overlay stays pinned, subtitles land cleanly on screen, and slow CDNs no longer stall the UI."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Skip-Intro flicker gone, the next-episode overlay stays pinned, subtitles land cleanly on screen, and slow CDNs no longer stall the UI."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Skip-Intro flicker gone, the next-episode overlay stays pinned, subtitles land cleanly on screen, and slow CDNs no longer stall the UI."
+          }
+        }
+      }
+    },
+    "changelog.0_7_0.playerFixes.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Many small player fixes"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Many small player fixes"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Viele kleine Player-Korrekturen"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Many small player fixes"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Many small player fixes"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Many small player fixes"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Many small player fixes"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Many small player fixes"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Many small player fixes"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Many small player fixes"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Many small player fixes"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Many small player fixes"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Many small player fixes"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Many small player fixes"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Many small player fixes"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Many small player fixes"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Many small player fixes"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Many small player fixes"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Many small player fixes"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Many small player fixes"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Many small player fixes"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Many small player fixes"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Many small player fixes"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Many small player fixes"
+          }
+        }
+      }
+    },
+    "changelog.0_7_0.uiPolish.body" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Sheets and full-screen dialogs now place a soft blur over the app, your accent colour flows through to the tab bar, and Home scrolls back to the top reliably."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Sheets and full-screen dialogs now place a soft blur over the app, your accent colour flows through to the tab bar, and Home scrolls back to the top reliably."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sheets und Vollbild-Dialoge legen jetzt eine sanfte Hintergrund-Unschärfe über die App, die Akzentfarbe wirkt bis in die Tab-Leiste, und Home scrollt zuverlässig nach oben beim Zurück."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Sheets and full-screen dialogs now place a soft blur over the app, your accent colour flows through to the tab bar, and Home scrolls back to the top reliably."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sheets and full-screen dialogs now place a soft blur over the app, your accent colour flows through to the tab bar, and Home scrolls back to the top reliably."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Sheets and full-screen dialogs now place a soft blur over the app, your accent colour flows through to the tab bar, and Home scrolls back to the top reliably."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Sheets and full-screen dialogs now place a soft blur over the app, your accent colour flows through to the tab bar, and Home scrolls back to the top reliably."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Sheets and full-screen dialogs now place a soft blur over the app, your accent colour flows through to the tab bar, and Home scrolls back to the top reliably."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Sheets and full-screen dialogs now place a soft blur over the app, your accent colour flows through to the tab bar, and Home scrolls back to the top reliably."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Sheets and full-screen dialogs now place a soft blur over the app, your accent colour flows through to the tab bar, and Home scrolls back to the top reliably."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Sheets and full-screen dialogs now place a soft blur over the app, your accent colour flows through to the tab bar, and Home scrolls back to the top reliably."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Sheets and full-screen dialogs now place a soft blur over the app, your accent colour flows through to the tab bar, and Home scrolls back to the top reliably."
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Sheets and full-screen dialogs now place a soft blur over the app, your accent colour flows through to the tab bar, and Home scrolls back to the top reliably."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Sheets and full-screen dialogs now place a soft blur over the app, your accent colour flows through to the tab bar, and Home scrolls back to the top reliably."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Sheets and full-screen dialogs now place a soft blur over the app, your accent colour flows through to the tab bar, and Home scrolls back to the top reliably."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Sheets and full-screen dialogs now place a soft blur over the app, your accent colour flows through to the tab bar, and Home scrolls back to the top reliably."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Sheets and full-screen dialogs now place a soft blur over the app, your accent colour flows through to the tab bar, and Home scrolls back to the top reliably."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Sheets and full-screen dialogs now place a soft blur over the app, your accent colour flows through to the tab bar, and Home scrolls back to the top reliably."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Sheets and full-screen dialogs now place a soft blur over the app, your accent colour flows through to the tab bar, and Home scrolls back to the top reliably."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Sheets and full-screen dialogs now place a soft blur over the app, your accent colour flows through to the tab bar, and Home scrolls back to the top reliably."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Sheets and full-screen dialogs now place a soft blur over the app, your accent colour flows through to the tab bar, and Home scrolls back to the top reliably."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Sheets and full-screen dialogs now place a soft blur over the app, your accent colour flows through to the tab bar, and Home scrolls back to the top reliably."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Sheets and full-screen dialogs now place a soft blur over the app, your accent colour flows through to the tab bar, and Home scrolls back to the top reliably."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Sheets and full-screen dialogs now place a soft blur over the app, your accent colour flows through to the tab bar, and Home scrolls back to the top reliably."
+          }
+        }
+      }
+    },
+    "changelog.0_7_0.uiPolish.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Interface polish"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Interface polish"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Politur im Interface"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Interface polish"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Interface polish"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Interface polish"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Interface polish"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Interface polish"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Interface polish"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Interface polish"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Interface polish"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Interface polish"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Interface polish"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Interface polish"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Interface polish"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Interface polish"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Interface polish"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Interface polish"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Interface polish"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Interface polish"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Interface polish"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Interface polish"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Interface polish"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Interface polish"
+          }
+        }
+      }
+    },
     "changelog.modal.dismiss" : {
       "extractionState" : "manual",
       "localizations" : {

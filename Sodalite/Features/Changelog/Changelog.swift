@@ -13,6 +13,54 @@ import Foundation
 /// previously affected behaviour.
 enum Changelog {
     static let entries: [ChangelogEntry] = [
+        // MARK: 0.7.0
+        ChangelogEntry(
+            version: "0.7.0",
+            highlights: [
+                ChangelogHighlight(
+                    .new,
+                    "changelog.0_7_0.deletion.title",
+                    "changelog.0_7_0.deletion.body",
+                    icon: "trash.fill"
+                ),
+                ChangelogHighlight(
+                    .new,
+                    "changelog.0_7_0.adminRequests.title",
+                    "changelog.0_7_0.adminRequests.body",
+                    icon: "person.2.badge.gearshape.fill"
+                ),
+                ChangelogHighlight(
+                    .new,
+                    "changelog.0_7_0.liveStats.title",
+                    "changelog.0_7_0.liveStats.body",
+                    icon: "chart.line.uptrend.xyaxis"
+                ),
+                ChangelogHighlight(
+                    .improve,
+                    "changelog.0_7_0.formats.title",
+                    "changelog.0_7_0.formats.body",
+                    icon: "film.stack.fill"
+                ),
+                ChangelogHighlight(
+                    .improve,
+                    "changelog.0_7_0.hdrRouting.title",
+                    "changelog.0_7_0.hdrRouting.body",
+                    icon: "tv.and.hifispeaker.fill"
+                ),
+                ChangelogHighlight(
+                    .improve,
+                    "changelog.0_7_0.uiPolish.title",
+                    "changelog.0_7_0.uiPolish.body",
+                    icon: "sparkles.tv.fill"
+                ),
+                ChangelogHighlight(
+                    .fix,
+                    "changelog.0_7_0.playerFixes.title",
+                    "changelog.0_7_0.playerFixes.body",
+                    icon: "wrench.and.screwdriver.fill"
+                ),
+            ]
+        ),
         // MARK: 0.6.0
         ChangelogEntry(
             version: "0.6.0",
