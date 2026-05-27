@@ -1334,6 +1334,11 @@ final class PlayerHostController: AVPlayerViewController {
                         let v = gesture.velocity(in: view)
                         guard abs(v.x) >= Self.scrubCommitMinVelocity else { return }
                         scrubCommitted = true
+                        // Drop the drift that accumulated before commit so the
+                        // first scrub frame after the gate opens starts at
+                        // zero translation, not at the sub-threshold offset.
+                        gesture.setTranslation(.zero, in: view)
+                        return
                     }
                     let width = max(view.bounds.width, 1)
                     viewModel.scrub(delta: t.x / width)
