@@ -248,17 +248,13 @@ final class PlayerHostController: AVPlayerViewController {
         // the engine pre-flight + AVKit auto both write criteria and
         // the late re-negotiate symptom (DrHurt Build 170) returns.
         showsPlaybackControls = true
-        // SPIKE (CC 10s skip on iPhone): flip transport bar flag to
-        // true to test the theory that AVKit's internal skip handler
-        // is gated on this flag. When false (previous shipped state)
-        // CC's skip-button press lands at no documented entry point.
-        // When true the delegate's `timeToSeekAfterUserNavigatedFrom`
-        // / `skipToNextItem` should fire — and / or AVKit will seek
-        // the underlying AVPlayer (which we observe via Combine on
-        // currentTime). Visible side-effect: AVKit's transport bar
-        // renders on top of our custom UI. Tolerable for the spike;
-        // if the delegate fires we iterate on focus-engine + visual
-        // hiding next.
+        // iPhone Control Center 10s skip routing: AVKit only dispatches
+        // CC's skip-button events into our delegate (via
+        // `timeToSeekAfterUserNavigatedFrom` / `skipToNextItem`) when
+        // the internal transport bar is enabled. Without this flag the
+        // skip press lands at no documented entry point. Our SwiftUI
+        // overlay covers AVKit's bar, so the user-visible UI stays ours
+        // while CC remote skips still reach the engine.
         playbackControlsIncludeTransportBar = true
         playbackControlsIncludeInfoViews = false
         // Engine drives display criteria (LoadOptions.suppressDisplayCriteria =
