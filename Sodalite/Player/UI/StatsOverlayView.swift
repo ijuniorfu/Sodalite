@@ -3,7 +3,7 @@ import AetherEngine
 
 /// Right-anchored "stats for nerds" panel mounted over the player. Only
 /// visible when `PlaybackPreferences.showStatsForNerds` is on and the
-/// transport bar's info chip has been pressed (see PlayerView). Read-
+/// transport bar's info chip has been pressed (see PlayerHostController). Read-
 /// only and non-focusable: the user opens it, scans the data, then
 /// dismisses it via Menu or the same info chip.
 ///
@@ -62,7 +62,7 @@ struct StatsOverlayView: View {
         // Pointer-style hit testing isn't needed (no tap targets), but
         // we leave it enabled so the underlying focus engine sees the
         // overlay as a layer that should consume gestures. Up/Down
-        // press routing happens in PlayerView's @objc handlers, gated
+        // press routing happens in PlayerHostController's @objc handlers, gated
         // on viewModel.showStatsOverlay.
     }
 
@@ -150,7 +150,7 @@ struct StatsOverlayView: View {
         )
         .shadow(color: .black.opacity(0.4), radius: 18, y: 6)
         .task {
-            // Wait past the entrance transition (0.25 s in PlayerView's
+            // Wait past the entrance transition (0.25 s in PlayerHostController's
             // `.animation(.easeInOut(duration: 0.25), value:
             // viewModel.showStatsOverlay)`) plus a small buffer before
             // unlatching the scrollTo gate. After this point user

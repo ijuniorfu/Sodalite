@@ -172,7 +172,7 @@ final class PlayerViewModel {
     var nextEpisodeCountdown = 10
     /// Fired once when playback hits demux EOF and there's no next
     /// episode to advance to (movies, last episode of a season /
-    /// series). PlayerView wires this up to the same dismiss path the
+    /// series). PlayerHostController wires this up to the same dismiss path the
     /// Menu button takes, without it, the player sits on a black
     /// frame with no focus target and the user has to mash Menu to
     /// get back to the detail screen they came from.
@@ -596,7 +596,7 @@ final class PlayerViewModel {
         let finalTicks = currentPositionTicks
         // Snapshot the report payload + service BEFORE engine teardown
         // and detach with a strong capture. If we used `[weak self]`,
-        // PlayerView's dismissal could deallocate the view model before
+        // PlayerHostController's dismissal could deallocate the view model before
         // the @MainActor hop ran, dropping the position write silently
         // (precisely DrHurt's "don't timeout on it too soon" concern,
         // just via lifecycle instead of network). The detached task
