@@ -26495,14 +26495,14 @@
       "localizations" : {
         "cs" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Jellyseerr admins get a new All Requests tab in Catalog to approve, decline, delete, and edit the profile or seasons of any user's request."
+            "state" : "translated",
+            "value" : "Správci v Jellyseerru získají v Katalogu novou kartu Všechny požadavky, kde mohou schvalovat, zamítat, mazat a upravovat profil nebo řady u požadavků kteréhokoli uživatele."
           }
         },
         "da" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Jellyseerr admins get a new All Requests tab in Catalog to approve, decline, delete, and edit the profile or seasons of any user's request."
+            "state" : "translated",
+            "value" : "Jellyseerr-administratorer får en ny Alle Anmodninger-fane i Katalog, hvor de kan godkende, afvise, slette og redigere profil eller sæsoner for enhver brugers anmodning."
           }
         },
         "de" : {
@@ -26513,8 +26513,8 @@
         },
         "el" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Jellyseerr admins get a new All Requests tab in Catalog to approve, decline, delete, and edit the profile or seasons of any user's request."
+            "state" : "translated",
+            "value" : "Οι διαχειριστές του Jellyseerr αποκτούν μια νέα καρτέλα Όλα τα Αιτήματα στον Κατάλογο, όπου μπορούν να εγκρίνουν, να απορρίπτουν, να διαγράφουν και να επεξεργάζονται το προφίλ ή τις σεζόν οποιουδήποτε αιτήματος χρήστη."
           }
         },
         "en" : {
@@ -26525,116 +26525,116 @@
         },
         "es" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Jellyseerr admins get a new All Requests tab in Catalog to approve, decline, delete, and edit the profile or seasons of any user's request."
+            "state" : "translated",
+            "value" : "Los administradores de Jellyseerr obtienen una nueva pestaña Todas las Solicitudes en Catálogo para aprobar, rechazar, eliminar y editar el perfil o las temporadas de la solicitud de cualquier usuario."
           }
         },
         "fi" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Jellyseerr admins get a new All Requests tab in Catalog to approve, decline, delete, and edit the profile or seasons of any user's request."
+            "state" : "translated",
+            "value" : "Jellyseerr-järjestelmänvalvojat saavat uuden Kaikki pyynnöt -välilehden Luettelossa, jossa he voivat hyväksyä, hylätä, poistaa ja muokata kenen tahansa käyttäjän pyynnön profiilia tai kausia."
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Jellyseerr admins get a new All Requests tab in Catalog to approve, decline, delete, and edit the profile or seasons of any user's request."
+            "state" : "translated",
+            "value" : "Les administrateurs Jellyseerr disposent d'un nouvel onglet Toutes les Demandes dans le Catalogue pour approuver, refuser, supprimer et modifier le profil ou les saisons de la demande de tout utilisateur."
           }
         },
         "hr" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Jellyseerr admins get a new All Requests tab in Catalog to approve, decline, delete, and edit the profile or seasons of any user's request."
+            "state" : "translated",
+            "value" : "Administratori u Jellyseerru dobivaju novu karticu Svi Zahtjevi u Katalogu za odobravanje, odbijanje, brisanje i uređivanje profila ili sezona bilo kojeg korisničkog zahtjeva."
           }
         },
         "hu" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Jellyseerr admins get a new All Requests tab in Catalog to approve, decline, delete, and edit the profile or seasons of any user's request."
+            "state" : "translated",
+            "value" : "A Jellyseerr-adminisztrátorok új Összes kérés fület kapnak a Katalógusban, ahol bármely felhasználó kérését jóváhagyhatják, elutasíthatják, törölhetik, és szerkeszthetik annak profilját vagy évadait."
           }
         },
         "it" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Jellyseerr admins get a new All Requests tab in Catalog to approve, decline, delete, and edit the profile or seasons of any user's request."
+            "state" : "translated",
+            "value" : "Gli amministratori di Jellyseerr ottengono una nuova scheda Tutte le Richieste in Catalogo per approvare, rifiutare, eliminare e modificare il profilo o le stagioni della richiesta di qualsiasi utente."
           }
         },
         "ja" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Jellyseerr admins get a new All Requests tab in Catalog to approve, decline, delete, and edit the profile or seasons of any user's request."
+            "state" : "translated",
+            "value" : "Jellyseerr の管理者は、カタログに新しい「すべてのリクエスト」タブが追加され、任意のユーザーのリクエストを承認、却下、削除したり、プロファイルやシーズンを編集したりできます。"
           }
         },
         "ko" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Jellyseerr admins get a new All Requests tab in Catalog to approve, decline, delete, and edit the profile or seasons of any user's request."
+            "state" : "translated",
+            "value" : "Jellyseerr 관리자는 카탈로그에 새로 추가된 모든 요청 탭에서 모든 사용자 요청을 승인, 거부, 삭제하거나 프로필 또는 시즌을 편집할 수 있습니다."
           }
         },
         "nb" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Jellyseerr admins get a new All Requests tab in Catalog to approve, decline, delete, and edit the profile or seasons of any user's request."
+            "state" : "translated",
+            "value" : "Jellyseerr-administratorer får en ny Alle Forespørsler-fane i Katalog for å godkjenne, avslå, slette og redigere profil eller sesonger for en hvilken som helst brukers forespørsel."
           }
         },
         "nl" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Jellyseerr admins get a new All Requests tab in Catalog to approve, decline, delete, and edit the profile or seasons of any user's request."
+            "state" : "translated",
+            "value" : "Jellyseerr-beheerders krijgen een nieuw tabblad Alle Verzoeken in Catalogus om verzoeken van elke gebruiker goed te keuren, af te wijzen, te verwijderen en het profiel of de seizoenen ervan te bewerken."
           }
         },
         "pl" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Jellyseerr admins get a new All Requests tab in Catalog to approve, decline, delete, and edit the profile or seasons of any user's request."
+            "state" : "translated",
+            "value" : "Administratorzy Jellyseerr otrzymują nową kartę Wszystkie prośby w Katalogu, gdzie mogą zatwierdzać, odrzucać, usuwać oraz edytować profil lub sezony prośby dowolnego użytkownika."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Jellyseerr admins get a new All Requests tab in Catalog to approve, decline, delete, and edit the profile or seasons of any user's request."
+            "state" : "translated",
+            "value" : "Os administradores do Jellyseerr ganham uma nova aba Todas as Solicitações no Catálogo para aprovar, recusar, excluir e editar o perfil ou as temporadas da solicitação de qualquer usuário."
           }
         },
         "pt-PT" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Jellyseerr admins get a new All Requests tab in Catalog to approve, decline, delete, and edit the profile or seasons of any user's request."
+            "state" : "translated",
+            "value" : "Os administradores do Jellyseerr passam a ter um novo separador Todos os Pedidos no Catálogo para aprovar, recusar, eliminar e editar o perfil ou as temporadas do pedido de qualquer utilizador."
           }
         },
         "ro" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Jellyseerr admins get a new All Requests tab in Catalog to approve, decline, delete, and edit the profile or seasons of any user's request."
+            "state" : "translated",
+            "value" : "Administratorii Jellyseerr primesc o filă nouă Toate Cererile în Catalog pentru a aproba, respinge, șterge și edita profilul sau sezoanele cererii oricărui utilizator."
           }
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Jellyseerr admins get a new All Requests tab in Catalog to approve, decline, delete, and edit the profile or seasons of any user's request."
+            "state" : "translated",
+            "value" : "Администраторы Jellyseerr получают новую вкладку Все запросы в Каталоге, где можно одобрять, отклонять, удалять и редактировать профиль или сезоны запроса любого пользователя."
           }
         },
         "sk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Jellyseerr admins get a new All Requests tab in Catalog to approve, decline, delete, and edit the profile or seasons of any user's request."
+            "state" : "translated",
+            "value" : "Správcovia v Jellyseerri získajú v Katalógu novú kartu Všetky požiadavky, kde môžu schvaľovať, zamietať, mazať a upravovať profil alebo série v požiadavkách ktoréhokoľvek používateľa."
           }
         },
         "sv" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Jellyseerr admins get a new All Requests tab in Catalog to approve, decline, delete, and edit the profile or seasons of any user's request."
+            "state" : "translated",
+            "value" : "Jellyseerr-administratörer får en ny flik Alla Förfrågningar i Katalog för att godkänna, avvisa, ta bort och redigera profil eller säsonger för vilken som helst användares förfrågan."
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Jellyseerr admins get a new All Requests tab in Catalog to approve, decline, delete, and edit the profile or seasons of any user's request."
+            "state" : "translated",
+            "value" : "Jellyseerr yöneticileri Katalog'da yeni bir Tüm İstekler sekmesi alır; herhangi bir kullanıcının isteğini onaylayabilir, reddedebilir, silebilir ve profilini ya da sezonlarını düzenleyebilir."
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Jellyseerr admins get a new All Requests tab in Catalog to approve, decline, delete, and edit the profile or seasons of any user's request."
+            "state" : "translated",
+            "value" : "Адміністратори Jellyseerr отримують у Каталозі нову вкладку Усі запити, де можна затверджувати, відхиляти, видаляти та редагувати профіль або сезони запиту будь-якого користувача."
           }
         }
       }
@@ -26644,14 +26644,14 @@
       "localizations" : {
         "cs" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Manage all requests"
+            "state" : "translated",
+            "value" : "Správa všech požadavků"
           }
         },
         "da" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Manage all requests"
+            "state" : "translated",
+            "value" : "Administrer alle anmodninger"
           }
         },
         "de" : {
@@ -26662,8 +26662,8 @@
         },
         "el" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Manage all requests"
+            "state" : "translated",
+            "value" : "Διαχείριση όλων των αιτημάτων"
           }
         },
         "en" : {
@@ -26674,116 +26674,116 @@
         },
         "es" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Manage all requests"
+            "state" : "translated",
+            "value" : "Gestionar todas las solicitudes"
           }
         },
         "fi" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Manage all requests"
+            "state" : "translated",
+            "value" : "Hallinnoi kaikkia pyyntöjä"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Manage all requests"
+            "state" : "translated",
+            "value" : "Gérer toutes les demandes"
           }
         },
         "hr" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Manage all requests"
+            "state" : "translated",
+            "value" : "Upravljanje svim zahtjevima"
           }
         },
         "hu" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Manage all requests"
+            "state" : "translated",
+            "value" : "Az összes kérés kezelése"
           }
         },
         "it" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Manage all requests"
+            "state" : "translated",
+            "value" : "Gestisci tutte le richieste"
           }
         },
         "ja" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Manage all requests"
+            "state" : "translated",
+            "value" : "すべてのリクエストを管理"
           }
         },
         "ko" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Manage all requests"
+            "state" : "translated",
+            "value" : "모든 요청 관리"
           }
         },
         "nb" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Manage all requests"
+            "state" : "translated",
+            "value" : "Administrer alle forespørsler"
           }
         },
         "nl" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Manage all requests"
+            "state" : "translated",
+            "value" : "Alle verzoeken beheren"
           }
         },
         "pl" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Manage all requests"
+            "state" : "translated",
+            "value" : "Zarządzaj wszystkimi prośbami"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Manage all requests"
+            "state" : "translated",
+            "value" : "Gerenciar todas as solicitações"
           }
         },
         "pt-PT" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Manage all requests"
+            "state" : "translated",
+            "value" : "Gerir todos os pedidos"
           }
         },
         "ro" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Manage all requests"
+            "state" : "translated",
+            "value" : "Gestionează toate cererile"
           }
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Manage all requests"
+            "state" : "translated",
+            "value" : "Управление всеми запросами"
           }
         },
         "sk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Manage all requests"
+            "state" : "translated",
+            "value" : "Správa všetkých požiadaviek"
           }
         },
         "sv" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Manage all requests"
+            "state" : "translated",
+            "value" : "Hantera alla förfrågningar"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Manage all requests"
+            "state" : "translated",
+            "value" : "Tüm istekleri yönet"
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Manage all requests"
+            "state" : "translated",
+            "value" : "Керування всіма запитами"
           }
         }
       }
@@ -26793,14 +26793,14 @@
       "localizations" : {
         "cs" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Remove movies, series, or individual seasons from your library. When Jellyseerr is connected, matching Radarr and Sonarr entries are cleaned up too."
+            "state" : "translated",
+            "value" : "Odstraň filmy, seriály nebo jednotlivé řady ze své knihovny. Pokud je připojen Jellyseerr, odpovídající záznamy v Radarru a Sonarru se zároveň vyčistí."
           }
         },
         "da" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Remove movies, series, or individual seasons from your library. When Jellyseerr is connected, matching Radarr and Sonarr entries are cleaned up too."
+            "state" : "translated",
+            "value" : "Fjern film, serier eller enkelte sæsoner fra dit bibliotek. Når Jellyseerr er forbundet, ryddes tilsvarende poster i Radarr og Sonarr også op."
           }
         },
         "de" : {
@@ -26811,8 +26811,8 @@
         },
         "el" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Remove movies, series, or individual seasons from your library. When Jellyseerr is connected, matching Radarr and Sonarr entries are cleaned up too."
+            "state" : "translated",
+            "value" : "Αφαίρεσε ταινίες, σειρές ή μεμονωμένες σεζόν από τη βιβλιοθήκη σου. Όταν το Jellyseerr είναι συνδεδεμένο, καθαρίζονται και οι αντίστοιχες εγγραφές σε Radarr και Sonarr."
           }
         },
         "en" : {
@@ -26823,116 +26823,116 @@
         },
         "es" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Remove movies, series, or individual seasons from your library. When Jellyseerr is connected, matching Radarr and Sonarr entries are cleaned up too."
+            "state" : "translated",
+            "value" : "Elimina películas, series o temporadas concretas de tu biblioteca. Si Jellyseerr está conectado, las entradas correspondientes en Radarr y Sonarr también se limpian."
           }
         },
         "fi" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Remove movies, series, or individual seasons from your library. When Jellyseerr is connected, matching Radarr and Sonarr entries are cleaned up too."
+            "state" : "translated",
+            "value" : "Poista elokuvia, sarjoja tai yksittäisiä kausia kirjastostasi. Kun Jellyseerr on yhdistetty, vastaavat tietueet Radarrissa ja Sonarrissa siivotaan myös."
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Remove movies, series, or individual seasons from your library. When Jellyseerr is connected, matching Radarr and Sonarr entries are cleaned up too."
+            "state" : "translated",
+            "value" : "Supprime des films, des séries ou des saisons individuelles de ta bibliothèque. Si Jellyseerr est connecté, les entrées correspondantes dans Radarr et Sonarr sont également nettoyées."
           }
         },
         "hr" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Remove movies, series, or individual seasons from your library. When Jellyseerr is connected, matching Radarr and Sonarr entries are cleaned up too."
+            "state" : "translated",
+            "value" : "Ukloni filmove, serije ili pojedinačne sezone iz svoje biblioteke. Kada je Jellyseerr povezan, čiste se i odgovarajući zapisi u Radarru i Sonarru."
           }
         },
         "hu" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Remove movies, series, or individual seasons from your library. When Jellyseerr is connected, matching Radarr and Sonarr entries are cleaned up too."
+            "state" : "translated",
+            "value" : "Távolíts el filmeket, sorozatokat vagy egyes évadokat a könyvtáradból. Ha a Jellyseerr csatlakoztatva van, a megfelelő Radarr- és Sonarr-bejegyzések is törlődnek."
           }
         },
         "it" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Remove movies, series, or individual seasons from your library. When Jellyseerr is connected, matching Radarr and Sonarr entries are cleaned up too."
+            "state" : "translated",
+            "value" : "Elimina film, serie o singole stagioni dalla tua libreria. Quando Jellyseerr è connesso, anche le voci corrispondenti in Radarr e Sonarr vengono ripulite."
           }
         },
         "ja" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Remove movies, series, or individual seasons from your library. When Jellyseerr is connected, matching Radarr and Sonarr entries are cleaned up too."
+            "state" : "translated",
+            "value" : "ライブラリから映画、シリーズ、または個別のシーズンを削除できます。Jellyseerr が接続されている場合、対応する Radarr および Sonarr のエントリも整理されます。"
           }
         },
         "ko" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Remove movies, series, or individual seasons from your library. When Jellyseerr is connected, matching Radarr and Sonarr entries are cleaned up too."
+            "state" : "translated",
+            "value" : "라이브러리에서 영화, 시리즈 또는 개별 시즌을 삭제할 수 있습니다. Jellyseerr가 연결되어 있으면 해당 Radarr 및 Sonarr 항목도 함께 정리됩니다."
           }
         },
         "nb" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Remove movies, series, or individual seasons from your library. When Jellyseerr is connected, matching Radarr and Sonarr entries are cleaned up too."
+            "state" : "translated",
+            "value" : "Fjern filmer, serier eller enkeltsesonger fra biblioteket. Når Jellyseerr er tilkoblet, ryddes også tilsvarende oppføringer i Radarr og Sonarr opp."
           }
         },
         "nl" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Remove movies, series, or individual seasons from your library. When Jellyseerr is connected, matching Radarr and Sonarr entries are cleaned up too."
+            "state" : "translated",
+            "value" : "Verwijder films, series of afzonderlijke seizoenen uit je bibliotheek. Als Jellyseerr is verbonden, worden bijbehorende vermeldingen in Radarr en Sonarr ook opgeruimd."
           }
         },
         "pl" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Remove movies, series, or individual seasons from your library. When Jellyseerr is connected, matching Radarr and Sonarr entries are cleaned up too."
+            "state" : "translated",
+            "value" : "Usuń filmy, seriale lub pojedyncze sezony ze swojej biblioteki. Gdy Jellyseerr jest połączony, odpowiednie wpisy w Radarr i Sonarr również zostają wyczyszczone."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Remove movies, series, or individual seasons from your library. When Jellyseerr is connected, matching Radarr and Sonarr entries are cleaned up too."
+            "state" : "translated",
+            "value" : "Remova filmes, séries ou temporadas específicas da sua biblioteca. Quando o Jellyseerr está conectado, as entradas correspondentes no Radarr e no Sonarr também são limpas."
           }
         },
         "pt-PT" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Remove movies, series, or individual seasons from your library. When Jellyseerr is connected, matching Radarr and Sonarr entries are cleaned up too."
+            "state" : "translated",
+            "value" : "Remove filmes, séries ou temporadas específicas da tua biblioteca. Quando o Jellyseerr está ligado, as entradas correspondentes no Radarr e no Sonarr também são limpas."
           }
         },
         "ro" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Remove movies, series, or individual seasons from your library. When Jellyseerr is connected, matching Radarr and Sonarr entries are cleaned up too."
+            "state" : "translated",
+            "value" : "Elimină filme, seriale sau sezoane individuale din biblioteca ta. Când Jellyseerr este conectat, intrările corespunzătoare din Radarr și Sonarr sunt și ele curățate."
           }
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Remove movies, series, or individual seasons from your library. When Jellyseerr is connected, matching Radarr and Sonarr entries are cleaned up too."
+            "state" : "translated",
+            "value" : "Удаляй фильмы, сериалы или отдельные сезоны из своей библиотеки. Если подключён Jellyseerr, соответствующие записи в Radarr и Sonarr тоже очищаются."
           }
         },
         "sk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Remove movies, series, or individual seasons from your library. When Jellyseerr is connected, matching Radarr and Sonarr entries are cleaned up too."
+            "state" : "translated",
+            "value" : "Odstráň filmy, seriály alebo jednotlivé série zo svojej knižnice. Ak je pripojený Jellyseerr, vyčistia sa aj zodpovedajúce záznamy v Radarri a Sonarri."
           }
         },
         "sv" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Remove movies, series, or individual seasons from your library. When Jellyseerr is connected, matching Radarr and Sonarr entries are cleaned up too."
+            "state" : "translated",
+            "value" : "Ta bort filmer, serier eller enskilda säsonger från ditt bibliotek. När Jellyseerr är anslutet städas motsvarande poster i Radarr och Sonarr också upp."
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Remove movies, series, or individual seasons from your library. When Jellyseerr is connected, matching Radarr and Sonarr entries are cleaned up too."
+            "state" : "translated",
+            "value" : "Kütüphanenden film, dizi veya tek tek sezonları kaldır. Jellyseerr bağlıyken Radarr ve Sonarr'daki eşleşen kayıtlar da temizlenir."
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Remove movies, series, or individual seasons from your library. When Jellyseerr is connected, matching Radarr and Sonarr entries are cleaned up too."
+            "state" : "translated",
+            "value" : "Видаляй фільми, серіали чи окремі сезони зі своєї бібліотеки. Якщо підключено Jellyseerr, відповідні записи в Radarr і Sonarr теж очищаються."
           }
         }
       }
@@ -26942,14 +26942,14 @@
       "localizations" : {
         "cs" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Delete media from Sodalite"
+            "state" : "translated",
+            "value" : "Smazat média ze Sodalite"
           }
         },
         "da" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Delete media from Sodalite"
+            "state" : "translated",
+            "value" : "Slet medier fra Sodalite"
           }
         },
         "de" : {
@@ -26960,8 +26960,8 @@
         },
         "el" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Delete media from Sodalite"
+            "state" : "translated",
+            "value" : "Διαγραφή πολυμέσων από το Sodalite"
           }
         },
         "en" : {
@@ -26972,116 +26972,116 @@
         },
         "es" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Delete media from Sodalite"
+            "state" : "translated",
+            "value" : "Eliminar contenido de Sodalite"
           }
         },
         "fi" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Delete media from Sodalite"
+            "state" : "translated",
+            "value" : "Poista mediaa Sodalitesta"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Delete media from Sodalite"
+            "state" : "translated",
+            "value" : "Supprimer des médias depuis Sodalite"
           }
         },
         "hr" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Delete media from Sodalite"
+            "state" : "translated",
+            "value" : "Izbriši medije iz Sodalitea"
           }
         },
         "hu" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Delete media from Sodalite"
+            "state" : "translated",
+            "value" : "Médiák törlése a Sodalite-ból"
           }
         },
         "it" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Delete media from Sodalite"
+            "state" : "translated",
+            "value" : "Elimina contenuti da Sodalite"
           }
         },
         "ja" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Delete media from Sodalite"
+            "state" : "translated",
+            "value" : "Sodalite からメディアを削除"
           }
         },
         "ko" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Delete media from Sodalite"
+            "state" : "translated",
+            "value" : "Sodalite에서 미디어 삭제"
           }
         },
         "nb" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Delete media from Sodalite"
+            "state" : "translated",
+            "value" : "Slett medier fra Sodalite"
           }
         },
         "nl" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Delete media from Sodalite"
+            "state" : "translated",
+            "value" : "Media verwijderen uit Sodalite"
           }
         },
         "pl" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Delete media from Sodalite"
+            "state" : "translated",
+            "value" : "Usuń multimedia z Sodalite"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Delete media from Sodalite"
+            "state" : "translated",
+            "value" : "Excluir mídias do Sodalite"
           }
         },
         "pt-PT" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Delete media from Sodalite"
+            "state" : "translated",
+            "value" : "Eliminar conteúdos do Sodalite"
           }
         },
         "ro" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Delete media from Sodalite"
+            "state" : "translated",
+            "value" : "Șterge conținut din Sodalite"
           }
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Delete media from Sodalite"
+            "state" : "translated",
+            "value" : "Удаление медиафайлов из Sodalite"
           }
         },
         "sk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Delete media from Sodalite"
+            "state" : "translated",
+            "value" : "Vymazať médiá zo Sodalite"
           }
         },
         "sv" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Delete media from Sodalite"
+            "state" : "translated",
+            "value" : "Radera media från Sodalite"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Delete media from Sodalite"
+            "state" : "translated",
+            "value" : "Sodalite'tan medya sil"
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Delete media from Sodalite"
+            "state" : "translated",
+            "value" : "Видалення медіафайлів із Sodalite"
           }
         }
       }
@@ -27091,14 +27091,14 @@
       "localizations" : {
         "cs" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "VP8, MPEG-4, MPEG-2, and VC-1 now play directly. BD and DVD containers are recognised, and MLP and MP2 audio tracks are supported."
+            "state" : "translated",
+            "value" : "VP8, MPEG-4, MPEG-2 a VC-1 se nyní přehrávají přímo. Rozpoznávají se kontejnery BD a DVD; podporují se zvukové stopy MLP a MP2."
           }
         },
         "da" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "VP8, MPEG-4, MPEG-2, and VC-1 now play directly. BD and DVD containers are recognised, and MLP and MP2 audio tracks are supported."
+            "state" : "translated",
+            "value" : "VP8, MPEG-4, MPEG-2 og VC-1 afspilles nu direkte. BD- og DVD-containere genkendes, og MLP- og MP2-lydspor understøttes."
           }
         },
         "de" : {
@@ -27109,8 +27109,8 @@
         },
         "el" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "VP8, MPEG-4, MPEG-2, and VC-1 now play directly. BD and DVD containers are recognised, and MLP and MP2 audio tracks are supported."
+            "state" : "translated",
+            "value" : "Τα VP8, MPEG-4, MPEG-2 και VC-1 αναπαράγονται πλέον απευθείας. Αναγνωρίζονται οι περιέκτες BD και DVD και υποστηρίζονται οι ηχητικές ροές MLP και MP2."
           }
         },
         "en" : {
@@ -27121,116 +27121,116 @@
         },
         "es" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "VP8, MPEG-4, MPEG-2, and VC-1 now play directly. BD and DVD containers are recognised, and MLP and MP2 audio tracks are supported."
+            "state" : "translated",
+            "value" : "VP8, MPEG-4, MPEG-2 y VC-1 ahora se reproducen directamente. Se reconocen los contenedores BD y DVD, y se admiten pistas de audio MLP y MP2."
           }
         },
         "fi" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "VP8, MPEG-4, MPEG-2, and VC-1 now play directly. BD and DVD containers are recognised, and MLP and MP2 audio tracks are supported."
+            "state" : "translated",
+            "value" : "VP8, MPEG-4, MPEG-2 ja VC-1 toistuvat nyt suoraan. BD- ja DVD-säiliöt tunnistetaan, ja MLP- ja MP2-ääniraitoja tuetaan."
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "VP8, MPEG-4, MPEG-2, and VC-1 now play directly. BD and DVD containers are recognised, and MLP and MP2 audio tracks are supported."
+            "state" : "translated",
+            "value" : "VP8, MPEG-4, MPEG-2 et VC-1 se lisent désormais directement. Les conteneurs BD et DVD sont reconnus et les pistes audio MLP et MP2 sont prises en charge."
           }
         },
         "hr" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "VP8, MPEG-4, MPEG-2, and VC-1 now play directly. BD and DVD containers are recognised, and MLP and MP2 audio tracks are supported."
+            "state" : "translated",
+            "value" : "VP8, MPEG-4, MPEG-2 i VC-1 sada se reproduciraju izravno. Prepoznaju se BD i DVD spremnici, a podržane su i MLP i MP2 audio zapise."
           }
         },
         "hu" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "VP8, MPEG-4, MPEG-2, and VC-1 now play directly. BD and DVD containers are recognised, and MLP and MP2 audio tracks are supported."
+            "state" : "translated",
+            "value" : "A VP8, MPEG-4, MPEG-2 és VC-1 mostantól közvetlenül lejátszható. A BD- és DVD-tárolók felismerhetők, valamint az MLP- és MP2-hangsávok támogatottá váltak."
           }
         },
         "it" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "VP8, MPEG-4, MPEG-2, and VC-1 now play directly. BD and DVD containers are recognised, and MLP and MP2 audio tracks are supported."
+            "state" : "translated",
+            "value" : "VP8, MPEG-4, MPEG-2 e VC-1 ora si riproducono direttamente. I contenitori BD e DVD vengono riconosciuti e le tracce audio MLP e MP2 sono supportate."
           }
         },
         "ja" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "VP8, MPEG-4, MPEG-2, and VC-1 now play directly. BD and DVD containers are recognised, and MLP and MP2 audio tracks are supported."
+            "state" : "translated",
+            "value" : "VP8、MPEG-4、MPEG-2、VC-1 が直接再生できるようになりました。BD と DVD のコンテナを認識し、MLP と MP2 の音声トラックにも対応しています。"
           }
         },
         "ko" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "VP8, MPEG-4, MPEG-2, and VC-1 now play directly. BD and DVD containers are recognised, and MLP and MP2 audio tracks are supported."
+            "state" : "translated",
+            "value" : "VP8, MPEG-4, MPEG-2, VC-1을 이제 바로 재생합니다. BD 및 DVD 컨테이너를 인식하고 MLP 및 MP2 오디오 트랙을 지원합니다."
           }
         },
         "nb" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "VP8, MPEG-4, MPEG-2, and VC-1 now play directly. BD and DVD containers are recognised, and MLP and MP2 audio tracks are supported."
+            "state" : "translated",
+            "value" : "VP8, MPEG-4, MPEG-2 og VC-1 spilles nå av direkte. BD- og DVD-containere gjenkjennes, og MLP- og MP2-lydspor støttes."
           }
         },
         "nl" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "VP8, MPEG-4, MPEG-2, and VC-1 now play directly. BD and DVD containers are recognised, and MLP and MP2 audio tracks are supported."
+            "state" : "translated",
+            "value" : "VP8, MPEG-4, MPEG-2 en VC-1 worden nu rechtstreeks afgespeeld. BD- en DVD-containers worden herkend, en MLP- en MP2-audiosporen worden ondersteund."
           }
         },
         "pl" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "VP8, MPEG-4, MPEG-2, and VC-1 now play directly. BD and DVD containers are recognised, and MLP and MP2 audio tracks are supported."
+            "state" : "translated",
+            "value" : "VP8, MPEG-4, MPEG-2 i VC-1 są teraz odtwarzane bezpośrednio. Kontenery BD i DVD są rozpoznawane, a ścieżki dźwiękowe MLP i MP2 obsługiwane."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "VP8, MPEG-4, MPEG-2, and VC-1 now play directly. BD and DVD containers are recognised, and MLP and MP2 audio tracks are supported."
+            "state" : "translated",
+            "value" : "VP8, MPEG-4, MPEG-2 e VC-1 agora são reproduzidos diretamente. Os contêineres BD e DVD são reconhecidos, e as faixas de áudio MLP e MP2 são suportadas."
           }
         },
         "pt-PT" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "VP8, MPEG-4, MPEG-2, and VC-1 now play directly. BD and DVD containers are recognised, and MLP and MP2 audio tracks are supported."
+            "state" : "translated",
+            "value" : "VP8, MPEG-4, MPEG-2 e VC-1 são agora reproduzidos diretamente. Os contentores BD e DVD são reconhecidos, e as faixas de áudio MLP e MP2 são suportadas."
           }
         },
         "ro" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "VP8, MPEG-4, MPEG-2, and VC-1 now play directly. BD and DVD containers are recognised, and MLP and MP2 audio tracks are supported."
+            "state" : "translated",
+            "value" : "VP8, MPEG-4, MPEG-2 și VC-1 se redau acum direct. Containerele BD și DVD sunt recunoscute, iar pistele audio MLP și MP2 sunt acceptate."
           }
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "VP8, MPEG-4, MPEG-2, and VC-1 now play directly. BD and DVD containers are recognised, and MLP and MP2 audio tracks are supported."
+            "state" : "translated",
+            "value" : "VP8, MPEG-4, MPEG-2 и VC-1 теперь воспроизводятся напрямую. Распознаются контейнеры BD и DVD, поддерживаются звуковые дорожки MLP и MP2."
           }
         },
         "sk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "VP8, MPEG-4, MPEG-2, and VC-1 now play directly. BD and DVD containers are recognised, and MLP and MP2 audio tracks are supported."
+            "state" : "translated",
+            "value" : "VP8, MPEG-4, MPEG-2 a VC-1 sa teraz prehrávajú priamo. Rozpoznávajú sa kontajnery BD a DVD a podporujú sa zvukové stopy MLP a MP2."
           }
         },
         "sv" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "VP8, MPEG-4, MPEG-2, and VC-1 now play directly. BD and DVD containers are recognised, and MLP and MP2 audio tracks are supported."
+            "state" : "translated",
+            "value" : "VP8, MPEG-4, MPEG-2 och VC-1 spelas nu upp direkt. BD- och DVD-behållare känns igen, och MLP- och MP2-ljudspår stöds."
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "VP8, MPEG-4, MPEG-2, and VC-1 now play directly. BD and DVD containers are recognised, and MLP and MP2 audio tracks are supported."
+            "state" : "translated",
+            "value" : "VP8, MPEG-4, MPEG-2 ve VC-1 artık doğrudan oynatılıyor. BD ve DVD kapsayıcıları tanınıyor, MLP ve MP2 ses parçaları destekleniyor."
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "VP8, MPEG-4, MPEG-2, and VC-1 now play directly. BD and DVD containers are recognised, and MLP and MP2 audio tracks are supported."
+            "state" : "translated",
+            "value" : "VP8, MPEG-4, MPEG-2 і VC-1 тепер відтворюються напряму. Контейнери BD і DVD розпізнаються, а аудіодоріжки MLP і MP2 підтримуються."
           }
         }
       }
@@ -27240,14 +27240,14 @@
       "localizations" : {
         "cs" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Broader format support"
+            "state" : "translated",
+            "value" : "Širší podpora formátů"
           }
         },
         "da" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Broader format support"
+            "state" : "translated",
+            "value" : "Bredere formatunderstøttelse"
           }
         },
         "de" : {
@@ -27258,8 +27258,8 @@
         },
         "el" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Broader format support"
+            "state" : "translated",
+            "value" : "Ευρύτερη υποστήριξη μορφών"
           }
         },
         "en" : {
@@ -27270,116 +27270,116 @@
         },
         "es" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Broader format support"
+            "state" : "translated",
+            "value" : "Compatibilidad con más formatos"
           }
         },
         "fi" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Broader format support"
+            "state" : "translated",
+            "value" : "Laajempi muototuki"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Broader format support"
+            "state" : "translated",
+            "value" : "Prise en charge élargie des formats"
           }
         },
         "hr" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Broader format support"
+            "state" : "translated",
+            "value" : "Šira podrška formata"
           }
         },
         "hu" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Broader format support"
+            "state" : "translated",
+            "value" : "Bővebb formátumtámogatás"
           }
         },
         "it" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Broader format support"
+            "state" : "translated",
+            "value" : "Supporto a più formati"
           }
         },
         "ja" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Broader format support"
+            "state" : "translated",
+            "value" : "対応フォーマットの拡大"
           }
         },
         "ko" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Broader format support"
+            "state" : "translated",
+            "value" : "더 많은 형식 지원"
           }
         },
         "nb" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Broader format support"
+            "state" : "translated",
+            "value" : "Bredere formatstøtte"
           }
         },
         "nl" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Broader format support"
+            "state" : "translated",
+            "value" : "Bredere formaatondersteuning"
           }
         },
         "pl" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Broader format support"
+            "state" : "translated",
+            "value" : "Szersza obsługa formatów"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Broader format support"
+            "state" : "translated",
+            "value" : "Suporte a mais formatos"
           }
         },
         "pt-PT" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Broader format support"
+            "state" : "translated",
+            "value" : "Suporte para mais formatos"
           }
         },
         "ro" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Broader format support"
+            "state" : "translated",
+            "value" : "Suport extins pentru formate"
           }
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Broader format support"
+            "state" : "translated",
+            "value" : "Расширенная поддержка форматов"
           }
         },
         "sk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Broader format support"
+            "state" : "translated",
+            "value" : "Širšia podpora formátov"
           }
         },
         "sv" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Broader format support"
+            "state" : "translated",
+            "value" : "Bredare formatstöd"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Broader format support"
+            "state" : "translated",
+            "value" : "Daha geniş format desteği"
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Broader format support"
+            "state" : "translated",
+            "value" : "Ширша підтримка форматів"
           }
         }
       }
@@ -27389,14 +27389,14 @@
       "localizations" : {
         "cs" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Cleaner Profile 5, 8.1, and 8.4 handling on non-DV panels, more accurate HDR10+ metadata, and steadier display-mode switches between episodes."
+            "state" : "translated",
+            "value" : "Čistší zpracování profilů 5, 8.1 a 8.4 na panelech bez DV, přesnější metadata HDR10+ a stabilnější přepínání režimu zobrazení mezi epizodami."
           }
         },
         "da" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Cleaner Profile 5, 8.1, and 8.4 handling on non-DV panels, more accurate HDR10+ metadata, and steadier display-mode switches between episodes."
+            "state" : "translated",
+            "value" : "Renere håndtering af Profil 5, 8.1 og 8.4 på paneler uden DV, mere præcise HDR10+-metadata og mere stabile skift af visningstilstand mellem episoder."
           }
         },
         "de" : {
@@ -27407,8 +27407,8 @@
         },
         "el" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Cleaner Profile 5, 8.1, and 8.4 handling on non-DV panels, more accurate HDR10+ metadata, and steadier display-mode switches between episodes."
+            "state" : "translated",
+            "value" : "Πιο καθαρός χειρισμός των Profile 5, 8.1 και 8.4 σε οθόνες χωρίς DV, ακριβέστερα μεταδεδομένα HDR10+ και πιο σταθερές αλλαγές λειτουργίας οθόνης μεταξύ επεισοδίων."
           }
         },
         "en" : {
@@ -27419,116 +27419,116 @@
         },
         "es" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Cleaner Profile 5, 8.1, and 8.4 handling on non-DV panels, more accurate HDR10+ metadata, and steadier display-mode switches between episodes."
+            "state" : "translated",
+            "value" : "Tratamiento más limpio de los Perfiles 5, 8.1 y 8.4 en paneles sin DV, metadatos HDR10+ más precisos y cambios de modo de visualización más estables entre episodios."
           }
         },
         "fi" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Cleaner Profile 5, 8.1, and 8.4 handling on non-DV panels, more accurate HDR10+ metadata, and steadier display-mode switches between episodes."
+            "state" : "translated",
+            "value" : "Profiilien 5, 8.1 ja 8.4 selkeämpi käsittely paneeleilla ilman DV-tukea, tarkemmat HDR10+-metatiedot ja vakaammat näyttötilan vaihdot jaksojen välillä."
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Cleaner Profile 5, 8.1, and 8.4 handling on non-DV panels, more accurate HDR10+ metadata, and steadier display-mode switches between episodes."
+            "state" : "translated",
+            "value" : "Gestion plus propre des Profils 5, 8.1 et 8.4 sur les écrans non DV, métadonnées HDR10+ plus précises et changements de mode d'affichage plus stables entre les épisodes."
           }
         },
         "hr" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Cleaner Profile 5, 8.1, and 8.4 handling on non-DV panels, more accurate HDR10+ metadata, and steadier display-mode switches between episodes."
+            "state" : "translated",
+            "value" : "Čišća obrada Profila 5, 8.1 i 8.4 na panelima bez DV-a, točniji HDR10+ metapodaci i stabilnije promjene načina prikaza između epizoda."
           }
         },
         "hu" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Cleaner Profile 5, 8.1, and 8.4 handling on non-DV panels, more accurate HDR10+ metadata, and steadier display-mode switches between episodes."
+            "state" : "translated",
+            "value" : "Tisztább Profile 5-, 8.1- és 8.4-kezelés DV-mentes panelekon, pontosabb HDR10+ metaadatok és stabilabb képernyőmód-váltások az epizódok között."
           }
         },
         "it" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Cleaner Profile 5, 8.1, and 8.4 handling on non-DV panels, more accurate HDR10+ metadata, and steadier display-mode switches between episodes."
+            "state" : "translated",
+            "value" : "Gestione più pulita dei Profili 5, 8.1 e 8.4 su pannelli non DV, metadati HDR10+ più accurati e passaggi di modalità di visualizzazione più stabili tra episodi."
           }
         },
         "ja" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Cleaner Profile 5, 8.1, and 8.4 handling on non-DV panels, more accurate HDR10+ metadata, and steadier display-mode switches between episodes."
+            "state" : "translated",
+            "value" : "非 DV パネルでのプロファイル 5、8.1、8.4 の処理がよりクリーンになり、HDR10+ メタデータがより正確に、エピソード間のディスプレイモード切替もより安定しました。"
           }
         },
         "ko" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Cleaner Profile 5, 8.1, and 8.4 handling on non-DV panels, more accurate HDR10+ metadata, and steadier display-mode switches between episodes."
+            "state" : "translated",
+            "value" : "비DV 패널에서 프로필 5, 8.1, 8.4 처리가 더 깔끔해지고, HDR10+ 메타데이터가 더 정확해졌으며, 에피소드 간 디스플레이 모드 전환이 더 안정적입니다."
           }
         },
         "nb" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Cleaner Profile 5, 8.1, and 8.4 handling on non-DV panels, more accurate HDR10+ metadata, and steadier display-mode switches between episodes."
+            "state" : "translated",
+            "value" : "Renere håndtering av Profil 5, 8.1 og 8.4 på paneler uten DV, mer nøyaktige HDR10+-metadata og stødigere bytter av visningsmodus mellom episoder."
           }
         },
         "nl" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Cleaner Profile 5, 8.1, and 8.4 handling on non-DV panels, more accurate HDR10+ metadata, and steadier display-mode switches between episodes."
+            "state" : "translated",
+            "value" : "Schonere afhandeling van Profielen 5, 8.1 en 8.4 op niet-DV-panelen, nauwkeurigere HDR10+-metadata en stabielere weergavemoduswisselingen tussen afleveringen."
           }
         },
         "pl" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Cleaner Profile 5, 8.1, and 8.4 handling on non-DV panels, more accurate HDR10+ metadata, and steadier display-mode switches between episodes."
+            "state" : "translated",
+            "value" : "Czystsza obsługa profili 5, 8.1 i 8.4 na panelach bez DV, dokładniejsze metadane HDR10+ i bardziej stabilne przełączanie trybu wyświetlania między odcinkami."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Cleaner Profile 5, 8.1, and 8.4 handling on non-DV panels, more accurate HDR10+ metadata, and steadier display-mode switches between episodes."
+            "state" : "translated",
+            "value" : "Tratamento mais limpo dos Perfis 5, 8.1 e 8.4 em painéis sem DV, metadados HDR10+ mais precisos e trocas de modo de exibição mais estáveis entre episódios."
           }
         },
         "pt-PT" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Cleaner Profile 5, 8.1, and 8.4 handling on non-DV panels, more accurate HDR10+ metadata, and steadier display-mode switches between episodes."
+            "state" : "translated",
+            "value" : "Tratamento mais limpo dos Perfis 5, 8.1 e 8.4 em painéis sem DV, metadados HDR10+ mais precisos e trocas de modo de visualização mais estáveis entre episódios."
           }
         },
         "ro" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Cleaner Profile 5, 8.1, and 8.4 handling on non-DV panels, more accurate HDR10+ metadata, and steadier display-mode switches between episodes."
+            "state" : "translated",
+            "value" : "Tratare mai curată a Profilurilor 5, 8.1 și 8.4 pe ecrane fără DV, metadate HDR10+ mai precise și comutări mai stabile ale modului de afișare între episoade."
           }
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Cleaner Profile 5, 8.1, and 8.4 handling on non-DV panels, more accurate HDR10+ metadata, and steadier display-mode switches between episodes."
+            "state" : "translated",
+            "value" : "Чище обработка профилей 5, 8.1 и 8.4 на панелях без DV, точнее метаданные HDR10+ и стабильнее переключения режима отображения между эпизодами."
           }
         },
         "sk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Cleaner Profile 5, 8.1, and 8.4 handling on non-DV panels, more accurate HDR10+ metadata, and steadier display-mode switches between episodes."
+            "state" : "translated",
+            "value" : "Čistejšie spracovanie profilov 5, 8.1 a 8.4 na paneloch bez DV, presnejšie metadáta HDR10+ a stabilnejšie prepínanie režimu zobrazenia medzi epizódami."
           }
         },
         "sv" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Cleaner Profile 5, 8.1, and 8.4 handling on non-DV panels, more accurate HDR10+ metadata, and steadier display-mode switches between episodes."
+            "state" : "translated",
+            "value" : "Renare hantering av Profil 5, 8.1 och 8.4 på paneler utan DV, mer exakt HDR10+-metadata och stabilare byten av visningsläge mellan avsnitt."
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Cleaner Profile 5, 8.1, and 8.4 handling on non-DV panels, more accurate HDR10+ metadata, and steadier display-mode switches between episodes."
+            "state" : "translated",
+            "value" : "DV olmayan panellerde Profil 5, 8.1 ve 8.4'ün daha temiz işlenmesi, daha doğru HDR10+ üst verileri ve bölümler arasında daha kararlı görüntü modu geçişleri."
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Cleaner Profile 5, 8.1, and 8.4 handling on non-DV panels, more accurate HDR10+ metadata, and steadier display-mode switches between episodes."
+            "state" : "translated",
+            "value" : "Чистіша обробка профілів 5, 8.1 і 8.4 на панелях без DV, точніші метадані HDR10+ і стабільніші перемикання режиму відображення між епізодами."
           }
         }
       }
@@ -27538,14 +27538,14 @@
       "localizations" : {
         "cs" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Smarter HDR and Dolby Vision routing"
+            "state" : "translated",
+            "value" : "Chytřejší směrování HDR a Dolby Vision"
           }
         },
         "da" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Smarter HDR and Dolby Vision routing"
+            "state" : "translated",
+            "value" : "Smartere HDR- og Dolby Vision-routing"
           }
         },
         "de" : {
@@ -27556,8 +27556,8 @@
         },
         "el" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Smarter HDR and Dolby Vision routing"
+            "state" : "translated",
+            "value" : "Εξυπνότερη δρομολόγηση HDR και Dolby Vision"
           }
         },
         "en" : {
@@ -27568,116 +27568,116 @@
         },
         "es" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Smarter HDR and Dolby Vision routing"
+            "state" : "translated",
+            "value" : "Enrutamiento más inteligente de HDR y Dolby Vision"
           }
         },
         "fi" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Smarter HDR and Dolby Vision routing"
+            "state" : "translated",
+            "value" : "Älykkäämpi HDR- ja Dolby Vision -reititys"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Smarter HDR and Dolby Vision routing"
+            "state" : "translated",
+            "value" : "Routage HDR et Dolby Vision plus intelligent"
           }
         },
         "hr" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Smarter HDR and Dolby Vision routing"
+            "state" : "translated",
+            "value" : "Pametnije usmjeravanje HDR-a i Dolby Visiona"
           }
         },
         "hu" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Smarter HDR and Dolby Vision routing"
+            "state" : "translated",
+            "value" : "Okosabb HDR- és Dolby Vision-továbbítás"
           }
         },
         "it" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Smarter HDR and Dolby Vision routing"
+            "state" : "translated",
+            "value" : "Routing più intelligente di HDR e Dolby Vision"
           }
         },
         "ja" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Smarter HDR and Dolby Vision routing"
+            "state" : "translated",
+            "value" : "HDR と Dolby Vision のルーティングをよりスマートに"
           }
         },
         "ko" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Smarter HDR and Dolby Vision routing"
+            "state" : "translated",
+            "value" : "더 똑똑한 HDR 및 Dolby Vision 라우팅"
           }
         },
         "nb" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Smarter HDR and Dolby Vision routing"
+            "state" : "translated",
+            "value" : "Smartere HDR- og Dolby Vision-ruting"
           }
         },
         "nl" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Smarter HDR and Dolby Vision routing"
+            "state" : "translated",
+            "value" : "Slimmere HDR- en Dolby Vision-routering"
           }
         },
         "pl" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Smarter HDR and Dolby Vision routing"
+            "state" : "translated",
+            "value" : "Inteligentniejsze przekierowanie HDR i Dolby Vision"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Smarter HDR and Dolby Vision routing"
+            "state" : "translated",
+            "value" : "Roteamento mais inteligente de HDR e Dolby Vision"
           }
         },
         "pt-PT" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Smarter HDR and Dolby Vision routing"
+            "state" : "translated",
+            "value" : "Encaminhamento mais inteligente de HDR e Dolby Vision"
           }
         },
         "ro" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Smarter HDR and Dolby Vision routing"
+            "state" : "translated",
+            "value" : "Direcționare HDR și Dolby Vision mai inteligentă"
           }
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Smarter HDR and Dolby Vision routing"
+            "state" : "translated",
+            "value" : "Умнее маршрутизация HDR и Dolby Vision"
           }
         },
         "sk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Smarter HDR and Dolby Vision routing"
+            "state" : "translated",
+            "value" : "Inteligentnejšie smerovanie HDR a Dolby Vision"
           }
         },
         "sv" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Smarter HDR and Dolby Vision routing"
+            "state" : "translated",
+            "value" : "Smartare HDR- och Dolby Vision-routning"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Smarter HDR and Dolby Vision routing"
+            "state" : "translated",
+            "value" : "Daha akıllı HDR ve Dolby Vision yönlendirmesi"
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Smarter HDR and Dolby Vision routing"
+            "state" : "translated",
+            "value" : "Розумніша маршрутизація HDR і Dolby Vision"
           }
         }
       }
@@ -27687,14 +27687,14 @@
       "localizations" : {
         "cs" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Stats for Nerds now show live A/V sync, bitrate, and buffer figures. Toggle the optional Engine Diagnostics section for a deeper look."
+            "state" : "translated",
+            "value" : "Stats for Nerds nyní zobrazují živé hodnoty A/V synchronizace, datového toku a vyrovnávací paměti. Volitelně zapni sekci Engine Diagnostics pro hlubší pohled."
           }
         },
         "da" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Stats for Nerds now show live A/V sync, bitrate, and buffer figures. Toggle the optional Engine Diagnostics section for a deeper look."
+            "state" : "translated",
+            "value" : "Stats for Nerds viser nu live tal for A/V-synk, bitrate og buffer. Slå den valgfri Engine Diagnostics-sektion til for et dybere kig."
           }
         },
         "de" : {
@@ -27705,8 +27705,8 @@
         },
         "el" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Stats for Nerds now show live A/V sync, bitrate, and buffer figures. Toggle the optional Engine Diagnostics section for a deeper look."
+            "state" : "translated",
+            "value" : "Τα Stats for Nerds δείχνουν τώρα ζωντανές τιμές για A/V συγχρονισμό, ρυθμό bit και buffer. Ενεργοποίησε προαιρετικά την ενότητα Engine Diagnostics για πιο εις βάθος εικόνα."
           }
         },
         "en" : {
@@ -27717,116 +27717,116 @@
         },
         "es" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Stats for Nerds now show live A/V sync, bitrate, and buffer figures. Toggle the optional Engine Diagnostics section for a deeper look."
+            "state" : "translated",
+            "value" : "Stats for Nerds ahora muestra valores en vivo de sincronía A/V, bitrate y búfer. Activa la sección opcional Engine Diagnostics para un análisis más profundo."
           }
         },
         "fi" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Stats for Nerds now show live A/V sync, bitrate, and buffer figures. Toggle the optional Engine Diagnostics section for a deeper look."
+            "state" : "translated",
+            "value" : "Stats for Nerds näyttää nyt A/V-synkronoinnin, bittinopeuden ja puskurin reaaliaikaiset arvot. Ota lisävalintainen Engine Diagnostics -osio käyttöön syvempää tarkastelua varten."
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Stats for Nerds now show live A/V sync, bitrate, and buffer figures. Toggle the optional Engine Diagnostics section for a deeper look."
+            "state" : "translated",
+            "value" : "Stats for Nerds affiche désormais des valeurs en direct pour la synchronisation A/V, le débit binaire et le tampon. Active la section optionnelle Engine Diagnostics pour aller plus loin."
           }
         },
         "hr" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Stats for Nerds now show live A/V sync, bitrate, and buffer figures. Toggle the optional Engine Diagnostics section for a deeper look."
+            "state" : "translated",
+            "value" : "Stats for Nerds sada prikazuje žive vrijednosti A/V sinkronizacije, brzine prijenosa i međuspremnika. Po želji uključi sekciju Engine Diagnostics za detaljniji pregled."
           }
         },
         "hu" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Stats for Nerds now show live A/V sync, bitrate, and buffer figures. Toggle the optional Engine Diagnostics section for a deeper look."
+            "state" : "translated",
+            "value" : "A Stats for Nerds mostantól élőben mutatja az A/V-szinkront, a bitrátát és a puffert. Mélyebb betekintéshez kapcsold be a nem kötelező Engine Diagnostics részt."
           }
         },
         "it" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Stats for Nerds now show live A/V sync, bitrate, and buffer figures. Toggle the optional Engine Diagnostics section for a deeper look."
+            "state" : "translated",
+            "value" : "Stats for Nerds ora mostra valori live di sincronizzazione A/V, bitrate e buffer. Attiva la sezione opzionale Engine Diagnostics per un'analisi più approfondita."
           }
         },
         "ja" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Stats for Nerds now show live A/V sync, bitrate, and buffer figures. Toggle the optional Engine Diagnostics section for a deeper look."
+            "state" : "translated",
+            "value" : "Stats for Nerds に A/V 同期、ビットレート、バッファのライブ値が表示されるようになりました。詳細を見たい場合はオプションの Engine Diagnostics セクションを有効化してください。"
           }
         },
         "ko" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Stats for Nerds now show live A/V sync, bitrate, and buffer figures. Toggle the optional Engine Diagnostics section for a deeper look."
+            "state" : "translated",
+            "value" : "Stats for Nerds에 A/V 동기, 비트레이트, 버퍼의 실시간 값이 표시됩니다. 더 자세히 보려면 선택 항목인 Engine Diagnostics 섹션을 켜세요."
           }
         },
         "nb" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Stats for Nerds now show live A/V sync, bitrate, and buffer figures. Toggle the optional Engine Diagnostics section for a deeper look."
+            "state" : "translated",
+            "value" : "Stats for Nerds viser nå sanntidsverdier for A/V-synk, bitrate og buffer. Slå på den valgfrie Engine Diagnostics-seksjonen for et dypere blikk."
           }
         },
         "nl" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Stats for Nerds now show live A/V sync, bitrate, and buffer figures. Toggle the optional Engine Diagnostics section for a deeper look."
+            "state" : "translated",
+            "value" : "Stats for Nerds toont nu live-waarden voor A/V-sync, bitrate en buffer. Schakel de optionele sectie Engine Diagnostics in voor een diepere blik."
           }
         },
         "pl" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Stats for Nerds now show live A/V sync, bitrate, and buffer figures. Toggle the optional Engine Diagnostics section for a deeper look."
+            "state" : "translated",
+            "value" : "Stats for Nerds pokazuje teraz na żywo synchronizację A/V, bitrate i bufor. Włącz opcjonalną sekcję Engine Diagnostics, by spojrzeć głębiej."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Stats for Nerds now show live A/V sync, bitrate, and buffer figures. Toggle the optional Engine Diagnostics section for a deeper look."
+            "state" : "translated",
+            "value" : "O Stats for Nerds agora exibe valores ao vivo de sincronia A/V, bitrate e buffer. Ative a seção opcional Engine Diagnostics para uma análise mais profunda."
           }
         },
         "pt-PT" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Stats for Nerds now show live A/V sync, bitrate, and buffer figures. Toggle the optional Engine Diagnostics section for a deeper look."
+            "state" : "translated",
+            "value" : "O Stats for Nerds mostra agora valores ao vivo de sincronização A/V, taxa de bits e buffer. Ativa a secção opcional Engine Diagnostics para uma análise mais detalhada."
           }
         },
         "ro" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Stats for Nerds now show live A/V sync, bitrate, and buffer figures. Toggle the optional Engine Diagnostics section for a deeper look."
+            "state" : "translated",
+            "value" : "Stats for Nerds afișează acum valori în direct pentru sincronizarea A/V, bitrate și buffer. Activează opțional secțiunea Engine Diagnostics pentru o privire mai detaliată."
           }
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Stats for Nerds now show live A/V sync, bitrate, and buffer figures. Toggle the optional Engine Diagnostics section for a deeper look."
+            "state" : "translated",
+            "value" : "Stats for Nerds теперь показывает живые значения A/V-синхронизации, битрейта и буфера. По желанию включи раздел Engine Diagnostics для более глубокого анализа."
           }
         },
         "sk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Stats for Nerds now show live A/V sync, bitrate, and buffer figures. Toggle the optional Engine Diagnostics section for a deeper look."
+            "state" : "translated",
+            "value" : "Stats for Nerds teraz zobrazuje živé hodnoty A/V synchronizácie, dátového toku a vyrovnávacej pamäte. Voliteľne zapni sekciu Engine Diagnostics pre hlbší pohľad."
           }
         },
         "sv" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Stats for Nerds now show live A/V sync, bitrate, and buffer figures. Toggle the optional Engine Diagnostics section for a deeper look."
+            "state" : "translated",
+            "value" : "Stats for Nerds visar nu livevärden för A/V-synk, bithastighet och buffert. Slå på den valfria Engine Diagnostics-sektionen för en djupare titt."
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Stats for Nerds now show live A/V sync, bitrate, and buffer figures. Toggle the optional Engine Diagnostics section for a deeper look."
+            "state" : "translated",
+            "value" : "Stats for Nerds artık A/V senkronu, bit hızı ve tampon değerlerini canlı gösteriyor. Daha derin bir bakış için isteğe bağlı Engine Diagnostics bölümünü aç."
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Stats for Nerds now show live A/V sync, bitrate, and buffer figures. Toggle the optional Engine Diagnostics section for a deeper look."
+            "state" : "translated",
+            "value" : "Stats for Nerds тепер показує наживо значення синхронізації A/V, бітрейту й буфера. За бажанням увімкни розділ Engine Diagnostics для глибшого аналізу."
           }
         }
       }
@@ -27836,14 +27836,14 @@
       "localizations" : {
         "cs" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Live playback stats"
+            "state" : "translated",
+            "value" : "Živé statistiky přehrávání"
           }
         },
         "da" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Live playback stats"
+            "state" : "translated",
+            "value" : "Live afspilningsstatistik"
           }
         },
         "de" : {
@@ -27854,8 +27854,8 @@
         },
         "el" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Live playback stats"
+            "state" : "translated",
+            "value" : "Ζωντανά στατιστικά αναπαραγωγής"
           }
         },
         "en" : {
@@ -27866,116 +27866,116 @@
         },
         "es" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Live playback stats"
+            "state" : "translated",
+            "value" : "Estadísticas de reproducción en vivo"
           }
         },
         "fi" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Live playback stats"
+            "state" : "translated",
+            "value" : "Suoraan päivittyvät toistotilastot"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Live playback stats"
+            "state" : "translated",
+            "value" : "Statistiques de lecture en direct"
           }
         },
         "hr" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Live playback stats"
+            "state" : "translated",
+            "value" : "Statistike reprodukcije uživo"
           }
         },
         "hu" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Live playback stats"
+            "state" : "translated",
+            "value" : "Élő lejátszási statisztikák"
           }
         },
         "it" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Live playback stats"
+            "state" : "translated",
+            "value" : "Statistiche di riproduzione in tempo reale"
           }
         },
         "ja" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Live playback stats"
+            "state" : "translated",
+            "value" : "ライブ再生統計"
           }
         },
         "ko" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Live playback stats"
+            "state" : "translated",
+            "value" : "실시간 재생 통계"
           }
         },
         "nb" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Live playback stats"
+            "state" : "translated",
+            "value" : "Sanntidsstatistikk for avspilling"
           }
         },
         "nl" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Live playback stats"
+            "state" : "translated",
+            "value" : "Live afspeelstatistieken"
           }
         },
         "pl" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Live playback stats"
+            "state" : "translated",
+            "value" : "Statystyki odtwarzania na żywo"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Live playback stats"
+            "state" : "translated",
+            "value" : "Estatísticas de reprodução em tempo real"
           }
         },
         "pt-PT" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Live playback stats"
+            "state" : "translated",
+            "value" : "Estatísticas de reprodução em direto"
           }
         },
         "ro" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Live playback stats"
+            "state" : "translated",
+            "value" : "Statistici de redare în direct"
           }
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Live playback stats"
+            "state" : "translated",
+            "value" : "Статистика воспроизведения в реальном времени"
           }
         },
         "sk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Live playback stats"
+            "state" : "translated",
+            "value" : "Živé štatistiky prehrávania"
           }
         },
         "sv" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Live playback stats"
+            "state" : "translated",
+            "value" : "Liveuppspelningsstatistik"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Live playback stats"
+            "state" : "translated",
+            "value" : "Canlı oynatma istatistikleri"
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Live playback stats"
+            "state" : "translated",
+            "value" : "Статистика відтворення наживо"
           }
         }
       }
@@ -27985,14 +27985,14 @@
       "localizations" : {
         "cs" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Skip-Intro flicker gone, the next-episode overlay stays pinned, subtitles land cleanly on screen, and slow CDNs no longer stall the UI."
+            "state" : "translated",
+            "value" : "Mihotání Skip-Intro je pryč, překryv další epizody zůstává na svém místě, titulky se čistě umístí na obrazovku a pomalé CDN už nezasekávají rozhraní."
           }
         },
         "da" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Skip-Intro flicker gone, the next-episode overlay stays pinned, subtitles land cleanly on screen, and slow CDNs no longer stall the UI."
+            "state" : "translated",
+            "value" : "Skip-Intro-flimmer er væk, overlejringen for næste afsnit bliver, hvor den er, undertekster lander rent på skærmen, og langsomme CDN'er hænger ikke længere brugerfladen."
           }
         },
         "de" : {
@@ -28003,8 +28003,8 @@
         },
         "el" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Skip-Intro flicker gone, the next-episode overlay stays pinned, subtitles land cleanly on screen, and slow CDNs no longer stall the UI."
+            "state" : "translated",
+            "value" : "Το τρεμοπαίξιμο του Skip-Intro έφυγε, η επικάλυψη του επόμενου επεισοδίου παραμένει στη θέση της, οι υπότιτλοι τοποθετούνται καθαρά στην οθόνη, και τα αργά CDN δεν κολλούν πια το περιβάλλον."
           }
         },
         "en" : {
@@ -28015,116 +28015,116 @@
         },
         "es" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Skip-Intro flicker gone, the next-episode overlay stays pinned, subtitles land cleanly on screen, and slow CDNs no longer stall the UI."
+            "state" : "translated",
+            "value" : "El parpadeo de Skip-Intro desapareció, la superposición del próximo episodio se mantiene fija, los subtítulos aterrizan limpios en pantalla y las CDN lentas ya no bloquean la interfaz."
           }
         },
         "fi" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Skip-Intro flicker gone, the next-episode overlay stays pinned, subtitles land cleanly on screen, and slow CDNs no longer stall the UI."
+            "state" : "translated",
+            "value" : "Skip-Intro-vilkkuminen on poissa, seuraavan jakson peittokuva pysyy paikallaan, tekstitykset asettuvat siististi näytölle, eivätkä hitaat CDN:t enää jumiuta käyttöliittymää."
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Skip-Intro flicker gone, the next-episode overlay stays pinned, subtitles land cleanly on screen, and slow CDNs no longer stall the UI."
+            "state" : "translated",
+            "value" : "Le clignotement de Skip-Intro a disparu, l'incrustation de l'épisode suivant reste en place, les sous-titres se posent proprement à l'écran, et les CDN lents ne bloquent plus l'interface."
           }
         },
         "hr" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Skip-Intro flicker gone, the next-episode overlay stays pinned, subtitles land cleanly on screen, and slow CDNs no longer stall the UI."
+            "state" : "translated",
+            "value" : "Treperenje Skip-Intra je nestalo, prekrivač sljedeće epizode ostaje na mjestu, titlovi se uredno smještaju na zaslon, a spori CDN-ovi više ne zaustavljaju sučelje."
           }
         },
         "hu" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Skip-Intro flicker gone, the next-episode overlay stays pinned, subtitles land cleanly on screen, and slow CDNs no longer stall the UI."
+            "state" : "translated",
+            "value" : "A Skip-Intro villogása megszűnt, a következő epizód overlayje a helyén marad, a feliratok tisztán kerülnek a képernyőre, és a lassú CDN-ek nem akasztják meg a felületet."
           }
         },
         "it" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Skip-Intro flicker gone, the next-episode overlay stays pinned, subtitles land cleanly on screen, and slow CDNs no longer stall the UI."
+            "state" : "translated",
+            "value" : "Lo sfarfallio di Skip-Intro è sparito, l'overlay del prossimo episodio resta al suo posto, i sottotitoli si posizionano puliti sullo schermo, e le CDN lente non bloccano più l'interfaccia."
           }
         },
         "ja" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Skip-Intro flicker gone, the next-episode overlay stays pinned, subtitles land cleanly on screen, and slow CDNs no longer stall the UI."
+            "state" : "translated",
+            "value" : "Skip-Intro のちらつきが解消され、次のエピソードのオーバーレイは固定され、字幕は画面にきれいに表示され、遅い CDN でも UI が止まらなくなりました。"
           }
         },
         "ko" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Skip-Intro flicker gone, the next-episode overlay stays pinned, subtitles land cleanly on screen, and slow CDNs no longer stall the UI."
+            "state" : "translated",
+            "value" : "Skip-Intro 깜박임이 사라지고, 다음 에피소드 오버레이가 그 자리에 고정되며, 자막이 화면에 깔끔하게 자리잡고, 느린 CDN에서도 UI가 멈추지 않습니다."
           }
         },
         "nb" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Skip-Intro flicker gone, the next-episode overlay stays pinned, subtitles land cleanly on screen, and slow CDNs no longer stall the UI."
+            "state" : "translated",
+            "value" : "Skip-Intro-flimmer er borte, overlegget for neste episode blir værende, undertekster lander rent på skjermen, og trege CDN-er stopper ikke lenger grensesnittet."
           }
         },
         "nl" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Skip-Intro flicker gone, the next-episode overlay stays pinned, subtitles land cleanly on screen, and slow CDNs no longer stall the UI."
+            "state" : "translated",
+            "value" : "Skip-Intro-flikkeren is verdwenen, de overlay van de volgende aflevering blijft op zijn plek, ondertitels landen schoon op het scherm, en trage CDN's blokkeren de UI niet meer."
           }
         },
         "pl" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Skip-Intro flicker gone, the next-episode overlay stays pinned, subtitles land cleanly on screen, and slow CDNs no longer stall the UI."
+            "state" : "translated",
+            "value" : "Migotanie Skip-Intro zniknęło, nakładka następnego odcinka pozostaje na miejscu, napisy lądują czysto na ekranie, a wolne CDN-y nie blokują już interfejsu."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Skip-Intro flicker gone, the next-episode overlay stays pinned, subtitles land cleanly on screen, and slow CDNs no longer stall the UI."
+            "state" : "translated",
+            "value" : "O piscar do Skip-Intro acabou, a sobreposição do próximo episódio fica fixa, as legendas pousam limpas na tela, e CDNs lentas não travam mais a interface."
           }
         },
         "pt-PT" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Skip-Intro flicker gone, the next-episode overlay stays pinned, subtitles land cleanly on screen, and slow CDNs no longer stall the UI."
+            "state" : "translated",
+            "value" : "O piscar do Skip-Intro acabou, a sobreposição do próximo episódio fica fixa, as legendas posicionam-se limpas no ecrã, e CDN lentos já não bloqueiam a interface."
           }
         },
         "ro" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Skip-Intro flicker gone, the next-episode overlay stays pinned, subtitles land cleanly on screen, and slow CDNs no longer stall the UI."
+            "state" : "translated",
+            "value" : "Pâlpâirea Skip-Intro a dispărut, suprapunerea episodului următor rămâne fixă, subtitrările apar curat pe ecran, iar CDN-urile lente nu mai blochează interfața."
           }
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Skip-Intro flicker gone, the next-episode overlay stays pinned, subtitles land cleanly on screen, and slow CDNs no longer stall the UI."
+            "state" : "translated",
+            "value" : "Мерцание Skip-Intro исчезло, оверлей следующего эпизода остаётся на месте, субтитры аккуратно ложатся на экран, а медленные CDN больше не подвешивают интерфейс."
           }
         },
         "sk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Skip-Intro flicker gone, the next-episode overlay stays pinned, subtitles land cleanly on screen, and slow CDNs no longer stall the UI."
+            "state" : "translated",
+            "value" : "Blikanie Skip-Intra je preč, prekrytie ďalšej epizódy zostáva na svojom mieste, titulky sa čisto umiestnia na obrazovku a pomalé CDN už nezasekávajú rozhranie."
           }
         },
         "sv" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Skip-Intro flicker gone, the next-episode overlay stays pinned, subtitles land cleanly on screen, and slow CDNs no longer stall the UI."
+            "state" : "translated",
+            "value" : "Skip-Intro-flimret är borta, överlägget för nästa avsnitt sitter still, undertexter landar rent på skärmen, och långsamma CDN-er stoppar inte längre gränssnittet."
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Skip-Intro flicker gone, the next-episode overlay stays pinned, subtitles land cleanly on screen, and slow CDNs no longer stall the UI."
+            "state" : "translated",
+            "value" : "Skip-Intro titremesi gitti, sonraki bölüm yer paylaşımı yerinde kalıyor, altyazılar ekrana temiz oturuyor ve yavaş CDN'ler artık arayüzü tıkamıyor."
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Skip-Intro flicker gone, the next-episode overlay stays pinned, subtitles land cleanly on screen, and slow CDNs no longer stall the UI."
+            "state" : "translated",
+            "value" : "Мерехтіння Skip-Intro зникло, оверлей наступного епізоду залишається на місці, субтитри акуратно лягають на екран, а повільні CDN більше не зависають інтерфейс."
           }
         }
       }
@@ -28134,14 +28134,14 @@
       "localizations" : {
         "cs" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Many small player fixes"
+            "state" : "translated",
+            "value" : "Mnoho drobných oprav přehrávače"
           }
         },
         "da" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Many small player fixes"
+            "state" : "translated",
+            "value" : "Mange små rettelser i afspilleren"
           }
         },
         "de" : {
@@ -28152,8 +28152,8 @@
         },
         "el" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Many small player fixes"
+            "state" : "translated",
+            "value" : "Πολλές μικρές διορθώσεις στον αναπαραγωγέα"
           }
         },
         "en" : {
@@ -28164,116 +28164,116 @@
         },
         "es" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Many small player fixes"
+            "state" : "translated",
+            "value" : "Muchas pequeñas correcciones del reproductor"
           }
         },
         "fi" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Many small player fixes"
+            "state" : "translated",
+            "value" : "Monia pieniä korjauksia soittimessa"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Many small player fixes"
+            "state" : "translated",
+            "value" : "De nombreuses petites corrections du lecteur"
           }
         },
         "hr" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Many small player fixes"
+            "state" : "translated",
+            "value" : "Mnogo malih popravaka playera"
           }
         },
         "hu" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Many small player fixes"
+            "state" : "translated",
+            "value" : "Sok apró javítás a lejátszóban"
           }
         },
         "it" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Many small player fixes"
+            "state" : "translated",
+            "value" : "Tante piccole correzioni del player"
           }
         },
         "ja" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Many small player fixes"
+            "state" : "translated",
+            "value" : "プレーヤーの小さな修正多数"
           }
         },
         "ko" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Many small player fixes"
+            "state" : "translated",
+            "value" : "플레이어의 자잘한 수정 다수"
           }
         },
         "nb" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Many small player fixes"
+            "state" : "translated",
+            "value" : "Mange små rettelser i spilleren"
           }
         },
         "nl" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Many small player fixes"
+            "state" : "translated",
+            "value" : "Veel kleine playerfixes"
           }
         },
         "pl" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Many small player fixes"
+            "state" : "translated",
+            "value" : "Wiele drobnych poprawek odtwarzacza"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Many small player fixes"
+            "state" : "translated",
+            "value" : "Várias pequenas correções no player"
           }
         },
         "pt-PT" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Many small player fixes"
+            "state" : "translated",
+            "value" : "Várias pequenas correções no leitor"
           }
         },
         "ro" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Many small player fixes"
+            "state" : "translated",
+            "value" : "Multe corecții mici în player"
           }
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Many small player fixes"
+            "state" : "translated",
+            "value" : "Множество мелких исправлений плеера"
           }
         },
         "sk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Many small player fixes"
+            "state" : "translated",
+            "value" : "Veľa drobných opráv prehrávača"
           }
         },
         "sv" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Many small player fixes"
+            "state" : "translated",
+            "value" : "Många små förbättringar i spelaren"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Many small player fixes"
+            "state" : "translated",
+            "value" : "Oynatıcıda pek çok küçük düzeltme"
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Many small player fixes"
+            "state" : "translated",
+            "value" : "Багато дрібних виправлень плеєра"
           }
         }
       }
@@ -28283,14 +28283,14 @@
       "localizations" : {
         "cs" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Sheets and full-screen dialogs now place a soft blur over the app, your accent colour flows through to the tab bar, and Home scrolls back to the top reliably."
+            "state" : "translated",
+            "value" : "Listy a dialogy přes celou obrazovku nyní pokládají jemné rozmazání přes aplikaci, akcentová barva proudí až do záložkové lišty a Domov se spolehlivě posune zpět nahoru."
           }
         },
         "da" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Sheets and full-screen dialogs now place a soft blur over the app, your accent colour flows through to the tab bar, and Home scrolls back to the top reliably."
+            "state" : "translated",
+            "value" : "Ark og fuldskærmsdialoger lægger nu en blød sløring over appen, din accentfarve flyder hele vejen til fanelinjen, og Hjem ruller pålideligt tilbage til toppen."
           }
         },
         "de" : {
@@ -28301,8 +28301,8 @@
         },
         "el" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Sheets and full-screen dialogs now place a soft blur over the app, your accent colour flows through to the tab bar, and Home scrolls back to the top reliably."
+            "state" : "translated",
+            "value" : "Τα φύλλα και οι διάλογοι πλήρους οθόνης τοποθετούν τώρα μια απαλή θολούρα πάνω από την εφαρμογή, το χρώμα τονισμού σου περνά μέχρι τη γραμμή καρτελών, και η Αρχική κυλά αξιόπιστα ξανά στην κορυφή."
           }
         },
         "en" : {
@@ -28313,116 +28313,116 @@
         },
         "es" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Sheets and full-screen dialogs now place a soft blur over the app, your accent colour flows through to the tab bar, and Home scrolls back to the top reliably."
+            "state" : "translated",
+            "value" : "Las hojas y los diálogos a pantalla completa ahora colocan un desenfoque suave sobre la app, tu color de acento se aplica hasta la barra de pestañas, y Inicio vuelve fiablemente al principio."
           }
         },
         "fi" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Sheets and full-screen dialogs now place a soft blur over the app, your accent colour flows through to the tab bar, and Home scrolls back to the top reliably."
+            "state" : "translated",
+            "value" : "Arkit ja koko ruudun valintaikkunat tuovat nyt pehmeän sumennuksen sovelluksen päälle, korostusvärisi yltää välilehtipalkkiin asti, ja Etusivu vierittää luotettavasti takaisin ylös."
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Sheets and full-screen dialogs now place a soft blur over the app, your accent colour flows through to the tab bar, and Home scrolls back to the top reliably."
+            "state" : "translated",
+            "value" : "Les feuilles et les dialogues plein écran appliquent désormais un flou doux sur l'app, ta couleur d'accent traverse jusqu'à la barre d'onglets, et Accueil revient en haut de façon fiable."
           }
         },
         "hr" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Sheets and full-screen dialogs now place a soft blur over the app, your accent colour flows through to the tab bar, and Home scrolls back to the top reliably."
+            "state" : "translated",
+            "value" : "Listovi i dijalozi preko cijelog zaslona sada postavljaju nježno zamućenje preko aplikacije, tvoja boja naglaska proteže se sve do trake kartica, a Početna se pouzdano vraća na vrh."
           }
         },
         "hu" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Sheets and full-screen dialogs now place a soft blur over the app, your accent colour flows through to the tab bar, and Home scrolls back to the top reliably."
+            "state" : "translated",
+            "value" : "A lapok és teljes képernyős párbeszédpanelek mostantól lágy elmosást fektetnek az alkalmazás fölé, a kiemelő szín a fülsávra is átkerül, és a Kezdőlap megbízhatóan visszagörget a tetejére."
           }
         },
         "it" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Sheets and full-screen dialogs now place a soft blur over the app, your accent colour flows through to the tab bar, and Home scrolls back to the top reliably."
+            "state" : "translated",
+            "value" : "Fogli e finestre a schermo intero ora applicano una sfocatura morbida sull'app, il tuo colore di accento arriva fino alla barra delle schede, e Home torna in alto in modo affidabile."
           }
         },
         "ja" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Sheets and full-screen dialogs now place a soft blur over the app, your accent colour flows through to the tab bar, and Home scrolls back to the top reliably."
+            "state" : "translated",
+            "value" : "シートとフルスクリーンダイアログがアプリの上にやわらかなブラーをかけ、アクセントカラーがタブバーまで反映され、ホームは確実に最上部に戻ります。"
           }
         },
         "ko" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Sheets and full-screen dialogs now place a soft blur over the app, your accent colour flows through to the tab bar, and Home scrolls back to the top reliably."
+            "state" : "translated",
+            "value" : "시트와 전체 화면 대화 상자가 이제 앱 위에 부드러운 블러를 깔고, 강조 색상이 탭 바까지 이어지며, 홈은 안정적으로 맨 위로 스크롤됩니다."
           }
         },
         "nb" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Sheets and full-screen dialogs now place a soft blur over the app, your accent colour flows through to the tab bar, and Home scrolls back to the top reliably."
+            "state" : "translated",
+            "value" : "Ark og fullskjermsdialoger legger nå en myk uskarphet over appen, aksentfargen din følger helt til fanelinjen, og Hjem ruller pålitelig tilbake til toppen."
           }
         },
         "nl" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Sheets and full-screen dialogs now place a soft blur over the app, your accent colour flows through to the tab bar, and Home scrolls back to the top reliably."
+            "state" : "translated",
+            "value" : "Bladen en volledig-schermdialogen leggen nu een zachte vervaging over de app, je accentkleur loopt door tot in de tabbalk, en Home scrolt betrouwbaar terug naar boven."
           }
         },
         "pl" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Sheets and full-screen dialogs now place a soft blur over the app, your accent colour flows through to the tab bar, and Home scrolls back to the top reliably."
+            "state" : "translated",
+            "value" : "Arkusze i pełnoekranowe okna dialogowe nakładają teraz delikatne rozmycie na aplikację, kolor akcentu rozciąga się aż do paska kart, a Strona główna niezawodnie wraca na górę."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Sheets and full-screen dialogs now place a soft blur over the app, your accent colour flows through to the tab bar, and Home scrolls back to the top reliably."
+            "state" : "translated",
+            "value" : "Folhas e diálogos em tela cheia agora aplicam um desfoque suave sobre o app, sua cor de destaque se estende até a barra de abas, e Início rola de volta ao topo com confiabilidade."
           }
         },
         "pt-PT" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Sheets and full-screen dialogs now place a soft blur over the app, your accent colour flows through to the tab bar, and Home scrolls back to the top reliably."
+            "state" : "translated",
+            "value" : "Folhas e diálogos em ecrã inteiro aplicam agora um desfoque suave sobre a app, a tua cor de destaque estende-se até à barra de separadores, e Início desloca-se de volta ao topo de forma fiável."
           }
         },
         "ro" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Sheets and full-screen dialogs now place a soft blur over the app, your accent colour flows through to the tab bar, and Home scrolls back to the top reliably."
+            "state" : "translated",
+            "value" : "Foile și dialogurile pe ecran complet aplică acum un blur subtil peste aplicație, culoarea ta de accent ajunge până la bara de file, iar Acasă derulează din nou în partea de sus fără probleme."
           }
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Sheets and full-screen dialogs now place a soft blur over the app, your accent colour flows through to the tab bar, and Home scrolls back to the top reliably."
+            "state" : "translated",
+            "value" : "Листы и полноэкранные диалоги теперь накладывают мягкое размытие поверх приложения, акцентный цвет распространяется вплоть до панели вкладок, и Главный экран надёжно прокручивается обратно наверх."
           }
         },
         "sk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Sheets and full-screen dialogs now place a soft blur over the app, your accent colour flows through to the tab bar, and Home scrolls back to the top reliably."
+            "state" : "translated",
+            "value" : "Listy a dialógy na celú obrazovku teraz prekladajú aplikáciu jemným rozmazaním, akcentová farba sa prejaví až po lištu záložiek a Domov sa spoľahlivo posunie späť hore."
           }
         },
         "sv" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Sheets and full-screen dialogs now place a soft blur over the app, your accent colour flows through to the tab bar, and Home scrolls back to the top reliably."
+            "state" : "translated",
+            "value" : "Ark och helskärmsdialoger lägger nu en mjuk oskärpa över appen, din accentfärg når hela vägen till flikraden, och Hem rullar tillförlitligt tillbaka till toppen."
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Sheets and full-screen dialogs now place a soft blur over the app, your accent colour flows through to the tab bar, and Home scrolls back to the top reliably."
+            "state" : "translated",
+            "value" : "Sayfalar ve tam ekran iletişim kutuları artık uygulamanın üzerine yumuşak bir bulanıklık yerleştirir, vurgu rengin sekme çubuğuna kadar uzanır ve Ana Sayfa güvenle yukarı geri kayar."
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Sheets and full-screen dialogs now place a soft blur over the app, your accent colour flows through to the tab bar, and Home scrolls back to the top reliably."
+            "state" : "translated",
+            "value" : "Аркуші та повноекранні діалоги тепер накладають м'яке розмиття поверх застосунку, акцентний колір сягає аж до панелі вкладок, а Головна надійно прокручується назад угору."
           }
         }
       }
@@ -28432,14 +28432,14 @@
       "localizations" : {
         "cs" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Interface polish"
+            "state" : "translated",
+            "value" : "Vyladění rozhraní"
           }
         },
         "da" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Interface polish"
+            "state" : "translated",
+            "value" : "Polering af brugerfladen"
           }
         },
         "de" : {
@@ -28450,8 +28450,8 @@
         },
         "el" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Interface polish"
+            "state" : "translated",
+            "value" : "Βελτίωση διεπαφής"
           }
         },
         "en" : {
@@ -28462,116 +28462,116 @@
         },
         "es" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Interface polish"
+            "state" : "translated",
+            "value" : "Pulido de la interfaz"
           }
         },
         "fi" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Interface polish"
+            "state" : "translated",
+            "value" : "Käyttöliittymän hiomista"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Interface polish"
+            "state" : "translated",
+            "value" : "Affinage de l'interface"
           }
         },
         "hr" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Interface polish"
+            "state" : "translated",
+            "value" : "Poliranje sučelja"
           }
         },
         "hu" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Interface polish"
+            "state" : "translated",
+            "value" : "A felület finomítása"
           }
         },
         "it" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Interface polish"
+            "state" : "translated",
+            "value" : "Rifiniture dell'interfaccia"
           }
         },
         "ja" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Interface polish"
+            "state" : "translated",
+            "value" : "インターフェースの磨き上げ"
           }
         },
         "ko" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Interface polish"
+            "state" : "translated",
+            "value" : "인터페이스 다듬기"
           }
         },
         "nb" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Interface polish"
+            "state" : "translated",
+            "value" : "Polering av brukergrensesnittet"
           }
         },
         "nl" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Interface polish"
+            "state" : "translated",
+            "value" : "Interface-verfijning"
           }
         },
         "pl" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Interface polish"
+            "state" : "translated",
+            "value" : "Dopracowanie interfejsu"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Interface polish"
+            "state" : "translated",
+            "value" : "Acabamento da interface"
           }
         },
         "pt-PT" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Interface polish"
+            "state" : "translated",
+            "value" : "Acabamento da interface"
           }
         },
         "ro" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Interface polish"
+            "state" : "translated",
+            "value" : "Rafinarea interfeței"
           }
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Interface polish"
+            "state" : "translated",
+            "value" : "Полировка интерфейса"
           }
         },
         "sk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Interface polish"
+            "state" : "translated",
+            "value" : "Vyladenie rozhrania"
           }
         },
         "sv" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Interface polish"
+            "state" : "translated",
+            "value" : "Förfining av gränssnittet"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Interface polish"
+            "state" : "translated",
+            "value" : "Arayüz cilası"
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Interface polish"
+            "state" : "translated",
+            "value" : "Шліфування інтерфейсу"
           }
         }
       }
