@@ -259,9 +259,7 @@ struct FocusableTile<Content: View>: View {
             .focused($isFocused)
             .scaleEffect(isFocused ? 1.02 : 1.0)
             .animation(.easeInOut(duration: 0.15), value: isFocused)
-            .onLongPressGesture(minimumDuration: 0) {
-                action()
-            }
+            .stableTap(isFocused: isFocused) { action() }
     }
 }
 
@@ -286,9 +284,7 @@ struct FocusableIcon: View {
             .animation(.easeInOut(duration: 0.15), value: isFocused)
             .focusable()
             .focused($isFocused)
-            .onLongPressGesture(minimumDuration: 0) {
-                action()
-            }
+            .stableTap(isFocused: isFocused) { action() }
     }
 }
 

@@ -27,7 +27,7 @@ struct ExpandableTextBox: View {
             .animation(.easeInOut(duration: 0.15), value: isFocused)
             .focusable()
             .focused($isFocused)
-            .onLongPressGesture(minimumDuration: 0) {
+            .stableTap(isFocused: isFocused) {
                 showFullText = true
             }
             .fullScreenCover(isPresented: $showFullText) {
