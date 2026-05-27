@@ -4,7 +4,7 @@
 
 **Goal:** Draft 4 Reddit posts (plus 1 optional) for AetherEngine 2.0.0 launch, with consistent canonical facts and per-subreddit lenses, ready for Vincent to publish on a phased cadence.
 
-**Architecture:** All drafts live in a single new file `Sodalite/Marketing/RedditPosts_AetherEngine_2.0.txt`, mirroring the existing `RedditPosts.txt` convention. Each post is drafted, self-reviewed against the soft-framing + tone checklist, then committed. The existing `Sodalite/Marketing/RedditPosts.txt` (Sodalite launch drafts) is not touched. Spec at `docs/superpowers/specs/2026-05-27-aetherengine-2.0-reddit-launch-design.md`.
+**Architecture:** All drafts live in a single new file `Sodalite/Marketing/RedditPosts_AetherEngine_2.0.txt`, mirroring the existing `RedditPosts.txt` convention. **`Marketing/` is gitignored** (commit d7c232c0 deliberately removed it from the public repo); all drafts stay local-only, no git commits or pushes. Each post is drafted and self-reviewed against the soft-framing + tone checklist. The existing `Sodalite/Marketing/RedditPosts.txt` (Sodalite launch drafts) is not touched. Spec at `docs/superpowers/specs/2026-05-27-aetherengine-2.0-reddit-launch-design.md`.
 
 **Tech Stack:** Plain text drafts (markdown-flavored). Reference material in `AetherEngine/CHANGELOG.md`, `AetherEngine/README.md`, `Sodalite/CLAUDE.md`, existing `Sodalite/Marketing/RedditPosts.txt` draft 9 for engineering-substance reuse.
 
@@ -97,19 +97,12 @@ Forbidden: em-dashes, KSPlayer name, client bashing, German leakage, self-addres
 
 ```
 
-- [ ] **Step 7: Commit empty drafts file as scaffold**
+- [ ] **Step 7: Confirm scaffold file is staged for local-only use**
 
-```bash
-git add Sodalite/Marketing/RedditPosts_AetherEngine_2.0.txt
-git commit -m "$(cat <<'EOF'
-docs(marketing): scaffold AetherEngine 2.0 Reddit drafts file
+Run: `git check-ignore Sodalite/Marketing/RedditPosts_AetherEngine_2.0.txt && echo "correctly gitignored"`
+Expected: prints the path then "correctly gitignored". The file stays untracked.
 
-Empty container for the 4 to 5 launch posts per spec.
-
-Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>
-EOF
-)"
-```
+No commit. No push. The drafts live alongside `RedditPosts.txt` as local-only working material.
 
 ---
 
@@ -238,22 +231,9 @@ Expected: "no german leakage" (these are German function words; English content 
 
 Read back the post bodily and confirm: soft-differentiation sentence present (verbatim from spec), TestFlight + Source + SPI links present, vibe-coded disclosure present, feedback ask present.
 
-- [ ] **Step 4: Commit Post 1**
+- [ ] **Step 4: No commit (local-only file)**
 
-```bash
-git add Sodalite/Marketing/RedditPosts_AetherEngine_2.0.txt
-git commit -m "$(cat <<'EOF'
-docs(marketing): draft AetherEngine 2.0 Reddit post 1 (r/iOSProgramming)
-
-Engineering-substance deep dive. Updates the existing draft 9 with
-the 1.0 to 2.0 work: DV side-data detection, tvOS 26.5 sole-writer
-pattern, EDR-headroom Match-Dynamic-Range probe, dec3/dac3 from
-bitstream, dual pipeline coverage.
-
-Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>
-EOF
-)"
-```
+The drafts file is gitignored by policy. After the proofread passes, the post is saved locally and is ready for Vincent to copy-paste into Reddit.
 
 ---
 
@@ -351,21 +331,9 @@ Expected: "no dashes".
 
 Confirm: soft-differentiation sentence verbatim, SPI link present, MinimalPlayer + DemoPlayerMac referenced, vibe-coded disclosure present, "no breaking API changes" claim present.
 
-- [ ] **Step 4: Commit Post 2**
+- [ ] **Step 4: No commit (local-only file)**
 
-```bash
-git add Sodalite/Marketing/RedditPosts_AetherEngine_2.0.txt
-git commit -m "$(cat <<'EOF'
-docs(marketing): draft AetherEngine 2.0 Reddit post 2 (r/swift)
-
-Swift-Package-Index-adoption lens. Leads with the 2.0 stability
-signal plus the adoption package (Tests, CI, CHANGELOG, SemVer,
-MinimalPlayer, DemoPlayerMac, SPI).
-
-Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>
-EOF
-)"
-```
+Same as Post 1: drafts file is gitignored, no commit needed.
 
 ---
 
@@ -446,21 +414,9 @@ Expected: "no dashes".
 
 Confirm: process discipline points are concrete (commit log link, Co-Authored-By trail, tests + CI, SemVer, public-beta survived), soft-differentiation sentence verbatim, engineering substance kept compact with link to Post 1 implicit ("see r/iOSProgramming post" if needed), feedback ask present.
 
-- [ ] **Step 4: Commit Post 3**
+- [ ] **Step 4: No commit (local-only file)**
 
-```bash
-git add Sodalite/Marketing/RedditPosts_AetherEngine_2.0.txt
-git commit -m "$(cat <<'EOF'
-docs(marketing): draft AetherEngine 2.0 Reddit post 3 (r/vibecoding)
-
-Process-discipline lens. Leads with what kept it from being slop:
-commit-by-commit review, Co-Authored-By trail, tests + CI, written
-SemVer contract, public-beta survived.
-
-Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>
-EOF
-)"
-```
+Same as prior posts: gitignored, no commit.
 
 ---
 
@@ -536,21 +492,9 @@ Expected: "no dashes".
 
 Confirm: highlight bullets are the API-corner specifics (not feature marketing), engineering substance compressed but accurate, link to Post 1 implicit ("earlier this week on r/iOSProgramming"), adoption-readiness section present.
 
-- [ ] **Step 4: Commit Post 4**
+- [ ] **Step 4: No commit (local-only file)**
 
-```bash
-git add Sodalite/Marketing/RedditPosts_AetherEngine_2.0.txt
-git commit -m "$(cat <<'EOF'
-docs(marketing): draft AetherEngine 2.0 Reddit post 4 (r/AppleDevelopers)
-
-Light variant of post 1. Engineering-substance compressed, same
-canonical facts, scheduled Day 4 or 5 to avoid Reddit spam-filter
-on cross-posts.
-
-Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>
-EOF
-)"
-```
+Same as prior posts: gitignored, no commit.
 
 ---
 
@@ -644,21 +588,9 @@ Expected: "no dashes".
 
 Confirm: license story coherent, VLC credited correctly for Exception clause, soft-differentiation sentence present, no namedrops of paywalled competitors.
 
-- [ ] **Step 5: Commit Post 5**
+- [ ] **Step 5: No commit (local-only file)**
 
-```bash
-git add Sodalite/Marketing/RedditPosts_AetherEngine_2.0.txt
-git commit -m "$(cat <<'EOF'
-docs(marketing): draft AetherEngine 2.0 Reddit post 5 (r/opensource)
-
-License-story lens. LGPL-3.0 + GPL-3.0 with App Store Exception
-pair, VLC credit for the Exception clause, soft framing on
-scope-of-openness vs commercial paywalls. Optional, Day 6+.
-
-Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>
-EOF
-)"
-```
+Same as prior posts: gitignored, no commit.
 
 ---
 
@@ -723,31 +655,9 @@ Read `Sodalite/Marketing/RedditPosts_AetherEngine_2.0.txt` in full. Check for:
 
 Fix any issues inline.
 
-- [ ] **Step 8: Commit review pass**
+- [ ] **Step 8: No commit (local-only file)**
 
-If any edits were made in Steps 1 through 7:
-
-```bash
-git add Sodalite/Marketing/RedditPosts_AetherEngine_2.0.txt
-git commit -m "$(cat <<'EOF'
-docs(marketing): final review pass on AetherEngine 2.0 Reddit drafts
-
-Em-dash, namedrop, German-leakage, oversell, self-address audit.
-
-Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>
-EOF
-)"
-```
-
-If no edits were needed: skip the commit, drafts are ready.
-
-- [ ] **Step 9: Push drafts to remote**
-
-```bash
-git push origin main
-```
-
-Drafts are now visible at the GitHub Sodalite repo for reference during posting.
+The review-pass edits live in the gitignored drafts file. No commit, no push. Drafts are ready for Vincent to copy-paste into Reddit.
 
 ---
 
