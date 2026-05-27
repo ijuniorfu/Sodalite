@@ -429,21 +429,33 @@ struct StatsOverlayView: View {
         }
     }
 
-    /// Engine-detected runtime range, refined with Jellyfin's source
-    /// DV profile when the engine reports Dolby Vision (engine knows
-    /// "it's DV" via RPU detection; profile number comes from the
-    /// source's container metadata). Examples: "SDR", "HDR10+",
-    /// "Dolby Vision P5", "Dolby Vision P8".
+    /// Source-detected video range, refined with Jellyfin's source DV
+    /// profile when the engine reports Dolby Vision. When the panel
+    /// can't present the source (DV / HDR10 source on an SDR panel, or
+    /// Match Content off) the engine clamps `videoFormat` to `.sdr` to
+    /// match what's actually on screen; in that case render
+    /// "Source → Target" so the row labels both the file and the
+    /// rendering. Examples: "SDR", "HDR10+", "Dolby Vision P5",
+    /// "Dolby Vision P5 → SDR", "Dolby Vision P8 → HDR10".
     private func videoRangeLabel(stream: MediaStream) -> String {
-        let base: String
-        switch player.videoFormat {
-        case .sdr:        base = "SDR"
-        case .hdr10:      base = "HDR10"
-        case .hdr10Plus:  base = "HDR10+"
-        case .dolbyVision: base = "Dolby Vision"
-        case .hlg:        base = "HLG"
+        let source = Self.formatLabel(player.sourceVideoFormat, dvProfile: stream.dvProfile)
+        let effective = Self.formatLabel(player.videoFormat, dvProfile: stream.dvProfile)
+        if source == effective {
+            return source
         }
-        if player.videoFormat == .dolbyVision, let p = stream.dvProfile {
+        return "\(source) → \(effective)"
+    }
+
+    private static func formatLabel(_ format: VideoFormat, dvProfile: Int?) -> String {
+        let base: String
+        switch format {
+        case .sdr:         base = "SDR"
+        case .hdr10:       base = "HDR10"
+        case .hdr10Plus:   base = "HDR10+"
+        case .dolbyVision: base = "Dolby Vision"
+        case .hlg:         base = "HLG"
+        }
+        if format == .dolbyVision, let p = dvProfile {
             return "\(base) P\(p)"
         }
         return base
