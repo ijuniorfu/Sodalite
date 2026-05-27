@@ -28284,145 +28284,145 @@
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Listy a dialogy přes celou obrazovku nyní pokládají jemné rozmazání přes aplikaci, akcentová barva proudí až do záložkové lišty a Domov se spolehlivě posune zpět nahoru."
+            "value" : "Akcentová barva nyní proudí až do záložkové lišty, Domov se spolehlivě posune zpět nahoru a desítky drobných detailů ohledně fokusu, tónování a přechodů jsou v celé aplikaci uhlazené."
           }
         },
         "da" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ark og fuldskærmsdialoger lægger nu en blød sløring over appen, din accentfarve flyder hele vejen til fanelinjen, og Hjem ruller pålideligt tilbage til toppen."
+            "value" : "Din accentfarve flyder nu hele vejen til fanelinjen, Hjem ruller pålideligt tilbage til toppen, og snesevis af mindre detaljer omkring fokus, toning og overgange er glattet ud i hele appen."
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sheets und Vollbild-Dialoge legen jetzt eine sanfte Hintergrund-Unschärfe über die App, die Akzentfarbe wirkt bis in die Tab-Leiste, und Home scrollt zuverlässig nach oben beim Zurück."
+            "value" : "Deine Akzentfarbe wirkt jetzt durchgängig bis in die Tab-Leiste, Home scrollt zuverlässig nach oben, und dutzende kleinere Fokus-, Tönungs- und Übergangsdetails wurden in der ganzen App geglättet."
           }
         },
         "el" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Τα φύλλα και οι διάλογοι πλήρους οθόνης τοποθετούν τώρα μια απαλή θολούρα πάνω από την εφαρμογή, το χρώμα τονισμού σου περνά μέχρι τη γραμμή καρτελών, και η Αρχική κυλά αξιόπιστα ξανά στην κορυφή."
+            "value" : "Το χρώμα τονισμού σου περνά τώρα μέχρι τη γραμμή καρτελών, η Αρχική κυλά αξιόπιστα ξανά στην κορυφή, και δεκάδες μικρότερες λεπτομέρειες εστίασης, χρωματισμού και μεταβάσεων έχουν εξομαλυνθεί σε όλη την εφαρμογή."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sheets and full-screen dialogs now place a soft blur over the app, your accent colour flows through to the tab bar, and Home scrolls back to the top reliably."
+            "value" : "Your accent colour now flows through to the tab bar, Home scrolls reliably back to the top, and dozens of smaller focus, tinting, and transition details have been smoothed out across the app."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Las hojas y los diálogos a pantalla completa ahora colocan un desenfoque suave sobre la app, tu color de acento se aplica hasta la barra de pestañas, y Inicio vuelve fiablemente al principio."
+            "value" : "Tu color de acento ahora se aplica hasta la barra de pestañas, Inicio vuelve fiablemente al principio, y se han pulido decenas de pequeños detalles de foco, tinte y transiciones en toda la app."
           }
         },
         "fi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Arkit ja koko ruudun valintaikkunat tuovat nyt pehmeän sumennuksen sovelluksen päälle, korostusvärisi yltää välilehtipalkkiin asti, ja Etusivu vierittää luotettavasti takaisin ylös."
+            "value" : "Korostusvärisi yltää nyt välilehtipalkkiin asti, Etusivu vierittää luotettavasti takaisin ylös, ja kymmenet pienemmät kohdistus-, sävytys- ja siirtymäyksityiskohdat on hiottu sileiksi koko sovelluksessa."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Les feuilles et les dialogues plein écran appliquent désormais un flou doux sur l'app, ta couleur d'accent traverse jusqu'à la barre d'onglets, et Accueil revient en haut de façon fiable."
+            "value" : "Ta couleur d'accent traverse désormais jusqu'à la barre d'onglets, Accueil revient en haut de façon fiable, et des dizaines de petits détails de focus, de teinte et de transitions ont été lissés dans toute l'app."
           }
         },
         "hr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Listovi i dijalozi preko cijelog zaslona sada postavljaju nježno zamućenje preko aplikacije, tvoja boja naglaska proteže se sve do trake kartica, a Početna se pouzdano vraća na vrh."
+            "value" : "Tvoja boja naglaska sada se proteže sve do trake kartica, Početna se pouzdano vraća na vrh, a deseci sitnih detalja fokusa, tonova i prijelaza poravnani su u cijeloj aplikaciji."
           }
         },
         "hu" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "A lapok és teljes képernyős párbeszédpanelek mostantól lágy elmosást fektetnek az alkalmazás fölé, a kiemelő szín a fülsávra is átkerül, és a Kezdőlap megbízhatóan visszagörget a tetejére."
+            "value" : "A kiemelő színed mostantól a fülsávra is átvitt, a Kezdőlap megbízhatóan visszagörget a tetejére, és tucatnyi apró fókusz-, színezés- és átmenetrészlet finomodott az alkalmazás egészében."
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Fogli e finestre a schermo intero ora applicano una sfocatura morbida sull'app, il tuo colore di accento arriva fino alla barra delle schede, e Home torna in alto in modo affidabile."
+            "value" : "Il tuo colore d'accento ora arriva fino alla barra delle schede, Home torna in alto in modo affidabile, e decine di piccoli dettagli di focus, tinta e transizioni sono stati rifiniti in tutta l'app."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "シートとフルスクリーンダイアログがアプリの上にやわらかなブラーをかけ、アクセントカラーがタブバーまで反映され、ホームは確実に最上部に戻ります。"
+            "value" : "アクセントカラーがタブバーまで反映され、ホームは確実に最上部に戻り、フォーカス、ティント、トランジションに関する数十の細かなディテールがアプリ全体で整えられました。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "시트와 전체 화면 대화 상자가 이제 앱 위에 부드러운 블러를 깔고, 강조 색상이 탭 바까지 이어지며, 홈은 안정적으로 맨 위로 스크롤됩니다."
+            "value" : "강조 색상이 탭 바까지 이어지고, 홈은 안정적으로 맨 위로 스크롤되며, 포커스, 색조, 전환과 관련된 자잘한 디테일 수십 가지가 앱 전반에서 다듬어졌습니다."
           }
         },
         "nb" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ark og fullskjermsdialoger legger nå en myk uskarphet over appen, aksentfargen din følger helt til fanelinjen, og Hjem ruller pålitelig tilbake til toppen."
+            "value" : "Aksentfargen din følger nå helt til fanelinjen, Hjem ruller pålitelig tilbake til toppen, og titalls mindre detaljer rundt fokus, tonelegging og overganger er polert i hele appen."
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bladen en volledig-schermdialogen leggen nu een zachte vervaging over de app, je accentkleur loopt door tot in de tabbalk, en Home scrolt betrouwbaar terug naar boven."
+            "value" : "Je accentkleur loopt nu door tot in de tabbalk, Home scrollt betrouwbaar terug naar boven, en tientallen kleinere focus-, tint- en overgangsdetails zijn in de hele app gladgestreken."
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Arkusze i pełnoekranowe okna dialogowe nakładają teraz delikatne rozmycie na aplikację, kolor akcentu rozciąga się aż do paska kart, a Strona główna niezawodnie wraca na górę."
+            "value" : "Kolor akcentu rozciąga się teraz aż do paska kart, Strona główna niezawodnie wraca na górę, a dziesiątki drobnych detali dotyczących fokusa, tonowania i przejść zostały dopracowane w całej aplikacji."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Folhas e diálogos em tela cheia agora aplicam um desfoque suave sobre o app, sua cor de destaque se estende até a barra de abas, e Início rola de volta ao topo com confiabilidade."
+            "value" : "Sua cor de destaque agora se estende até a barra de abas, Início rola de volta ao topo com confiabilidade, e dezenas de pequenos detalhes de foco, tonalização e transições foram aprimorados em todo o app."
           }
         },
         "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Folhas e diálogos em ecrã inteiro aplicam agora um desfoque suave sobre a app, a tua cor de destaque estende-se até à barra de separadores, e Início desloca-se de volta ao topo de forma fiável."
+            "value" : "A tua cor de destaque estende-se agora até à barra de separadores, Início desloca-se de volta ao topo de forma fiável, e dezenas de pequenos detalhes de foco, tonalidade e transições foram aperfeiçoados em toda a app."
           }
         },
         "ro" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Foile și dialogurile pe ecran complet aplică acum un blur subtil peste aplicație, culoarea ta de accent ajunge până la bara de file, iar Acasă derulează din nou în partea de sus fără probleme."
+            "value" : "Culoarea ta de accent ajunge acum până la bara de file, Acasă derulează în partea de sus în mod fiabil, iar zeci de detalii mai mici de focalizare, nuanțare și tranziții au fost rafinate în toată aplicația."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Листы и полноэкранные диалоги теперь накладывают мягкое размытие поверх приложения, акцентный цвет распространяется вплоть до панели вкладок, и Главный экран надёжно прокручивается обратно наверх."
+            "value" : "Акцентный цвет теперь распространяется вплоть до панели вкладок, Главный экран надёжно прокручивается обратно наверх, и десятки мелких деталей фокуса, тонирования и переходов отполированы по всему приложению."
           }
         },
         "sk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Listy a dialógy na celú obrazovku teraz prekladajú aplikáciu jemným rozmazaním, akcentová farba sa prejaví až po lištu záložiek a Domov sa spoľahlivo posunie späť hore."
+            "value" : "Akcentová farba sa teraz prejaví až po lištu záložiek, Domov sa spoľahlivo posunie späť hore a desiatky drobných detailov ohľadom fokusu, tónovania a prechodov sú v celej aplikácii uhladené."
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ark och helskärmsdialoger lägger nu en mjuk oskärpa över appen, din accentfärg når hela vägen till flikraden, och Hem rullar tillförlitligt tillbaka till toppen."
+            "value" : "Din accentfärg når nu hela vägen till flikraden, Hem rullar tillförlitligt tillbaka till toppen, och dussintals mindre detaljer kring fokus, toning och övergångar är utjämnade i hela appen."
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sayfalar ve tam ekran iletişim kutuları artık uygulamanın üzerine yumuşak bir bulanıklık yerleştirir, vurgu rengin sekme çubuğuna kadar uzanır ve Ana Sayfa güvenle yukarı geri kayar."
+            "value" : "Vurgu rengin artık sekme çubuğuna kadar uzanıyor, Ana Sayfa güvenle yukarı geri kayıyor ve uygulama genelinde odak, tonlama ve geçişlere dair onlarca küçük ayrıntı pürüzsüzleştirildi."
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Аркуші та повноекранні діалоги тепер накладають м'яке розмиття поверх застосунку, акцентний колір сягає аж до панелі вкладок, а Головна надійно прокручується назад угору."
+            "value" : "Акцентний колір тепер сягає аж до панелі вкладок, Головна надійно прокручується назад угору, а десятки дрібних деталей фокусу, тонування й переходів вигладжено в усьому застосунку."
           }
         }
       }
