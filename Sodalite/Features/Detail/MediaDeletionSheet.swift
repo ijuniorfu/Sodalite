@@ -328,18 +328,8 @@ private struct BoolPillRow: View {
         .opacity(disabled ? 0.4 : 1.0)
         .animation(.easeInOut(duration: 0.15), value: focused)
         .animation(.easeInOut(duration: 0.15), value: isOn)
-        #if os(tvOS)
-        // Siri Remote click toggles the binding. minimumDuration: 0.01
-        // matches ValuePickerRow's pattern (a near-zero long-press
-        // gesture is how tvOS Swift surfaces the clickpad press to a
-        // non-Button focusable view).
-        .onLongPressGesture(minimumDuration: 0.01) {
+        .stableTap(isFocused: focused) {
             if !disabled { isOn.toggle() }
         }
-        #else
-        .onTapGesture {
-            if !disabled { isOn.toggle() }
-        }
-        #endif
     }
 }

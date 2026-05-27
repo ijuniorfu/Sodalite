@@ -238,11 +238,7 @@ private struct FilterChip: View {
         .scaleEffect(focused ? 1.06 : 1.0)
         .focusable(true)
         .focused($focused)
-        #if os(tvOS)
-        .onLongPressGesture(minimumDuration: 0.01) { action() }
-        #else
-        .onTapGesture { action() }
-        #endif
+        .stableTap(isFocused: focused) { action() }
         .animation(.easeInOut(duration: 0.15), value: focused)
         .animation(.easeInOut(duration: 0.15), value: isSelected)
     }

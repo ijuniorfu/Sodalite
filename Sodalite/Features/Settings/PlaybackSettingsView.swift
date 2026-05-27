@@ -472,11 +472,9 @@ private struct ValuePickerRow<Value: Hashable>: View {
         }
         // Pressing the clickpad also advances forward for users who
         // prefer clicking over swiping.
-        #if os(tvOS)
-        .onLongPressGesture(minimumDuration: 0.01) {
+        .stableTap(isFocused: focused) {
             advance(by: 1)
         }
-        #endif
     }
 
     private var currentIndex: Int {

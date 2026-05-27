@@ -326,11 +326,7 @@ private struct SeasonCheckboxRow: View {
         )
         .focusable(true)
         .focused($focused)
-        #if os(tvOS)
-        .onLongPressGesture(minimumDuration: 0.01) { toggle() }
-        #else
-        .onTapGesture { toggle() }
-        #endif
+        .stableTap(isFocused: focused) { toggle() }
         .animation(.easeInOut(duration: 0.15), value: focused)
         .animation(.easeInOut(duration: 0.15), value: isOn)
     }
