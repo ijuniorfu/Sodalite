@@ -26636,6 +26636,18 @@
             "state" : "translated",
             "value" : "Адміністратори Jellyseerr отримують у Каталозі нову вкладку Усі запити, де можна затверджувати, відхиляти, видаляти та редагувати профіль або сезони запиту будь-якого користувача."
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jellyseerr 管理员在目录中获得新的“所有请求”标签页,可批准、拒绝、删除任意用户的请求,并编辑其配置文件或季。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jellyseerr 管理員在目錄中獲得新的「所有請求」分頁,可核准、拒絕、刪除任意使用者的請求,並編輯其設定檔或季。"
+          }
         }
       }
     },
@@ -26784,6 +26796,18 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Керування всіма запитами"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "管理所有请求"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "管理所有請求"
           }
         }
       }
@@ -26934,6 +26958,18 @@
             "state" : "translated",
             "value" : "Видаляй фільми, серіали чи окремі сезони зі своєї бібліотеки. Якщо підключено Jellyseerr, відповідні записи в Radarr і Sonarr теж очищаються."
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "从你的媒体库中删除电影、剧集或单独的季。当 Jellyseerr 连接后,Radarr 与 Sonarr 中对应的条目也会一并清理。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "從你的媒體庫中刪除電影、劇集或單獨的季。當 Jellyseerr 連線後,Radarr 與 Sonarr 中對應的項目也會一併清理。"
+          }
         }
       }
     },
@@ -27082,6 +27118,18 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Видалення медіафайлів із Sodalite"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "从 Sodalite 中删除媒体"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "從 Sodalite 中刪除媒體"
           }
         }
       }
@@ -27232,6 +27280,18 @@
             "state" : "translated",
             "value" : "VP8, MPEG-4, MPEG-2 і VC-1 тепер відтворюються напряму. Контейнери BD і DVD розпізнаються, а аудіодоріжки MLP і MP2 підтримуються."
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "VP8、MPEG-4、MPEG-2 与 VC-1 现在可直接播放。BD 与 DVD 容器获得识别,并支持 MLP 与 MP2 音频轨道。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "VP8、MPEG-4、MPEG-2 與 VC-1 現在可直接播放。BD 與 DVD 容器獲得辨識,並支援 MLP 與 MP2 音訊軌道。"
+          }
         }
       }
     },
@@ -27380,6 +27440,18 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ширша підтримка форматів"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更广泛的格式支持"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更廣泛的格式支援"
           }
         }
       }
@@ -27530,6 +27602,18 @@
             "state" : "translated",
             "value" : "Чистіша обробка профілів 5, 8.1 і 8.4 на панелях без DV, точніші метадані HDR10+ і стабільніші перемикання режиму відображення між епізодами."
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在非 DV 面板上对 Profile 5、8.1 与 8.4 的处理更干净,HDR10+ 元数据更精确,剧集之间的显示模式切换更稳定。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在非 DV 面板上對 Profile 5、8.1 與 8.4 的處理更乾淨,HDR10+ 中繼資料更精確,劇集之間的顯示模式切換更穩定。"
+          }
         }
       }
     },
@@ -27678,6 +27762,18 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Розумніша маршрутизація HDR і Dolby Vision"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更智能的 HDR 与 Dolby Vision 路由"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更智慧的 HDR 與 Dolby Vision 路由"
           }
         }
       }
@@ -27828,6 +27924,18 @@
             "state" : "translated",
             "value" : "Stats for Nerds тепер показує наживо значення синхронізації A/V, бітрейту й буфера. За бажанням увімкни розділ Engine Diagnostics для глибшого аналізу."
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stats for Nerds 现在显示 A/V 同步、比特率与缓冲的实时数值。可选启用 Engine Diagnostics 部分以获得更深入的分析。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stats for Nerds 現在顯示 A/V 同步、位元率與緩衝的即時數值。可選擇啟用 Engine Diagnostics 區段以獲得更深入的分析。"
+          }
         }
       }
     },
@@ -27976,6 +28084,18 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Статистика відтворення наживо"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "实时播放统计"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "即時播放統計"
           }
         }
       }
@@ -28126,6 +28246,18 @@
             "state" : "translated",
             "value" : "Мерехтіння Skip-Intro зникло, оверлей наступного епізоду залишається на місці, субтитри акуратно лягають на екран, а повільні CDN більше не зависають інтерфейс."
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Skip-Intro 闪烁问题消除、下集叠加层固定不动、字幕在屏幕上正确显示,慢速 CDN 也不再卡住界面。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Skip-Intro 閃爍問題消除、下一集疊加層固定不動、字幕在螢幕上正確顯示,慢速 CDN 也不再卡住介面。"
+          }
         }
       }
     },
@@ -28274,6 +28406,18 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Багато дрібних виправлень плеєра"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "播放器的多项细节修复"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "播放器的多項細節修正"
           }
         }
       }
@@ -28424,6 +28568,18 @@
             "state" : "translated",
             "value" : "Акцентний колір тепер сягає аж до панелі вкладок, Головна надійно прокручується назад угору, а десятки дрібних деталей фокусу, тонування й переходів вигладжено в усьому застосунку."
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "强调色现在贯穿至标签栏,主页可靠地滚动回顶部,且数十个关于焦点、着色与过渡的细节在整个应用中得到打磨。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "強調色現在延伸至分頁列,首頁可靠地捲動回頂部,且數十個關於焦點、著色與轉場的細節在整個應用程式中得到打磨。"
+          }
         }
       }
     },
@@ -28572,6 +28728,18 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Шліфування інтерфейсу"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "界面打磨"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "介面打磨"
           }
         }
       }

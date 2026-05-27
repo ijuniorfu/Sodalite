@@ -51,6 +51,7 @@ The Seerr integration isn't a tacked-on link to a web view. It's a first-class p
 - **Series view**: season picker, episode list, "Up Next" highlighting
 - **Search**: across your whole server, results as you type
 - **Image caching & prefetching**: posters and backdrops load before you focus them
+- **Delete from the app**: remove movies, series, or individual seasons from your library, with optional cleanup of matching Radarr / Sonarr entries when Jellyseerr is connected
 
 ### 🎬 Watch
 - **Direct Play** for almost every codec on your server: H.264, HEVC, HEVC Main10, AV1, VP9, VP8, MPEG-4 Part 2 (XVID / DIVX), MPEG-2, VC-1. Containers: MKV, MP4, MOV, AVI, MPEG-TS, M2TS, VOB, 3GP, WebM, OGG, FLV. Server-side transcoding stays reserved for fringe codecs (WMV3, Theora, RealVideo).
@@ -71,6 +72,7 @@ The Seerr integration isn't a tacked-on link to a web view. It's a first-class p
 - **One-tap requests** for movies and full series
 - **Track status**: see what's been approved, declined, or is already downloading
 - **Single sign-on**: log in once, Sodalite handles your Seerr session
+- **Admin view**: with Jellyseerr admin permissions, approve, decline, edit, or delete any user's request right from the All Requests tab
 
 ### 🌍 Personal
 - **26 languages**: German, English, Spanish, French, Italian, Japanese, Korean, Norwegian, Dutch, Polish, Portuguese (BR + PT), Russian, Swedish, Simplified + Traditional Chinese, Turkish, Ukrainian, Czech, Slovak, Croatian, Finnish, Greek, Hungarian, Romanian, Danish
