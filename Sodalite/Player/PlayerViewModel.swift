@@ -220,9 +220,12 @@ final class PlayerViewModel {
     /// `isInsideIntro` back to true regardless of the currentTime
     /// value reported, so stale pre-seek ticks arriving between
     /// `skipIntro`'s synchronous flag flip and the actual seek landing
-    /// cannot revive the Skip Intro pill mid-fade-out. Cleared on
-    /// episode change and on a backward scrub past the intro start
-    /// (deliberate re-entry should re-offer the pill).
+    /// cannot revive the Skip Intro pill mid-fade-out. Cleared 500 ms
+    /// after `player.seek` returns (absorbing AVPlayer's post-seek
+    /// time jitter) so a subsequent deliberate backward scrub into or
+    /// past the intro range re-offers the pill. Also cleared on
+    /// episode change and as a fast path when a tick arrives with
+    /// `time < seg.startSeconds` before the settle window expires.
     var didSkipCurrentIntro: Bool = false
 
     // MARK: - Dependencies
@@ -1207,7 +1210,18 @@ final class PlayerViewModel {
         guard let seg = introSegment else { return }
         isInsideIntro = false
         didSkipCurrentIntro = true
-        Task { [weak self] in await self?.player.seek(to: seg.endSeconds) }
+        Task { [weak self] in
+            await self?.player.seek(to: seg.endSeconds)
+            // Lockout only needs to cover the seek-in-flight stale-tick
+            // window. Once seek() returns the seek has landed; a brief
+            // settle absorbs AVPlayer's post-seek time jitter, then
+            // clear so a deliberate backward scrub (into or past the
+            // intro range) re-offers the pill. Without this clear the
+            // lockout persists for the whole episode and the pill
+            // never reappears.
+            try? await Task.sleep(for: .milliseconds(500))
+            self?.didSkipCurrentIntro = false
+        }
     }
 
     /// Outro equivalent to `updateIntroVisibility`, no Skip Outro UI
