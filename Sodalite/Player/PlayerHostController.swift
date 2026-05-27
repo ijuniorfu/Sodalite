@@ -1200,6 +1200,7 @@ final class PlayerHostController: AVPlayerViewController {
     private var panAxis: PanAxis = .undetermined
     private var verticalStepFired = false
     private var horizontalStepFired = false
+    private var scrubCommitted = false
 
     /// Travel (pt) before we commit a pan to one axis. Low enough to
     /// feel responsive, high enough that a slightly-diagonal horizontal
@@ -1222,6 +1223,14 @@ final class PlayerHostController: AVPlayerViewController {
     /// case while still letting any real swipe through (typical
     /// directional swipes are well above 1000 pt/s).
     private static let stepMinVelocity: CGFloat = 400
+    /// Minimum velocity (pt/s) for a horizontal pan to commit to
+    /// scrubbing the timeline. Lower than stepMinVelocity because
+    /// scrubbing should still trigger on a slow but deliberate drag,
+    /// while the Siri Remote's resting-finger drift (roughly an order
+    /// of magnitude below this) should not nudge the timeline. The
+    /// gate only applies to the initial commit per gesture; once
+    /// scrubbing has started the pan runs at full sensitivity.
+    private static let scrubCommitMinVelocity: CGFloat = 200
 
     @objc private func handlePan(_ gesture: UIPanGestureRecognizer) {
         // Stats overlay open: route vertical swipes to the section
@@ -1233,6 +1242,7 @@ final class PlayerHostController: AVPlayerViewController {
             case .began:
                 panAxis = .undetermined
                 verticalStepFired = false
+                scrubCommitted = false
             case .changed:
                 let t = gesture.translation(in: view)
                 if panAxis == .undetermined {
@@ -1256,6 +1266,7 @@ final class PlayerHostController: AVPlayerViewController {
             case .ended, .cancelled:
                 panAxis = .undetermined
                 verticalStepFired = false
+                scrubCommitted = false
             default:
                 break
             }
@@ -1304,6 +1315,7 @@ final class PlayerHostController: AVPlayerViewController {
             panAxis = .undetermined
             verticalStepFired = false
             horizontalStepFired = false
+            scrubCommitted = false
         case .changed:
             let t = gesture.translation(in: view)
 
@@ -1318,6 +1330,11 @@ final class PlayerHostController: AVPlayerViewController {
             switch panAxis {
             case .horizontal:
                 if horizontalScrubs {
+                    if !scrubCommitted {
+                        let v = gesture.velocity(in: view)
+                        guard abs(v.x) >= Self.scrubCommitMinVelocity else { return }
+                        scrubCommitted = true
+                    }
                     let width = max(view.bounds.width, 1)
                     viewModel.scrub(delta: t.x / width)
                 } else {
@@ -1350,6 +1367,7 @@ final class PlayerHostController: AVPlayerViewController {
             panAxis = .undetermined
             verticalStepFired = false
             horizontalStepFired = false
+            scrubCommitted = false
         default:
             break
         }
