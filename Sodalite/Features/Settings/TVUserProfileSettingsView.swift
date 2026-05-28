@@ -12,43 +12,40 @@ struct TVUserProfileSettingsView: View {
     @FocusState private var sharedSessionFocused: Bool
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 16) {
-                Text("tvOSProfile.title", bundle: .main)
-                    .font(.largeTitle.bold())
-                    .padding(.bottom, 8)
+        VStack(alignment: .leading, spacing: 16) {
+            Text("tvOSProfile.title", bundle: .main)
+                .font(.title2.bold())
+                .padding(.bottom, 4)
 
-                if TVUserContext.currentUserID == nil {
-                    sharedSessionRow
-                } else {
-                    ForEach(mappings, id: \.tvUserID) { entry in
-                        TVProfileRow(
-                            tvUserID: entry.tvUserID,
-                            mapping: entry.mapping,
-                            isCurrent: entry.tvUserID == TVUserContext.currentUserID,
-                            servers: dependencies.listKnownServers(),
-                            resolveProfile: { id in
-                                guard let m = entry.mapping else { return nil }
-                                return dependencies.listRememberedUsers(serverID: m.serverID)
-                                    .first(where: { $0.id == m.jellyfinUserID })?.name
-                            },
-                            onEdit: { editing = entry.tvUserID },
-                            onRemove: {
-                                dependencies.tvProfileMappings.setMapping(nil, for: entry.tvUserID)
-                                load()
-                            }
-                        )
-                    }
+            if TVUserContext.currentUserID == nil {
+                sharedSessionRow
+            } else {
+                ForEach(mappings, id: \.tvUserID) { entry in
+                    TVProfileRow(
+                        tvUserID: entry.tvUserID,
+                        mapping: entry.mapping,
+                        isCurrent: entry.tvUserID == TVUserContext.currentUserID,
+                        servers: dependencies.listKnownServers(),
+                        resolveProfile: { id in
+                            guard let m = entry.mapping else { return nil }
+                            return dependencies.listRememberedUsers(serverID: m.serverID)
+                                .first(where: { $0.id == m.jellyfinUserID })?.name
+                        },
+                        onEdit: { editing = entry.tvUserID },
+                        onRemove: {
+                            dependencies.tvProfileMappings.setMapping(nil, for: entry.tvUserID)
+                            load()
+                        }
+                    )
                 }
-
-                Text("tvOSProfile.footer.hint", bundle: .main)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .padding(.top, 12)
             }
-            .padding(.horizontal, 80)
-            .padding(.vertical, 40)
+
+            Text("tvOSProfile.footer.hint", bundle: .main)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .padding(.top, 4)
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
         .onAppear(perform: load)
         .sheet(isPresented: Binding(
             get: { editing != nil },

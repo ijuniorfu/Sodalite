@@ -36,6 +36,8 @@ struct ProfileSettingsView: View {
                 addProfileButton
 
                 launchBehaviorSection
+
+                TVUserProfileSettingsView()
             }
             .padding(.vertical, 60)
             .padding(.horizontal, 80)
