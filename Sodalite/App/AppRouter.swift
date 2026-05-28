@@ -254,9 +254,23 @@ struct AppRouter: View {
 
         guard dependencies.restoreSession() else { return }
 
-        guard let serverData = try? dependencies.keychainService.loadData(for: "activeServer"),
-              let server = try? JSONDecoder().decode(JellyfinServer.self, from: serverData),
-              let userID = try? dependencies.keychainService.loadString(for: KeychainKeys.userID(serverID: server.id)),
+        guard let server: JellyfinServer = {
+            if let s = dependencies.activeServer { return s }
+            // Dangling activeServerID pointer: the pointer exists but the
+            // server blob is gone. Promote the most recently added known
+            // server so the user lands in the app rather than discovery.
+            if let first = dependencies.listKnownServers().first {
+                try? dependencies.switchServer(to: first.id)
+                appState.activeServer = first
+                return first
+            }
+            return nil
+        }() else {
+            try? dependencies.clearSession()
+            return
+        }
+
+        guard let userID = try? dependencies.keychainService.loadString(for: KeychainKeys.userID(serverID: server.id)),
               let userName = try? dependencies.keychainService.loadString(for: "activeUserName")
         else {
             try? dependencies.clearSession()
