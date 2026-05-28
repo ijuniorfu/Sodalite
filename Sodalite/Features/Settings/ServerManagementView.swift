@@ -30,6 +30,11 @@ struct ServerManagementView: View {
                     )
                 }
 
+                Text("multiServer.settings.longPressHint", bundle: .main)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .padding(.top, 4)
+
                 AddServerSettingsRow(onTap: { showAddServerFlow = true })
                     .padding(.top, 16)
             }
