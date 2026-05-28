@@ -48,7 +48,6 @@ enum KeychainMigrator {
             let mainCopied = copyAllItems(fromService: oldMainService, toService: newMainService)
             let sharedCopied = copyAllItems(fromService: oldSharedService, toService: newSharedService)
             migrateAppGroupDeviceID()
-            migrateActiveServerToMultiIfNeeded()
 
             // Mark migration done even if no items were found, a fresh
             // install has nothing to copy and shouldn't keep probing on
@@ -57,10 +56,13 @@ enum KeychainMigrator {
             log.notice("KeychainMigrator finished: main=\(mainCopied, privacy: .public) shared=\(sharedCopied, privacy: .public)")
         }
 
-        // Runs unconditionally on each cold launch until its own flag
-        // flips. Must not be nested inside the JellySeeTV guard because
-        // that migration ran months before the tvOS-user-aware session
-        // slot existed.
+        // Both subsequent migrations run unconditionally on each cold
+        // launch until their own flags flip. They must NOT be nested
+        // inside the JellySeeTV guard because that migration ran
+        // months before either schema existed; upgraders from 0.7.0
+        // already have migratedFlagKey == true and would otherwise
+        // never reach the new schemas.
+        migrateActiveServerToMultiIfNeeded()
         migrateSharedSessionToTVUserSlotIfNeeded()
     }
 
