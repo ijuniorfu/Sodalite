@@ -122,6 +122,10 @@ final class DependencyContainer {
             }
             jellyfinClient.accessToken = nil
             SharedSessionMirror.clear()
+            forgetRememberedSeerr(
+                forJellyfinUserID: userID,
+                jellyfinServerID: server.id
+            )
             return nil
         }
     }
