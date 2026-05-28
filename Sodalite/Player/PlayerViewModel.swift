@@ -119,7 +119,7 @@ final class PlayerViewModel {
         case none
         case chapter(highlighted: Int)  // index into chapters
         case episode(highlighted: Int)  // index into seasonEpisodes
-        case audio(highlighted: Int)   // index into player.audioTracks
+        case audio(highlighted: Int)   // index into displayAudioTracks
         case subtitle(highlighted: Int) // index into subtitle items (0=Off, 1..=tracks)
         case speed(highlighted: Int)    // index into PlayerViewModel.speedOptions
         case picture(highlighted: Int)  // index into PlaybackPreferences.PictureMode.allCases
@@ -137,6 +137,12 @@ final class PlayerViewModel {
     var subtitleCues: [SubtitleCue] = []
     var activeAudioIndex: Int?
     var activeSubtitleIndex: Int?
+
+    /// Audio tracks in picker order: container-default first, then demuxer order. All picker UI indexes here, not into `player.audioTracks`.
+    var displayAudioTracks: [TrackInfo] {
+        let tracks = player.audioTracks
+        return tracks.filter { $0.isDefault } + tracks.filter { !$0.isDefault }
+    }
 
     /// Episodes from the currently-playing item's season, sorted by
     /// indexNumber. Populated lazily after startPlayback so the

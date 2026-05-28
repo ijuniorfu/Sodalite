@@ -1064,7 +1064,7 @@ final class PlayerHostController: AVPlayerViewController {
     }
 
     private func openAudioDropdown() {
-        let tracks = viewModel.player.audioTracks
+        let tracks = viewModel.displayAudioTracks
         guard !tracks.isEmpty else { return }
         viewModel.controlsTimer?.cancel()
         let currentIdx = tracks.firstIndex(where: { $0.id == viewModel.activeAudioIndex }) ?? 0
@@ -1109,7 +1109,7 @@ final class PlayerHostController: AVPlayerViewController {
             let newIdx = max(0, min(count - 1, idx + offset))
             viewModel.trackDropdown = .episode(highlighted: newIdx)
         case .audio(let idx):
-            let count = viewModel.player.audioTracks.count
+            let count = viewModel.displayAudioTracks.count
             guard count > 0 else { return }
             let newIdx = max(0, min(count - 1, idx + offset))
             viewModel.trackDropdown = .audio(highlighted: newIdx)
@@ -1145,7 +1145,7 @@ final class PlayerHostController: AVPlayerViewController {
             // confirm-button press to block the main thread on that.
             Task { await viewModel.selectEpisode(at: idx) }
         case .audio(let idx):
-            let tracks = viewModel.player.audioTracks
+            let tracks = viewModel.displayAudioTracks
             if idx < tracks.count {
                 viewModel.selectAudioTrack(id: tracks[idx].id)
             }

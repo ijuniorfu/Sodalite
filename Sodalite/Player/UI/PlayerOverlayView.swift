@@ -368,7 +368,7 @@ struct PlayerOverlayView: View {
                     remainingTime: viewModel.remainingTime,
                     isScrubbing: viewModel.isScrubbing,
                     scrubTime: viewModel.scrubTime,
-                    audioTracks: viewModel.player.audioTracks,
+                    audioTracks: viewModel.displayAudioTracks,
                     subtitleStreams: viewModel.subtitleStreams,
                     activeAudioIndex: viewModel.activeAudioIndex,
                     activeSubtitleIndex: viewModel.activeSubtitleIndex,
