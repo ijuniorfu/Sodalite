@@ -61,13 +61,18 @@ struct ServerSwitchSheet: View {
             dismiss()
             return
         }
+        let previous = activeID
         do {
             try dependencies.switchServer(to: server.id)
             onSwitched(true)
             dismiss()
         } catch {
-            // Token missing or unknown id; report up so the host can
-            // route to the profile picker / login for the target.
+            // Switch failed at the container layer (missing token /
+            // unknown id). Roll back if we had a previous active
+            // server, so the user isn't stranded.
+            if let previous {
+                try? dependencies.rollbackSwitch(to: previous)
+            }
             onSwitched(false)
             dismiss()
         }

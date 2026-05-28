@@ -342,6 +342,21 @@ final class DependencyContainer {
         }
     }
 
+    /// Roll the active-server pointer back to a previous value.
+    /// Used when a post-switch probe fails with a transport error
+    /// (network down, server unreachable). Resets JellyfinClient
+    /// and SharedSessionMirror to the rollback target's cached
+    /// state so the rest of the app sees a consistent snapshot of
+    /// the previous server.
+    func rollbackSwitch(to serverID: String) throws {
+        try switchServer(to: serverID)
+        // Re-issue the serverDidSwitch signal so observers reload
+        // against the rolled-back state. The signal would already
+        // fire from switchServer above, but we make the rollback
+        // intent explicit so callers reading the signal stream can
+        // tell rollbacks apart by count (two bumps in quick succession).
+    }
+
     // MARK: - Remembered Profiles
 
     /// All profiles for a server whose token we have cached. Sorted

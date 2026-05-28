@@ -96,11 +96,14 @@ struct AppRouter: View {
                     appState.isAuthenticated = false
                 }
             } catch {
-                // Transport error during probe. Leave isAuthenticated
-                // as-is; the user will see a stale TabRoot for ~5 s
-                // until the next user-driven request hits the network
-                // and surfaces the real failure. Task 14 adds
-                // explicit rollback on transport error.
+                // Avoid rollback loops: if appState already holds the
+                // currently-active server (because we just rolled back
+                // and the probe is still failing), let the failure
+                // stand. The next user-driven action will surface it.
+                if let previous = appState.activeServer,
+                   previous.id != dependencies.activeServer?.id {
+                    try? dependencies.rollbackSwitch(to: previous.id)
+                }
             }
         }
         .fullScreenCover(item: $deepLinkItem) { item in
