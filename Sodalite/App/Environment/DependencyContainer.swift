@@ -135,8 +135,7 @@ final class DependencyContainer {
     /// to restore, the app falls back to the login screen. There's no recovery
     /// path that would benefit from inspecting the underlying error.
     func restoreSession() -> Bool {
-        guard let serverData = try? keychainService.loadData(for: "activeServer"),
-              let server = try? JSONDecoder().decode(JellyfinServer.self, from: serverData),
+        guard let server = activeServer,
               let token = try? keychainService.loadString(for: KeychainKeys.accessToken(serverID: server.id))
         else {
             return false
@@ -161,8 +160,8 @@ final class DependencyContainer {
         token: String,
         password: String? = nil
     ) throws {
-        let serverData = try JSONEncoder().encode(server)
-        try keychainService.save(serverData, for: "activeServer")
+        try addServer(server)
+        try keychainService.save(server.id, for: KeychainKeys.activeServerID)
         try keychainService.save(token, for: KeychainKeys.accessToken(serverID: server.id))
         try keychainService.save(user.id, for: KeychainKeys.userID(serverID: server.id))
         try keychainService.save(user.name, for: "activeUserName")
@@ -413,8 +412,8 @@ final class DependencyContainer {
     /// Seerr auto-fill doesn't pre-fill the previous user's
     /// password onto the new user.
     func switchToUser(_ remembered: RememberedUser, server: JellyfinServer) throws {
-        let serverData = try JSONEncoder().encode(server)
-        try keychainService.save(serverData, for: "activeServer")
+        try addServer(server)
+        try keychainService.save(server.id, for: KeychainKeys.activeServerID)
         try keychainService.save(
             remembered.token,
             for: KeychainKeys.accessToken(serverID: server.id)
@@ -456,35 +455,30 @@ final class DependencyContainer {
     }
 
     private var activeJellyfinServerID: String? {
-        guard let data = try? keychainService.loadData(for: "activeServer"),
-              let server = try? JSONDecoder().decode(JellyfinServer.self, from: data)
-        else { return nil }
-        return server.id
+        try? keychainService.loadString(for: KeychainKeys.activeServerID)
     }
 
     func clearSession() throws {
-        if let server = try? keychainService.loadData(for: "activeServer"),
-           let decoded = try? JSONDecoder().decode(JellyfinServer.self, from: server) {
-            try keychainService.delete(for: KeychainKeys.accessToken(serverID: decoded.id))
-            try keychainService.delete(for: KeychainKeys.jellyfinPassword(serverID: decoded.id))
-            // Before we forget the remembered profile list, tear
-            // down every profile's per-user Seerr session, otherwise
-            // they linger in the keychain as orphaned blobs.
-            for remembered in listRememberedUsers(serverID: decoded.id) {
+        // Full logout: scrub every known server's per-server keychain
+        // entries (tokens, passwords, remembered users, Seerr cookies).
+        // Then clear the multi-server pointers + the global active-user
+        // keys + the JellyfinClient state + SharedSessionMirror.
+        for known in listKnownServers() {
+            for remembered in listRememberedUsers(serverID: known.id) {
                 forgetRememberedSeerr(
                     forJellyfinUserID: remembered.id,
-                    jellyfinServerID: decoded.id
+                    jellyfinServerID: known.id
                 )
             }
-            // Full logout = nuke every remembered profile for this
-            // server too. Profile pruning at a finer granularity
-            // happens via forgetUser() from the picker's long-press
-            // menu.
-            try? keychainService.delete(
-                for: KeychainKeys.rememberedUsers(serverID: decoded.id)
-            )
+            try? keychainService.delete(for: KeychainKeys.accessToken(serverID: known.id))
+            try? keychainService.delete(for: KeychainKeys.jellyfinPassword(serverID: known.id))
+            try? keychainService.delete(for: KeychainKeys.userID(serverID: known.id))
+            try? keychainService.delete(for: KeychainKeys.rememberedUsers(serverID: known.id))
         }
-        try keychainService.delete(for: "activeServer")
+
+        try? keychainService.delete(for: KeychainKeys.knownServers)
+        try? keychainService.delete(for: KeychainKeys.activeServerID)
+        try? keychainService.delete(for: "activeUserName")
         try? keychainService.delete(for: "activeUserImageTag")
 
         jellyfinClient.baseURL = nil
