@@ -113,6 +113,14 @@ struct SettingsView: View {
             }
 
             SettingsTile(
+                icon: "server.rack",
+                title: "multiServer.settings.entry.title",
+                subtitle: "multiServer.settings.entry.subtitle"
+            ) {
+                ServerManagementView()
+            }
+
+            SettingsTile(
                 icon: "square.grid.2x2",
                 title: "settings.home.customize",
                 subtitle: "settings.home.customizeSubtitle"
