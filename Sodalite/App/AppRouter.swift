@@ -106,6 +106,10 @@ struct AppRouter: View {
                 appState.activeServer = nil
                 appState.activeUser = nil
                 launchPickerServer = nil
+                // Update the baseline BEFORE re-running, otherwise the
+                // observer would re-fire the same wipe on the next
+                // scene-active and we'd never settle.
+                markTVUserResolved()
                 await performRestore()
             } else {
                 // Same tvOS user. Cheap re-resolve in case the mapping
