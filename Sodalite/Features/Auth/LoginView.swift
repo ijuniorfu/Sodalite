@@ -25,6 +25,8 @@ struct LoginView: View {
                     .transition(.opacity)
             }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(.background)
         .animation(.easeInOut(duration: 0.3), value: showSuccess)
         .onAppear {
             if viewModel == nil {
