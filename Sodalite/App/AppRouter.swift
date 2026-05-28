@@ -5,6 +5,7 @@ import AetherEngine
 struct AppRouter: View {
     @Environment(\.appState) private var appState
     @Environment(\.dependencies) private var dependencies
+    @Environment(\.scenePhase) private var scenePhase
 
     /// Tracks whether the initial session restore + splash has already
     /// run for this process. SwiftUI re-fires `.task` when the AppRouter
@@ -80,6 +81,15 @@ struct AppRouter: View {
         }
         .task(id: appState.requestContinueWatching) {
             await resolveContinueWatchingRequest()
+        }
+        .task(id: scenePhase) {
+            // Only react to becoming active. Inactive and background
+            // transitions don't need a tvOS-user re-resolve.
+            guard scenePhase == .active else { return }
+            // Skip the first firing at app launch, performRestore
+            // already runs resolveTVUserContext there.
+            guard appState.isAuthenticated || launchPickerServer != nil else { return }
+            await resolveTVUserContext()
         }
         .task(id: appState.serverDidSwitch) {
             guard appState.serverDidSwitch > 0 else { return }
