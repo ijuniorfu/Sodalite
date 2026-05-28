@@ -21,10 +21,12 @@ struct ServerManagementView: View {
                     .padding(.bottom, 8)
 
                 ForEach(servers) { server in
+                    let remembered = dependencies.listRememberedUsers(serverID: server.id)
                     ServerManagementRow(
                         server: server,
                         isActive: server.id == activeID,
-                        userCount: dependencies.listRememberedUsers(serverID: server.id).count,
+                        userCount: remembered.count,
+                        rememberedUsers: remembered,
                         onSwitch: { switchTo(server) },
                         onRemove: { pendingRemoval = server }
                     )
@@ -86,9 +88,11 @@ private struct ServerManagementRow: View {
     let server: JellyfinServer
     let isActive: Bool
     let userCount: Int
+    let rememberedUsers: [RememberedUser]
     let onSwitch: () -> Void
     let onRemove: () -> Void
     @FocusState private var focused: Bool
+    @Environment(\.dependencies) private var dependencies
 
     var body: some View {
         HStack(spacing: 24) {
@@ -111,6 +115,25 @@ private struct ServerManagementRow: View {
                 Text("multiServer.row.userCount \(userCount)", bundle: .main)
                     .font(.caption)
                     .foregroundStyle(.tertiary)
+            }
+            if !rememberedUsers.isEmpty {
+                HStack(spacing: -10) {
+                    ForEach(rememberedUsers.prefix(3)) { user in
+                        avatarCircle(for: user)
+                    }
+                    if rememberedUsers.count > 3 {
+                        ZStack {
+                            Circle()
+                                .fill(.regularMaterial)
+                                .frame(width: 40, height: 40)
+                            Text("+\(rememberedUsers.count - 3)")
+                                .font(.caption2)
+                                .fontWeight(.semibold)
+                                .foregroundStyle(.primary)
+                        }
+                    }
+                }
+                .padding(.trailing, 12)
             }
             Spacer()
         }
@@ -149,6 +172,49 @@ private struct ServerManagementRow: View {
                     Image(systemName: "trash")
                 }
             }
+        }
+    }
+
+    @ViewBuilder
+    private func avatarCircle(for user: RememberedUser) -> some View {
+        let url = dependencies.jellyfinImageService.userProfileImageURL(
+            userID: user.id,
+            tag: user.imageTag
+        )
+        ZStack {
+            if let url {
+                AsyncCachedImage(url: url) { image in
+                    image.resizable().aspectRatio(contentMode: .fill)
+                } placeholder: {
+                    initialsFallback(for: user)
+                }
+                .frame(width: 40, height: 40)
+                .clipShape(Circle())
+            } else {
+                initialsFallback(for: user)
+            }
+        }
+        .overlay(
+            Circle()
+                .strokeBorder(Color.white.opacity(0.4), lineWidth: 2)
+        )
+    }
+
+    private func initialsFallback(for user: RememberedUser) -> some View {
+        let initials: String = {
+            let parts = user.name.split(separator: " ")
+            if parts.count >= 2 {
+                return "\(parts[0].prefix(1))\(parts[1].prefix(1))".uppercased()
+            }
+            return String(user.name.prefix(2)).uppercased()
+        }()
+        return ZStack {
+            Circle()
+                .fill(.ultraThinMaterial)
+                .frame(width: 40, height: 40)
+            Text(initials)
+                .font(.caption.bold())
+                .foregroundStyle(.primary)
         }
     }
 }

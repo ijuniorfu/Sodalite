@@ -25,28 +25,28 @@ struct LaunchProfilePickerView: View {
                 header
 
                 Button(action: { showServerSwitchSheet = true }) {
-                    HStack(spacing: 16) {
-                        VStack(alignment: .leading, spacing: 4) {
+                    HStack(spacing: 12) {
+                        VStack(alignment: .leading, spacing: 2) {
                             Text("multiServer.picker.header.label", bundle: .main)
-                                .font(.caption)
+                                .font(.caption2)
                                 .foregroundStyle(.secondary)
                             Text(server.name)
-                                .font(.title3.bold())
+                                .font(.headline)
                             Text(server.url.host() ?? server.url.absoluteString)
                                 .font(.caption2)
                                 .foregroundStyle(.tertiary)
                         }
-                        Spacer()
+                        Spacer(minLength: 12)
                         Image(systemName: "arrow.left.arrow.right")
-                            .font(.title3)
+                            .font(.callout)
                             .foregroundStyle(.tint)
                     }
-                    .padding(.horizontal, 24)
-                    .padding(.vertical, 16)
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 12)
                 }
                 .buttonStyle(.card)
-                .padding(.horizontal, 60)
-                .padding(.bottom, 32)
+                .frame(maxWidth: 560)
+                .padding(.bottom, 24)
 
                 profileGrid
 
