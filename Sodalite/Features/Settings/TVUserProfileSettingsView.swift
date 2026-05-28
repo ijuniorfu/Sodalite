@@ -9,6 +9,7 @@ struct TVUserProfileSettingsView: View {
     @Environment(\.dependencies) private var dependencies
     @State private var mappings: [(tvUserID: String, mapping: TVProfileMapping?)] = []
     @State private var editing: String?
+    @FocusState private var sharedSessionFocused: Bool
 
     var body: some View {
         ScrollView {
@@ -82,8 +83,16 @@ struct TVUserProfileSettingsView: View {
         }
         .padding(.horizontal, 24)
         .padding(.vertical, 20)
-        .background(Color.white.opacity(0.04))
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(sharedSessionFocused ? Color.white.opacity(0.15) : Color.white.opacity(0.04))
         .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .strokeBorder(.tint, lineWidth: 2)
+                .opacity(sharedSessionFocused ? 1 : 0)
+        )
+        .focusable(true)
+        .focused($sharedSessionFocused)
     }
 
     private func load() {
