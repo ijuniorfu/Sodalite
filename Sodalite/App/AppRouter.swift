@@ -254,19 +254,25 @@ struct AppRouter: View {
 
         guard dependencies.restoreSession() else { return }
 
-        guard let server: JellyfinServer = {
-            if let s = dependencies.activeServer { return s }
-            // Dangling activeServerID pointer: the pointer exists but the
-            // server blob is gone. Promote the most recently added known
-            // server so the user lands in the app rather than discovery.
+        guard let server = dependencies.activeServer else {
             if let first = dependencies.listKnownServers().first {
-                try? dependencies.switchServer(to: first.id)
-                appState.activeServer = first
-                return first
+                // Repair: activeServerID is missing or no longer
+                // resolves, but knownServers has at least one entry.
+                // Promote the most recently added server to active by
+                // writing only the pointer (no switchServer here, that
+                // would clear JellyfinClient.accessToken and SharedSession
+                // Mirror for a target we cannot fully restore in this
+                // pass). Land in the profile picker for the recovered
+                // server; the next launch's normal restoreSession path
+                // resolves token + user from there.
+                try? dependencies.keychainService.save(first.id, for: KeychainKeys.activeServerID)
+                launchPickerServer = first
+            } else {
+                // Fully empty: no known servers. Drop any stale
+                // state and let the AppRouter body fall through to
+                // ServerDiscoveryView.
+                try? dependencies.clearSession()
             }
-            return nil
-        }() else {
-            try? dependencies.clearSession()
             return
         }
 
