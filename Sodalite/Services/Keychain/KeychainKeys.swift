@@ -48,4 +48,13 @@ enum KeychainKeys {
     static func rememberedSeerr(jellyfinServerID: String, jellyfinUserID: String) -> String {
         "rememberedSeerr_\(jellyfinServerID)_\(jellyfinUserID)"
     }
+
+    /// Shared-session blob slot keyed by tvOS system user. Nil
+    /// (single-user Apple TV) lands in the `default` slot so the
+    /// no-multi-user path keeps using one blob, same as today.
+    /// Multi-user writes land in a per-identifier slot, which the
+    /// TopShelf extension reads via TVUserManager.
+    static func sharedSession(tvUserID: String?) -> String {
+        "tvOSSession_\(tvUserID ?? "default")"
+    }
 }
