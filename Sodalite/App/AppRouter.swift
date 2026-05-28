@@ -347,18 +347,29 @@ struct AppRouter: View {
         }
 
         // If the current tvOS user has a (server, Jellyfin profile)
-        // mapping recorded, promote it now. Runs before the
-        // defaultServerID promotion so the tvOS identity (more
-        // specific signal) wins when both apply.
+        // mapping recorded, promote it now. The tvOS identity is the
+        // more specific signal and wins over any user-pinned default.
         await resolveTVUserContext()
+
+        // Determine whether a tvOS mapping is currently in effect.
+        // When one is, both the defaultServerID promotion and the
+        // shouldUseDefault launch-behavior branch are suppressed so the
+        // tvOS system identity is not clobbered by the user's pinned
+        // default server or default profile.
+        let hasTVMapping: Bool = {
+            guard let tvUserID = TVUserContext.currentUserID else { return false }
+            return dependencies.tvProfileMappings.mapping(for: tvUserID) != nil
+        }()
 
         // Promote the user's default server (if set and still known)
         // before restoreSession runs. Lets the user pin which server
         // the app cold-launches into, regardless of which one was last
         // active. No-op when defaultServerID is nil or no longer
         // resolves (e.g. server was removed). Skipped when the default
-        // already equals the current pointer.
-        if let defaultID = dependencies.authPreferences.defaultServerID,
+        // already equals the current pointer, or when a tvOS mapping
+        // is in effect (the mapping's server takes precedence).
+        if !hasTVMapping,
+           let defaultID = dependencies.authPreferences.defaultServerID,
            dependencies.listKnownServers().contains(where: { $0.id == defaultID }),
            (try? dependencies.keychainService.loadString(for: KeychainKeys.activeServerID)) != defaultID {
             try? dependencies.keychainService.save(defaultID, for: KeychainKeys.activeServerID)
@@ -482,7 +493,8 @@ struct AppRouter: View {
         let remembered = dependencies.listRememberedUsers(serverID: server.id)
         let prefs = dependencies.authPreferences
 
-        let shouldUseDefault = prefs.launchBehavior == .useDefault
+        let shouldUseDefault = !hasTVMapping
+            && prefs.launchBehavior == .useDefault
             && prefs.defaultUserID.flatMap { id in remembered.first { $0.id == id } } != nil
 
         if shouldUseDefault,
