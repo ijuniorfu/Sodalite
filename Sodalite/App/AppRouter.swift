@@ -87,6 +87,26 @@ struct AppRouter: View {
                 let user = try await dependencies.probeActiveUser()
                 if let user, let server = dependencies.activeServer {
                     appState.setAuthenticated(server: server, user: user)
+                    // Restore the per-(server, user) Seerr session so the
+                    // Catalog tab reflects the newly active identity, not
+                    // the previous server's session.
+                    let seerrServer = dependencies.restoreSeerrSession(
+                        forJellyfinUserID: user.id,
+                        jellyfinServerID: server.id
+                    )
+                    if let seerrServer {
+                        if let seerrUser = try? await dependencies.seerrAuthService.currentUser() {
+                            appState.setSeerrConnected(server: seerrServer, user: seerrUser)
+                        } else {
+                            dependencies.forgetRememberedSeerr(
+                                forJellyfinUserID: user.id,
+                                jellyfinServerID: server.id
+                            )
+                            try? dependencies.clearSeerrSession()
+                        }
+                    } else {
+                        try? dependencies.clearSeerrSession()
+                    }
                 } else {
                     // Token expired or no remembered user: route to
                     // the profile picker for the new active server.
