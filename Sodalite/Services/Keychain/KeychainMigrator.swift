@@ -26,6 +26,7 @@ enum KeychainMigrator {
     )
 
     private static let migratedFlagKey = "Sodalite.didMigrateFromJellySeeTV.v1"
+    private static let activeServerMigratedFlagKey = "Sodalite.didMigrateActiveServerToMulti.v1"
 
     private static let oldMainService = "de.superuser404.JellySeeTV"
     private static let oldSharedService = "de.superuser404.JellySeeTV.shared"
@@ -47,6 +48,7 @@ enum KeychainMigrator {
         let mainCopied = copyAllItems(fromService: oldMainService, toService: newMainService)
         let sharedCopied = copyAllItems(fromService: oldSharedService, toService: newSharedService)
         migrateAppGroupDeviceID()
+        migrateActiveServerToMultiIfNeeded()
 
         // Mark migration done even if no items were found, a fresh
         // install has nothing to copy and shouldn't keep probing on
@@ -113,6 +115,46 @@ enum KeychainMigrator {
             kSecMatchLimit as String: kSecMatchLimitOne,
         ]
         return SecItemCopyMatching(query as CFDictionary, nil) == errSecSuccess
+    }
+
+    /// One-shot migration of the pre-multi-server keychain layout:
+    /// the old `"activeServer"` slot held one JSON-encoded
+    /// JellyfinServer. The new layout uses `knownServers` (an array)
+    /// plus `activeServerID` (a pointer). We translate the single
+    /// slot into a one-element list and set the pointer to its id.
+    /// Per-server keys (accessToken_<id> etc.) are already correctly
+    /// scoped and need no migration.
+    static func migrateActiveServerToMultiIfNeeded() {
+        let defaults = UserDefaults.standard
+        guard !defaults.bool(forKey: activeServerMigratedFlagKey) else { return }
+
+        let keychain = KeychainService(service: newMainService)
+
+        // Skip cleanly on fresh installs (no old slot to migrate)
+        // and on installs that already have the new schema.
+        if (try? keychain.loadData(for: KeychainKeys.knownServers)) != nil {
+            defaults.set(true, forKey: activeServerMigratedFlagKey)
+            return
+        }
+        guard let blob = try? keychain.loadData(for: "activeServer"),
+              let server = try? JSONDecoder().decode(JellyfinServer.self, from: blob)
+        else {
+            defaults.set(true, forKey: activeServerMigratedFlagKey)
+            return
+        }
+
+        do {
+            let list = try JSONEncoder().encode([server])
+            try keychain.save(list, for: KeychainKeys.knownServers)
+            try keychain.save(server.id, for: KeychainKeys.activeServerID)
+            try? keychain.delete(for: "activeServer")
+            log.notice("KeychainMigrator: activeServer -> multi schema (server id=\(server.id, privacy: .public))")
+        } catch {
+            log.notice("KeychainMigrator: activeServer -> multi failed: \(String(describing: error), privacy: .public)")
+            return
+        }
+
+        defaults.set(true, forKey: activeServerMigratedFlagKey)
     }
 
     /// Pulls the TopShelf extension's device id out of the old app
