@@ -718,6 +718,9 @@ final class HomeViewModel {
     /// server's library.
     @MainActor
     func reloadAfterServerSwitch() async {
+        // Flip into loading state before clearing rows so HomeView
+        // lands in the spinner branch, not the empty no-content branch.
+        isLoading = true
         rows = []
         tagRows = []
         providerBackdrops = [:]
