@@ -12,6 +12,8 @@ struct LoginView: View {
     /// user clicked "Sign in manually" and we show the full form
     /// including the username field.
     var preSelectedUser: JellyfinUser? = nil
+    var addMode: Bool = false
+    var onCompletion: (() -> Void)? = nil
 
     var body: some View {
         ZStack {
@@ -247,29 +249,44 @@ struct LoginView: View {
         Task {
             try? await Task.sleep(for: .seconds(1.5))
             guard let result = vm.authResult else { return }
-            appState.setAuthenticated(server: result.server, user: result.user)
 
-            // Re-evaluate the Seerr session against the freshly-
-            // signed-in user. switchToUser on an existing remembered
-            // profile already does this, but the "Add another
-            // profile" + first-time login paths fell through with
-            // whatever Seerr state the previous Jellyfin user had,
-            // until the user manually swapped profiles back and
-            // forth, the new account showed the previous account's
-            // Seerr UI. Restoring (or clearing) here keeps the new
-            // session honest from the first frame.
-            await syncSeerrToActiveProfile(
-                userID: result.user.id,
-                serverID: result.server.id
-            )
+            // Persist the server in the multi-aware schema regardless
+            // of mode. addServer upserts so a re-login on a previously
+            // known server just refreshes its entry.
+            try? dependencies.addServer(result.server)
 
-            // Tell anyone who pushed this view that we're done.
-            // Initial-login flows (ServerDiscoveryView → …) don't
-            // need this, AppRouter swaps its root when
-            // isAuthenticated flips, but the "Add another profile"
-            // branch from ProfileSettingsView stays mounted on top
-            // of TabRootView until the push is popped.
-            NotificationCenter.default.post(name: .loginDidComplete, object: nil)
+            if addMode {
+                // Switch to the newly added server so activeServerID +
+                // JellyfinClient point at it, then hand control back to
+                // the host (picker or settings) which dismisses the cover.
+                try? dependencies.switchServer(to: result.server.id)
+                onCompletion?()
+            } else {
+                // First-run: existing setAuthenticated path takes over.
+                appState.setAuthenticated(server: result.server, user: result.user)
+
+                // Re-evaluate the Seerr session against the freshly-
+                // signed-in user. switchToUser on an existing remembered
+                // profile already does this, but the "Add another
+                // profile" + first-time login paths fell through with
+                // whatever Seerr state the previous Jellyfin user had,
+                // until the user manually swapped profiles back and
+                // forth, the new account showed the previous account's
+                // Seerr UI. Restoring (or clearing) here keeps the new
+                // session honest from the first frame.
+                await syncSeerrToActiveProfile(
+                    userID: result.user.id,
+                    serverID: result.server.id
+                )
+
+                // Tell anyone who pushed this view that we're done.
+                // Initial-login flows (ServerDiscoveryView -> ...) don't
+                // need this, AppRouter swaps its root when
+                // isAuthenticated flips, but the "Add another profile"
+                // branch from ProfileSettingsView stays mounted on top
+                // of TabRootView until the push is popped.
+                NotificationCenter.default.post(name: .loginDidComplete, object: nil)
+            }
         }
     }
 

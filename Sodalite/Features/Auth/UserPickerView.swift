@@ -15,6 +15,8 @@ struct UserPickerView: View {
     @Environment(\.dependencies) private var dependencies
 
     let server: JellyfinServer
+    var addMode: Bool = false
+    var onCompletion: (() -> Void)? = nil
 
     @State private var users: [JellyfinUser] = []
     @State private var isLoading = true
@@ -55,7 +57,12 @@ struct UserPickerView: View {
                 }
             }
         )) {
-            LoginView(server: server, preSelectedUser: selectedUser)
+            LoginView(
+                server: server,
+                preSelectedUser: selectedUser,
+                addMode: addMode,
+                onCompletion: onCompletion
+            )
         }
     }
 

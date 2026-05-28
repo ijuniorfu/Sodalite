@@ -94,11 +94,9 @@ struct LaunchProfilePickerView: View {
                 )
             }
             .fullScreenCover(isPresented: $showAddServerFlow) {
-                // Task 10 replaces this placeholder with a real
-                // ServerDiscoveryView(addMode: true) + completion handler.
-                // For now we present a plain ServerDiscoveryView so the
-                // build stays green between tasks.
-                ServerDiscoveryView()
+                ServerDiscoveryView(addMode: true) {
+                    showAddServerFlow = false
+                }
             }
         }
     }

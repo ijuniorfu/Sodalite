@@ -4,6 +4,13 @@ struct ServerDiscoveryView: View {
     @Environment(\.dependencies) private var dependencies
     @State private var viewModel: ServerDiscoveryViewModel?
 
+    /// If true, the post-login flow runs through addServer instead
+    /// of the first-run "set as initial server" path. The completion
+    /// closure is called when the user has either finished adding
+    /// (success) or cancelled out (no server added).
+    var addMode: Bool = false
+    var onCompletion: (() -> Void)? = nil
+
     var body: some View {
         NavigationStack {
             VStack(spacing: 40) {
@@ -63,7 +70,11 @@ struct ServerDiscoveryView: View {
                     .frame(maxWidth: 500)
                     .navigationDestination(isPresented: Bindable(vm).showLogin) {
                         if let server = vm.discoveredServer {
-                            UserPickerView(server: server)
+                            UserPickerView(
+                                server: server,
+                                addMode: addMode,
+                                onCompletion: onCompletion
+                            )
                         }
                     }
                 }
