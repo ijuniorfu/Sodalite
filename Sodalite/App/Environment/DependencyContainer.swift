@@ -252,6 +252,47 @@ final class DependencyContainer {
         // route to a profile picker first when userID is nil.
     }
 
+    /// Remove a server and every piece of state scoped to it. The
+    /// per-server access token, password, remembered users, and all
+    /// remembered Seerr sessions for users on this server are
+    /// deleted. If the removed server was the active one and at
+    /// least one other server remains, the most recently added
+    /// remaining server is promoted to active (with whatever token
+    /// it has cached; AppRouter's restoreSession path handles
+    /// expired tokens). If no servers remain, activeServerID is
+    /// cleared and SharedSessionMirror is wiped, the next launch
+    /// lands in ServerDiscoveryView.
+    func removeServer(id serverID: String) throws {
+        let allUsers = listRememberedUsers(serverID: serverID)
+        for remembered in allUsers {
+            forgetRememberedSeerr(
+                forJellyfinUserID: remembered.id,
+                jellyfinServerID: serverID
+            )
+        }
+
+        try? keychainService.delete(for: KeychainKeys.accessToken(serverID: serverID))
+        try? keychainService.delete(for: KeychainKeys.jellyfinPassword(serverID: serverID))
+        try? keychainService.delete(for: KeychainKeys.userID(serverID: serverID))
+        try? keychainService.delete(for: KeychainKeys.rememberedUsers(serverID: serverID))
+
+        let servers = listKnownServers().filter { $0.id != serverID }
+        let data = try JSONEncoder().encode(servers)
+        try keychainService.save(data, for: KeychainKeys.knownServers)
+
+        let activeID = try? keychainService.loadString(for: KeychainKeys.activeServerID)
+        if activeID == serverID {
+            if let successor = servers.first {
+                try? switchServer(to: successor.id)
+            } else {
+                try? keychainService.delete(for: KeychainKeys.activeServerID)
+                jellyfinClient.baseURL = nil
+                jellyfinClient.accessToken = nil
+                SharedSessionMirror.clear()
+            }
+        }
+    }
+
     // MARK: - Remembered Profiles
 
     /// All profiles for a server whose token we have cached. Sorted
