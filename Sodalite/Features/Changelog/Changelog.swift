@@ -13,18 +13,6 @@ import Foundation
 /// previously affected behaviour.
 enum Changelog {
     static let entries: [ChangelogEntry] = [
-        // MARK: 0.9.0
-        ChangelogEntry(
-            version: "0.9.0",
-            highlights: [
-                ChangelogHighlight(
-                    .new,
-                    "changelog.0_9_0.tvOSProfile.title",
-                    "changelog.0_9_0.tvOSProfile.body",
-                    icon: "person.crop.rectangle"
-                ),
-            ]
-        ),
         // MARK: 0.8.0
         ChangelogEntry(
             version: "0.8.0",
@@ -34,6 +22,12 @@ enum Changelog {
                     "changelog.0_8_0.multiServer.title",
                     "changelog.0_8_0.multiServer.body",
                     icon: "server.rack"
+                ),
+                ChangelogHighlight(
+                    .new,
+                    "changelog.0_8_0.tvOSProfile.title",
+                    "changelog.0_8_0.tvOSProfile.body",
+                    icon: "person.crop.rectangle"
                 ),
             ]
         ),

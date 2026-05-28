@@ -28883,7 +28883,7 @@
         }
       }
     },
-    "changelog.0_9_0.tvOSProfile.body" : {
+    "changelog.0_8_0.tvOSProfile.body" : {
       "extractionState" : "manual",
       "localizations" : {
         "cs" : {
@@ -29044,7 +29044,7 @@
         }
       }
     },
-    "changelog.0_9_0.tvOSProfile.title" : {
+    "changelog.0_8_0.tvOSProfile.title" : {
       "extractionState" : "manual",
       "localizations" : {
         "cs" : {
