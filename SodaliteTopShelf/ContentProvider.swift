@@ -21,7 +21,13 @@ private let log = Logger(subsystem: "de.superuser404.Sodalite.TopShelf", categor
 @objc(SodaliteTopShelfContentProvider)
 final class ContentProvider: TVTopShelfContentProvider {
     override func loadTopShelfContent() async -> (any TVTopShelfContent)? {
-        guard let session = SharedSession.load() else {
+        let tvUserID: String?
+        if #available(tvOS 13, *) {
+            tvUserID = TVUserManager().currentUserIdentifier
+        } else {
+            tvUserID = nil
+        }
+        guard let session = SharedSession.read(tvUserID: tvUserID) else {
             log.notice("No shared session in keychain — TopShelf will render empty.")
             return nil
         }
