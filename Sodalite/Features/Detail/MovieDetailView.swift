@@ -292,7 +292,12 @@ struct MovieDetailView: View {
                 // button stays on the series detail for continuing shows
                 // where new seasons may still land.
 
-                if canDelete {
+                // Episodes get routed through MovieDetailView (see
+                // DetailRouterView) but per-episode deletion is not a
+                // supported flow. The delete entry point lives on the
+                // parent series detail, matching SeriesDetailView's
+                // own !isShowingEpisode guard.
+                if canDelete && item.type != .episode {
                     GlassActionButton(
                         title: "detail.delete.button",
                         systemImage: "trash",
