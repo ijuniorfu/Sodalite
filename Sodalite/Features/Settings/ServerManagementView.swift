@@ -111,11 +111,12 @@ private struct ServerManagementRow: View {
         }
         .padding(.horizontal, 24)
         .padding(.vertical, 20)
-        .background(focused ? Color.accentColor.opacity(0.18) : Color.white.opacity(0.04))
+        .background(focused ? Color.white.opacity(0.15) : Color.white.opacity(0.04))
         .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .strokeBorder(focused ? Color.accentColor : .clear, lineWidth: 2)
+                .strokeBorder(.tint, lineWidth: 2)
+                .opacity(focused ? 1 : 0)
         )
         .focusable(true)
         .focused($focused)
@@ -162,11 +163,12 @@ private struct AddServerSettingsRow: View {
         }
         .padding(.horizontal, 24)
         .padding(.vertical, 18)
-        .background(focused ? Color.accentColor.opacity(0.18) : Color.white.opacity(0.04))
+        .background(focused ? Color.white.opacity(0.15) : Color.white.opacity(0.04))
         .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .strokeBorder(focused ? Color.accentColor : .clear, lineWidth: 2)
+                .strokeBorder(.tint, lineWidth: 2)
+                .opacity(focused ? 1 : 0)
         )
         .focusable(true)
         .focused($focused)

@@ -106,11 +106,16 @@ private struct ServerRow: View {
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 18)
-        .background(focused ? Color.accentColor.opacity(0.2) : Color.clear)
+        .background(focused ? Color.white.opacity(0.15) : Color.clear)
         .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .strokeBorder(focused ? Color.accentColor : Color.white.opacity(0.08), lineWidth: focused ? 2 : 1)
+                .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .strokeBorder(.tint, lineWidth: 2)
+                .opacity(focused ? 1 : 0)
         )
         .focused($focused)
         .stableTap(isFocused: focused, perform: onTap)
@@ -132,11 +137,16 @@ private struct AddServerRow: View {
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 18)
-        .background(focused ? Color.accentColor.opacity(0.2) : Color.clear)
+        .background(focused ? Color.white.opacity(0.15) : Color.clear)
         .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .strokeBorder(focused ? Color.accentColor : Color.white.opacity(0.08), lineWidth: focused ? 2 : 1)
+                .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .strokeBorder(.tint, lineWidth: 2)
+                .opacity(focused ? 1 : 0)
         )
         .focused($focused)
         .stableTap(isFocused: focused, perform: onTap)
