@@ -255,38 +255,35 @@ struct LoginView: View {
             // known server just refreshes its entry.
             try? dependencies.addServer(result.server)
 
-            if addMode {
-                // Switch to the newly added server so activeServerID +
-                // JellyfinClient point at it, then hand control back to
-                // the host (picker or settings) which dismisses the cover.
-                try? dependencies.switchServer(to: result.server.id)
-                onCompletion?()
-            } else {
-                // First-run: existing setAuthenticated path takes over.
-                appState.setAuthenticated(server: result.server, user: result.user)
+            // Write the active-server pointer so next-launch restoreSession
+            // resolves the correct server. setAuthenticated only touches
+            // in-memory AppState, not the keychain, so this explicit write
+            // is required in both first-run and add-mode.
+            try? dependencies.keychainService.save(result.server.id, for: KeychainKeys.activeServerID)
 
-                // Re-evaluate the Seerr session against the freshly-
-                // signed-in user. switchToUser on an existing remembered
-                // profile already does this, but the "Add another
-                // profile" + first-time login paths fell through with
-                // whatever Seerr state the previous Jellyfin user had,
-                // until the user manually swapped profiles back and
-                // forth, the new account showed the previous account's
-                // Seerr UI. Restoring (or clearing) here keeps the new
-                // session honest from the first frame.
-                await syncSeerrToActiveProfile(
-                    userID: result.user.id,
-                    serverID: result.server.id
-                )
+            appState.setAuthenticated(server: result.server, user: result.user)
 
-                // Tell anyone who pushed this view that we're done.
-                // Initial-login flows (ServerDiscoveryView -> ...) don't
-                // need this, AppRouter swaps its root when
-                // isAuthenticated flips, but the "Add another profile"
-                // branch from ProfileSettingsView stays mounted on top
-                // of TabRootView until the push is popped.
-                NotificationCenter.default.post(name: .loginDidComplete, object: nil)
-            }
+            // Re-evaluate the Seerr session against the freshly-signed-in
+            // user. Both first-run and add-mode need this: add-mode was
+            // previously skipping it, leaving the new server's user with
+            // whatever Seerr state the previous profile had.
+            await syncSeerrToActiveProfile(
+                userID: result.user.id,
+                serverID: result.server.id
+            )
+
+            // Tell anyone who pushed this view that we're done.
+            // Initial-login flows (ServerDiscoveryView -> ...) don't
+            // need this, AppRouter swaps its root when isAuthenticated
+            // flips, but the "Add another profile" branch from
+            // ProfileSettingsView stays mounted on top of TabRootView
+            // until the push is popped.
+            NotificationCenter.default.post(name: .loginDidComplete, object: nil)
+
+            // Add-mode hook: let the host react (e.g. refresh the server
+            // list in Settings). No-op in first-run because onCompletion
+            // is nil there.
+            onCompletion?()
         }
     }
 
