@@ -13,6 +13,14 @@ struct AppRouter: View {
     /// player modal is on screen), without this guard, returning from
     /// the player would show the launch splash again.
     @State private var hasRestored = false
+    /// tvOS user identifier as of the last performRestore. Nil before
+    /// the first restore completes. Used by the scenePhase observer to
+    /// detect "the system user changed since we last fully resolved"
+    /// and trigger a full state reset + re-restore, so the previous
+    /// user's in-memory session can't bleed through to the new one
+    /// when the app process survives a long-press-Home user switch.
+    @State private var lastResolvedTVUserID: String?
+    @State private var lastResolvedTVUserIDSet = false
 
     /// Non-nil while the launch-time profile picker is armed: the
     /// restore found a valid session + at least one remembered
@@ -86,10 +94,25 @@ struct AppRouter: View {
             // Only react to becoming active. Inactive and background
             // transitions don't need a tvOS-user re-resolve.
             guard scenePhase == .active else { return }
-            // Skip the first firing at app launch, performRestore
-            // already runs resolveTVUserContext there.
-            guard appState.isAuthenticated || launchPickerServer != nil else { return }
-            await resolveTVUserContext()
+            // Skip until performRestore has set the baseline.
+            guard lastResolvedTVUserIDSet else { return }
+
+            let current = TVUserContext.currentUserID
+            if current != lastResolvedTVUserID {
+                // tvOS system user changed since the last full restore.
+                // Reset in-memory app state and re-run performRestore so
+                // the previous user's session can't bleed through.
+                appState.isAuthenticated = false
+                appState.activeServer = nil
+                appState.activeUser = nil
+                launchPickerServer = nil
+                await performRestore()
+            } else {
+                // Same tvOS user. Cheap re-resolve in case the mapping
+                // was edited from Settings on another scene.
+                guard appState.isAuthenticated || launchPickerServer != nil else { return }
+                await resolveTVUserContext()
+            }
         }
         .task(id: appState.serverDidSwitch) {
             guard appState.serverDidSwitch > 0 else { return }
@@ -349,7 +372,16 @@ struct AppRouter: View {
         EngineLog.emit("[AppRouter] deep-link dismiss: no player in modal chain")
     }
 
+    /// Records the current tvOS user identifier so the scenePhase
+    /// observer can detect a subsequent user change. Called from
+    /// every entry point that does a full performRestore.
+    private func markTVUserResolved() {
+        lastResolvedTVUserID = TVUserContext.currentUserID
+        lastResolvedTVUserIDSet = true
+    }
+
     private func restoreSession() async {
+        markTVUserResolved()
         appState.isLoading = true
         let splashStart = Date()
         await performRestore()
