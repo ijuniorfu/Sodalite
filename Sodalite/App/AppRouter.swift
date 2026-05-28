@@ -189,15 +189,27 @@ struct AppRouter: View {
     /// Jellyfin, then trigger the fullScreenCover. Cleared on the way
     /// out so a second tap on the same TopShelf cell re-fires.
     private func resolvePendingDeepLink() async {
-        guard let id = appState.pendingDeepLinkItemID else { return }
+        guard let id = appState.pendingDeepLinkItemID else {
+            appState.isResolvingDeepLink = false
+            return
+        }
         // Cold-launch race: the URL arrives before restoreSession
-        // finishes. Wait it out, the TopShelf cell can't have been
-        // produced without a valid session in the first place.
-        while !appState.isAuthenticated, !Task.isCancelled {
+        // finishes. Wait it out, capped at 8 seconds. Pre-multi-server
+        // restoreSession either authenticated quickly or short-circuited;
+        // in the multi-server world a missing-token state can leave
+        // isAuthenticated false while the LaunchProfilePicker is shown,
+        // and an unbounded wait here would lock the user out behind
+        // our own loading overlay.
+        let waitDeadline = Date().addingTimeInterval(8)
+        while !appState.isAuthenticated, !Task.isCancelled, Date() < waitDeadline {
             try? await Task.sleep(for: .milliseconds(150))
         }
-        guard let user = appState.activeUser else {
+        guard appState.isAuthenticated, let user = appState.activeUser else {
+            // Couldn't restore in time. Drop the pending link and the
+            // overlay so the user can interact with whatever AppRouter
+            // actually wants to show (picker / discovery).
             appState.pendingDeepLinkItemID = nil
+            appState.isResolvingDeepLink = false
             return
         }
         // Ask any active player to dismiss before the new detail
