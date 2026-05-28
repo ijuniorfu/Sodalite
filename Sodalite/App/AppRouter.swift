@@ -181,16 +181,44 @@ struct AppRouter: View {
         let currentUserID = try? dependencies.keychainService.loadString(
             for: KeychainKeys.userID(serverID: mapping.serverID)
         )
-        guard currentServerID != mapping.serverID
-            || currentUserID != mapping.jellyfinUserID
-        else { return }
+        let keychainAlreadyMatches = currentServerID == mapping.serverID
+            && currentUserID == mapping.jellyfinUserID
 
-        try? dependencies.switchServer(to: mapping.serverID)
-        if let server = dependencies.activeServer,
-           let user = dependencies.listRememberedUsers(serverID: mapping.serverID)
-               .first(where: { $0.id == mapping.jellyfinUserID }) {
-            try? dependencies.switchToUser(user, server: server)
+        if !keychainAlreadyMatches {
+            try? dependencies.switchServer(to: mapping.serverID)
+            if let server = dependencies.activeServer,
+               let user = dependencies.listRememberedUsers(serverID: mapping.serverID)
+                   .first(where: { $0.id == mapping.jellyfinUserID }) {
+                try? dependencies.switchToUser(user, server: server)
+            }
+            // switchServer bumps serverDidSwitch which triggers the
+            // probe + setAuthenticated path; nothing else to do here.
+            return
         }
+
+        // Keychain already matches the mapping. This happens when the
+        // app is resumed for a tvOS user whose state was never wiped
+        // (e.g. brief switch away and back). switchServer wouldn't
+        // fire, so the serverDidSwitch handler doesn't run, and the
+        // AppRouter body can be left showing whatever view the prior
+        // tvOS user's session put up (commonly ServerDiscoveryView).
+        // Force-flip AppState into authenticated so the body re-renders
+        // TabRoot.
+        guard !appState.isAuthenticated else { return }
+        guard let server = dependencies.activeServer,
+              let remembered = dependencies.listRememberedUsers(serverID: mapping.serverID)
+                  .first(where: { $0.id == mapping.jellyfinUserID })
+        else { return }
+        let jf = JellyfinUser(
+            id: remembered.id,
+            name: remembered.name,
+            serverID: server.id,
+            hasPassword: nil,
+            primaryImageTag: remembered.imageTag,
+            policy: nil
+        )
+        appState.setAuthenticated(server: server, user: jf)
+        launchPickerServer = nil
     }
 
     /// Fetches the active user's first Resume-queue item and feeds
