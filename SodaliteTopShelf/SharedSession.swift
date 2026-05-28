@@ -18,6 +18,18 @@ struct SharedSession: Sendable {
     let userID: String
     let accessToken: String
 
+    /// JSON shape the main app writes into each tvOSSession_<id>
+    /// slot. Kept in sync with `SharedSessionMirror.Payload`.
+    private struct Payload: Codable {
+        let serverURL: String
+        let userID: String
+        let accessToken: String
+    }
+
+    /// Legacy three-key reader. Used before the per-tvOS-user blob
+    /// migration runs. Once `KeychainMigrator` consolidates the old
+    /// triplet into `tvOSSession_default`, this path returns nil and
+    /// callers should use `read(tvUserID:)` instead.
     static func load() -> SharedSession? {
         let urlString = readSharedKeychainString(account: SharedSessionKeys.serverURL)
         let userID = readSharedKeychainString(account: SharedSessionKeys.userID)
@@ -28,6 +40,40 @@ struct SharedSession: Sendable {
         }
         return SharedSession(baseURL: url, userID: userID, accessToken: token)
     }
+
+    /// Forward-compatible zero-arg accessor. Folds into the
+    /// `tvOSSession_default` slot so callers that haven't been
+    /// updated to pass a tvUserID still read the single-user blob.
+    static func read() -> SharedSession? {
+        read(tvUserID: nil)
+    }
+
+    /// Reads the per-tvOS-user blob the main app's
+    /// `SharedSessionMirror.write` deposits. Nil tvUserID (single-
+    /// user Apple TV) reads the `tvOSSession_default` slot, identical
+    /// to the no-multi-user shape.
+    static func read(tvUserID: String?) -> SharedSession? {
+        let slot = sharedSessionSlot(tvUserID: tvUserID)
+        guard let data = readSharedKeychainData(account: slot) else {
+            log.info("SharedSession.read slot=\(slot, privacy: .public) data=nil group=\(resolvedAccessGroup, privacy: .public)")
+            return nil
+        }
+        guard let payload = try? JSONDecoder().decode(Payload.self, from: data),
+              let url = URL(string: payload.serverURL)
+        else {
+            log.error("SharedSession.read decode failed slot=\(slot, privacy: .public)")
+            return nil
+        }
+        log.info("SharedSession.read slot=\(slot, privacy: .public) ok=true group=\(resolvedAccessGroup, privacy: .public)")
+        return SharedSession(baseURL: url, userID: payload.userID, accessToken: payload.accessToken)
+    }
+}
+
+/// Mirrors `KeychainKeys.sharedSession(tvUserID:)` from the main
+/// target. Duplicated here so the TopShelf extension stays
+/// source-independent from Sodalite's target.
+private func sharedSessionSlot(tvUserID: String?) -> String {
+    "tvOSSession_\(tvUserID ?? "default")"
 }
 
 enum SharedSessionKeys {
@@ -40,6 +86,11 @@ enum SharedSessionKeys {
 }
 
 private func readSharedKeychainString(account: String) -> String? {
+    guard let data = readSharedKeychainData(account: account) else { return nil }
+    return String(data: data, encoding: .utf8)
+}
+
+private func readSharedKeychainData(account: String) -> Data? {
     let query: [String: Any] = [
         kSecClass as String: kSecClassGenericPassword,
         kSecAttrService as String: SharedSessionKeys.service,
@@ -51,7 +102,7 @@ private func readSharedKeychainString(account: String) -> String? {
     var result: AnyObject?
     let status = SecItemCopyMatching(query as CFDictionary, &result)
     guard status == errSecSuccess, let data = result as? Data else { return nil }
-    return String(data: data, encoding: .utf8)
+    return data
 }
 
 /// `$(AppIdentifierPrefix)` only expands inside entitlement plists —

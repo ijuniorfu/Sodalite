@@ -3,10 +3,13 @@ import os.log
 import Security
 
 /// Writes the active Jellyfin credentials into the shared keychain
-/// access group that the TopShelf extension reads from. Three keys
-/// per session: server URL, user ID, access token. Re-mirrored on
-/// every login, profile switch, and logout to keep the extension's
-/// view in lockstep with the running app.
+/// access group that the TopShelf extension reads from. One slot
+/// per tvOS system user: nil (single-user Apple TV) folds into
+/// `tvOSSession_default`, multi-user lands in `tvOSSession_<id>`.
+/// Each slot holds a JSON-encoded `Payload` with server URL,
+/// user ID, and access token. Re-mirrored on every login, profile
+/// switch, and logout to keep the extension's view in lockstep
+/// with the running app.
 ///
 /// Lives in its own service bucket (`…Sodalite.shared`) so the
 /// main app's primary keychain entries (in the default access
@@ -17,24 +20,62 @@ import Security
 enum SharedSessionMirror {
     static let service = "de.superuser404.Sodalite.shared"
 
-    static let serverURLKey = "shared.serverURL"
-    static let userIDKey = "shared.userID"
-    static let accessTokenKey = "shared.accessToken"
-
-    static func write(serverURL: URL, userID: String, accessToken: String) {
-        save(serverURL.absoluteString, account: serverURLKey)
-        save(userID, account: userIDKey)
-        save(accessToken, account: accessTokenKey)
+    /// JSON shape stored in each `tvOSSession_<id>` keychain slot.
+    /// Kept in sync with the matching decoder in
+    /// `SodaliteTopShelf/SharedSession.swift`.
+    struct Payload: Codable {
+        let serverURL: String
+        let userID: String
+        let accessToken: String
     }
 
-    static func clear() {
-        delete(account: serverURLKey)
-        delete(account: userIDKey)
-        delete(account: accessTokenKey)
+    static func write(tvUserID: String?, serverURL: URL, userID: String, accessToken: String) {
+        let slot = KeychainKeys.sharedSession(tvUserID: tvUserID)
+        let payload = Payload(
+            serverURL: serverURL.absoluteString,
+            userID: userID,
+            accessToken: accessToken
+        )
+        guard let data = try? JSONEncoder().encode(payload) else {
+            log.error("SharedSessionMirror.write encode failed slot=\(slot, privacy: .public)")
+            return
+        }
+        save(data, account: slot)
     }
 
-    private static func save(_ value: String, account: String) {
-        guard let data = value.data(using: .utf8) else { return }
+    static func clear(tvUserID: String?) {
+        let slot = KeychainKeys.sharedSession(tvUserID: tvUserID)
+        delete(account: slot)
+    }
+
+    /// Wipes every shared-session blob (default + every per-tvOS-user
+    /// slot). Used by clearSession (full logout) so a multi-user setup
+    /// doesn't leave one user's mirror behind after a global wipe.
+    /// Enumerates the keychain by account-name prefix because SecItem
+    /// doesn't accept prefix matching directly.
+    static func clearAll() {
+        var query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: service,
+            kSecMatchLimit as String: kSecMatchLimitAll,
+            kSecReturnAttributes as String: true,
+        ]
+        if let group = resolvedAccessGroup {
+            query[kSecAttrAccessGroup as String] = group
+        }
+        var result: AnyObject?
+        guard SecItemCopyMatching(query as CFDictionary, &result) == errSecSuccess,
+              let items = result as? [[String: Any]]
+        else { return }
+        for item in items {
+            guard let account = item[kSecAttrAccount as String] as? String,
+                  account.hasPrefix("tvOSSession_")
+            else { continue }
+            delete(account: account)
+        }
+    }
+
+    private static func save(_ data: Data, account: String) {
         delete(account: account)
         var query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,

@@ -123,7 +123,7 @@ final class DependencyContainer {
                 try? keychainService.save(data, for: KeychainKeys.rememberedUsers(serverID: server.id))
             }
             jellyfinClient.accessToken = nil
-            SharedSessionMirror.clear()
+            SharedSessionMirror.clear(tvUserID: TVUserContext.currentUserID)
             forgetRememberedSeerr(
                 forJellyfinUserID: userID,
                 jellyfinServerID: server.id
@@ -151,7 +151,12 @@ final class DependencyContainer {
         // previous app version didn't write the mirror, or the user
         // wiped just the shelf's bucket somehow.
         if let userID = try? keychainService.loadString(for: KeychainKeys.userID(serverID: server.id)) {
-            SharedSessionMirror.write(serverURL: server.url, userID: userID, accessToken: token)
+            SharedSessionMirror.write(
+                tvUserID: TVUserContext.currentUserID,
+                serverURL: server.url,
+                userID: userID,
+                accessToken: token
+            )
         }
         return true
     }
@@ -186,7 +191,12 @@ final class DependencyContainer {
         jellyfinClient.baseURL = server.url
         jellyfinClient.accessToken = token
 
-        SharedSessionMirror.write(serverURL: server.url, userID: user.id, accessToken: token)
+        SharedSessionMirror.write(
+            tvUserID: TVUserContext.currentUserID,
+            serverURL: server.url,
+            userID: user.id,
+            accessToken: token
+        )
 
         // Add/update this user in the remembered-profiles list for
         // the server so the user can later switch to any previous
@@ -279,7 +289,7 @@ final class DependencyContainer {
         guard let token = loaded else {
             jellyfinClient.baseURL = server.url
             jellyfinClient.accessToken = nil
-            SharedSessionMirror.clear()
+            SharedSessionMirror.clear(tvUserID: TVUserContext.currentUserID)
             throw ServerSwitchError.missingToken
         }
 
@@ -289,9 +299,14 @@ final class DependencyContainer {
         jellyfinClient.accessToken = token
 
         if let userID {
-            SharedSessionMirror.write(serverURL: server.url, userID: userID, accessToken: token)
+            SharedSessionMirror.write(
+                tvUserID: TVUserContext.currentUserID,
+                serverURL: server.url,
+                userID: userID,
+                accessToken: token
+            )
         } else {
-            SharedSessionMirror.clear()
+            SharedSessionMirror.clear(tvUserID: TVUserContext.currentUserID)
         }
 
         // Seerr session is per (server, user); the caller layer
@@ -345,7 +360,7 @@ final class DependencyContainer {
                 try? keychainService.delete(for: KeychainKeys.activeServerID)
                 jellyfinClient.baseURL = nil
                 jellyfinClient.accessToken = nil
-                SharedSessionMirror.clear()
+                SharedSessionMirror.clear(tvUserID: TVUserContext.currentUserID)
             }
         }
 
@@ -452,6 +467,7 @@ final class DependencyContainer {
         jellyfinClient.accessToken = remembered.token
 
         SharedSessionMirror.write(
+            tvUserID: TVUserContext.currentUserID,
             serverURL: server.url,
             userID: remembered.id,
             accessToken: remembered.token
@@ -507,7 +523,7 @@ final class DependencyContainer {
         jellyfinClient.baseURL = nil
         jellyfinClient.accessToken = nil
 
-        SharedSessionMirror.clear()
+        SharedSessionMirror.clearAll()
 
         try clearSeerrSession()
     }
