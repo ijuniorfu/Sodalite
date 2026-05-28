@@ -121,6 +121,14 @@ struct SettingsView: View {
             }
 
             SettingsTile(
+                icon: "person.crop.rectangle",
+                title: "tvOSProfile.settings.entry.title",
+                subtitle: "tvOSProfile.settings.entry.subtitle"
+            ) {
+                TVUserProfileSettingsView()
+            }
+
+            SettingsTile(
                 icon: "square.grid.2x2",
                 title: "settings.home.customize",
                 subtitle: "settings.home.customizeSubtitle"
