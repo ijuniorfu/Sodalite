@@ -200,6 +200,13 @@ final class DependencyContainer {
                 token: token
             )
         )
+
+        if let tvUserID = TVUserContext.currentUserID {
+            tvProfileMappings.setMapping(
+                TVProfileMapping(serverID: server.id, jellyfinUserID: user.id),
+                for: tvUserID
+            )
+        }
     }
 
     // MARK: - Known Servers
@@ -456,6 +463,13 @@ final class DependencyContainer {
         // its own remembered Seerr session picks it back up on
         // switch, while a profile with no Seerr history correctly
         // lands on the "set up Seerr" empty state.
+
+        if let tvUserID = TVUserContext.currentUserID {
+            tvProfileMappings.setMapping(
+                TVProfileMapping(serverID: server.id, jellyfinUserID: remembered.id),
+                for: tvUserID
+            )
+        }
     }
 
     func loadJellyfinPassword() -> String? {
