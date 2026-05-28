@@ -1,6 +1,9 @@
 import SwiftUI
 import UIKit
 import AetherEngine
+import os.log
+
+private let tvUserLogger = Logger(subsystem: "de.superuser404.Sodalite", category: "tvUser")
 
 struct AppRouter: View {
     @Environment(\.appState) private var appState
@@ -91,14 +94,22 @@ struct AppRouter: View {
             await resolveContinueWatchingRequest()
         }
         .task(id: scenePhase) {
+            tvUserLogger.notice("scenePhase task fired: phase=\(String(describing: scenePhase), privacy: .public) tvUserID=\(TVUserContext.currentUserID ?? "nil", privacy: .public) last=\(lastResolvedTVUserID ?? "nil", privacy: .public) lastSet=\(lastResolvedTVUserIDSet, privacy: .public) isAuth=\(appState.isAuthenticated, privacy: .public) pickerServer=\(launchPickerServer?.id ?? "nil", privacy: .public)")
             // Only react to becoming active. Inactive and background
             // transitions don't need a tvOS-user re-resolve.
-            guard scenePhase == .active else { return }
+            guard scenePhase == .active else {
+                tvUserLogger.notice("scenePhase: skip (not active)")
+                return
+            }
             // Skip until performRestore has set the baseline.
-            guard lastResolvedTVUserIDSet else { return }
+            guard lastResolvedTVUserIDSet else {
+                tvUserLogger.notice("scenePhase: skip (baseline not set yet)")
+                return
+            }
 
             let current = TVUserContext.currentUserID
             if current != lastResolvedTVUserID {
+                tvUserLogger.notice("scenePhase: tvUser CHANGED last=\(lastResolvedTVUserID ?? "nil", privacy: .public) -> current=\(current ?? "nil", privacy: .public). Wiping state + performRestore.")
                 // tvOS system user changed since the last full restore.
                 // Reset in-memory app state and re-run performRestore so
                 // the previous user's session can't bleed through.
@@ -112,9 +123,13 @@ struct AppRouter: View {
                 markTVUserResolved()
                 await performRestore()
             } else {
+                tvUserLogger.notice("scenePhase: same tvUser. Cheap resolveTVUserContext.")
                 // Same tvOS user. Cheap re-resolve in case the mapping
                 // was edited from Settings on another scene.
-                guard appState.isAuthenticated || launchPickerServer != nil else { return }
+                guard appState.isAuthenticated || launchPickerServer != nil else {
+                    tvUserLogger.notice("scenePhase: skip cheap resolve (no auth, no picker)")
+                    return
+                }
                 await resolveTVUserContext()
             }
         }
@@ -199,8 +214,17 @@ struct AppRouter: View {
     /// defaultServerID; the system identity is the more specific
     /// signal. On Apple TVs without multi-user this is a no-op.
     private func resolveTVUserContext() async {
-        guard let tvUserID = TVUserContext.currentUserID else { return }
-        guard let mapping = dependencies.tvProfileMappings.mapping(for: tvUserID) else { return }
+        let allMappings = dependencies.tvProfileMappings.allMappings
+        tvUserLogger.notice("resolveTVUserContext enter: tvUserID=\(TVUserContext.currentUserID ?? "nil", privacy: .public) totalMappings=\(allMappings.count, privacy: .public) mappingKeys=\(allMappings.keys.joined(separator: ","), privacy: .public)")
+        guard let tvUserID = TVUserContext.currentUserID else {
+            tvUserLogger.notice("resolveTVUserContext: skip (no tvUserID)")
+            return
+        }
+        guard let mapping = dependencies.tvProfileMappings.mapping(for: tvUserID) else {
+            tvUserLogger.notice("resolveTVUserContext: skip (no mapping for \(tvUserID, privacy: .public))")
+            return
+        }
+        tvUserLogger.notice("resolveTVUserContext: mapping found server=\(mapping.serverID, privacy: .public) user=\(mapping.jellyfinUserID, privacy: .public)")
 
         let currentServerID = try? dependencies.keychainService.loadString(
             for: KeychainKeys.activeServerID
@@ -211,12 +235,18 @@ struct AppRouter: View {
         let keychainAlreadyMatches = currentServerID == mapping.serverID
             && currentUserID == mapping.jellyfinUserID
 
+        tvUserLogger.notice("resolveTVUserContext: keychain state currentServer=\(currentServerID ?? "nil", privacy: .public) currentUser=\(currentUserID ?? "nil", privacy: .public) matches=\(keychainAlreadyMatches, privacy: .public)")
+
         if !keychainAlreadyMatches {
+            tvUserLogger.notice("resolveTVUserContext: SWITCH path. Calling switchServer + switchToUser")
             try? dependencies.switchServer(to: mapping.serverID)
             if let server = dependencies.activeServer,
                let user = dependencies.listRememberedUsers(serverID: mapping.serverID)
                    .first(where: { $0.id == mapping.jellyfinUserID }) {
                 try? dependencies.switchToUser(user, server: server)
+                tvUserLogger.notice("resolveTVUserContext: switchToUser done. serverDidSwitch handler will setAuthenticated.")
+            } else {
+                tvUserLogger.notice("resolveTVUserContext: SWITCH path - server or remembered user missing after switchServer")
             }
             // switchServer bumps serverDidSwitch which triggers the
             // probe + setAuthenticated path; nothing else to do here.
@@ -231,11 +261,17 @@ struct AppRouter: View {
         // tvOS user's session put up (commonly ServerDiscoveryView).
         // Force-flip AppState into authenticated so the body re-renders
         // TabRoot.
-        guard !appState.isAuthenticated else { return }
+        guard !appState.isAuthenticated else {
+            tvUserLogger.notice("resolveTVUserContext: RESUME path. Already authenticated, no-op.")
+            return
+        }
         guard let server = dependencies.activeServer,
               let remembered = dependencies.listRememberedUsers(serverID: mapping.serverID)
                   .first(where: { $0.id == mapping.jellyfinUserID })
-        else { return }
+        else {
+            tvUserLogger.notice("resolveTVUserContext: RESUME path - server or remembered user missing. activeServer=\(dependencies.activeServer?.id ?? "nil", privacy: .public) rememberedCount=\(dependencies.listRememberedUsers(serverID: mapping.serverID).count, privacy: .public)")
+            return
+        }
         let jf = JellyfinUser(
             id: remembered.id,
             name: remembered.name,
@@ -246,6 +282,7 @@ struct AppRouter: View {
         )
         appState.setAuthenticated(server: server, user: jf)
         launchPickerServer = nil
+        tvUserLogger.notice("resolveTVUserContext: RESUME path - setAuthenticated done. user=\(remembered.id, privacy: .public) server=\(server.id, privacy: .public)")
     }
 
     /// Fetches the active user's first Resume-queue item and feeds
@@ -380,11 +417,14 @@ struct AppRouter: View {
     /// observer can detect a subsequent user change. Called from
     /// every entry point that does a full performRestore.
     private func markTVUserResolved() {
-        lastResolvedTVUserID = TVUserContext.currentUserID
+        let id = TVUserContext.currentUserID
+        tvUserLogger.notice("markTVUserResolved: tvUserID=\(id ?? "nil", privacy: .public)")
+        lastResolvedTVUserID = id
         lastResolvedTVUserIDSet = true
     }
 
     private func restoreSession() async {
+        tvUserLogger.notice("restoreSession ENTER. tvUserID=\(TVUserContext.currentUserID ?? "nil", privacy: .public)")
         markTVUserResolved()
         appState.isLoading = true
         let splashStart = Date()
@@ -401,6 +441,10 @@ struct AppRouter: View {
     }
 
     private func performRestore() async {
+        tvUserLogger.notice("performRestore ENTER. tvUserID=\(TVUserContext.currentUserID ?? "nil", privacy: .public) isAuth=\(appState.isAuthenticated, privacy: .public) pickerServer=\(launchPickerServer?.id ?? "nil", privacy: .public)")
+        defer {
+            tvUserLogger.notice("performRestore EXIT. isAuth=\(appState.isAuthenticated, privacy: .public) activeUser=\(appState.activeUser?.id ?? "nil", privacy: .public) activeServer=\(appState.activeServer?.id ?? "nil", privacy: .public) pickerServer=\(launchPickerServer?.id ?? "nil", privacy: .public)")
+        }
         // Fire-and-forget: StoreKit lookups are independent of the
         // Jellyfin restore and shouldn't block the splash. The observable
         // isSupporter flag starts from the cached value and flips live
@@ -440,6 +484,7 @@ struct AppRouter: View {
         }
 
         let didRestore = dependencies.restoreSession()
+        tvUserLogger.notice("performRestore: dependencies.restoreSession() returned \(didRestore, privacy: .public). knownServers=\(dependencies.listKnownServers().map { $0.id }.joined(separator: ","), privacy: .public) activeServer=\(dependencies.activeServer?.id ?? "nil", privacy: .public)")
 
         if !didRestore {
             // Session couldn't be restored (missing token, unresolved
