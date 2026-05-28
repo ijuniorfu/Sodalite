@@ -19,6 +19,7 @@ final class DependencyContainer {
     let storeKitService: StoreKitServiceProtocol
     let appearancePreferences: AppearancePreferences
     let authPreferences: AuthPreferences
+    let tvProfileMappings: TVProfileMappings
 
     let seerrClient: SeerrClient
     let seerrServerDiscoveryService: SeerrServerDiscoveryServiceProtocol
@@ -72,6 +73,7 @@ final class DependencyContainer {
         self.storeKitService = StoreKitService()
         self.appearancePreferences = AppearancePreferences()
         self.authPreferences = AuthPreferences()
+        self.tvProfileMappings = TVProfileMappings()
 
         self.seerrClient = SeerrClient(httpClient: httpClient)
         self.seerrServerDiscoveryService = SeerrServerDiscoveryService(httpClient: httpClient)
@@ -340,6 +342,8 @@ final class DependencyContainer {
             }
         }
 
+        tvProfileMappings.removeMappings(forServer: serverID)
+
         Task { @MainActor in
             self.appState?.serverDidSwitch &+= 1
         }
@@ -407,6 +411,7 @@ final class DependencyContainer {
         // Drop the profile-scoped Seerr session too so a forgotten
         // user doesn't leave a dangling Seerr cookie in the keychain.
         forgetRememberedSeerr(forJellyfinUserID: id, jellyfinServerID: serverID)
+        tvProfileMappings.removeMapping(forUser: id, on: serverID)
     }
 
     /// Swap to an already-remembered profile. Re-uses the cached
