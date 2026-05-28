@@ -28,6 +28,16 @@ enum KeychainKeys {
 
     static let seerrServer = "seerrServer"
 
+    /// JSON-encoded `[JellyfinServer]` list. Order is significant:
+    /// the front of the list is the most recently added or upserted
+    /// server. The picker and settings list render in this order.
+    static let knownServers = "knownServers"
+
+    /// The `JellyfinServer.id` of the currently active server. Must
+    /// always resolve into an entry of `knownServers` when present.
+    /// Cleared only when the user removes the last known server.
+    static let activeServerID = "activeServerID"
+
     static func seerrSession(serverID: String) -> String {
         "seerrSession_\(serverID)"
     }
