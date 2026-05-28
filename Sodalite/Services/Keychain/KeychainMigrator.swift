@@ -27,6 +27,7 @@ enum KeychainMigrator {
 
     private static let migratedFlagKey = "Sodalite.didMigrateFromJellySeeTV.v1"
     private static let activeServerMigratedFlagKey = "Sodalite.didMigrateActiveServerToMulti.v1"
+    private static let sharedSessionMigratedFlagKey = "Sodalite.didMigrateSharedSessionToTVUser.v1"
 
     private static let oldMainService = "de.superuser404.JellySeeTV"
     private static let oldSharedService = "de.superuser404.JellySeeTV.shared"
@@ -43,18 +44,24 @@ enum KeychainMigrator {
     /// thread; idempotent after the first successful run.
     static func migrateIfNeeded() {
         let defaults = UserDefaults.standard
-        guard !defaults.bool(forKey: migratedFlagKey) else { return }
+        if !defaults.bool(forKey: migratedFlagKey) {
+            let mainCopied = copyAllItems(fromService: oldMainService, toService: newMainService)
+            let sharedCopied = copyAllItems(fromService: oldSharedService, toService: newSharedService)
+            migrateAppGroupDeviceID()
+            migrateActiveServerToMultiIfNeeded()
 
-        let mainCopied = copyAllItems(fromService: oldMainService, toService: newMainService)
-        let sharedCopied = copyAllItems(fromService: oldSharedService, toService: newSharedService)
-        migrateAppGroupDeviceID()
-        migrateActiveServerToMultiIfNeeded()
+            // Mark migration done even if no items were found, a fresh
+            // install has nothing to copy and shouldn't keep probing on
+            // every cold launch.
+            defaults.set(true, forKey: migratedFlagKey)
+            log.notice("KeychainMigrator finished: main=\(mainCopied, privacy: .public) shared=\(sharedCopied, privacy: .public)")
+        }
 
-        // Mark migration done even if no items were found, a fresh
-        // install has nothing to copy and shouldn't keep probing on
-        // every cold launch.
-        defaults.set(true, forKey: migratedFlagKey)
-        log.notice("KeychainMigrator finished: main=\(mainCopied, privacy: .public) shared=\(sharedCopied, privacy: .public)")
+        // Runs unconditionally on each cold launch until its own flag
+        // flips. Must not be nested inside the JellySeeTV guard because
+        // that migration ran months before the tvOS-user-aware session
+        // slot existed.
+        migrateSharedSessionToTVUserSlotIfNeeded()
     }
 
     /// Enumerates every generic password under `fromService` and
@@ -155,6 +162,146 @@ enum KeychainMigrator {
         }
 
         defaults.set(true, forKey: activeServerMigratedFlagKey)
+    }
+
+    /// One-shot packing of the pre-tvOS-user-aware shared session into
+    /// the new JSON Payload slot. Before the tvOS-multi-user work,
+    /// SharedSession wrote three independent keychain accounts
+    /// (shared.serverURL, shared.userID, shared.accessToken) in the
+    /// shared service bucket. The new format encodes everything into
+    /// a single JSON blob at tvOSSession_default. This step reads the
+    /// three legacy accounts, encodes them into a Payload that matches
+    /// SharedSessionMirror.Payload's Codable shape, writes the blob to
+    /// the new slot, then deletes the three legacy accounts so only
+    /// the new slot remains.
+    static func migrateSharedSessionToTVUserSlotIfNeeded() {
+        let defaults = UserDefaults.standard
+        guard !defaults.bool(forKey: sharedSessionMigratedFlagKey) else { return }
+
+        let sharedService = newSharedService
+        let legacyServerURLAccount = "shared.serverURL"
+        let legacyUserIDAccount = "shared.userID"
+        let legacyAccessTokenAccount = "shared.accessToken"
+        let newSlot = "tvOSSession_default"
+
+        // Read the three legacy accounts directly via SecItem. The
+        // existing KeychainService is scoped to the main service;
+        // legacy SharedSession blobs live in the shared service bucket.
+        guard let serverURLString = readSharedLegacyAccount(legacyServerURLAccount, service: sharedService),
+              let userIDString = readSharedLegacyAccount(legacyUserIDAccount, service: sharedService),
+              let accessTokenString = readSharedLegacyAccount(legacyAccessTokenAccount, service: sharedService)
+        else {
+            // Nothing to migrate (fresh install) or partially-set
+            // legacy state. Mark done so we stop probing on each launch.
+            defaults.set(true, forKey: sharedSessionMigratedFlagKey)
+            return
+        }
+
+        // Skip if the new target slot already has data (prior partial
+        // migration or a first-time login that already used the new format).
+        if readSharedLegacyAccount(newSlot, service: sharedService) != nil {
+            // Still delete the legacy accounts to clean up.
+            for account in [legacyServerURLAccount, legacyUserIDAccount, legacyAccessTokenAccount] {
+                deleteSharedLegacyAccount(account, service: sharedService)
+            }
+            defaults.set(true, forKey: sharedSessionMigratedFlagKey)
+            return
+        }
+
+        // Encode into the new Payload JSON shape. SharedSessionMirror.Payload
+        // stores serverURL as String (absoluteString), so we match that exactly.
+        struct MigrationPayload: Codable {
+            let serverURL: String
+            let userID: String
+            let accessToken: String
+        }
+        let payload = MigrationPayload(
+            serverURL: serverURLString,
+            userID: userIDString,
+            accessToken: accessTokenString
+        )
+        guard let data = try? JSONEncoder().encode(payload) else {
+            log.notice("KeychainMigrator: sharedSession payload encode failed")
+            return
+        }
+
+        // Write to the new slot using the same access-group probing
+        // pattern as SharedSessionMirror.save so the TopShelf extension
+        // can read the item from the same group.
+        var addQuery: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: sharedService,
+            kSecAttrAccount as String: newSlot,
+            kSecValueData as String: data,
+            kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlock,
+        ]
+        if let group = resolvedSharedAccessGroup(service: sharedService) {
+            addQuery[kSecAttrAccessGroup as String] = group
+        }
+        let addStatus = SecItemAdd(addQuery as CFDictionary, nil)
+        guard addStatus == errSecSuccess else {
+            log.notice("KeychainMigrator: sharedSession write failed status=\(addStatus, privacy: .public)")
+            return
+        }
+
+        // Delete the three legacy accounts.
+        for account in [legacyServerURLAccount, legacyUserIDAccount, legacyAccessTokenAccount] {
+            deleteSharedLegacyAccount(account, service: sharedService)
+        }
+
+        log.notice("KeychainMigrator: sharedSession three-account -> tvOSSession_default")
+        defaults.set(true, forKey: sharedSessionMigratedFlagKey)
+    }
+
+    private static func readSharedLegacyAccount(_ account: String, service: String) -> String? {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: service,
+            kSecAttrAccount as String: account,
+            kSecMatchLimit as String: kSecMatchLimitOne,
+            kSecReturnData as String: true,
+        ]
+        var result: AnyObject?
+        guard SecItemCopyMatching(query as CFDictionary, &result) == errSecSuccess,
+              let data = result as? Data,
+              let string = String(data: data, encoding: .utf8)
+        else { return nil }
+        return string
+    }
+
+    private static func deleteSharedLegacyAccount(_ account: String, service: String) {
+        var query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: service,
+            kSecAttrAccount as String: account,
+        ]
+        if let group = resolvedSharedAccessGroup(service: service) {
+            query[kSecAttrAccessGroup as String] = group
+        }
+        SecItemDelete(query as CFDictionary)
+    }
+
+    /// Probes any existing keychain item to extract the team-ID prefix,
+    /// then synthesizes the fully-qualified access group for the shared
+    /// service. Mirrors the logic in SharedSessionMirror.resolvedAccessGroup.
+    /// Returns nil on fresh installs where no keychain items exist yet;
+    /// the caller then omits kSecAttrAccessGroup and lets the OS use the
+    /// default entitled group.
+    private static func resolvedSharedAccessGroup(service: String) -> String? {
+        let probe: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecMatchLimit as String: kSecMatchLimitOne,
+            kSecReturnAttributes as String: true,
+        ]
+        var item: AnyObject?
+        let status = SecItemCopyMatching(probe as CFDictionary, &item)
+        guard status == errSecSuccess,
+              let attrs = item as? [String: Any],
+              let group = attrs[kSecAttrAccessGroup as String] as? String,
+              let dot = group.firstIndex(of: ".")
+        else { return nil }
+        let prefix = String(group[..<group.index(after: dot)])
+        return prefix + "de.superuser404.Sodalite.shared"
     }
 
     /// Pulls the TopShelf extension's device id out of the old app
