@@ -220,18 +220,14 @@ final class DependencyContainer {
 
         try keychainService.save(serverID, for: KeychainKeys.activeServerID)
 
-        let token: String
+        let loaded: String?
         do {
-            guard let t = try keychainService.loadString(for: KeychainKeys.accessToken(serverID: serverID)) else {
-                jellyfinClient.baseURL = server.url
-                jellyfinClient.accessToken = nil
-                SharedSessionMirror.clear()
-                throw ServerSwitchError.missingToken
-            }
-            token = t
-        } catch is ServerSwitchError {
-            throw ServerSwitchError.missingToken
+            loaded = try keychainService.loadString(for: KeychainKeys.accessToken(serverID: serverID))
         } catch {
+            loaded = nil
+        }
+
+        guard let token = loaded else {
             jellyfinClient.baseURL = server.url
             jellyfinClient.accessToken = nil
             SharedSessionMirror.clear()
