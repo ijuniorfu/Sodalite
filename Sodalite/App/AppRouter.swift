@@ -81,6 +81,28 @@ struct AppRouter: View {
         .task(id: appState.requestContinueWatching) {
             await resolveContinueWatchingRequest()
         }
+        .task(id: appState.serverDidSwitch) {
+            guard appState.serverDidSwitch > 0 else { return }
+            do {
+                let user = try await dependencies.probeActiveUser()
+                if let user, let server = dependencies.activeServer {
+                    appState.setAuthenticated(server: server, user: user)
+                } else {
+                    // Token expired or no remembered user: route to
+                    // the profile picker for the new active server.
+                    if let server = dependencies.activeServer {
+                        launchPickerServer = server
+                    }
+                    appState.isAuthenticated = false
+                }
+            } catch {
+                // Transport error during probe. Leave isAuthenticated
+                // as-is; the user will see a stale TabRoot for ~5 s
+                // until the next user-driven request hits the network
+                // and surfaces the real failure. Task 14 adds
+                // explicit rollback on transport error.
+            }
+        }
         .fullScreenCover(item: $deepLinkItem) { item in
             NavigationStack {
                 DetailRouterView(item: item)

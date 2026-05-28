@@ -95,6 +95,37 @@ final class DependencyContainer {
         )
     }
 
+    /// Probes /Users/Me against the active server. Returns the
+    /// JellyfinUser on success. On 401, drops the remembered entry
+    /// for that (server, user) pair and the access token slot, and
+    /// returns nil so the caller can route to the profile picker.
+    /// Throws on transport errors (caller should keep the previous
+    /// server active and surface a toast / handle the failure).
+    @MainActor
+    func probeActiveUser() async throws -> JellyfinUser? {
+        guard let server = activeServer,
+              let userID = try? keychainService.loadString(for: KeychainKeys.userID(serverID: server.id))
+        else { return nil }
+
+        do {
+            let user = try await jellyfinAuthService.getCurrentUser()
+            return user
+        } catch APIError.unauthorized {
+            try? keychainService.delete(for: KeychainKeys.accessToken(serverID: server.id))
+            try? keychainService.delete(for: KeychainKeys.userID(serverID: server.id))
+
+            // Drop the remembered user too; their token is dead.
+            var users = listRememberedUsers(serverID: server.id)
+            users.removeAll { $0.id == userID }
+            if let data = try? JSONEncoder().encode(users) {
+                try? keychainService.save(data, for: KeychainKeys.rememberedUsers(serverID: server.id))
+            }
+            jellyfinClient.accessToken = nil
+            SharedSessionMirror.clear()
+            return nil
+        }
+    }
+
     /// `try?` is intentional here: a missing or unreadable Keychain entry
     /// (fresh install, wiped storage, corrupted item) means there's no session
     /// to restore, the app falls back to the login screen. There's no recovery
