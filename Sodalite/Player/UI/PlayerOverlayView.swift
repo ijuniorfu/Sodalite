@@ -369,7 +369,7 @@ struct PlayerOverlayView: View {
                     isScrubbing: viewModel.isScrubbing,
                     scrubTime: viewModel.scrubTime,
                     audioTracks: viewModel.displayAudioTracks,
-                    subtitleStreams: viewModel.subtitleStreams,
+                    subtitleStreams: viewModel.displaySubtitleStreams,
                     activeAudioIndex: viewModel.activeAudioIndex,
                     activeSubtitleIndex: viewModel.activeSubtitleIndex,
                     activeSpeedIndex: viewModel.activeSpeedIndex,

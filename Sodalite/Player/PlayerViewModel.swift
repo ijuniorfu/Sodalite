@@ -120,7 +120,7 @@ final class PlayerViewModel {
         case chapter(highlighted: Int)  // index into chapters
         case episode(highlighted: Int)  // index into seasonEpisodes
         case audio(highlighted: Int)   // index into displayAudioTracks
-        case subtitle(highlighted: Int) // index into subtitle items (0=Off, 1..=tracks)
+        case subtitle(highlighted: Int) // index into subtitle items (0=Off, 1..=displaySubtitleStreams)
         case speed(highlighted: Int)    // index into PlayerViewModel.speedOptions
         case picture(highlighted: Int)  // index into PlaybackPreferences.PictureMode.allCases
     }
@@ -142,6 +142,12 @@ final class PlayerViewModel {
     var displayAudioTracks: [TrackInfo] {
         let tracks = player.audioTracks
         return tracks.filter { $0.isDefault } + tracks.filter { !$0.isDefault }
+    }
+
+    /// Subtitle streams in picker order: Jellyfin-default first, then source order. All picker UI indexes here (with the "Off" row at position 0), not into `subtitleStreams`.
+    var displaySubtitleStreams: [MediaStream] {
+        let streams = subtitleStreams
+        return streams.filter { $0.isDefault == true } + streams.filter { $0.isDefault != true }
     }
 
     /// Episodes from the currently-playing item's season, sorted by

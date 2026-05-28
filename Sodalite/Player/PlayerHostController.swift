@@ -1076,7 +1076,7 @@ final class PlayerHostController: AVPlayerViewController {
         // Items: Off (index 0), then each subtitle stream (index 1...)
         let currentIdx: Int
         if let activeId = viewModel.activeSubtitleIndex,
-           let streamIdx = viewModel.subtitleStreams.firstIndex(where: { $0.index == activeId }) {
+           let streamIdx = viewModel.displaySubtitleStreams.firstIndex(where: { $0.index == activeId }) {
             currentIdx = streamIdx + 1
         } else {
             currentIdx = 0
@@ -1114,7 +1114,7 @@ final class PlayerHostController: AVPlayerViewController {
             let newIdx = max(0, min(count - 1, idx + offset))
             viewModel.trackDropdown = .audio(highlighted: newIdx)
         case .subtitle(let idx):
-            let count = viewModel.subtitleStreams.count + 1 // +1 for "Off"
+            let count = viewModel.displaySubtitleStreams.count + 1 // +1 for "Off"
             guard count > 0 else { return }
             let newIdx = max(0, min(count - 1, idx + offset))
             viewModel.trackDropdown = .subtitle(highlighted: newIdx)
@@ -1155,7 +1155,7 @@ final class PlayerHostController: AVPlayerViewController {
             if idx == 0 {
                 viewModel.selectSubtitleTrack(id: nil)
             } else {
-                let streams = viewModel.subtitleStreams
+                let streams = viewModel.displaySubtitleStreams
                 let streamIdx = idx - 1
                 if streamIdx < streams.count {
                     viewModel.selectSubtitleTrack(id: streams[streamIdx].index)
