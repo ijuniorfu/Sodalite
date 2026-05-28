@@ -156,6 +156,33 @@ struct AppRouter: View {
         }
     }
 
+    /// Promote the (server, profile) tuple pinned to the current
+    /// tvOS user, if any. Runs at the top of performRestore and on
+    /// every scene-foreground. The tvOS mapping wins over the user's
+    /// defaultServerID; the system identity is the more specific
+    /// signal. On Apple TVs without multi-user this is a no-op.
+    private func resolveTVUserContext() async {
+        guard let tvUserID = TVUserContext.currentUserID else { return }
+        guard let mapping = dependencies.tvProfileMappings.mapping(for: tvUserID) else { return }
+
+        let currentServerID = try? dependencies.keychainService.loadString(
+            for: KeychainKeys.activeServerID
+        )
+        let currentUserID = try? dependencies.keychainService.loadString(
+            for: KeychainKeys.userID(serverID: mapping.serverID)
+        )
+        guard currentServerID != mapping.serverID
+            || currentUserID != mapping.jellyfinUserID
+        else { return }
+
+        try? dependencies.switchServer(to: mapping.serverID)
+        if let server = dependencies.activeServer,
+           let user = dependencies.listRememberedUsers(serverID: mapping.serverID)
+               .first(where: { $0.id == mapping.jellyfinUserID }) {
+            try? dependencies.switchToUser(user, server: server)
+        }
+    }
+
     /// Fetches the active user's first Resume-queue item and feeds
     /// it through the normal deep-link channel. Triggered by
     /// `ContinueWatchingIntent` (Siri / Shortcuts), the intent
@@ -308,6 +335,12 @@ struct AppRouter: View {
             await dependencies.storeKitService.refreshSupporterStatus()
             await dependencies.storeKitService.loadProducts()
         }
+
+        // If the current tvOS user has a (server, Jellyfin profile)
+        // mapping recorded, promote it now. Runs before the
+        // defaultServerID promotion so the tvOS identity (more
+        // specific signal) wins when both apply.
+        await resolveTVUserContext()
 
         // Promote the user's default server (if set and still known)
         // before restoreSession runs. Lets the user pin which server
