@@ -45214,157 +45214,157 @@
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Dlouhým stiskem na server jej přepnete nebo odeberete."
+            "value" : "Dlouhým stiskem na server jej přepnete, nastavíte jako výchozí nebo odeberete."
           }
         },
         "da" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Hold et server-tile nede for at skifte eller fjerne det."
+            "value" : "Hold et server-tile nede for at skifte, indstille som standard eller fjerne det."
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Halte ein Server-Tile gedrückt, um zu wechseln oder zu entfernen."
+            "value" : "Halte ein Server-Tile gedrückt, um zu wechseln, als Standard festzulegen oder zu entfernen."
           }
         },
         "el" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Πατήστε παρατεταμένα έναν διακομιστή για εναλλαγή ή αφαίρεση."
+            "value" : "Πατήστε παρατεταμένα έναν διακομιστή για εναλλαγή, ορισμό ως προεπιλογή ή αφαίρεση."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Long-press a server to switch or remove it."
+            "value" : "Long-press a server to switch, set as default, or remove it."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Mantén pulsado un servidor para cambiar o eliminarlo."
+            "value" : "Mantén pulsado un servidor para cambiar, fijar como predeterminado o eliminarlo."
           }
         },
         "fi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Pidä palvelinta painettuna vaihtaaksesi tai poistaaksesi sen."
+            "value" : "Pidä palvelinta painettuna vaihtaaksesi, asettaaksesi oletukseksi tai poistaaksesi sen."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Maintenez un serveur pour basculer ou le supprimer."
+            "value" : "Maintenez un serveur pour basculer, définir par défaut ou le supprimer."
           }
         },
         "hr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Dugo pritisni server da bi prebacio ili uklonio."
+            "value" : "Dugo pritisni server da bi prebacio, postavio kao zadani ili uklonio."
           }
         },
         "hu" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tartsd nyomva egy kiszolgálót a váltáshoz vagy eltávolításhoz."
+            "value" : "Tartsd nyomva egy kiszolgálót a váltáshoz, alapértelmezettként beállításhoz vagy eltávolításhoz."
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tieni premuto un server per passare a quello o rimuoverlo."
+            "value" : "Tieni premuto un server per passare a quello, impostarlo come predefinito o rimuoverlo."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "サーバーを長押しすると、切り替えまたは削除できます。"
+            "value" : "サーバーを長押しすると、切り替え、既定として設定、または削除できます。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "서버를 길게 눌러 전환하거나 제거하세요."
+            "value" : "서버를 길게 눌러 전환, 기본으로 설정 또는 제거하세요."
           }
         },
         "nb" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Hold inne en server for å bytte eller fjerne den."
+            "value" : "Hold inne en server for å bytte, sette som standard eller fjerne den."
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Houd een server ingedrukt om te wisselen of te verwijderen."
+            "value" : "Houd een server ingedrukt om te wisselen, als standaard in te stellen of te verwijderen."
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Przytrzymaj serwer, aby przełączyć lub usunąć."
+            "value" : "Przytrzymaj serwer, aby przełączyć, ustawić jako domyślny lub usunąć."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Mantenha pressionado um servidor para trocar ou removê-lo."
+            "value" : "Mantenha pressionado um servidor para trocar, definir como padrão ou removê-lo."
           }
         },
         "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Mantém premido um servidor para mudar ou remover."
+            "value" : "Mantém premido um servidor para mudar, definir como predefinido ou remover."
           }
         },
         "ro" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Apasă lung pe un server pentru a-l schimba sau elimina."
+            "value" : "Apasă lung pe un server pentru a schimba, seta ca implicit sau elimina."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Удерживайте сервер, чтобы переключить или удалить."
+            "value" : "Удерживайте сервер, чтобы переключить, установить по умолчанию или удалить."
           }
         },
         "sk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Dlhým stlačením servera ho prepnete alebo odstránite."
+            "value" : "Dlhým stlačením servera ho prepnete, nastavíte ako predvolený alebo odstránite."
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Håll en server intryckt för att byta eller ta bort."
+            "value" : "Håll en server intryckt för att byta, ange som standard eller ta bort."
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bir sunucuya uzun basın, geçiş yapın veya kaldırın."
+            "value" : "Bir sunucuya uzun basın: değiştir, varsayılan yap veya kaldır."
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Утримуйте сервер, щоб перемкнути або видалити."
+            "value" : "Утримуйте сервер, щоб перемкнути, встановити за замовчуванням або видалити."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "长按服务器以切换或移除。"
+            "value" : "长按服务器以切换、设为默认或移除。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "長按伺服器以切換或移除。"
+            "value" : "長按伺服器以切換、設為預設或移除。"
           }
         }
       }
