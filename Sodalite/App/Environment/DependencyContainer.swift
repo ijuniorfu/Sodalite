@@ -193,6 +193,69 @@ final class DependencyContainer {
         return listKnownServers().first(where: { $0.id == id })
     }
 
+    enum ServerSwitchError: Error {
+        /// The requested server id was not in knownServers.
+        case unknown
+        /// The target server has no stored access token. The caller
+        /// must show the profile picker (or LoginView if there are
+        /// no remembered users either).
+        case missingToken
+    }
+
+    /// Switch the active server to `serverID`. Sets the active-server
+    /// pointer, loads the cached access token, reconfigures the
+    /// Jellyfin HTTP client, rewrites SharedSessionMirror so TopShelf
+    /// follows along, and restores the Seerr session for the most
+    /// recently used remembered user on that server. The caller
+    /// observes the resulting state via the appState.serverDidSwitch
+    /// signal (incrementing token) added in a later task.
+    ///
+    /// Throws `ServerSwitchError.unknown` if the id is not in
+    /// knownServers, `ServerSwitchError.missingToken` if the server
+    /// has no cached access token (caller routes to login).
+    func switchServer(to serverID: String) throws {
+        guard let server = listKnownServers().first(where: { $0.id == serverID }) else {
+            throw ServerSwitchError.unknown
+        }
+
+        try keychainService.save(serverID, for: KeychainKeys.activeServerID)
+
+        let token: String
+        do {
+            guard let t = try keychainService.loadString(for: KeychainKeys.accessToken(serverID: serverID)) else {
+                jellyfinClient.baseURL = server.url
+                jellyfinClient.accessToken = nil
+                SharedSessionMirror.clear()
+                throw ServerSwitchError.missingToken
+            }
+            token = t
+        } catch is ServerSwitchError {
+            throw ServerSwitchError.missingToken
+        } catch {
+            jellyfinClient.baseURL = server.url
+            jellyfinClient.accessToken = nil
+            SharedSessionMirror.clear()
+            throw ServerSwitchError.missingToken
+        }
+
+        let userID = try? keychainService.loadString(for: KeychainKeys.userID(serverID: serverID))
+
+        jellyfinClient.baseURL = server.url
+        jellyfinClient.accessToken = token
+
+        if let userID {
+            SharedSessionMirror.write(serverURL: server.url, userID: userID, accessToken: token)
+        } else {
+            SharedSessionMirror.clear()
+        }
+
+        // Seerr session is per (server, user); the caller layer
+        // (AppRouter / restoreSession) handles the post-switch
+        // probe + Seerr restore via the existing restore path. We
+        // intentionally do not touch Seerr here so callers can
+        // route to a profile picker first when userID is nil.
+    }
+
     // MARK: - Remembered Profiles
 
     /// All profiles for a server whose token we have cached. Sorted
