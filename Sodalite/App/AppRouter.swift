@@ -297,10 +297,19 @@ struct AppRouter: View {
             await dependencies.storeKitService.loadProducts()
         }
 
-        guard dependencies.restoreSession() else { return }
+        let didRestore = dependencies.restoreSession()
 
-        guard let server = dependencies.activeServer else {
-            if let first = dependencies.listKnownServers().first {
+        if !didRestore {
+            // Session couldn't be restored (missing token, unresolved
+            // pointer, etc.). Don't early-exit to ServerDiscoveryView
+            // if we still know about a server: land in its profile
+            // picker so the user can re-pick a remembered profile or
+            // add a new one, without losing every other server's
+            // saved state.
+            let target: JellyfinServer?
+            if let server = dependencies.activeServer {
+                target = server
+            } else if let first = dependencies.listKnownServers().first {
                 // Repair: activeServerID is missing or no longer
                 // resolves, but knownServers has at least one entry.
                 // Promote the most recently added server to active by
@@ -311,20 +320,36 @@ struct AppRouter: View {
                 // server; the next launch's normal restoreSession path
                 // resolves token + user from there.
                 try? dependencies.keychainService.save(first.id, for: KeychainKeys.activeServerID)
-                launchPickerServer = first
+                target = first
             } else {
-                // Fully empty: no known servers. Drop any stale
-                // state and let the AppRouter body fall through to
-                // ServerDiscoveryView.
-                try? dependencies.clearSession()
+                target = nil
+            }
+
+            if let target {
+                // Point the client at the known host so the picker's
+                // avatar fetches + any subsequent LoginView flow hit
+                // the right server. We can't recover the access token
+                // here, but the host URL is enough to bootstrap the
+                // picker.
+                dependencies.jellyfinClient.baseURL = target.url
+                launchPickerServer = target
             }
             return
         }
 
+        // restoreSession succeeded, so activeServer must resolve and
+        // the access token is in place. The guard below is defensive.
+        guard let server = dependencies.activeServer else { return }
+
         guard let userID = try? dependencies.keychainService.loadString(for: KeychainKeys.userID(serverID: server.id)),
               let userName = try? dependencies.keychainService.loadString(for: "activeUserName")
         else {
-            try? dependencies.clearSession()
+            // We have a server + token but lost the active-user
+            // globals. Don't clearSession (that would nuke every
+            // server's per-server state across the install). Land in
+            // the picker for this server, the user can re-pick a
+            // remembered profile or add a new one.
+            launchPickerServer = server
             return
         }
 
