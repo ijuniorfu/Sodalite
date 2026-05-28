@@ -160,6 +160,39 @@ final class DependencyContainer {
         )
     }
 
+    // MARK: - Known Servers
+
+    /// All servers the user has ever logged into and not removed.
+    /// Front of the list is the most recently added or upserted
+    /// entry. Empty list on a fresh install or after the user has
+    /// removed every server.
+    func listKnownServers() -> [JellyfinServer] {
+        guard let data = try? keychainService.loadData(for: KeychainKeys.knownServers)
+        else { return [] }
+        return (try? JSONDecoder().decode([JellyfinServer].self, from: data)) ?? []
+    }
+
+    /// Upsert by `JellyfinServer.id`. Existing entries with the same
+    /// id are removed and the new value is prepended, so re-running
+    /// the add flow against a server whose URL has changed updates
+    /// the URL in place and floats the entry to the top of pickers.
+    func addServer(_ server: JellyfinServer) throws {
+        var servers = listKnownServers().filter { $0.id != server.id }
+        servers.insert(server, at: 0)
+        let data = try JSONEncoder().encode(servers)
+        try keychainService.save(data, for: KeychainKeys.knownServers)
+    }
+
+    /// Resolves the active-server pointer against the known-servers
+    /// list. Returns nil if either is missing (fresh install or a
+    /// pointer that no longer resolves; the latter is repaired in
+    /// AppRouter.restoreSession).
+    var activeServer: JellyfinServer? {
+        guard let id = try? keychainService.loadString(for: KeychainKeys.activeServerID)
+        else { return nil }
+        return listKnownServers().first(where: { $0.id == id })
+    }
+
     // MARK: - Remembered Profiles
 
     /// All profiles for a server whose token we have cached. Sorted
