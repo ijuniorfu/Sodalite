@@ -16,11 +16,37 @@ struct LaunchProfilePickerView: View {
     @State private var rememberedUsers: [RememberedUser] = []
     @State private var navigateToAddProfile = false
     @State private var switchError: String?
+    @State private var showServerSwitchSheet = false
+    @State private var showAddServerFlow = false
 
     var body: some View {
         NavigationStack {
             VStack(spacing: 40) {
                 header
+
+                Button(action: { showServerSwitchSheet = true }) {
+                    HStack(spacing: 16) {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("multiServer.picker.header.label", bundle: .main)
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                            Text(server.name)
+                                .font(.title3.bold())
+                            Text(server.url.host() ?? server.url.absoluteString)
+                                .font(.caption2)
+                                .foregroundStyle(.tertiary)
+                        }
+                        Spacer()
+                        Image(systemName: "arrow.left.arrow.right")
+                            .font(.title3)
+                            .foregroundStyle(.tint)
+                    }
+                    .padding(.horizontal, 24)
+                    .padding(.vertical, 16)
+                }
+                .buttonStyle(.card)
+                .padding(.horizontal, 60)
+                .padding(.bottom, 32)
 
                 profileGrid
 
@@ -54,6 +80,25 @@ struct LaunchProfilePickerView: View {
             }
             .onAppear {
                 rememberedUsers = dependencies.listRememberedUsers(serverID: server.id)
+            }
+            .sheet(isPresented: $showServerSwitchSheet) {
+                ServerSwitchSheet(
+                    onAddServer: {
+                        showAddServerFlow = true
+                    },
+                    onSwitched: { _ in
+                        // Picker re-resolves the active server via the
+                        // environment dependencies on next render; no
+                        // explicit reload needed here.
+                    }
+                )
+            }
+            .fullScreenCover(isPresented: $showAddServerFlow) {
+                // Task 10 replaces this placeholder with a real
+                // ServerDiscoveryView(addMode: true) + completion handler.
+                // For now we present a plain ServerDiscoveryView so the
+                // build stays green between tasks.
+                ServerDiscoveryView()
             }
         }
     }
