@@ -28880,6 +28880,328 @@
         }
       }
     },
+    "changelog.0_8_0.multiServer.body" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "V Sodalite můžeš mít nyní více serverů Jellyfin současně a přepínat mezi nimi bez odhlášení. Klepni na název serveru nad seznamem profilů, abys vybral nebo přidal server. Celý seznam spravuješ v Nastavení → Servery."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Du kan nu have flere Jellyfin-servere i Sodalite og skifte mellem dem uden at logge ud. Tryk på servernavnet over din profilliste for at vælge eller tilføje en server. Administrer hele listen under Indstillinger → Servere."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sodalite kennt jetzt mehrere Jellyfin-Server gleichzeitig. Du kannst zwischen ihnen wechseln, ohne dich auszuloggen. Den Server-Namen über der Profil-Liste antippen, um zu wechseln oder einen neuen hinzuzufügen. Die vollständige Liste verwaltest du unter Einstellungen → Server."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Μπορείς πλέον να έχεις πολλούς διακομιστές Jellyfin στο Sodalite και να εναλλάσσεσαι μεταξύ τους χωρίς να αποσυνδέεσαι. Πάτησε το όνομα του διακομιστή πάνω από τη λίστα προφίλ για να επιλέξεις ή να προσθέσεις διακομιστή. Διαχειρίσου την πλήρη λίστα από Ρυθμίσεις → Διακομιστές."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You can now keep several Jellyfin servers in Sodalite and switch between them without logging out. Tap the server name above your profile list to pick or add a server. Manage the full list in Settings → Servers."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ahora puedes tener varios servidores de Jellyfin en Sodalite y alternar entre ellos sin cerrar sesión. Toca el nombre del servidor sobre tu lista de perfiles para elegir o añadir uno. Gestiona la lista completa en Ajustes → Servidores."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Voit nyt pitää useita Jellyfin-palvelimia Sodalitessa ja vaihtaa niiden välillä ilman uloskirjautumista. Napauta palvelimen nimeä profiililistan yläpuolella valitaksesi tai lisätäksesi palvelimen. Hallinnoi koko listaa kohdassa Asetukset → Palvelimet."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu peux désormais conserver plusieurs serveurs Jellyfin dans Sodalite et basculer entre eux sans te déconnecter. Touche le nom du serveur au-dessus de ta liste de profils pour en choisir ou en ajouter un. Gère la liste complète dans Réglages → Serveurs."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sada možeš držati više Jellyfin poslužitelja u Sodaliteu i prebacivati se između njih bez odjave. Dodirni naziv poslužitelja iznad popisa profila za odabir ili dodavanje poslužitelja. Cijelim popisom upravljaš u Postavke → Poslužitelji."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostantól több Jellyfin-szervert is tarthatsz a Sodalite-ban, és kijelentkezés nélkül válthatsz közöttük. Koppints a szerver nevére a profillista fölött a szerver kiválasztásához vagy hozzáadásához. A teljes listát a Beállítások → Szerverek menüpontban kezelheted."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ora puoi tenere più server Jellyfin in Sodalite e passare dall'uno all'altro senza disconnetterti. Tocca il nome del server sopra l'elenco profili per sceglierne uno o aggiungerlo. Gestisci l'elenco completo in Impostazioni → Server."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sodalite で複数の Jellyfin サーバーを保持し、ログアウトせずに切り替えられるようになりました。プロフィール一覧の上にあるサーバー名をタップして、サーバーを選択または追加できます。一覧の管理は設定 → サーバーから行えます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이제 Sodalite에서 여러 Jellyfin 서버를 보관하고 로그아웃 없이 전환할 수 있습니다. 프로필 목록 위의 서버 이름을 탭하여 서버를 선택하거나 추가하세요. 전체 목록은 설정 → 서버에서 관리할 수 있습니다."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Du kan nå ha flere Jellyfin-servere i Sodalite og bytte mellom dem uten å logge ut. Trykk på servernavnet over profillisten for å velge eller legge til en server. Administrer hele listen under Innstillinger → Servere."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Je kunt nu meerdere Jellyfin-servers in Sodalite bewaren en ertussen wisselen zonder uit te loggen. Tik op de servernaam boven je profielenlijst om een server te kiezen of toe te voegen. Beheer de volledige lijst in Instellingen → Servers."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sodalite obsługuje teraz wiele serwerów Jellyfin jednocześnie. Możesz przełączać się między nimi bez wylogowywania. Dotknij nazwy serwera nad listą profili, aby wybrać lub dodać serwer. Pełną listę zarządzasz w Ustawienia → Serwery."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Agora você pode manter vários servidores Jellyfin no Sodalite e alternar entre eles sem sair da conta. Toque no nome do servidor acima da lista de perfis para escolher ou adicionar um. Gerencie a lista completa em Ajustes → Servidores."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Podes agora manter vários servidores Jellyfin no Sodalite e alternar entre eles sem terminar sessão. Toca no nome do servidor acima da lista de perfis para escolher ou adicionar um. Gere a lista completa em Definições → Servidores."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Acum poți păstra mai multe servere Jellyfin în Sodalite și poți comuta între ele fără să te deconectezi. Atinge numele serverului de deasupra listei de profiluri pentru a alege sau adăuga un server. Administrează lista completă din Setări → Servere."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Теперь в Sodalite можно держать несколько серверов Jellyfin и переключаться между ними без выхода из учётной записи. Коснитесь имени сервера над списком профилей, чтобы выбрать или добавить сервер. Полным списком можно управлять в разделе Настройки → Серверы."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "V Sodalite môžeš mať teraz viacero serverov Jellyfin naraz a prepínať medzi nimi bez odhlásenia. Klepni na názov servera nad zoznamom profilov, aby si vybral alebo pridal server. Celý zoznam spravuješ v Nastavenia → Servery."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Du kan nu ha flera Jellyfin-servrar i Sodalite och växla mellan dem utan att logga ut. Tryck på servernamnet ovanför din profillista för att välja eller lägga till en server. Hantera hela listan under Inställningar → Servrar."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Artık Sodalite'ta birden çok Jellyfin sunucusu tutabilir ve oturumu kapatmadan aralarında geçiş yapabilirsin. Profil listenin üstündeki sunucu adına dokunarak bir sunucu seç veya ekle. Tüm listeyi Ayarlar → Sunucular bölümünden yönetirsin."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Тепер у Sodalite можна тримати декілька серверів Jellyfin і перемикатися між ними без виходу з облікового запису. Торкнися назви сервера над списком профілів, щоб вибрати або додати сервер. Повним списком керуй у Налаштування → Сервери."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "现在你可以在 Sodalite 中保存多个 Jellyfin 服务器,并在它们之间切换而无需注销。点按个人资料列表上方的服务器名称即可选择或添加服务器。在 设置 → 服务器 中管理完整列表。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "現在你可以在 Sodalite 中保留多個 Jellyfin 伺服器,並在它們之間切換而不必登出。點按個人資料列表上方的伺服器名稱即可選擇或新增伺服器。在 設定 → 伺服器 中管理完整列表。"
+          }
+        }
+      }
+    },
+    "changelog.0_8_0.multiServer.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Více serverů"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Flere servere"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Multi-Server"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Πολλοί διακομιστές"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Multi-server"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Varios servidores"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Monta palvelinta"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Multi-serveur"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Više poslužitelja"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Több szerver"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Multi-server"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "マルチサーバー"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "다중 서버"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Flere servere"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Meerdere servers"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wiele serwerów"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Multisservidor"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Multisservidor"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mai multe servere"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Несколько серверов"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Viac serverov"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Flera servrar"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Çoklu sunucu"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Кілька серверів"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "多服务器"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "多伺服器"
+          }
+        }
+      }
+    },
     "changelog.modal.dismiss" : {
       "extractionState" : "manual",
       "localizations" : {
