@@ -10,6 +10,7 @@ struct ServerManagementView: View {
 
     @State private var servers: [JellyfinServer] = []
     @State private var activeID: String?
+    @State private var defaultID: String?
     @State private var showAddServerFlow = false
     @State private var pendingRemoval: JellyfinServer?
 
@@ -25,10 +26,12 @@ struct ServerManagementView: View {
                     ServerManagementRow(
                         server: server,
                         isActive: server.id == activeID,
+                        isDefault: server.id == defaultID,
                         userCount: remembered.count,
                         rememberedUsers: remembered,
                         onSwitch: { switchTo(server) },
-                        onRemove: { pendingRemoval = server }
+                        onRemove: { pendingRemoval = server },
+                        onToggleDefault: { toggleDefault(server) }
                     )
                 }
 
@@ -70,11 +73,21 @@ struct ServerManagementView: View {
     private func load() {
         servers = dependencies.listKnownServers()
         activeID = dependencies.activeServer?.id
+        defaultID = dependencies.authPreferences.defaultServerID
     }
 
     private func switchTo(_ server: JellyfinServer) {
         guard server.id != activeID else { return }
         try? dependencies.switchServer(to: server.id)
+        load()
+    }
+
+    private func toggleDefault(_ server: JellyfinServer) {
+        if dependencies.authPreferences.defaultServerID == server.id {
+            dependencies.authPreferences.defaultServerID = nil
+        } else {
+            dependencies.authPreferences.defaultServerID = server.id
+        }
         load()
     }
 
@@ -87,10 +100,12 @@ struct ServerManagementView: View {
 private struct ServerManagementRow: View {
     let server: JellyfinServer
     let isActive: Bool
+    let isDefault: Bool
     let userCount: Int
     let rememberedUsers: [RememberedUser]
     let onSwitch: () -> Void
     let onRemove: () -> Void
+    let onToggleDefault: () -> Void
     @FocusState private var focused: Bool
     @Environment(\.dependencies) private var dependencies
 
@@ -102,6 +117,14 @@ private struct ServerManagementRow: View {
                         .font(.headline)
                     if isActive {
                         Text("multiServer.row.active", bundle: .main)
+                            .font(.caption.bold())
+                            .foregroundStyle(.tint)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 4)
+                            .background(.tint.opacity(0.18), in: Capsule())
+                    }
+                    if isDefault {
+                        Text("multiServer.row.default", bundle: .main)
                             .font(.caption.bold())
                             .foregroundStyle(.tint)
                             .padding(.horizontal, 10)
@@ -152,6 +175,18 @@ private struct ServerManagementRow: View {
             if !isActive { onSwitch() }
         }
         .contextMenu {
+            Button {
+                onToggleDefault()
+            } label: {
+                Label {
+                    Text(isDefault
+                         ? "multiServer.row.action.unsetDefault"
+                         : "multiServer.row.action.setDefault",
+                         bundle: .main)
+                } icon: {
+                    Image(systemName: isDefault ? "star.slash" : "star")
+                }
+            }
             if !isActive {
                 Button {
                     onSwitch()

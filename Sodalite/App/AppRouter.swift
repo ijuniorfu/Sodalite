@@ -297,6 +297,18 @@ struct AppRouter: View {
             await dependencies.storeKitService.loadProducts()
         }
 
+        // Promote the user's default server (if set and still known)
+        // before restoreSession runs. Lets the user pin which server
+        // the app cold-launches into, regardless of which one was last
+        // active. No-op when defaultServerID is nil or no longer
+        // resolves (e.g. server was removed). Skipped when the default
+        // already equals the current pointer.
+        if let defaultID = dependencies.authPreferences.defaultServerID,
+           dependencies.listKnownServers().contains(where: { $0.id == defaultID }),
+           (try? dependencies.keychainService.loadString(for: KeychainKeys.activeServerID)) != defaultID {
+            try? dependencies.keychainService.save(defaultID, for: KeychainKeys.activeServerID)
+        }
+
         let didRestore = dependencies.restoreSession()
 
         if !didRestore {

@@ -324,6 +324,10 @@ final class DependencyContainer {
         let data = try JSONEncoder().encode(servers)
         try keychainService.save(data, for: KeychainKeys.knownServers)
 
+        if authPreferences.defaultServerID == serverID {
+            authPreferences.defaultServerID = nil
+        }
+
         let activeID = try? keychainService.loadString(for: KeychainKeys.activeServerID)
         if activeID == serverID {
             if let successor = servers.first {

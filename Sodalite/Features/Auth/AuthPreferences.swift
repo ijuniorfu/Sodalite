@@ -24,6 +24,7 @@ final class AuthPreferences {
     private enum Keys {
         static let launchBehavior = "auth.launchBehavior"
         static let defaultUserID = "auth.defaultUserID"
+        static let defaultServerID = "auth.defaultServerID"
     }
 
     // MARK: - State
@@ -45,6 +46,20 @@ final class AuthPreferences {
         }
     }
 
+    /// Jellyfin server ID to auto-promote to active on cold launch.
+    /// Nil means "no default set", the most recently used server is
+    /// kept active. Cleared automatically when the referenced server
+    /// is removed.
+    var defaultServerID: String? {
+        didSet {
+            if let defaultServerID, !defaultServerID.isEmpty {
+                store.set(defaultServerID, forKey: Keys.defaultServerID)
+            } else {
+                store.removeObject(forKey: Keys.defaultServerID)
+            }
+        }
+    }
+
     // MARK: - Init
 
     private let store: UserDefaults
@@ -54,5 +69,6 @@ final class AuthPreferences {
         let raw = store.string(forKey: Keys.launchBehavior) ?? LaunchBehavior.showPicker.rawValue
         self.launchBehavior = LaunchBehavior(rawValue: raw) ?? .showPicker
         self.defaultUserID = store.string(forKey: Keys.defaultUserID)
+        self.defaultServerID = store.string(forKey: Keys.defaultServerID)
     }
 }
