@@ -125,6 +125,12 @@ struct HomeView: View {
             )
             Task { await viewModel?.loadContent() }
         }
+        .task(id: appState.serverDidSwitch) {
+            // Value 0 is the initial state; no switch has occurred yet.
+            guard appState.serverDidSwitch > 0 else { return }
+            FilterCache.shared.clearAll()
+            await viewModel?.reloadAfterServerSwitch()
+        }
     }
 
     private func contentView(vm: HomeViewModel) -> some View {

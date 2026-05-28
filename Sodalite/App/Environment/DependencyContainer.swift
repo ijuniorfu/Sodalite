@@ -34,6 +34,12 @@ final class DependencyContainer {
     /// content-deletion rights (see JellyfinUser.canDeleteContent).
     let mediaDeletionService: any MediaDeletionServiceProtocol
 
+    /// Back-reference to AppState so switchServer / removeServer can
+    /// bump the serverDidSwitch signal without threading AppState
+    /// through every call site. Weak to avoid a retain cycle
+    /// (AppState does not own DependencyContainer).
+    weak var appState: AppState?
+
     init(
         keychainService: KeychainServiceProtocol = KeychainService(),
         httpClient: HTTPClientProtocol = HTTPClient()
@@ -250,6 +256,10 @@ final class DependencyContainer {
         // probe + Seerr restore via the existing restore path. We
         // intentionally do not touch Seerr here so callers can
         // route to a profile picker first when userID is nil.
+
+        Task { @MainActor in
+            self.appState?.serverDidSwitch &+= 1
+        }
     }
 
     /// Remove a server and every piece of state scoped to it. The
@@ -290,6 +300,10 @@ final class DependencyContainer {
                 jellyfinClient.accessToken = nil
                 SharedSessionMirror.clear()
             }
+        }
+
+        Task { @MainActor in
+            self.appState?.serverDidSwitch &+= 1
         }
     }
 

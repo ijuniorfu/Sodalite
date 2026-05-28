@@ -8,6 +8,12 @@ struct SodaliteApp: App {
     @State private var dependencies = DependencyContainer()
 
     init() {
+        // Back-wire AppState into DependencyContainer so switchServer
+        // and removeServer can bump the serverDidSwitch signal without
+        // threading AppState through every call site. Must run before
+        // any server switch can fire.
+        dependencies.appState = appState
+
         // Hand the live AppState/DependencyContainer to the intent
         // layer so AppIntent.perform() can drive navigation and
         // hit Jellyfin without rebuilding its own DI graph.

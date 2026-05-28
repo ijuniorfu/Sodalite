@@ -28,6 +28,13 @@ final class AppState {
     /// existing TopShelf navigation path.
     var requestContinueWatching: Bool = false
 
+    /// Incremented by DependencyContainer after every successful
+    /// server switch. Consumers (Home) observe via
+    /// `.task(id: appState.serverDidSwitch)` and clear their caches
+    /// + reload. Uses an integer rather than a Date so back-to-back
+    /// switches always change the value.
+    var serverDidSwitch: Int = 0
+
     /// Monotonic counter the deep-link path increments to ask any
     /// currently presented player to dismiss before the new detail
     /// sheet appears. Without this, a TopShelf tap on a different

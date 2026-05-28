@@ -709,6 +709,25 @@ final class HomeViewModel {
         rowConfigs = HomeRowConfig.loadFromStorage()
     }
 
+    /// Called by HomeView when the active server changes. Clears
+    /// in-memory carousels so a partial render from the previous
+    /// server's posters doesn't show while the new server's rows
+    /// are loading, then runs a full content reload. The throttle
+    /// guards (providerCountsComputedAt, genreCachesComputedAt) are
+    /// also reset so the background precompute reruns for the new
+    /// server's library.
+    @MainActor
+    func reloadAfterServerSwitch() async {
+        rows = []
+        tagRows = []
+        providerBackdrops = [:]
+        providerItemCounts = [:]
+        providerCountsComputedAt = nil
+        genreCachesComputedAt = nil
+        lastLoadedAt = nil
+        await loadContent()
+    }
+
     /// Returns the ordered list of all sections (media rows + tag rows + discover) in config order
     func orderedSections() -> [HomeSection] {
         let enabledConfigs = rowConfigs
