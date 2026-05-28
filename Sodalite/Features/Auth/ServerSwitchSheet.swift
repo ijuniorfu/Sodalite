@@ -117,6 +117,7 @@ private struct ServerRow: View {
                 .strokeBorder(.tint, lineWidth: 2)
                 .opacity(focused ? 1 : 0)
         )
+        .focusable(true)
         .focused($focused)
         .stableTap(isFocused: focused, perform: onTap)
     }
@@ -148,6 +149,7 @@ private struct AddServerRow: View {
                 .strokeBorder(.tint, lineWidth: 2)
                 .opacity(focused ? 1 : 0)
         )
+        .focusable(true)
         .focused($focused)
         .stableTap(isFocused: focused, perform: onTap)
     }
