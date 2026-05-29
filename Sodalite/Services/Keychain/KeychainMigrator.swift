@@ -28,7 +28,7 @@ enum KeychainMigrator {
     private static let migratedFlagKey = "Sodalite.didMigrateFromJellySeeTV.v1"
     private static let activeServerMigratedFlagKey = "Sodalite.didMigrateActiveServerToMulti.v1"
     private static let sharedSessionMigratedFlagKey = "Sodalite.didMigrateSharedSessionToTVUser.v1"
-    private static let appIdentifierMigratedFlagKey = "Sodalite.didMigrateKeychainToAppIdentifier.v1"
+    private static let preEntitlementWipeFlagKey = "Sodalite.didWipePreEntitlementKeychain.v1"
 
     private static let oldMainService = "de.superuser404.JellySeeTV"
     private static let oldSharedService = "de.superuser404.JellySeeTV.shared"
@@ -44,14 +44,12 @@ enum KeychainMigrator {
     /// Runs the migration once per install. Safe to call from any
     /// thread; idempotent after the first successful run.
     static func migrateIfNeeded() {
-        // Run the application-identifier migration FIRST. Subsequent
-        // migrations (JellySeeTV, activeServer multi-server,
-        // sharedSession) must see the data in the per-user-isolated
-        // bucket, otherwise they'd re-copy stale shared-bucket items
-        // into the new bucket and the isolation fix would be moot.
-        migrateKeychainToAppIdentifierIfNeeded()
-
         let defaults = UserDefaults.standard
+
+        // 1. JellySeeTV cross-bundle bridge runs first when the flag is
+        // unset. On installs upgrading from JellySeeTV, this copies that
+        // app's secrets into Sodalite's service buckets so subsequent
+        // steps (and `restoreSession`) see them.
         if !defaults.bool(forKey: migratedFlagKey) {
             let mainCopied = copyAllItems(fromService: oldMainService, toService: newMainService)
             let sharedCopied = copyAllItems(fromService: oldSharedService, toService: newSharedService)
@@ -64,118 +62,85 @@ enum KeychainMigrator {
             log.notice("KeychainMigrator finished: main=\(mainCopied, privacy: .public) shared=\(sharedCopied, privacy: .public)")
         }
 
-        // Both subsequent migrations run unconditionally on each cold
-        // launch until their own flags flip. They must NOT be nested
-        // inside the JellySeeTV guard because that migration ran
-        // months before either schema existed; upgraders from 0.7.0
-        // already have migratedFlagKey == true and would otherwise
-        // never reach the new schemas.
+        // 2. Wipe everything written under the pre-multi-user regime
+        // once per tvOS user. Items written before the
+        // `runs-as-current-user` entitlement landed shadow per-user
+        // writes (they're visible across users), so we delete every
+        // residual item and force a clean re-login. The flag is in
+        // UserDefaults, which is itself per-user-isolated, so each
+        // tvOS user wipes their own bucket exactly once.
+        wipePreEntitlementKeychainIfNeeded()
+
+        // 3. Multi-server and shared-session schema migrations. After
+        // the wipe these are no-ops (nothing to migrate), but the
+        // flags still flip so we don't re-probe on every cold launch.
+        // They must NOT be nested inside the JellySeeTV guard because
+        // that migration ran months before either schema existed;
+        // upgraders from 0.7.0 already have migratedFlagKey == true
+        // and would otherwise never reach the new schemas.
         migrateActiveServerToMultiIfNeeded()
         migrateSharedSessionToTVUserSlotIfNeeded()
     }
 
-    /// One-shot migration of every main-service item from the shared
-    /// named keychain group (`de.superuser404.Sodalite`) into the
-    /// application-identifier group (`<TeamID>.de.superuser404.Sodalite`).
+    /// One-shot wipe of every keychain item across the four service
+    /// strings Sodalite has ever used (main + shared + JellySeeTV
+    /// main + shared). Gated by a per-user UserDefaults flag.
     ///
-    /// Under tvOS `runs-as-current-user`, the keychain is per-user
-    /// only for the application-identifier-resolved bucket. Items
-    /// previously written without `kSecAttrAccessGroup` landed in
-    /// the first entitled group, which is the shared named group,
-    /// and were therefore visible across tvOS profiles. This step
-    /// reads each such item back and rewrites it to the explicit
-    /// application-identifier group so the running user's session
-    /// stays put while other users start from a clean slate.
+    /// Items written before `com.apple.developer.user-management =
+    /// runs-as-current-user` landed in a pre-multi-user regime, where
+    /// they're visible across every tvOS user on the device. Once the
+    /// entitlement is in place, items written under it land in the
+    /// running user's isolated bucket, but `SecItemCopyMatching` still
+    /// returns the pre-regime items first when present, masking the
+    /// per-user writes and producing the "session swaps when I switch
+    /// tvOS user" symptom.
     ///
-    /// Runs FIRST in `migrateIfNeeded` so every downstream migration
-    /// sees the per-user view of the data.
-    static func migrateKeychainToAppIdentifierIfNeeded() {
+    /// Wiping forces every user to log in once on the next launch.
+    /// Their session then lands in the per-user-isolated bucket
+    /// (enforced by `kSecUseUserIndependentKeychain = false` in
+    /// `KeychainService` and `SharedSessionMirror`), and subsequent
+    /// user switches stop bleeding sessions.
+    static func wipePreEntitlementKeychainIfNeeded() {
         let defaults = UserDefaults.standard
-        guard !defaults.bool(forKey: appIdentifierMigratedFlagKey) else { return }
+        guard !defaults.bool(forKey: preEntitlementWipeFlagKey) else { return }
 
-        guard let appIdGroup = KeychainService.resolvedAppIdentifierGroup else {
-            // Probe failed (sandboxed test env, missing entitlements).
-            // Leave the flag unset so we retry next launch when the
-            // environment is right; nothing safe to do here.
-            log.notice("KeychainMigrator: appID probe nil, deferring migration")
-            return
-        }
-
-        // Read every item from the shared named bucket. Omitting
-        // kSecAttrAccessGroup makes the OS use the first entitled
-        // group, which historically was the shared named group.
-        let readQuery: [String: Any] = [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: newMainService,
-            kSecMatchLimit as String: kSecMatchLimitAll,
-            kSecReturnAttributes as String: true,
-            kSecReturnData as String: true,
+        var totalDeleted = 0
+        let services = [
+            newMainService,
+            newSharedService,
+            oldMainService,
+            oldSharedService,
         ]
-        var result: AnyObject?
-        let status = SecItemCopyMatching(readQuery as CFDictionary, &result)
 
-        guard status == errSecSuccess,
-              let items = result as? [[String: Any]]
-        else {
-            // Nothing to migrate, fresh install or already migrated.
-            defaults.set(true, forKey: appIdentifierMigratedFlagKey)
-            return
-        }
-
-        var migrated = 0
-        for item in items {
-            guard let account = item[kSecAttrAccount as String] as? String,
-                  let data = item[kSecValueData as String] as? Data
+        for service in services {
+            let query: [String: Any] = [
+                kSecClass as String: kSecClassGenericPassword,
+                kSecAttrService as String: service,
+                kSecMatchLimit as String: kSecMatchLimitAll,
+                kSecReturnAttributes as String: true,
+            ]
+            var result: AnyObject?
+            let status = SecItemCopyMatching(query as CFDictionary, &result)
+            guard status == errSecSuccess,
+                  let items = result as? [[String: Any]]
             else { continue }
 
-            // Skip items whose access group already matches the
-            // application-identifier group, those are already in the
-            // right bucket and don't need to be touched.
-            if let existingGroup = item[kSecAttrAccessGroup as String] as? String,
-               existingGroup == appIdGroup {
-                continue
+            for item in items {
+                guard let account = item[kSecAttrAccount as String] as? String
+                else { continue }
+                let delete: [String: Any] = [
+                    kSecClass as String: kSecClassGenericPassword,
+                    kSecAttrService as String: service,
+                    kSecAttrAccount as String: account,
+                ]
+                if SecItemDelete(delete as CFDictionary) == errSecSuccess {
+                    totalDeleted += 1
+                }
             }
-
-            // Clear any stale entry in the destination bucket so the
-            // SecItemAdd below doesn't collide.
-            let deleteFromAppID: [String: Any] = [
-                kSecClass as String: kSecClassGenericPassword,
-                kSecAttrService as String: newMainService,
-                kSecAttrAccount as String: account,
-                kSecAttrAccessGroup as String: appIdGroup,
-            ]
-            SecItemDelete(deleteFromAppID as CFDictionary)
-
-            let writeQuery: [String: Any] = [
-                kSecClass as String: kSecClassGenericPassword,
-                kSecAttrService as String: newMainService,
-                kSecAttrAccount as String: account,
-                kSecValueData as String: data,
-                kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly,
-                kSecAttrAccessGroup as String: appIdGroup,
-            ]
-            let addStatus = SecItemAdd(writeQuery as CFDictionary, nil)
-            guard addStatus == errSecSuccess else {
-                log.notice("KeychainMigrator: appID write failed account=\(account, privacy: .public) status=\(addStatus, privacy: .public)")
-                continue
-            }
-
-            // Remove the original from the shared named bucket so the
-            // old entry doesn't shadow the new one for other users.
-            // Targeting without an explicit access group hits the first
-            // entitled group, which is where the source lived.
-            let deleteFromNamed: [String: Any] = [
-                kSecClass as String: kSecClassGenericPassword,
-                kSecAttrService as String: newMainService,
-                kSecAttrAccount as String: account,
-            ]
-            SecItemDelete(deleteFromNamed as CFDictionary)
-
-            migrated += 1
         }
 
-        log.notice("KeychainMigrator: migrated \(migrated, privacy: .public) items to application-identifier group")
-        defaults.set(true, forKey: appIdentifierMigratedFlagKey)
+        log.notice("KeychainMigrator: pre-entitlement wipe deleted \(totalDeleted, privacy: .public) items")
+        defaults.set(true, forKey: preEntitlementWipeFlagKey)
     }
 
     /// Enumerates every generic password under `fromService` and

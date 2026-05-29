@@ -59,6 +59,7 @@ enum SharedSessionMirror {
             kSecAttrService as String: service,
             kSecMatchLimit as String: kSecMatchLimitAll,
             kSecReturnAttributes as String: true,
+            kSecUseUserIndependentKeychain as String: kCFBooleanFalse as Any,
         ]
         if let group = resolvedAccessGroup {
             query[kSecAttrAccessGroup as String] = group
@@ -83,6 +84,7 @@ enum SharedSessionMirror {
             kSecAttrAccount as String: account,
             kSecValueData as String: data,
             kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlock,
+            kSecUseUserIndependentKeychain as String: kCFBooleanFalse as Any,
         ]
         if let group = resolvedAccessGroup {
             query[kSecAttrAccessGroup as String] = group
@@ -98,6 +100,7 @@ enum SharedSessionMirror {
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: service,
             kSecAttrAccount as String: account,
+            kSecUseUserIndependentKeychain as String: kCFBooleanFalse as Any,
         ]
         if let group = resolvedAccessGroup {
             query[kSecAttrAccessGroup as String] = group
