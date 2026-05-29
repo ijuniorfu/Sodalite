@@ -24,6 +24,29 @@
 
 ---
 
+## Screenshots
+
+<table>
+  <tr>
+    <td width="50%"><a href=".github/media/screenshot-home.jpg"><img src=".github/media/screenshot-home.jpg" alt="Home: Continue Watching, Next Up and Favorites rows"></a></td>
+    <td width="50%"><a href=".github/media/screenshot-catalog.jpg"><img src=".github/media/screenshot-catalog.jpg" alt="Catalog: Seerr Discover with Trending and Upcoming Movies"></a></td>
+  </tr>
+  <tr>
+    <td align="center"><b>Home</b></td>
+    <td align="center"><b>Catalog</b> (Seerr browse &amp; request)</td>
+  </tr>
+  <tr>
+    <td width="50%"><a href=".github/media/screenshot-search.jpg"><img src=".github/media/screenshot-search.jpg" alt="Search: library results and matching catalog titles"></a></td>
+    <td width="50%"><a href=".github/media/screenshot-settings.jpg"><img src=".github/media/screenshot-settings.jpg" alt="Settings: profile, rows, playback and appearance"></a></td>
+  </tr>
+  <tr>
+    <td align="center"><b>Search</b></td>
+    <td align="center"><b>Settings</b></td>
+  </tr>
+</table>
+
+---
+
 ## Two services, one remote
 
 Sodalite brings **Jellyfin and Seerr together in the same UI** on Apple TV. Watch what's already on your server. Spot something on a trending row that isn't there yet? Request it from inside the app, and Seerr handles the rest.
