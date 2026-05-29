@@ -2,6 +2,10 @@ import SwiftUI
 
 struct HorizontalMediaRow: View {
     let title: LocalizedStringKey
+    /// When set, rendered verbatim instead of `title`. Used for
+    /// per-library rows whose heading is a runtime string ("Latest in
+    /// 4K Movies") rather than a localization key.
+    var verbatimTitle: String? = nil
     let items: [JellyfinItem]
     let imageURLProvider: (JellyfinItem) -> URL?
     var onItemSelected: ((JellyfinItem) -> Void)?
@@ -9,10 +13,16 @@ struct HorizontalMediaRow: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text(title)
-                .font(.title3)
-                .fontWeight(.semibold)
-                .padding(.horizontal, 50)
+            Group {
+                if let verbatimTitle {
+                    Text(verbatimTitle)
+                } else {
+                    Text(title)
+                }
+            }
+            .font(.title3)
+            .fontWeight(.semibold)
+            .padding(.horizontal, 50)
 
             ScrollView(.horizontal, showsIndicators: false) {
                 LazyHStack(spacing: 30) {
