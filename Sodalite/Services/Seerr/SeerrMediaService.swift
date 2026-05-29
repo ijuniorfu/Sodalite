@@ -4,6 +4,8 @@ protocol SeerrMediaServiceProtocol: Sendable {
     func movieDetail(tmdbID: Int) async throws -> SeerrMovieDetail
     func tvDetail(tmdbID: Int) async throws -> SeerrTVDetail
     func tvSeasonDetail(tmdbID: Int, seasonNumber: Int) async throws -> SeerrSeasonDetail
+    func recommendations(mediaType: SeerrMediaType, tmdbID: Int) async throws -> [SeerrMedia]
+    func similar(mediaType: SeerrMediaType, tmdbID: Int) async throws -> [SeerrMedia]
 
     /// Removes the Radarr database entry for the movie with the given
     /// TMDB id. Returns true if a Seerr media record was found and the
@@ -42,6 +44,34 @@ final class SeerrMediaService: SeerrMediaServiceProtocol {
             endpoint: SeerrEndpoint.tvSeasonDetail(tmdbID: tmdbID, seasonNumber: seasonNumber),
             responseType: SeerrSeasonDetail.self
         )
+    }
+
+    func recommendations(mediaType: SeerrMediaType, tmdbID: Int) async throws -> [SeerrMedia] {
+        let endpoint: SeerrEndpoint
+        switch mediaType {
+        case .movie: endpoint = .movieRecommendations(tmdbID: tmdbID, page: 1)
+        case .tv: endpoint = .tvRecommendations(tmdbID: tmdbID, page: 1)
+        case .person: return []
+        }
+        let result = try await client.request(
+            endpoint: endpoint,
+            responseType: SeerrDiscoverResult.self
+        )
+        return result.results.filter { $0.mediaType != .person }
+    }
+
+    func similar(mediaType: SeerrMediaType, tmdbID: Int) async throws -> [SeerrMedia] {
+        let endpoint: SeerrEndpoint
+        switch mediaType {
+        case .movie: endpoint = .movieSimilar(tmdbID: tmdbID, page: 1)
+        case .tv: endpoint = .tvSimilar(tmdbID: tmdbID, page: 1)
+        case .person: return []
+        }
+        let result = try await client.request(
+            endpoint: endpoint,
+            responseType: SeerrDiscoverResult.self
+        )
+        return result.results.filter { $0.mediaType != .person }
     }
 
     func removeMovieFromRadarr(tmdbID: Int) async throws -> Bool {

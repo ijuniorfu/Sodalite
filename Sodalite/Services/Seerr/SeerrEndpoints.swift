@@ -23,6 +23,10 @@ enum SeerrEndpoint: APIEndpoint {
     case movieDetail(tmdbID: Int)
     case tvDetail(tmdbID: Int)
     case tvSeasonDetail(tmdbID: Int, seasonNumber: Int)
+    case movieRecommendations(tmdbID: Int, page: Int)
+    case movieSimilar(tmdbID: Int, page: Int)
+    case tvRecommendations(tmdbID: Int, page: Int)
+    case tvSimilar(tmdbID: Int, page: Int)
     case discoverMoviesByWatchProvider(providerID: Int, region: String, page: Int)
     case discoverTVByWatchProvider(providerID: Int, region: String, page: Int)
 
@@ -83,6 +87,10 @@ enum SeerrEndpoint: APIEndpoint {
         case .movieDetail(let id): "/api/v1/movie/\(id)"
         case .tvDetail(let id): "/api/v1/tv/\(id)"
         case .tvSeasonDetail(let id, let n): "/api/v1/tv/\(id)/season/\(n)"
+        case .movieRecommendations(let id, _): "/api/v1/movie/\(id)/recommendations"
+        case .movieSimilar(let id, _): "/api/v1/movie/\(id)/similar"
+        case .tvRecommendations(let id, _): "/api/v1/tv/\(id)/recommendations"
+        case .tvSimilar(let id, _): "/api/v1/tv/\(id)/similar"
         case .discoverMoviesByWatchProvider: "/api/v1/discover/movies"
         case .discoverTVByWatchProvider: "/api/v1/discover/tv"
         case .createRequest: "/api/v1/request"
@@ -159,6 +167,12 @@ enum SeerrEndpoint: APIEndpoint {
                 URLQueryItem(name: "filter", value: filter.rawValue),
                 URLQueryItem(name: "sort", value: "added"),
             ]
+
+        case .movieRecommendations(_, let page),
+             .movieSimilar(_, let page),
+             .tvRecommendations(_, let page),
+             .tvSimilar(_, let page):
+            return [URLQueryItem(name: "page", value: String(page))]
 
         case .mediaFileDelete:
             // is4k is required by the Jellyseerr endpoint; Sodalite has
