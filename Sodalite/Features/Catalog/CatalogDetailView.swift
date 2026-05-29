@@ -143,7 +143,7 @@ struct CatalogDetailView: View {
             SeerrMetadataRow(
                 rating: metadataRating,
                 runtimeMinutes: metadataRuntime,
-                year: displayYear,
+                year: nil,
                 certification: metadataCertification
             )
 
