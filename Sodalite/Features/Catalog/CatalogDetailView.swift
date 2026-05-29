@@ -33,6 +33,8 @@ struct CatalogDetailView: View {
     @State private var recommendations: [SeerrMedia] = []
     /// Navigation target when the user taps a recommendation.
     @State private var navigateToMedia: SeerrMedia?
+    /// Selected cast member, drives navigation to the person page.
+    @State private var selectedCastMember: CastMember?
 
     // Advanced request options, populated from /service/radarr or
     // /service/sonarr. `nil` means "fall back to Seerr's server default"
@@ -67,6 +69,9 @@ struct CatalogDetailView: View {
         .toolbar(.hidden, for: .tabBar)
         .navigationDestination(item: $navigateToMedia) { media in
             CatalogDetailView(media: media)
+        }
+        .navigationDestination(item: $selectedCastMember) { member in
+            PersonDetailView(personID: member.personID ?? 0, personName: member.name)
         }
         .task { await load() }
     }
@@ -172,7 +177,11 @@ struct CatalogDetailView: View {
             requestSection
 
             if !castMembers.isEmpty {
-                MediaCastRow(members: castMembers)
+                MediaCastRow(members: castMembers) { member in
+                    if member.personID != nil {
+                        selectedCastMember = member
+                    }
+                }
             }
 
             if !regionWatchProviders.isEmpty {
