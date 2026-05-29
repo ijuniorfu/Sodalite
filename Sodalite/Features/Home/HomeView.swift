@@ -79,7 +79,8 @@ struct HomeView: View {
                     libraryService: dependencies.jellyfinLibraryService,
                     imageService: dependencies.jellyfinImageService,
                     discoverService: dependencies.seerrDiscoverService,
-                    userID: userID
+                    userID: userID,
+                    serverID: appState.activeServer?.id ?? userID
                 )
                 Task { await viewModel?.loadContent() }
             } else if viewModel?.needsReload == true {
@@ -121,7 +122,8 @@ struct HomeView: View {
                 libraryService: dependencies.jellyfinLibraryService,
                 imageService: dependencies.jellyfinImageService,
                 discoverService: dependencies.seerrDiscoverService,
-                userID: userID
+                userID: userID,
+                serverID: appState.activeServer?.id ?? userID
             )
             Task { await viewModel?.loadContent() }
         }
@@ -147,6 +149,15 @@ struct HomeView: View {
                     case .media(let row):
                         HorizontalMediaRow(
                             title: row.type.localizedTitle,
+                            verbatimTitle: row.type == .libraryLatest
+                                ? String(
+                                    format: String(
+                                        localized: "home.libraryLatest.format",
+                                        defaultValue: "Latest in %@"
+                                    ),
+                                    row.libraryName ?? ""
+                                )
+                                : nil,
                             items: row.items,
                             imageURLProvider: { vm.imageURL(for: $0, rowType: row.type) },
                             onItemSelected: { selectedItem = $0 },
@@ -195,6 +206,16 @@ struct HomeView: View {
                             )
                             .focused($focusedRowIndex, equals: idx)
                         }
+
+                    case .libraries(let libraries):
+                        LibraryRow(
+                            titleKey: HomeRowType.myMedia.localizedTitle,
+                            libraries: libraries,
+                            onSelect: { library in
+                                selectedFilter = makeLibraryFilter(for: library)
+                            }
+                        )
+                        .focused($focusedRowIndex, equals: idx)
                     }
                 }
                 }
@@ -302,6 +323,29 @@ struct HomeView: View {
                 cacheKey: FilterCacheKey.Home.tag(name: tag.name)
             )
         }
+    }
+
+    private func makeLibraryFilter(for library: JellyfinLibrary) -> FilterDestination {
+        // Tap a My Media tile -> browse that one library in the shared
+        // filtered grid. parentID scopes the query to the library; the
+        // item types match what the library holds.
+        let types: [ItemType]
+        switch library.libraryType {
+        case .movies: types = [.movie]
+        case .tvshows: types = [.series]
+        default: types = [.movie, .series]
+        }
+        return FilterDestination(
+            title: library.name,
+            query: ItemQuery(
+                parentID: library.id,
+                includeItemTypes: types,
+                sortBy: "SortName",
+                sortOrder: "Ascending",
+                limit: 200
+            ),
+            cacheKey: "library_\(library.id)"
+        )
     }
 }
 
