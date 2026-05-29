@@ -154,6 +154,10 @@ final class ScrubPreviewProvider {
     }
 
     private func store(sheet: CGImage, at index: Int) {
+        // Drop late writes from a prefetch Task that outlived reset():
+        // no active geometry means the session is torn down and this
+        // sheet belongs to a previous video.
+        guard geometry != nil else { return }
         sheetCache[index] = sheet
         sheetOrder.removeAll { $0 == index }
         sheetOrder.append(index)
