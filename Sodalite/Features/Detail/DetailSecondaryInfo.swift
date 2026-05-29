@@ -37,6 +37,15 @@ func jellyfinCastMembers(
 struct DetailSecondaryInfo: View {
     let item: JellyfinItem
 
+    /// Whether there is any tagline / crew / studio info to show.
+    static func hasContent(_ item: JellyfinItem) -> Bool {
+        let directors = (item.people ?? []).contains { $0.type == "Director" }
+        let writers = (item.people ?? []).contains { $0.type == "Writer" }
+        let hasStudios = !(item.studios?.isEmpty ?? true)
+        let hasTagline = !(item.taglines?.first?.isEmpty ?? true)
+        return hasTagline || directors || writers || hasStudios
+    }
+
     var body: some View {
         let directors = names(ofType: "Director")
         let writers = names(ofType: "Writer")
@@ -82,6 +91,6 @@ struct DetailSecondaryInfo: View {
             + Text(verbatim: ": \(names.prefix(3).joined(separator: ", "))"))
             .font(.caption)
             .foregroundStyle(.secondary)
-            .lineLimit(1)
+            .lineLimit(2)
     }
 }

@@ -381,122 +381,127 @@ struct SeriesDetailView: View {
     // MARK: - Glass Panel
 
     private func glassPanel(vm: DetailViewModel) -> some View {
-        VStack(alignment: .leading, spacing: 16) {
-            if isShowingEpisode {
-                Text(vm.item.name)
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-            }
-
-            Text(isShowingEpisode ? (selectedEpisode?.name ?? "") : vm.item.name)
-                .font(.largeTitle)
-                .fontWeight(.bold)
-
-            if isShowingEpisode, let ep = selectedEpisode {
-                HStack(spacing: 8) {
-                    if let s = ep.parentIndexNumber {
-                        Text("S\(s)")
-                            .fontWeight(.semibold)
-                    }
-                    if let e = ep.indexNumber {
-                        Text("E\(e)")
-                            .fontWeight(.semibold)
-                            .foregroundStyle(.tint)
-                    }
-                    if let runtime = ep.runTimeTicks {
-                        Text("·").foregroundStyle(.tertiary)
-                        Text(runtime.ticksToDisplay)
-                    }
-                }
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-            } else {
-                ItemMetadataRow(item: vm.item, showRuntime: false) {
-                    if let count = vm.item.childCount, count > 0 {
-                        AnyView(Text("detail.seasonCount \(count)"))
-                    } else {
-                        AnyView(EmptyView())
-                    }
-                }
-            }
-
-            if let genres = vm.item.genres, !genres.isEmpty {
-                Text(genres.joined(separator: " · "))
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-            }
-
-            DetailSecondaryInfo(item: vm.item)
-
-            HStack(spacing: 16) {
-                GlassActionButton(
-                    title: playTitle(vm: vm),
-                    systemImage: "play.fill",
-                    isProminent: true,
-                    subtitle: playButtonSubtitle(vm: vm),
-                    progressFraction: playProgressFraction(vm: vm),
-                    // Hold the button on a spinner until we've got
-                    // a concrete play target. Avoids the visible
-                    // "Abspielen" → "Fortsetzen + S1E5 · 12:34"
-                    // repaint that fires when getNextUp lands a few
-                    // hundred ms after the view appears.
-                    isLoading: playTarget(vm: vm) == nil,
-                    action: {
-                        let ep = playTarget(vm: vm)
-                        if let ep {
-                            playItem = ep
-                            playFromBeginning = false
-                            playOriginatedFromPlayButton = true
-                            showPlayer = true
-                        }
-                    }
-                )
-                .focused($playButtonFocused)
-
-                if !isShowingEpisode {
-                    GlassActionButton(
-                        title: vm.isFavorite ? "detail.unfavorite" : "detail.favorite",
-                        systemImage: vm.isFavorite ? "heart.fill" : "heart",
-                        action: { Task { await vm.toggleFavorite() } }
-                    )
-                }
-
+        HStack(alignment: .top, spacing: 40) {
+            VStack(alignment: .leading, spacing: 16) {
                 if isShowingEpisode {
-                    GlassActionButton(
-                        title: "detail.showSeries",
-                        systemImage: "xmark",
-                        action: {
-                            withAnimation { selectedEpisode = nil }
-                        }
-                    )
+                    Text(vm.item.name)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
                 }
 
-                if !isShowingEpisode,
-                   appState.isSeerrConnected,
-                   let tmdbID = vm.item.tmdbID,
-                   shouldShowSeerrRequest(for: vm.item) {
-                    GlassActionButton(
-                        title: "detail.requestInSeerr",
-                        systemImage: "tray.and.arrow.down",
-                        action: {
-                            navigateToSeerrRequest = .stub(tmdbID: tmdbID, mediaType: .tv)
+                Text(isShowingEpisode ? (selectedEpisode?.name ?? "") : vm.item.name)
+                    .font(.largeTitle)
+                    .fontWeight(.bold)
+
+                if isShowingEpisode, let ep = selectedEpisode {
+                    HStack(spacing: 8) {
+                        if let s = ep.parentIndexNumber {
+                            Text("S\(s)")
+                                .fontWeight(.semibold)
                         }
-                    )
+                        if let e = ep.indexNumber {
+                            Text("E\(e)")
+                                .fontWeight(.semibold)
+                                .foregroundStyle(.tint)
+                        }
+                        if let runtime = ep.runTimeTicks {
+                            Text("·").foregroundStyle(.tertiary)
+                            Text(runtime.ticksToDisplay)
+                        }
+                    }
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                } else {
+                    ItemMetadataRow(item: vm.item, showRuntime: false) {
+                        if let count = vm.item.childCount, count > 0 {
+                            AnyView(Text("detail.seasonCount \(count)"))
+                        } else {
+                            AnyView(EmptyView())
+                        }
+                    }
                 }
 
-                // Delete sits last in the row, matching MovieDetailView,
-                // so the destructive action is visually furthest from
-                // Play and any positive-action buttons.
-                if canDelete && !isShowingEpisode {
-                    GlassActionButton(
-                        title: "detail.delete.button",
-                        systemImage: "trash",
-                        isDestructive: true,
-                        action: { isPresentingDeleteSheet = true }
-                    )
+                if let genres = vm.item.genres, !genres.isEmpty {
+                    Text(genres.joined(separator: " · "))
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
                 }
+
+                HStack(spacing: 16) {
+                    GlassActionButton(
+                        title: playTitle(vm: vm),
+                        systemImage: "play.fill",
+                        isProminent: true,
+                        subtitle: playButtonSubtitle(vm: vm),
+                        progressFraction: playProgressFraction(vm: vm),
+                        // Hold the button on a spinner until we've got
+                        // a concrete play target. Avoids the visible
+                        // "Abspielen" → "Fortsetzen + S1E5 · 12:34"
+                        // repaint that fires when getNextUp lands a few
+                        // hundred ms after the view appears.
+                        isLoading: playTarget(vm: vm) == nil,
+                        action: {
+                            let ep = playTarget(vm: vm)
+                            if let ep {
+                                playItem = ep
+                                playFromBeginning = false
+                                playOriginatedFromPlayButton = true
+                                showPlayer = true
+                            }
+                        }
+                    )
+                    .focused($playButtonFocused)
+
+                    if !isShowingEpisode {
+                        GlassActionButton(
+                            title: vm.isFavorite ? "detail.unfavorite" : "detail.favorite",
+                            systemImage: vm.isFavorite ? "heart.fill" : "heart",
+                            action: { Task { await vm.toggleFavorite() } }
+                        )
+                    }
+
+                    if isShowingEpisode {
+                        GlassActionButton(
+                            title: "detail.showSeries",
+                            systemImage: "xmark",
+                            action: {
+                                withAnimation { selectedEpisode = nil }
+                            }
+                        )
+                    }
+
+                    if !isShowingEpisode,
+                       appState.isSeerrConnected,
+                       let tmdbID = vm.item.tmdbID,
+                       shouldShowSeerrRequest(for: vm.item) {
+                        GlassActionButton(
+                            title: "detail.requestInSeerr",
+                            systemImage: "tray.and.arrow.down",
+                            action: {
+                                navigateToSeerrRequest = .stub(tmdbID: tmdbID, mediaType: .tv)
+                            }
+                        )
+                    }
+
+                    // Delete sits last in the row, matching MovieDetailView,
+                    // so the destructive action is visually furthest from
+                    // Play and any positive-action buttons.
+                    if canDelete && !isShowingEpisode {
+                        GlassActionButton(
+                            title: "detail.delete.button",
+                            systemImage: "trash",
+                            isDestructive: true,
+                            action: { isPresentingDeleteSheet = true }
+                        )
+                    }
+                }
+                .padding(.top, 4)
             }
-            .padding(.top, 4)
+
+            if DetailSecondaryInfo.hasContent(vm.item) {
+                DetailSecondaryInfo(item: vm.item)
+                    .frame(maxWidth: 420, alignment: .leading)
+            }
         }
         .padding(30)
         .background(

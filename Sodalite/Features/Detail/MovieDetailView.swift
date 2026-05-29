@@ -220,97 +220,102 @@ struct MovieDetailView: View {
     // MARK: - Glass Panel
 
     private func glassPanel(vm: DetailViewModel) -> some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text(vm.item.name)
-                .font(.largeTitle)
-                .fontWeight(.bold)
+        HStack(alignment: .top, spacing: 40) {
+            VStack(alignment: .leading, spacing: 16) {
+                Text(vm.item.name)
+                    .font(.largeTitle)
+                    .fontWeight(.bold)
 
-            // Episode subtitle
-            if vm.item.type == .episode, let series = vm.item.seriesName {
-                Text(episodeSubtitle(vm: vm, seriesName: series))
-                    .font(.headline)
-                    .foregroundStyle(.secondary)
-            }
+                // Episode subtitle
+                if vm.item.type == .episode, let series = vm.item.seriesName {
+                    Text(episodeSubtitle(vm: vm, seriesName: series))
+                        .font(.headline)
+                        .foregroundStyle(.secondary)
+                }
 
-            ItemMetadataRow(item: vm.item)
+                ItemMetadataRow(item: vm.item)
 
-            // Genres
-            if let genres = vm.item.genres, !genres.isEmpty {
-                Text(genres.joined(separator: " · "))
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-            }
+                // Genres
+                if let genres = vm.item.genres, !genres.isEmpty {
+                    Text(genres.joined(separator: " · "))
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
 
-            DetailSecondaryInfo(item: vm.item)
-
-            // Action buttons
-            HStack(spacing: 16) {
-                GlassActionButton(
-                    title: playButtonTitle(vm: vm),
-                    systemImage: "play.fill",
-                    isProminent: true,
-                    subtitle: resumeTimestamp(vm: vm),
-                    progressFraction: playProgressFraction(vm: vm),
-                    action: {
-                        playFromBeginning = false
-                        showPlayer = true
-                    }
-                )
-                .focused($playButtonFocused)
-
-                if hasProgress(vm: vm) {
+                // Action buttons
+                HStack(spacing: 16) {
                     GlassActionButton(
-                        title: "detail.replay",
-                        systemImage: "arrow.counterclockwise",
+                        title: playButtonTitle(vm: vm),
+                        systemImage: "play.fill",
+                        isProminent: true,
+                        subtitle: resumeTimestamp(vm: vm),
+                        progressFraction: playProgressFraction(vm: vm),
                         action: {
-                            playFromBeginning = true
+                            playFromBeginning = false
                             showPlayer = true
                         }
                     )
-                }
+                    .focused($playButtonFocused)
 
-                if vm.item.type != .episode {
-                    GlassActionButton(
-                        title: vm.isFavorite ? "detail.unfavorite" : "detail.favorite",
-                        systemImage: vm.isFavorite ? "heart.fill" : "heart",
-                        action: { Task { await vm.toggleFavorite() } }
-                    )
-                }
+                    if hasProgress(vm: vm) {
+                        GlassActionButton(
+                            title: "detail.replay",
+                            systemImage: "arrow.counterclockwise",
+                            action: {
+                                playFromBeginning = true
+                                showPlayer = true
+                            }
+                        )
+                    }
 
-                if vm.item.type == .episode, let seriesId = vm.item.seriesId {
-                    GlassActionButton(
-                        title: "detail.showSeries",
-                        systemImage: "tv",
-                        action: {
-                            navigateToSeries = JellyfinItem(
-                                seriesStub: seriesId,
-                                name: vm.item.seriesName ?? ""
-                            )
-                        }
-                    )
-                }
+                    if vm.item.type != .episode {
+                        GlassActionButton(
+                            title: vm.isFavorite ? "detail.unfavorite" : "detail.favorite",
+                            systemImage: vm.isFavorite ? "heart.fill" : "heart",
+                            action: { Task { await vm.toggleFavorite() } }
+                        )
+                    }
 
-                // No "Request in Seerr" button on movie detail: if we're
-                // showing this view the movie is already in Jellyfin, so
-                // the request flow has nothing meaningful to offer. The
-                // button stays on the series detail for continuing shows
-                // where new seasons may still land.
+                    if vm.item.type == .episode, let seriesId = vm.item.seriesId {
+                        GlassActionButton(
+                            title: "detail.showSeries",
+                            systemImage: "tv",
+                            action: {
+                                navigateToSeries = JellyfinItem(
+                                    seriesStub: seriesId,
+                                    name: vm.item.seriesName ?? ""
+                                )
+                            }
+                        )
+                    }
 
-                // Episodes get routed through MovieDetailView (see
-                // DetailRouterView) but per-episode deletion is not a
-                // supported flow. The delete entry point lives on the
-                // parent series detail, matching SeriesDetailView's
-                // own !isShowingEpisode guard.
-                if canDelete && item.type != .episode {
-                    GlassActionButton(
-                        title: "detail.delete.button",
-                        systemImage: "trash",
-                        isDestructive: true,
-                        action: { isPresentingDeleteSheet = true }
-                    )
+                    // No "Request in Seerr" button on movie detail: if we're
+                    // showing this view the movie is already in Jellyfin, so
+                    // the request flow has nothing meaningful to offer. The
+                    // button stays on the series detail for continuing shows
+                    // where new seasons may still land.
+
+                    // Episodes get routed through MovieDetailView (see
+                    // DetailRouterView) but per-episode deletion is not a
+                    // supported flow. The delete entry point lives on the
+                    // parent series detail, matching SeriesDetailView's
+                    // own !isShowingEpisode guard.
+                    if canDelete && item.type != .episode {
+                        GlassActionButton(
+                            title: "detail.delete.button",
+                            systemImage: "trash",
+                            isDestructive: true,
+                            action: { isPresentingDeleteSheet = true }
+                        )
+                    }
                 }
+                .padding(.top, 4)
             }
-            .padding(.top, 4)
+
+            if DetailSecondaryInfo.hasContent(vm.item) {
+                DetailSecondaryInfo(item: vm.item)
+                    .frame(maxWidth: 420, alignment: .leading)
+            }
         }
         .padding(30)
         .background(
