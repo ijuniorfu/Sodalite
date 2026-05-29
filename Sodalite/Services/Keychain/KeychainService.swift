@@ -17,27 +17,18 @@ final class KeychainService: KeychainServiceProtocol {
         self.service = service
     }
 
-    /// Explicit per-user isolation switch.
+    /// Per-user isolation under `com.apple.developer.user-management =
+    /// runs-as-current-user` is the OS default for SecItem operations.
+    /// `kSecUseUserIndependentKeychain` is the OPT-IN to cross-user
+    /// sharing (set it to true on items that should be visible to every
+    /// tvOS user). Setting it to false explicitly is rejected as a
+    /// param error (-50) on SecItemDelete, so we just omit it: the
+    /// implicit default already isolates per user.
     ///
-    /// Under `com.apple.developer.user-management = runs-as-current-user`,
-    /// the keychain is per-user-isolated by default for items written
-    /// in that regime. The defining knob is `kSecUseUserIndependentKeychain`:
-    /// `false` (the platform default under multi-user) targets the running
-    /// tvOS user's isolated bucket; `true` would target a shared
-    /// system-wide bucket.
-    ///
-    /// We set it explicitly on every SecItem call to (a) document the
-    /// contract at the call site, (b) defend against any future Apple
-    /// default change, and (c) make the per-user intent reviewable in
-    /// diff. See WWDC22 session 110384 and the `kSecUseUserIndependentKeychain`
-    /// constant in Apple's Security framework docs.
-    ///
-    /// Access groups (`kSecAttrAccessGroup`) are an orthogonal concept,
-    /// they govern cross-PROCESS sharing (e.g. the TopShelf extension
-    /// reading the main app's session blob), not cross-USER sharing. We
-    /// therefore do not set an access group here and let the OS pick
-    /// the first entitled group for cross-process visibility while
-    /// `kSecUseUserIndependentKeychain = false` enforces user isolation.
+    /// Access groups (`kSecAttrAccessGroup`) are orthogonal, they govern
+    /// cross-PROCESS sharing (e.g. the TopShelf extension reading the
+    /// main app's session blob), not cross-USER sharing. We omit them
+    /// here and let the OS pick the first entitled group.
 
     func save(_ data: Data, for key: String) throws {
         try delete(for: key)
@@ -48,7 +39,6 @@ final class KeychainService: KeychainServiceProtocol {
             kSecAttrAccount as String: key,
             kSecValueData as String: data,
             kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly,
-            kSecUseUserIndependentKeychain as String: kCFBooleanFalse as Any,
         ]
 
         let status = SecItemAdd(query as CFDictionary, nil)
@@ -71,7 +61,6 @@ final class KeychainService: KeychainServiceProtocol {
             kSecAttrAccount as String: key,
             kSecReturnData as String: true,
             kSecMatchLimit as String: kSecMatchLimitOne,
-            kSecUseUserIndependentKeychain as String: kCFBooleanFalse as Any,
         ]
 
         var result: AnyObject?
@@ -97,7 +86,6 @@ final class KeychainService: KeychainServiceProtocol {
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: service,
             kSecAttrAccount as String: key,
-            kSecUseUserIndependentKeychain as String: kCFBooleanFalse as Any,
         ]
 
         let status = SecItemDelete(query as CFDictionary)
@@ -110,7 +98,6 @@ final class KeychainService: KeychainServiceProtocol {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: service,
-            kSecUseUserIndependentKeychain as String: kCFBooleanFalse as Any,
         ]
 
         let status = SecItemDelete(query as CFDictionary)
