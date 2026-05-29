@@ -28,7 +28,7 @@ struct MediaCastRow: View {
             ScrollView(.horizontal, showsIndicators: false) {
                 LazyHStack(spacing: 20) {
                     ForEach(members) { member in
-                        MediaCastCard(member: member)
+                        MediaCastCard(member: member, onSelect: onSelect.map { cb in { cb(member) } })
                     }
                 }
                 .padding(.horizontal, 50)
@@ -40,6 +40,7 @@ struct MediaCastRow: View {
 
 private struct MediaCastCard: View {
     let member: CastMember
+    var onSelect: (() -> Void)? = nil
     @FocusState private var isFocused: Bool
 
     var body: some View {
@@ -84,6 +85,7 @@ private struct MediaCastCard: View {
         .animation(.easeInOut(duration: 0.15), value: isFocused)
         .focusable()
         .focused($isFocused)
+        .stableTap(isFocused: isFocused) { onSelect?() }
     }
 
     private var initials: String {
