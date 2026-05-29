@@ -48,6 +48,7 @@ final class PlaybackPreferences {
         static let showDiagnosticOverlay = "playback.showDiagnosticOverlay"
         static let focusDiagnosticOverlayOnDV = "playback.focusDiagnosticOverlayOnDV"
         static let preferLosslessAudioBridge = "playback.preferLosslessAudioBridge"
+        static let showScrubPreview = "playback.showScrubPreview"
     }
 
     // MARK: - Allowed Values
@@ -415,6 +416,13 @@ final class PlaybackPreferences {
         didSet { store.set(preferLosslessAudioBridge, forKey: Keys.preferLosslessAudioBridge) }
     }
 
+    /// Show a trickplay thumbnail of the frame while scrubbing. Default
+    /// on. Off disables tile-sheet downloads entirely (the transport bar
+    /// shows the time only).
+    var showScrubPreview: Bool {
+        didSet { store.set(showScrubPreview, forKey: Keys.showScrubPreview) }
+    }
+
     /// Map the user-facing toggle to the engine's `AudioBridgeMode`.
     var audioBridgeMode: AudioBridgeMode {
         preferLosslessAudioBridge ? .lossless : .surroundCompat
@@ -474,5 +482,6 @@ final class PlaybackPreferences {
         self.showDiagnosticOverlay = store.object(forKey: Keys.showDiagnosticOverlay) as? Bool ?? false
         self.focusDiagnosticOverlayOnDV = store.object(forKey: Keys.focusDiagnosticOverlayOnDV) as? Bool ?? true
         self.preferLosslessAudioBridge = store.object(forKey: Keys.preferLosslessAudioBridge) as? Bool ?? false
+        self.showScrubPreview = store.object(forKey: Keys.showScrubPreview) as? Bool ?? true
     }
 }

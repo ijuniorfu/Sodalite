@@ -68,6 +68,16 @@ struct PlaybackSettingsView: View {
                     label: { seconds in "\(seconds) s" }
                 )
 
+                boolRow(
+                    icon: "rectangle.center.inset.filled.badge.plus",
+                    title: "settings.playback.scrubPreview",
+                    subtitle: "settings.playback.scrubPreview.subtitle",
+                    value: Binding(
+                        get: { prefs.showScrubPreview },
+                        set: { prefs.showScrubPreview = $0 }
+                    )
+                )
+
                 sectionHeader("settings.playback.section.languages")
 
                 languageRow(
