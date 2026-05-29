@@ -28,6 +28,12 @@ struct CatalogDetailView: View {
     /// shown inside the episode strip while a fetch is in flight.
     @State private var loadingSeasons: Set<Int> = []
 
+    /// Recommended titles (recommendations, falling back to similar),
+    /// loaded in parallel with the detail so the screen paints first.
+    @State private var recommendations: [SeerrMedia] = []
+    /// Navigation target when the user taps a recommendation.
+    @State private var navigateToMedia: SeerrMedia?
+
     // Advanced request options, populated from /service/radarr or
     // /service/sonarr. `nil` means "fall back to Seerr's server default"
     // (which is what happens when the request body omits the field).
@@ -59,6 +65,9 @@ struct CatalogDetailView: View {
         }
         .ignoresSafeArea()
         .toolbar(.hidden, for: .tabBar)
+        .navigationDestination(item: $navigateToMedia) { media in
+            CatalogDetailView(media: media)
+        }
         .task { await load() }
     }
 
@@ -131,6 +140,13 @@ struct CatalogDetailView: View {
                 }
             }
 
+            SeerrMetadataRow(
+                rating: metadataRating,
+                runtimeMinutes: metadataRuntime,
+                year: displayYear,
+                certification: metadataCertification
+            )
+
             if let overview, !overview.isEmpty {
                 ExpandableTextBox(text: overview)
             }
@@ -154,6 +170,22 @@ struct CatalogDetailView: View {
             advancedOptionsSection
 
             requestSection
+
+            if !castMembers.isEmpty {
+                MediaCastRow(members: castMembers)
+            }
+
+            if !regionWatchProviders.isEmpty {
+                SeerrWatchProvidersRow(providers: regionWatchProviders)
+            }
+
+            if !recommendations.isEmpty {
+                SeerrHorizontalMediaRow(
+                    title: "detail.moreLikeThis",
+                    items: recommendations,
+                    onItemSelected: { navigateToMedia = $0 }
+                )
+            }
         }
         .padding(.horizontal, 80)
     }
@@ -636,6 +668,48 @@ struct CatalogDetailView: View {
         tvDetail?.seasons?.filter { $0.seasonNumber > 0 }
     }
 
+    private var deviceRegion: String {
+        Locale.current.region?.identifier ?? "US"
+    }
+
+    private var metadataRating: Double? {
+        movieDetail?.voteAverage ?? tvDetail?.voteAverage ?? media.voteAverage
+    }
+
+    /// Runtime in minutes. Movies only; TV omits it in SP1.
+    private var metadataRuntime: Int? {
+        movieDetail?.runtime
+    }
+
+    private var metadataCertification: String? {
+        movieDetail?.certification(region: deviceRegion)
+            ?? tvDetail?.certification(region: deviceRegion)
+    }
+
+    private var castMembers: [CastMember] {
+        let cast = movieDetail?.credits?.cast ?? tvDetail?.credits?.cast ?? []
+        return cast.prefix(15).map { member in
+            CastMember(
+                id: "\(member.id)",
+                name: member.name,
+                role: member.character,
+                imageURL: SeerrImageURL.profile(path: member.profilePath),
+                personID: member.id
+            )
+        }
+    }
+
+    /// Flatrate (streaming) providers for the device region, falling
+    /// back to US, then the first available region. Empty when none.
+    private var regionWatchProviders: [SeerrWatchProvider] {
+        let regions = movieDetail?.watchProviders ?? tvDetail?.watchProviders ?? []
+        guard !regions.isEmpty else { return [] }
+        let pick = regions.first { $0.iso31661 == deviceRegion }
+            ?? regions.first { $0.iso31661 == "US" }
+            ?? regions.first
+        return pick?.flatrate ?? []
+    }
+
     /// Returns the most-advanced known status for the given season,
     /// or `nil` if it isn't tracked anywhere yet.
     ///
@@ -734,6 +808,7 @@ struct CatalogDetailView: View {
         // shouldn't block on the Radarr/Sonarr config which is best-
         // effort anyway and only feeds the optional dropdowns.
         Task { await loadServiceConfig() }
+        Task { await loadRecommendations() }
 
         do {
             switch media.mediaType {
@@ -773,6 +848,20 @@ struct CatalogDetailView: View {
             }
         } catch {
             errorMessage = error.localizedDescription
+        }
+    }
+
+    private func loadRecommendations() async {
+        let service = dependencies.seerrMediaService
+        do {
+            let recs = try await service.recommendations(mediaType: media.mediaType, tmdbID: media.id)
+            if !recs.isEmpty {
+                recommendations = recs
+                return
+            }
+            recommendations = try await service.similar(mediaType: media.mediaType, tmdbID: media.id)
+        } catch {
+            // Best-effort: leave the row absent, no banner.
         }
     }
 
