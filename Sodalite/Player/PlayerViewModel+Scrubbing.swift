@@ -34,6 +34,7 @@ extension PlayerViewModel {
 
         scrubProgress = max(0, min(1, scrubStartProgress + Float(delta) * 0.3))
         scrubTime = formatSeconds(Double(scrubProgress) * dur)
+        scrubPreview.update(fraction: scrubProgress, durationSeconds: dur)
     }
 
     func scrubPanEnded() {
@@ -56,6 +57,7 @@ extension PlayerViewModel {
             try? await Task.sleep(for: .seconds(5))
             guard !Task.isCancelled else { return }
             isScrubbing = false
+            scrubPreview.clear()
             hideControls()
         }
     }
@@ -73,6 +75,7 @@ extension PlayerViewModel {
         // completes and Combine updates it.
         progress = scrubProgress
         isScrubbing = false
+        scrubPreview.clear()
         Task {
             await player.seek(to: targetTime)
             reportProgressIfNeeded()
@@ -82,6 +85,7 @@ extension PlayerViewModel {
 
     func cancelScrub() {
         isScrubbing = false
+        scrubPreview.clear()
         scheduleControlsHide()
     }
 }

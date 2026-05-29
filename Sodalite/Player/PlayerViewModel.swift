@@ -251,6 +251,10 @@ final class PlayerViewModel {
     var cachedPlaybackInfo: PlaybackInfoResponse?
     let preferences: PlaybackPreferences
 
+    /// Produces the scrub-preview thumbnail (trickplay, chapter fallback).
+    /// Configured per session in `startPlayback`, reset in `stopPlayback`.
+    let scrubPreview: ScrubPreviewProvider
+
     // MARK: - Internal State
 
     var cancellables = Set<AnyCancellable>()
@@ -281,6 +285,7 @@ final class PlayerViewModel {
         self.playbackService = playbackService
         self.userID = userID
         self.preferences = preferences
+        self.scrubPreview = ScrubPreviewProvider(playbackService: playbackService)
         self.cachedPlaybackInfo = cachedPlaybackInfo
     }
 
@@ -331,6 +336,12 @@ final class PlayerViewModel {
                 throw PlayerEngineError.noSource
             }
             mediaSourceID = source.id
+            scrubPreview.configure(
+                item: item,
+                mediaSourceID: mediaSourceID,
+                chapters: chapters,
+                enabled: preferences.showScrubPreview
+            )
 
             #if DEBUG
             print("[PlayerViewModel] Source: container=\(source.container ?? "nil"), directPlay=\(source.supportsDirectPlay ?? false), directStream=\(source.supportsDirectStream ?? false), transcoding=\(source.supportsTranscoding ?? false)")
@@ -596,6 +607,7 @@ final class PlayerViewModel {
         progressReportOnDemandTask?.cancel()
         progressReportOnDemandTask = nil
         unbindRemoteSkipCommands()
+        scrubPreview.reset()
         // AVKit clears its internal Now Playing registration when
         // the host VC sets `player = nil` (done in dismissPlayer /
         // viewWillDisappear).
@@ -870,6 +882,7 @@ final class PlayerViewModel {
         let jumpProgress = Float(seconds / dur)
         scrubProgress = max(0, min(1, scrubProgress + jumpProgress))
         scrubTime = formatSeconds(Double(scrubProgress) * dur)
+        scrubPreview.update(fraction: scrubProgress, durationSeconds: dur)
 
         // Auto-cancel on idle, matching `scrubPanEnded`. Commit stays
         // explicit (Select), but if the user taps left / right and
@@ -880,6 +893,7 @@ final class PlayerViewModel {
             try? await Task.sleep(for: .seconds(5))
             guard !Task.isCancelled else { return }
             isScrubbing = false
+            scrubPreview.clear()
             hideControls()
         }
     }
