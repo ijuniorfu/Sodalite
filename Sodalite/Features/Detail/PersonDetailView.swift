@@ -201,6 +201,13 @@ struct PersonDetailView: View {
         isLoading = true
         errorMessage = nil
         defer { isLoading = false }
+        guard appState.isSeerrConnected else {
+            errorMessage = String(
+                localized: "person.seerrNotConnected",
+                defaultValue: "Seerr is not connected. Connect Seerr in Settings to view this page."
+            )
+            return
+        }
         do {
             async let d = dependencies.seerrMediaService.personDetail(tmdbID: personID)
             async let c = dependencies.seerrMediaService.personCredits(tmdbID: personID)

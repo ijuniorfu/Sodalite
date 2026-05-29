@@ -182,10 +182,12 @@ struct CatalogDetailView: View {
                         selectedCastMember = member
                     }
                 }
+                .padding(.horizontal, -50)
             }
 
             if !regionWatchProviders.isEmpty {
                 SeerrWatchProvidersRow(providers: regionWatchProviders)
+                    .padding(.horizontal, -50)
             }
 
             if !recommendations.isEmpty {
@@ -194,6 +196,7 @@ struct CatalogDetailView: View {
                     items: recommendations,
                     onItemSelected: { navigateToMedia = $0 }
                 )
+                .padding(.horizontal, -50)
             }
         }
         .padding(.horizontal, 80)
