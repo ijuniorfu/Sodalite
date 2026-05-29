@@ -67,17 +67,16 @@ struct TransportBar: View {
     /// that the overlay is mounted (toggling it off is just pressing
     /// the chip again).
     let isStatsOverlayOpen: Bool
+    /// Trickplay/chapter preview frame for the current scrub position.
+    /// Nil falls the scrub display back to the time-only label.
+    let previewImage: CGImage?
 
     var body: some View {
         VStack(spacing: 10) {
-            // Scrub time preview
+            // Scrub preview: trickplay/chapter card tracking the playhead
+            // when an image is available, time-only otherwise.
             if isScrubbing {
-                Text(scrubTime)
-                    .font(.system(size: 56, weight: .medium))
-                    .monospacedDigit()
-                    .foregroundStyle(.white)
-                    .transition(.opacity)
-                    .padding(.bottom, 16)
+                scrubPreviewArea
             }
 
             // Track buttons with dropdown
@@ -208,6 +207,57 @@ struct TransportBar: View {
         .animation(.easeInOut(duration: 0.2), value: isScrubbing)
         .animation(.easeInOut(duration: 0.15), value: controlsFocus)
         .animation(.easeInOut(duration: 0.15), value: trackDropdown)
+    }
+
+    // MARK: - Scrub Preview
+
+    private static let scrubCardWidth: CGFloat = 320
+
+    @ViewBuilder
+    private var scrubPreviewArea: some View {
+        if let previewImage {
+            GeometryReader { geo in
+                let width = geo.size.width
+                let half = Self.scrubCardWidth / 2
+                let knobX = max(0, min(width, width * CGFloat(progress)))
+                let clampedX = max(half, min(width - half, knobX))
+                scrubPreviewCard(image: previewImage)
+                    .position(x: clampedX, y: scrubCardHeight / 2)
+            }
+            .frame(height: scrubCardHeight)
+            .padding(.bottom, 12)
+            .transition(.opacity)
+        } else {
+            Text(scrubTime)
+                .font(.system(size: 56, weight: .medium))
+                .monospacedDigit()
+                .foregroundStyle(.white)
+                .transition(.opacity)
+                .padding(.bottom, 16)
+        }
+    }
+
+    /// 16:9 image (180 pt tall at 320 pt wide) plus the time label below.
+    private var scrubCardHeight: CGFloat { Self.scrubCardWidth * 9 / 16 + 34 }
+
+    private func scrubPreviewCard(image: CGImage) -> some View {
+        VStack(spacing: 6) {
+            Image(decorative: image, scale: 1.0)
+                .resizable()
+                .aspectRatio(16.0 / 9.0, contentMode: .fill)
+                .frame(width: Self.scrubCardWidth, height: Self.scrubCardWidth * 9 / 16)
+                .clipShape(RoundedRectangle(cornerRadius: 10))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 10)
+                        .strokeBorder(.white.opacity(0.18), lineWidth: 1)
+                )
+                .shadow(color: .black.opacity(0.5), radius: 12, y: 4)
+
+            Text(scrubTime)
+                .font(.system(size: 22, weight: .semibold))
+                .monospacedDigit()
+                .foregroundStyle(.white)
+        }
     }
 
     // MARK: - Dropdown State

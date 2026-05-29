@@ -384,7 +384,8 @@ struct PlayerOverlayView: View {
                     chapterImageURL: { chapterThumbnailURL(for: $0) },
                     pictureMode: viewModel.pictureMode,
                     showsInfoButton: viewModel.preferences.showStatsForNerds,
-                    isStatsOverlayOpen: viewModel.showStatsOverlay
+                    isStatsOverlayOpen: viewModel.showStatsOverlay,
+                    previewImage: viewModel.scrubPreview.previewImage
                 )
             }
             .ignoresSafeArea()
