@@ -7,6 +7,10 @@ protocol JellyfinItemServiceProtocol: Sendable {
     func getSimilarItems(itemID: String, userID: String, limit: Int) async throws -> JellyfinItemsResponse
     func setFavorite(userID: String, itemID: String, isFavorite: Bool) async throws
     func getCollectionItems(userID: String, query: ItemQuery) async throws -> JellyfinItemsResponse
+    /// Resolves a library item by its TMDB id via Jellyfin's
+    /// `AnyProviderIdEquals`. Returns the first match or nil if the
+    /// library doesn't own that title.
+    func findByTmdbID(userID: String, tmdbID: Int) async throws -> JellyfinItem?
     func deleteItem(itemID: String) async throws
 }
 
@@ -50,6 +54,16 @@ final class JellyfinItemService: JellyfinItemServiceProtocol {
             endpoint: JellyfinEndpoint.items(userID: userID, query: query),
             responseType: JellyfinItemsResponse.self
         )
+    }
+
+    func findByTmdbID(userID: String, tmdbID: Int) async throws -> JellyfinItem? {
+        let query = ItemQuery(
+            includeItemTypes: [.movie, .series],
+            limit: 1,
+            anyProviderIdEquals: "tmdb.\(tmdbID)"
+        )
+        let response = try await getCollectionItems(userID: userID, query: query)
+        return response.items.first
     }
 
     func setFavorite(userID: String, itemID: String, isFavorite: Bool) async throws {

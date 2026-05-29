@@ -6,6 +6,8 @@ protocol SeerrMediaServiceProtocol: Sendable {
     func tvSeasonDetail(tmdbID: Int, seasonNumber: Int) async throws -> SeerrSeasonDetail
     func recommendations(mediaType: SeerrMediaType, tmdbID: Int) async throws -> [SeerrMedia]
     func similar(mediaType: SeerrMediaType, tmdbID: Int) async throws -> [SeerrMedia]
+    func personDetail(tmdbID: Int) async throws -> SeerrPersonDetail
+    func personCredits(tmdbID: Int) async throws -> SeerrPersonCredits
 
     /// Removes the Radarr database entry for the movie with the given
     /// TMDB id. Returns true if a Seerr media record was found and the
@@ -72,6 +74,20 @@ final class SeerrMediaService: SeerrMediaServiceProtocol {
             responseType: SeerrDiscoverResult.self
         )
         return result.results.filter { $0.mediaType != .person }
+    }
+
+    func personDetail(tmdbID: Int) async throws -> SeerrPersonDetail {
+        try await client.request(
+            endpoint: SeerrEndpoint.personDetail(tmdbID: tmdbID),
+            responseType: SeerrPersonDetail.self
+        )
+    }
+
+    func personCredits(tmdbID: Int) async throws -> SeerrPersonCredits {
+        try await client.request(
+            endpoint: SeerrEndpoint.personCombinedCredits(tmdbID: tmdbID),
+            responseType: SeerrPersonCredits.self
+        )
     }
 
     func removeMovieFromRadarr(tmdbID: Int) async throws -> Bool {

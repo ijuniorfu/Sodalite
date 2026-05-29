@@ -23,6 +23,8 @@ enum SeerrEndpoint: APIEndpoint {
     case movieDetail(tmdbID: Int)
     case tvDetail(tmdbID: Int)
     case tvSeasonDetail(tmdbID: Int, seasonNumber: Int)
+    case personDetail(tmdbID: Int)
+    case personCombinedCredits(tmdbID: Int)
     case movieRecommendations(tmdbID: Int, page: Int)
     case movieSimilar(tmdbID: Int, page: Int)
     case tvRecommendations(tmdbID: Int, page: Int)
@@ -87,6 +89,8 @@ enum SeerrEndpoint: APIEndpoint {
         case .movieDetail(let id): "/api/v1/movie/\(id)"
         case .tvDetail(let id): "/api/v1/tv/\(id)"
         case .tvSeasonDetail(let id, let n): "/api/v1/tv/\(id)/season/\(n)"
+        case .personDetail(let id): "/api/v1/person/\(id)"
+        case .personCombinedCredits(let id): "/api/v1/person/\(id)/combined_credits"
         case .movieRecommendations(let id, _): "/api/v1/movie/\(id)/recommendations"
         case .movieSimilar(let id, _): "/api/v1/movie/\(id)/similar"
         case .tvRecommendations(let id, _): "/api/v1/tv/\(id)/recommendations"
