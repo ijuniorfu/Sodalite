@@ -23,6 +23,12 @@ enum Changelog {
                     "changelog.0_8_0.multiServer.body",
                     icon: "server.rack"
                 ),
+                ChangelogHighlight(
+                    .new,
+                    "changelog.0_8_0.scrubPreview.title",
+                    "changelog.0_8_0.scrubPreview.body",
+                    icon: "photo.on.rectangle"
+                ),
             ]
         ),
         // MARK: 0.7.0

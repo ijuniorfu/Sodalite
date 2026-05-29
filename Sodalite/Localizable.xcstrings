@@ -29205,6 +29205,328 @@
         }
       }
     },
+    "changelog.0_8_0.scrubPreview.body" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Při převíjení se nad ukazatelem přehrávání nyní zobrazuje náhled snímku. Používá obrázky trickplay z vašeho serveru, jinak se vrací k obrázkům kapitol. Zapnete či vypnete v Nastavení → Přehrávání."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Når du spoler, vises nu et miniaturebillede af billedet over afspilningshovedet. Det bruger serverens trickplay-billeder, med kapitelbilleder som reserve. Slå det fra i Indstillinger → Afspilning."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Beim Spulen schwebt jetzt ein Vorschaubild des Bildes über dem Abspielkopf. Es nutzt die Trickplay-Bilder deines Servers, mit Kapitelbildern als Rückfall. Abschaltbar unter Einstellungen → Wiedergabe."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Κατά την αναζήτηση, εμφανίζεται τώρα μια μικρογραφία του καρέ πάνω από την κεφαλή αναπαραγωγής. Χρησιμοποιεί τις εικόνες trickplay του διακομιστή σας, με τις εικόνες κεφαλαίων ως εφεδρεία. Ενεργοποιήστε ή απενεργοποιήστε το στις Ρυθμίσεις → Αναπαραγωγή."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "When you scrub, a thumbnail of the frame now floats above the playhead. It uses your server's trickplay images where available, with chapter art as a fallback. Toggle it in Settings → Playback."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Al avanzar, ahora aparece una miniatura del fotograma sobre el cursor de reproducción. Usa las imágenes de trickplay de tu servidor, con las imágenes de capítulo como alternativa. Actívala o desactívala en Ajustes → Reproducción."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kelatessasi ruudun pienoiskuva näkyy nyt toistopään yläpuolella. Se käyttää palvelimesi trickplay-kuvia ja turvautuu lukujen kuviin, jos niitä ei ole. Voit kytkeä sen pois päältä kohdassa Asetukset → Toisto."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pendant le défilement, une miniature de l'image flotte désormais au-dessus de la tête de lecture. Elle utilise les images trickplay de votre serveur, avec les images de chapitre en repli. Activez-la ou non dans Réglages → Lecture."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pri premotavanju se sada iznad pokazivača reprodukcije prikazuje minijatura kadra. Koristi trickplay slike vašeg poslužitelja, uz slike poglavlja kao zamjenu. Uključite ili isključite u Postavke → Reprodukcija."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tekeréskor most a képkocka bélyegképe jelenik meg a lejátszófej fölött. A kiszolgáló trickplay-képeit használja, ezek hiányában a fejezetképekre vált. A Beállítások → Lejátszás menüben kapcsolható."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Durante lo scorrimento ora una miniatura del fotogramma compare sopra l'indicatore di riproduzione. Usa le immagini trickplay del tuo server, con le immagini dei capitoli come ripiego. Attivala o disattivala in Impostazioni → Riproduzione."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "シーク中に、その位置のフレームのサムネイルが再生ヘッドの上に表示されるようになりました。サーバーのトリックプレイ画像を使用し、なければチャプター画像で代替します。設定 → 再生 で切り替えられます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "탐색할 때 해당 위치의 프레임 썸네일이 재생 헤드 위에 표시됩니다. 서버의 트릭플레이 이미지를 사용하며, 없으면 챕터 이미지로 대체합니다. 설정 → 재생에서 켜고 끌 수 있습니다."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Når du spoler, vises nå et miniatyrbilde av bildet over avspillingshodet. Det bruker serverens trickplay-bilder, med kapittelbilder som reserve. Slå det av i Innstillinger → Avspilling."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tijdens het spoelen zweeft nu een miniatuur van het beeld boven de afspeelkop. Het gebruikt de trickplay-afbeeldingen van je server, met hoofdstukafbeeldingen als terugval. Schakel het uit in Instellingen → Afspelen."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Podczas przewijania nad głowicą odtwarzania pojawia się teraz miniatura klatki. Korzysta z obrazów trickplay twojego serwera, a w razie ich braku z grafik rozdziałów. Włącz lub wyłącz w Ustawienia → Odtwarzanie."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ao avançar, agora aparece uma miniatura do quadro acima do cursor de reprodução. Ela usa as imagens de trickplay do seu servidor, com as imagens de capítulo como alternativa. Ative ou desative em Configurações → Reprodução."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ao avançar, aparece agora uma miniatura do fotograma por cima do cursor de reprodução. Usa as imagens de trickplay do seu servidor, com as imagens de capítulo como alternativa. Ative ou desative em Definições → Reprodução."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La derulare, acum apare o miniatură a cadrului deasupra capului de redare. Folosește imaginile trickplay ale serverului, cu imaginile de capitol ca rezervă. O poți activa sau dezactiva în Setări → Redare."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "При перемотке над ползунком теперь появляется миниатюра кадра. Используются изображения trickplay вашего сервера, а при их отсутствии — обложки глав. Включается и отключается в Настройки → Воспроизведение."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pri pretáčaní sa nad ukazovateľom prehrávania teraz zobrazuje náhľad snímku. Používa obrázky trickplay z vášho servera, inak sa vráti k obrázkom kapitol. Zapnete alebo vypnete v Nastavenia → Prehrávanie."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "När du spolar visas nu en miniatyr av bildrutan ovanför spelhuvudet. Den använder serverns trickplay-bilder, med kapitelbilder som reserv. Slå av eller på i Inställningar → Uppspelning."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sarma yaparken artık o konumdaki karenin küçük bir önizlemesi oynatma kafasının üzerinde beliriyor. Sunucunuzun trickplay görüntülerini kullanır, yoksa bölüm görselleriyle devam eder. Ayarlar → Oynatma'dan açıp kapatın."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Під час перемотки над повзунком тепер з'являється мініатюра кадру. Використовуються зображення trickplay вашого сервера, а за їх відсутності — обкладинки розділів. Вмикається та вимикається в Налаштування → Відтворення."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "拖动进度时，画面缩略图现在会浮现在播放头上方。它使用服务器的 trickplay 图像，没有时则回退到章节图像。可在“设置 → 播放”中开关。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "拖曳進度時，畫面縮圖現在會浮現在播放頭上方。它使用伺服器的 trickplay 影像，沒有時則退回章節影像。可在「設定 → 播放」中開關。"
+          }
+        }
+      }
+    },
+    "changelog.0_8_0.scrubPreview.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Náhled při převíjení"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Forhåndsvisning ved spoling"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vorschau beim Spulen"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Προεπισκόπηση κατά την αναζήτηση"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scrub preview"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vista previa al avanzar"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esikatselu kelattaessa"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aperçu lors du défilement"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pregled pri premotavanju"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Előnézet tekeréskor"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anteprima durante lo scorrimento"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "シーク中のプレビュー"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "탐색 미리 보기"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Forhåndsvisning ved spoling"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Voorbeeld bij spoelen"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Podgląd przewijania"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Prévia ao avançar"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pré-visualização ao avançar"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Previzualizare la derulare"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Предпросмотр при перемотке"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Náhľad pri pretáčaní"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Förhandsvisning vid spolning"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sarma önizlemesi"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Попередній перегляд перемотки"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "拖动预览"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "拖曳預覽"
+          }
+        }
+      }
+    },
     "changelog.modal.dismiss" : {
       "extractionState" : "manual",
       "localizations" : {
