@@ -29,6 +29,18 @@ enum Changelog {
                     "changelog.0_8_0.scrubPreview.body",
                     icon: "photo.on.rectangle"
                 ),
+                ChangelogHighlight(
+                    .new,
+                    "changelog.0_8_0.detailPages.title",
+                    "changelog.0_8_0.detailPages.body",
+                    icon: "rectangle.stack.fill"
+                ),
+                ChangelogHighlight(
+                    .new,
+                    "changelog.0_8_0.castPages.title",
+                    "changelog.0_8_0.castPages.body",
+                    icon: "person.2.fill"
+                ),
             ]
         ),
         // MARK: 0.7.0

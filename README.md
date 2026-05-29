@@ -76,6 +76,8 @@ The Seerr integration isn't a tacked-on link to a web view. It's a first-class p
 - **Search**: across your whole server, results as you type
 - **Image caching & prefetching**: posters and backdrops load before you focus them
 - **Delete from the app**: remove movies, series, or individual seasons from your library, with optional cleanup of matching Radarr / Sonarr entries when Jellyseerr is connected
+- **Rich detail pages**: cast, ratings, where-to-watch and more-like-this on catalog titles; tagline, director, writer and studios on your own library
+- **Cast & filmography**: tap any cast member to see their photo, biography and full filmography, then jump straight to a title in your library or request it from the catalog
 
 ### 🎬 Watch
 - **Direct Play** for almost every codec on your server: H.264, HEVC, HEVC Main10, AV1, VP9, VP8, MPEG-4 Part 2 (XVID / DIVX), MPEG-2, VC-1. Containers: MKV, MP4, MOV, AVI, MPEG-TS, M2TS, VOB, 3GP, WebM, OGG, FLV. Server-side transcoding stays reserved for fringe codecs (WMV3, Theora, RealVideo).

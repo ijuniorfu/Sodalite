@@ -29849,6 +29849,650 @@
         }
       }
     },
+    "changelog.0_8_0.detailPages.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bohatší stránky s detaily"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rigere detaljesider"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reichhaltigere Detailseiten"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Πλουσιότερες σελίδες λεπτομερειών"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Richer detail pages"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Páginas de detalles más completas"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Monipuolisemmat tietosivut"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pages de détails enrichies"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bogatije stranice s detaljima"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gazdagabb részletoldalak"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pagine dei dettagli più ricche"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "より充実した詳細ページ"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "더 풍부해진 상세 페이지"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rikere detaljsider"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rijkere detailpagina's"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bogatsze strony szczegółów"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Páginas de detalhes mais ricas"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Páginas de detalhes mais ricas"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pagini de detalii mai bogate"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Подробные страницы стали богаче"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bohatšie stránky s detailmi"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rikare detaljsidor"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Daha zengin detay sayfaları"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Багатші сторінки деталей"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更丰富的详情页"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更豐富的詳情頁"
+          }
+        }
+      }
+    },
+    "changelog.0_8_0.detailPages.body" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stránky filmů a seriálů nyní zobrazují obsazení, hodnocení, kde sledovat a podobné tituly. U vlastních titulů z knihovny najdete také slogan, režii, scénář a studia."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Film- og seriesider viser nu rollebesætning, bedømmelser, hvor kan ses og lignende titler. Dine egne bibliotekstitler viser også tagline, instruktør, manuskript og studier."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Film- und Serienseiten zeigen jetzt Besetzung, Bewertungen, wo verfügbar und ähnliche Titel. Bei eigenen Library-Titeln stehen zusätzlich Tagline, Regie, Drehbuch und Studios."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Οι σελίδες ταινιών και σειρών δείχνουν τώρα το καστ, βαθμολογίες, πού να δείτε και παρόμοιους τίτλους. Οι δικοί σας τίτλοι εμφανίζουν επίσης το σλόγκαν, σκηνοθεσία, σενάριο και στούντιο."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Movie and show pages now show the cast, ratings, where to watch, and more like this. Your own library titles also list the tagline, director, writer, and studios."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Las páginas de películas y series ahora muestran el reparto, valoraciones, dónde ver y títulos similares. Tus títulos de la biblioteca también indican el eslogan, dirección, guion y estudios."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Elokuva- ja sarjasivuilla näkyy nyt näyttelijät, arvostelut, mistä katsoa ja samankaltaisia. Oman kirjastosi nimikkeissä näkyvät myös slogan, ohjaus, käsikirjoitus ja studiot."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les pages de films et de séries affichent désormais le casting, les notes, où regarder et des titres similaires. Vos titres de bibliothèque indiquent aussi l'accroche, la réalisation, le scénario et les studios."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stranice filmova i serija sada prikazuju glumačku postavu, ocjene, gdje gledati i slične naslove. Vlastiti naslovi iz knjižnice navode i slogan, redatelja, scenarij i studije."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A film- és sorozatoldalak most megjelenítik a szereplőket, értékeléseket, hol nézhető és hasonló címeket. A saját könyvtárad címeinél a szlogen, rendező, forgatókönyv és stúdiók is megjelennek."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le pagine di film e serie ora mostrano il cast, le valutazioni, dove guardare e titoli simili. I titoli della tua libreria indicano anche slogan, regia, sceneggiatura e studi."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "映画やシリーズのページにキャスト、評価、配信サービス、関連作品が表示されるようになりました。ライブラリの作品にはキャッチコピー、監督、脚本、制作会社も表示されます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "영화와 시리즈 페이지에 출연진, 평점, 시청 가능한 곳, 비슷한 콘텐츠가 표시됩니다. 라이브러리의 작품에는 태그라인, 감독, 각본, 제작사도 함께 표시됩니다."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Film- og seriesider viser nå rollebesetning, vurderinger, hvor du kan se og lignende titler. Egne bibliotektitler viser også slagord, regi, manus og studioer."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Film- en seriepagina's tonen nu de cast, beoordelingen, waar te kijken en vergelijkbare titels. Je eigen bibliotheektitels tonen ook de tagline, regie, scenario en studio's."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Strony filmów i seriali pokazują teraz obsadę, oceny, gdzie obejrzeć i podobne tytuły. Twoje tytuły z biblioteki zawierają też hasło, reżyserię, scenariusz i studia."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "As páginas de filmes e séries agora mostram o elenco, avaliações, onde assistir e títulos semelhantes. Seus títulos da biblioteca também listam o slogan, direção, roteiro e estúdios."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "As páginas de filmes e séries mostram agora o elenco, avaliações, onde ver e títulos semelhantes. Os seus títulos da biblioteca também indicam o slogan, realização, argumento e estúdios."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paginile filmelor și serialelor afișează acum distribuția, evaluările, unde de vizionat și titluri similare. Titlurile din biblioteca ta listează și sloganul, regia, scenariul și studiourile."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "На страницах фильмов и сериалов теперь показаны актёры, рейтинги, где смотреть и похожее. Для своих фильмов также указаны слоган, режиссёр, сценарий и студии."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stránky filmov a seriálov teraz zobrazujú obsadenie, hodnotenia, kde sledovať a podobné tituly. Pri vlastných tituloch z knižnice nájdete aj slogan, réžiu, scenár a štúdiá."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Film- och seriesidor visar nu rollistan, betyg, var du kan se och liknande titlar. Dina egna bibliotekstitlar visar även slogan, regi, manus och studior."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Film ve dizi sayfaları artık oyuncuları, puanları, nereden izleneceğini ve benzer içerikleri gösteriyor. Kendi kütüphanenizdeki başlıklarda ayrıca slogan, yönetmen, senaryo ve stüdyolar yer alır."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сторінки фільмів і серіалів тепер показують акторів, оцінки, де дивитися та схоже. Для власних фільмів також вказано слоган, режисера, сценарій і студії."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "电影和剧集页面现在会显示演员、评分、观看渠道和相似内容。你的媒体库作品还会列出标语、导演、编剧和制作公司。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "電影和劇集頁面現在會顯示演員、評分、觀看管道和相似內容。你的媒體庫作品還會列出標語、導演、編劇和製作公司。"
+          }
+        }
+      }
+    },
+    "changelog.0_8_0.castPages.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Obsazení a filmografie"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rollebesætning og filmografi"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Besetzung & Filmografie"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Καστ και φιλμογραφία"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cast & filmography"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reparto y filmografía"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Näyttelijät ja filmografia"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Casting et filmographie"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Glumci i filmografija"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Szereplők és filmográfia"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cast e filmografia"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "キャストと出演作品"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "출연진 및 작품"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rollebesetning og filmografi"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cast en filmografie"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Obsada i filmografia"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Elenco e filmografia"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Elenco e filmografia"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Distribuție și filmografie"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Актёры и фильмография"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Obsadenie a filmografia"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rollista och filmografi"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Oyuncular ve filmografi"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Актори та фільмографія"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "演员与影视作品"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "演員與影視作品"
+          }
+        }
+      }
+    },
+    "changelog.0_8_0.castPages.body" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Klepnutím na člena obsazení otevřete jeho fotku, životopis a kompletní filmografii. Každý titul vás přenese do knihovny, pokud jej máte, jinak do žádosti."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tryk på et besætningsmedlem for at åbne foto, biografi og hele filmografien. Hver titel fører til dit bibliotek, hvis du har den, ellers til anmodningen."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tippe auf ein Besetzungsmitglied, um Foto, Biografie und die komplette Filmografie zu öffnen. Jeder Titel führt in deine Library, wenn du ihn hast, sonst in den Anfrage-Flow."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Πατήστε ένα μέλος του καστ για να ανοίξετε τη φωτογραφία, τη βιογραφία και πλήρη φιλμογραφία. Κάθε τίτλος σας πηγαίνει στη βιβλιοθήκη σας αν τον έχετε, αλλιώς στο αίτημα."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tap any cast member to open their photo, biography, and full filmography. Each title takes you to your library if you own it, or to the request flow if you don't."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toca cualquier miembro del reparto para ver su foto, biografía y filmografía completa. Cada título te lleva a tu biblioteca si lo tienes, o al flujo de solicitud si no."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Avaa näyttelijän kuva, elämäkerta ja koko filmografia napauttamalla. Jokainen nimike vie kirjastoosi, jos omistat sen, muuten pyyntönäkymään."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Touchez un membre du casting pour ouvrir sa photo, sa biographie et sa filmographie complète. Chaque titre vous mène à votre bibliothèque si vous le possédez, sinon vers la demande."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dodirnite člana glumačke postave da otvorite njegovu fotografiju, biografiju i cijelu filmografiju. Svaki naslov vodi u vašu knjižnicu ako ga imate, inače na zahtjev."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Koppints egy szereplőre a fotó, az életrajz és a teljes filmográfia megnyitásához. Minden cím a könyvtáradba visz, ha megvan, különben a kéréshez."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tocca un membro del cast per aprire foto, biografia e filmografia completa. Ogni titolo ti porta nella tua libreria se lo possiedi, altrimenti al flusso di richiesta."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "キャストをタップすると、写真、経歴、出演作品の一覧が開きます。各作品は、所有していればライブラリへ、なければリクエスト画面へ移動します。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "출연진을 탭하면 사진, 약력, 전체 작품 목록이 열립니다. 각 작품은 보유 중이면 라이브러리로, 아니면 요청 화면으로 이동합니다."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trykk på et rollemedlem for å åpne bildet, biografien og hele filmografien. Hver tittel tar deg til biblioteket ditt hvis du har den, ellers til forespørselen."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tik op een castlid om de foto, biografie en volledige filmografie te openen. Elke titel brengt je naar je bibliotheek als je die hebt, anders naar de aanvraag."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dotknij członka obsady, aby otworzyć zdjęcie, biografię i pełną filmografię. Każdy tytuł przeniesie cię do biblioteki, jeśli go masz, albo do zgłoszenia."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toque em qualquer membro do elenco para abrir a foto, biografia e filmografia completa. Cada título leva você à sua biblioteca, se já tiver, ou ao fluxo de solicitação."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toque em qualquer membro do elenco para abrir a foto, biografia e filmografia completa. Cada título leva-o à sua biblioteca, se já a tiver, ou ao fluxo de pedido."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Atinge orice membru al distribuției pentru a deschide fotografia, biografia și filmografia completă. Fiecare titlu te duce în biblioteca ta dacă îl ai, sau la cerere dacă nu."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Нажмите на актёра, чтобы открыть его фото, биографию и полную фильмографию. Каждый фильм откроется в вашей библиотеке, если он у вас есть, иначе — в запросе."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Klepnutím na člena obsadenia otvoríte jeho fotku, životopis a kompletnú filmografiu. Každý titul vás prenesie do knižnice, ak ho máte, inak do žiadosti."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tryck på en rollmedlem för att öppna foto, biografi och hela filmografin. Varje titel tar dig till ditt bibliotek om du har den, annars till begäran."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bir oyuncuya dokunarak fotoğrafını, biyografisini ve tüm filmografisini açın. Her başlık, sahipseniz kütüphanenize, değilseniz istek akışına götürür."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Торкніться актора, щоб відкрити його фото, біографію та повну фільмографію. Кожен фільм відкриється у вашій бібліотеці, якщо він у вас є, інакше — у запиті."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "点按任意演员即可查看其照片、简介和完整影视作品。若你已拥有该作品，会跳转到媒体库，否则进入请求流程。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "點按任意演員即可查看其照片、簡介和完整影視作品。若你已擁有該作品，會跳轉到媒體庫，否則進入請求流程。"
+          }
+        }
+      }
+    },
     "changelog.0_8_0.multiServer.title" : {
       "extractionState" : "manual",
       "localizations" : {
