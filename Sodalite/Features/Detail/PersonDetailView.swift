@@ -110,8 +110,18 @@ struct PersonDetailView: View {
                 .fontWeight(.semibold)
 
             if filmography.isEmpty {
-                Text("person.noTitles")
-                    .foregroundStyle(.secondary)
+                VStack(alignment: .leading, spacing: 16) {
+                    Text("person.noTitles")
+                        .foregroundStyle(.secondary)
+                    Button {
+                        dismiss()
+                    } label: {
+                        Text("common.back")
+                            .padding(.horizontal, 24)
+                            .padding(.vertical, 10)
+                    }
+                    .buttonStyle(SettingsTileButtonStyle())
+                }
             } else {
                 LazyVGrid(columns: columns, spacing: 40) {
                     ForEach(filmography) { media in
