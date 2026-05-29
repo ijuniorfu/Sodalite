@@ -177,22 +177,34 @@ struct MediaDeletionSheet: View {
                 .font(.caption)
                 .foregroundStyle(.secondary)
                 .textCase(.uppercase)
-            ForEach(seasons) { season in
-                BoolPillRow(
-                    title: LocalizedStringKey(season.title),
-                    isOn: Binding(
-                        get: { selectedSeasonIDs.contains(season.id) },
-                        set: { isOn in
-                            if isOn {
-                                selectedSeasonIDs.insert(season.id)
-                            } else {
-                                selectedSeasonIDs.remove(season.id)
-                            }
-                        }
-                    ),
-                    disabled: false
-                )
+            // Bounded scroll: series with many seasons (e.g. One Piece,
+            // 11+) used to overflow the sheet, clipping the first season
+            // off the top and pushing the footer buttons off-screen with
+            // no way to scroll. Cap the list height and let it scroll;
+            // tvOS auto-scrolls the focused row into view. The cap is the
+            // content height (~64 pt per pill row) up to 420 pt, so a
+            // short series stays compact without a half-empty scroll box.
+            ScrollView {
+                VStack(alignment: .leading, spacing: 8) {
+                    ForEach(seasons) { season in
+                        BoolPillRow(
+                            title: LocalizedStringKey(season.title),
+                            isOn: Binding(
+                                get: { selectedSeasonIDs.contains(season.id) },
+                                set: { isOn in
+                                    if isOn {
+                                        selectedSeasonIDs.insert(season.id)
+                                    } else {
+                                        selectedSeasonIDs.remove(season.id)
+                                    }
+                                }
+                            ),
+                            disabled: false
+                        )
+                    }
+                }
             }
+            .frame(maxHeight: min(CGFloat(seasons.count) * 64, 420))
         }
     }
 
