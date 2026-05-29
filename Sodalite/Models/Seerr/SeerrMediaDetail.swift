@@ -101,11 +101,6 @@ struct SeerrCastMember: Codable, Sendable, Identifiable, Equatable, Hashable {
     let name: String
     let character: String?
     let profilePath: String?
-
-    enum CodingKeys: String, CodingKey {
-        case id, name, character
-        case profilePath
-    }
 }
 
 struct SeerrCredits: Codable, Sendable, Equatable {
@@ -126,11 +121,6 @@ struct SeerrWatchProviderRegion: Codable, Sendable, Equatable {
     let flatrate: [SeerrWatchProvider]?
     let buy: [SeerrWatchProvider]?
     let rent: [SeerrWatchProvider]?
-
-    enum CodingKeys: String, CodingKey {
-        case iso31661 = "iso_3166_1"
-        case link, flatrate, buy, rent
-    }
 }
 
 // MARK: - Certification
@@ -139,11 +129,6 @@ struct SeerrReleases: Codable, Sendable, Equatable {
     struct RegionReleases: Codable, Sendable, Equatable {
         let iso31661: String
         let releaseDates: [ReleaseDate]?
-
-        enum CodingKeys: String, CodingKey {
-            case iso31661 = "iso_3166_1"
-            case releaseDates = "release_dates"
-        }
     }
     struct ReleaseDate: Codable, Sendable, Equatable {
         let certification: String?
@@ -155,11 +140,6 @@ struct SeerrContentRatings: Codable, Sendable, Equatable {
     struct RegionRating: Codable, Sendable, Equatable {
         let iso31661: String
         let rating: String?
-
-        enum CodingKeys: String, CodingKey {
-            case iso31661 = "iso_3166_1"
-            case rating
-        }
     }
     let results: [RegionRating]?
 }
