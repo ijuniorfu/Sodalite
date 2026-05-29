@@ -203,6 +203,8 @@ struct MediaDeletionSheet: View {
                         )
                     }
                 }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 6)
             }
             .frame(maxHeight: min(CGFloat(seasons.count) * 64, 420))
         }
