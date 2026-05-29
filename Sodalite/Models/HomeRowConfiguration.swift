@@ -231,4 +231,27 @@ extension HomeRowConfig {
 
         return result
     }
+
+    /// Reset that preserves discovered `.libraryLatest` rows (so they
+    /// don't vanish from the customize list until the next reconcile)
+    /// while restoring static rows to their default order and enabled
+    /// state. Library rows go to the end, disabled.
+    static func resetToDefault(current: [HomeRowConfig]) -> [HomeRowConfig] {
+        var result = defaultConfig()
+        var order = result.count
+        for config in current where config.type == .libraryLatest {
+            result.append(
+                HomeRowConfig(
+                    type: .libraryLatest,
+                    isEnabled: false,
+                    sortOrder: order,
+                    libraryID: config.libraryID,
+                    libraryName: config.libraryName,
+                    collectionType: config.collectionType
+                )
+            )
+            order += 1
+        }
+        return result
+    }
 }
