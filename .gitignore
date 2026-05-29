@@ -10,3 +10,6 @@ Screenshots/
 # Local Claude Code working state, never publish.
 .claude/
 CLAUDE.md
+
+# Internal design specs and implementation plans, kept local only.
+docs/superpowers/
