@@ -1,6 +1,167 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "person.seerrNotConnected" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seerr není připojen. Připojte Seerr v Nastavení, abyste zobrazili tuto stránku."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seerr er ikke forbundet. Forbind Seerr i Indstillinger for at se denne side."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seerr ist nicht verbunden. Verbinde Seerr in den Einstellungen, um diese Seite zu sehen."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Το Seerr δεν είναι συνδεδεμένο. Συνδέστε το Seerr στις Ρυθμίσεις για να δείτε αυτή τη σελίδα."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seerr is not connected. Connect Seerr in Settings to view this page."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seerr no está conectado. Conecta Seerr en Ajustes para ver esta página."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seerriä ei ole yhdistetty. Yhdistä Seerr Asetuksissa nähdäksesi tämän sivun."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seerr n'est pas connecté. Connectez Seerr dans les Réglages pour voir cette page."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seerr nije povezan. Povežite Seerr u Postavkama da biste vidjeli ovu stranicu."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A Seerr nincs csatlakoztatva. Csatlakoztasd a Seerrt a Beállításokban az oldal megtekintéséhez."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seerr non è connesso. Collega Seerr nelle Impostazioni per vedere questa pagina."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seerrが接続されていません。このページを表示するには設定でSeerrを接続してください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seerr가 연결되지 않았습니다. 이 페이지를 보려면 설정에서 Seerr를 연결하세요."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seerr er ikke tilkoblet. Koble til Seerr i Innstillinger for å se denne siden."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seerr is niet verbonden. Verbind Seerr in Instellingen om deze pagina te bekijken."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seerr nie jest połączony. Połącz Seerr w Ustawieniach, aby zobaczyć tę stronę."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O Seerr não está conectado. Conecte o Seerr nas Configurações para ver esta página."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O Seerr não está ligado. Ligue o Seerr nas Definições para ver esta página."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seerr nu este conectat. Conectează Seerr în Setări pentru a vedea această pagină."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seerr не подключён. Подключите Seerr в Настройках, чтобы открыть эту страницу."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seerr nie je pripojený. Pripojte Seerr v Nastaveniach, aby ste zobrazili túto stránku."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seerr är inte anslutet. Anslut Seerr i Inställningar för att se den här sidan."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seerr bağlı değil. Bu sayfayı görüntülemek için Ayarlar'dan Seerr'i bağlayın."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seerr не підключено. Підключіть Seerr у Налаштуваннях, щоб переглянути цю сторінку."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seerr 未连接。请在“设置”中连接 Seerr 以查看此页面。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seerr 未連接。請在「設定」中連接 Seerr 以檢視此頁面。"
+          }
+        }
+      }
+    },
     "person.biography" : {
       "extractionState" : "manual",
       "localizations" : {
