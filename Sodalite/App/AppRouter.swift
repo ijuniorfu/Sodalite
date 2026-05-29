@@ -25,6 +25,22 @@ struct AppRouter: View {
     @State private var lastResolvedTVUserID: String?
     @State private var lastResolvedTVUserIDSet = false
 
+    /// UUID stamped into the active tvOS user's UserDefaults bucket
+    /// (which is per-user-isolated under `runs-as-current-user`). We
+    /// cache the value at restore time and re-read on every scene-active.
+    /// A change between the cached and current reads means the
+    /// UserDefaults context resolved to a different tvOS user since
+    /// the last restore, so we wipe in-memory state and re-run
+    /// performRestore. Backstop for tvOS 26's documented regression
+    /// where the OS fails to kill the Sodalite process on user
+    /// switches after the first. This works only if UserDefaults
+    /// re-resolves per-user for the running process; if it stays
+    /// bound to the launch-time user, the UUID won't change and the
+    /// regression remains unworkaroundable from app code.
+    @State private var cachedTVUserDetectionUUID: String?
+
+    private static let userDetectionUUIDKey = "Sodalite.tvUserDetectionUUID.v1"
+
     /// Non-nil while the launch-time profile picker is armed: the
     /// restore found a valid session + at least one remembered
     /// profile, and the user either set launchBehavior=.showPicker
@@ -107,16 +123,38 @@ struct AppRouter: View {
                 return
             }
 
+            // Defensive UUID-based detection for the tvOS 26 process-
+            // lifecycle regression: the OS keeps the same Sodalite
+            // process alive across long-press-Home user switches after
+            // the first, so neither the TVUserManager API (deprecated,
+            // returns nil) nor any in-memory signal catches the change.
+            // UserDefaults is per-user-isolated under runs-as-current-
+            // user, so a UUID stamped into the active user's defaults
+            // bucket differs from the one we cached at the last restore
+            // when the OS has swapped users underneath us. If detection
+            // fires, fall through into a full warm-process reset.
+            let currentUUID = resolveCurrentTVUserDetectionUUID()
+            let uuidChanged = cachedTVUserDetectionUUID.map { $0 != currentUUID } ?? false
             let current = TVUserContext.currentUserID
-            if current != lastResolvedTVUserID {
-                tvUserLogger.notice("scenePhase: tvUser CHANGED last=\(lastResolvedTVUserID ?? "nil", privacy: .public) -> current=\(current ?? "nil", privacy: .public). Wiping state + performRestore.")
+            let tvIDChanged = current != lastResolvedTVUserID
+
+            if uuidChanged || tvIDChanged {
+                tvUserLogger.notice("scenePhase: USER CHANGE detected. tvIDChanged=\(tvIDChanged, privacy: .public) (last=\(lastResolvedTVUserID ?? "nil", privacy: .public) -> current=\(current ?? "nil", privacy: .public)) uuidChanged=\(uuidChanged, privacy: .public) (cached=\(cachedTVUserDetectionUUID ?? "nil", privacy: .public) -> current=\(currentUUID, privacy: .public)). Forcing warm-process reset.")
                 // tvOS system user changed since the last full restore.
-                // Reset in-memory app state and re-run performRestore so
-                // the previous user's session can't bleed through.
-                appState.isAuthenticated = false
-                appState.activeServer = nil
-                appState.activeUser = nil
+                // Reset all in-memory app state and the JellyfinClient's
+                // cached access token so the next performRestore reads
+                // fresh from the (per-user-isolated) keychain instead of
+                // re-using the previous user's session. Also dismiss any
+                // currently-presented player so it can't keep streaming
+                // the previous user's content into the new user's view.
+                appState.logout()
+                appState.pendingDeepLinkItemID = nil
+                appState.requestContinueWatching = false
+                appState.isResolvingDeepLink = false
                 launchPickerServer = nil
+                deepLinkItem = nil
+                dependencies.jellyfinClient.accessToken = nil
+                dismissActivePlayerModal()
                 // Update the baseline BEFORE re-running, otherwise the
                 // observer would re-fire the same wipe on the next
                 // scene-active and we'd never settle.
@@ -413,14 +451,33 @@ struct AppRouter: View {
         EngineLog.emit("[AppRouter] deep-link dismiss: no player in modal chain")
     }
 
-    /// Records the current tvOS user identifier so the scenePhase
-    /// observer can detect a subsequent user change. Called from
-    /// every entry point that does a full performRestore.
+    /// Records the current tvOS user identifier AND the per-user
+    /// UserDefaults UUID so the scenePhase observer can detect a
+    /// subsequent user change via either signal. Called from every
+    /// entry point that does a full performRestore.
     private func markTVUserResolved() {
         let id = TVUserContext.currentUserID
-        tvUserLogger.notice("markTVUserResolved: tvUserID=\(id ?? "nil", privacy: .public)")
+        let uuid = resolveCurrentTVUserDetectionUUID()
+        tvUserLogger.notice("markTVUserResolved: tvUserID=\(id ?? "nil", privacy: .public) uuid=\(uuid, privacy: .public)")
         lastResolvedTVUserID = id
         lastResolvedTVUserIDSet = true
+        cachedTVUserDetectionUUID = uuid
+    }
+
+    /// Returns the UUID stored under our detection key in the active
+    /// tvOS user's UserDefaults bucket, creating one on first read.
+    /// Per-user isolation under runs-as-current-user means each tvOS
+    /// user gets their own UUID; comparing the value across scene-
+    /// active transitions surfaces a user switch even when the
+    /// deprecated TVUserManager API returns nil.
+    private func resolveCurrentTVUserDetectionUUID() -> String {
+        let key = AppRouter.userDetectionUUIDKey
+        if let existing = UserDefaults.standard.string(forKey: key) {
+            return existing
+        }
+        let fresh = UUID().uuidString
+        UserDefaults.standard.set(fresh, forKey: key)
+        return fresh
     }
 
     private func restoreSession() async {
