@@ -9,6 +9,10 @@ struct CastMember: Identifiable, Hashable, Sendable {
     let role: String?
     let imageURL: URL?
     let personID: Int?
+    /// Jellyfin person id, set for Jellyfin-sourced cast (resolved to a
+    /// TMDB id on tap). Nil for Seerr-sourced cast, which set `personID`
+    /// (TMDB) directly.
+    let jellyfinPersonID: String?
 }
 
 /// Horizontal strip of cast portraits. `onSelect` is nil in SP1 (the
