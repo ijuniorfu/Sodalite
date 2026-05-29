@@ -7,6 +7,7 @@ struct MovieDetailView: View {
     @State private var viewModel: DetailViewModel?
     @State private var navigateToSeries: JellyfinItem?
     @State private var navigateToItem: JellyfinItem?
+    @State private var navigateToPerson: PersonRoute?
     @State private var showPlayer = false
     @State private var playFromBeginning = false
     @State private var isPresentingDeleteSheet: Bool = false
@@ -104,6 +105,9 @@ struct MovieDetailView: View {
             SeriesDetailView(item: series)
                 .toolbar(.hidden, for: .tabBar)
         }
+        .navigationDestination(item: $navigateToPerson) { route in
+            PersonDetailView(personID: route.tmdbID, personName: route.name)
+        }
         .onAppear {
             if viewModel == nil, let userID = appState.activeUser?.id {
                 viewModel = DetailViewModel(
@@ -191,14 +195,12 @@ struct MovieDetailView: View {
                 }
 
                 if let people = vm.item.people, !people.isEmpty {
-                    CastRow(
-                        people: Array(people.prefix(15)),
-                        imageURLProvider: { person in
-                            dependencies.jellyfinImageService.personImageURL(
-                                personID: person.id,
-                                tag: person.primaryImageTag
-                            )
-                        }
+                    MediaCastRow(
+                        members: jellyfinCastMembers(
+                            from: people,
+                            imageService: dependencies.jellyfinImageService
+                        ),
+                        onSelect: { handlePersonTap($0) }
                     )
                 }
 
@@ -238,6 +240,8 @@ struct MovieDetailView: View {
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
             }
+
+            DetailSecondaryInfo(item: vm.item)
 
             // Action buttons
             HStack(spacing: 16) {
@@ -353,5 +357,20 @@ struct MovieDetailView: View {
         if let s = vm.item.parentIndexNumber { parts.append("S\(s)") }
         if let e = vm.item.indexNumber { parts.append("E\(e)") }
         return parts.joined(separator: " · ")
+    }
+
+    /// Resolve a Jellyfin cast member to a TMDB person id, then open the
+    /// person page. Inert when the server has no TMDB id for them.
+    private func handlePersonTap(_ member: CastMember) {
+        guard let jid = member.jellyfinPersonID,
+              let userID = appState.activeUser?.id else { return }
+        Task {
+            if let person = try? await dependencies.jellyfinItemService.getItemDetail(
+                   userID: userID, itemID: jid
+               ),
+               let tmdb = person.tmdbID {
+                navigateToPerson = PersonRoute(tmdbID: tmdb, name: member.name)
+            }
+        }
     }
 }

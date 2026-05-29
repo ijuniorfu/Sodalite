@@ -7,6 +7,7 @@ struct SeriesDetailView: View {
     @State private var viewModel: DetailViewModel?
     @State private var selectedEpisode: JellyfinItem?
     @State private var navigateToItem: JellyfinItem?
+    @State private var navigateToPerson: PersonRoute?
     @State private var navigateToSeerrRequest: SeerrMedia?
     @State private var backdropURL: URL?
     @State private var showPlayer = false
@@ -142,14 +143,12 @@ struct SeriesDetailView: View {
                             }
 
                             if let people = vm.item.people, !people.isEmpty {
-                                CastRow(
-                                    people: Array(people.prefix(15)),
-                                    imageURLProvider: { person in
-                                        dependencies.jellyfinImageService.personImageURL(
-                                            personID: person.id,
-                                            tag: person.primaryImageTag
-                                        )
-                                    }
+                                MediaCastRow(
+                                    members: jellyfinCastMembers(
+                                        from: people,
+                                        imageService: dependencies.jellyfinImageService
+                                    ),
+                                    onSelect: { handlePersonTap($0) }
                                 )
                             }
 
@@ -267,6 +266,9 @@ struct SeriesDetailView: View {
         }
         .navigationDestination(item: $navigateToItem) { item in
             DetailRouterView(item: item)
+        }
+        .navigationDestination(item: $navigateToPerson) { route in
+            PersonDetailView(personID: route.tmdbID, personName: route.name)
         }
         .navigationDestination(item: $navigateToSeerrRequest) { media in
             CatalogDetailView(media: media)
@@ -423,6 +425,8 @@ struct SeriesDetailView: View {
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
             }
+
+            DetailSecondaryInfo(item: vm.item)
 
             HStack(spacing: 16) {
                 GlassActionButton(
@@ -587,6 +591,21 @@ struct SeriesDetailView: View {
     private func shouldShowSeerrRequest(for item: JellyfinItem) -> Bool {
         guard let status = item.status else { return true }
         return status == "Continuing"
+    }
+
+    /// Resolve a Jellyfin cast member to a TMDB person id, then open the
+    /// person page. Inert when the server has no TMDB id for them.
+    private func handlePersonTap(_ member: CastMember) {
+        guard let jid = member.jellyfinPersonID,
+              let userID = appState.activeUser?.id else { return }
+        Task {
+            if let person = try? await dependencies.jellyfinItemService.getItemDetail(
+                   userID: userID, itemID: jid
+               ),
+               let tmdb = person.tmdbID {
+                navigateToPerson = PersonRoute(tmdbID: tmdb, name: member.name)
+            }
+        }
     }
 
     // MARK: - Season Section
