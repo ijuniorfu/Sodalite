@@ -186,7 +186,7 @@ final class ScrubPreviewProvider {
     /// Last chapter whose start is at or before `seconds`.
     private func activeChapterIndex(forSeconds seconds: Double) -> Int? {
         guard !chapters.isEmpty else { return nil }
-        var idx = 0
+        var idx: Int?
         for (i, chapter) in chapters.enumerated() {
             if chapter.startSeconds <= seconds + 0.001 { idx = i } else { break }
         }
