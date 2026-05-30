@@ -1,8 +1,13 @@
 import SwiftUI
 
 struct HomeCustomizeView: View {
-    @State private var configs: [HomeRowConfig] = HomeRowConfig.loadFromStorage()
-    @State private var movingType: HomeRowType?
+    @Environment(\.appState) private var appState
+    @State private var configs: [HomeRowConfig] = []
+    @State private var movingID: String?
+
+    private var serverID: String {
+        appState.activeServer?.id ?? appState.activeUser?.id ?? ""
+    }
 
     var body: some View {
         ScrollView {
@@ -16,7 +21,7 @@ struct HomeCustomizeView: View {
         .navigationBarHidden(true)
         .toolbar(.hidden, for: .tabBar)
         .onAppear {
-            configs = HomeRowConfig.loadFromStorage()
+            configs = HomeRowConfig.loadFromStorage(serverID: serverID)
         }
     }
 
@@ -29,7 +34,7 @@ struct HomeCustomizeView: View {
                     .font(.title3)
                     .fontWeight(.semibold)
 
-                Text(movingType != nil ? "home.customize.moveTip" : "home.customize.description")
+                Text(movingID != nil ? "home.customize.moveTip" : "home.customize.description")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
             }
@@ -37,9 +42,9 @@ struct HomeCustomizeView: View {
             Spacer()
 
             FocusableTile(action: {
-                movingType = nil
+                movingID = nil
                 withAnimation(.easeInOut(duration: 0.25)) {
-                    configs = HomeRowConfig.defaultConfig()
+                    configs = HomeRowConfig.resetToDefault(current: configs)
                 }
                 save()
             }) { isFocused in
@@ -69,8 +74,8 @@ struct HomeCustomizeView: View {
                 ForEach(Array(enabledRows.enumerated()), id: \.element.id) { index, config in
                     HStack(spacing: 16) {
                         FocusableTile(
-                            isHighlighted: movingType == config.type,
-                            action: { handleRowTap(config.type, at: index) }
+                            isHighlighted: movingID == config.id,
+                            action: { handleRowTap(config.id, at: index) }
                         ) { isFocused in
                             HStack(spacing: 20) {
                                 Text("\(index + 1)")
@@ -84,12 +89,12 @@ struct HomeCustomizeView: View {
                                     .frame(width: 44)
                                     .foregroundStyle(.tint)
 
-                                Text(config.type.localizedTitle)
+                                rowLabel(config)
                                     .font(.body)
 
                                 Spacer()
 
-                                if movingType == config.type {
+                                if movingID == config.id {
                                     Text("home.customize.moving")
                                         .font(.caption)
                                         .foregroundStyle(.tint)
@@ -99,11 +104,11 @@ struct HomeCustomizeView: View {
                             .padding(.horizontal, 20)
                             .background(
                                 RoundedRectangle(cornerRadius: 12)
-                                    .fill(tileBackground(isFocused: isFocused, isMoving: movingType == config.type))
+                                    .fill(tileBackground(isFocused: isFocused, isMoving: movingID == config.id))
                             )
                             .overlay(
                                 RoundedRectangle(cornerRadius: 12)
-                                    .stroke(movingType == config.type ? AnyShapeStyle(.tint.opacity(0.6)) : AnyShapeStyle(Color.clear), lineWidth: 2)
+                                    .stroke(movingID == config.id ? AnyShapeStyle(.tint.opacity(0.6)) : AnyShapeStyle(Color.clear), lineWidth: 2)
                             )
                             .overlay(
                                 // Accent focus stroke, same 3pt treatment
@@ -121,8 +126,8 @@ struct HomeCustomizeView: View {
                             systemName: "minus.circle.fill",
                             color: .red,
                             action: {
-                                movingType = nil
-                                toggle(config.type)
+                                movingID = nil
+                                toggle(id: config.id)
                             }
                         )
                     }
@@ -152,7 +157,7 @@ struct HomeCustomizeView: View {
                                 .frame(width: 44)
                                 .foregroundStyle(.tertiary)
 
-                            Text(config.type.localizedTitle)
+                            rowLabel(config)
                                 .font(.body)
                                 .foregroundStyle(.secondary)
 
@@ -168,7 +173,7 @@ struct HomeCustomizeView: View {
                         FocusableIcon(
                             systemName: "plus.circle.fill",
                             color: .green,
-                            action: { toggle(config.type) }
+                            action: { toggle(id: config.id) }
                         )
                     }
                     .padding(.horizontal, 50)
@@ -194,40 +199,54 @@ struct HomeCustomizeView: View {
         configs.filter { !$0.isEnabled }
     }
 
+    @ViewBuilder
+    private func rowLabel(_ config: HomeRowConfig) -> some View {
+        if config.type == .libraryLatest {
+            Text(
+                String(
+                    format: String(localized: "home.libraryLatest.format", defaultValue: "Latest in %@"),
+                    config.libraryName ?? ""
+                )
+            )
+        } else {
+            Text(config.type.localizedTitle)
+        }
+    }
+
     // MARK: - Actions
 
-    private func handleRowTap(_ type: HomeRowType, at index: Int) {
-        if let moving = movingType {
-            if moving != type {
+    private func handleRowTap(_ id: String, at index: Int) {
+        if let moving = movingID {
+            if moving != id {
                 withAnimation(.easeInOut(duration: 0.25)) {
-                    placeRow(moving, at: index)
+                    placeRow(id: moving, at: index)
                 }
             }
             withAnimation(.easeInOut(duration: 0.2)) {
-                movingType = nil
+                movingID = nil
             }
         } else {
             withAnimation(.easeInOut(duration: 0.2)) {
-                movingType = type
+                movingID = id
             }
         }
     }
 
-    private func placeRow(_ type: HomeRowType, at targetIndex: Int) {
+    private func placeRow(id: String, at targetIndex: Int) {
         var enabled = enabledRows
-        guard let sourceIndex = enabled.firstIndex(where: { $0.type == type }) else { return }
+        guard let sourceIndex = enabled.firstIndex(where: { $0.id == id }) else { return }
         let item = enabled.remove(at: sourceIndex)
         enabled.insert(item, at: min(targetIndex, enabled.count))
         for (i, row) in enabled.enumerated() {
-            if let ci = configs.firstIndex(where: { $0.type == row.type }) {
+            if let ci = configs.firstIndex(where: { $0.id == row.id }) {
                 configs[ci].sortOrder = i
             }
         }
         save()
     }
 
-    private func toggle(_ type: HomeRowType) {
-        guard let index = configs.firstIndex(where: { $0.type == type }) else { return }
+    private func toggle(id: String) {
+        guard let index = configs.firstIndex(where: { $0.id == id }) else { return }
         withAnimation(.easeInOut(duration: 0.25)) {
             configs[index].isEnabled.toggle()
             if configs[index].isEnabled {
@@ -239,7 +258,7 @@ struct HomeCustomizeView: View {
     }
 
     private func save() {
-        HomeRowConfig.saveToStorage(configs)
+        HomeRowConfig.saveToStorage(configs, serverID: serverID)
         NotificationCenter.default.post(name: .homeConfigDidChange, object: nil)
     }
 }
@@ -309,17 +328,24 @@ extension Notification.Name {
 // MARK: - Storage
 
 extension HomeRowConfig {
-    static func loadFromStorage() -> [HomeRowConfig] {
-        guard let data = UserDefaults.standard.data(forKey: "homeRowConfigs") else {
+    private static let legacyKey = "homeRowConfigs"
+    private static func storageKey(serverID: String) -> String {
+        "homeRowConfigs.\(serverID)"
+    }
+
+    static func loadFromStorage(serverID: String) -> [HomeRowConfig] {
+        let key = storageKey(serverID: serverID)
+        // Migrate a pre-multi-server install: if this server has no
+        // scoped config yet but a legacy global one exists, adopt it.
+        let data = UserDefaults.standard.data(forKey: key)
+            ?? UserDefaults.standard.data(forKey: legacyKey)
+        guard let data else {
             return HomeRowConfig.defaultConfig()
         }
-        // Lossy decode: stored configs may reference row types that
-        // have since been retired (e.g. `.studios`, dropped once the
-        // streaming-providers row replaced it). A plain
-        // `decode([HomeRowConfig].self)` would fail the whole array on
-        // the first unknown raw value and silently reset every other
-        // customization the user had, the JSONSerialization detour
-        // skips the dead entries and keeps the rest intact.
+        // Lossy decode: stored configs may reference retired row types.
+        // A plain decode would fail the whole array on the first unknown
+        // raw value and silently reset every customization; the
+        // JSONSerialization detour skips dead entries and keeps the rest.
         guard let raw = try? JSONSerialization.jsonObject(with: data) as? [[String: Any]] else {
             return HomeRowConfig.defaultConfig()
         }
@@ -330,17 +356,31 @@ extension HomeRowConfig {
                   let isEnabled = item["isEnabled"] as? Bool,
                   let sortOrder = item["sortOrder"] as? Int
             else { continue }
-            result.append(HomeRowConfig(type: type, isEnabled: isEnabled, sortOrder: sortOrder))
+            // libraryLatest rows require a libraryID; skip malformed ones.
+            let libraryID = item["libraryID"] as? String
+            if type == .libraryLatest, libraryID == nil { continue }
+            result.append(
+                HomeRowConfig(
+                    type: type,
+                    isEnabled: isEnabled,
+                    sortOrder: sortOrder,
+                    libraryID: libraryID,
+                    libraryName: item["libraryName"] as? String,
+                    collectionType: item["collectionType"] as? String
+                )
+            )
         }
-        for type in HomeRowType.allCases where !result.contains(where: { $0.type == type }) {
+        // Backfill newly-added static row types (never libraryLatest).
+        for type in HomeRowType.allCases where type != .libraryLatest
+            && !result.contains(where: { $0.type == type }) {
             result.append(HomeRowConfig(type: type, isEnabled: type.defaultEnabled, sortOrder: result.count))
         }
         return result
     }
 
-    static func saveToStorage(_ configs: [HomeRowConfig]) {
+    static func saveToStorage(_ configs: [HomeRowConfig], serverID: String) {
         guard let data = try? JSONEncoder().encode(configs) else { return }
-        UserDefaults.standard.set(data, forKey: "homeRowConfigs")
+        UserDefaults.standard.set(data, forKey: storageKey(serverID: serverID))
         UserDefaults.standard.synchronize()
     }
 }

@@ -60,18 +60,24 @@ final class HomeViewModel {
     private let imageService: JellyfinImageService
     private let discoverService: SeerrDiscoverServiceProtocol?
     private let userID: String
+    private let serverID: String
+    /// Video libraries (movies / tvshows / homevideos / mixed) used to
+    /// render the My Media row. Populated by loadContent().
+    var videoLibraries: [JellyfinLibrary] = []
 
     init(
         libraryService: JellyfinLibraryServiceProtocol,
         imageService: JellyfinImageService,
         discoverService: SeerrDiscoverServiceProtocol? = nil,
-        userID: String
+        userID: String,
+        serverID: String
     ) {
         self.libraryService = libraryService
         self.imageService = imageService
         self.discoverService = discoverService
         self.userID = userID
-        self.rowConfigs = HomeRowConfig.loadFromStorage()
+        self.serverID = serverID
+        self.rowConfigs = HomeRowConfig.loadFromStorage(serverID: serverID)
     }
 
     func loadContent() async {
@@ -83,6 +89,23 @@ final class HomeViewModel {
             isLoading = true
         }
         errorMessage = nil
+
+        // Pull the server's libraries so per-library Latest rows and
+        // the My Media row reflect what's actually on this server.
+        // Reconciliation is additive and preserves the user's toggles
+        // and order; we only persist when the fetch succeeds so a
+        // transient failure can't wipe the dynamic rows.
+        if let libraries = try? await libraryService.getLibraries(userID: userID) {
+            let videoTypes: Set<String> = ["movies", "tvshows", "homevideos", "mixed"]
+            videoLibraries = libraries.filter { videoTypes.contains($0.collectionType ?? "") }
+            let reconciled = HomeRowConfig.reconciled(stored: rowConfigs, libraries: libraries)
+            if reconciled != rowConfigs {
+                rowConfigs = reconciled
+                HomeRowConfig.saveToStorage(reconciled, serverID: serverID)
+            }
+        } else {
+            LogTap.shared.note("Home: getLibraries failed, falling back to aggregated Latest rows")
+        }
 
         let enabledRows = rowConfigs
             .filter(\.isEnabled)
@@ -106,25 +129,30 @@ final class HomeViewModel {
         // under the project's default-isolation rule, so reading
         // .isTagRow from a non-isolated closure would otherwise be
         // rejected.
-        let plan: [(type: HomeRowType, isTag: Bool)] = enabledRows.compactMap { config in
-            if config.type.isDiscoverProviderRow {
-                // Hardcoded data, nothing to fetch. The HomeView
-                // renders the row directly from CatalogProviders.
-                return nil
-            }
-            return (config.type, config.type.isTagRow)
+        // Carry the full config (not just the type) so per-library
+        // rows keep their libraryID/name/collectionType into loadRow,
+        // and so identity stays unique per library. isTagRow is
+        // precomputed here on MainActor (alongside the config) so the
+        // task-group closures below never have to read the
+        // MainActor-isolated HomeRowType predicate themselves.
+        let plan: [(config: HomeRowConfig, isTag: Bool)] = enabledRows.compactMap { config in
+            if config.type.isDiscoverProviderRow { return nil }
+            // My Media renders from videoLibraries directly; nothing to
+            // fetch in the row fan-out.
+            if config.type == .myMedia { return nil }
+            return (config, config.type.isTagRow)
         }
 
-        let plannedMediaTypes = Set(plan.filter { !$0.isTag }.map { $0.type })
-        let plannedTagTypes = Set(plan.filter { $0.isTag }.map { $0.type })
+        let plannedMediaIDs = Set(plan.filter { !$0.isTag }.map(\.config.id))
+        let plannedTagIDs = Set(plan.filter { $0.isTag }.map(\.config.id))
 
         // Drop any rows whose config was disabled since the previous
         // load so the disappearance is instant rather than waiting on
         // the new fan-out to finish. Stale rows for still-enabled
         // types stay on screen and get replaced in-place as their
         // fresh result lands.
-        rows.removeAll { !plannedMediaTypes.contains($0.type) }
-        tagRows.removeAll { !plannedTagTypes.contains($0.type) }
+        rows.removeAll { !plannedMediaIDs.contains($0.id) }
+        tagRows.removeAll { !plannedTagIDs.contains($0.id) }
 
         var sawAnyResult = false
 
@@ -139,14 +167,17 @@ final class HomeViewModel {
         // position orderedSections() places them.
         await withTaskGroup(of: RowResult.self) { group in
             for entry in plan {
+                let config = entry.config
+                let isTag = entry.isTag
+                let type = config.type
                 group.addTask { [weak self] in
                     guard let self else { return .empty }
-                    if entry.isTag {
-                        if let tagRow = await self.loadTagRow(type: entry.type), !tagRow.tags.isEmpty {
+                    if isTag {
+                        if let tagRow = await self.loadTagRow(type: type), !tagRow.tags.isEmpty {
                             return .tag(tagRow)
                         }
                     } else {
-                        if let rowData = await self.loadRow(type: entry.type), !rowData.items.isEmpty {
+                        if let rowData = await self.loadRow(config: config), !rowData.items.isEmpty {
                             return .media(rowData)
                         }
                     }
@@ -160,7 +191,7 @@ final class HomeViewModel {
                 guard loadGeneration == myGen else { return }
                 switch result {
                 case .media(let row):
-                    if let idx = rows.firstIndex(where: { $0.type == row.type }) {
+                    if let idx = rows.firstIndex(where: { $0.id == row.id }) {
                         rows[idx] = row
                     } else {
                         rows.append(row)
@@ -169,7 +200,7 @@ final class HomeViewModel {
                     isLoading = false
                     errorMessage = nil
                 case .tag(let row):
-                    if let idx = tagRows.firstIndex(where: { $0.type == row.type }) {
+                    if let idx = tagRows.firstIndex(where: { $0.id == row.id }) {
                         tagRows[idx] = row
                     } else {
                         tagRows.append(row)
@@ -524,8 +555,9 @@ final class HomeViewModel {
         }
     }
 
-    private func loadRow(type: HomeRowType) async -> HomeRowData? {
+    private func loadRow(config: HomeRowConfig) async -> HomeRowData? {
         do {
+            let type = config.type
             let items: [JellyfinItem]
 
             switch type {
@@ -635,11 +667,29 @@ final class HomeViewModel {
                 let response = try await libraryService.getItems(userID: userID, query: query)
                 items = response.items
 
-            case .genres, .discoverProviders:
+            case .libraryLatest:
+                // Per-library Latest: scope /Items/Latest to this
+                // library via parentID. collectionType decides the
+                // item type so a movies library doesn't pull in series.
+                guard let libraryID = config.libraryID else { return nil }
+                let types: [ItemType] = config.collectionType == "tvshows" ? [.series] : [.movie]
+                items = try await libraryService.getLatestMedia(
+                    userID: userID,
+                    parentID: libraryID,
+                    includeItemTypes: types,
+                    limit: 16
+                )
+
+            case .myMedia, .genres, .discoverProviders:
                 return nil
             }
 
-            return HomeRowData(type: type, items: items)
+            return HomeRowData(
+                type: type,
+                items: items,
+                libraryID: config.libraryID,
+                libraryName: config.libraryName
+            )
         } catch {
             return nil
         }
@@ -706,7 +756,7 @@ final class HomeViewModel {
     }
 
     func reloadConfig() {
-        rowConfigs = HomeRowConfig.loadFromStorage()
+        rowConfigs = HomeRowConfig.loadFromStorage(serverID: serverID)
     }
 
     /// Called by HomeView when the active server changes. Clears
@@ -741,12 +791,15 @@ final class HomeViewModel {
             if config.type.isDiscoverProviderRow {
                 return .discoverProviders
             }
+            if config.type == .myMedia {
+                return videoLibraries.isEmpty ? nil : .libraries(videoLibraries)
+            }
             if config.type.isTagRow {
                 if let tagRow = tagRows.first(where: { $0.type == config.type }) {
                     return .tags(tagRow)
                 }
             } else {
-                if let row = rows.first(where: { $0.type == config.type }) {
+                if let row = rows.first(where: { $0.id == config.id }) {
                     return .media(row)
                 }
             }
@@ -759,12 +812,14 @@ enum HomeSection: Identifiable {
     case media(HomeRowData)
     case tags(HomeTagRowData)
     case discoverProviders
+    case libraries([JellyfinLibrary])
 
     var id: String {
         switch self {
         case .media(let data): data.id
         case .tags(let data): data.id
         case .discoverProviders: "discoverProviders"
+        case .libraries: "myMedia"
         }
     }
 }
@@ -772,8 +827,15 @@ enum HomeSection: Identifiable {
 struct HomeRowData: Identifiable, Sendable {
     let type: HomeRowType
     let items: [JellyfinItem]
+    var libraryID: String? = nil
+    var libraryName: String? = nil
 
-    var id: String { type.rawValue }
+    var id: String {
+        if type == .libraryLatest, let libraryID {
+            return "libraryLatest:\(libraryID)"
+        }
+        return type.rawValue
+    }
 }
 
 struct HomeTagRowData: Identifiable, Sendable {
