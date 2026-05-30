@@ -41,6 +41,12 @@ enum Changelog {
                     "changelog.0_8_0.castPages.body",
                     icon: "person.2.fill"
                 ),
+                ChangelogHighlight(
+                    .new,
+                    "changelog.0_8_0.libraryRows.title",
+                    "changelog.0_8_0.libraryRows.body",
+                    icon: "rectangle.grid.1x2.fill"
+                ),
             ]
         ),
         // MARK: 0.7.0

@@ -30171,6 +30171,328 @@
         }
       }
     },
+    "changelog.0_8_0.libraryRows.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Řádky podle knihovny"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rækker pr. bibliotek"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mediathek-Reihen im Home"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Σειρές ανά βιβλιοθήκη"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Per-library Home rows"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filas por biblioteca"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rivit kirjastoittain"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rangées par médiathèque"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Redovi po knjižnici"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sorok könyvtáranként"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Righe per libreria"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ライブラリごとの行"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "라이브러리별 행"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rader per bibliotek"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rijen per bibliotheek"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wiersze dla bibliotek"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Linhas por biblioteca"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Linhas por biblioteca"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rânduri pe bibliotecă"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ряды по медиатекам"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Riadky podľa knižnice"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rader per bibliotek"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kitaplık başına satırlar"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Рядки за медіатеками"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "按媒体库分行"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "依媒體庫分列"
+          }
+        }
+      }
+    },
+    "changelog.0_8_0.libraryRows.body" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Servery s více knihovnami mají nyní samostatný řádek Nejnovější pro každou knihovnu a navíc řádek Moje média pro otevření libovolné knihovny. Vše zapnete a uspořádáte v přizpůsobení domovské obrazovky."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Servere med flere biblioteker får nu en separat Nyeste-række pr. bibliotek plus en Mine medier-række til at åbne ethvert bibliotek. Slå til og omarranger det hele i tilpasning af hjem."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Server mit mehreren Mediatheken bekommen jetzt pro Mediathek eine eigene Neu-Reihe, plus eine Meine-Medien-Reihe zum Öffnen jeder Mediathek. Alles in der Home-Anpassung ein- oder ausblenden und sortieren."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Οι διακομιστές με πολλές βιβλιοθήκες αποκτούν τώρα ξεχωριστή σειρά Πρόσφατα για κάθε βιβλιοθήκη, καθώς και μια σειρά Τα πολυμέσα μου για να ανοίγετε οποιαδήποτε βιβλιοθήκη. Ενεργοποιήστε και αναδιατάξτε τα όλα στην προσαρμογή της αρχικής οθόνης."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Servers with several libraries now get a separate Latest row per library, plus a My Media row to open any library. Toggle and reorder everything in Home customization."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Los servidores con varias bibliotecas ahora tienen una fila de novedades por biblioteca, además de una fila Mi contenido para abrir cualquier biblioteca. Activa y reordena todo en la personalización del inicio."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Useita kirjastoja sisältävät palvelimet saavat nyt erillisen Uusimmat-rivin kullekin kirjastolle sekä Oma media -rivin minkä tahansa kirjaston avaamiseen. Ota käyttöön ja järjestä kaikki aloitusnäytön mukautuksessa."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les serveurs avec plusieurs médiathèques ont désormais une rangée Derniers ajouts distincte par médiathèque, plus une rangée Ma médiathèque pour ouvrir n’importe quelle médiathèque. Activez et réorganisez le tout dans la personnalisation de l’accueil."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Poslužitelji s više knjižnica sada dobivaju zaseban red Najnovije za svaku knjižnicu te red Moji mediji za otvaranje bilo koje knjižnice. Sve uključite i presložite u prilagodbi početnog zaslona."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A több könyvtárral rendelkező kiszolgálók mostantól könyvtáranként külön Legújabb sort kapnak, valamint egy Saját média sort bármelyik könyvtár megnyitásához. Mindezt a kezdőképernyő testreszabásában kapcsolhatja be és rendezheti át."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "I server con più librerie ora hanno una riga Novità separata per ogni libreria, più una riga I miei contenuti per aprire qualsiasi libreria. Attiva e riordina tutto nella personalizzazione della Home."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "複数のライブラリがあるサーバーで、ライブラリごとに「最新」の行が表示され、さらに任意のライブラリを開ける「マイメディア」行が追加されました。すべてホームのカスタマイズで切り替え・並べ替えできます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "여러 라이브러리가 있는 서버에서는 이제 라이브러리마다 별도의 최신 행과 아무 라이브러리나 열 수 있는 내 미디어 행이 표시됩니다. 홈 사용자 지정에서 모두 켜고 순서를 바꿀 수 있습니다."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Servere med flere biblioteker får nå en egen Nyeste-rad per bibliotek, pluss en Mine medier-rad for å åpne et hvilket som helst bibliotek. Slå på og omorganiser alt i tilpasning av Hjem."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Servers met meerdere bibliotheken krijgen nu een aparte Nieuw-rij per bibliotheek, plus een Mijn media-rij om elke bibliotheek te openen. Schakel en herschik alles in de Home-aanpassing."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Serwery z wieloma bibliotekami mają teraz osobny wiersz Najnowsze dla każdej biblioteki oraz wiersz Moje multimedia do otwierania dowolnej biblioteki. Włączaj i zmieniaj kolejność w personalizacji ekranu głównego."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Servidores com várias bibliotecas agora têm uma linha de novidades por biblioteca, além de uma linha Minha mídia para abrir qualquer biblioteca. Ative e reordene tudo na personalização da tela inicial."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Os servidores com várias bibliotecas passam a ter uma linha de novidades por biblioteca, além de uma linha A minha biblioteca para abrir qualquer biblioteca. Ative e reordene tudo na personalização do ecrã inicial."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Serverele cu mai multe biblioteci au acum un rând Recente separat pentru fiecare bibliotecă, plus un rând Media mea pentru a deschide orice bibliotecă. Activează și rearanjează totul în personalizarea ecranului principal."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Серверы с несколькими медиатеками теперь получают отдельный ряд Новое для каждой медиатеки и ряд Моя медиатека для открытия любой из них. Включайте и меняйте порядок в настройке главного экрана."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Servery s viacerými knižnicami majú teraz samostatný riadok Najnovšie pre každú knižnicu a navyše riadok Moje médiá na otvorenie ľubovoľnej knižnice. Všetko zapnete a usporiadate v prispôsobení domovskej obrazovky."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Servrar med flera bibliotek får nu en separat Senaste-rad per bibliotek, plus en Mina media-rad för att öppna valfritt bibliotek. Slå på och ordna om allt i anpassningen av startsidan."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Birden çok kitaplığı olan sunucular artık her kitaplık için ayrı bir En Yeniler satırı ve herhangi bir kitaplığı açmak için bir Medyam satırı alıyor. Hepsini Giriş özelleştirmesinde açıp yeniden sıralayabilirsiniz."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сервери з кількома медіатеками тепер отримують окремий рядок Нове для кожної медіатеки та рядок Моя медіатека для відкриття будь-якої з них. Вмикайте та змінюйте порядок у налаштуванні головного екрана."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "拥有多个媒体库的服务器现在会为每个媒体库显示单独的“最新”行，外加一个可打开任意媒体库的“我的媒体”行。可在主页自定义中开关和重新排序。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "擁有多個媒體庫的伺服器現在會為每個媒體庫顯示獨立的「最新」列，並新增可開啟任意媒體庫的「我的媒體」列。可在主畫面自訂中開關與重新排序。"
+          }
+        }
+      }
+    },
     "changelog.0_8_0.castPages.title" : {
       "extractionState" : "manual",
       "localizations" : {

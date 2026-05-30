@@ -70,7 +70,7 @@ The Seerr integration isn't a tacked-on link to a web view. It's a first-class p
 ### 📚 Browse & discover
 - **Server discovery**: finds Jellyfin on your network automatically, or add manually
 - **Multiple servers**: keep several Jellyfin servers in the app and switch between them without logging out; pick or add one from above your profile list, manage the full list in Settings → Servers
-- **Home**: Continue Watching, Next Up, Latest by library, fully customizable
+- **Home**: Continue Watching, Next Up, a separate Latest row for each of your libraries, plus a My Media row to jump straight into any library; every row can be toggled and reordered
 - **Library**: Movies, Series, Collections with poster grids and instant filtering
 - **Series view**: season picker, episode list, "Up Next" highlighting
 - **Search**: across your whole server, results as you type
