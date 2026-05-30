@@ -16,7 +16,7 @@ struct LibraryRow: View {
                 .padding(.horizontal, 50)
 
             ScrollView(.horizontal, showsIndicators: false) {
-                LazyHStack(spacing: 24) {
+                LazyHStack(spacing: 30) {
                     ForEach(libraries) { library in
                         LibraryTile(library: library) {
                             onSelect(library)
@@ -24,7 +24,7 @@ struct LibraryRow: View {
                     }
                 }
                 .padding(.horizontal, 50)
-                .padding(.vertical, 16)
+                .padding(.vertical, 20)
             }
         }
     }
@@ -34,8 +34,10 @@ private struct LibraryTile: View {
     let library: JellyfinLibrary
     let action: () -> Void
 
-    private let width: CGFloat = 320
-    private let height: CGFloat = 180
+    // Match the .landscape MediaCard image dimensions so My Media
+    // tiles line up with the rows above them.
+    private let width: CGFloat = 360
+    private let height: CGFloat = 202
 
     var body: some View {
         FocusableCard(action: action) { isFocused in
@@ -60,11 +62,16 @@ private struct LibraryTile: View {
                 }
             }
             .frame(width: width, height: height)
-            .clipShape(RoundedRectangle(cornerRadius: 16))
+            .clipShape(RoundedRectangle(cornerRadius: 12))
             .overlay(
-                RoundedRectangle(cornerRadius: 16)
-                    .strokeBorder(.tint, lineWidth: 4)
+                // Match the MediaCard focus stroke: concentric outer
+                // border (card radius + stroke width), pushed 3pt past
+                // the edge so it sits around the tile.
+                RoundedRectangle(cornerRadius: 15)
+                    .strokeBorder(.tint, lineWidth: 3)
+                    .padding(-3)
                     .opacity(isFocused ? 1 : 0)
+                    .animation(.easeInOut(duration: 0.2), value: isFocused)
             )
         }
     }
