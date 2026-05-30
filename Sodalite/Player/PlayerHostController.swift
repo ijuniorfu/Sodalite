@@ -1231,6 +1231,15 @@ final class PlayerHostController: AVPlayerViewController {
     /// gate only applies to the initial commit per gesture; once
     /// scrubbing has started the pan runs at full sensitivity.
     private static let scrubCommitMinVelocity: CGFloat = 200
+    /// Finger travel (pt) on the touchpad per one item moved while an
+    /// episode / chapter dropdown is open. The dropdown navigates by
+    /// cumulative translation (not single-shot like button nav), so
+    /// this is the sensitivity knob: bigger = more deliberate, one
+    /// item per gentle swipe instead of overshooting several. Kept
+    /// well above verticalFireThreshold (150) because the touchpad
+    /// over-reports translation for indirect touches, so a light flick
+    /// at 120 pt jumped three to four rows at once.
+    private static let dropdownStepSize: CGFloat = 300
 
     @objc private func handlePan(_ gesture: UIPanGestureRecognizer) {
         // Stats overlay open: route vertical swipes to the section
@@ -1275,15 +1284,15 @@ final class PlayerHostController: AVPlayerViewController {
 
         if viewModel.isDropdownOpen {
             // Vertical swipe navigates dropdown items.
-            // Uses total translation divided into steps, each 120pt of
-            // cumulative movement = one item. Prevents over-scrolling
-            // on fast swipes.
+            // Uses total translation divided into steps, each
+            // dropdownStepSize pt of cumulative movement = one item.
+            // Prevents over-scrolling on fast swipes.
             switch gesture.state {
             case .began:
                 lastDropdownStep = 0
             case .changed:
                 let ty = gesture.translation(in: view).y
-                let stepSize: CGFloat = 120
+                let stepSize = Self.dropdownStepSize
                 let currentStep = (ty / stepSize).rounded(.towardZero)
                 if currentStep != lastDropdownStep {
                     let steps = Int(currentStep - lastDropdownStep)
