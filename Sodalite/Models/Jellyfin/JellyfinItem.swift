@@ -259,7 +259,6 @@ struct MediaStream: Codable, Sendable, Equatable, Identifiable {
     let profile: String?
     let bitRate: Int?
     let dvProfile: Int?
-    let dvBlSignalCompatibilityId: Int?
 
     var id: Int { index }
 
@@ -283,7 +282,6 @@ struct MediaStream: Codable, Sendable, Equatable, Identifiable {
         case profile = "Profile"
         case bitRate = "BitRate"
         case dvProfile = "DvProfile"
-        case dvBlSignalCompatibilityId = "DvBlSignalCompatibilityId"
     }
 }
 

@@ -79,16 +79,13 @@ struct TechInfoBox: View {
     }
 
     /// Human-readable dynamic-range format for the video stream.
-    /// Prefers the Dolby Vision profile + base-layer compatibility id
-    /// (e.g. "Dolby Vision 8.1"), then the precise VideoRangeType
-    /// ("HDR10", "HDR10+", "HLG"), and finally falls back to the raw
-    /// VideoRange string ("HDR" / "SDR") so something always shows.
+    /// Matches the player stats overlay notation: "Dolby Vision P<profile>",
+    /// then the precise VideoRangeType ("HDR10", "HDR10+", "HLG"), and
+    /// finally falls back to the raw VideoRange string ("HDR" / "SDR") so
+    /// something always shows.
     private func dynamicRangeLabel(_ video: MediaStream) -> String? {
         if let dv = video.dvProfile {
-            if let compat = video.dvBlSignalCompatibilityId {
-                return "Dolby Vision \(dv).\(compat)"
-            }
-            return "Dolby Vision \(dv)"
+            return "Dolby Vision P\(dv)"
         }
         switch video.videoRangeType?.uppercased() {
         case "HDR10":     return "HDR10"
