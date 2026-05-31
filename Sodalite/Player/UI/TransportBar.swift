@@ -50,10 +50,10 @@ struct TransportBar: View {
     /// Total runtime in seconds, used to position the chapter ticks
     /// along the progress bar.
     let durationSeconds: Double
-    /// Resolves the chapter image URL given a chapter's index. The
-    /// dropdown shows thumbnails when the closure returns non-nil
-    /// for at least one chapter.
-    let chapterImageURL: (Int) -> URL?
+    /// Resolves a chapter's thumbnail as a decoded image (via the session
+    /// FrameExtractor). Async + nil-returning. Closure rather than a hard
+    /// dependency so the SwiftUI view stays unaware of the engine/extractor.
+    let chapterThumbnail: @Sendable (Int) async -> CGImage?
     /// Currently-applied picture-fill mode. Mirrors
     /// `viewModel.pictureMode` and drives the picture button's label.
     let pictureMode: PlaybackPreferences.PictureMode
@@ -365,7 +365,7 @@ struct TransportBar: View {
                 title: episodeRowTitle(for: episode),
                 isActive: episode.id == activeEpisodeID,
                 isHighlighted: idx == highlighted,
-                imageURL: episodeImageURL(episode)
+                image: episodeImageURL(episode).map(DropdownImage.url)
             )
         }
     }
@@ -378,7 +378,7 @@ struct TransportBar: View {
                 title: chapterRowTitle(for: chapter, index: idx),
                 isActive: idx == active,
                 isHighlighted: idx == highlighted,
-                imageURL: chapterImageURL(idx)
+                image: .chapterThumbnail(idx)
             )
         }
     }
@@ -485,7 +485,7 @@ struct TransportBar: View {
         VStack(spacing: 6) {
             // Dropdown menu (opens upward, scrollable if many items)
             if isOpen {
-                let hasImages = dropdown.contains(where: { $0.imageURL != nil })
+                let hasImages = dropdown.contains(where: { $0.image != nil })
                 let rowHeight = hasImages ? Self.episodeRowHeight : Self.dropdownItemHeight
                 let itemCount = dropdown.count
                 let visibleCount = min(itemCount, Self.dropdownMaxVisible)
@@ -619,14 +619,43 @@ struct TransportBar: View {
 
 // MARK: - Dropdown Item
 
+private enum DropdownImage {
+    case url(URL)                 // episode picker: Jellyfin image
+    case chapterThumbnail(Int)    // chapter picker: decoded via FrameExtractor at the chapter index
+}
+
 private struct DropdownItem {
     let title: String
     let isActive: Bool
     let isHighlighted: Bool
-    /// Optional thumbnail; only the episode picker fills this in.
-    /// Other dropdowns (audio, subtitle, speed) leave it nil and the
-    /// row falls back to the compact text-only layout.
-    var imageURL: URL? = nil
+    /// Optional thumbnail source. Episode picker uses `.url`; chapter
+    /// picker uses `.chapterThumbnail`. Other dropdowns leave it nil.
+    var image: DropdownImage? = nil
+}
+
+// MARK: - Chapter Thumbnail View
+
+/// Loads a chapter thumbnail (decoded via the session FrameExtractor) when
+/// the row appears. Shows the gray placeholder until ready. Lazy rendering
+/// means only visible rows decode; the extractor LRU caches repeats.
+private struct ChapterThumbnailView: View {
+    let index: Int
+    let load: @Sendable (Int) async -> CGImage?
+    @State private var image: CGImage?
+
+    var body: some View {
+        ZStack {
+            Rectangle().fill(Color.white.opacity(0.08))
+            if let image {
+                Image(decorative: image, scale: 1.0)
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+            }
+        }
+        .task(id: index) {
+            image = await load(index)
+        }
+    }
 }
 
 // MARK: - Dropdown Row
@@ -636,12 +665,19 @@ private extension TransportBar {
     func dropdownRow(item: DropdownItem, hasImages: Bool, rowHeight: CGFloat) -> some View {
         HStack(spacing: 14) {
             if hasImages {
-                AsyncCachedImage(url: item.imageURL) { image in
-                    image
-                        .resizable()
-                        .aspectRatio(contentMode: .fill)
-                } placeholder: {
-                    Rectangle().fill(Color.white.opacity(0.08))
+                Group {
+                    switch item.image {
+                    case .url(let url):
+                        AsyncCachedImage(url: url) { image in
+                            image.resizable().aspectRatio(contentMode: .fill)
+                        } placeholder: {
+                            Rectangle().fill(Color.white.opacity(0.08))
+                        }
+                    case .chapterThumbnail(let index):
+                        ChapterThumbnailView(index: index, load: chapterThumbnail)
+                    case .none:
+                        Rectangle().fill(Color.white.opacity(0.08))
+                    }
                 }
                 .frame(width: 120, height: 68)
                 .clipShape(RoundedRectangle(cornerRadius: 6))

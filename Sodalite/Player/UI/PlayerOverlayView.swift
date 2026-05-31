@@ -314,18 +314,6 @@ struct PlayerOverlayView: View {
         return nil
     }
 
-    /// Build the chapter-thumbnail URL using Jellyfin's
-    /// `/Items/{id}/Images/Chapter/{index}` endpoint. Returns nil
-    /// when the chapter has no `imageTag`, the dropdown then falls
-    /// back to its compact text-only row layout.
-    private func chapterThumbnailURL(for index: Int) -> URL? {
-        guard let baseURL = viewModel.playbackService.baseURL,
-              viewModel.chapters.indices.contains(index),
-              let tag = viewModel.chapters[index].imageTag
-        else { return nil }
-        return URL(string: "\(baseURL)/Items/\(viewModel.item.id)/Images/Chapter/\(index)?tag=\(tag)&maxWidth=480&quality=80")
-    }
-
     private var controlsOverlay: some View {
         ZStack {
             VStack {
@@ -381,7 +369,7 @@ struct PlayerOverlayView: View {
                     episodeImageURL: { episodeThumbnailURL(for: $0) },
                     chapters: viewModel.chapters,
                     durationSeconds: viewModel.player.duration,
-                    chapterImageURL: { chapterThumbnailURL(for: $0) },
+                    chapterThumbnail: { await viewModel.chapterThumbnail(forIndex: $0) },
                     pictureMode: viewModel.pictureMode,
                     showsInfoButton: viewModel.preferences.showStatsForNerds,
                     isStatsOverlayOpen: viewModel.showStatsOverlay,
