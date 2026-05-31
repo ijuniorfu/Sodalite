@@ -805,6 +805,9 @@ final class PlayerViewModel {
                 let rem = dur - time
                 self.remainingTime = rem > 0 ? "-\(self.formatSeconds(rem))" : "-00:00"
                 self.progress = dur > 0 ? Float(time / dur) : 0
+                // Keep one frame warm at the playhead so the first scrub frame
+                // is already on screen the instant the user swipes to scrub.
+                self.scrubPreview.warm(toSeconds: time)
             }
             .store(in: &cancellables)
 

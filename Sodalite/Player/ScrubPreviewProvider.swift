@@ -26,6 +26,11 @@ final class ScrubPreviewProvider {
     @ObservationIgnored private var loadTask: Task<Void, Never>?
     @ObservationIgnored private var generation = 0
 
+    // Continuous warming: source seconds of the last frame we warmed to,
+    // used to throttle re-extraction to roughly keyframe spacing.
+    @ObservationIgnored private var lastWarmedSeconds = -Double.infinity
+    @ObservationIgnored private let warmThresholdSeconds: Double = 2
+
     init() {}
 
     /// Set up for a new playback session. `enabled` reflects the user's
@@ -63,12 +68,36 @@ final class ScrubPreviewProvider {
         }
     }
 
-    /// Clear the visible image but keep the extractor (cheap re-show on the
-    /// next scrub). Call on commit / cancel / hide.
+    /// Keep one frame warm at the current *playback* position so the first
+    /// scrub frame is already on screen the instant scrubbing begins (the
+    /// transport card is gated on `isScrubbing`, so this image stays invisible
+    /// during normal playback). Driven from `PlayerViewModel`'s currentTime
+    /// stream while *not* scrubbing. No debounce (already low-frequency);
+    /// throttled to ~keyframe spacing so we don't re-decode the same frame.
+    /// Shares the `generation` guard with `update(fraction:)`, so a scrub
+    /// always supersedes an in-flight warm and vice versa.
+    func warm(toSeconds seconds: Double) {
+        guard enabled, let extractor, seconds >= 0 else { return }
+        guard abs(seconds - lastWarmedSeconds) >= warmThresholdSeconds else { return }
+        lastWarmedSeconds = seconds
+
+        generation += 1
+        let gen = generation
+        loadTask?.cancel()
+        loadTask = Task { [weak self] in
+            let image = await extractor.thumbnail(at: seconds, maxWidth: 320)
+            guard let self, gen == self.generation else { return }
+            self.previewImage = image
+        }
+    }
+
+    /// Cancel any pending scrub load. Call on commit / cancel / idle-hide.
+    /// Intentionally keeps `previewImage`: the warm seed survives so the next
+    /// scrub shows a frame immediately, and the card is hidden between scrubs
+    /// anyway. `reset()` drops the image at session teardown.
     func clear() {
         loadTask?.cancel()
         loadTask = nil
-        previewImage = nil
     }
 
     /// Full teardown for end of session. Drops the extractor reference;
@@ -79,5 +108,6 @@ final class ScrubPreviewProvider {
         previewImage = nil
         extractor = nil
         enabled = false
+        lastWarmedSeconds = -Double.infinity
     }
 }
