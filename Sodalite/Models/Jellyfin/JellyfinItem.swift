@@ -34,10 +34,6 @@ struct JellyfinItem: Codable, Sendable, Identifiable, Equatable, Hashable {
     let seriesPrimaryImageTag: String?
     let providerIds: [String: String]?
     let chapters: [ChapterInfo]?
-    /// Trickplay manifest, keyed by media-source id then by tile-sheet
-    /// width (as a string, the raw JSON key). Present only when the
-    /// server's Trickplay scheduled task has run for this item.
-    let trickplay: [String: [String: TrickplayInfo]]?
 
     /// TMDB identifier if Jellyfin has it (used to correlate with Seerr
     /// catalog entries, dedup in search, route from detail-view
@@ -83,7 +79,6 @@ struct JellyfinItem: Codable, Sendable, Identifiable, Equatable, Hashable {
         case seriesPrimaryImageTag = "SeriesPrimaryImageTag"
         case providerIds = "ProviderIds"
         case chapters = "Chapters"
-        case trickplay = "Trickplay"
     }
 
     /// Create a copy with updated userData
@@ -121,7 +116,6 @@ struct JellyfinItem: Codable, Sendable, Identifiable, Equatable, Hashable {
         self.seriesPrimaryImageTag = item.seriesPrimaryImageTag
         self.providerIds = item.providerIds
         self.chapters = item.chapters
-        self.trickplay = item.trickplay
     }
 
     /// Create a minimal series stub for navigation
@@ -159,7 +153,6 @@ struct JellyfinItem: Codable, Sendable, Identifiable, Equatable, Hashable {
         self.seriesPrimaryImageTag = nil
         self.providerIds = nil
         self.chapters = nil
-        self.trickplay = nil
     }
 
     static func == (lhs: JellyfinItem, rhs: JellyfinItem) -> Bool {
@@ -209,37 +202,6 @@ struct ChapterInfo: Codable, Sendable, Equatable, Hashable {
     /// Start position in seconds (ticks divided by AV_TIME_BASE-style 10⁷).
     var startSeconds: Double {
         Double(startPositionTicks) / 10_000_000
-    }
-}
-
-/// One trickplay resolution's manifest. Jellyfin generates tile-sheet
-/// JPEGs holding a `tileWidth x tileHeight` grid of `width x height`
-/// thumbnails, one thumbnail every `interval` milliseconds of video.
-struct TrickplayInfo: Codable, Sendable, Equatable, Hashable {
-    /// Pixel width of a single thumbnail cell.
-    let width: Int
-    /// Pixel height of a single thumbnail cell.
-    let height: Int
-    /// Thumbnails per row in a sheet.
-    let tileWidth: Int
-    /// Thumbnails per column in a sheet.
-    let tileHeight: Int
-    /// Total thumbnails across all sheets.
-    let thumbnailCount: Int
-    /// Milliseconds of video between consecutive thumbnails.
-    let interval: Int
-    /// Approximate bandwidth of the tile sheets, used to prefer a
-    /// lighter resolution on slow links.
-    let bandwidth: Int?
-
-    enum CodingKeys: String, CodingKey {
-        case width = "Width"
-        case height = "Height"
-        case tileWidth = "TileWidth"
-        case tileHeight = "TileHeight"
-        case thumbnailCount = "ThumbnailCount"
-        case interval = "Interval"
-        case bandwidth = "Bandwidth"
     }
 }
 

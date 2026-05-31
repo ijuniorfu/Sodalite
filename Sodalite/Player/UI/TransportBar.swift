@@ -67,13 +67,13 @@ struct TransportBar: View {
     /// that the overlay is mounted (toggling it off is just pressing
     /// the chip again).
     let isStatsOverlayOpen: Bool
-    /// Trickplay/chapter preview frame for the current scrub position.
+    /// Frame-extractor preview image for the current scrub position.
     /// Nil falls the scrub display back to the time-only label.
     let previewImage: CGImage?
 
     var body: some View {
         VStack(spacing: 10) {
-            // Scrub preview: trickplay/chapter card tracking the playhead
+            // Scrub preview: frame-extractor card tracking the playhead
             // when an image is available, time-only otherwise.
             if isScrubbing {
                 scrubPreviewArea

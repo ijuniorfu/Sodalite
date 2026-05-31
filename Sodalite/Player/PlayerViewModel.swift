@@ -251,7 +251,7 @@ final class PlayerViewModel {
     var cachedPlaybackInfo: PlaybackInfoResponse?
     let preferences: PlaybackPreferences
 
-    /// Produces the scrub-preview thumbnail (trickplay, chapter fallback).
+    /// Produces the scrub-preview thumbnail via the session FrameExtractor.
     /// Configured per session in `startPlayback`, reset in `stopPlayback`.
     let scrubPreview: ScrubPreviewProvider
 

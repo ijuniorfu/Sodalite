@@ -11,7 +11,6 @@ protocol JellyfinPlaybackServiceProtocol: Sendable {
     func getEpisodeSegments(itemID: String) async throws -> EpisodeSegments
     func buildStreamURL(itemID: String, mediaSourceID: String, container: String?, isStatic: Bool) -> URL?
     func buildSubtitleURL(itemID: String, mediaSourceID: String, streamIndex: Int, format: String) -> URL?
-    func buildTrickplayURL(itemID: String, mediaSourceID: String, width: Int, tileIndex: Int) -> URL?
     func buildTranscodeURL(relativePath: String) -> URL?
 }
 
@@ -168,21 +167,6 @@ final class JellyfinPlaybackService: JellyfinPlaybackServiceProtocol {
         let path = "/Videos/\(itemID)/\(mediaSourceID)/Subtitles/\(streamIndex)/0/Stream.\(fmt)"
         var components = URLComponents(url: baseURL.appendingPathComponent(path), resolvingAgainstBaseURL: true)
         components?.queryItems = [URLQueryItem(name: "api_key", value: client.accessToken)]
-        return components?.url
-    }
-
-    /// Tile-sheet URL for trickplay scrubbing. Mirrors `buildSubtitleURL`:
-    /// authed with `api_key`, path under `/Videos`. `width` is the
-    /// trickplay resolution key from the manifest; `tileIndex` selects
-    /// which sheet (each sheet holds `tileWidth * tileHeight` frames).
-    func buildTrickplayURL(itemID: String, mediaSourceID: String, width: Int, tileIndex: Int) -> URL? {
-        guard let baseURL = client.baseURL else { return nil }
-        let path = "/Videos/\(itemID)/Trickplay/\(width)/\(tileIndex).jpg"
-        var components = URLComponents(url: baseURL.appendingPathComponent(path), resolvingAgainstBaseURL: true)
-        components?.queryItems = [
-            URLQueryItem(name: "MediaSourceId", value: mediaSourceID),
-            URLQueryItem(name: "api_key", value: client.accessToken)
-        ]
         return components?.url
     }
 

@@ -416,9 +416,9 @@ final class PlaybackPreferences {
         didSet { store.set(preferLosslessAudioBridge, forKey: Keys.preferLosslessAudioBridge) }
     }
 
-    /// Show a trickplay thumbnail of the frame while scrubbing. Default
-    /// on. Off disables tile-sheet downloads entirely (the transport bar
-    /// shows the time only).
+    /// Show a frame-extractor thumbnail while scrubbing. Default on.
+    /// Off skips frame extraction entirely (the transport bar shows the
+    /// time only).
     var showScrubPreview: Bool {
         didSet { store.set(showScrubPreview, forKey: Keys.showScrubPreview) }
     }
