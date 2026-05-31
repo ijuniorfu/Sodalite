@@ -253,11 +253,13 @@ struct MediaStream: Codable, Sendable, Equatable, Identifiable {
     let width: Int?
     let channels: Int?
     let videoRange: String?
+    let videoRangeType: String?
     let averageFrameRate: Double?
     let realFrameRate: Double?
     let profile: String?
     let bitRate: Int?
     let dvProfile: Int?
+    let dvBlSignalCompatibilityId: Int?
 
     var id: Int { index }
 
@@ -275,11 +277,13 @@ struct MediaStream: Codable, Sendable, Equatable, Identifiable {
         case width = "Width"
         case channels = "Channels"
         case videoRange = "VideoRange"
+        case videoRangeType = "VideoRangeType"
         case averageFrameRate = "AverageFrameRate"
         case realFrameRate = "RealFrameRate"
         case profile = "Profile"
         case bitRate = "BitRate"
         case dvProfile = "DvProfile"
+        case dvBlSignalCompatibilityId = "DvBlSignalCompatibilityId"
     }
 }
 

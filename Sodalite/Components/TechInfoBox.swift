@@ -72,9 +72,32 @@ struct TechInfoBox: View {
             if let fps = video.realFrameRate ?? video.averageFrameRate {
                 TechRow(label: "detail.tech.framerate", value: String(format: "%.2g fps", fps))
             }
-            if let range = video.videoRange {
-                TechRow(label: "detail.tech.hdr", value: range)
+            if let range = dynamicRangeLabel(video) {
+                TechRow(label: "detail.tech.dynamicRange", value: range)
             }
+        }
+    }
+
+    /// Human-readable dynamic-range format for the video stream.
+    /// Prefers the Dolby Vision profile + base-layer compatibility id
+    /// (e.g. "Dolby Vision 8.1"), then the precise VideoRangeType
+    /// ("HDR10", "HDR10+", "HLG"), and finally falls back to the raw
+    /// VideoRange string ("HDR" / "SDR") so something always shows.
+    private func dynamicRangeLabel(_ video: MediaStream) -> String? {
+        if let dv = video.dvProfile {
+            if let compat = video.dvBlSignalCompatibilityId {
+                return "Dolby Vision \(dv).\(compat)"
+            }
+            return "Dolby Vision \(dv)"
+        }
+        switch video.videoRangeType?.uppercased() {
+        case "HDR10":     return "HDR10"
+        case "HDR10PLUS": return "HDR10+"
+        case "HLG":       return "HLG"
+        case "DOVI", "DOVIWITHHDR10", "DOVIWITHHLG", "DOVIWITHSDR":
+            return "Dolby Vision"
+        case "SDR":       return "SDR"
+        default:          return video.videoRange
         }
     }
 
