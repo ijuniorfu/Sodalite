@@ -19,6 +19,7 @@ extension PlayerViewModel {
             isScrubbing = true
             scrubStartProgress = progress
             showControls = true
+            scrubPreview.prewarm()
         }
         // Always cancel any pending hide / auto-cancel timer, not just
         // on the first scrub() call. Slow touchpad swipes occasionally

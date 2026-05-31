@@ -255,6 +255,18 @@ final class PlayerViewModel {
     /// Configured per session in `startPlayback`, reset in `stopPlayback`.
     let scrubPreview: ScrubPreviewProvider
 
+    /// Session-scoped frame extractor. Built from the static stream URL
+    /// once per `startPlayback` and shut down in `stopPlayback`. Shared
+    /// by `scrubPreview` and `chapterThumbnail(forIndex:)`.
+    @ObservationIgnored private var frameExtractor: FrameExtractor?
+
+    /// A still for a chapter, decoded from the session extractor at the
+    /// chapter's start time. Nil if no extractor or index out of range.
+    func chapterThumbnail(forIndex index: Int) async -> CGImage? {
+        guard let frameExtractor, chapters.indices.contains(index) else { return nil }
+        return await frameExtractor.thumbnail(at: chapters[index].startSeconds, maxWidth: 320)
+    }
+
     // MARK: - Internal State
 
     var cancellables = Set<AnyCancellable>()
@@ -285,7 +297,7 @@ final class PlayerViewModel {
         self.playbackService = playbackService
         self.userID = userID
         self.preferences = preferences
-        self.scrubPreview = ScrubPreviewProvider(playbackService: playbackService)
+        self.scrubPreview = ScrubPreviewProvider()
         self.cachedPlaybackInfo = cachedPlaybackInfo
     }
 
@@ -336,12 +348,6 @@ final class PlayerViewModel {
                 throw PlayerEngineError.noSource
             }
             mediaSourceID = source.id
-            scrubPreview.configure(
-                item: item,
-                mediaSourceID: mediaSourceID,
-                chapters: chapters,
-                enabled: preferences.showScrubPreview
-            )
 
             #if DEBUG
             print("[PlayerViewModel] Source: container=\(source.container ?? "nil"), directPlay=\(source.supportsDirectPlay ?? false), directStream=\(source.supportsDirectStream ?? false), transcoding=\(source.supportsTranscoding ?? false)")
@@ -422,6 +428,24 @@ final class PlayerViewModel {
             } else {
                 throw PlayerEngineError.noURL
             }
+
+            // Scrub preview + chapter thumbnails decode stills from the
+            // original file via FFmpeg, independent of how playback
+            // streams it (direct or transcode). Build against
+            // buildStreamURL(isStatic:true) so transcode sessions still
+            // get a preview. api_key rides in the URL query.
+            if let previewURL = playbackService.buildStreamURL(
+                itemID: item.id, mediaSourceID: source.id,
+                container: source.container, isStatic: true
+            ) {
+                frameExtractor = FrameExtractor(url: previewURL, httpHeaders: [:])
+            } else {
+                frameExtractor = nil
+            }
+            scrubPreview.configure(
+                extractor: frameExtractor,
+                enabled: preferences.showScrubPreview
+            )
 
             let startPos: Double?
             if !startFromBeginning,
@@ -608,6 +632,9 @@ final class PlayerViewModel {
         progressReportOnDemandTask = nil
         unbindRemoteSkipCommands()
         scrubPreview.reset()
+        let extractorToClose = frameExtractor
+        frameExtractor = nil
+        Task { await extractorToClose?.shutdown() }
         // AVKit clears its internal Now Playing registration when
         // the host VC sets `player = nil` (done in dismissPlayer /
         // viewWillDisappear).
