@@ -709,14 +709,28 @@ final class HomeViewModel {
 
             case .libraryLatest:
                 // Per-library Latest: scope /Items/Latest to this
-                // library via parentID. collectionType decides the
-                // item type so a movies library doesn't pull in series.
+                // library via parentID alone, exactly like the Jellyfin
+                // web client's per-library Latest row.
+                //
+                // We deliberately do NOT pass IncludeItemTypes here.
+                // The endpoint defaults to GroupItems=true, which folds
+                // freshly added episodes up into their parent series.
+                // Forcing IncludeItemTypes=Series made the server filter
+                // to Series-typed rows *before* grouping, so a library
+                // whose recent additions were all episodes of one show
+                // collapsed to a single tile (Sodalite#12, DrHurt:
+                // "latest in Series - French only loads 1 item"). Movie
+                // libraries never showed the symptom because movies have
+                // nothing to group into. ParentId already constrains the
+                // row to this library's content, so the type hint that
+                // the aggregate latestMovies/latestShows rows need (they
+                // drop ParentId) is not just unnecessary here, it's the
+                // bug.
                 guard let libraryID = config.libraryID else { return nil }
-                let types: [ItemType] = config.collectionType == "tvshows" ? [.series] : [.movie]
                 items = try await libraryService.getLatestMedia(
                     userID: userID,
                     parentID: libraryID,
-                    includeItemTypes: types,
+                    includeItemTypes: nil,
                     limit: 16
                 )
 
