@@ -103,6 +103,9 @@ struct HomeView: View {
         .onReceive(NotificationCenter.default.publisher(for: .homeFavoritesDidChange)) { _ in
             Task { await viewModel?.loadContent() }
         }
+        .onReceive(NotificationCenter.default.publisher(for: .homePlayedDidChange)) { _ in
+            Task { await viewModel?.loadContent() }
+        }
         .onReceive(NotificationCenter.default.publisher(for: .playbackProgressDidChange)) { _ in
             // The Jellyfin server has fresh progress for whatever
             // the user just watched. Reload so Continue Watching and
