@@ -464,12 +464,31 @@ struct SeriesDetailView: View {
                             )
                         }
 
+                        if !isShowingEpisode {
+                            GlassActionButton(
+                                title: vm.isPlayed ? "detail.markUnwatched" : "detail.markWatched",
+                                systemImage: vm.isPlayed ? "checkmark.circle.fill" : "checkmark.circle",
+                                action: { Task { await vm.togglePlayed() } }
+                            )
+                        }
+
                         if isShowingEpisode {
                             GlassActionButton(
                                 title: "detail.showSeries",
                                 systemImage: "xmark",
                                 action: {
                                     withAnimation { selectedEpisode = nil }
+                                }
+                            )
+                        }
+
+                        if isShowingEpisode, let ep = selectedEpisode {
+                            GlassActionButton(
+                                title: vm.isPlayed(ep) ? "detail.markUnwatched" : "detail.markWatched",
+                                systemImage: vm.isPlayed(ep) ? "checkmark.circle.fill" : "checkmark.circle",
+                                action: {
+                                    let target = !vm.isPlayed(ep)
+                                    Task { await vm.setEpisodePlayed(ep, isPlayed: target) }
                                 }
                             )
                         }
@@ -646,6 +665,17 @@ struct SeriesDetailView: View {
                                 }
                             )
                             .id(season.id)
+                            .contextMenu {
+                                Button {
+                                    let target = !vm.isPlayed(season)
+                                    Task { await vm.setSeasonPlayed(seasonID: season.id, isPlayed: target) }
+                                } label: {
+                                    Label(
+                                        vm.isPlayed(season) ? "detail.season.markUnwatched" : "detail.season.markWatched",
+                                        systemImage: vm.isPlayed(season) ? "checkmark.circle.fill" : "checkmark.circle"
+                                    )
+                                }
+                            }
                         }
                     }
                     // Focus scale is 1.05, without vertical slack the
@@ -781,7 +811,8 @@ struct SeriesDetailView: View {
                                         imageURL: dependencies.jellyfinImageService.episodeThumbnailURL(for: episode),
                                         isSelected: selectedEpisode?.id == episode.id,
                                         isCurrent: vm.currentEpisodeID == episode.id,
-                                        isFocused: focusedEpisodeID == episode.id
+                                        isFocused: focusedEpisodeID == episode.id,
+                                        isPlayed: vm.isPlayed(episode)
                                     )
                                 }
                                 .buttonStyle(EpisodeCardButtonStyle())
@@ -829,6 +860,16 @@ struct SeriesDetailView: View {
                                         } label: {
                                             Label("detail.resume", systemImage: "play.circle")
                                         }
+                                    }
+
+                                    Button {
+                                        let target = !vm.isPlayed(episode)
+                                        Task { await vm.setEpisodePlayed(episode, isPlayed: target) }
+                                    } label: {
+                                        Label(
+                                            vm.isPlayed(episode) ? "detail.markUnwatched" : "detail.markWatched",
+                                            systemImage: vm.isPlayed(episode) ? "checkmark.circle.fill" : "checkmark.circle"
+                                        )
                                     }
                                 }
                             }
@@ -984,6 +1025,11 @@ struct EpisodeLandscapeCard: View {
     /// a Button label is unreliable on tvOS, so we pass it explicitly.
     var isFocused: Bool = false
 
+    /// Played state passed explicitly by the caller so the badge can
+    /// live-update from the view model's override map (the immutable
+    /// `episode.userData` snapshot would never change in-session).
+    var isPlayed: Bool = false
+
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             ZStack(alignment: .bottomLeading) {
@@ -1026,7 +1072,7 @@ struct EpisodeLandscapeCard: View {
                     .clipShape(RoundedRectangle(cornerRadius: 12))
                 }
 
-                if episode.userData?.played == true {
+                if isPlayed {
                     Image(systemName: "checkmark.circle.fill")
                         .font(.title3)
                         .foregroundStyle(.green)
