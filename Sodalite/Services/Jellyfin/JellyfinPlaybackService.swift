@@ -6,7 +6,7 @@ protocol JellyfinPlaybackServiceProtocol: Sendable {
     func reportPlaybackStart(_ report: PlaybackStartReport) async throws
     func reportPlaybackProgress(_ report: PlaybackProgressReport) async throws
     func reportPlaybackStopped(_ report: PlaybackStopReport) async throws
-    func getNextEpisode(seriesID: String, userID: String) async throws -> JellyfinItem?
+    func getSeasons(seriesID: String, userID: String) async throws -> [JellyfinItem]
     func getEpisodes(seriesID: String, seasonID: String, userID: String) async throws -> [JellyfinItem]
     func getEpisodeSegments(itemID: String) async throws -> EpisodeSegments
     func buildStreamURL(itemID: String, mediaSourceID: String, container: String?, isStatic: Bool) -> URL?
@@ -111,12 +111,12 @@ final class JellyfinPlaybackService: JellyfinPlaybackServiceProtocol {
         )
     }
 
-    func getNextEpisode(seriesID: String, userID: String) async throws -> JellyfinItem? {
+    func getSeasons(seriesID: String, userID: String) async throws -> [JellyfinItem] {
         let response: JellyfinItemsResponse = try await client.request(
-            endpoint: JellyfinEndpoint.nextUp(userID: userID, seriesID: seriesID, limit: 1),
+            endpoint: JellyfinEndpoint.seasons(seriesID: seriesID, userID: userID),
             responseType: JellyfinItemsResponse.self
         )
-        return response.items.first
+        return response.items
     }
 
     func getEpisodes(seriesID: String, seasonID: String, userID: String) async throws -> [JellyfinItem] {
