@@ -45,6 +45,10 @@ enum JellyfinEndpoint: APIEndpoint {
     case markFavorite(userID: String, itemID: String)
     case unmarkFavorite(userID: String, itemID: String)
 
+    // Played
+    case markPlayed(userID: String, itemID: String)
+    case unmarkPlayed(userID: String, itemID: String)
+
     // Search
     case searchHints(userID: String, query: String, limit: Int)
 
@@ -104,6 +108,10 @@ enum JellyfinEndpoint: APIEndpoint {
             "/Users/\(userID)/FavoriteItems/\(itemID)"
         case .unmarkFavorite(let userID, let itemID):
             "/Users/\(userID)/FavoriteItems/\(itemID)"
+        case .markPlayed(let userID, let itemID):
+            "/Users/\(userID)/PlayedItems/\(itemID)"
+        case .unmarkPlayed(let userID, let itemID):
+            "/Users/\(userID)/PlayedItems/\(itemID)"
         case .searchHints:
             "/Search/Hints"
         case .mediaSegments(let itemID):
@@ -114,9 +122,10 @@ enum JellyfinEndpoint: APIEndpoint {
     var method: HTTPMethod {
         switch self {
         case .authenticateByName, .quickConnectInitiate, .quickConnectAuthenticate, .markFavorite,
+             .markPlayed,
              .sessionPlaying, .sessionProgress, .sessionStopped:
             .post
-        case .unmarkFavorite, .deleteItem:
+        case .unmarkFavorite, .unmarkPlayed, .deleteItem:
             .delete
         default:
             .get

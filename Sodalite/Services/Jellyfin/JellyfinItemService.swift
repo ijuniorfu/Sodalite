@@ -6,6 +6,7 @@ protocol JellyfinItemServiceProtocol: Sendable {
     func getEpisodes(seriesID: String, seasonID: String, userID: String) async throws -> JellyfinItemsResponse
     func getSimilarItems(itemID: String, userID: String, limit: Int) async throws -> JellyfinItemsResponse
     func setFavorite(userID: String, itemID: String, isFavorite: Bool) async throws
+    func setPlayed(userID: String, itemID: String, isPlayed: Bool) async throws
     func getCollectionItems(userID: String, query: ItemQuery) async throws -> JellyfinItemsResponse
     /// Resolves a library item by its TMDB id via Jellyfin's
     /// `AnyProviderIdEquals`. Returns the first match or nil if the
@@ -70,6 +71,13 @@ final class JellyfinItemService: JellyfinItemServiceProtocol {
         let endpoint: JellyfinEndpoint = isFavorite
             ? .markFavorite(userID: userID, itemID: itemID)
             : .unmarkFavorite(userID: userID, itemID: itemID)
+        try await client.request(endpoint: endpoint)
+    }
+
+    func setPlayed(userID: String, itemID: String, isPlayed: Bool) async throws {
+        let endpoint: JellyfinEndpoint = isPlayed
+            ? .markPlayed(userID: userID, itemID: itemID)
+            : .unmarkPlayed(userID: userID, itemID: itemID)
         try await client.request(endpoint: endpoint)
     }
 
