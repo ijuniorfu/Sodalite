@@ -33,6 +33,10 @@ final class DetailViewModel {
     private let playbackService: JellyfinPlaybackServiceProtocol?
     private let imageService: JellyfinImageService
     private let userID: String
+    /// When the detail was opened from a specific episode (vs. the
+    /// series tile), this is that episode. `loadSeasons` lands on its
+    /// season and selects it instead of running the next-up logic.
+    private let initialEpisode: JellyfinItem?
     /// In-flight prefetch task, cancelled on deinit so a disappearing
     /// view doesn't keep self alive waiting on network. `nonisolated(unsafe)`
     /// is required because `deinit` on an actor-isolated class runs
@@ -57,7 +61,8 @@ final class DetailViewModel {
         imageService: JellyfinImageService,
         userID: String,
         libraryService: JellyfinLibraryServiceProtocol? = nil,
-        playbackService: JellyfinPlaybackServiceProtocol? = nil
+        playbackService: JellyfinPlaybackServiceProtocol? = nil,
+        initialEpisode: JellyfinItem? = nil
     ) {
         self.item = item
         self.isFavorite = item.userData?.isFavorite ?? false
@@ -67,6 +72,7 @@ final class DetailViewModel {
         self.playbackService = playbackService
         self.imageService = imageService
         self.userID = userID
+        self.initialEpisode = initialEpisode
     }
 
     func loadFullDetail() async {
@@ -163,6 +169,21 @@ final class DetailViewModel {
         //                  ONLY on next-up before kicking that off,
         //                  not on the seasons response.
         let seasonsTask = Task { try? await itemService.getSeasons(seriesID: item.id, userID: userID) }
+
+        // Opened from a specific episode: land on that episode's season
+        // and select it, skipping the next-up-driven selection entirely.
+        // The view sets selectedEpisode = initialEpisode for the panel.
+        if let initialEpisode, let seasonID = initialEpisode.seasonId {
+            selectedSeasonID = seasonID
+            await loadEpisodes(seasonID: seasonID)
+            currentEpisodeID = initialEpisode.id
+            prefetchPlaybackInfo(for: initialEpisode.id)
+            if let seasonsResponse = await seasonsTask.value {
+                seasons = seasonsResponse.items
+            }
+            return
+        }
+
         let nextUpTask: Task<JellyfinItemsResponse?, Never>? = libraryService.map { libService in
             Task { try? await libService.getNextUp(userID: userID, seriesID: item.id, limit: 1) }
         }
