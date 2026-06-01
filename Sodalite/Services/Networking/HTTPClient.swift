@@ -26,6 +26,18 @@ final class HTTPClient: HTTPClientProtocol, @unchecked Sendable {
     private let encoder: JSONEncoder
     private let decoder: JSONDecoder
 
+    /// Caps concurrent in-flight requests on this client's session.
+    /// The Home fan-out on a multi-library server can otherwise burst
+    /// 60-90 requests in a few seconds (one per per-library Latest row,
+    /// one per genre, one per streaming provider, plus the background
+    /// precompute passes); a CDN/WAF in front of Jellyfin reads that as
+    /// scraping and tarpits the client for ~a minute, while requests
+    /// queued behind it blow past their 30 s timeout and silently
+    /// return nil rows (Sodalite#12 / #14). 6 matches browser-like
+    /// per-host concurrency. Per-client, so Jellyfin and Seerr (each
+    /// their own HTTPClient) don't share a budget.
+    private let inFlightLimiter = AsyncSemaphore(limit: 6)
+
     nonisolated init(session: URLSession? = nil) {
         // Cookie handling is done manually by each client (Seerr sets
         // connect.sid, Jellyfin uses header-based auth). If we let
@@ -76,6 +88,9 @@ final class HTTPClient: HTTPClientProtocol, @unchecked Sendable {
                 diskPath: "sodalite-http-cache"
             )
             config.requestCachePolicy = .reloadRevalidatingCacheData
+            // Belt to the app-level inFlightLimiter: keep the transport
+            // pool from opening more than the limiter admits anyway.
+            config.httpMaximumConnectionsPerHost = 6
             self.session = URLSession(configuration: config)
         }
 
@@ -115,6 +130,14 @@ final class HTTPClient: HTTPClientProtocol, @unchecked Sendable {
         headers: [String: String]
     ) async throws -> (Data, HTTPURLResponse) {
         let urlRequest = try buildRequest(baseURL: baseURL, endpoint: endpoint, headers: headers)
+
+        // Throttle concurrent requests so a Home fan-out can't flood the
+        // origin. wait() suspends (it does not start the request's
+        // timeout clock) until a permit frees, and throws if the calling
+        // task is cancelled while queued. The permit is balanced on
+        // every exit path by the defer below.
+        try await inFlightLimiter.wait()
+        defer { inFlightLimiter.signal() }
 
         let data: Data
         let response: URLResponse

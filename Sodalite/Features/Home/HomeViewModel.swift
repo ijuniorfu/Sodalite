@@ -261,7 +261,7 @@ final class HomeViewModel {
         // are tolerated, the tile falls back to the logo-only
         // style for any provider that doesn't resolve.
         backdropTask = Task(priority: .utility) { [weak self] in
-            try? await Task.sleep(for: .seconds(2))
+            try? await Task.sleep(for: .seconds(3))
             if Task.isCancelled { return }
             await self?.loadProviderBackdrops()
         }
@@ -272,15 +272,20 @@ final class HomeViewModel {
         // all-library query plus per-provider studio + TMDB matches),
         // deferred longest.
         providerCountsTask = Task(priority: .utility) { [weak self] in
-            try? await Task.sleep(for: .seconds(5))
+            try? await Task.sleep(for: .seconds(8))
             if Task.isCancelled { return }
             await self?.precomputeProviderCounts()
         }
         // Pre-warm the genre tile grids the same way: one Studios
         // query per genre so the first tap renders straight from the
-        // cache instead of paying a network roundtrip.
+        // cache instead of paying a network roundtrip. Staggered well
+        // behind the provider-counts pass (which itself fires a single
+        // 10 000-item query plus per-provider resolves) so the two
+        // heaviest background passes don't land on the HTTPClient
+        // limiter at the same instant and starve each other on a slow
+        // CDN origin (Sodalite#12).
         genreCachesTask = Task(priority: .utility) { [weak self] in
-            try? await Task.sleep(for: .seconds(5))
+            try? await Task.sleep(for: .seconds(13))
             if Task.isCancelled { return }
             await self?.precomputeGenreCaches()
         }
@@ -530,7 +535,15 @@ final class HomeViewModel {
             of: (Int, JellyfinItem?).self,
             returning: [(Int, JellyfinItem)].self
         ) { group in
-            for provider in providers {
+            // Bounded fan-out: keep at most `maxConcurrent` provider
+            // queries enqueued at once rather than spawning all ~33 up
+            // front. The HTTPClient limiter caps in-flight requests
+            // regardless, this just avoids stacking dozens of suspended
+            // tasks that would all pile onto that limiter at once.
+            var iter = providers.makeIterator()
+            let maxConcurrent = 6
+
+            func enqueue(_ provider: CatalogProvider) {
                 group.addTask { [libraryService, userID] in
                     let query = ItemQuery(
                         includeItemTypes: [.movie, .series],
@@ -542,9 +555,15 @@ final class HomeViewModel {
                     return (provider.id, item)
                 }
             }
+
+            for _ in 0..<maxConcurrent {
+                guard let next = iter.next() else { break }
+                enqueue(next)
+            }
             var collected: [(Int, JellyfinItem)] = []
             for await (id, item) in group {
                 if let item { collected.append((id, item)) }
+                if let next = iter.next() { enqueue(next) }
             }
             return collected
         }
@@ -711,7 +730,14 @@ final class HomeViewModel {
                 of: (String, JellyfinItem?).self,
                 returning: [(String, JellyfinItem?)].self
             ) { group in
-                for tag in tags {
+                // Bounded fan-out: one backdrop query per genre, but at
+                // most `maxConcurrent` enqueued at a time instead of all
+                // ~15-20 up front, so a genre-heavy library doesn't pile
+                // a burst onto the HTTPClient limiter on first load.
+                var iter = tags.makeIterator()
+                let maxConcurrent = 6
+
+                func enqueue(_ tag: NamedItem) {
                     group.addTask {
                         let query = ItemQuery(
                             includeItemTypes: [.movie, .series],
@@ -723,9 +749,15 @@ final class HomeViewModel {
                         return (tag.id, item)
                     }
                 }
+
+                for _ in 0..<maxConcurrent {
+                    guard let next = iter.next() else { break }
+                    enqueue(next)
+                }
                 var results: [(String, JellyfinItem?)] = []
                 for await result in group {
                     results.append(result)
+                    if let next = iter.next() { enqueue(next) }
                 }
                 return results
             }
