@@ -243,6 +243,21 @@ final class HomeViewModel {
         backdropTask?.cancel()
         providerCountsTask?.cancel()
         genreCachesTask?.cancel()
+        backdropTask = nil
+        providerCountsTask = nil
+        genreCachesTask = nil
+
+        // Gate each background pass on its consuming row being enabled.
+        // The provider precompute is the heaviest query the app makes
+        // (one 10 000-item all-library scan plus 33 per-provider
+        // resolves), and the Discover row is the *only* thing that
+        // reads its output, so firing it when the user has hidden that
+        // row is pure waste, on a slow CDN-backed Jellyfin (Sodalite#12)
+        // it's waste the user pays for in backend contention. Hiding the
+        // Discover / Genres row in Customize now genuinely stops the
+        // scan rather than just hiding tiles that were resolved anyway.
+        let providersEnabled = enabledRows.contains { $0.type.isDiscoverProviderRow }
+        let genresEnabled = enabledRows.contains { $0.type == .genres }
 
         // All three background passes deferred so the server isn't
         // hammered with secondary queries right as the user is
@@ -260,10 +275,12 @@ final class HomeViewModel {
         // from the local library. Failures and gaps in metadata
         // are tolerated, the tile falls back to the logo-only
         // style for any provider that doesn't resolve.
-        backdropTask = Task(priority: .utility) { [weak self] in
-            try? await Task.sleep(for: .seconds(3))
-            if Task.isCancelled { return }
-            await self?.loadProviderBackdrops()
+        if providersEnabled {
+            backdropTask = Task(priority: .utility) { [weak self] in
+                try? await Task.sleep(for: .seconds(3))
+                if Task.isCancelled { return }
+                await self?.loadProviderBackdrops()
+            }
         }
         // Pre-resolve every provider tile in the background so the
         // empty-tile-hide pass on the home view has data to act on
@@ -271,10 +288,12 @@ final class HomeViewModel {
         // run per session. Heaviest of the three (one 10 000-item
         // all-library query plus per-provider studio + TMDB matches),
         // deferred longest.
-        providerCountsTask = Task(priority: .utility) { [weak self] in
-            try? await Task.sleep(for: .seconds(8))
-            if Task.isCancelled { return }
-            await self?.precomputeProviderCounts()
+        if providersEnabled {
+            providerCountsTask = Task(priority: .utility) { [weak self] in
+                try? await Task.sleep(for: .seconds(8))
+                if Task.isCancelled { return }
+                await self?.precomputeProviderCounts()
+            }
         }
         // Pre-warm the genre tile grids the same way: one Studios
         // query per genre so the first tap renders straight from the
@@ -284,10 +303,12 @@ final class HomeViewModel {
         // heaviest background passes don't land on the HTTPClient
         // limiter at the same instant and starve each other on a slow
         // CDN origin (Sodalite#12).
-        genreCachesTask = Task(priority: .utility) { [weak self] in
-            try? await Task.sleep(for: .seconds(13))
-            if Task.isCancelled { return }
-            await self?.precomputeGenreCaches()
+        if genresEnabled {
+            genreCachesTask = Task(priority: .utility) { [weak self] in
+                try? await Task.sleep(for: .seconds(13))
+                if Task.isCancelled { return }
+                await self?.precomputeGenreCaches()
+            }
         }
     }
 
