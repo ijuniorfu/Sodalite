@@ -5,6 +5,12 @@ import Observation
 final class DetailViewModel {
     var item: JellyfinItem
     var isFavorite: Bool
+    var isPlayed: Bool
+    /// Per-item played overrides keyed by item / episode / season ID.
+    /// Lets the cards live-update their watched badge without mutating
+    /// the immutable JellyfinItem structs (same "pass state explicitly
+    /// to the card" pattern as isFocused / isCurrent).
+    var playedOverrides: [String: Bool] = [:]
     var seasons: [JellyfinItem] = []
     var episodes: [JellyfinItem] = []
     var collectionItems: [JellyfinItem] = []
@@ -61,6 +67,7 @@ final class DetailViewModel {
     ) {
         self.item = item
         self.isFavorite = item.userData?.isFavorite ?? false
+        self.isPlayed = item.userData?.played ?? false
         self.itemService = itemService
         self.libraryService = libraryService
         self.playbackService = playbackService
@@ -133,6 +140,7 @@ final class DetailViewModel {
         if let detail = await detailTask.value {
             item = detail
             isFavorite = detail.userData?.isFavorite ?? false
+            isPlayed = detail.userData?.played ?? false
         }
 
         if itemType != .series && itemType != .boxSet {
@@ -289,6 +297,61 @@ final class DetailViewModel {
             NotificationCenter.default.post(name: .homeFavoritesDidChange, object: nil)
         } catch {
             isFavorite = oldValue
+        }
+    }
+
+    /// Effective played state for a card: an in-session override wins,
+    /// otherwise the server snapshot on the item.
+    func isPlayed(_ item: JellyfinItem) -> Bool {
+        playedOverrides[item.id] ?? (item.userData?.played ?? false)
+    }
+
+    /// Toggle the top-level item (movie or whole series).
+    func togglePlayed() async {
+        let oldValue = isPlayed
+        isPlayed.toggle()
+        playedOverrides[item.id] = isPlayed
+
+        do {
+            try await itemService.setPlayed(userID: userID, itemID: item.id, isPlayed: isPlayed)
+            NotificationCenter.default.post(name: .homePlayedDidChange, object: nil)
+        } catch {
+            isPlayed = oldValue
+            playedOverrides[item.id] = oldValue
+        }
+    }
+
+    /// Toggle a single episode. `isPlayed` is the desired new state.
+    func setEpisodePlayed(_ episode: JellyfinItem, isPlayed: Bool) async {
+        let oldValue = playedOverrides[episode.id]
+        playedOverrides[episode.id] = isPlayed
+
+        do {
+            try await itemService.setPlayed(userID: userID, itemID: episode.id, isPlayed: isPlayed)
+            NotificationCenter.default.post(name: .homePlayedDidChange, object: nil)
+        } catch {
+            playedOverrides[episode.id] = oldValue
+        }
+    }
+
+    /// Toggle a whole season. The server cascades to child episodes; we
+    /// additionally flip the override for every episode we have loaded
+    /// for that season so the per-episode badges update live.
+    func setSeasonPlayed(seasonID: String, isPlayed: Bool) async {
+        var affected = Set((episodesCache[seasonID] ?? []).map(\.id))
+        if selectedSeasonID == seasonID {
+            affected.formUnion(episodes.map(\.id))
+        }
+
+        let previous = playedOverrides
+        playedOverrides[seasonID] = isPlayed
+        for id in affected { playedOverrides[id] = isPlayed }
+
+        do {
+            try await itemService.setPlayed(userID: userID, itemID: seasonID, isPlayed: isPlayed)
+            NotificationCenter.default.post(name: .homePlayedDidChange, object: nil)
+        } catch {
+            playedOverrides = previous
         }
     }
 
