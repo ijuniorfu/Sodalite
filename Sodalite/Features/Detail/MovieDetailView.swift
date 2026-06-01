@@ -299,6 +299,12 @@ struct MovieDetailView: View {
                         // button stays on the series detail for continuing shows
                         // where new seasons may still land.
 
+                        GlassActionButton(
+                            title: vm.isPlayed ? "detail.markUnwatched" : "detail.markWatched",
+                            systemImage: vm.isPlayed ? "checkmark.circle.fill" : "checkmark.circle",
+                            action: { Task { await vm.togglePlayed() } }
+                        )
+
                         // Episodes get routed through MovieDetailView (see
                         // DetailRouterView) but per-episode deletion is not a
                         // supported flow. The delete entry point lives on the
