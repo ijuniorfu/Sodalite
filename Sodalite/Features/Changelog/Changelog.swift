@@ -18,6 +18,12 @@ enum Changelog {
             version: "0.8.1",
             highlights: [
                 ChangelogHighlight(
+                    .improve,
+                    "changelog.0_8_1.scrubPreviewEngine.title",
+                    "changelog.0_8_1.scrubPreviewEngine.body",
+                    icon: "photo.on.rectangle"
+                ),
+                ChangelogHighlight(
                     .fix,
                     "changelog.0_8_1.upNextOrder.title",
                     "changelog.0_8_1.upNextOrder.body",
