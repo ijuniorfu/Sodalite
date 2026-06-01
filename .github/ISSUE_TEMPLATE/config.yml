@@ -1,8 +1,8 @@
 blank_issues_enabled: false
 contact_links:
   - name: Security vulnerability
-    url: https://github.com/superuser404notfound/Sodalite/security/policy
-    about: Please report security issues via email — do not open a public issue. See SECURITY.md for details.
+    url: https://github.com/superuser404notfound/Sodalite/security/advisories/new
+    about: Please report security issues privately through GitHub Security Advisories, not as a public issue. See SECURITY.md for details.
   - name: Jellyfin server bug
     url: https://github.com/jellyfin/jellyfin/issues
     about: If the bug is on the server side (your library, transcoding, metadata), report it to the Jellyfin project.

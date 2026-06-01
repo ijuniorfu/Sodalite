@@ -4,9 +4,11 @@
 
 If you find a security issue in Sodalite, please **do not** open a public GitHub issue.
 
-Instead, email **superuser404@tuta.com** with:
+Report it privately through GitHub Security Advisories: [Security → Report a vulnerability](https://github.com/superuser404notfound/Sodalite/security/advisories/new). That opens a private advisory visible only to you and the maintainer. If you would rather not use GitHub, email **superuser404@tuta.com** instead.
 
-- A short description of the issue
+Helpful things to include:
+
+- A short description of the issue and its impact
 - Reproduction steps if you have them
 - The version (Settings → bottom of the screen) and tvOS version
 
