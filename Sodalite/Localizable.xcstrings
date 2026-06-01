@@ -31298,6 +31298,650 @@
         }
       }
     },
+    "changelog.0_8_1.backgroundAudio.body" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Když jste se vrátili zpět během načítání videa, mohlo přehrávání pokračovat na pozadí až do restartu aplikace. Nyní se čistě zastaví."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hvis du gik tilbage, mens en video stadig blev indlæst, kunne den fortsætte i baggrunden, indtil du genstartede appen. Nu stopper den korrekt."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wenn du zurückgegangen bist, während ein Video noch lud, lief es manchmal im Hintergrund weiter, bis du die App neu gestartet hast. Jetzt stoppt es sauber."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Αν επιστρέφατε ενώ ένα βίντεο φόρτωνε ακόμη, μπορούσε να συνεχίσει να παίζει στο παρασκήνιο μέχρι να επανεκκινήσετε την εφαρμογή. Τώρα σταματά καθαρά."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Backing out while a video was still loading could leave it playing in the background until you restarted the app. It now stops cleanly."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Si volvías atrás mientras un vídeo aún se cargaba, podía seguir reproduciéndose en segundo plano hasta reiniciar la app. Ahora se detiene correctamente."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jos palasit takaisin videon vielä latautuessa, toisto saattoi jatkua taustalla, kunnes käynnistit sovelluksen uudelleen. Nyt se pysähtyy siististi."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Revenir en arrière pendant le chargement d'une vidéo pouvait la laisser tourner en arrière-plan jusqu'au redémarrage de l'app. Elle s'arrête maintenant proprement."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ako ste se vratili dok se videozapis još učitavao, mogao je nastaviti svirati u pozadini do ponovnog pokretanja aplikacije. Sada se uredno zaustavlja."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ha visszaléptél, miközben egy videó még töltött, előfordulhatott, hogy a háttérben tovább ment az alkalmazás újraindításáig. Most rendben leáll."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tornando indietro mentre un video era ancora in caricamento, poteva continuare in sottofondo fino al riavvio dell'app. Ora si ferma correttamente."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "動画の読み込み中に戻ると、アプリを再起動するまでバックグラウンドで再生が続くことがありました。今はきちんと停止します。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "동영상이 로딩되는 중에 뒤로 가면 앱을 다시 시작할 때까지 백그라운드에서 계속 재생될 수 있었습니다. 이제 깔끔하게 멈춥니다."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hvis du gikk tilbake mens en video fortsatt lastet, kunne den fortsette i bakgrunnen til du startet appen på nytt. Nå stopper den ordentlig."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Als je terugging terwijl een video nog laadde, kon die op de achtergrond blijven spelen tot je de app opnieuw startte. Nu stopt hij netjes."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cofnięcie podczas ładowania filmu mogło sprawić, że grał on w tle aż do ponownego uruchomienia aplikacji. Teraz zatrzymuje się prawidłowo."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Voltar enquanto um vídeo ainda carregava podia deixá-lo tocando em segundo plano até reiniciar o app. Agora ele para corretamente."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Voltar atrás enquanto um vídeo ainda carregava podia deixá-lo a reproduzir em segundo plano até reiniciar a app. Agora para corretamente."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dacă reveneai în timp ce un videoclip încă se încărca, putea continua în fundal până reporneai aplicația. Acum se oprește corect."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Если выйти назад, пока видео ещё загружалось, оно могло продолжать играть в фоне до перезапуска приложения. Теперь оно корректно останавливается."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ak ste sa vrátili späť počas načítavania videa, mohlo pokračovať na pozadí až do reštartu aplikácie. Teraz sa čisto zastaví."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Om du gick tillbaka medan en video fortfarande laddades kunde den fortsätta spela i bakgrunden tills du startade om appen. Nu stoppar den korrekt."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bir video hâlâ yüklenirken geri çıkmak, uygulamayı yeniden başlatana kadar arka planda çalmaya devam etmesine neden olabiliyordu. Artık düzgünce duruyor."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Якщо вийти назад, поки відео ще завантажувалося, воно могло продовжувати грати у фоні до перезапуску застосунку. Тепер воно коректно зупиняється."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在视频仍在加载时返回，可能会让它在后台继续播放，直到重启应用。现在它会干净地停止。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在影片仍在載入時返回，可能會讓它在背景繼續播放，直到重新啟動 App。現在它會乾淨地停止。"
+          }
+        }
+      }
+    },
+    "changelog.0_8_1.backgroundAudio.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Žádný zvuk po odchodu zpět"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ingen lyd efter du går tilbage"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kein Ton mehr nach dem Zurückgehen"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Χωρίς ήχο μετά την επιστροφή"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No more audio after backing out"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sin audio tras volver atrás"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ei ääntä enää takaisin palatessa"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Plus de son après un retour en arrière"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nema više zvuka nakon povratka"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nincs több hang visszalépés után"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Niente più audio dopo essere usciti"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "戻った後に音が残らない"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "뒤로 간 후 소리가 남지 않음"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ingen lyd etter at du går tilbake"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Geen geluid meer na teruggaan"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Brak dźwięku po cofnięciu"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sem áudio depois de voltar"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sem áudio depois de voltar atrás"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fără sunet după ce revii"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Больше нет звука после выхода назад"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Žiadny zvuk po návrate späť"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Inget ljud efter att du går tillbaka"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Geri çıktıktan sonra ses kalmıyor"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Більше немає звуку після виходу назад"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "返回后不再有声音"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "返回後不再有聲音"
+          }
+        }
+      }
+    },
+    "changelog.0_8_1.upNextOrder.body" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pokračovat nyní vždy přehraje následující díl místo přeskočení řady, ve které už byly některé díly zhlédnuté."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Næste afsnit afspiller nu altid det følgende afsnit i stedet for at springe over en sæson, hvor nogle afsnit allerede er set."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Als Nächstes spielt jetzt immer die direkt folgende Folge ab, statt eine Staffel zu überspringen, in der schon einige Folgen gesehen wurden."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Το «Επόμενο» αναπαράγει πλέον πάντα το αμέσως επόμενο επεισόδιο, αντί να παρακάμπτει έναν κύκλο που είχε ήδη κάποια ιδωμένα επεισόδια."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Up Next now always plays the episode that comes next, instead of skipping over a season that already had some watched episodes."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Siguiente ahora reproduce siempre el episodio que va a continuación, en lugar de saltarse una temporada que ya tenía algunos episodios vistos."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seuraavaksi toistaa nyt aina järjestyksessä seuraavan jakson sen sijaan, että ohittaisi kauden, jolla on jo katsottuja jaksoja."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "À suivre lit désormais toujours l'épisode qui suit, au lieu de sauter une saison qui contenait déjà des épisodes vus."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sljedeće sada uvijek reproducira sljedeću epizodu umjesto da preskoči sezonu u kojoj su neke epizode već pogledane."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A Következő mostantól mindig a soron következő epizódot játssza le, ahelyett hogy átugorna egy évadot, amelyben már voltak megnézett epizódok."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Da vedere ora riproduce sempre l'episodio successivo, invece di saltare una stagione che aveva già alcuni episodi visti."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "「次に再生」は、視聴済みのエピソードがあるシーズンを飛ばさず、常に次のエピソードを再生するようになりました。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "다음 재생이 이제 이미 시청한 에피소드가 있는 시즌을 건너뛰지 않고 항상 바로 다음 에피소드를 재생합니다."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Neste spiller nå alltid den påfølgende episoden i stedet for å hoppe over en sesong som allerede hadde noen sette episoder."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Volgende speelt nu altijd de eerstvolgende aflevering af in plaats van een seizoen over te slaan waarin al enkele afleveringen bekeken zijn."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Następny odcinek odtwarza teraz zawsze kolejny odcinek, zamiast pomijać sezon, w którym obejrzano już niektóre odcinki."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A Seguir agora sempre reproduz o episódio seguinte, em vez de pular uma temporada que já tinha alguns episódios assistidos."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A Seguir reproduz agora sempre o episódio seguinte, em vez de saltar uma temporada que já tinha alguns episódios vistos."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Urmează redă acum întotdeauna episodul care urmează, în loc să sară peste un sezon care avea deja câteva episoade vizionate."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "«Далее» теперь всегда воспроизводит следующий по порядку эпизод, а не пропускает сезон, в котором уже есть просмотренные эпизоды."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ďalej teraz vždy prehrá nasledujúcu epizódu namiesto preskočenia série, v ktorej už boli niektoré epizódy pozreté."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nästa spelar nu alltid upp det följande avsnittet i stället för att hoppa över en säsong som redan hade några sedda avsnitt."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sıradaki artık izlenmiş bölümleri olan bir sezonu atlamak yerine her zaman bir sonraki bölümü oynatıyor."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "«Далі» тепер завжди відтворює наступний за порядком епізод, а не пропускає сезон, у якому вже є переглянуті епізоди."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“下一集”现在总是播放紧接着的下一集，而不会跳过已经看过部分剧集的某一季。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "「下一集」現在一律播放緊接著的下一集，而不會跳過已經看過部分集數的某一季。"
+          }
+        }
+      }
+    },
+    "changelog.0_8_1.upNextOrder.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pokračovat respektuje pořadí řad"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Næste afsnit følger sæsonrækkefølgen"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Als Nächstes folgt der Staffel-Reihenfolge"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Η σειρά επεισοδίων ακολουθεί τους κύκλους"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Up Next respects season order"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Siguiente respeta el orden de temporadas"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seuraavaksi noudattaa kausijärjestystä"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "À suivre respecte l'ordre des saisons"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sljedeće poštuje redoslijed sezona"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A Következő követi az évadsorrendet"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Da vedere rispetta l'ordine delle stagioni"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "「次に再生」がシーズン順を尊重"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "다음 재생이 시즌 순서를 따름"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Neste følger sesongrekkefølgen"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Volgende volgt de seizoensvolgorde"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Następny odcinek zgodnie z kolejnością sezonów"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A Seguir respeita a ordem das temporadas"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A Seguir respeita a ordem das temporadas"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Urmează respectă ordinea sezoanelor"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "«Далее» следует порядку сезонов"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ďalej rešpektuje poradie sérií"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nästa följer säsongsordningen"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sıradaki, sezon sırasına uyar"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "«Далі» дотримується порядку сезонів"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“下一集”遵循季的顺序"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "「下一集」依照季的順序"
+          }
+        }
+      }
+    },
     "changelog.modal.dismiss" : {
       "extractionState" : "manual",
       "localizations" : {
