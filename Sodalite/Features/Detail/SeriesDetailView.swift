@@ -86,6 +86,12 @@ struct SeriesDetailView: View {
     @State private var pendingEpisodeFocus: String?
 
     let item: JellyfinItem
+    /// When the view was opened from a specific episode (via
+    /// DetailRouterView's .episode route), this seeds the preselected
+    /// episode so the panel paints from the snapshot immediately and
+    /// the view model lands on the right season. nil for a normal
+    /// series open.
+    var initialEpisode: JellyfinItem? = nil
 
     private var displayItem: JellyfinItem {
         selectedEpisode ?? viewModel?.item ?? item
@@ -275,13 +281,15 @@ struct SeriesDetailView: View {
         }
         .onAppear {
             if viewModel == nil, let userID = appState.activeUser?.id {
+                selectedEpisode = initialEpisode
                 viewModel = DetailViewModel(
                     item: item,
                     itemService: dependencies.jellyfinItemService,
                     imageService: dependencies.jellyfinImageService,
                     userID: userID,
                     libraryService: dependencies.jellyfinLibraryService,
-                    playbackService: dependencies.jellyfinPlaybackService
+                    playbackService: dependencies.jellyfinPlaybackService,
+                    initialEpisode: initialEpisode
                 )
                 Task {
                     await viewModel?.loadFullDetail()
