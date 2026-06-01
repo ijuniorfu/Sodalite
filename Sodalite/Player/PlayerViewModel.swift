@@ -273,6 +273,20 @@ final class PlayerViewModel {
     var progressTimer: Task<Void, Never>?
     var progressReportOnDemandTask: Task<Void, Never>?
     var controlsTimer: Task<Void, Never>?
+    /// The in-flight initial-launch task (see `beginPlayback`). Held so
+    /// a back-press during the loading spinner can cancel it before it
+    /// calls `player.load()` on the shared engine. Without this, the
+    /// untracked task would resume after `stopPlayback()`'s
+    /// `player.stop()` and restart playback behind the dismissed player,
+    /// leaving audio running until an app restart.
+    var loadTask: Task<Void, Never>?
+    /// Latched true by `stopPlayback()`. `startPlayback()` resets it at
+    /// entry and re-checks it after every `await` so a teardown that
+    /// races an in-flight load (including the next-episode / season-picker
+    /// transitions, whose tasks aren't `loadTask` and so can't be
+    /// cancelled) still bails before, or immediately stops after,
+    /// `player.load()`.
+    var isTearingDown = false
     var hasReportedStart = false
     var hasStartedPlaying = false
     /// The position we resumed from, used as minimum for progress reports
@@ -303,7 +317,21 @@ final class PlayerViewModel {
 
     // MARK: - Lifecycle
 
+    /// Initial-launch entry point called by the host VC as the modal
+    /// appears. Routes through a tracked task so a back-press during the
+    /// loading spinner can cancel the in-flight `startPlayback()` (the
+    /// engine throws `CancellationError` out of `player.load()` on
+    /// cancel) before it touches the shared engine. The bare
+    /// `Task { await startPlayback() }` it replaces was untracked, so a
+    /// dismiss mid-load left the task to resume after `player.stop()` and
+    /// restart playback behind a gone player.
+    func beginPlayback() {
+        loadTask?.cancel()
+        loadTask = Task { [weak self] in await self?.startPlayback() }
+    }
+
     func startPlayback() async {
+        isTearingDown = false
         isLoading = true
         clearError()
         // Source-container chapters are already on the item if the
@@ -467,6 +495,17 @@ final class PlayerViewModel {
             //
             stageInitialNowPlayingMetadata()
 
+            // Bail before touching the shared engine if the player was
+            // torn down while we awaited playback info (user pressed Back
+            // during the loading spinner). Otherwise this in-flight task
+            // calls player.load() AFTER stopPlayback()'s player.stop(),
+            // restarting playback with no UI to dismiss it, audio keeps
+            // running until an app restart.
+            if Task.isCancelled || isTearingDown {
+                isLoading = false
+                return
+            }
+
             // Single load path: hand the source to the engine and let
             // it pick AVPlayer-backed native (the default) or fall
             // through to its legacy aether sample-buffer path for
@@ -525,6 +564,16 @@ final class PlayerViewModel {
                     audioBridgeMode: preferences.audioBridgeMode
                 )
             )
+
+            // Teardown can land in the tiny window between load() returning
+            // and us wiring up observation (back-press just as the engine
+            // finished opening the asset). Stop the engine we just started
+            // and bail so nothing plays behind the dismissed player.
+            if Task.isCancelled || isTearingDown {
+                player.stop()
+                isLoading = false
+                return
+            }
 
             totalTime = formatSeconds(effectiveDuration)
             // Audio track priority: preferred language → stream default → first.
@@ -627,6 +676,14 @@ final class PlayerViewModel {
     /// session endpoints also opt into a 90 s timeout so the position
     /// write survives a slow origin without being silently dropped.
     func stopPlayback() {
+        // Latch teardown and cancel the in-flight launch first. The flag
+        // is re-checked after every await in startPlayback; the cancel
+        // makes the engine throw CancellationError out of an in-flight
+        // player.load(). Together they stop a back-press-during-load from
+        // resuming into player.load() after the player.stop() below.
+        isTearingDown = true
+        loadTask?.cancel()
+        loadTask = nil
         stopProgressReporting()
         progressReportOnDemandTask?.cancel()
         progressReportOnDemandTask = nil

@@ -574,7 +574,11 @@ final class PlayerHostController: AVPlayerViewController {
         // wait at the end.
         guard !hasLaunched else { return }
         hasLaunched = true
-        Task { await viewModel.startPlayback() }
+        // Tracked launch: a back-press during the loading spinner cancels
+        // this task (and latches teardown) so the in-flight load can't
+        // resume into player.load() after dismissal and leave audio
+        // playing behind a gone player.
+        viewModel.beginPlayback()
     }
 
     private func addPressGesture(_ type: UIPress.PressType, action: Selector) {
