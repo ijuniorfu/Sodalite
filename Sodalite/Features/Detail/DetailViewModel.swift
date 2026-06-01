@@ -231,7 +231,6 @@ final class DetailViewModel {
                 prefetchPlaybackInfo(for: firstEp)
             }
         }
-
     }
 
     func loadEpisodes(seasonID: String) async {

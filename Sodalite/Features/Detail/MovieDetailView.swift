@@ -305,11 +305,13 @@ struct MovieDetailView: View {
                             action: { Task { await vm.togglePlayed() } }
                         )
 
-                        // Episodes get routed through MovieDetailView (see
-                        // DetailRouterView) but per-episode deletion is not a
-                        // supported flow. The delete entry point lives on the
-                        // parent series detail, matching SeriesDetailView's
-                        // own !isShowingEpisode guard.
+                        // Episodes only reach MovieDetailView via the
+                        // no-parent-series fallback in DetailRouterView
+                        // (episodes with a seriesId open in SeriesDetailView).
+                        // Per-episode deletion is not a supported flow either
+                        // way: the delete entry point lives on the parent
+                        // series detail, matching SeriesDetailView's own
+                        // !isShowingEpisode guard.
                         if canDelete && item.type != .episode {
                             GlassActionButton(
                                 title: "detail.delete.button",
