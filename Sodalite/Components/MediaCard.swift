@@ -70,6 +70,14 @@ struct MediaCard: View {
         .overlay(alignment: .bottom) {
             progressOverlay
         }
+        .overlay(alignment: .topTrailing) {
+            if item.userData?.played == true {
+                Image(systemName: "checkmark.circle.fill")
+                    .font(.title3)
+                    .foregroundStyle(.green)
+                    .padding(10)
+            }
+        }
         .overlay(
             // Outer stroke, padding(-3) pushes the overlay frame 3pt
             // past the image edge, so the border sits *around* the card
