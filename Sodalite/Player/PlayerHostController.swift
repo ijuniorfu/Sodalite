@@ -11,9 +11,15 @@ import Combine
 /// Subclasses `AVPlayerViewController` with `showsPlaybackControls
 /// = true` (required on tvOS to activate AVKit's internal Now Playing
 /// session auto-publish, AirPods auto-detection, Enhance Dialogue,
-/// Reduce Loud Sounds, synchronized Atmos) BUT with all visible
-/// chrome turned off via:
-///   - `playbackControlsIncludeTransportBar = false`
+/// Reduce Loud Sounds, synchronized Atmos). Visible chrome is
+/// suppressed, EXCEPT the transport bar, which stays enabled:
+///   - `playbackControlsIncludeTransportBar = true` (kept ON so AVKit
+///     routes iPhone Control Center skip events into our delegate; its
+///     visible bar is covered by the SwiftUI overlay). This also leaves
+///     AVKit's internal play/pause handler active, so the engine
+///     reconciles its `state` from the live player rather than trusting
+///     its own play()/pause() calls (AetherEngine `togglePlayPause` +
+///     `timeControlStatus` sync), otherwise rapid presses get swallowed.
 ///   - `playbackControlsIncludeInfoViews = false`
 ///   - `contextualActions = []`
 ///
