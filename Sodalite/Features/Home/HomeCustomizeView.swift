@@ -317,6 +317,10 @@ extension Notification.Name {
     /// Continue Watching / Next Up so the user sees their new
     /// progress as soon as they're back.
     static let playbackProgressDidChange = Notification.Name("playbackProgressDidChange")
+    /// Posted by the detail views after a successful deletion. Lets
+    /// HomeView reload so the deleted item disappears from the rows
+    /// immediately instead of lingering until the next stale refresh.
+    static let homeItemDidDelete = Notification.Name("homeItemDidDelete")
     /// Fires after LoginView completes (password or Quick Connect).
     /// ProfileSettingsView listens so it can pop its "Add another
     /// profile" navigation branch, without it, the login success

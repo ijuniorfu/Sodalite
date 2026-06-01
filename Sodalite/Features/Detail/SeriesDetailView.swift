@@ -332,6 +332,9 @@ struct SeriesDetailView: View {
                             // the deleted item(s) until natural
                             // eviction. Active rows re-fetch on focus.
                             FilterCache.shared.clearAll()
+                            // Tell Home to reload so the deleted series
+                            // or season(s) drop out of its rows right away.
+                            NotificationCenter.default.post(name: .homeItemDidDelete, object: nil)
                             // Only pop the detail view when the whole
                             // series was deleted. For seasons-only
                             // deletion the user might still want to

@@ -109,6 +109,12 @@ struct HomeView: View {
             // Next Up reflect it as soon as the user is back here.
             Task { await viewModel?.loadContent() }
         }
+        .onReceive(NotificationCenter.default.publisher(for: .homeItemDidDelete)) { _ in
+            // The user just deleted an item. Reload so it drops out of
+            // the rows immediately instead of lingering until the next
+            // stale refresh.
+            Task { await viewModel?.loadContent() }
+        }
         .onChange(of: appState.activeUser?.id) { _, newValue in
             // Profile switch, tear down the old HomeViewModel so the
             // next .onAppear rebuilds it with the new userID. Leaving

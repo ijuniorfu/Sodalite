@@ -142,6 +142,9 @@ struct MovieDetailView: View {
                             // the deleted movie until natural eviction.
                             // Active rows re-fetch on next focus.
                             FilterCache.shared.clearAll()
+                            // Tell Home to reload so the deleted movie
+                            // drops out of its rows right away.
+                            NotificationCenter.default.post(name: .homeItemDidDelete, object: nil)
                             // Pop the detail view after the sheet's
                             // success-toast hold completes.
                             Task { @MainActor in
