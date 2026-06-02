@@ -386,12 +386,12 @@ struct SeriesDetailView: View {
     }
 
     private func updateBackdropURL() {
-        if let ep = selectedEpisode {
-            backdropURL = dependencies.jellyfinImageService.episodeThumbnailURL(for: ep)
-                ?? viewModel.flatMap { $0.backdropURL(for: $0.item) }
-        } else {
-            backdropURL = viewModel.flatMap { $0.backdropURL(for: $0.item) }
-        }
+        // Always use the series backdrop, even in episode mode: it's much
+        // higher resolution than the per-episode thumbnail, and it keeps the
+        // backdrop identical to the series view (which opens consistently at
+        // the top, unlike the episode view for some shows with corrupt
+        // episode thumbnails).
+        backdropURL = viewModel.flatMap { $0.backdropURL(for: $0.item) }
     }
 
     // MARK: - Glass Panel
