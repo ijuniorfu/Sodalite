@@ -315,7 +315,23 @@ struct SeriesDetailView: View {
                 }
             }
         }
-        .onChange(of: selectedEpisode?.id) { _, _ in updateBackdropURL() }
+        .onChange(of: selectedEpisode?.id) { _, newID in
+            updateBackdropURL()
+            // Opening an episode panel (e.g. via "Show Details" from a
+            // scrolled-down episode row) otherwise inherited the prior
+            // scroll position: tvOS only scrolled up far enough to reveal
+            // the focused play button, so the page opened mid-scroll for
+            // some entries and at the very top for others. Anchor it back
+            // to the top so the episode view always opens on the hero,
+            // matching a fresh open from Home.
+            if newID != nil, let proxy = episodeRowScrollProxy {
+                deferOnMain(by: 0.1) {
+                    withAnimation(.easeInOut(duration: 0.3)) {
+                        proxy.scrollTo("detailScrollTop", anchor: .top)
+                    }
+                }
+            }
+        }
         .sheet(isPresented: $isPresentingDeleteSheet) {
             if let vm = viewModel {
                 let popDetail = dismiss

@@ -26,6 +26,10 @@ struct DetailContentOverlay<Content: View>: View {
         ScrollView(.vertical, showsIndicators: false) {
             VStack(alignment: .leading, spacing: 0) {
                 Color.clear.frame(height: 500)
+                    // Scroll anchor so detail views can reset to the very
+                    // top (full backdrop visible) regardless of the prior
+                    // scroll position.
+                    .id("detailScrollTop")
 
                 LinearGradient(
                     colors: [.clear, .black.opacity(0.6), .black.opacity(0.95)],
