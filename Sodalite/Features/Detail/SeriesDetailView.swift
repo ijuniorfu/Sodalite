@@ -846,6 +846,12 @@ struct SeriesDetailView: View {
                                         withAnimation(.easeInOut(duration: 0.3)) {
                                             selectedEpisode = episode
                                         }
+                                        // The context menu restores focus to this
+                                        // episode card on dismiss. Override that
+                                        // once the dismissal settles so focus lands
+                                        // on the prominent play button in the panel
+                                        // the user just opened, not back on the row.
+                                        deferOnMain(by: 0.4) { playButtonFocused = true }
                                     } label: {
                                         Label("detail.episode.showDetails", systemImage: "info.circle")
                                     }
