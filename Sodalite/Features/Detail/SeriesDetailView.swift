@@ -39,6 +39,11 @@ struct SeriesDetailView: View {
     /// .onChange below.
     @FocusState private var playButtonFocused: Bool
     @State private var isPresentingDeleteSheet: Bool = false
+    /// Set when "Show Details" is chosen from an episode's context menu.
+    /// The context menu restores focus to its anchor card on dismiss, so
+    /// the focusedEpisodeID observer uses this flag to bounce focus up to
+    /// the play button instead of leaving it on the row.
+    @State private var pendingPlayFocusAfterMenu = false
 
     /// True when the active user has Jellyfin's EnableContentDeletion
     /// flag (or is an administrator). Read reactively from
@@ -402,6 +407,7 @@ struct SeriesDetailView: View {
             Text(isShowingEpisode ? (selectedEpisode?.name ?? "") : vm.item.name)
                 .font(.largeTitle)
                 .fontWeight(.bold)
+                .lineLimit(2)
 
             HStack(alignment: .top, spacing: 40) {
                 VStack(alignment: .leading, spacing: 16) {
@@ -433,7 +439,13 @@ struct SeriesDetailView: View {
                         }
                     }
 
-                    if let genres = vm.item.genres, !genres.isEmpty {
+                    // Genres are a series-level attribute, so they only
+                    // belong on the series root. Showing them in the
+                    // episode panel added one-to-two lines of variable
+                    // height between episodes (the main driver of the
+                    // inconsistent play-button position); the series root
+                    // still shows them.
+                    if !isShowingEpisode, let genres = vm.item.genres, !genres.isEmpty {
                         Text(genres.joined(separator: " · "))
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
@@ -847,11 +859,20 @@ struct SeriesDetailView: View {
                                             selectedEpisode = episode
                                         }
                                         // The context menu restores focus to this
-                                        // episode card on dismiss. Override that
-                                        // once the dismissal settles so focus lands
-                                        // on the prominent play button in the panel
-                                        // the user just opened, not back on the row.
-                                        deferOnMain(by: 0.4) { playButtonFocused = true }
+                                        // episode card on dismiss. Flag it so the
+                                        // focusedEpisodeID observer bounces focus up
+                                        // to the play button the moment focus lands
+                                        // back on the row (a fixed delay lost the
+                                        // race against the menu's restore). The
+                                        // delayed write is a fallback for the case
+                                        // where focus never visibly cycles.
+                                        pendingPlayFocusAfterMenu = true
+                                        deferOnMain(by: 0.6) {
+                                            guard pendingPlayFocusAfterMenu else { return }
+                                            pendingPlayFocusAfterMenu = false
+                                            playButtonFocused = false
+                                            DispatchQueue.main.async { playButtonFocused = true }
+                                        }
                                     } label: {
                                         Label("detail.episode.showDetails", systemImage: "info.circle")
                                     }
@@ -900,6 +921,16 @@ struct SeriesDetailView: View {
                         }
                     }
                     .onChange(of: focusedEpisodeID) { _, newID in
+                        // "Show Details" was chosen from the context menu and
+                        // focus has just been restored to the row. Bounce it up
+                        // to the play button instead. Two-step write forces a
+                        // real focus transition (a same-value write is a no-op).
+                        if pendingPlayFocusAfterMenu, newID != nil {
+                            pendingPlayFocusAfterMenu = false
+                            playButtonFocused = false
+                            DispatchQueue.main.async { playButtonFocused = true }
+                            return
+                        }
                         if newID != nil && !episodeRedirectDone {
                             episodeRedirectDone = true
                             if let currentID = vm.currentEpisodeID,
