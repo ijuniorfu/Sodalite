@@ -313,6 +313,24 @@ struct SeriesDetailView: View {
                 deferOnMain(by: 0.1) {
                     playButtonFocused = true
                 }
+                // Opening straight onto an episode (Home's Continue
+                // Watching) can leave the page mid-scroll: while loading,
+                // the episode row transiently grabs a scroll, and once
+                // focus settles on the play button tvOS only scrolls far
+                // enough to reveal it, not back to the top. The
+                // onChange(selectedEpisode) reset misses this path because
+                // selectedEpisode is set in onAppear before the scroll
+                // proxy exists. Re-anchor to the top here, after focus has
+                // settled, so the episode view always opens on the hero.
+                if selectedEpisode != nil {
+                    deferOnMain(by: 0.35) {
+                        if let proxy = episodeRowScrollProxy {
+                            withAnimation(.easeInOut(duration: 0.3)) {
+                                proxy.scrollTo("detailScrollTop", anchor: .top)
+                            }
+                        }
+                    }
+                }
             }
         }
         .onChange(of: selectedEpisode?.id) { _, newID in
