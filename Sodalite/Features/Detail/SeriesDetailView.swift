@@ -343,13 +343,13 @@ struct SeriesDetailView: View {
                     // content flags so we can see what actually differs
                     // between a top-opening episode and a scrolled one.
                     if LogTap.isDiagnosticBuild {
-                        deferOnMain(by: 1.3) {
-                            let ov = !((selectedEpisode?.overview ?? viewModel?.item.overview)?.isEmpty ?? true)
-                            let di = selectedEpisode ?? viewModel?.item
-                            let tech = (di?.mediaStreams != nil) || (di?.mediaSources != nil)
-                            let line = "[EpDiag] '\(selectedEpisode?.name ?? "?")' panelTopY=\(Int(diagPanelFrame.minY)) panelH=\(Int(diagPanelFrame.height)) overview=\(ov) tech=\(tech) cast=\(viewModel?.item.people?.count ?? 0) similar=\(viewModel?.similarItems.count ?? 0) pbFocus=\(playButtonFocused) epFocus=\(focusedEpisodeID ?? "nil") seasonFocus=\(focusedSeasonID ?? "nil") bridge=\(focusBridgeActive)"
-                            LogTap.shared.note(line)
-                            print(line)
+                        let name = selectedEpisode?.name ?? "?"
+                        for t in [0.2, 0.5, 0.8, 1.2, 1.8, 2.5] {
+                            deferOnMain(by: t) {
+                                let line = "[EpDiag] '\(name)' t=\(t)s panelTopY=\(Int(diagPanelFrame.minY)) pbFocus=\(playButtonFocused) epFocus=\(focusedEpisodeID ?? "nil")"
+                                LogTap.shared.note(line)
+                                print(line)
+                            }
                         }
                     }
                 }
