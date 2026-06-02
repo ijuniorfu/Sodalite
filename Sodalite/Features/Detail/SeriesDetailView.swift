@@ -143,14 +143,14 @@ struct SeriesDetailView: View {
                                     .id(displayItem.id)
                             }
 
-                            if displayItem.mediaStreams != nil || displayItem.mediaSources != nil {
-                                TechInfoBox(item: displayItem)
-                                    .animation(.easeInOut(duration: 0.3), value: selectedEpisode?.id)
-                            }
-
                             if !vm.seasons.isEmpty {
                                 seasonSection(vm: vm)
                                     .id("episodeRow")
+                            }
+
+                            if displayItem.mediaStreams != nil || displayItem.mediaSources != nil {
+                                TechInfoBox(item: displayItem)
+                                    .animation(.easeInOut(duration: 0.3), value: selectedEpisode?.id)
                             }
 
                             if let people = vm.item.people, !people.isEmpty {
@@ -439,13 +439,11 @@ struct SeriesDetailView: View {
                         }
                     }
 
-                    // Genres are a series-level attribute, so they only
-                    // belong on the series root. Showing them in the
-                    // episode panel added one-to-two lines of variable
-                    // height between episodes (the main driver of the
-                    // inconsistent play-button position); the series root
-                    // still shows them.
-                    if !isShowingEpisode, let genres = vm.item.genres, !genres.isEmpty {
+                    // Series genres, shown in both the series root and the
+                    // episode panel so the episode view matches the series
+                    // view structurally (the series view opens consistently
+                    // at the top regardless of panel height).
+                    if let genres = vm.item.genres, !genres.isEmpty {
                         Text(genres.joined(separator: " · "))
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
@@ -541,14 +539,10 @@ struct SeriesDetailView: View {
                     .padding(.top, 4)
                 }
 
-                // Series-level secondary info (tagline, crew, studios)
-                // belongs on the series root, not the episode panel. Its
-                // per-show height (a show with a tagline + crew makes the
-                // card taller than one with only a studios line) was the
-                // last driver of inconsistent episode-panel heights, which
-                // shifted the description below it. The series root still
-                // shows it.
-                if !isShowingEpisode, DetailSecondaryInfo.hasContent(vm.item) {
+                // Series-level secondary info (tagline, crew, studios),
+                // shown in both modes so the episode panel matches the
+                // series root.
+                if DetailSecondaryInfo.hasContent(vm.item) {
                     Spacer(minLength: 24)
                     DetailSecondaryInfo(item: vm.item)
                         .frame(maxWidth: 360, alignment: .leading)
