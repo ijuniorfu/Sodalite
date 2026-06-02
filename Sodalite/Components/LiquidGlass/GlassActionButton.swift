@@ -48,22 +48,31 @@ struct GlassActionButton: View {
                     Text(title)
                         .font(.callout)
                         .fontWeight(.medium)
+                        .lineLimit(1)
                 } else {
                     Image(systemName: systemImage)
                         .font(.body)
                     Text(title)
                         .font(.callout)
                         .fontWeight(.medium)
+                        .lineLimit(1)
                     if let subtitle, !subtitle.isEmpty {
                         Text(subtitle)
                             .font(.caption)
                             .foregroundStyle(.white.opacity(0.75))
                             .monospacedDigit()
+                            .lineLimit(1)
                     }
                 }
             }
             .padding(.horizontal, 24)
             .padding(.vertical, 12)
+            // Keep the label at its intrinsic width so a multi-element
+            // prominent button (icon + title + subtitle, e.g. the resume
+            // button) is never compressed by the action row's width
+            // distribution, which otherwise hyphenated "Fortsetzen" onto
+            // two lines. The button grows to fit its content instead.
+            .fixedSize(horizontal: true, vertical: false)
         }
         .buttonStyle(GlassButtonStyle(
             isProminent: isProminent,
