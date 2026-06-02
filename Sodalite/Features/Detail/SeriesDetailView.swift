@@ -300,6 +300,18 @@ struct SeriesDetailView: View {
                     await viewModel?.loadFullDetail()
                     updateBackdropURL()
                 }
+                // Episode deep-link paints with isLoading already false (the
+                // panel renders from the in-hand episode), so the isLoading
+                // false-transition that normally seeds the backdrop and
+                // pushes initial focus never fires. Do both here: seed the
+                // backdrop from the episode's series tags so it isn't black
+                // during the detail fetch, and push focus to the play button.
+                if initialEpisode != nil {
+                    updateBackdropURL()
+                    deferOnMain(by: 0.1) {
+                        playButtonFocused = true
+                    }
+                }
             }
         }
         .onChange(of: viewModel?.isLoading) { _, loading in
@@ -397,7 +409,24 @@ struct SeriesDetailView: View {
         // backdrop identical to the series view (which opens consistently at
         // the top, unlike the episode view for some shows with corrupt
         // episode thumbnails).
-        backdropURL = viewModel.flatMap { $0.backdropURL(for: $0.item) }
+        //
+        // For an episode deep-link the view opens with only a series stub,
+        // so the series item has no backdrop tags until the detail fetch
+        // lands a beat later. The episode we already hold carries the parent
+        // (series) backdrop tags, which resolve to the identical series
+        // backdrop image, so fall back to it and the backdrop paints on the
+        // first frame instead of sitting black for the round-trip.
+        guard let viewModel else {
+            backdropURL = nil
+            return
+        }
+        if let url = viewModel.backdropURL(for: viewModel.item) {
+            backdropURL = url
+        } else if let episode = selectedEpisode {
+            backdropURL = viewModel.backdropURL(for: episode)
+        } else {
+            backdropURL = nil
+        }
     }
 
     // MARK: - Glass Panel

@@ -76,7 +76,18 @@ final class DetailViewModel {
     }
 
     func loadFullDetail() async {
-        isLoading = true
+        // Episode deep-links arrive with the full episode already in hand
+        // (the deep-link resolver fetched it) plus the series name in the
+        // stub, which is enough to paint the hero panel, play button,
+        // overview and tech box on the first frame. Skip the loading gate
+        // in that case so they paint immediately and seasons / cast /
+        // similar fade in as they land, instead of holding everything
+        // behind the spinner until the series detail + seasons round-trips
+        // finish (the "grey for a few seconds then everything at once" the
+        // episode path showed on slow CDNs). Safe from the play-button
+        // repaint storm the series path guards against: the target episode
+        // is already known, so no next-up resolution runs here.
+        isLoading = (initialEpisode == nil)
 
         let itemID = item.id
         let itemType = item.type
