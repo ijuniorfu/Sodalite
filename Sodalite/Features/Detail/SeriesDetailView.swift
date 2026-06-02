@@ -357,6 +357,12 @@ struct SeriesDetailView: View {
                                     try? await Task.sleep(for: .milliseconds(1100))
                                     popDetail()
                                 }
+                            } else {
+                                // Seasons-only deletion: refresh the detail so
+                                // the deleted season tabs drop out right away
+                                // instead of lingering as stale entries until
+                                // the user reopens the view.
+                                await vm.refreshSeasons()
                             }
                             return .success
                         } catch let error as MediaDeletionError {

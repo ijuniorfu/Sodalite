@@ -233,6 +233,37 @@ final class DetailViewModel {
         }
     }
 
+    /// Re-fetch the season list after a mutation (the user deleted one or
+    /// more seasons from the deletion sheet). Unlike `loadSeasons()`, this
+    /// doesn't re-run next-up / initial-episode selection, it keeps the user
+    /// where they are: if the currently selected season survived the deletion
+    /// it stays selected with a fresh episode list, otherwise we fall back to
+    /// the first remaining season. The per-season episode cache is dropped
+    /// wholesale because deleted seasons leave stale entries behind.
+    func refreshSeasons() async {
+        guard item.type == .series else { return }
+
+        episodesCache.removeAll()
+
+        guard let response = try? await itemService.getSeasons(seriesID: item.id, userID: userID) else {
+            return
+        }
+        seasons = response.items
+
+        // The selected season may have just been deleted. Keep it if it
+        // survived, otherwise land on the first remaining season.
+        let survivingSelection = selectedSeasonID.flatMap { id in
+            seasons.first(where: { $0.id == id })?.id
+        }
+        if let seasonID = survivingSelection ?? seasons.first?.id {
+            await loadEpisodes(seasonID: seasonID)
+        } else {
+            // Every season was deleted: nothing left to show.
+            selectedSeasonID = nil
+            episodes = []
+        }
+    }
+
     func loadEpisodes(seasonID: String) async {
         selectedSeasonID = seasonID
 
