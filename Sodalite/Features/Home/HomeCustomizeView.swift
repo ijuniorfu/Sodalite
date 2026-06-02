@@ -2,6 +2,7 @@ import SwiftUI
 
 struct HomeCustomizeView: View {
     @Environment(\.appState) private var appState
+    @Environment(\.dependencies) private var dependencies
     @State private var configs: [HomeRowConfig] = []
     @State private var movingID: String?
 
@@ -22,6 +23,26 @@ struct HomeCustomizeView: View {
         .toolbar(.hidden, for: .tabBar)
         .onAppear {
             configs = HomeRowConfig.loadFromStorage(serverID: serverID)
+            // The per-library rows are otherwise only discovered when the
+            // Home screen loads, so opening Customize right after adding or
+            // switching a server showed a stale list until Home had run.
+            // Reconcile here too so this screen populates on its own.
+            Task { await reconcileLibraries() }
+        }
+    }
+
+    /// Fetch the active server's libraries and fold any new per-library
+    /// rows into the config, mirroring HomeViewModel. Additive: preserves
+    /// the user's toggles and order, and only persists on a successful
+    /// fetch so a transient failure can't wipe the dynamic rows.
+    private func reconcileLibraries() async {
+        guard let userID = appState.activeUser?.id,
+              let libraries = try? await dependencies.jellyfinLibraryService.getLibraries(userID: userID)
+        else { return }
+        let reconciled = HomeRowConfig.reconciled(stored: configs, libraries: libraries)
+        if reconciled != configs {
+            configs = reconciled
+            HomeRowConfig.saveToStorage(reconciled, serverID: serverID)
         }
     }
 
