@@ -541,7 +541,14 @@ struct SeriesDetailView: View {
                     .padding(.top, 4)
                 }
 
-                if DetailSecondaryInfo.hasContent(vm.item) {
+                // Series-level secondary info (tagline, crew, studios)
+                // belongs on the series root, not the episode panel. Its
+                // per-show height (a show with a tagline + crew makes the
+                // card taller than one with only a studios line) was the
+                // last driver of inconsistent episode-panel heights, which
+                // shifted the description below it. The series root still
+                // shows it.
+                if !isShowingEpisode, DetailSecondaryInfo.hasContent(vm.item) {
                     Spacer(minLength: 24)
                     DetailSecondaryInfo(item: vm.item)
                         .frame(maxWidth: 360, alignment: .leading)
