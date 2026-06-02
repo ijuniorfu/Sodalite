@@ -38264,157 +38264,157 @@
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Požádat v Seerr"
+            "value" : "Požádat"
           }
         },
         "da" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Anmod i Seerr"
+            "value" : "Anmod"
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "In Seerr anfragen"
+            "value" : "Anfragen"
           }
         },
         "el" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Αίτημα στο Seerr"
+            "value" : "Αίτημα"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Request in Seerr"
+            "value" : "Request"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Pedir en Seerr"
+            "value" : "Pedir"
           }
         },
         "fi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Pyydä Seerrissä"
+            "value" : "Pyydä"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Demander dans Seerr"
+            "value" : "Demander"
           }
         },
         "hr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Zatraži u Seerru"
+            "value" : "Zatraži"
           }
         },
         "hu" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Kérés a Seerrben"
+            "value" : "Kérés"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Richiedi in Seerr"
+            "value" : "Richiedi"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Seerrでリクエスト"
+            "value" : "リクエスト"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Seerr에서 요청"
+            "value" : "요청"
           }
         },
         "nb" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Be om i Seerr"
+            "value" : "Be om"
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Aanvragen in Seerr"
+            "value" : "Aanvragen"
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Poproś w Seerr"
+            "value" : "Poproś"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Solicitar no Seerr"
+            "value" : "Solicitar"
           }
         },
         "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Pedir no Seerr"
+            "value" : "Pedir"
           }
         },
         "ro" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Cere în Seerr"
+            "value" : "Cere"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Запросить в Seerr"
+            "value" : "Запросить"
           }
         },
         "sk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Požiadať v Seerr"
+            "value" : "Požiadať"
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Begär i Seerr"
+            "value" : "Begär"
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Seerr'de iste"
+            "value" : "İste"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Запитати в Seerr"
+            "value" : "Запитати"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "在 Seerr 中请求"
+            "value" : "请求"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "在 Seerr 中請求"
+            "value" : "請求"
           }
         }
       }
