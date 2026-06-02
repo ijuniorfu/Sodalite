@@ -44,11 +44,6 @@ struct SeriesDetailView: View {
     /// the focusedEpisodeID observer uses this flag to bounce focus up to
     /// the play button instead of leaving it on the row.
     @State private var pendingPlayFocusAfterMenu = false
-    // TEMP DIAGNOSTIC: latest measured glass-panel global frame.
-    @State private var diagPanelFrame: CGRect = .zero
-    /// Bumped to ask DetailContentOverlay to scroll back to the very top
-    /// when an episode panel opens, so it always lands on the hero.
-    @State private var scrollTopToken = 0
 
     /// True when the active user has Jellyfin's EnableContentDeletion
     /// flag (or is an administrator). Read reactively from
@@ -126,7 +121,7 @@ struct SeriesDetailView: View {
             }
 
             if let vm = viewModel, !vm.isLoading {
-                DetailContentOverlay(scrollToTopToken: scrollTopToken) {
+                DetailContentOverlay {
                     // Captured ScrollViewProxy lets the player-dismiss
                     // handler scroll the outer vertical ScrollView back
                     // to the episode row. Without this, the nil-flicker
@@ -138,19 +133,10 @@ struct SeriesDetailView: View {
                     ScrollViewReader { outerProxy in
                         VStack(alignment: .leading, spacing: 40) {
                             glassPanel(vm: vm)
-                                .background(GeometryReader { geo in
-                                    Color.clear
-                                        .onChange(of: geo.frame(in: .global), initial: true) { _, f in
-                                            diagPanelFrame = f
-                                        }
-                                })
                                 .padding(.horizontal, 50)
                                 .id("\(vm.item.id)-\(vm.item.genres?.count ?? 0)-\(vm.isLoading)")
                                 .animation(.easeInOut(duration: 0.3), value: selectedEpisode?.id)
 
-                            // TEMP BISECTION: hide everything below the panel in
-                            // episode mode to isolate what shifts the open scroll.
-                            if !isShowingEpisode {
                             if let overview = displayItem.overview, !overview.isEmpty {
                                 ExpandableTextBox(text: overview)
                                     .padding(.horizontal, 50)
@@ -186,7 +172,6 @@ struct SeriesDetailView: View {
                                     cardStyle: .poster
                                 )
                             }
-                            } // TEMP BISECTION end
                         }
                         .onAppear {
                             episodeRowScrollProxy = outerProxy
@@ -328,47 +313,9 @@ struct SeriesDetailView: View {
                 deferOnMain(by: 0.1) {
                     playButtonFocused = true
                 }
-                // Opening straight onto an episode (Home's Continue
-                // Watching) can leave the page mid-scroll: while loading,
-                // the episode row transiently grabs a scroll, and once
-                // focus settles on the play button tvOS only scrolls far
-                // enough to reveal it, not back to the top. The
-                // onChange(selectedEpisode) reset misses this path because
-                // selectedEpisode is set in onAppear before the scroll
-                // proxy exists. Re-anchor to the top here, after focus has
-                // settled, so the episode view always opens on the hero.
-                if selectedEpisode != nil {
-                    // Re-anchor to the very top after tvOS's focus-driven
-                    // scroll settles, so episodes opened from Home's Continue
-                    // Watching always land on the hero (some shows otherwise
-                    // settled a few dozen px scrolled down).
-                    deferOnMain(by: 0.6) { scrollTopToken += 1 }
-                    // TEMP DIAGNOSTIC: log the settled panel position + the
-                    // content flags so we can see what actually differs
-                    // between a top-opening episode and a scrolled one.
-                    if LogTap.isDiagnosticBuild {
-                        let name = selectedEpisode?.name ?? "?"
-                        for t in [0.2, 0.5, 0.8, 1.2, 1.8, 2.5] {
-                            deferOnMain(by: t) {
-                                let line = "[EpDiag] '\(name)' t=\(t)s panelTopY=\(Int(diagPanelFrame.minY)) pbFocus=\(playButtonFocused) epFocus=\(focusedEpisodeID ?? "nil")"
-                                LogTap.shared.note(line)
-                                print(line)
-                            }
-                        }
-                    }
-                }
             }
         }
-        .onChange(of: selectedEpisode?.id) { _, newID in
-            updateBackdropURL()
-            // Opening an episode panel (e.g. via "Show Details" from a
-            // scrolled-down episode row) otherwise inherited the prior
-            // scroll position. Re-anchor to the very top so the episode
-            // view always opens on the hero, matching a fresh open.
-            if newID != nil {
-                deferOnMain(by: 0.4) { scrollTopToken += 1 }
-            }
-        }
+        .onChange(of: selectedEpisode?.id) { _, _ in updateBackdropURL() }
         .sheet(isPresented: $isPresentingDeleteSheet) {
             if let vm = viewModel {
                 let popDetail = dismiss
