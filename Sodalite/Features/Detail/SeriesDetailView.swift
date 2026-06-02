@@ -447,6 +447,11 @@ struct SeriesDetailView: View {
                         Text(genres.joined(separator: " · "))
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
+                            // One line only: a long genre list (e.g. One Piece's
+                            // seven) otherwise wraps to two lines, which makes the
+                            // episode panel tall enough to land at a different
+                            // scroll position than the series view.
+                            .lineLimit(1)
                     }
 
                     HStack(spacing: 16) {
