@@ -687,7 +687,14 @@ struct SeriesDetailView: View {
                                 isSelected: vm.selectedSeasonID == season.id,
                                 focusedID: $focusedSeasonID,
                                 action: {
-                                    selectedEpisode = nil
+                                    // Don't reset the hero to the series root
+                                    // here: that flips the (short) episode panel
+                                    // back to the (taller) series panel while the
+                                    // user is focused on the season bar below it,
+                                    // so tvOS follows the focused tab and scrolls
+                                    // the page down. Just load the season's
+                                    // episodes; "Serie anzeigen" still resets the
+                                    // hero explicitly.
                                     Task { await vm.loadEpisodes(seasonID: season.id) }
                                 }
                             )
