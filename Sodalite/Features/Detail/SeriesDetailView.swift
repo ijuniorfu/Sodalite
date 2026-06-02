@@ -148,6 +148,9 @@ struct SeriesDetailView: View {
                                 .id("\(vm.item.id)-\(vm.item.genres?.count ?? 0)-\(vm.isLoading)")
                                 .animation(.easeInOut(duration: 0.3), value: selectedEpisode?.id)
 
+                            // TEMP BISECTION: hide everything below the panel in
+                            // episode mode to isolate what shifts the open scroll.
+                            if !isShowingEpisode {
                             if let overview = displayItem.overview, !overview.isEmpty {
                                 ExpandableTextBox(text: overview)
                                     .padding(.horizontal, 50)
@@ -183,6 +186,7 @@ struct SeriesDetailView: View {
                                     cardStyle: .poster
                                 )
                             }
+                            } // TEMP BISECTION end
                         }
                         .onAppear {
                             episodeRowScrollProxy = outerProxy
