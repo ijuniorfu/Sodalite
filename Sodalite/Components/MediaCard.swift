@@ -74,7 +74,7 @@ struct MediaCard: View {
             if item.userData?.played == true {
                 Image(systemName: "checkmark.circle.fill")
                     .font(.title3)
-                    .foregroundStyle(.green)
+                    .foregroundStyle(.tint)
                     .padding(10)
             }
         }

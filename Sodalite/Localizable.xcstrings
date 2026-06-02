@@ -8,157 +8,157 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Mark as Watched"
+            "value" : "Watched"
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Als gesehen markieren"
+            "value" : "Gesehen"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Marcar como visto"
+            "value" : "Visto"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Marquer comme vu"
+            "value" : "Vu"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Segna come visto"
+            "value" : "Visto"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Marcar como assistido"
+            "value" : "Assistido"
           }
         },
         "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Marcar como visto"
+            "value" : "Visto"
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Markeren als bekeken"
+            "value" : "Bekeken"
           }
         },
         "da" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Markér som set"
+            "value" : "Set"
           }
         },
         "nb" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Merk som sett"
+            "value" : "Sett"
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Markera som sedd"
+            "value" : "Sedd"
           }
         },
         "fi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Merkitse katsotuksi"
+            "value" : "Katsottu"
           }
         },
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Označit jako zhlédnuté"
+            "value" : "Zhlédnuto"
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Oznacz jako obejrzane"
+            "value" : "Obejrzane"
           }
         },
         "sk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Označiť ako pozreté"
+            "value" : "Pozreté"
           }
         },
         "hr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Označi kao gledano"
+            "value" : "Gledano"
           }
         },
         "hu" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Megjelölés megnézettként"
+            "value" : "Megnézett"
           }
         },
         "ro" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Marchează ca vizionat"
+            "value" : "Vizionat"
           }
         },
         "el" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Επισήμανση ως παρακολουθημένο"
+            "value" : "Παρακολουθημένο"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Отметить как просмотренное"
+            "value" : "Просмотрено"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Позначити як переглянуте"
+            "value" : "Переглянуто"
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "İzlendi olarak işaretle"
+            "value" : "İzlendi"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "視聴済みにする"
+            "value" : "視聴済み"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "시청함으로 표시"
+            "value" : "시청함"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "标记为已观看"
+            "value" : "已观看"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "標記為已觀看"
+            "value" : "已觀看"
           }
         }
       }
@@ -170,157 +170,157 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Mark as Unwatched"
+            "value" : "Unwatched"
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Als ungesehen markieren"
+            "value" : "Ungesehen"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Marcar como no visto"
+            "value" : "No visto"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Marquer comme non vu"
+            "value" : "Non vu"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Segna come non visto"
+            "value" : "Non visto"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Marcar como não assistido"
+            "value" : "Não assistido"
           }
         },
         "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Marcar como não visto"
+            "value" : "Não visto"
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Markeren als niet-bekeken"
+            "value" : "Niet-bekeken"
           }
         },
         "da" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Markér som ikke set"
+            "value" : "Ikke set"
           }
         },
         "nb" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Merk som usett"
+            "value" : "Usett"
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Markera som osedd"
+            "value" : "Osedd"
           }
         },
         "fi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Merkitse katsomattomaksi"
+            "value" : "Katsomaton"
           }
         },
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Označit jako nezhlédnuté"
+            "value" : "Nezhlédnuto"
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Oznacz jako nieobejrzane"
+            "value" : "Nieobejrzane"
           }
         },
         "sk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Označiť ako nepozreté"
+            "value" : "Nepozreté"
           }
         },
         "hr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Označi kao negledano"
+            "value" : "Negledano"
           }
         },
         "hu" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Megjelölés megnézetlenként"
+            "value" : "Megnézetlen"
           }
         },
         "ro" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Marchează ca nevizionat"
+            "value" : "Nevizionat"
           }
         },
         "el" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Επισήμανση ως μη παρακολουθημένο"
+            "value" : "Μη παρακολουθημένο"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Отметить как непросмотренное"
+            "value" : "Не просмотрено"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Позначити як непереглянуте"
+            "value" : "Не переглянуто"
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "İzlenmedi olarak işaretle"
+            "value" : "İzlenmedi"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "未視聴にする"
+            "value" : "未視聴"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "시청 안 함으로 표시"
+            "value" : "시청 안 함"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "标记为未观看"
+            "value" : "未观看"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "標記為未觀看"
+            "value" : "未觀看"
           }
         }
       }
