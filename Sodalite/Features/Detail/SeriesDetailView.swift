@@ -46,6 +46,9 @@ struct SeriesDetailView: View {
     @State private var pendingPlayFocusAfterMenu = false
     // TEMP DIAGNOSTIC: latest measured glass-panel global frame.
     @State private var diagPanelFrame: CGRect = .zero
+    /// Bumped to ask DetailContentOverlay to scroll back to the very top
+    /// when an episode panel opens, so it always lands on the hero.
+    @State private var scrollTopToken = 0
 
     /// True when the active user has Jellyfin's EnableContentDeletion
     /// flag (or is an administrator). Read reactively from
@@ -123,7 +126,7 @@ struct SeriesDetailView: View {
             }
 
             if let vm = viewModel, !vm.isLoading {
-                DetailContentOverlay {
+                DetailContentOverlay(scrollToTopToken: scrollTopToken) {
                     // Captured ScrollViewProxy lets the player-dismiss
                     // handler scroll the outer vertical ScrollView back
                     // to the episode row. Without this, the nil-flicker
@@ -331,13 +334,11 @@ struct SeriesDetailView: View {
                 // proxy exists. Re-anchor to the top here, after focus has
                 // settled, so the episode view always opens on the hero.
                 if selectedEpisode != nil {
-                    deferOnMain(by: 0.35) {
-                        if let proxy = episodeRowScrollProxy {
-                            withAnimation(.easeInOut(duration: 0.3)) {
-                                proxy.scrollTo("detailScrollTop", anchor: .top)
-                            }
-                        }
-                    }
+                    // Re-anchor to the very top after tvOS's focus-driven
+                    // scroll settles, so episodes opened from Home's Continue
+                    // Watching always land on the hero (some shows otherwise
+                    // settled a few dozen px scrolled down).
+                    deferOnMain(by: 0.6) { scrollTopToken += 1 }
                     // TEMP DIAGNOSTIC: log the settled panel position + the
                     // content flags so we can see what actually differs
                     // between a top-opening episode and a scrolled one.
@@ -358,17 +359,10 @@ struct SeriesDetailView: View {
             updateBackdropURL()
             // Opening an episode panel (e.g. via "Show Details" from a
             // scrolled-down episode row) otherwise inherited the prior
-            // scroll position: tvOS only scrolled up far enough to reveal
-            // the focused play button, so the page opened mid-scroll for
-            // some entries and at the very top for others. Anchor it back
-            // to the top so the episode view always opens on the hero,
-            // matching a fresh open from Home.
-            if newID != nil, let proxy = episodeRowScrollProxy {
-                deferOnMain(by: 0.1) {
-                    withAnimation(.easeInOut(duration: 0.3)) {
-                        proxy.scrollTo("detailScrollTop", anchor: .top)
-                    }
-                }
+            // scroll position. Re-anchor to the very top so the episode
+            // view always opens on the hero, matching a fresh open.
+            if newID != nil {
+                deferOnMain(by: 0.4) { scrollTopToken += 1 }
             }
         }
         .sheet(isPresented: $isPresentingDeleteSheet) {
