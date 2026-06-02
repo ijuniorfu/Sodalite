@@ -1,15 +1,5 @@
 import SwiftUI
 
-/// TEMP DIAGNOSTIC: reports the glass panel's global frame so we can see
-/// the settled scroll position + panel height per episode. Remove once the
-/// episode-open scroll inconsistency is understood.
-private struct PanelFrameKey: PreferenceKey {
-    static var defaultValue: CGRect = .zero
-    static func reduce(value: inout CGRect, nextValue: () -> CGRect) {
-        value = nextValue()
-    }
-}
-
 struct SeriesDetailView: View {
     @Environment(\.appState) private var appState
     @Environment(\.dependencies) private var dependencies
@@ -146,7 +136,10 @@ struct SeriesDetailView: View {
                         VStack(alignment: .leading, spacing: 40) {
                             glassPanel(vm: vm)
                                 .background(GeometryReader { geo in
-                                    Color.clear.preference(key: PanelFrameKey.self, value: geo.frame(in: .global))
+                                    Color.clear
+                                        .onChange(of: geo.frame(in: .global), initial: true) { _, f in
+                                            diagPanelFrame = f
+                                        }
                                 })
                                 .padding(.horizontal, 50)
                                 .id("\(vm.item.id)-\(vm.item.genres?.count ?? 0)-\(vm.isLoading)")
@@ -361,7 +354,6 @@ struct SeriesDetailView: View {
                 }
             }
         }
-        .onPreferenceChange(PanelFrameKey.self) { diagPanelFrame = $0 }
         .onChange(of: selectedEpisode?.id) { _, newID in
             updateBackdropURL()
             // Opening an episode panel (e.g. via "Show Details" from a
