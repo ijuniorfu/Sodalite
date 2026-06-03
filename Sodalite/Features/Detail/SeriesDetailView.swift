@@ -137,7 +137,11 @@ struct SeriesDetailView: View {
                                 .id("\(vm.item.id)-\(vm.item.genres?.count ?? 0)-\(vm.isLoading)")
                                 .animation(.easeInOut(duration: 0.3), value: selectedEpisode?.id)
 
-                            if let overview = displayItem.overview, !overview.isEmpty {
+                            // Only the series gets the top synopsis box. In
+                            // episode mode the episode's overview already lives
+                            // in its own navigable synopsis box in the episode
+                            // row, so a top box here would just duplicate it.
+                            if !isShowingEpisode, let overview = displayItem.overview, !overview.isEmpty {
                                 ExpandableTextBox(text: overview)
                                     .padding(.horizontal, 50)
                                     .id(displayItem.id)
@@ -870,93 +874,105 @@ struct SeriesDetailView: View {
                     ScrollView(.horizontal, showsIndicators: false) {
                         LazyHStack(spacing: 24) {
                             ForEach(vm.episodes) { episode in
-                                Button {
-                                    playItem = episode
-                                    playFromBeginning = false
-                                    playOriginatedFromPlayButton = false
-                                    showPlayer = true
-                                } label: {
-                                    EpisodeLandscapeCard(
-                                        episode: episode,
-                                        imageURL: dependencies.jellyfinImageService.episodeThumbnailURL(for: episode),
-                                        isSelected: selectedEpisode?.id == episode.id,
-                                        isCurrent: vm.currentEpisodeID == episode.id,
-                                        isFocused: focusedEpisodeID == episode.id,
-                                        isPlayed: vm.isPlayed(episode)
-                                    )
-                                }
-                                .buttonStyle(EpisodeCardButtonStyle())
-                                .focused($focusedEpisodeID, equals: episode.id)
-                                // Prime the season-bar target *before* the
-                                // move resolves. Without this, swiping up
-                                // from a far-right episode (outside the
-                                // horizontal span of the season tabs) lets
-                                // tvOS's geographic picker skip the bar
-                                // entirely and land on the TechInfoBox /
-                                // overview textbox above. Writing
-                                // focusedSeasonID synchronously here puts
-                                // an explicit focus target on the table
-                                // when the engine resolves the up-move.
-                                .onMoveCommand { direction in
-                                    if direction == .up {
-                                        focusedSeasonID = vm.selectedSeasonID
-                                    }
-                                }
-                                .id(episode.id)
-                                .contextMenu {
-                                    Button {
-                                        withAnimation(.easeInOut(duration: 0.3)) {
-                                            selectedEpisode = episode
-                                        }
-                                        // The context menu restores focus to this
-                                        // episode card on dismiss. Flag it so the
-                                        // focusedEpisodeID observer bounces focus up
-                                        // to the play button the moment focus lands
-                                        // back on the row (a fixed delay lost the
-                                        // race against the menu's restore). The
-                                        // delayed write is a fallback for the case
-                                        // where focus never visibly cycles.
-                                        pendingPlayFocusAfterMenu = true
-                                        deferOnMain(by: 0.6) {
-                                            guard pendingPlayFocusAfterMenu else { return }
-                                            pendingPlayFocusAfterMenu = false
-                                            playButtonFocused = false
-                                            DispatchQueue.main.async { playButtonFocused = true }
-                                        }
-                                    } label: {
-                                        Label("detail.episode.showDetails", systemImage: "info.circle")
-                                    }
-
+                                VStack(alignment: .leading, spacing: 10) {
                                     Button {
                                         playItem = episode
-                                        playFromBeginning = true
+                                        playFromBeginning = false
                                         playOriginatedFromPlayButton = false
                                         showPlayer = true
                                     } label: {
-                                        Label("detail.play", systemImage: "play.fill")
+                                        EpisodeLandscapeCard(
+                                            episode: episode,
+                                            imageURL: dependencies.jellyfinImageService.episodeThumbnailURL(for: episode),
+                                            isSelected: selectedEpisode?.id == episode.id,
+                                            isCurrent: vm.currentEpisodeID == episode.id,
+                                            isFocused: focusedEpisodeID == episode.id,
+                                            isPlayed: vm.isPlayed(episode)
+                                        )
                                     }
+                                    .buttonStyle(EpisodeCardButtonStyle())
+                                    .focused($focusedEpisodeID, equals: episode.id)
+                                    // Prime the season-bar target *before* the
+                                    // move resolves. Without this, swiping up
+                                    // from a far-right episode (outside the
+                                    // horizontal span of the season tabs) lets
+                                    // tvOS's geographic picker skip the bar
+                                    // entirely and land on the TechInfoBox /
+                                    // overview textbox above. Writing
+                                    // focusedSeasonID synchronously here puts
+                                    // an explicit focus target on the table
+                                    // when the engine resolves the up-move.
+                                    .onMoveCommand { direction in
+                                        if direction == .up {
+                                            focusedSeasonID = vm.selectedSeasonID
+                                        }
+                                    }
+                                    .contextMenu {
+                                        Button {
+                                            withAnimation(.easeInOut(duration: 0.3)) {
+                                                selectedEpisode = episode
+                                            }
+                                            // The context menu restores focus to this
+                                            // episode card on dismiss. Flag it so the
+                                            // focusedEpisodeID observer bounces focus up
+                                            // to the play button the moment focus lands
+                                            // back on the row (a fixed delay lost the
+                                            // race against the menu's restore). The
+                                            // delayed write is a fallback for the case
+                                            // where focus never visibly cycles.
+                                            pendingPlayFocusAfterMenu = true
+                                            deferOnMain(by: 0.6) {
+                                                guard pendingPlayFocusAfterMenu else { return }
+                                                pendingPlayFocusAfterMenu = false
+                                                playButtonFocused = false
+                                                DispatchQueue.main.async { playButtonFocused = true }
+                                            }
+                                        } label: {
+                                            Label("detail.episode.showDetails", systemImage: "info.circle")
+                                        }
 
-                                    if let ticks = episode.userData?.playbackPositionTicks, ticks > 0 {
                                         Button {
                                             playItem = episode
-                                            playFromBeginning = false
+                                            playFromBeginning = true
                                             playOriginatedFromPlayButton = false
                                             showPlayer = true
                                         } label: {
-                                            Label("detail.resume", systemImage: "play.circle")
+                                            Label("detail.play", systemImage: "play.fill")
+                                        }
+
+                                        if let ticks = episode.userData?.playbackPositionTicks, ticks > 0 {
+                                            Button {
+                                                playItem = episode
+                                                playFromBeginning = false
+                                                playOriginatedFromPlayButton = false
+                                                showPlayer = true
+                                            } label: {
+                                                Label("detail.resume", systemImage: "play.circle")
+                                            }
+                                        }
+
+                                        Button {
+                                            let target = !vm.isPlayed(episode)
+                                            Task { await vm.setEpisodePlayed(episode, isPlayed: target) }
+                                        } label: {
+                                            Label(
+                                                vm.isPlayed(episode) ? "detail.markUnwatched" : "detail.markWatched",
+                                                systemImage: vm.isPlayed(episode) ? "checkmark.circle.fill" : "checkmark.circle"
+                                            )
                                         }
                                     }
 
-                                    Button {
-                                        let target = !vm.isPlayed(episode)
-                                        Task { await vm.setEpisodePlayed(episode, isPlayed: target) }
-                                    } label: {
-                                        Label(
-                                            vm.isPlayed(episode) ? "detail.markUnwatched" : "detail.markWatched",
-                                            systemImage: vm.isPlayed(episode) ? "checkmark.circle.fill" : "checkmark.circle"
-                                        )
-                                    }
+                                    // Navigable synopsis box under the card,
+                                    // mirroring the series-level ExpandableTextBox:
+                                    // focus it and tap to open the full episode
+                                    // overview as an overlay. Reserves a fixed
+                                    // three-line height (even when empty) so every
+                                    // column in the row stays the same height.
+                                    EpisodeSynopsisBox(
+                                        text: episode.overview?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+                                    )
                                 }
+                                .id(episode.id)
                             }
                         }
                         .padding(.horizontal, 50)
@@ -1139,7 +1155,7 @@ struct EpisodeSkeletonCard: View {
     @State private var shimmer = false
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 10) {
             RoundedRectangle(cornerRadius: 12)
                 .fill(Color.Theme.surface)
                 .frame(width: 360, height: 202)
@@ -1152,21 +1168,20 @@ struct EpisodeSkeletonCard: View {
                 RoundedRectangle(cornerRadius: 4)
                     .fill(Color.Theme.surface)
                     .frame(width: 90, height: 11)
-                // Three synopsis placeholder lines matching the real card's
-                // reserved three-line overview, so the row keeps its height
-                // when real episodes replace the skeleton.
-                RoundedRectangle(cornerRadius: 4)
-                    .fill(Color.Theme.surface)
-                    .frame(width: 340, height: 11)
-                    .padding(.top, 2)
-                RoundedRectangle(cornerRadius: 4)
-                    .fill(Color.Theme.surface)
-                    .frame(width: 320, height: 11)
-                RoundedRectangle(cornerRadius: 4)
-                    .fill(Color.Theme.surface)
-                    .frame(width: 200, height: 11)
             }
             .frame(width: 360, alignment: .leading)
+
+            // Synopsis-box placeholder mirroring EpisodeSynopsisBox's padded
+            // three-line height, so the row keeps its height when the real
+            // episodes (card + synopsis box) replace the skeleton.
+            Text(" ")
+                .font(.caption)
+                .lineLimit(3, reservesSpace: true)
+                .frame(width: 332, alignment: .topLeading)
+                .padding(.horizontal, 14)
+                .padding(.vertical, 12)
+                .background(RoundedRectangle(cornerRadius: 12).fill(Color.Theme.surface))
+                .overlay(shimmerOverlay.clipShape(RoundedRectangle(cornerRadius: 12)))
         }
         .onAppear {
             withAnimation(.easeInOut(duration: 1.1).repeatForever(autoreverses: false)) {
@@ -1273,22 +1288,6 @@ struct EpisodeLandscapeCard: View {
                         .font(.caption2)
                         .foregroundStyle(.tertiary)
                 }
-
-                // Episode synopsis, capped at three lines, mirroring the
-                // Apple TV episode browser. `reservesSpace: true` keeps the
-                // block at a full three-line height regardless of how much
-                // text a given episode carries, so every card in the row is
-                // the same height (uniform focus scaling) with no clipping.
-                // Overview already ships in the episode list response
-                // (defaultFields includes Overview), so this paints with no
-                // extra round-trip.
-                Text(episode.overview?.trimmingCharacters(in: .whitespacesAndNewlines) ?? "")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(3, reservesSpace: true)
-                    .multilineTextAlignment(.leading)
-                    .frame(width: 360, alignment: .topLeading)
-                    .padding(.top, 2)
             }
             .frame(width: 360, alignment: .leading)
         }
@@ -1308,5 +1307,53 @@ struct EpisodeLandscapeCard: View {
     private var strokeWidth: CGFloat {
         if isFocused { return 3 }
         return isCurrent ? 3 : 2
+    }
+}
+
+// MARK: - Episode Synopsis Box
+
+/// Navigable synopsis box that sits under an episode card. Mirrors the
+/// series-level `ExpandableTextBox`: focus it and tap to open the full
+/// episode overview as a `TextOverlay`. It always reserves a three-line
+/// height (via `reservesSpace: true`) so every column in the episode row
+/// stays the same height. When an episode has no overview the box renders
+/// as transparent, non-focusable, reserved space, so cards stay uniform
+/// without leaving a focusable-but-empty dead end.
+struct EpisodeSynopsisBox: View {
+    let text: String
+    @State private var showFullText = false
+    @FocusState private var isFocused: Bool
+
+    private var hasText: Bool { !text.isEmpty }
+
+    var body: some View {
+        Text(text)
+            .font(.caption)
+            .foregroundStyle(.secondary)
+            .lineLimit(3, reservesSpace: true)
+            .multilineTextAlignment(.leading)
+            .frame(width: 332, alignment: .topLeading)
+            .padding(.horizontal, 14)
+            .padding(.vertical, 12)
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(hasText ? (isFocused ? .white.opacity(0.12) : .white.opacity(0.05)) : .clear)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .strokeBorder(.tint, lineWidth: 3)
+                    .opacity(isFocused ? 1 : 0)
+            )
+            .scaleEffect(isFocused ? 1.02 : 1.0)
+            .animation(.easeInOut(duration: 0.15), value: isFocused)
+            .focusable(hasText)
+            .focused($isFocused)
+            .stableTap(isFocused: isFocused) {
+                guard hasText else { return }
+                showFullText = true
+            }
+            .fullScreenCover(isPresented: $showFullText) {
+                TextOverlay(text: text, isPresented: $showFullText)
+            }
     }
 }
