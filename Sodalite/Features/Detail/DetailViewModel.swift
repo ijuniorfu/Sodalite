@@ -13,6 +13,11 @@ final class DetailViewModel {
     var playedOverrides: [String: Bool] = [:]
     var seasons: [JellyfinItem] = []
     var episodes: [JellyfinItem] = []
+    /// True while a cache-miss episode fetch for the selected season is
+    /// in flight. Drives the skeleton placeholder row so the section
+    /// paints instantly instead of staying blank until the round-trip
+    /// lands (the "grey then everything at once" slow-CDN symptom).
+    var isLoadingEpisodes = false
     var collectionItems: [JellyfinItem] = []
     var currentEpisodeID: String?
     /// The full next-up episode item, populated as soon as the
@@ -192,6 +197,7 @@ final class DetailViewModel {
             if let seasonsResponse = await seasonsTask.value {
                 seasons = seasonsResponse.items
             }
+            Task { [weak self] in await self?.prefetchRemainingSeasons() }
             return
         }
 
@@ -242,6 +248,8 @@ final class DetailViewModel {
                 prefetchPlaybackInfo(for: firstEp)
             }
         }
+
+        Task { [weak self] in await self?.prefetchRemainingSeasons() }
     }
 
     /// Re-fetch the season list after a mutation (the user deleted one or
@@ -280,15 +288,64 @@ final class DetailViewModel {
 
         if let cached = episodesCache[seasonID] {
             episodes = cached
+            isLoadingEpisodes = false
             return
         }
 
+        // Cache miss: drop the prior season's list and show skeletons
+        // for the target season rather than the wrong season's episodes
+        // under the newly selected tab.
+        episodes = []
+        isLoadingEpisodes = true
+
         do {
             let response = try await itemService.getEpisodes(seriesID: item.id, seasonID: seasonID, userID: userID)
-            episodes = response.items
             episodesCache[seasonID] = response.items
+            // A newer season selection may have superseded this fetch
+            // while it was in flight (fast tab-mashing). Keep the result
+            // in the cache but don't clobber the season now on screen.
+            guard selectedSeasonID == seasonID else { return }
+            episodes = response.items
+            isLoadingEpisodes = false
         } catch {
-            // Handle error
+            guard selectedSeasonID == seasonID else { return }
+            isLoadingEpisodes = false
+        }
+    }
+
+    /// After the initial season is on screen, warm the per-season episode
+    /// cache for every other season in the background so later season
+    /// switches are instant cache hits instead of a fresh round-trip each.
+    /// The HTTPClient's global request semaphore bounds the fan-out, so all
+    /// pending seasons can fire without flooding a slow CDN. A short delay
+    /// up front yields the network to the first-paint fetches.
+    func prefetchRemainingSeasons() async {
+        guard item.type == .series else { return }
+
+        try? await Task.sleep(for: .milliseconds(300))
+
+        let seriesID = item.id
+        let uid = userID
+        let service = itemService
+        let pending = seasons.map(\.id).filter { episodesCache[$0] == nil }
+        guard !pending.isEmpty else { return }
+
+        await withTaskGroup(of: (String, [JellyfinItem])?.self) { group in
+            for seasonID in pending {
+                group.addTask {
+                    guard let response = try? await service.getEpisodes(seriesID: seriesID, seasonID: seasonID, userID: uid) else {
+                        return nil
+                    }
+                    return (seasonID, response.items)
+                }
+            }
+            // The awaiting loop runs on the MainActor (this method is
+            // @MainActor), so cache writes need no further hop.
+            for await result in group {
+                if let (seasonID, items) = result {
+                    episodesCache[seasonID] = items
+                }
+            }
         }
     }
 

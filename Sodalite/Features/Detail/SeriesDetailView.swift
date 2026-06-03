@@ -863,7 +863,9 @@ struct SeriesDetailView: View {
                     }
                 }
 
-            if !vm.episodes.isEmpty {
+            if vm.episodes.isEmpty && vm.isLoadingEpisodes {
+                episodeSkeletonRow(vm: vm)
+            } else if !vm.episodes.isEmpty {
                 ScrollViewReader { episodeProxy in
                     ScrollView(.horizontal, showsIndicators: false) {
                         LazyHStack(spacing: 24) {
@@ -1014,6 +1016,28 @@ struct SeriesDetailView: View {
         .focusSection()
     }
 
+    /// Placeholder row shown while a cache-miss season fetch is in
+    /// flight. Renders shimmer cards at the same 360x202 footprint as the
+    /// real episode cards so the section paints instantly and the layout
+    /// doesn't jump when the episodes land. Card count comes from the
+    /// selected season's childCount (the episode tally Jellyfin stamps on
+    /// the season), clamped to a sane on-screen span.
+    @ViewBuilder
+    private func episodeSkeletonRow(vm: DetailViewModel) -> some View {
+        let seasonCount = vm.seasons.first(where: { $0.id == vm.selectedSeasonID })?.childCount
+        let count = min(max(seasonCount ?? 6, 3), 10)
+        ScrollView(.horizontal, showsIndicators: false) {
+            LazyHStack(spacing: 24) {
+                ForEach(0..<count, id: \.self) { _ in
+                    EpisodeSkeletonCard()
+                }
+            }
+            .padding(.horizontal, 50)
+            .padding(.vertical, 16)
+        }
+        .allowsHitTesting(false)
+    }
+
     private func scrollToCurrentEpisode(proxy: ScrollViewProxy, vm: DetailViewModel) {
         guard let currentID = vm.currentEpisodeID,
               vm.episodes.contains(where: { $0.id == currentID }) else { return }
@@ -1105,6 +1129,49 @@ struct SeasonTabButtonStyle: ButtonStyle {
 }
 
 // MARK: - Episode Landscape Card
+
+/// Loading placeholder mirroring EpisodeLandscapeCard's 360x202 thumbnail
+/// plus the two caption lines. A single horizontally sweeping highlight
+/// reads as "loading" without the cost of per-card animation state, the
+/// phase is driven from one `@State` that all cards in the row share via
+/// the same `.onAppear` animation.
+struct EpisodeSkeletonCard: View {
+    @State private var shimmer = false
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color.Theme.surface)
+                .frame(width: 360, height: 202)
+                .overlay(shimmerOverlay.clipShape(RoundedRectangle(cornerRadius: 12)))
+
+            VStack(alignment: .leading, spacing: 6) {
+                RoundedRectangle(cornerRadius: 4)
+                    .fill(Color.Theme.surface)
+                    .frame(width: 220, height: 14)
+                RoundedRectangle(cornerRadius: 4)
+                    .fill(Color.Theme.surface)
+                    .frame(width: 90, height: 11)
+            }
+            .frame(width: 360, alignment: .leading)
+        }
+        .onAppear {
+            withAnimation(.easeInOut(duration: 1.1).repeatForever(autoreverses: false)) {
+                shimmer = true
+            }
+        }
+    }
+
+    private var shimmerOverlay: some View {
+        LinearGradient(
+            colors: [.clear, Color.white.opacity(0.08), .clear],
+            startPoint: .leading,
+            endPoint: .trailing
+        )
+        .frame(width: 180)
+        .offset(x: shimmer ? 360 : -180)
+    }
+}
 
 struct EpisodeLandscapeCard: View {
     let episode: JellyfinItem
