@@ -331,7 +331,22 @@ struct SeriesDetailView: View {
                 }
             }
         }
-        .onChange(of: selectedEpisode?.id) { _, _ in updateBackdropURL() }
+        .onChange(of: selectedEpisode?.id) { _, newID in
+            updateBackdropURL()
+            // Episode lists are fetched slim (no MediaStreams / MediaSources),
+            // so on opening an episode into episode mode pull its full detail
+            // and swap it in (same id) for the TechInfoBox to render codec /
+            // resolution info. Skips the fetch if there's nothing on screen.
+            guard let newID, let vm = viewModel,
+                  let episode = selectedEpisode, episode.id == newID,
+                  episode.mediaStreams == nil, episode.mediaSources == nil else { return }
+            Task {
+                let enriched = await vm.enrichedEpisode(for: episode)
+                if selectedEpisode?.id == enriched.id {
+                    selectedEpisode = enriched
+                }
+            }
+        }
         .sheet(isPresented: $isPresentingDeleteSheet) {
             if let vm = viewModel {
                 let popDetail = dismiss

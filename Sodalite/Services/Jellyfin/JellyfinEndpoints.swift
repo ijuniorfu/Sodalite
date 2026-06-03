@@ -215,7 +215,17 @@ enum JellyfinEndpoint: APIEndpoint {
             return [
                 URLQueryItem(name: "SeasonId", value: seasonID),
                 URLQueryItem(name: "UserId", value: userID),
-                URLQueryItem(name: "Fields", value: Self.defaultFields),
+                // Slim field set, NOT defaultFields. The episode row only
+                // needs the overview and the primary image tag, name /
+                // index / runtime are base fields and UserData (watched
+                // badge, resume progress) comes back automatically with
+                // UserId. Dropping MediaStreams / MediaSources / People /
+                // Chapters / Studios here is the big win for slow servers:
+                // those per-episode arrays bloat the list response and were
+                // the reason the row took seconds to land. The episode
+                // detail (TechInfoBox) pulls the full field set lazily when
+                // an episode is actually opened.
+                URLQueryItem(name: "Fields", value: Self.episodeListFields),
             ]
 
         case .similarItems(_, let userID, let limit):
@@ -282,6 +292,15 @@ enum JellyfinEndpoint: APIEndpoint {
     }
 
     static let defaultFields = "Overview,Genres,People,Studios,MediaStreams,MediaSources,CommunityRating,OfficialRating,ImageTags,BackdropImageTags,ParentBackdropImageTags,SeriesPrimaryImageTag,ProviderIds,Chapters"
+
+    /// Minimal field set for the per-season episode list. Only what the
+    /// episode cards render: synopsis + thumbnail. Everything else the card
+    /// shows (name, index number, runtime, watched/resume state) is either a
+    /// base field or rides along with the UserId query, so it costs nothing
+    /// extra. Heavy per-episode arrays (MediaStreams, MediaSources, People,
+    /// Chapters) are deliberately omitted, the episode detail fetch pulls
+    /// those on demand when an episode is opened.
+    static let episodeListFields = "Overview,ImageTags"
 }
 
 struct ItemQuery: Sendable {

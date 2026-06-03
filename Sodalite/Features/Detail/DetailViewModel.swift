@@ -56,6 +56,12 @@ final class DetailViewModel {
     /// switches in instantly instead of doing another round trip.
     private var episodesCache: [String: [JellyfinItem]] = [:]
 
+    /// Per-episode full-detail cache. The episode list is fetched with a
+    /// slim field set (no MediaStreams / MediaSources), so when an episode
+    /// is opened into episode mode we fetch its full detail once and cache
+    /// it here for the TechInfoBox.
+    private var episodeDetailCache: [String: JellyfinItem] = [:]
+
     deinit {
         prefetchTask?.cancel()
     }
@@ -197,7 +203,7 @@ final class DetailViewModel {
             if let seasonsResponse = await seasonsTask.value {
                 seasons = seasonsResponse.items
             }
-            Task { [weak self] in await self?.prefetchRemainingSeasons() }
+            startSeasonPrefetch()
             return
         }
 
@@ -249,7 +255,7 @@ final class DetailViewModel {
             }
         }
 
-        Task { [weak self] in await self?.prefetchRemainingSeasons() }
+        startSeasonPrefetch()
     }
 
     /// Re-fetch the season list after a mutation (the user deleted one or
@@ -289,12 +295,22 @@ final class DetailViewModel {
         if let cached = episodesCache[seasonID] {
             episodes = cached
             isLoadingEpisodes = false
+            // Keep warming the rest, re-anchored on the season now on
+            // screen so the next-likely tabs come first.
+            startSeasonPrefetch()
             return
         }
 
-        // Cache miss: drop the prior season's list and show skeletons
-        // for the target season rather than the wrong season's episodes
-        // under the newly selected tab.
+        // Cache miss: this is a season the user is waiting on right now.
+        // Cancel the background season prefetch first so it isn't holding
+        // HTTPClient request slots this foreground fetch needs. Prefetch
+        // hogging the request budget was the "switching to season 2 takes
+        // forever while it prefetches every other season" regression.
+        prefetchTask?.cancel()
+
+        // Drop the prior season's list and show skeletons for the target
+        // season rather than the wrong season's episodes under the newly
+        // selected tab.
         episodes = []
         isLoadingEpisodes = true
 
@@ -303,7 +319,8 @@ final class DetailViewModel {
             episodesCache[seasonID] = response.items
             // A newer season selection may have superseded this fetch
             // while it was in flight (fast tab-mashing). Keep the result
-            // in the cache but don't clobber the season now on screen.
+            // in the cache but don't clobber the season now on screen, and
+            // let the superseding call own the prefetch restart.
             guard selectedSeasonID == seasonID else { return }
             episodes = response.items
             isLoadingEpisodes = false
@@ -311,42 +328,75 @@ final class DetailViewModel {
             guard selectedSeasonID == seasonID else { return }
             isLoadingEpisodes = false
         }
+
+        // Foreground fetch is done, resume warming the remaining seasons in
+        // the background, nearest to the one now on screen first.
+        startSeasonPrefetch()
     }
 
-    /// After the initial season is on screen, warm the per-season episode
-    /// cache for every other season in the background so later season
-    /// switches are instant cache hits instead of a fresh round-trip each.
-    /// The HTTPClient's global request semaphore bounds the fan-out, so all
-    /// pending seasons can fire without flooding a slow CDN. A short delay
-    /// up front yields the network to the first-paint fetches.
+    /// (Re)start the background season prefetch, cancelling any prior run.
+    /// Called after the foreground season settles so prefetch always trails
+    /// the user (warming the seasons nearest the one on screen) instead of
+    /// racing ahead and hogging the request budget.
+    private func startSeasonPrefetch() {
+        guard item.type == .series, seasons.count > 1 else { return }
+        prefetchTask?.cancel()
+        prefetchTask = Task { [weak self] in await self?.prefetchRemainingSeasons() }
+    }
+
+    /// Warm the per-season episode cache for the seasons the user has not
+    /// opened yet, so later season switches are instant cache hits.
+    ///
+    /// Two deliberate properties, both learned from the regression where
+    /// blanket prefetch starved the user-driven season switch on slow CDNs:
+    ///
+    /// 1. Nearest-first. Seasons are warmed in order of distance from the
+    ///    one on screen, so an adjacent tab (the likely next pick) is ready
+    ///    before season 10 is.
+    /// 2. Sequential and cancellable. One in-flight prefetch request at a
+    ///    time leaves the rest of the HTTPClient budget free for whatever
+    ///    the user does next, and a cancel (they switched seasons) lands
+    ///    after at most one request instead of after a whole fan-out batch.
     func prefetchRemainingSeasons() async {
         guard item.type == .series else { return }
 
+        // Yield the network to the foreground first-paint fetch before
+        // warming anything.
         try? await Task.sleep(for: .milliseconds(300))
+        if Task.isCancelled { return }
 
         let seriesID = item.id
         let uid = userID
         let service = itemService
-        let pending = seasons.map(\.id).filter { episodesCache[$0] == nil }
-        guard !pending.isEmpty else { return }
 
-        await withTaskGroup(of: (String, [JellyfinItem])?.self) { group in
-            for seasonID in pending {
-                group.addTask {
-                    guard let response = try? await service.getEpisodes(seriesID: seriesID, seasonID: seasonID, userID: uid) else {
-                        return nil
-                    }
-                    return (seasonID, response.items)
-                }
-            }
-            // The awaiting loop runs on the MainActor (this method is
-            // @MainActor), so cache writes need no further hop.
-            for await result in group {
-                if let (seasonID, items) = result {
-                    episodesCache[seasonID] = items
-                }
-            }
+        let order = seasons.map(\.id)
+        let anchor = selectedSeasonID.flatMap { order.firstIndex(of: $0) } ?? 0
+        let pending = order.enumerated()
+            .filter { episodesCache[$0.element] == nil }
+            .sorted { abs($0.offset - anchor) < abs($1.offset - anchor) }
+            .map(\.element)
+
+        for seasonID in pending {
+            if Task.isCancelled { return }
+            // A foreground switch may have cached this season meanwhile.
+            guard episodesCache[seasonID] == nil else { continue }
+            guard let response = try? await service.getEpisodes(seriesID: seriesID, seasonID: seasonID, userID: uid) else { continue }
+            if Task.isCancelled { return }
+            episodesCache[seasonID] = response.items
         }
+    }
+
+    /// Full episode detail (MediaStreams / MediaSources) for an episode the
+    /// user opened into episode mode. The list itself is fetched slim, so
+    /// the TechInfoBox needs this on-demand fetch. Cached per episode and
+    /// falls back to the slim list item if the detail fetch fails.
+    func enrichedEpisode(for episode: JellyfinItem) async -> JellyfinItem {
+        if let cached = episodeDetailCache[episode.id] { return cached }
+        guard let detail = try? await itemService.getItemDetail(userID: userID, itemID: episode.id) else {
+            return episode
+        }
+        episodeDetailCache[episode.id] = detail
+        return detail
     }
 
     func loadCollectionItems() async {
