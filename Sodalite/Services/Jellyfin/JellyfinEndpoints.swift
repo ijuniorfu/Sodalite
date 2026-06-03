@@ -208,7 +208,13 @@ enum JellyfinEndpoint: APIEndpoint {
         case .seasons(_, let userID):
             return [
                 URLQueryItem(name: "UserId", value: userID),
-                URLQueryItem(name: "Fields", value: Self.defaultFields),
+                // Slim field set, NOT defaultFields. The season bar only
+                // renders the name (a base field); index, childCount and
+                // watched state (UserData) ride along with UserId. Dropping
+                // the heavy per-season arrays here matters because getSeasons
+                // gates the whole season + episode section from appearing,
+                // it was the slowest of the detail round-trips on slow CDNs.
+                URLQueryItem(name: "Fields", value: Self.seasonListFields),
             ]
 
         case .episodes(_, let seasonID, let userID):
@@ -292,6 +298,12 @@ enum JellyfinEndpoint: APIEndpoint {
     }
 
     static let defaultFields = "Overview,Genres,People,Studios,MediaStreams,MediaSources,CommunityRating,OfficialRating,ImageTags,BackdropImageTags,ParentBackdropImageTags,SeriesPrimaryImageTag,ProviderIds,Chapters"
+
+    /// Minimal field set for the season bar. ItemCounts keeps childCount
+    /// (used to size the loading skeleton's card count) without dragging in
+    /// the heavy metadata arrays defaultFields would. Name / index / watched
+    /// state come back as base fields / with the UserId query.
+    static let seasonListFields = "ItemCounts"
 
     /// Minimal field set for the per-season episode list. Only what the
     /// episode cards render: synopsis + thumbnail. Everything else the card

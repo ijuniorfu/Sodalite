@@ -150,6 +150,15 @@ struct SeriesDetailView: View {
                             if !vm.seasons.isEmpty {
                                 seasonSection(vm: vm)
                                     .id("episodeRow")
+                            } else if vm.isLoadingSeasons {
+                                // getSeasons still in flight: paint the
+                                // section's structure (placeholder tabs +
+                                // skeleton episode row) so it isn't a blank
+                                // gap until the season list lands on a slow
+                                // CDN. Swapped for the real section the
+                                // moment seasons arrive.
+                                seasonSectionSkeleton(vm: vm)
+                                    .id("episodeRow")
                             }
 
                             if displayItem.mediaStreams != nil || displayItem.mediaSources != nil {
@@ -1054,10 +1063,32 @@ struct SeriesDetailView: View {
     /// selected season's childCount (the episode tally Jellyfin stamps on
     /// the season), clamped to a sane on-screen span.
     @ViewBuilder
+    /// Placeholder for the whole season section while getSeasons is still in
+    /// flight: a strip of skeleton season tabs above the episode skeleton
+    /// row. Non-interactive, swapped for the real seasonSection the moment
+    /// the season list arrives. Mirrors seasonSection's spacing/padding so
+    /// the swap doesn't shift the layout.
+    private func seasonSectionSkeleton(vm: DetailViewModel) -> some View {
+        VStack(alignment: .leading, spacing: 20) {
+            HStack(spacing: 10) {
+                ForEach(0..<6, id: \.self) { _ in
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(Color.Theme.surface)
+                        .frame(width: 110, height: 52)
+                }
+            }
+            .padding(.horizontal, 50)
+            .padding(.vertical, 12)
+
+            episodeSkeletonRow(vm: vm)
+        }
+        .allowsHitTesting(false)
+    }
+
     private func episodeSkeletonRow(vm: DetailViewModel) -> some View {
         let seasonCount = vm.seasons.first(where: { $0.id == vm.selectedSeasonID })?.childCount
         let count = min(max(seasonCount ?? 6, 3), 10)
-        ScrollView(.horizontal, showsIndicators: false) {
+        return ScrollView(.horizontal, showsIndicators: false) {
             LazyHStack(spacing: 24) {
                 ForEach(0..<count, id: \.self) { _ in
                     EpisodeSkeletonCard()

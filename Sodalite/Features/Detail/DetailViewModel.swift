@@ -18,6 +18,11 @@ final class DetailViewModel {
     /// paints instantly instead of staying blank until the round-trip
     /// lands (the "grey then everything at once" slow-CDN symptom).
     var isLoadingEpisodes = false
+    /// True while the season list itself is still loading (before any season
+    /// tab exists). Drives a skeleton season bar + episode row so the whole
+    /// section's structure paints at the snapshot deadline instead of being
+    /// a blank gap until getSeasons lands on a slow CDN.
+    var isLoadingSeasons = false
     var collectionItems: [JellyfinItem] = []
     var currentEpisodeID: String?
     /// The full next-up episode item, populated as soon as the
@@ -182,6 +187,14 @@ final class DetailViewModel {
 
     func loadSeasons() async {
         guard item.type == .series else { return }
+
+        // Skeleton the season bar while getSeasons is in flight. Cleared on
+        // exit, by which point `seasons` is populated and the real bar takes
+        // over (the view shows the real section whenever seasons is
+        // non-empty, so the exact flip moment can't leave a skeleton over
+        // real content).
+        isLoadingSeasons = true
+        defer { isLoadingSeasons = false }
 
         // Three independent fetches all keyed off the series ID:
         //   - getSeasons:  the season-tabs list
