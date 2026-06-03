@@ -1152,6 +1152,16 @@ struct EpisodeSkeletonCard: View {
                 RoundedRectangle(cornerRadius: 4)
                     .fill(Color.Theme.surface)
                     .frame(width: 90, height: 11)
+                // Two synopsis placeholder lines matching the real card's
+                // reserved two-line overview, so the row keeps its height
+                // when real episodes replace the skeleton.
+                RoundedRectangle(cornerRadius: 4)
+                    .fill(Color.Theme.surface)
+                    .frame(width: 340, height: 9)
+                    .padding(.top, 2)
+                RoundedRectangle(cornerRadius: 4)
+                    .fill(Color.Theme.surface)
+                    .frame(width: 250, height: 9)
             }
             .frame(width: 360, alignment: .leading)
         }
@@ -1260,6 +1270,21 @@ struct EpisodeLandscapeCard: View {
                         .font(.caption2)
                         .foregroundStyle(.tertiary)
                 }
+
+                // Episode synopsis, capped at two lines, mirroring the
+                // Apple TV episode browser. The height is reserved at a
+                // fixed value so every card in the row is the same height
+                // (uniform focus scaling) whether or not a given episode
+                // carries a synopsis. Overview already ships in the
+                // episode list response (defaultFields includes Overview),
+                // so this paints with no extra round-trip.
+                Text(episode.overview?.trimmingCharacters(in: .whitespacesAndNewlines) ?? "")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(2)
+                    .multilineTextAlignment(.leading)
+                    .frame(width: 360, height: 32, alignment: .topLeading)
+                    .padding(.top, 2)
             }
             .frame(width: 360, alignment: .leading)
         }
