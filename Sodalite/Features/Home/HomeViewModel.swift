@@ -336,11 +336,19 @@ final class HomeViewModel {
         // and CatalogProviders.networks are both MainActor-isolated
         // under the project's default isolation, so we have to read
         // them here before handing the values to a detached task.
+        // Slim fields even on the heaviest query the app makes (a
+        // 10 000-item all-library scan). We only read tmdbID off these
+        // items to build the provider match map, plus an image tag for
+        // the sample backdrop, so ProviderIds + the home image tags is
+        // all we need. Pulling defaultFields here meant People /
+        // MediaStreams / MediaSources / Chapters for every item in the
+        // library, by far the biggest download on Home (Sodalite#12).
         let allItemsQuery = ItemQuery(
             includeItemTypes: [.movie, .series],
             sortBy: "SortName",
             sortOrder: "Ascending",
-            limit: 10000
+            limit: 10000,
+            fields: JellyfinEndpoint.homeRowFields + ",ProviderIds"
         )
         let allItems = (try? await libraryService.getItems(
             userID: userID, query: allItemsQuery
@@ -464,7 +472,8 @@ final class HomeViewModel {
                             sortBy: "SortName",
                             sortOrder: "Ascending",
                             limit: 50,
-                            genres: [name]
+                            genres: [name],
+                            fields: JellyfinEndpoint.homeRowFields
                         )
                         let items = (try? await lib.getItems(
                             userID: uid, query: query
@@ -525,7 +534,8 @@ final class HomeViewModel {
             sortBy: "SortName",
             sortOrder: "Ascending",
             limit: 200,
-            studioNames: info.studioNames
+            studioNames: info.studioNames,
+            fields: JellyfinEndpoint.homeRowFields
         )
         let studioItems = (try? await libraryService.getItems(
             userID: userID, query: studioQuery
@@ -570,7 +580,8 @@ final class HomeViewModel {
                         includeItemTypes: [.movie, .series],
                         sortBy: "Random",
                         limit: 1,
-                        studioNames: provider.jellyfinStudioNames
+                        studioNames: provider.jellyfinStudioNames,
+                        fields: JellyfinEndpoint.homeRowFields
                     )
                     let item = try? await libraryService.getItems(userID: userID, query: query).items.first
                     return (provider.id, item)
@@ -641,7 +652,8 @@ final class HomeViewModel {
                     includeItemTypes: [.movie],
                     sortBy: "SortName",
                     sortOrder: "Ascending",
-                    limit: 30
+                    limit: 30,
+                    fields: JellyfinEndpoint.homeRowFields
                 )
                 let response = try await libraryService.getItems(userID: userID, query: query)
                 items = response.items
@@ -651,7 +663,8 @@ final class HomeViewModel {
                     includeItemTypes: [.series],
                     sortBy: "SortName",
                     sortOrder: "Ascending",
-                    limit: 30
+                    limit: 30,
+                    fields: JellyfinEndpoint.homeRowFields
                 )
                 let response = try await libraryService.getItems(userID: userID, query: query)
                 items = response.items
@@ -662,7 +675,8 @@ final class HomeViewModel {
                     sortBy: "SortName",
                     sortOrder: "Ascending",
                     limit: 30,
-                    isFavorite: true
+                    isFavorite: true,
+                    fields: JellyfinEndpoint.homeRowFields
                 )
                 let response = try await libraryService.getItems(userID: userID, query: query)
                 items = response.items
@@ -672,7 +686,8 @@ final class HomeViewModel {
                     includeItemTypes: [.movie],
                     sortBy: "CommunityRating",
                     sortOrder: "Descending",
-                    limit: 20
+                    limit: 20,
+                    fields: JellyfinEndpoint.homeRowFields
                 )
                 let response = try await libraryService.getItems(userID: userID, query: query)
                 items = response.items
@@ -682,7 +697,8 @@ final class HomeViewModel {
                     includeItemTypes: [.series],
                     sortBy: "CommunityRating",
                     sortOrder: "Descending",
-                    limit: 20
+                    limit: 20,
+                    fields: JellyfinEndpoint.homeRowFields
                 )
                 let response = try await libraryService.getItems(userID: userID, query: query)
                 items = response.items
@@ -692,7 +708,8 @@ final class HomeViewModel {
                     includeItemTypes: [.movie, .series],
                     sortBy: "DateCreated",
                     sortOrder: "Descending",
-                    limit: 20
+                    limit: 20,
+                    fields: JellyfinEndpoint.homeRowFields
                 )
                 let response = try await libraryService.getItems(userID: userID, query: query)
                 items = response.items
@@ -702,7 +719,8 @@ final class HomeViewModel {
                     includeItemTypes: [.boxSet],
                     sortBy: "SortName",
                     sortOrder: "Ascending",
-                    limit: 30
+                    limit: 30,
+                    fields: JellyfinEndpoint.homeRowFields
                 )
                 let response = try await libraryService.getItems(userID: userID, query: query)
                 items = response.items
@@ -778,7 +796,8 @@ final class HomeViewModel {
                             includeItemTypes: [.movie, .series],
                             sortBy: "Random",
                             limit: 1,
-                            genres: [tag.name]
+                            genres: [tag.name],
+                            fields: JellyfinEndpoint.homeRowFields
                         )
                         let item = try? await self.libraryService.getItems(userID: self.userID, query: query).items.first
                         return (tag.id, item)

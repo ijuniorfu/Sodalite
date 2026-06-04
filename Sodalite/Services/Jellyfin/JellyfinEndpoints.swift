@@ -170,14 +170,20 @@ enum JellyfinEndpoint: APIEndpoint {
             return [
                 URLQueryItem(name: "MediaTypes", value: mediaType),
                 URLQueryItem(name: "Limit", value: String(limit)),
-                URLQueryItem(name: "Fields", value: Self.defaultFields),
+                // Continue Watching feeds a Home carousel (and the
+                // resume deep-link, which only reads the item id), so
+                // the slim home field set is all it needs, see homeRowFields.
+                URLQueryItem(name: "Fields", value: Self.homeRowFields),
             ]
 
         case .nextUp(let userID, let seriesID, let limit):
             var items = [
                 URLQueryItem(name: "UserId", value: userID),
                 URLQueryItem(name: "Limit", value: String(limit)),
-                URLQueryItem(name: "Fields", value: Self.defaultFields),
+                // Next Up feeds a Home carousel and the series-detail play
+                // button (which renders only name / index / runtime / resume,
+                // all base or UserData fields), so the slim set suffices.
+                URLQueryItem(name: "Fields", value: Self.homeRowFields),
             ]
             if let seriesID {
                 items.append(URLQueryItem(name: "SeriesId", value: seriesID))
@@ -187,7 +193,10 @@ enum JellyfinEndpoint: APIEndpoint {
         case .latestMedia(_, let parentID, let includeItemTypes, let limit):
             var items = [
                 URLQueryItem(name: "Limit", value: String(limit)),
-                URLQueryItem(name: "Fields", value: Self.defaultFields),
+                // Latest Movies / Shows / per-library Latest are all Home
+                // carousels; slim field set, the card renders image + title
+                // + year only (see homeRowFields).
+                URLQueryItem(name: "Fields", value: Self.homeRowFields),
             ]
             if let parentID {
                 items.append(URLQueryItem(name: "ParentId", value: parentID))
@@ -313,6 +322,26 @@ enum JellyfinEndpoint: APIEndpoint {
     /// Chapters) are deliberately omitted, the episode detail fetch pulls
     /// those on demand when an episode is opened.
     static let episodeListFields = "Overview,ImageTags"
+
+    /// Minimal field set for the Home carousels (Continue Watching, Next Up,
+    /// Latest, All Movies/Series, Favorites, Top Rated, Recently Added,
+    /// Collections, per-library Latest). The home cards only render a poster
+    /// or backdrop, the title, a year/series subtitle and the watched/resume
+    /// badge, so all we need are the image tags. Name / index / runtime /
+    /// productionYear / seriesName are base fields and UserData (watched +
+    /// resume %) rides along with the UserId query. Everything the old
+    /// defaultFields pulled per item (Overview, Genres, People, Studios,
+    /// MediaStreams, MediaSources, Chapters, ProviderIds, ratings) is dead
+    /// weight on a row of 16-30 items, exactly the kind of payload bloat that
+    /// was slowing the episode list before it was slimmed (Sodalite#12,
+    /// DrHurt's Fields= audit). Tapping a card opens Detail, which re-fetches
+    /// the full field set, so nothing downstream loses data.
+    ///
+    /// `nonisolated` because the Home background precompute reads it from
+    /// inside detached task-group closures (provider / genre resolves) that
+    /// don't inherit the type's MainActor isolation. It's an immutable
+    /// String constant, so sharing it across actors is safe.
+    nonisolated static let homeRowFields = "ImageTags,BackdropImageTags,ParentBackdropImageTags,SeriesPrimaryImageTag"
 }
 
 struct ItemQuery: Sendable {
