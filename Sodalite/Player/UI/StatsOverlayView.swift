@@ -420,11 +420,13 @@ struct StatsOverlayView: View {
             return String(localized: "player.stats.backend.native", defaultValue: "Native (AVPlayer)")
         case .software:
             return String(localized: "player.stats.backend.software", defaultValue: "Software (dav1d / FFmpeg)")
-        case .aether, .none:
+        case .aether, .none, .audio:
             // .aether is the legacy backend the engine no longer
             // dispatches to; reachable only via a stale enum value.
-            // Collapse both into the placeholder rather than carrying
-            // a localised string for a backend that can't surface.
+            // .audio is the lean audio-only path, which drives its own
+            // music UI, not this video stats overlay, so it can't surface
+            // here either. Collapse all into the placeholder rather than
+            // carrying a localised string for backends that can't surface.
             return "—"
         }
     }

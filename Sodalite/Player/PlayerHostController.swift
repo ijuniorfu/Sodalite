@@ -318,7 +318,9 @@ final class PlayerHostController: AVPlayerViewController {
                 switch backend {
                 case .software, .aether:
                     self.mountAetherViewIfNeeded()
-                case .native, .none:
+                case .native, .none, .audio:
+                    // .audio is the lean audio-only engine path: it has
+                    // no video surface, so there is nothing to mount.
                     self.unmountAetherViewIfNeeded()
                 }
             }
