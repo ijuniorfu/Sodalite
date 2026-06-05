@@ -184,6 +184,14 @@ enum JellyfinEndpoint: APIEndpoint {
                 // button (which renders only name / index / runtime / resume,
                 // all base or UserData fields), so the slim set suffices.
                 URLQueryItem(name: "Fields", value: Self.homeRowFields),
+                // Exclude in-progress (resumable) episodes from Next Up so a
+                // partially-watched episode shows only in Continue Watching,
+                // not in both rows. Jellyfin returns the same episode from
+                // /Shows/NextUp and /Users/{id}/Items/Resume otherwise, and
+                // the two Home rows are fetched independently with no
+                // client-side dedup. Ignored by Jellyfin servers predating
+                // the parameter, which simply leaves the prior behaviour.
+                URLQueryItem(name: "EnableResumable", value: "false"),
             ]
             if let seriesID {
                 items.append(URLQueryItem(name: "SeriesId", value: seriesID))
