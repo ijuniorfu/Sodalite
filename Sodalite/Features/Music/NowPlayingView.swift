@@ -224,44 +224,10 @@ private struct NowPlayingContent: View {
         }
     }
 
-    // MARK: - Progress row
+    // MARK: - Progress row / scrubber
 
     private var progressRow: some View {
-        let elapsed = coordinator.currentTime
-        let total = max(coordinator.duration, 1)
-        let fraction = elapsed / total
-
-        return VStack(spacing: 8) {
-            // Progress bar (read-only)
-            GeometryReader { geo in
-                ZStack(alignment: .leading) {
-                    Capsule()
-                        .fill(Color.white.opacity(0.18))
-                        .frame(height: 5)
-
-                    Capsule()
-                        .fill(Color.white)
-                        .frame(width: geo.size.width * CGFloat(min(fraction, 1.0)), height: 5)
-                }
-                .frame(maxHeight: .infinity, alignment: .center)
-            }
-            .frame(height: 5)
-
-            // Time labels
-            HStack {
-                Text(formatSeconds(elapsed))
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .monospacedDigit()
-
-                Spacer()
-
-                Text(formatSeconds(coordinator.duration))
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .monospacedDigit()
-            }
-        }
+        ScrubBar(coordinator: coordinator)
     }
 
     // MARK: - Queue list
@@ -278,11 +244,16 @@ private struct NowPlayingContent: View {
                         QueueRow(
                             track: track,
                             isCurrent: index == coordinator.currentIndex,
+                            isPlaying: coordinator.isPlaying,
                             onSelect: {
-                                coordinator.play(
-                                    queue: coordinator.queue,
-                                    startAt: index
-                                )
+                                // Tapping the current track just keeps it
+                                // playing; others switch to that track.
+                                if index != coordinator.currentIndex {
+                                    coordinator.play(
+                                        queue: coordinator.queue,
+                                        startAt: index
+                                    )
+                                }
                             }
                         )
                     }
@@ -290,20 +261,6 @@ private struct NowPlayingContent: View {
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-    }
-
-    // MARK: - Helpers
-
-    private func formatSeconds(_ seconds: Double) -> String {
-        guard seconds > 0 && seconds.isFinite else { return "0:00" }
-        let total = Int(seconds)
-        let hours = total / 3600
-        let minutes = (total % 3600) / 60
-        let secs = total % 60
-        if hours > 0 {
-            return String(format: "%d:%02d:%02d", hours, minutes, secs)
-        }
-        return String(format: "%d:%02d", minutes, secs)
     }
 }
 
@@ -372,11 +329,85 @@ private struct TransportIconButton: View {
     }
 }
 
+// MARK: - ScrubBar
+
+/// The fullscreen player's progress bar + scrubber. The visible bar is drawn
+/// here from the coordinator's scrub state; a focusable UIKit input overlay
+/// (`MusicScrubberInput`) owns the gestures so it feels exactly like the
+/// video player: touchpad pan to scrub, left/right click to skip, hold to
+/// spool (accelerating, lands paused), Select to commit / toggle play.
+private struct ScrubBar: View {
+    let coordinator: MusicPlaybackCoordinator
+
+    @State private var isFocused = false
+
+    private var fraction: CGFloat { CGFloat(coordinator.displayProgress) }
+    private var scrubbing: Bool { coordinator.isScrubbing }
+    private var barHeight: CGFloat { scrubbing ? 10 : (isFocused ? 7 : 5) }
+
+    var body: some View {
+        VStack(spacing: 12) {
+            GeometryReader { geo in
+                ZStack(alignment: .leading) {
+                    Capsule()
+                        .fill(Color.white.opacity(0.18))
+                        .frame(height: barHeight)
+
+                    Capsule()
+                        .fill(scrubbing ? AnyShapeStyle(.tint) : AnyShapeStyle(Color.white))
+                        .frame(width: geo.size.width * fraction, height: barHeight)
+
+                    if isFocused || scrubbing {
+                        let knob: CGFloat = scrubbing ? 24 : 16
+                        Circle()
+                            .fill(scrubbing ? AnyShapeStyle(.tint) : AnyShapeStyle(Color.white))
+                            .frame(width: knob, height: knob)
+                            .offset(x: geo.size.width * fraction - knob / 2)
+                            .shadow(color: .black.opacity(0.4), radius: 6, y: 2)
+                    }
+                }
+                .frame(maxHeight: .infinity, alignment: .center)
+            }
+            .frame(height: 26)
+
+            HStack {
+                Text(format(coordinator.displayTime))
+                    .font(.caption)
+                    .foregroundStyle(scrubbing ? AnyShapeStyle(.tint) : AnyShapeStyle(Color.secondary))
+                    .monospacedDigit()
+
+                Spacer()
+
+                Text(format(coordinator.duration))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .monospacedDigit()
+            }
+        }
+        .overlay(
+            MusicScrubberInput(coordinator: coordinator, isFocused: $isFocused)
+        )
+        .scaleEffect(isFocused ? 1.02 : 1.0)
+        .animation(.easeInOut(duration: 0.15), value: isFocused)
+        .animation(.easeInOut(duration: 0.2), value: scrubbing)
+    }
+
+    private func format(_ seconds: Double) -> String {
+        guard seconds > 0 && seconds.isFinite else { return "0:00" }
+        let total = Int(seconds)
+        let h = total / 3600, m = (total % 3600) / 60, s = total % 60
+        return h > 0
+            ? String(format: "%d:%02d:%02d", h, m, s)
+            : String(format: "%d:%02d", m, s)
+    }
+}
+
 // MARK: - QueueRow
 
 private struct QueueRow: View {
     let track: JellyfinItem
     let isCurrent: Bool
+    let isPlaying: Bool
     let onSelect: () -> Void
 
     @FocusState private var focused: Bool
@@ -385,9 +416,7 @@ private struct QueueRow: View {
         HStack(spacing: 16) {
             // Playing indicator or track number
             if isCurrent {
-                Image(systemName: "music.note")
-                    .font(.caption)
-                    .foregroundStyle(.tint)
+                NowPlayingWaveIcon(isPlaying: isPlaying, font: .caption)
                     .frame(width: 24, alignment: .center)
             } else {
                 Text(track.indexNumber.map { String($0) } ?? "")

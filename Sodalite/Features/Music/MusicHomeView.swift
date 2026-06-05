@@ -21,44 +21,15 @@ struct MusicHomeView: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                if viewModel.isLoading {
-                    // .focusable so the tab always has a focus target while
-                    // albums load. Without a focusable element tvOS bounces
-                    // focus out of the tab and reverts to the previous one.
-                    ProgressView()
-                        .frame(maxWidth: .infinity, minHeight: 400)
-                        .focusable()
-                } else if viewModel.albums.isEmpty {
-                    VStack(spacing: 12) {
-                        Image(systemName: "music.note")
-                            .font(.system(size: 40))
-                            .foregroundStyle(.tertiary)
-                        Text("No albums found")
-                            .foregroundStyle(.secondary)
+                VStack(spacing: 0) {
+                    if dependencies.musicPlaybackCoordinator.currentItem != nil {
+                        NowPlayingCard()
+                            .padding(.horizontal, 60)
+                            .padding(.top, 40)
+                            .animation(.spring(response: 0.35, dampingFraction: 0.85),
+                                       value: dependencies.musicPlaybackCoordinator.currentItem?.id)
                     }
-                    .frame(maxWidth: .infinity, minHeight: 400)
-                    .focusable()
-                } else {
-                    LazyVGrid(columns: [
-                        GridItem(.adaptive(minimum: 220), spacing: 40)
-                    ], spacing: 50) {
-                        ForEach(viewModel.albums) { album in
-                            Button {
-                                selectedAlbum = album
-                            } label: {
-                                MediaCard(
-                                    item: album,
-                                    imageURL: dependencies.jellyfinImageService.posterURL(for: album),
-                                    style: .square,
-                                    isFocused: focusedAlbumID == album.id
-                                )
-                            }
-                            .buttonStyle(GridCardButtonStyle())
-                            .focused($focusedAlbumID, equals: album.id)
-                        }
-                    }
-                    .padding(.horizontal, 60)
-                    .padding(.vertical, 40)
+                    gridContent
                 }
             }
             .navigationBarHidden(true)
@@ -75,6 +46,49 @@ struct MusicHomeView: View {
             // content and also disrupted the focus engine when an album was
             // open. focusedAlbumID still tracks the focused card for its
             // styling, it is just driven by the system, not forced here.
+        }
+    }
+
+    @ViewBuilder
+    private var gridContent: some View {
+        if viewModel.isLoading {
+            // .focusable so the tab always has a focus target while
+            // albums load. Without a focusable element tvOS bounces
+            // focus out of the tab and reverts to the previous one.
+            ProgressView()
+                .frame(maxWidth: .infinity, minHeight: 400)
+                .focusable()
+        } else if viewModel.albums.isEmpty {
+            VStack(spacing: 12) {
+                Image(systemName: "music.note")
+                    .font(.system(size: 40))
+                    .foregroundStyle(.tertiary)
+                Text("No albums found")
+                    .foregroundStyle(.secondary)
+            }
+            .frame(maxWidth: .infinity, minHeight: 400)
+            .focusable()
+        } else {
+            LazyVGrid(columns: [
+                GridItem(.adaptive(minimum: 220), spacing: 40)
+            ], spacing: 50) {
+                ForEach(viewModel.albums) { album in
+                    Button {
+                        selectedAlbum = album
+                    } label: {
+                        MediaCard(
+                            item: album,
+                            imageURL: dependencies.jellyfinImageService.posterURL(for: album),
+                            style: .square,
+                            isFocused: focusedAlbumID == album.id
+                        )
+                    }
+                    .buttonStyle(GridCardButtonStyle())
+                    .focused($focusedAlbumID, equals: album.id)
+                }
+            }
+            .padding(.horizontal, 60)
+            .padding(.vertical, 40)
         }
     }
 }

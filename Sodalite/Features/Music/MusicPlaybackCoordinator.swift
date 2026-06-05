@@ -41,6 +41,23 @@ final class MusicPlaybackCoordinator {
     private(set) var currentTime: Double = 0
     private(set) var duration: Double = 0
 
+    /// Bumped whenever the fullscreen Now-Playing screen should be presented
+    /// (a track tap, the Now-Playing card tap). AppRouter watches this and
+    /// drives the `fullScreenCover`, since the cover state lives there.
+    private(set) var nowPlayingPresentationRequest: Int = 0
+
+    // MARK: - Scrubbing (see +Scrubbing)
+
+    /// True while the user is scrubbing the fullscreen player's progress bar
+    /// (touchpad pan, left/right skip, or a held spool). The bar shows
+    /// `scrubProgress` instead of the live position while this is set.
+    var isScrubbing = false
+    /// The previewed scrub position as a 0...1 fraction of the duration.
+    var scrubProgress: Double = 0
+    /// The in-flight continuous (hold-to-seek) spool task; non-nil while a
+    /// left/right press is held.
+    var continuousSeekTask: Task<Void, Never>?
+
     var currentItem: JellyfinItem? {
         guard queue.indices.contains(currentIndex) else { return nil }
         return queue[currentIndex]
@@ -94,10 +111,20 @@ final class MusicPlaybackCoordinator {
 
     /// Replace the queue and start playing at `index`. Index is clamped
     /// into the queue bounds so callers can pass a raw tap position safely.
+    /// Also requests the fullscreen Now-Playing screen: starting playback
+    /// (track tap, album play/shuffle) surfaces the player.
     func play(queue items: [JellyfinItem], startAt index: Int) {
         queue = items
         currentIndex = items.isEmpty ? 0 : max(0, min(index, items.count - 1))
+        requestNowPlayingPresentation()
         Task { await loadAndPlayCurrent() }
+    }
+
+    /// Ask AppRouter to present the fullscreen Now-Playing screen (used by
+    /// the Now-Playing card, which resumes an existing session rather than
+    /// starting a new one).
+    func requestNowPlayingPresentation() {
+        nowPlayingPresentationRequest += 1
     }
 
     func togglePlayPause() {

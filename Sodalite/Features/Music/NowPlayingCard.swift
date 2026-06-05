@@ -1,0 +1,125 @@
+import SwiftUI
+
+/// A compact pill-shaped "now playing" card shown at the top of the Music
+/// tab while a track is active. Replaces the old global floating mini-player
+/// (which covered the action buttons in detail views). The pill fills with a
+/// tinted progress bar (like the Resume button in detail views) and shows the
+/// elapsed / total time, both updating live. Tapping the card opens the
+/// fullscreen Now-Playing screen (where transport lives, so the card itself
+/// carries no buttons).
+struct NowPlayingCard: View {
+    @Environment(\.dependencies) private var dependencies
+
+    @FocusState private var cardFocused: Bool
+
+    var body: some View {
+        let coordinator = dependencies.musicPlaybackCoordinator
+        if let item = coordinator.currentItem {
+            cardContent(coordinator: coordinator, item: item)
+                .transition(.move(edge: .top).combined(with: .opacity))
+        }
+    }
+
+    @ViewBuilder
+    private func cardContent(coordinator: MusicPlaybackCoordinator, item: JellyfinItem) -> some View {
+        let progress: Double = coordinator.duration > 0
+            ? min(max(coordinator.currentTime / coordinator.duration, 0), 1)
+            : 0
+
+        HStack(spacing: 24) {
+            coverArt(item: item)
+
+            VStack(alignment: .leading, spacing: 6) {
+                Text(item.name)
+                    .font(.callout)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(cardFocused ? .white : Color.primary)
+                    .lineLimit(1)
+
+                if let artist = item.trackArtistLine {
+                    Text(artist)
+                        .font(.caption)
+                        .foregroundStyle(cardFocused ? Color.white.opacity(0.75) : Color.secondary)
+                        .lineLimit(1)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+
+            // Elapsed / total, live.
+            Text("\(format(coordinator.currentTime)) / \(format(coordinator.duration))")
+                .font(.caption)
+                .foregroundStyle(cardFocused ? Color.white.opacity(0.9) : Color.secondary)
+                .monospacedDigit()
+        }
+        .padding(.horizontal, 28)
+        .padding(.vertical, 16)
+        .background(progressFill(progress))
+        .overlay(
+            Capsule()
+                .strokeBorder(.tint, lineWidth: 3)
+                .opacity(cardFocused ? 1 : 0)
+        )
+        .scaleEffect(cardFocused ? 1.01 : 1.0)
+        .shadow(color: .black.opacity(cardFocused ? 0.35 : 0.15), radius: 18, y: 6)
+        .focusable(true)
+        .focused($cardFocused)
+        .animation(.easeInOut(duration: 0.15), value: cardFocused)
+        .stableTap(isFocused: cardFocused) {
+            coordinator.requestNowPlayingPresentation()
+        }
+    }
+
+    /// Capsule material base with a tinted progress fill from the left,
+    /// clipped to the pill (mirrors the Resume button's fill).
+    private func progressFill(_ progress: Double) -> some View {
+        Capsule()
+            .fill(.regularMaterial)
+            .overlay(alignment: .leading) {
+                GeometryReader { geo in
+                    Rectangle()
+                        .fill(.tint.opacity(0.3))
+                        .frame(width: geo.size.width * CGFloat(progress))
+                }
+            }
+            .clipShape(Capsule())
+    }
+
+    private func coverArt(item: JellyfinItem) -> some View {
+        let coverURL: URL? = {
+            if let albumID = item.albumId, let albumTag = item.albumPrimaryImageTag {
+                return dependencies.jellyfinImageService.imageURL(
+                    itemID: albumID,
+                    imageType: .primary,
+                    tag: albumTag,
+                    maxWidth: 120
+                )
+            }
+            return dependencies.jellyfinImageService.posterURL(for: item, maxWidth: 120)
+        }()
+
+        return AsyncCachedImage(url: coverURL) { image in
+            image
+                .resizable()
+                .aspectRatio(contentMode: .fill)
+        } placeholder: {
+            Circle()
+                .fill(.white.opacity(0.1))
+                .overlay(
+                    Image(systemName: "music.note")
+                        .font(.title3)
+                        .foregroundStyle(.secondary)
+                )
+        }
+        .frame(width: 64, height: 64)
+        .clipShape(Circle())
+    }
+
+    private func format(_ seconds: Double) -> String {
+        guard seconds > 0 && seconds.isFinite else { return "0:00" }
+        let total = Int(seconds)
+        let h = total / 3600, m = (total % 3600) / 60, s = total % 60
+        return h > 0
+            ? String(format: "%d:%02d:%02d", h, m, s)
+            : String(format: "%d:%02d", m, s)
+    }
+}

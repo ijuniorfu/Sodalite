@@ -123,15 +123,21 @@ struct AlbumDetailView: View {
     @ViewBuilder
     private var tracklist: some View {
         if !viewModel.isLoading && !viewModel.songs.isEmpty {
+            let coordinator = dependencies.musicPlaybackCoordinator
             VStack(spacing: 8) {
                 ForEach(Array(viewModel.songs.enumerated()), id: \.element.id) { index, song in
                     TrackRow(
                         song: song,
+                        isCurrent: coordinator.currentItem?.id == song.id,
+                        isPlaying: coordinator.isPlaying,
                         onSelect: {
-                            dependencies.musicPlaybackCoordinator.play(
-                                queue: viewModel.songs,
-                                startAt: index
-                            )
+                            // Tapping the track that is already playing just
+                            // opens the player; don't restart it from the top.
+                            if coordinator.currentItem?.id == song.id {
+                                coordinator.requestNowPlayingPresentation()
+                            } else {
+                                coordinator.play(queue: viewModel.songs, startAt: index)
+                            }
                         }
                     )
                 }
@@ -144,24 +150,33 @@ struct AlbumDetailView: View {
 
 private struct TrackRow: View {
     let song: JellyfinItem
+    let isCurrent: Bool
+    let isPlaying: Bool
     let onSelect: () -> Void
 
     @FocusState private var focused: Bool
 
     var body: some View {
         HStack(alignment: .center, spacing: 24) {
-            // Track number
-            Text(song.indexNumber.map { String($0) } ?? "")
-                .font(.body)
-                .foregroundStyle(focused ? .white : Color.secondary)
-                .monospacedDigit()
-                .frame(width: 32, alignment: .trailing)
+            // Leading: an animated now-playing indicator for the current
+            // track, otherwise the track number.
+            Group {
+                if isCurrent {
+                    NowPlayingWaveIcon(isPlaying: isPlaying, font: .body)
+                } else {
+                    Text(song.indexNumber.map { String($0) } ?? "")
+                        .font(.body)
+                        .foregroundStyle(focused ? .white : Color.secondary)
+                        .monospacedDigit()
+                }
+            }
+            .frame(width: 32, alignment: .center)
 
-            // Title
+            // Title: the current track wears the tint.
             Text(song.name)
                 .font(.body)
-                .fontWeight(.medium)
-                .foregroundStyle(focused ? .white : Color.primary)
+                .fontWeight(isCurrent ? .semibold : .medium)
+                .foregroundStyle(titleColor)
                 .lineLimit(1)
                 .frame(maxWidth: .infinity, alignment: .leading)
 
@@ -193,5 +208,12 @@ private struct TrackRow: View {
         .stableTap(isFocused: focused) {
             onSelect()
         }
+    }
+
+    /// `.tint` and `Color` are different shape-style types, so erase to
+    /// AnyShapeStyle to pick between them in one expression.
+    private var titleColor: AnyShapeStyle {
+        if isCurrent { return AnyShapeStyle(.tint) }
+        return AnyShapeStyle(focused ? Color.white : Color.primary)
     }
 }

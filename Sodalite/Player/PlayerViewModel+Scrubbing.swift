@@ -63,7 +63,7 @@ extension PlayerViewModel {
         }
     }
 
-    func commitScrub() {
+    func commitScrub(pauseAfter: Bool = false) {
         let dur = effectiveDuration
         guard isScrubbing, dur > 0 else {
             isScrubbing = false
@@ -79,8 +79,18 @@ extension PlayerViewModel {
         scrubPreview.clear()
         Task {
             await player.seek(to: targetTime)
+            if pauseAfter {
+                // Hold-to-seek release lands paused, not playing: stay at the
+                // spot with the controls up so the user presses Select to
+                // resume (no auto-resume after spooling).
+                player.pause()
+                showControls = true
+                controlsTimer?.cancel()
+            }
             reportProgressIfNeeded()
-            scheduleControlsHide()
+            if !pauseAfter {
+                scheduleControlsHide()
+            }
         }
     }
 
@@ -88,5 +98,55 @@ extension PlayerViewModel {
         isScrubbing = false
         scrubPreview.clear()
         scheduleControlsHide()
+    }
+
+    /// Begin a continuous (hold-to-seek) scrub in `direction` (-1 left, +1
+    /// right). Enters scrub mode and advances `scrubProgress` with
+    /// acceleration (slow at first, ramping up) until `endContinuousSeek`
+    /// is called on release. Like the tap-skip path, the position is a
+    /// preview committed only on release.
+    func beginContinuousSeek(direction: Int) {
+        let dur = effectiveDuration
+        guard dur > 0 else { return }
+
+        if !isScrubbing {
+            isScrubbing = true
+            scrubStartProgress = progress
+            scrubProgress = progress
+            showControls = true
+            scrubPreview.prewarm()
+        }
+        controlsTimer?.cancel()
+        continuousSeekTask?.cancel()
+
+        let dir = Float(direction < 0 ? -1 : 1)
+        continuousSeekTask = Task { @MainActor [weak self] in
+            let tick = 0.08
+            var held = 0.0
+            while !Task.isCancelled {
+                guard let self else { return }
+                let dur = self.effectiveDuration
+                guard dur > 0 else { return }
+                // Media-seconds per real second: ramps from 15x, keeping the
+                // same acceleration curve, up to a fast 240x ceiling (~8.6s
+                // held) so long films can be spooled through quickly.
+                let rate = min(15 + held * 26, 240)
+                let deltaProgress = dir * Float(rate * tick / dur)
+                self.scrubProgress = max(0, min(1, self.scrubProgress + deltaProgress))
+                self.scrubTime = self.formatSeconds(Double(self.scrubProgress) * dur)
+                self.scrubPreview.update(fraction: self.scrubProgress, durationSeconds: dur)
+                try? await Task.sleep(for: .seconds(tick))
+                held += tick
+            }
+        }
+    }
+
+    /// End a continuous scrub (press released): commit the previewed
+    /// position but land PAUSED (the user presses Select to resume).
+    func endContinuousSeek() {
+        guard continuousSeekTask != nil else { return }
+        continuousSeekTask?.cancel()
+        continuousSeekTask = nil
+        commitScrub(pauseAfter: true)
     }
 }

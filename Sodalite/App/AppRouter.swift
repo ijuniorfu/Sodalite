@@ -44,8 +44,9 @@ struct AppRouter: View {
     /// it stays out of the way until the next upgrade.
     @State private var showWhatsNew = false
 
-    /// Drives the NowPlaying fullScreenCover. Set to true by MiniPlayerBar
-    /// when the user activates the bar; cleared on dismiss.
+    /// Drives the NowPlaying fullScreenCover. Set to true when the
+    /// coordinator's `nowPlayingPresentationRequest` bumps (track tap or the
+    /// Now-Playing card); cleared on dismiss.
     @State private var showNowPlaying = false
 
     var body: some View {
@@ -58,18 +59,10 @@ struct AppRouter: View {
                 ServerDiscoveryView()
             }
 
-            // Mini-player bar: floats above the tab content, bottom-aligned.
-            // Only visible when the user is authenticated (TabRootView is up)
-            // and a music track is active. The splash and any fullScreenCover
-            // naturally sit above this ZStack layer, so neither is obscured.
-            if appState.isAuthenticated {
-                VStack {
-                    Spacer()
-                    MiniPlayerBar(isNowPlayingPresented: $showNowPlaying)
-                }
-                .ignoresSafeArea(edges: .bottom)
-                .animation(.spring(response: 0.35, dampingFraction: 0.8), value: dependencies.musicPlaybackCoordinator.currentItem?.id)
-            }
+            // Now-Playing access is surfaced inside the Music tab (a card at
+            // the top) and via a track tap, not a global floating bar (which
+            // covered the action buttons in detail views). Both bump the
+            // coordinator's presentation request, observed below.
 
             // Splash overlays everything until both the session restore
             // has finished AND the minimum display time has elapsed,
@@ -196,6 +189,11 @@ struct AppRouter: View {
         }
         .fullScreenCover(isPresented: $showNowPlaying) {
             NowPlayingView()
+        }
+        .onChange(of: dependencies.musicPlaybackCoordinator.nowPlayingPresentationRequest) { _, _ in
+            // A track tap or the Now-Playing card asked to surface the
+            // fullscreen player. The cover state lives here, so drive it.
+            showNowPlaying = true
         }
         .fullScreenCover(isPresented: $showWhatsNew) {
             if let entry = Changelog.latest {

@@ -273,6 +273,10 @@ final class PlayerViewModel {
     var progressTimer: Task<Void, Never>?
     var progressReportOnDemandTask: Task<Void, Never>?
     var controlsTimer: Task<Void, Never>?
+    /// The in-flight continuous (hold-to-seek) scrub task. Non-nil while a
+    /// left/right press is held; advances scrubProgress with acceleration
+    /// until the press is released (see PlayerViewModel+Scrubbing).
+    var continuousSeekTask: Task<Void, Never>?
     /// The in-flight initial-launch task (see `beginPlayback`). Held so
     /// a back-press during the loading spinner can cancel it before it
     /// calls `player.load()` on the shared engine. Without this, the

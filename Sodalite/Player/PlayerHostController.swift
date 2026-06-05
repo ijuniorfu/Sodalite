@@ -369,8 +369,15 @@ final class PlayerHostController: AVPlayerViewController {
         addPressGesture(.select, action: #selector(selectPressed))
         addPressGesture(.playPause, action: #selector(playPausePressed))
         addPressGesture(.menu, action: #selector(menuPressed))
-        addPressGesture(.leftArrow, action: #selector(leftPressed))
-        addPressGesture(.rightArrow, action: #selector(rightPressed))
+        // left/right: a short click is a discrete skip, holding it spools
+        // continuously (hold-to-seek). The tap requires the hold to fail so
+        // a quick click never starts a spool.
+        let leftTap = addPressGesture(.leftArrow, action: #selector(leftPressed))
+        let leftHold = addHoldGesture(.leftArrow, action: #selector(leftHeld(_:)))
+        leftTap.require(toFail: leftHold)
+        let rightTap = addPressGesture(.rightArrow, action: #selector(rightPressed))
+        let rightHold = addHoldGesture(.rightArrow, action: #selector(rightHeld(_:)))
+        rightTap.require(toFail: rightHold)
         addPressGesture(.upArrow, action: #selector(upPressed))
         addPressGesture(.downArrow, action: #selector(downPressed))
 
@@ -589,11 +596,27 @@ final class PlayerHostController: AVPlayerViewController {
         viewModel.beginPlayback()
     }
 
-    private func addPressGesture(_ type: UIPress.PressType, action: Selector) {
+    @discardableResult
+    private func addPressGesture(_ type: UIPress.PressType, action: Selector) -> UITapGestureRecognizer {
         let tap = UITapGestureRecognizer(target: self, action: action)
         tap.allowedPressTypes = [NSNumber(value: type.rawValue)]
         view.addGestureRecognizer(tap)
         ourGestureRecognizers.append(tap)
+        return tap
+    }
+
+    /// A long-press recognizer for a directional press, so holding left /
+    /// right continuously spools (hold-to-seek) while a short click stays a
+    /// discrete skip. The matching tap is set to require this to fail, so a
+    /// quick click is a skip and a held click is a spool.
+    @discardableResult
+    private func addHoldGesture(_ type: UIPress.PressType, action: Selector) -> UILongPressGestureRecognizer {
+        let hold = UILongPressGestureRecognizer(target: self, action: action)
+        hold.allowedPressTypes = [NSNumber(value: type.rawValue)]
+        hold.minimumPressDuration = 0.35
+        view.addGestureRecognizer(hold)
+        ourGestureRecognizers.append(hold)
+        return hold
     }
 
     /// Walk self.view and its internal AVKit-owned subviews disabling
@@ -955,6 +978,31 @@ final class PlayerHostController: AVPlayerViewController {
             viewModel.scheduleControlsHide()
         } else {
             viewModel.seekJumpByConfiguredInterval(direction: 1)
+        }
+    }
+
+    @objc private func leftHeld(_ gesture: UILongPressGestureRecognizer) {
+        handleHold(gesture, direction: -1)
+    }
+
+    @objc private func rightHeld(_ gesture: UILongPressGestureRecognizer) {
+        handleHold(gesture, direction: 1)
+    }
+
+    /// Drive the continuous hold-to-seek spool from a directional long
+    /// press: begin on `.began`, commit on release. Gated by the same
+    /// conditions as the tap-skip path so a hold while navigating the
+    /// transport buttons (or with the stats / dropdown up) is ignored.
+    private func handleHold(_ gesture: UILongPressGestureRecognizer, direction: Int) {
+        switch gesture.state {
+        case .began:
+            if statsOverlayCapturesPresses || viewModel.isDropdownOpen { return }
+            if viewModel.showControls && viewModel.controlsFocus != .progressBar { return }
+            viewModel.beginContinuousSeek(direction: direction)
+        case .ended, .cancelled, .failed:
+            viewModel.endContinuousSeek()
+        default:
+            break
         }
     }
 
