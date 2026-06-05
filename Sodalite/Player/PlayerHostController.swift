@@ -251,6 +251,7 @@ final class PlayerHostController: AVPlayerViewController {
             .receive(on: DispatchQueue.main)
             .sink { [weak self] avPlayer in
                 guard let self else { return }
+                LogTap.shared.note("[NowPlaying] vc_rebind player=\(avPlayer == nil ? "nil" : "set") items=\(avPlayer?.currentItem?.externalMetadata.count ?? -1)")
                 if let avPlayer {
                     avPlayer.allowsExternalPlayback = true
                     self.player = avPlayer

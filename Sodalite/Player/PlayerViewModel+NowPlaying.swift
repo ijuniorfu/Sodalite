@@ -42,6 +42,7 @@ extension PlayerViewModel {
     /// asset-metadata read window catches them on the first try.
     func stageInitialNowPlayingMetadata() {
         let items = buildExternalMetadataItems(artworkData: nil)
+        LogTap.shared.note("[NowPlaying] stage id=\(item.id) items=\(items.count)")
         player.setExternalMetadata(items)
     }
 
