@@ -158,9 +158,14 @@ extension PlayerViewModel {
             }
         }
 
-        LogTap.shared.note("[NextEp] engine_stop_start")
-        player.stop()
-        LogTap.shared.note("[NextEp] engine_stop_done")
+        // Do NOT call player.stop() here. A full stop tears down the
+        // engine's native AVPlayer; the next startPlayback would build a
+        // fresh one, and AVKit fails to re-register its system Now-Playing
+        // session against a swapped player, blanking the iPhone Control
+        // Center widget (issue #15). startPlayback -> engine.load(newURL)
+        // reloads in place, preserving the AVPlayer instance across the
+        // seam so Control Center keeps its metadata.
+        LogTap.shared.note("[NextEp] reload_in_place (no engine stop)")
 
         // Reset state
         item = next
