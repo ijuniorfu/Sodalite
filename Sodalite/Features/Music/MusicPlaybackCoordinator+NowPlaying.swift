@@ -1,7 +1,6 @@
 import Foundation
 import MediaPlayer
 import AVFoundation
-import CoreMedia
 import UIKit
 import AetherEngine
 
@@ -119,24 +118,7 @@ extension MusicPlaybackCoordinator {
         // Already resolved for this track, nothing to fetch.
         if cachedArtworkItemID == itemID, cachedArtwork != nil { return }
 
-        let url: URL?
-        if let albumID = item.albumId, let albumTag = item.albumPrimaryImageTag {
-            url = imageService.imageURL(
-                itemID: albumID,
-                imageType: .primary,
-                tag: albumTag,
-                maxWidth: 600
-            )
-        } else {
-            url = imageService.imageURL(
-                itemID: itemID,
-                imageType: .primary,
-                tag: item.imageTags?.primary,
-                maxWidth: 600
-            )
-        }
-
-        guard let url else { return }
+        guard let url = imageService.musicCoverURL(for: item, maxWidth: 600) else { return }
 
         Task { [weak self] in
             guard let (data, _) = try? await URLSession.shared.data(from: url),

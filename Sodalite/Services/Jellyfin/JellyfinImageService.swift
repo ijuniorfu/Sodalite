@@ -120,6 +120,15 @@ final class JellyfinImageService {
         return nil
     }
 
+    /// Cover art for a music item: the album's primary image when available,
+    /// else the item's own poster. Shared by the music views + now-playing.
+    func musicCoverURL(for item: JellyfinItem, maxWidth: Int = 400) -> URL? {
+        if let albumID = item.albumId, let albumTag = item.albumPrimaryImageTag {
+            return imageURL(itemID: albumID, imageType: .primary, tag: albumTag, maxWidth: maxWidth)
+        }
+        return posterURL(for: item, maxWidth: maxWidth)
+    }
+
     func personImageURL(personID: String, tag: String?, maxWidth: Int = 200) -> URL? {
         guard let base = baseURL(), let tag else { return nil }
         return Self.buildURL(

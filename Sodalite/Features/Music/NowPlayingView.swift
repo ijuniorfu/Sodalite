@@ -83,19 +83,9 @@ private struct NowPlayingContent: View {
     // MARK: - Background art
 
     private var backgroundArt: some View {
-        let item = coordinator.currentItem
-        let coverURL: URL? = {
-            guard let item else { return nil }
-            if let albumID = item.albumId, let albumTag = item.albumPrimaryImageTag {
-                return dependencies.jellyfinImageService.imageURL(
-                    itemID: albumID,
-                    imageType: .primary,
-                    tag: albumTag,
-                    maxWidth: 400
-                )
-            }
-            return dependencies.jellyfinImageService.posterURL(for: item, maxWidth: 400)
-        }()
+        let coverURL = coordinator.currentItem.flatMap {
+            dependencies.jellyfinImageService.musicCoverURL(for: $0, maxWidth: 400)
+        }
 
         return AsyncCachedImage(url: coverURL) { image in
             image
@@ -115,19 +105,9 @@ private struct NowPlayingContent: View {
     // MARK: - Album cover
 
     private var albumCover: some View {
-        let item = coordinator.currentItem
-        let coverURL: URL? = {
-            guard let item else { return nil }
-            if let albumID = item.albumId, let albumTag = item.albumPrimaryImageTag {
-                return dependencies.jellyfinImageService.imageURL(
-                    itemID: albumID,
-                    imageType: .primary,
-                    tag: albumTag,
-                    maxWidth: 600
-                )
-            }
-            return dependencies.jellyfinImageService.posterURL(for: item, maxWidth: 600)
-        }()
+        let coverURL = coordinator.currentItem.flatMap {
+            dependencies.jellyfinImageService.musicCoverURL(for: $0, maxWidth: 600)
+        }
 
         return AsyncCachedImage(url: coverURL) { image in
             image
@@ -365,14 +345,14 @@ private struct ScrubBar: View {
             .frame(height: 26)
 
             HStack {
-                Text(format(coordinator.displayTime))
+                Text(MusicTimeFormatter.string(coordinator.displayTime))
                     .font(.caption)
                     .foregroundStyle(scrubbing ? AnyShapeStyle(.tint) : AnyShapeStyle(Color.secondary))
                     .monospacedDigit()
 
                 Spacer()
 
-                Text(format(coordinator.duration))
+                Text(MusicTimeFormatter.string(coordinator.duration))
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .monospacedDigit()
@@ -384,15 +364,6 @@ private struct ScrubBar: View {
         .scaleEffect(isFocused ? 1.02 : 1.0)
         .animation(.easeInOut(duration: 0.15), value: isFocused)
         .animation(.easeInOut(duration: 0.2), value: scrubbing)
-    }
-
-    private func format(_ seconds: Double) -> String {
-        guard seconds > 0 && seconds.isFinite else { return "0:00" }
-        let total = Int(seconds)
-        let h = total / 3600, m = (total % 3600) / 60, s = total % 60
-        return h > 0
-            ? String(format: "%d:%02d:%02d", h, m, s)
-            : String(format: "%d:%02d", m, s)
     }
 }
 

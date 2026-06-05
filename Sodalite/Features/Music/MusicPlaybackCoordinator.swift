@@ -446,7 +446,7 @@ final class MusicPlaybackCoordinator {
         Task { try? await svc.reportPlaybackStopped(report) }
     }
 
-    // MARK: - Now Playing hooks (filled by +NowPlaying, Task 5)
+    // MARK: - Now Playing hooks (implemented in +NowPlaying)
 
     private func updateNowPlaying() { applyNowPlayingInfo() }
     private func clearNowPlaying() { clearNowPlayingInfo() }

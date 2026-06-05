@@ -46,7 +46,7 @@ struct NowPlayingCard: View {
             .frame(maxWidth: .infinity, alignment: .leading)
 
             // Elapsed / total, live.
-            Text("\(format(coordinator.currentTime)) / \(format(coordinator.duration))")
+            Text("\(MusicTimeFormatter.string(coordinator.currentTime)) / \(MusicTimeFormatter.string(coordinator.duration))")
                 .font(.caption)
                 .foregroundStyle(cardFocused ? Color.white.opacity(0.9) : Color.secondary)
                 .monospacedDigit()
@@ -85,17 +85,7 @@ struct NowPlayingCard: View {
     }
 
     private func coverArt(item: JellyfinItem) -> some View {
-        let coverURL: URL? = {
-            if let albumID = item.albumId, let albumTag = item.albumPrimaryImageTag {
-                return dependencies.jellyfinImageService.imageURL(
-                    itemID: albumID,
-                    imageType: .primary,
-                    tag: albumTag,
-                    maxWidth: 120
-                )
-            }
-            return dependencies.jellyfinImageService.posterURL(for: item, maxWidth: 120)
-        }()
+        let coverURL = dependencies.jellyfinImageService.musicCoverURL(for: item, maxWidth: 120)
 
         return AsyncCachedImage(url: coverURL) { image in
             image
@@ -112,14 +102,5 @@ struct NowPlayingCard: View {
         }
         .frame(width: 64, height: 64)
         .clipShape(Circle())
-    }
-
-    private func format(_ seconds: Double) -> String {
-        guard seconds > 0 && seconds.isFinite else { return "0:00" }
-        let total = Int(seconds)
-        let h = total / 3600, m = (total % 3600) / 60, s = total % 60
-        return h > 0
-            ? String(format: "%d:%02d:%02d", h, m, s)
-            : String(format: "%d:%02d", m, s)
     }
 }
