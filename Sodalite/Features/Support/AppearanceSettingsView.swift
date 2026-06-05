@@ -21,6 +21,8 @@ struct AppearanceSettingsView: View {
                 .fontWeight(.bold)
                 .frame(maxWidth: .infinity)
 
+                logoToggle
+
                 header
                 if isSupporter {
                     accentPicker
@@ -54,6 +56,46 @@ struct AppearanceSettingsView: View {
             .frame(maxWidth: 720)
         }
         .frame(maxWidth: .infinity)
+    }
+
+    // MARK: - Content logos (free)
+
+    /// Free for everyone: swap the text title for the title-card logo on
+    /// the detail screens. Sits above the supporter-gated accent picker.
+    private var logoToggle: some View {
+        Button {
+            appearance.showContentLogos.toggle()
+        } label: {
+            HStack(spacing: 28) {
+                Image(systemName: "photo.on.rectangle")
+                    .font(.body)
+                    .foregroundStyle(.tint)
+                    .frame(width: 36)
+
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(String(localized: "settings.appearance.showLogos",
+                                defaultValue: "Show content logos"))
+                        .font(.body)
+                        .fontWeight(.medium)
+                    Text(String(localized: "settings.appearance.showLogos.subtitle",
+                                defaultValue: "Use a show or movie's logo image instead of its text title on the detail screens, when one is available."))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.leading)
+                }
+
+                Spacer()
+
+                Text(appearance.showContentLogos
+                     ? String(localized: "settings.playback.on", defaultValue: "On")
+                     : String(localized: "settings.playback.off", defaultValue: "Off"))
+                    .font(.body)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(.tint)
+            }
+            .padding(20)
+        }
+        .buttonStyle(SettingsTileButtonStyle())
     }
 
     // MARK: - Picker

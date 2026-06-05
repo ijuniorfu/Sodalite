@@ -224,9 +224,15 @@ struct MovieDetailView: View {
 
     private func glassPanel(vm: DetailViewModel) -> some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text(vm.item.name)
-                .font(.largeTitle)
-                .fontWeight(.bold)
+            ContentLogoTitle(
+                itemID: vm.item.id,
+                logoTag: vm.item.imageTags?.logo,
+                maxHeight: 130
+            ) {
+                Text(vm.item.name)
+                    .font(.largeTitle)
+                    .fontWeight(.bold)
+            }
 
             // Episode subtitle
             if vm.item.type == .episode, let series = vm.item.seriesName {

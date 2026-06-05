@@ -462,15 +462,36 @@ struct SeriesDetailView: View {
     private func glassPanel(vm: DetailViewModel) -> some View {
         VStack(alignment: .leading, spacing: 16) {
             if isShowingEpisode {
-                Text(vm.item.name)
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-            }
+                // Series logo as an eyebrow above the episode title (the
+                // episode itself has no logo). Falls back to the plain
+                // series name.
+                ContentLogoTitle(
+                    itemID: vm.item.id,
+                    logoTag: vm.item.imageTags?.logo,
+                    maxHeight: 52
+                ) {
+                    Text(vm.item.name)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
 
-            Text(isShowingEpisode ? (selectedEpisode?.name ?? "") : vm.item.name)
-                .font(.largeTitle)
-                .fontWeight(.bold)
-                .lineLimit(2)
+                Text(selectedEpisode?.name ?? "")
+                    .font(.largeTitle)
+                    .fontWeight(.bold)
+                    .lineLimit(2)
+            } else {
+                // Series logo in place of the series title on the root.
+                ContentLogoTitle(
+                    itemID: vm.item.id,
+                    logoTag: vm.item.imageTags?.logo,
+                    maxHeight: 130
+                ) {
+                    Text(vm.item.name)
+                        .font(.largeTitle)
+                        .fontWeight(.bold)
+                        .lineLimit(2)
+                }
+            }
 
             HStack(alignment: .top, spacing: 40) {
                 VStack(alignment: .leading, spacing: 16) {
@@ -500,6 +521,21 @@ struct SeriesDetailView: View {
                                 AnyView(EmptyView())
                             }
                         }
+                    }
+
+                    // Brief episode synopsis directly under the logo +
+                    // title, so the panel hero describes the tapped
+                    // episode without a scroll down to the episode row's
+                    // full navigable synopsis box. Capped at three lines
+                    // to stay a teaser, not a duplicate of that box.
+                    if isShowingEpisode,
+                       let ep = selectedEpisode,
+                       let overview = ep.overview?.trimmingCharacters(in: .whitespacesAndNewlines),
+                       !overview.isEmpty {
+                        Text(overview)
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(3)
                     }
 
                     // Series genres, shown in both the series root and the

@@ -91,12 +91,22 @@ final class AppearancePreferences {
 
     private enum Keys {
         static let accentChoice = "appearance.accentChoice"
+        static let showContentLogos = "appearance.showContentLogos"
     }
 
     // MARK: - State
 
     var accentChoice: AccentChoice {
         didSet { store.set(accentChoice.rawValue, forKey: Keys.accentChoice) }
+    }
+
+    /// Show the title-card logo image (when the item has one) in place of
+    /// the plain text title on the Movie / Series / Episode detail
+    /// screens. Free for everyone, unlike the accent picker; the detail
+    /// views fall back to the text title when the item has no logo or
+    /// this is off. Default on.
+    var showContentLogos: Bool {
+        didSet { store.set(showContentLogos, forKey: Keys.showContentLogos) }
     }
 
     // MARK: - Init
@@ -107,6 +117,7 @@ final class AppearancePreferences {
         self.store = store
         let raw = store.string(forKey: Keys.accentChoice) ?? AccentChoice.system.rawValue
         self.accentChoice = AccentChoice(rawValue: raw) ?? .system
+        self.showContentLogos = store.object(forKey: Keys.showContentLogos) as? Bool ?? true
     }
 
     /// Effective tint to apply to the UI. Non-supporters always get
