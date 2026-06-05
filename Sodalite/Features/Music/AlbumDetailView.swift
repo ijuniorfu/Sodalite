@@ -102,7 +102,8 @@ struct AlbumDetailView: View {
             ) {
                 dependencies.musicPlaybackCoordinator.play(
                     queue: viewModel.songs,
-                    startAt: 0
+                    startAt: 0,
+                    contextTitle: album.name
                 )
             }
 
@@ -112,7 +113,8 @@ struct AlbumDetailView: View {
             ) {
                 dependencies.musicPlaybackCoordinator.play(
                     queue: viewModel.songs.shuffled(),
-                    startAt: 0
+                    startAt: 0,
+                    contextTitle: album.name
                 )
             }
         }
@@ -136,7 +138,7 @@ struct AlbumDetailView: View {
                             if coordinator.currentItem?.id == song.id {
                                 coordinator.requestNowPlayingPresentation()
                             } else {
-                                coordinator.play(queue: viewModel.songs, startAt: index)
+                                coordinator.play(queue: viewModel.songs, startAt: index, contextTitle: album.name)
                             }
                         }
                     )

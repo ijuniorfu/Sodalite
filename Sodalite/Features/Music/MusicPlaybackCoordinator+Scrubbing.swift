@@ -72,17 +72,17 @@ extension MusicPlaybackCoordinator {
         }
     }
 
-    /// End a continuous spool (press released): commit, landing PAUSED.
+    /// End a continuous spool (press released): stop spooling but KEEP the
+    /// scrub preview, exactly like a pan scrub. Playback keeps running; the
+    /// user commits the seek with Select.
     func endContinuousSeek() {
-        guard continuousSeekTask != nil else { return }
         continuousSeekTask?.cancel()
         continuousSeekTask = nil
-        commitScrub(pauseAfter: true)
     }
 
-    /// Commit the preview position. `pauseAfter` lands paused (used by the
-    /// hold-to-seek release); otherwise playback continues as it was.
-    func commitScrub(pauseAfter: Bool = false) {
+    /// Commit the preview position and seek there. Playback continues as it
+    /// was (it was never paused while scrubbing).
+    func commitScrub() {
         let dur = scrubDuration
         guard isScrubbing, dur > 0 else {
             isScrubbing = false
@@ -91,9 +91,6 @@ extension MusicPlaybackCoordinator {
         let target = scrubProgress * dur
         isScrubbing = false
         seek(to: target)
-        if pauseAfter && isPlaying {
-            engine.pause()
-        }
     }
 
     func cancelScrub() {

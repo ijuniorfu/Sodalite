@@ -40,33 +40,27 @@ private struct NowPlayingContent: View {
             // Blurred album art background
             backgroundArt
 
-            ScrollView(.vertical, showsIndicators: false) {
-                VStack(spacing: 0) {
-                    // Top padding / space for backdrop bleed
-                    Spacer().frame(height: 60)
-
-                    // Main content: art + metadata + transport + progress
-                    HStack(alignment: .top, spacing: 80) {
-                        // Left column: cover + transport + progress
-                        VStack(spacing: 32) {
-                            albumCover
-                            transportRow
-                            progressRow
-                        }
-                        .frame(width: 560)
-
-                        // Right column: track metadata + queue
-                        VStack(alignment: .leading, spacing: 32) {
-                            trackMetadata
-                            queueList
-                        }
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                    }
-                    .padding(.horizontal, 80)
-
-                    Spacer().frame(height: 80)
+            // Player column is vertically centered; the queue scrolls.
+            HStack(alignment: .center, spacing: 80) {
+                // Left column: cover + transport + progress
+                VStack(spacing: 32) {
+                    albumCover
+                    transportRow
+                    progressRow
                 }
+                .frame(width: 560)
+
+                // Right column: track metadata + scrollable queue
+                VStack(alignment: .leading, spacing: 28) {
+                    trackMetadata
+                    ScrollView(.vertical, showsIndicators: false) {
+                        queueList
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
+            .padding(.horizontal, 80)
+            .padding(.vertical, 60)
         }
         .ignoresSafeArea()
         // The Siri Remote play/pause button is delivered to the responder
@@ -158,22 +152,28 @@ private struct NowPlayingContent: View {
     private var trackMetadata: some View {
         VStack(alignment: .leading, spacing: 12) {
             if let item = coordinator.currentItem {
-                Text(item.name)
-                    .font(.title2)
-                    .fontWeight(.bold)
-                    .lineLimit(2)
+                if let context = coordinator.contextTitle, !context.isEmpty {
+                    // Album / playlist name as the heading, the current track
+                    // title beneath it.
+                    Text(context)
+                        .font(.title2)
+                        .fontWeight(.bold)
+                        .lineLimit(2)
 
-                if let artist = item.trackArtistLine, !artist.isEmpty {
-                    Text(artist)
+                    Text(item.name)
                         .font(.title3)
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
+                } else {
+                    // No context (e.g. a single track): the track is the heading.
+                    Text(item.name)
+                        .font(.title2)
+                        .fontWeight(.bold)
+                        .lineLimit(2)
                 }
 
-                if let albumArtist = item.albumArtist,
-                   !albumArtist.isEmpty,
-                   albumArtist != item.trackArtistLine {
-                    Text(albumArtist)
+                if let artist = item.trackArtistLine, !artist.isEmpty {
+                    Text(artist)
                         .font(.callout)
                         .foregroundStyle(.tertiary)
                         .lineLimit(1)
@@ -184,7 +184,6 @@ private struct NowPlayingContent: View {
                     .foregroundStyle(.secondary)
             }
         }
-        .padding(.top, 20)
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 
@@ -246,14 +245,9 @@ private struct NowPlayingContent: View {
                             isCurrent: index == coordinator.currentIndex,
                             isPlaying: coordinator.isPlaying,
                             onSelect: {
-                                // Tapping the current track just keeps it
-                                // playing; others switch to that track.
-                                if index != coordinator.currentIndex {
-                                    coordinator.play(
-                                        queue: coordinator.queue,
-                                        startAt: index
-                                    )
-                                }
+                                // Switch to that track within the same queue
+                                // (keeps the album/playlist context).
+                                coordinator.skip(toQueueIndex: index)
                             }
                         )
                     }

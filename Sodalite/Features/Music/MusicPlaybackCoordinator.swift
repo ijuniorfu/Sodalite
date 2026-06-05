@@ -107,16 +107,30 @@ final class MusicPlaybackCoordinator {
         subscribeToEngine()
     }
 
+    /// The album / playlist this queue was started from, shown as the title
+    /// in the fullscreen player (the per-track title lives in the queue).
+    private(set) var contextTitle: String?
+
     // MARK: - Public transport
 
     /// Replace the queue and start playing at `index`. Index is clamped
     /// into the queue bounds so callers can pass a raw tap position safely.
-    /// Also requests the fullscreen Now-Playing screen: starting playback
-    /// (track tap, album play/shuffle) surfaces the player.
-    func play(queue items: [JellyfinItem], startAt index: Int) {
+    /// `contextTitle` is the album/playlist name shown in the player. Also
+    /// requests the fullscreen Now-Playing screen: starting playback (track
+    /// tap, album play/shuffle) surfaces the player.
+    func play(queue items: [JellyfinItem], startAt index: Int, contextTitle: String? = nil) {
+        self.contextTitle = contextTitle
         queue = items
         currentIndex = items.isEmpty ? 0 : max(0, min(index, items.count - 1))
         requestNowPlayingPresentation()
+        Task { await loadAndPlayCurrent() }
+    }
+
+    /// Jump to another track in the CURRENT queue (used by the player's queue
+    /// list), keeping the queue + context title intact.
+    func skip(toQueueIndex index: Int) {
+        guard queue.indices.contains(index), index != currentIndex else { return }
+        currentIndex = index
         Task { await loadAndPlayCurrent() }
     }
 

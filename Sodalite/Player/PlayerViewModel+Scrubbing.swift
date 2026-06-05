@@ -63,7 +63,7 @@ extension PlayerViewModel {
         }
     }
 
-    func commitScrub(pauseAfter: Bool = false) {
+    func commitScrub() {
         let dur = effectiveDuration
         guard isScrubbing, dur > 0 else {
             isScrubbing = false
@@ -79,18 +79,8 @@ extension PlayerViewModel {
         scrubPreview.clear()
         Task {
             await player.seek(to: targetTime)
-            if pauseAfter {
-                // Hold-to-seek release lands paused, not playing: stay at the
-                // spot with the controls up so the user presses Select to
-                // resume (no auto-resume after spooling).
-                player.pause()
-                showControls = true
-                controlsTimer?.cancel()
-            }
             reportProgressIfNeeded()
-            if !pauseAfter {
-                scheduleControlsHide()
-            }
+            scheduleControlsHide()
         }
     }
 
@@ -141,12 +131,13 @@ extension PlayerViewModel {
         }
     }
 
-    /// End a continuous scrub (press released): commit the previewed
-    /// position but land PAUSED (the user presses Select to resume).
+    /// End a continuous spool (press released): stop spooling but KEEP the
+    /// scrub preview, exactly like a pan scrub. Playback keeps running; the
+    /// user commits the seek with Select (or it auto-cancels on idle).
     func endContinuousSeek() {
         guard continuousSeekTask != nil else { return }
         continuousSeekTask?.cancel()
         continuousSeekTask = nil
-        commitScrub(pauseAfter: true)
+        scrubPanEnded()
     }
 }
