@@ -542,6 +542,27 @@ struct SeriesDetailView: View {
                         )
                         .focused($playButtonFocused)
 
+                        // Restart-from-beginning whenever the resolved play
+                        // target carries progress (i.e. the play button reads
+                        // "Resume"), mirroring MovieDetailView's replay button.
+                        // Gating on playTarget covers both the series root
+                        // (resume next-up / current episode) and the episode
+                        // panel (resume the selected episode).
+                        if let target = playTarget(vm: vm),
+                           let ticks = target.userData?.playbackPositionTicks,
+                           ticks > 0 {
+                            GlassActionButton(
+                                title: "detail.replay",
+                                systemImage: "arrow.counterclockwise",
+                                action: {
+                                    playItem = target
+                                    playFromBeginning = true
+                                    playOriginatedFromPlayButton = true
+                                    showPlayer = true
+                                }
+                            )
+                        }
+
                         if !isShowingEpisode {
                             GlassActionButton(
                                 title: vm.isFavorite ? "detail.unfavorite" : "detail.favorite",
