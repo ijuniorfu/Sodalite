@@ -342,6 +342,12 @@ enum JellyfinEndpoint: APIEndpoint {
     /// don't inherit the type's MainActor isolation. It's an immutable
     /// String constant, so sharing it across actors is safe.
     nonisolated static let homeRowFields = "ImageTags,BackdropImageTags,ParentBackdropImageTags,SeriesPrimaryImageTag"
+
+    /// Slim Fields= set for music browse rows (albums grid, track
+    /// lists). Image tags + the album/artist linkage the cards render;
+    /// IndexNumber / ParentIndexNumber / RunTimeTicks / ProductionYear
+    /// come back without an explicit Fields request.
+    nonisolated static let musicListFields = "ImageTags,Artists,AlbumArtist,AlbumId,AlbumPrimaryImageTag"
 }
 
 struct ItemQuery: Sendable {

@@ -4,8 +4,15 @@ import AetherEngine
 
 @main
 struct SodaliteApp: App {
-    @State private var appState = AppState()
-    @State private var dependencies = DependencyContainer()
+    // Resolve to the shared singletons (NOT fresh instances). SwiftUI can
+    // construct the App value and the @Environment default value separately,
+    // and any fresh DependencyContainer builds a second MusicPlaybackCoordinator
+    // that subscribes to the singleton engine and clears system Now-Playing on
+    // every state change, fighting the real one (the Home badge + remote
+    // pause/resume bug). DependencyContainer.shared / AppState.shared are the
+    // single source, also used by EnvironmentKeys' defaultValue.
+    @State private var appState = AppState.shared
+    @State private var dependencies = DependencyContainer.shared
 
     init() {
         // Back-wire AppState into DependencyContainer so switchServer

@@ -3,6 +3,7 @@ import SwiftUI
 enum MediaCardStyle: Sendable {
     case poster    // Vertical 2:3 (movies, series)
     case landscape // Horizontal 16:9 (episodes, continue watching)
+    case square    // 1:1 (album / music covers)
 }
 
 struct MediaCard: View {
@@ -21,6 +22,7 @@ struct MediaCard: View {
         switch style {
         case .poster: 220
         case .landscape: 360
+        case .square: 220
         }
     }
 
@@ -28,6 +30,7 @@ struct MediaCard: View {
         switch style {
         case .poster: 330
         case .landscape: 202
+        case .square: 220
         }
     }
 

@@ -1,11 +1,14 @@
 import SwiftUI
 
 private struct DependencyContainerKey: EnvironmentKey {
-    static let defaultValue = DependencyContainer()
+    // The shared singletons, NOT fresh instances: a fresh DependencyContainer
+    // here builds a second MusicPlaybackCoordinator that subscribes to the
+    // singleton engine and clears system Now-Playing on every state change.
+    static let defaultValue = DependencyContainer.shared
 }
 
 private struct AppStateKey: EnvironmentKey {
-    static let defaultValue = AppState()
+    static let defaultValue = AppState.shared
 }
 
 extension EnvironmentValues {

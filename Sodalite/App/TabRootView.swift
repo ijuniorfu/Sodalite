@@ -5,6 +5,7 @@ enum AppTab: String, CaseIterable, Sendable {
     case home
     case catalog
     case search
+    case music
     case settings
 
     var labelKey: LocalizedStringKey {
@@ -12,6 +13,7 @@ enum AppTab: String, CaseIterable, Sendable {
         case .home: "tab.home"
         case .catalog: "tab.catalog"
         case .search: "tab.search"
+        case .music: "tab.music"
         case .settings: "tab.settings"
         }
     }
@@ -21,6 +23,7 @@ enum AppTab: String, CaseIterable, Sendable {
         case .home: "house"
         case .catalog: "film.stack"
         case .search: "magnifyingglass"
+        case .music: "music.note"
         case .settings: "gearshape"
         }
     }
@@ -28,6 +31,7 @@ enum AppTab: String, CaseIterable, Sendable {
 
 struct TabRootView: View {
     @State private var selectedTab: AppTab = .home
+    @State private var availableTabs: [AppTab] = AppTab.allCases.filter { $0 != .music }
     @Environment(\.dependencies) private var dependencies
 
     /// Resolved accent color for the tab-bar icons. Falls back to the
@@ -41,7 +45,7 @@ struct TabRootView: View {
 
     var body: some View {
         TabView(selection: $selectedTab) {
-            ForEach(AppTab.allCases, id: \.self) { tab in
+            ForEach(availableTabs, id: \.self) { tab in
                 Tab(value: tab) {
                     tabContent(for: tab)
                 } label: {
@@ -58,6 +62,33 @@ struct TabRootView: View {
             }
         }
         .tint(iconColor)
+        // Siri Remote play/pause button while browsing (foreground): it is
+        // delivered to the responder chain, not MPRemoteCommandCenter, so
+        // toggle music here when a track is active.
+        .onPlayPauseCommand {
+            let coordinator = dependencies.musicPlaybackCoordinator
+            if coordinator.currentItem != nil {
+                LogTap.shared.note("[NowPlaying] onPlayPauseCommand (tab bar, in-app)")
+                coordinator.togglePlayPause()
+            }
+        }
+        .task {
+            guard let userID = dependencies.activeUserID else { return }
+            do {
+                let hasMusic = try await dependencies.jellyfinMusicService.hasMusicLibrary(userID: userID)
+                if hasMusic, !availableTabs.contains(.music) {
+                    // Insert Music before Settings so the order is:
+                    // Home, Catalog, Search, Music, Settings.
+                    if let settingsIndex = availableTabs.firstIndex(of: .settings) {
+                        availableTabs.insert(.music, at: settingsIndex)
+                    } else {
+                        availableTabs.append(.music)
+                    }
+                }
+            } catch {
+                // No music library confirmed; tab stays hidden.
+            }
+        }
         .onAppear {
             configureTabBarItemAppearance()
         }
@@ -160,6 +191,8 @@ struct TabRootView: View {
             CatalogView()
         case .search:
             SearchView()
+        case .music:
+            MusicHomeView()
         case .settings:
             SettingsView()
         }

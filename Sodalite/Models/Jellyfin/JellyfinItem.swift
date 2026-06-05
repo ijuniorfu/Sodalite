@@ -34,6 +34,17 @@ struct JellyfinItem: Codable, Sendable, Identifiable, Equatable, Hashable {
     let seriesPrimaryImageTag: String?
     let providerIds: [String: String]?
     let chapters: [ChapterInfo]?
+    let albumArtist: String?
+    let artists: [String]?
+    let albumId: String?
+    let albumPrimaryImageTag: String?
+
+    /// Display line for a track: the per-track artists if present,
+    /// otherwise the album artist. nil when neither is set.
+    var trackArtistLine: String? {
+        if let artists, !artists.isEmpty { return artists.joined(separator: ", ") }
+        return albumArtist
+    }
 
     /// TMDB identifier if Jellyfin has it (used to correlate with Seerr
     /// catalog entries, dedup in search, route from detail-view
@@ -79,6 +90,10 @@ struct JellyfinItem: Codable, Sendable, Identifiable, Equatable, Hashable {
         case seriesPrimaryImageTag = "SeriesPrimaryImageTag"
         case providerIds = "ProviderIds"
         case chapters = "Chapters"
+        case albumArtist = "AlbumArtist"
+        case artists = "Artists"
+        case albumId = "AlbumId"
+        case albumPrimaryImageTag = "AlbumPrimaryImageTag"
     }
 
     /// Create a copy with updated userData
@@ -116,6 +131,10 @@ struct JellyfinItem: Codable, Sendable, Identifiable, Equatable, Hashable {
         self.seriesPrimaryImageTag = item.seriesPrimaryImageTag
         self.providerIds = item.providerIds
         self.chapters = item.chapters
+        self.albumArtist = item.albumArtist
+        self.artists = item.artists
+        self.albumId = item.albumId
+        self.albumPrimaryImageTag = item.albumPrimaryImageTag
     }
 
     /// Create a minimal series stub for navigation
@@ -153,6 +172,10 @@ struct JellyfinItem: Codable, Sendable, Identifiable, Equatable, Hashable {
         self.seriesPrimaryImageTag = nil
         self.providerIds = nil
         self.chapters = nil
+        self.albumArtist = nil
+        self.artists = nil
+        self.albumId = nil
+        self.albumPrimaryImageTag = nil
     }
 
     static func == (lhs: JellyfinItem, rhs: JellyfinItem) -> Bool {

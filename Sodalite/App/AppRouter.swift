@@ -44,6 +44,10 @@ struct AppRouter: View {
     /// it stays out of the way until the next upgrade.
     @State private var showWhatsNew = false
 
+    /// Drives the NowPlaying fullScreenCover. Set to true by MiniPlayerBar
+    /// when the user activates the bar; cleared on dismiss.
+    @State private var showNowPlaying = false
+
     var body: some View {
         ZStack {
             if appState.isAuthenticated {
@@ -52,6 +56,19 @@ struct AppRouter: View {
                 LaunchProfilePickerView(server: server)
             } else {
                 ServerDiscoveryView()
+            }
+
+            // Mini-player bar: floats above the tab content, bottom-aligned.
+            // Only visible when the user is authenticated (TabRootView is up)
+            // and a music track is active. The splash and any fullScreenCover
+            // naturally sit above this ZStack layer, so neither is obscured.
+            if appState.isAuthenticated {
+                VStack {
+                    Spacer()
+                    MiniPlayerBar(isNowPlayingPresented: $showNowPlaying)
+                }
+                .ignoresSafeArea(edges: .bottom)
+                .animation(.spring(response: 0.35, dampingFraction: 0.8), value: dependencies.musicPlaybackCoordinator.currentItem?.id)
             }
 
             // Splash overlays everything until both the session restore
@@ -176,6 +193,9 @@ struct AppRouter: View {
             NavigationStack {
                 DetailRouterView(item: item)
             }
+        }
+        .fullScreenCover(isPresented: $showNowPlaying) {
+            NowPlayingView()
         }
         .fullScreenCover(isPresented: $showWhatsNew) {
             if let entry = Changelog.latest {

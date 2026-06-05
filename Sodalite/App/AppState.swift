@@ -3,6 +3,11 @@ import Observation
 
 @Observable
 final class AppState {
+    /// The one and only app state. Both the App's `@State` and the
+    /// `@Environment` default value resolve to this so a single instance
+    /// exists (mirrors `DependencyContainer.shared`).
+    static let shared = AppState()
+
     var isAuthenticated = false
     var activeServer: JellyfinServer?
     var activeUser: JellyfinUser?

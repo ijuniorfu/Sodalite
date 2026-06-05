@@ -13,6 +13,10 @@
 	<string>Sodalite reaches Jellyfin and AetherEngine media servers on your local network. Required for direct play of media from a server in your home.</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>audio</string>
+	</array>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>

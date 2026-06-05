@@ -4,6 +4,14 @@ import AetherEngine
 @MainActor
 @Observable
 final class DependencyContainer {
+    /// The one and only container. Both the App's `@State` and the
+    /// `@Environment` default value resolve to this, so exactly one
+    /// container (and one MusicPlaybackCoordinator subscribed to the
+    /// singleton engine) ever exists. Building a second one spawns a
+    /// "zombie" coordinator that clears system Now-Playing on every engine
+    /// state change, fighting the real one.
+    static let shared = DependencyContainer()
+
     @MainActor static let playerEngine: AetherEngine = try! AetherEngine()
     let keychainService: KeychainServiceProtocol
     let httpClient: HTTPClientProtocol
@@ -11,6 +19,7 @@ final class DependencyContainer {
     let serverDiscoveryService: ServerDiscoveryServiceProtocol
     let jellyfinAuthService: JellyfinAuthServiceProtocol
     let jellyfinLibraryService: JellyfinLibraryServiceProtocol
+    let jellyfinMusicService: JellyfinMusicServiceProtocol
     let jellyfinItemService: JellyfinItemServiceProtocol
     let jellyfinSearchService: JellyfinSearchServiceProtocol
     let jellyfinImageService: JellyfinImageService
@@ -35,6 +44,8 @@ final class DependencyContainer {
     /// content-deletion rights (see JellyfinUser.canDeleteContent).
     let mediaDeletionService: any MediaDeletionServiceProtocol
 
+    let musicPlaybackCoordinator: MusicPlaybackCoordinator
+
     /// Back-reference to AppState so switchServer / removeServer can
     /// bump the serverDidSwitch signal without threading AppState
     /// through every call site. Weak to avoid a retain cycle
@@ -58,6 +69,10 @@ final class DependencyContainer {
         self.serverDiscoveryService = ServerDiscoveryService(httpClient: httpClient)
         self.jellyfinAuthService = JellyfinAuthService(client: jellyfinClient)
         self.jellyfinLibraryService = JellyfinLibraryService(client: jellyfinClient)
+        self.jellyfinMusicService = JellyfinMusicService(
+            client: jellyfinClient,
+            libraryService: jellyfinLibraryService
+        )
         self.jellyfinItemService = JellyfinItemService(client: jellyfinClient)
         self.jellyfinSearchService = JellyfinSearchService(client: jellyfinClient)
         self.jellyfinImageService = JellyfinImageService(
@@ -93,6 +108,24 @@ final class DependencyContainer {
                 // Pre-flight check; the live value is read on every
                 // invocation (no caching).
                 seerrClient?.sessionCookie != nil
+            }
+        )
+
+        // musicPlaybackCoordinator is assigned last. The userIDProvider
+        // closure captures keychainService directly (strong); this is
+        // safe because the coordinator's lifetime is scoped to the
+        // container that owns keychainService. Replicates activeUserID
+        // without closing over self, which Swift forbids before init
+        // is complete.
+        let capturedKeychain = keychainService
+        self.musicPlaybackCoordinator = MusicPlaybackCoordinator(
+            engine: DependencyContainer.playerEngine,
+            playbackService: jellyfinPlaybackService,
+            imageService: jellyfinImageService,
+            userIDProvider: {
+                guard let serverID = try? capturedKeychain.loadString(for: KeychainKeys.activeServerID)
+                else { return nil }
+                return try? capturedKeychain.loadString(for: KeychainKeys.userID(serverID: serverID))
             }
         )
     }
@@ -250,6 +283,13 @@ final class DependencyContainer {
         guard let id = try? keychainService.loadString(for: KeychainKeys.activeServerID)
         else { return nil }
         return listKnownServers().first(where: { $0.id == id })
+    }
+
+    /// The active Jellyfin user's id, resolved from the keychain for the
+    /// active server. nil when there is no active session.
+    var activeUserID: String? {
+        guard let server = activeServer else { return nil }
+        return try? keychainService.loadString(for: KeychainKeys.userID(serverID: server.id))
     }
 
     enum ServerSwitchError: Error {

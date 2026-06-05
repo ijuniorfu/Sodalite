@@ -49,6 +49,12 @@ final class LogTap: ObservableObject {
     /// Long lines are truncated when rendered in the overlay (the
     /// view applies `lineLimit(1)` + tail truncation).
     func note(_ line: String) {
+        // Mirror to the console on diagnostic builds so host-side notes
+        // show up in an Xcode/Console capture alongside the engine prints,
+        // not only in the in-app overlay.
+        if Self.isDiagnosticBuild {
+            print(line)
+        }
         DispatchQueue.main.async { [weak self] in
             guard let self else { return }
             self.lines.append(line)

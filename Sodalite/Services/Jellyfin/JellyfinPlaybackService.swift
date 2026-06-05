@@ -10,6 +10,7 @@ protocol JellyfinPlaybackServiceProtocol: Sendable {
     func getEpisodes(seriesID: String, seasonID: String, userID: String) async throws -> [JellyfinItem]
     func getEpisodeSegments(itemID: String) async throws -> EpisodeSegments
     func buildStreamURL(itemID: String, mediaSourceID: String, container: String?, isStatic: Bool) -> URL?
+    func buildAudioStreamURL(itemID: String, mediaSourceID: String, container: String?, isStatic: Bool) -> URL?
     func buildSubtitleURL(itemID: String, mediaSourceID: String, streamIndex: Int, format: String) -> URL?
     func buildTranscodeURL(relativePath: String) -> URL?
 }
@@ -150,6 +151,21 @@ final class JellyfinPlaybackService: JellyfinPlaybackServiceProtocol {
         guard let baseURL = client.baseURL else { return nil }
         let ext = container ?? "mp4"
         var components = URLComponents(url: baseURL.appendingPathComponent("/Videos/\(itemID)/stream.\(ext)"), resolvingAgainstBaseURL: true)
+        var queryItems = [
+            URLQueryItem(name: "MediaSourceId", value: mediaSourceID),
+            URLQueryItem(name: "api_key", value: client.accessToken),
+        ]
+        if isStatic {
+            queryItems.append(URLQueryItem(name: "Static", value: "true"))
+        }
+        components?.queryItems = queryItems
+        return components?.url
+    }
+
+    func buildAudioStreamURL(itemID: String, mediaSourceID: String, container: String?, isStatic: Bool) -> URL? {
+        guard let baseURL = client.baseURL else { return nil }
+        let ext = container ?? "mp3"
+        var components = URLComponents(url: baseURL.appendingPathComponent("/Audio/\(itemID)/stream.\(ext)"), resolvingAgainstBaseURL: true)
         var queryItems = [
             URLQueryItem(name: "MediaSourceId", value: mediaSourceID),
             URLQueryItem(name: "api_key", value: client.accessToken),
