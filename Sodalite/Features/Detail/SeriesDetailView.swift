@@ -120,7 +120,14 @@ struct SeriesDetailView: View {
                     .transition(.opacity)
             }
 
-            if let vm = viewModel, !vm.isLoading {
+            // Episode deep-links instant-paint a series stub before the
+            // real series detail lands. Hold the loading screen until the
+            // detail has loaded (didLoadDetail) so the page builds once
+            // with full data (logo, layout, scroll) instead of painting
+            // from the stub and reshuffling. Direct series opens
+            // (initialEpisode == nil) keep gating on isLoading only.
+            if let vm = viewModel, !vm.isLoading,
+               initialEpisode == nil || vm.didLoadDetail {
                 DetailContentOverlay(hero: {
                     // Series logo over the backdrop, shown in both the
                     // series root and the episode panel (the episode has
@@ -200,14 +207,6 @@ struct SeriesDetailView: View {
                     }
                 }
                 .transition(.opacity)
-                // Episode deep-links instant-paint a series stub, then
-                // loadFullDetail swaps in the real series. Rebuild the
-                // whole hero + content once on that swap so it renders
-                // fresh with full data (logo in place, focus-scroll
-                // behaving), exactly like a series opened directly behind
-                // its loading gate. No-op for direct series opens
-                // (initialEpisode == nil), so they never see a rebuild.
-                .id(initialEpisode != nil ? vm.didLoadDetail : false)
             } else {
                 // Centred spinner over the backdrop while every
                 // section's data is still in flight. Showing the
@@ -231,6 +230,10 @@ struct SeriesDetailView: View {
             }
         }
         .animation(.easeInOut(duration: 0.25), value: viewModel?.isLoading)
+        // Episode deep-links clear their loading screen on didLoadDetail
+        // rather than isLoading; animate that swap too so the spinner
+        // crossfades into the finished page.
+        .animation(.easeInOut(duration: 0.25), value: viewModel?.didLoadDetail)
         .ignoresSafeArea()
         .overlay {
             if let userID = appState.activeUser?.id {
