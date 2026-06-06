@@ -897,8 +897,29 @@ struct CatalogDetailView: View {
             case .person: return
             }
             serviceDetails = details
-            selectedProfileID = chosen.activeProfileId ?? details.profiles.first?.id
-            selectedRootFolder = chosen.activeDirectory ?? details.rootFolders.first?.path
+
+            // Pre-select a real profile, never the synthetic "Default"
+            // placeholder. Jellyseerr's stored activeProfileId can be nil,
+            // 0, or a stale id that no longer exists in the live profile
+            // list (e.g. a server configured before its profiles synced).
+            // The old `activeProfileId ?? first` only guarded against nil,
+            // so a stale id slipped through, failed to match any profile,
+            // and the picker fell back to showing "Default" while the
+            // request still shipped the bad id and failed. Validate the
+            // configured default against the profiles the server actually
+            // returned and fall back to the first available one, which
+            // also auto-picks the only profile when there is just one.
+            let validProfileIDs = Set(details.profiles.map(\.id))
+            selectedProfileID = [chosen.activeProfileId, details.server.activeProfileId]
+                .compactMap { $0 }
+                .first(where: validProfileIDs.contains)
+                ?? details.profiles.first?.id
+
+            let validRootFolders = Set(details.rootFolders.map(\.path))
+            selectedRootFolder = [chosen.activeDirectory, details.server.activeDirectory]
+                .compactMap { $0 }
+                .first(where: validRootFolders.contains)
+                ?? details.rootFolders.first?.path
         } catch {
             // Swallow, dropdowns simply won't appear and the request
             // will use Seerr's defaults.
