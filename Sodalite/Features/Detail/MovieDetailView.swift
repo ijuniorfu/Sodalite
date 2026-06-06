@@ -193,7 +193,6 @@ struct MovieDetailView: View {
                         .font(.largeTitle)
                         .fontWeight(.bold)
                 }
-                .shadow(color: .black.opacity(0.55), radius: 12, y: 4)
             }) {
                 glassPanel(vm: vm)
                     .padding(.horizontal, 50)

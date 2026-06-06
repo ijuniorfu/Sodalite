@@ -25,6 +25,18 @@ struct ContentLogoTitle<Fallback: View>: View {
     private var showLogos: Bool { dependencies.appearancePreferences.showContentLogos }
 
     var body: some View {
+        logoOrFallback
+            // Light glow first: lifts a dark logo (e.g. Modern Family's
+            // black wordmark) off a dark backdrop, where a drop shadow
+            // alone does nothing. Dark drop shadow second: gives a light
+            // logo separation on a bright backdrop. Together they keep
+            // the hero legible on any artwork.
+            .shadow(color: .white.opacity(0.45), radius: 6)
+            .shadow(color: .black.opacity(0.55), radius: 14, y: 4)
+    }
+
+    @ViewBuilder
+    private var logoOrFallback: some View {
         if showLogos,
            let tag = logoTag,
            let url = dependencies.jellyfinImageService.imageURL(
