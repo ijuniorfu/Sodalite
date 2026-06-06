@@ -8,6 +8,9 @@ struct HorizontalMediaRow: View {
     var verbatimTitle: String? = nil
     let items: [JellyfinItem]
     let imageURLProvider: (JellyfinItem) -> URL?
+    /// Optional per-item fallback image, tried when the primary fails
+    /// (e.g. a series Thumb that falls back to the backdrop / still).
+    var fallbackURLProvider: ((JellyfinItem) -> URL?)? = nil
     var onItemSelected: ((JellyfinItem) -> Void)?
     var cardStyle: MediaCardStyle = .poster
 
@@ -33,6 +36,7 @@ struct HorizontalMediaRow: View {
                             MediaCard(
                                 item: item,
                                 imageURL: imageURLProvider(item),
+                                fallbackURL: fallbackURLProvider?(item),
                                 style: cardStyle,
                                 isFocused: isFocused
                             )

@@ -58,85 +58,67 @@ struct AppearanceSettingsView: View {
         .frame(maxWidth: .infinity)
     }
 
-    // MARK: - Toggles (free for everyone)
+    // MARK: - Options (free for everyone)
 
-    /// Free customization toggles, above the supporter-gated accent picker.
+    /// Free customization rows, above the supporter-gated accent picker.
+    /// Uses the same ValuePickerRow as the Playback settings so the two
+    /// screens look consistent (left/right cycles, click advances).
     private var togglesSection: some View {
         VStack(spacing: 4) {
-            toggleRow(
+            boolRow(
                 icon: "photo.on.rectangle",
-                title: String(localized: "settings.appearance.showLogos",
-                              defaultValue: "Show content logos"),
-                subtitle: String(localized: "settings.appearance.showLogos.subtitle",
-                                 defaultValue: "Use a show or movie's logo image instead of its text title on the detail screens, when one is available."),
-                isOn: appearance.showContentLogos
-            ) { appearance.showContentLogos.toggle() }
+                title: "settings.appearance.showLogos",
+                subtitle: "settings.appearance.showLogos.subtitle",
+                value: Binding(get: { appearance.showContentLogos },
+                               set: { appearance.showContentLogos = $0 })
+            )
 
-            toggleRow(
+            ValuePickerRow(
                 icon: "rectangle.on.rectangle.angled",
-                title: String(localized: "settings.appearance.cwBackdrop",
-                              defaultValue: "Backdrop in Continue Watching"),
-                subtitle: String(localized: "settings.appearance.cwBackdrop.subtitle",
-                                 defaultValue: "Show the backdrop in Continue Watching and Up Next instead of the episode's video frame."),
-                isOn: appearance.continueWatchingUsesBackdrop
-            ) { appearance.continueWatchingUsesBackdrop.toggle() }
+                title: "settings.appearance.cwImage",
+                subtitle: "settings.appearance.cwImage.subtitle",
+                options: AppearancePreferences.ContinueWatchingImage.allCases,
+                selection: Binding(get: { appearance.continueWatchingImage },
+                                   set: { appearance.continueWatchingImage = $0 }),
+                label: { $0.title }
+            )
 
-            toggleRow(
+            boolRow(
                 icon: "rectangle.expand.vertical",
-                title: String(localized: "settings.appearance.largeCards",
-                              defaultValue: "Larger cards"),
-                subtitle: String(localized: "settings.appearance.largeCards.subtitle",
-                                 defaultValue: "Render Home cards bigger, Apple TV style. Fewer cards fit per row."),
-                isOn: appearance.largeCards
-            ) { appearance.largeCards.toggle() }
+                title: "settings.appearance.largeCards",
+                subtitle: "settings.appearance.largeCards.subtitle",
+                value: Binding(get: { appearance.largeCards },
+                               set: { appearance.largeCards = $0 })
+            )
 
-            toggleRow(
+            boolRow(
                 icon: "music.note.tv",
-                title: String(localized: "settings.appearance.nowPlayingPoster",
-                              defaultValue: "Series poster in Now Playing"),
-                subtitle: String(localized: "settings.appearance.nowPlayingPoster.subtitle",
-                                 defaultValue: "Use the series poster instead of the episode still for the Control Center artwork."),
-                isOn: appearance.nowPlayingUsesSeriesPoster
-            ) { appearance.nowPlayingUsesSeriesPoster.toggle() }
+                title: "settings.appearance.nowPlayingPoster",
+                subtitle: "settings.appearance.nowPlayingPoster.subtitle",
+                value: Binding(get: { appearance.nowPlayingUsesSeriesPoster },
+                               set: { appearance.nowPlayingUsesSeriesPoster = $0 })
+            )
         }
     }
 
-    private func toggleRow(
+    private func boolRow(
         icon: String,
-        title: String,
-        subtitle: String,
-        isOn: Bool,
-        action: @escaping () -> Void
+        title: LocalizedStringKey,
+        subtitle: LocalizedStringKey,
+        value: Binding<Bool>
     ) -> some View {
-        Button(action: action) {
-            HStack(spacing: 28) {
-                Image(systemName: icon)
-                    .font(.body)
-                    .foregroundStyle(.tint)
-                    .frame(width: 36)
-
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(title)
-                        .font(.body)
-                        .fontWeight(.medium)
-                    Text(subtitle)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .multilineTextAlignment(.leading)
-                }
-
-                Spacer()
-
-                Text(isOn
-                     ? String(localized: "settings.playback.on", defaultValue: "On")
-                     : String(localized: "settings.playback.off", defaultValue: "Off"))
-                    .font(.body)
-                    .fontWeight(.semibold)
-                    .foregroundStyle(.tint)
+        ValuePickerRow(
+            icon: icon,
+            title: title,
+            subtitle: subtitle,
+            options: [false, true],
+            selection: value,
+            label: { on in
+                on
+                    ? String(localized: "settings.playback.on", defaultValue: "On")
+                    : String(localized: "settings.playback.off", defaultValue: "Off")
             }
-            .padding(20)
-        }
-        .buttonStyle(SettingsTileButtonStyle())
+        )
     }
 
     // MARK: - Picker

@@ -830,22 +830,45 @@ final class HomeViewModel {
         }
     }
 
-    func imageURL(for item: JellyfinItem, rowType: HomeRowType, useBackdrop: Bool = false) -> URL? {
-        if rowType.usesBackdrop {
-            // Continue Watching / Up Next. With the backdrop preference on,
-            // show the cinematic landscape backdrop (series backdrop for
-            // episodes) instead of the episode video-frame still.
-            if useBackdrop {
-                return imageService.backdropURL(for: item)
-                    ?? imageService.episodeThumbnailURL(for: item)
-                    ?? imageService.posterURL(for: item)
-            }
+    func imageURL(
+        for item: JellyfinItem,
+        rowType: HomeRowType,
+        cwImage: AppearancePreferences.ContinueWatchingImage = .still
+    ) -> URL? {
+        guard rowType.usesBackdrop else {
+            return imageService.posterURL(for: item)
+        }
+        // Continue Watching / Up Next image, per the user's choice.
+        switch cwImage {
+        case .still:
             if item.type == .episode {
                 return imageService.episodeThumbnailURL(for: item)
             }
             return imageService.backdropURL(for: item) ?? imageService.posterURL(for: item)
+        case .backdrop:
+            return imageService.backdropURL(for: item)
+                ?? imageService.episodeThumbnailURL(for: item)
+                ?? imageService.posterURL(for: item)
+        case .thumb:
+            // Series Thumb addressed by series id (tagless). Paired with
+            // fallbackImageURL so a Thumb-less show degrades gracefully.
+            let id = (item.type == .episode ? item.seriesId : nil) ?? item.id
+            return imageService.imageURL(itemID: id, imageType: .thumb, maxWidth: 720)
         }
-        return imageService.posterURL(for: item)
+    }
+
+    /// Fallback image for Continue Watching / Up Next, used under the
+    /// Thumb option so a show without a Thumb degrades to its backdrop or
+    /// the episode still. Nil for the other options (their primary URL
+    /// already chains to a present image).
+    func fallbackImageURL(
+        for item: JellyfinItem,
+        cwImage: AppearancePreferences.ContinueWatchingImage
+    ) -> URL? {
+        guard cwImage == .thumb else { return nil }
+        return imageService.backdropURL(for: item)
+            ?? imageService.episodeThumbnailURL(for: item)
+            ?? imageService.posterURL(for: item)
     }
 
     func reloadConfig() {

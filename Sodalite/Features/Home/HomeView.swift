@@ -156,8 +156,9 @@ struct HomeView: View {
                     ForEach(Array(vm.orderedSections().enumerated()), id: \.element.id) { idx, section in
                     switch section {
                     case .media(let row):
-                        let useBackdrop = row.type.usesBackdrop
-                            && dependencies.appearancePreferences.continueWatchingUsesBackdrop
+                        let cwImage = row.type.usesBackdrop
+                            ? dependencies.appearancePreferences.continueWatchingImage
+                            : .still
                         HorizontalMediaRow(
                             title: row.type.localizedTitle,
                             verbatimTitle: row.type == .libraryLatest
@@ -170,7 +171,10 @@ struct HomeView: View {
                                 )
                                 : nil,
                             items: row.items,
-                            imageURLProvider: { vm.imageURL(for: $0, rowType: row.type, useBackdrop: useBackdrop) },
+                            imageURLProvider: { vm.imageURL(for: $0, rowType: row.type, cwImage: cwImage) },
+                            fallbackURLProvider: cwImage == .thumb
+                                ? { vm.fallbackImageURL(for: $0, cwImage: cwImage) }
+                                : nil,
                             onItemSelected: { selectedItem = $0 },
                             cardStyle: row.type.cardStyle
                         )

@@ -87,12 +87,36 @@ final class AppearancePreferences {
         }
     }
 
+    // MARK: - Continue Watching image
+
+    /// Which image the Continue Watching / Up Next cards use.
+    enum ContinueWatchingImage: String, CaseIterable, Identifiable, Sendable {
+        case still     // the episode's own image (a frame from the show)
+        case backdrop  // the show's cinematic landscape backdrop
+        case thumb     // the show's landscape Thumb promo art
+
+        var id: String { rawValue }
+
+        /// Localized chip label. Literal keys + defaults so the
+        /// initializer's compile-time-literal requirement holds.
+        var title: String {
+            switch self {
+            case .still:
+                String(localized: "settings.appearance.cwImage.still", defaultValue: "Episode image")
+            case .backdrop:
+                String(localized: "settings.appearance.cwImage.backdrop", defaultValue: "Backdrop")
+            case .thumb:
+                String(localized: "settings.appearance.cwImage.thumb", defaultValue: "Thumb")
+            }
+        }
+    }
+
     // MARK: - Keys
 
     private enum Keys {
         static let accentChoice = "appearance.accentChoice"
         static let showContentLogos = "appearance.showContentLogos"
-        static let continueWatchingUsesBackdrop = "appearance.continueWatchingUsesBackdrop"
+        static let continueWatchingImage = "appearance.continueWatchingImage"
         static let largeCards = "appearance.largeCards"
         static let nowPlayingUsesSeriesPoster = "appearance.nowPlayingUsesSeriesPoster"
     }
@@ -117,11 +141,10 @@ final class AppearancePreferences {
         didSet { store.set(showContentLogos, forKey: Keys.showContentLogos) }
     }
 
-    /// Continue Watching / Up Next cards show the backdrop (the show's
-    /// cinematic landscape image) instead of the episode's video-frame
-    /// still. Default off (keeps the where-you-left-off frame).
-    var continueWatchingUsesBackdrop: Bool {
-        didSet { store.set(continueWatchingUsesBackdrop, forKey: Keys.continueWatchingUsesBackdrop) }
+    /// Which image the Continue Watching / Up Next cards use: the episode
+    /// still (default), the show's backdrop, or its landscape Thumb.
+    var continueWatchingImage: ContinueWatchingImage {
+        didSet { store.set(continueWatchingImage.rawValue, forKey: Keys.continueWatchingImage) }
     }
 
     /// Render the Home media cards larger (Apple TV-style). Default off.
@@ -150,7 +173,8 @@ final class AppearancePreferences {
         let raw = store.string(forKey: Keys.accentChoice) ?? AccentChoice.system.rawValue
         self.accentChoice = AccentChoice(rawValue: raw) ?? .system
         self.showContentLogos = store.object(forKey: Keys.showContentLogos) as? Bool ?? true
-        self.continueWatchingUsesBackdrop = store.object(forKey: Keys.continueWatchingUsesBackdrop) as? Bool ?? false
+        self.continueWatchingImage = store.string(forKey: Keys.continueWatchingImage)
+            .flatMap(ContinueWatchingImage.init(rawValue:)) ?? .still
         self.largeCards = store.object(forKey: Keys.largeCards) as? Bool ?? false
         self.nowPlayingUsesSeriesPoster = store.object(forKey: Keys.nowPlayingUsesSeriesPoster) as? Bool ?? false
     }
