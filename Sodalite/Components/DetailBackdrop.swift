@@ -43,18 +43,23 @@ struct DetailContentOverlay<Hero: View, Content: View>: View {
         ScrollView(.vertical, showsIndicators: false) {
             VStack(alignment: .leading, spacing: 0) {
                 ZStack(alignment: .bottomLeading) {
-                    Color.clear.frame(height: 500)
+                    VStack(spacing: 0) {
+                        Color.clear.frame(height: 500)
+                        LinearGradient(
+                            colors: [.clear, .black.opacity(0.6), .black.opacity(0.95)],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                        .frame(height: 200)
+                    }
+                    // Pin the hero (logo / title) to the bottom of the
+                    // backdrop+gradient block so it sits just above the
+                    // content panel, right at the gradient's lower edge,
+                    // instead of floating mid-backdrop.
                     hero()
                         .padding(.horizontal, 50)
-                        .padding(.bottom, 4)
+                        .padding(.bottom, 8)
                 }
-
-                LinearGradient(
-                    colors: [.clear, .black.opacity(0.6), .black.opacity(0.95)],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-                .frame(height: 200)
 
                 VStack(alignment: .leading, spacing: 40) {
                     content()

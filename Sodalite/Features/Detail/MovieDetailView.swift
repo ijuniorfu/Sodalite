@@ -193,6 +193,7 @@ struct MovieDetailView: View {
                         .font(.largeTitle)
                         .fontWeight(.bold)
                 }
+                .id(vm.item.imageTags?.logo ?? vm.item.id)
             }) {
                 glassPanel(vm: vm)
                     .padding(.horizontal, 50)
