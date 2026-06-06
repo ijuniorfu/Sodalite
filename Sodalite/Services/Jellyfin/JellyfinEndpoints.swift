@@ -279,9 +279,13 @@ enum JellyfinEndpoint: APIEndpoint {
             ]
 
         case .mediaSegments:
-            // Only care about Intro for now; outro would conflict with
-            // the next-episode overlay that already covers that window.
-            return [URLQueryItem(name: "includeSegmentTypes", value: "Intro")]
+            // Request both Intro (skip-intro button) and Outro (drives the
+            // early next-episode overlay). Repeated same-name items bind to
+            // ASP.NET's list parameter: ?includeSegmentTypes=Intro&includeSegmentTypes=Outro.
+            return [
+                URLQueryItem(name: "includeSegmentTypes", value: "Intro"),
+                URLQueryItem(name: "includeSegmentTypes", value: "Outro"),
+            ]
 
         default:
             return nil
