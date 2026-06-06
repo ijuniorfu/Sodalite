@@ -42,20 +42,22 @@ struct DetailContentOverlay<Hero: View, Content: View>: View {
     var body: some View {
         ScrollView(.vertical, showsIndicators: false) {
             VStack(alignment: .leading, spacing: 0) {
-                ZStack(alignment: .bottomLeading) {
-                    VStack(spacing: 0) {
-                        Color.clear.frame(height: 500)
-                        LinearGradient(
-                            colors: [.clear, .black.opacity(0.6), .black.opacity(0.95)],
-                            startPoint: .top,
-                            endPoint: .bottom
-                        )
-                        .frame(height: 200)
-                    }
-                    // Pin the hero (logo / title) to the bottom of the
-                    // backdrop+gradient block so it sits just above the
-                    // content panel, right at the gradient's lower edge,
-                    // instead of floating mid-backdrop.
+                Color.clear.frame(height: 500)
+
+                // The hero (logo / title) rides as an overlay on the
+                // gradient rather than a separate stacked layer, so the
+                // scroll content stays the same three siblings (clear,
+                // gradient, content) the focus engine scrolls through.
+                // Bottom-aligned, it sits just above the content panel at
+                // the gradient's lower edge, and being an overlay it draws
+                // on top of the gradient so the logo stays visible.
+                LinearGradient(
+                    colors: [.clear, .black.opacity(0.6), .black.opacity(0.95)],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .frame(height: 200)
+                .overlay(alignment: .bottomLeading) {
                     hero()
                         .padding(.horizontal, 50)
                         .padding(.bottom, 8)

@@ -66,3 +66,32 @@ struct ContentLogoTitle<Fallback: View>: View {
         .shadow(color: .black.opacity(0.55), radius: 14, y: 4)
     }
 }
+
+/// Backdrop hero logo for the Movie / Series detail screens.
+///
+/// Reads `viewModel.item` in its OWN body, so it is a direct observer of
+/// the detail view model. That is the load-bearing detail: episode
+/// deep-links open SeriesDetailView with a series stub that has no
+/// imageTags, and the logo tag only arrives later with loadFullDetail.
+/// A tag read inside the parent's @ViewBuilder hero closure did not
+/// reliably re-render inside the ScrollView when the tag landed (the
+/// logo only appeared after a manual scroll); a dedicated observing view
+/// re-renders itself the moment `item` changes, so the logo swaps in as
+/// soon as it loads. For episodes `viewModel.item` is the SERIES, which
+/// is the logo we want.
+struct DetailHeroLogo: View {
+    let viewModel: DetailViewModel
+    var maxHeight: CGFloat = 150
+
+    var body: some View {
+        ContentLogoTitle(
+            itemID: viewModel.item.id,
+            logoTag: viewModel.item.imageTags?.logo,
+            maxHeight: maxHeight
+        ) {
+            Text(viewModel.item.name)
+                .font(.largeTitle)
+                .fontWeight(.bold)
+        }
+    }
+}

@@ -124,17 +124,11 @@ struct SeriesDetailView: View {
                 DetailContentOverlay(hero: {
                     // Series logo over the backdrop, shown in both the
                     // series root and the episode panel (the episode has
-                    // no logo of its own). Drop shadow keeps dark logos
-                    // legible on the artwork.
-                    ContentLogoTitle(
-                        itemID: vm.item.id,
-                        logoTag: vm.item.imageTags?.logo,
-                        maxHeight: 150
-                    ) {
-                        Text(vm.item.name)
-                            .font(.largeTitle)
-                            .fontWeight(.bold)
-                    }
+                    // no logo of its own). DetailHeroLogo observes the
+                    // view model so the logo appears as soon as an episode
+                    // deep-link's series stub finishes loading its
+                    // imageTags, without needing a scroll.
+                    DetailHeroLogo(viewModel: vm)
                 }) {
                     // Captured ScrollViewProxy lets the player-dismiss
                     // handler scroll the outer vertical ScrollView back

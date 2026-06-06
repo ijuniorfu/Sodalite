@@ -184,15 +184,7 @@ struct MovieDetailView: View {
                 .id(vm.item.backdropImageTags?.first ?? "empty")
 
             DetailContentOverlay(hero: {
-                ContentLogoTitle(
-                    itemID: vm.item.id,
-                    logoTag: vm.item.imageTags?.logo,
-                    maxHeight: 150
-                ) {
-                    Text(vm.item.name)
-                        .font(.largeTitle)
-                        .fontWeight(.bold)
-                }
+                DetailHeroLogo(viewModel: vm)
             }) {
                 glassPanel(vm: vm)
                     .padding(.horizontal, 50)
