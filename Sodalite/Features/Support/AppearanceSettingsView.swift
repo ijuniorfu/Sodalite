@@ -48,7 +48,7 @@ struct AppearanceSettingsView: View {
 
             Text(String(
                 localized: "settings.appearance.subtitle",
-                defaultValue: "Pick an accent color for buttons, focus rings, and highlights."
+                defaultValue: "How logos, cards, and images look, plus the accent color."
             ))
             .font(.body)
             .foregroundStyle(.secondary)
