@@ -195,6 +195,16 @@ extension PlayerViewModel {
 
     private func primaryImageURL() -> URL? {
         guard let base = playbackService.baseURL?.absoluteString else { return nil }
+        // Series poster (Primary) for episodes when the user prefers it
+        // (Appearance setting): a portrait poster fills the square Control
+        // Center artwork slot better than the episode's landscape still.
+        // The episode carries the series' Primary tag. Movies fall through
+        // to their own Primary below.
+        if DependencyContainer.shared.appearancePreferences.nowPlayingUsesSeriesPoster,
+           item.type == .episode, let seriesId = item.seriesId {
+            let tagParam = item.seriesPrimaryImageTag.map { "&tag=\($0)" } ?? ""
+            return URL(string: "\(base)/Items/\(seriesId)/Images/Primary?maxWidth=800&quality=85\(tagParam)")
+        }
         if let tag = item.imageTags?.primary {
             return URL(string: "\(base)/Items/\(item.id)/Images/Primary?tag=\(tag)&maxWidth=800&quality=85")
         }

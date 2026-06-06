@@ -92,7 +92,15 @@ final class AppearancePreferences {
     private enum Keys {
         static let accentChoice = "appearance.accentChoice"
         static let showContentLogos = "appearance.showContentLogos"
+        static let continueWatchingUsesSeriesArt = "appearance.continueWatchingUsesSeriesArt"
+        static let largeCards = "appearance.largeCards"
+        static let nowPlayingUsesSeriesPoster = "appearance.nowPlayingUsesSeriesPoster"
     }
+
+    /// Multiplier applied to media-card dimensions when `largeCards` is on.
+    /// 1.3 gives a noticeably bigger Apple TV-style card without dropping
+    /// so many cards per row that the rows feel empty.
+    static let largeCardScale: CGFloat = 1.3
 
     // MARK: - State
 
@@ -109,6 +117,31 @@ final class AppearancePreferences {
         didSet { store.set(showContentLogos, forKey: Keys.showContentLogos) }
     }
 
+    /// Continue Watching / Up Next cards show the series' landscape Thumb
+    /// art instead of the episode's video-frame still. Default off (keeps
+    /// the where-you-left-off frame). Falls back Thumb -> Backdrop ->
+    /// still when a show has no Thumb.
+    var continueWatchingUsesSeriesArt: Bool {
+        didSet { store.set(continueWatchingUsesSeriesArt, forKey: Keys.continueWatchingUsesSeriesArt) }
+    }
+
+    /// Render the Home media cards larger (Apple TV-style). Default off.
+    var largeCards: Bool {
+        didSet { store.set(largeCards, forKey: Keys.largeCards) }
+    }
+
+    /// System Now-Playing artwork uses the series poster (Primary) rather
+    /// than the episode still, which fills the square Control Center slot
+    /// better. Default off. Movies are unaffected (no series).
+    var nowPlayingUsesSeriesPoster: Bool {
+        didSet { store.set(nowPlayingUsesSeriesPoster, forKey: Keys.nowPlayingUsesSeriesPoster) }
+    }
+
+    /// Scale factor for media-card dimensions, driven by `largeCards`.
+    var cardScale: CGFloat {
+        largeCards ? Self.largeCardScale : 1.0
+    }
+
     // MARK: - Init
 
     private let store: UserDefaults
@@ -118,6 +151,9 @@ final class AppearancePreferences {
         let raw = store.string(forKey: Keys.accentChoice) ?? AccentChoice.system.rawValue
         self.accentChoice = AccentChoice(rawValue: raw) ?? .system
         self.showContentLogos = store.object(forKey: Keys.showContentLogos) as? Bool ?? true
+        self.continueWatchingUsesSeriesArt = store.object(forKey: Keys.continueWatchingUsesSeriesArt) as? Bool ?? false
+        self.largeCards = store.object(forKey: Keys.largeCards) as? Bool ?? false
+        self.nowPlayingUsesSeriesPoster = store.object(forKey: Keys.nowPlayingUsesSeriesPoster) as? Bool ?? false
     }
 
     /// Effective tint to apply to the UI. Non-supporters always get

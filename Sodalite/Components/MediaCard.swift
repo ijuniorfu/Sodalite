@@ -9,6 +9,9 @@ enum MediaCardStyle: Sendable {
 struct MediaCard: View {
     let item: JellyfinItem
     let imageURL: URL?
+    /// Tried when `imageURL` is nil or fails (e.g. a series Thumb that
+    /// falls back to the episode still for Continue Watching).
+    let fallbackURL: URL?
     let style: MediaCardStyle
 
     /// Set by the caller, either forwarded from `FocusableCard`'s
@@ -18,30 +21,40 @@ struct MediaCard: View {
     /// it explicitly.
     let isFocused: Bool
 
+    @Environment(\.dependencies) private var dependencies
+
+    /// Apple TV-style enlarge factor from Appearance settings (1.0 normal).
+    /// Applied to every style so rows stay proportional to each other.
+    private var scale: CGFloat { dependencies.appearancePreferences.cardScale }
+
     private var cardWidth: CGFloat {
-        switch style {
+        let base: CGFloat = switch style {
         case .poster: 220
         case .landscape: 360
         case .square: 220
         }
+        return base * scale
     }
 
     private var cardHeight: CGFloat {
-        switch style {
+        let base: CGFloat = switch style {
         case .poster: 330
         case .landscape: 202
         case .square: 220
         }
+        return base * scale
     }
 
     init(
         item: JellyfinItem,
         imageURL: URL?,
+        fallbackURL: URL? = nil,
         style: MediaCardStyle = .poster,
         isFocused: Bool = false
     ) {
         self.item = item
         self.imageURL = imageURL
+        self.fallbackURL = fallbackURL
         self.style = style
         self.isFocused = isFocused
     }
@@ -55,7 +68,7 @@ struct MediaCard: View {
     }
 
     private var posterImage: some View {
-        AsyncCachedImage(url: imageURL) { image in
+        AsyncCachedImage(url: imageURL, fallbackURL: fallbackURL) { image in
             image
                 .resizable()
                 .aspectRatio(contentMode: .fill)

@@ -21,7 +21,7 @@ struct AppearanceSettingsView: View {
                 .fontWeight(.bold)
                 .frame(maxWidth: .infinity)
 
-                logoToggle
+                togglesSection
 
                 header
                 if isSupporter {
@@ -58,27 +58,68 @@ struct AppearanceSettingsView: View {
         .frame(maxWidth: .infinity)
     }
 
-    // MARK: - Content logos (free)
+    // MARK: - Toggles (free for everyone)
 
-    /// Free for everyone: swap the text title for the title-card logo on
-    /// the detail screens. Sits above the supporter-gated accent picker.
-    private var logoToggle: some View {
-        Button {
-            appearance.showContentLogos.toggle()
-        } label: {
+    /// Free customization toggles, above the supporter-gated accent picker.
+    private var togglesSection: some View {
+        VStack(spacing: 4) {
+            toggleRow(
+                icon: "photo.on.rectangle",
+                title: String(localized: "settings.appearance.showLogos",
+                              defaultValue: "Show content logos"),
+                subtitle: String(localized: "settings.appearance.showLogos.subtitle",
+                                 defaultValue: "Use a show or movie's logo image instead of its text title on the detail screens, when one is available."),
+                isOn: appearance.showContentLogos
+            ) { appearance.showContentLogos.toggle() }
+
+            toggleRow(
+                icon: "rectangle.on.rectangle.angled",
+                title: String(localized: "settings.appearance.cwSeriesArt",
+                              defaultValue: "Series art for Continue Watching"),
+                subtitle: String(localized: "settings.appearance.cwSeriesArt.subtitle",
+                                 defaultValue: "Show the show's landscape artwork in Continue Watching and Up Next instead of the episode's video frame."),
+                isOn: appearance.continueWatchingUsesSeriesArt
+            ) { appearance.continueWatchingUsesSeriesArt.toggle() }
+
+            toggleRow(
+                icon: "rectangle.expand.vertical",
+                title: String(localized: "settings.appearance.largeCards",
+                              defaultValue: "Larger cards"),
+                subtitle: String(localized: "settings.appearance.largeCards.subtitle",
+                                 defaultValue: "Render Home cards bigger, Apple TV style. Fewer cards fit per row."),
+                isOn: appearance.largeCards
+            ) { appearance.largeCards.toggle() }
+
+            toggleRow(
+                icon: "music.note.tv",
+                title: String(localized: "settings.appearance.nowPlayingPoster",
+                              defaultValue: "Series poster in Now Playing"),
+                subtitle: String(localized: "settings.appearance.nowPlayingPoster.subtitle",
+                                 defaultValue: "Use the series poster instead of the episode still for the Control Center artwork."),
+                isOn: appearance.nowPlayingUsesSeriesPoster
+            ) { appearance.nowPlayingUsesSeriesPoster.toggle() }
+        }
+    }
+
+    private func toggleRow(
+        icon: String,
+        title: String,
+        subtitle: String,
+        isOn: Bool,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
             HStack(spacing: 28) {
-                Image(systemName: "photo.on.rectangle")
+                Image(systemName: icon)
                     .font(.body)
                     .foregroundStyle(.tint)
                     .frame(width: 36)
 
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(String(localized: "settings.appearance.showLogos",
-                                defaultValue: "Show content logos"))
+                    Text(title)
                         .font(.body)
                         .fontWeight(.medium)
-                    Text(String(localized: "settings.appearance.showLogos.subtitle",
-                                defaultValue: "Use a show or movie's logo image instead of its text title on the detail screens, when one is available."))
+                    Text(subtitle)
                         .font(.caption)
                         .foregroundStyle(.secondary)
                         .multilineTextAlignment(.leading)
@@ -86,7 +127,7 @@ struct AppearanceSettingsView: View {
 
                 Spacer()
 
-                Text(appearance.showContentLogos
+                Text(isOn
                      ? String(localized: "settings.playback.on", defaultValue: "On")
                      : String(localized: "settings.playback.off", defaultValue: "Off"))
                     .font(.body)
