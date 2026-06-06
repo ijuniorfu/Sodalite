@@ -63615,6 +63615,978 @@
         }
       }
     },
+    "settings.appearance.cwSeriesArt" : {
+      "comment" : "Appearance toggle: use series landscape art for Continue Watching / Up Next",
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Grafika seriálu pro Pokračovat v přehrávání"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Serieillustration til Fortsæt med at se"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Serien-Artwork für Weiterschauen"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Εικαστικό σειράς για τη Συνέχιση παρακολούθησης"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Series art for Continue Watching"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Arte de la serie en Continuar viendo"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sarjan kuvitus Jatka katselua -kohdassa"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Visuel de la série pour Reprendre la lecture"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Grafika serije za Nastavi gledati"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sorozat grafikája a Megtekintés folytatásához"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Immagine della serie in Continua a guardare"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "「続きを見る」にシリーズのアートを使用"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이어서 보기에 시리즈 아트 사용"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Serieillustrasjon for Fortsett å se"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Serie-artwork voor Verder kijken"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Grafika serialu w sekcji Kontynuuj oglądanie"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Arte da série em Continuar assistindo"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Arte da série em Continuar a ver"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Grafica serialului pentru Continuă vizionarea"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Обложка сериала в разделе «Продолжить просмотр»"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Grafika seriálu pre Pokračovať v sledovaní"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seriegrafik för Fortsätt titta"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "İzlemeye Devam Et için dizi görseli"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Графіка серіалу для «Продовжити перегляд»"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在“继续观看”中使用剧集艺术图"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在「繼續觀看」中使用劇集藝術圖"
+          }
+        }
+      }
+    },
+    "settings.appearance.cwSeriesArt.subtitle" : {
+      "comment" : "Subtitle for the Continue Watching series-art toggle",
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "V sekcích Pokračovat v přehrávání a Další na řadě zobrazí širokoúhlou grafiku seriálu místo snímku z epizody."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vis seriens liggende illustration i Fortsæt med at se og Næste i stedet for et billede fra episoden."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zeigt in Weiterschauen und Als Nächstes das Querformat-Artwork der Serie statt eines Standbilds aus der Episode."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Εμφανίζει το οριζόντιο εικαστικό της σειράς στη Συνέχιση παρακολούθησης και στο Επόμενο αντί για καρέ του επεισοδίου."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show the show's landscape artwork in Continue Watching and Up Next instead of the episode's video frame."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Muestra el arte horizontal de la serie en Continuar viendo y A continuación en lugar de un fotograma del episodio."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Näyttää sarjan vaakakuvituksen Jatka katselua- ja Seuraavaksi-kohdissa jaksokuvan sijaan."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Affiche le visuel paysage de la série dans Reprendre la lecture et À suivre au lieu d'une image de l'épisode."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Prikazuje pejzažnu grafiku serije u Nastavi gledati i Sljedeće umjesto sličice epizode."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A sorozat fekvő grafikáját jeleníti meg a Megtekintés folytatása és a Következő részben az epizód képkockája helyett."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostra l'immagine orizzontale della serie in Continua a guardare e Da vedere invece di un fotogramma dell'episodio."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "「続きを見る」と「次に見る」で、エピソードの映像コマの代わりにシリーズの横長アートを表示します。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이어서 보기와 다음 볼 콘텐츠에서 에피소드 장면 대신 시리즈의 가로 아트를 표시합니다."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Viser seriens liggende illustrasjon i Fortsett å se og Neste i stedet for et bilde fra episoden."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toont de liggende artwork van de serie in Verder kijken en Volgende in plaats van een beeld uit de aflevering."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pokazuje poziomą grafikę serialu w sekcjach Kontynuuj oglądanie i Następne zamiast kadru z odcinka."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostra a arte horizontal da série em Continuar assistindo e A seguir em vez de um quadro do episódio."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostra a arte horizontal da série em Continuar a ver e A seguir em vez de um fotograma do episódio."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Afișează grafica orizontală a serialului în Continuă vizionarea și Următorul în loc de un cadru din episod."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Показывает горизонтальную обложку сериала в разделах «Продолжить просмотр» и «Дальше» вместо кадра из эпизода."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "V sekciách Pokračovať v sledovaní a Ďalšie zobrazí širokouhlú grafiku seriálu namiesto snímky z epizódy."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Visar seriens liggande grafik i Fortsätt titta och Näst på tur i stället för en bild från avsnittet."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "İzlemeye Devam Et ve Sıradaki bölümlerinde, bölümün video karesi yerine dizinin yatay görselini gösterir."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Показує горизонтальну графіку серіалу в розділах «Продовжити перегляд» і «Далі» замість кадру з епізоду."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在“继续观看”和“接下来观看”中显示剧集的横向艺术图，而非剧集的视频画面。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在「繼續觀看」和「接下來觀看」中顯示劇集的橫向藝術圖，而非劇集的影片畫面。"
+          }
+        }
+      }
+    },
+    "settings.appearance.largeCards" : {
+      "comment" : "Appearance toggle: render Home cards larger",
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Větší karty"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Større kort"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Größere Karten"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Μεγαλύτερες κάρτες"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Larger cards"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tarjetas más grandes"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Suuremmat kortit"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cartes plus grandes"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Veće kartice"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nagyobb kártyák"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Schede più grandi"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "大きなカード"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "더 큰 카드"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Større kort"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Grotere kaarten"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Większe karty"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cartões maiores"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cartões maiores"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Carduri mai mari"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Крупнее карточки"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Väčšie karty"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Större kort"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Daha büyük kartlar"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Більші картки"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更大的卡片"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更大的卡片"
+          }
+        }
+      }
+    },
+    "settings.appearance.largeCards.subtitle" : {
+      "comment" : "Subtitle for the larger-cards toggle",
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zvětší karty na ploše Domů ve stylu Apple TV. Na řádek se vejde méně karet."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gør kortene på Hjem større i Apple TV-stil. Færre kort pr. række."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stellt die Karten auf der Startseite größer dar, im Apple-TV-Stil. Weniger Karten pro Reihe."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Εμφανίζει μεγαλύτερες κάρτες στην Αρχική, σε στυλ Apple TV. Λιγότερες κάρτες ανά σειρά."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Render Home cards bigger, Apple TV style. Fewer cards fit per row."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Muestra las tarjetas de Inicio más grandes, al estilo de Apple TV. Caben menos por fila."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Näyttää Koti-näkymän kortit suurempina, Apple TV -tyyliin. Riville mahtuu vähemmän kortteja."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Affiche des cartes plus grandes sur l'Accueil, façon Apple TV. Moins de cartes par rangée."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Prikazuje veće kartice na početnom zaslonu, u stilu Apple TV-a. Manje kartica po retku."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nagyobb kártyák a Kezdőképernyőn, Apple TV stílusban. Soronként kevesebb kártya fér el."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostra schede più grandi nella Home, in stile Apple TV. Meno schede per riga."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ホームのカードを Apple TV 風に大きく表示します。1 行あたりのカード数は減ります。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "홈 카드를 Apple TV 스타일로 더 크게 표시합니다. 한 줄에 표시되는 카드 수가 줄어듭니다."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Viser kortene på Hjem større, i Apple TV-stil. Færre kort per rad."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toont de kaarten op Start groter, Apple TV-stijl. Minder kaarten per rij."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wyświetla karty na ekranie głównym większe, w stylu Apple TV. Mniej kart w rzędzie."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Exibe os cartões da Tela inicial maiores, no estilo Apple TV. Cabem menos por linha."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostra os cartões do Início maiores, ao estilo Apple TV. Cabem menos por linha."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Afișează cardurile de pe Acasă mai mari, în stil Apple TV. Încap mai puține pe rând."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Увеличивает карточки на главном экране в стиле Apple TV. В ряд помещается меньше карточек."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zobrazí karty na ploche Domov väčšie, v štýle Apple TV. Na riadok sa zmestí menej kariet."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Visar korten på Hem större, i Apple TV-stil. Färre kort ryms per rad."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ana ekran kartlarını Apple TV tarzında daha büyük gösterir. Satır başına daha az kart sığar."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Показує картки на головному екрані більшими, у стилі Apple TV. У ряд вміщається менше карток."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "以 Apple TV 风格放大主屏卡片。每行显示的卡片更少。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "以 Apple TV 風格放大主畫面卡片。每列顯示的卡片更少。"
+          }
+        }
+      }
+    },
+    "settings.appearance.nowPlayingPoster" : {
+      "comment" : "Appearance toggle: use series poster for the Now Playing artwork",
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Plakát seriálu v Přehrává se"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Serieplakat i Afspilles nu"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Serien-Poster in „Aktuelle Wiedergabe“"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Αφίσα σειράς στο Αναπαράγεται τώρα"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Series poster in Now Playing"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Póster de la serie en Reproduciendo"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sarjan juliste Toistetaan nyt -näkymässä"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Affiche de la série dans Lecture en cours"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Plakat serije u Sad se reproducira"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sorozatplakát a Most játszott részben"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Locandina della serie in In riproduzione"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "再生中にシリーズのポスターを表示"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "재생 중에 시리즈 포스터 표시"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Serieplakat i Spilles nå"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Serieposter in Wordt afgespeeld"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Plakat serialu w Teraz odtwarzane"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pôster da série em Tocando agora"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cartaz da série em A reproduzir"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Afișul serialului în Se redă acum"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Постер сериала в разделе «Сейчас играет»"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Plagát seriálu v Práve sa prehráva"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Serieaffisch i Spelas nu"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Çalınanlar'da dizi afişi"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Постер серіалу в «Зараз відтворюється»"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在“正在播放”中显示剧集海报"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在「正在播放」中顯示劇集海報"
+          }
+        }
+      }
+    },
+    "settings.appearance.nowPlayingPoster.subtitle" : {
+      "comment" : "Subtitle for the Now Playing series-poster toggle",
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "V Ovládacím centru použije plakát seriálu místo snímku z epizody."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Brug serieplakaten i stedet for et episodebillede til illustrationen i Kontrolcenter."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verwendet im Kontrollzentrum das Serien-Poster statt eines Standbilds aus der Episode."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Χρησιμοποιεί την αφίσα της σειράς αντί για καρέ του επεισοδίου ως εικαστικό στο Κέντρο ελέγχου."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Use the series poster instead of the episode still for the Control Center artwork."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Usa el póster de la serie en lugar de un fotograma del episodio para la imagen del Centro de control."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Käyttää Ohjauskeskuksen kuvituksena sarjan julistetta jaksokuvan sijaan."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Utilise l'affiche de la série au lieu d'une image de l'épisode pour le visuel du Centre de contrôle."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Za grafiku u Kontrolnom centru koristi plakat serije umjesto sličice epizode."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A Vezérlőközpont grafikájához a sorozat plakátját használja az epizód képkockája helyett."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Usa la locandina della serie invece di un fotogramma dell'episodio per l'immagine del Centro di Controllo."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "コントロールセンターのアートワークに、エピソードの静止画ではなくシリーズのポスターを使用します。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "제어 센터 아트워크에 에피소드 정지 화면 대신 시리즈 포스터를 사용합니다."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bruker serieplakaten i stedet for et episodebilde til illustrasjonen i Kontrollsenter."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gebruikt de serieposter in plaats van een beeld uit de aflevering voor de artwork in Bedieningspaneel."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Używa plakatu serialu zamiast kadru z odcinka jako grafiki w Centrum sterowania."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Usa o pôster da série em vez de um quadro do episódio para a arte da Central de Controle."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Usa o cartaz da série em vez de um fotograma do episódio para a arte do Centro de Controlo."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Folosește afișul serialului în loc de un cadru din episod pentru grafica din Centrul de control."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Использует постер сериала вместо кадра из эпизода для обложки в Пункте управления."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "V Ovládacom centre použije plagát seriálu namiesto snímky z epizódy."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Använder serieaffischen i stället för en bild från avsnittet som grafik i Kontrollcenter."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Denetim Merkezi görseli için bölüm karesi yerine dizinin afişini kullanır."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Використовує постер серіалу замість кадру з епізоду для обкладинки в Пункті керування."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在控制中心的封面使用剧集海报，而非剧集的静帧画面。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在控制中心的封面使用劇集海報，而非劇集的靜幀畫面。"
+          }
+        }
+      }
+    },
     "settings.appearance.subtitle" : {
       "comment" : "Subtitle on the Appearance screen explaining what the accent color affects",
       "extractionState" : "manual",
