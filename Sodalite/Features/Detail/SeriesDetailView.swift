@@ -121,7 +121,22 @@ struct SeriesDetailView: View {
             }
 
             if let vm = viewModel, !vm.isLoading {
-                DetailContentOverlay {
+                DetailContentOverlay(hero: {
+                    // Series logo over the backdrop, shown in both the
+                    // series root and the episode panel (the episode has
+                    // no logo of its own). Drop shadow keeps dark logos
+                    // legible on the artwork.
+                    ContentLogoTitle(
+                        itemID: vm.item.id,
+                        logoTag: vm.item.imageTags?.logo,
+                        maxHeight: 150
+                    ) {
+                        Text(vm.item.name)
+                            .font(.largeTitle)
+                            .fontWeight(.bold)
+                    }
+                    .shadow(color: .black.opacity(0.55), radius: 12, y: 4)
+                }) {
                     // Captured ScrollViewProxy lets the player-dismiss
                     // handler scroll the outer vertical ScrollView back
                     // to the episode row. Without this, the nil-flicker
@@ -461,36 +476,16 @@ struct SeriesDetailView: View {
 
     private func glassPanel(vm: DetailViewModel) -> some View {
         VStack(alignment: .leading, spacing: 16) {
+            // Series logo now lives in the backdrop hero slot above the
+            // panel (see DetailContentOverlay). In the episode panel the
+            // panel title is the episode name; the series root has no
+            // panel title at all, so it opens straight into the metadata
+            // + secondary-info row.
             if isShowingEpisode {
-                // Series logo as an eyebrow above the episode title (the
-                // episode itself has no logo). Falls back to the plain
-                // series name.
-                ContentLogoTitle(
-                    itemID: vm.item.id,
-                    logoTag: vm.item.imageTags?.logo,
-                    maxHeight: 52
-                ) {
-                    Text(vm.item.name)
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                }
-
                 Text(selectedEpisode?.name ?? "")
                     .font(.largeTitle)
                     .fontWeight(.bold)
                     .lineLimit(2)
-            } else {
-                // Series logo in place of the series title on the root.
-                ContentLogoTitle(
-                    itemID: vm.item.id,
-                    logoTag: vm.item.imageTags?.logo,
-                    maxHeight: 130
-                ) {
-                    Text(vm.item.name)
-                        .font(.largeTitle)
-                        .fontWeight(.bold)
-                        .lineLimit(2)
-                }
             }
 
             HStack(alignment: .top, spacing: 40) {

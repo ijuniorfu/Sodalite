@@ -183,7 +183,18 @@ struct MovieDetailView: View {
             DetailBackdrop(imageURL: vm.backdropURL(for: vm.item))
                 .id(vm.item.backdropImageTags?.first ?? "empty")
 
-            DetailContentOverlay {
+            DetailContentOverlay(hero: {
+                ContentLogoTitle(
+                    itemID: vm.item.id,
+                    logoTag: vm.item.imageTags?.logo,
+                    maxHeight: 150
+                ) {
+                    Text(vm.item.name)
+                        .font(.largeTitle)
+                        .fontWeight(.bold)
+                }
+                .shadow(color: .black.opacity(0.55), radius: 12, y: 4)
+            }) {
                 glassPanel(vm: vm)
                     .padding(.horizontal, 50)
                     .id(vm.item.genres?.first ?? vm.item.name)
@@ -224,15 +235,9 @@ struct MovieDetailView: View {
 
     private func glassPanel(vm: DetailViewModel) -> some View {
         VStack(alignment: .leading, spacing: 16) {
-            ContentLogoTitle(
-                itemID: vm.item.id,
-                logoTag: vm.item.imageTags?.logo,
-                maxHeight: 130
-            ) {
-                Text(vm.item.name)
-                    .font(.largeTitle)
-                    .fontWeight(.bold)
-            }
+            // Title/logo now lives in the backdrop hero slot above the
+            // panel (see DetailContentOverlay). The panel opens straight
+            // into the metadata + secondary-info row.
 
             // Episode subtitle
             if vm.item.type == .episode, let series = vm.item.seriesName {

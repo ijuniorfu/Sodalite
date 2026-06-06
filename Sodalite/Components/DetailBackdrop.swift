@@ -19,13 +19,35 @@ struct DetailBackdrop: View {
 }
 
 /// Scrollable content overlay that transitions from transparent to opaque over the backdrop.
-struct DetailContentOverlay<Content: View>: View {
+///
+/// The optional `hero` slot (e.g. the title-card logo) floats over the
+/// lower edge of the backdrop image, above the gradient fade, so it sits
+/// on the artwork instead of the black content panel below. That keeps
+/// dark logos legible (a black logo on the panel's ultraThinMaterial
+/// would vanish) and frees the panel's top row to start at the title's
+/// height. Defaults to empty, so overlays that pass no hero (collection,
+/// catalog) render exactly as before.
+struct DetailContentOverlay<Hero: View, Content: View>: View {
+    @ViewBuilder let hero: () -> Hero
     @ViewBuilder let content: () -> Content
+
+    init(
+        @ViewBuilder hero: @escaping () -> Hero = { EmptyView() },
+        @ViewBuilder content: @escaping () -> Content
+    ) {
+        self.hero = hero
+        self.content = content
+    }
 
     var body: some View {
         ScrollView(.vertical, showsIndicators: false) {
             VStack(alignment: .leading, spacing: 0) {
-                Color.clear.frame(height: 500)
+                ZStack(alignment: .bottomLeading) {
+                    Color.clear.frame(height: 500)
+                    hero()
+                        .padding(.horizontal, 50)
+                        .padding(.bottom, 4)
+                }
 
                 LinearGradient(
                     colors: [.clear, .black.opacity(0.6), .black.opacity(0.95)],
