@@ -200,6 +200,14 @@ struct SeriesDetailView: View {
                     }
                 }
                 .transition(.opacity)
+                // Episode deep-links instant-paint a series stub, then
+                // loadFullDetail swaps in the real series. Rebuild the
+                // whole hero + content once on that swap so it renders
+                // fresh with full data (logo in place, focus-scroll
+                // behaving), exactly like a series opened directly behind
+                // its loading gate. No-op for direct series opens
+                // (initialEpisode == nil), so they never see a rebuild.
+                .id(initialEpisode != nil ? vm.didLoadDetail : false)
             } else {
                 // Centred spinner over the backdrop while every
                 // section's data is still in flight. Showing the
