@@ -830,16 +830,15 @@ final class HomeViewModel {
         }
     }
 
-    func imageURL(for item: JellyfinItem, rowType: HomeRowType, useSeriesArt: Bool = false) -> URL? {
+    func imageURL(for item: JellyfinItem, rowType: HomeRowType, useBackdrop: Bool = false) -> URL? {
         if rowType.usesBackdrop {
-            // Continue Watching / Up Next. With the series-art preference on,
-            // show the show's landscape Thumb (addressed by series id,
-            // tagless) instead of the episode video-frame; the caller pairs
-            // this with fallbackImageURL so a Thumb-less show degrades to the
-            // still.
-            if useSeriesArt {
-                let id = (item.type == .episode ? item.seriesId : nil) ?? item.id
-                return imageService.imageURL(itemID: id, imageType: .thumb, maxWidth: 720)
+            // Continue Watching / Up Next. With the backdrop preference on,
+            // show the cinematic landscape backdrop (series backdrop for
+            // episodes) instead of the episode video-frame still.
+            if useBackdrop {
+                return imageService.backdropURL(for: item)
+                    ?? imageService.episodeThumbnailURL(for: item)
+                    ?? imageService.posterURL(for: item)
             }
             if item.type == .episode {
                 return imageService.episodeThumbnailURL(for: item)
@@ -847,16 +846,6 @@ final class HomeViewModel {
             return imageService.backdropURL(for: item) ?? imageService.posterURL(for: item)
         }
         return imageService.posterURL(for: item)
-    }
-
-    /// The default Continue Watching / Up Next image (episode video-frame
-    /// or backdrop). Used as the fallback under `imageURL(useSeriesArt:)`
-    /// so a show with no Thumb still shows something.
-    func fallbackImageURL(for item: JellyfinItem) -> URL? {
-        if item.type == .episode {
-            return imageService.episodeThumbnailURL(for: item)
-        }
-        return imageService.backdropURL(for: item) ?? imageService.posterURL(for: item)
     }
 
     func reloadConfig() {

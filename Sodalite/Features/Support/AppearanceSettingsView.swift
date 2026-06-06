@@ -74,12 +74,12 @@ struct AppearanceSettingsView: View {
 
             toggleRow(
                 icon: "rectangle.on.rectangle.angled",
-                title: String(localized: "settings.appearance.cwSeriesArt",
-                              defaultValue: "Series art for Continue Watching"),
-                subtitle: String(localized: "settings.appearance.cwSeriesArt.subtitle",
-                                 defaultValue: "Show the show's landscape artwork in Continue Watching and Up Next instead of the episode's video frame."),
-                isOn: appearance.continueWatchingUsesSeriesArt
-            ) { appearance.continueWatchingUsesSeriesArt.toggle() }
+                title: String(localized: "settings.appearance.cwBackdrop",
+                              defaultValue: "Backdrop in Continue Watching"),
+                subtitle: String(localized: "settings.appearance.cwBackdrop.subtitle",
+                                 defaultValue: "Show the backdrop in Continue Watching and Up Next instead of the episode's video frame."),
+                isOn: appearance.continueWatchingUsesBackdrop
+            ) { appearance.continueWatchingUsesBackdrop.toggle() }
 
             toggleRow(
                 icon: "rectangle.expand.vertical",

@@ -9,9 +9,6 @@ enum MediaCardStyle: Sendable {
 struct MediaCard: View {
     let item: JellyfinItem
     let imageURL: URL?
-    /// Tried when `imageURL` is nil or fails (e.g. a series Thumb that
-    /// falls back to the episode still for Continue Watching).
-    let fallbackURL: URL?
     let style: MediaCardStyle
 
     /// Set by the caller, either forwarded from `FocusableCard`'s
@@ -48,13 +45,11 @@ struct MediaCard: View {
     init(
         item: JellyfinItem,
         imageURL: URL?,
-        fallbackURL: URL? = nil,
         style: MediaCardStyle = .poster,
         isFocused: Bool = false
     ) {
         self.item = item
         self.imageURL = imageURL
-        self.fallbackURL = fallbackURL
         self.style = style
         self.isFocused = isFocused
     }
@@ -68,7 +63,7 @@ struct MediaCard: View {
     }
 
     private var posterImage: some View {
-        AsyncCachedImage(url: imageURL, fallbackURL: fallbackURL) { image in
+        AsyncCachedImage(url: imageURL) { image in
             image
                 .resizable()
                 .aspectRatio(contentMode: .fill)

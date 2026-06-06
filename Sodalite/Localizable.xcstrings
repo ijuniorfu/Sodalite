@@ -63615,330 +63615,6 @@
         }
       }
     },
-    "settings.appearance.cwSeriesArt" : {
-      "comment" : "Appearance toggle: use series landscape art for Continue Watching / Up Next",
-      "extractionState" : "manual",
-      "localizations" : {
-        "cs" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Grafika seriálu pro Pokračovat v přehrávání"
-          }
-        },
-        "da" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Serieillustration til Fortsæt med at se"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Serien-Artwork für Weiterschauen"
-          }
-        },
-        "el" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Εικαστικό σειράς για τη Συνέχιση παρακολούθησης"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Series art for Continue Watching"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Arte de la serie en Continuar viendo"
-          }
-        },
-        "fi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sarjan kuvitus Jatka katselua -kohdassa"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Visuel de la série pour Reprendre la lecture"
-          }
-        },
-        "hr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Grafika serije za Nastavi gledati"
-          }
-        },
-        "hu" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sorozat grafikája a Megtekintés folytatásához"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Immagine della serie in Continua a guardare"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "「続きを見る」にシリーズのアートを使用"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "이어서 보기에 시리즈 아트 사용"
-          }
-        },
-        "nb" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Serieillustrasjon for Fortsett å se"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Serie-artwork voor Verder kijken"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Grafika serialu w sekcji Kontynuuj oglądanie"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Arte da série em Continuar assistindo"
-          }
-        },
-        "pt-PT" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Arte da série em Continuar a ver"
-          }
-        },
-        "ro" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Grafica serialului pentru Continuă vizionarea"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Обложка сериала в разделе «Продолжить просмотр»"
-          }
-        },
-        "sk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Grafika seriálu pre Pokračovať v sledovaní"
-          }
-        },
-        "sv" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Seriegrafik för Fortsätt titta"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "İzlemeye Devam Et için dizi görseli"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Графіка серіалу для «Продовжити перегляд»"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "在“继续观看”中使用剧集艺术图"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "在「繼續觀看」中使用劇集藝術圖"
-          }
-        }
-      }
-    },
-    "settings.appearance.cwSeriesArt.subtitle" : {
-      "comment" : "Subtitle for the Continue Watching series-art toggle",
-      "extractionState" : "manual",
-      "localizations" : {
-        "cs" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "V sekcích Pokračovat v přehrávání a Další na řadě zobrazí širokoúhlou grafiku seriálu místo snímku z epizody."
-          }
-        },
-        "da" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Vis seriens liggende illustration i Fortsæt med at se og Næste i stedet for et billede fra episoden."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Zeigt in Weiterschauen und Als Nächstes das Querformat-Artwork der Serie statt eines Standbilds aus der Episode."
-          }
-        },
-        "el" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Εμφανίζει το οριζόντιο εικαστικό της σειράς στη Συνέχιση παρακολούθησης και στο Επόμενο αντί για καρέ του επεισοδίου."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Show the show's landscape artwork in Continue Watching and Up Next instead of the episode's video frame."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Muestra el arte horizontal de la serie en Continuar viendo y A continuación en lugar de un fotograma del episodio."
-          }
-        },
-        "fi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Näyttää sarjan vaakakuvituksen Jatka katselua- ja Seuraavaksi-kohdissa jaksokuvan sijaan."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Affiche le visuel paysage de la série dans Reprendre la lecture et À suivre au lieu d'une image de l'épisode."
-          }
-        },
-        "hr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Prikazuje pejzažnu grafiku serije u Nastavi gledati i Sljedeće umjesto sličice epizode."
-          }
-        },
-        "hu" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "A sorozat fekvő grafikáját jeleníti meg a Megtekintés folytatása és a Következő részben az epizód képkockája helyett."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mostra l'immagine orizzontale della serie in Continua a guardare e Da vedere invece di un fotogramma dell'episodio."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "「続きを見る」と「次に見る」で、エピソードの映像コマの代わりにシリーズの横長アートを表示します。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "이어서 보기와 다음 볼 콘텐츠에서 에피소드 장면 대신 시리즈의 가로 아트를 표시합니다."
-          }
-        },
-        "nb" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Viser seriens liggende illustrasjon i Fortsett å se og Neste i stedet for et bilde fra episoden."
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Toont de liggende artwork van de serie in Verder kijken en Volgende in plaats van een beeld uit de aflevering."
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pokazuje poziomą grafikę serialu w sekcjach Kontynuuj oglądanie i Następne zamiast kadru z odcinka."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mostra a arte horizontal da série em Continuar assistindo e A seguir em vez de um quadro do episódio."
-          }
-        },
-        "pt-PT" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mostra a arte horizontal da série em Continuar a ver e A seguir em vez de um fotograma do episódio."
-          }
-        },
-        "ro" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Afișează grafica orizontală a serialului în Continuă vizionarea și Următorul în loc de un cadru din episod."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Показывает горизонтальную обложку сериала в разделах «Продолжить просмотр» и «Дальше» вместо кадра из эпизода."
-          }
-        },
-        "sk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "V sekciách Pokračovať v sledovaní a Ďalšie zobrazí širokouhlú grafiku seriálu namiesto snímky z epizódy."
-          }
-        },
-        "sv" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Visar seriens liggande grafik i Fortsätt titta och Näst på tur i stället för en bild från avsnittet."
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "İzlemeye Devam Et ve Sıradaki bölümlerinde, bölümün video karesi yerine dizinin yatay görselini gösterir."
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Показує горизонтальну графіку серіалу в розділах «Продовжити перегляд» і «Далі» замість кадру з епізоду."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "在“继续观看”和“接下来观看”中显示剧集的横向艺术图，而非剧集的视频画面。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "在「繼續觀看」和「接下來觀看」中顯示劇集的橫向藝術圖，而非劇集的影片畫面。"
-          }
-        }
-      }
-    },
     "settings.appearance.largeCards" : {
       "comment" : "Appearance toggle: render Home cards larger",
       "extractionState" : "manual",
@@ -64583,6 +64259,330 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "在控制中心的封面使用劇集海報，而非劇集的靜幀畫面。"
+          }
+        }
+      }
+    },
+    "settings.appearance.cwBackdrop" : {
+      "comment" : "Appearance toggle: use the backdrop for Continue Watching / Up Next",
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pozadí v Pokračovat v přehrávání"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Baggrund i Fortsæt med at se"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hintergrundbild bei Weiterschauen"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Φόντο στη Συνέχιση παρακολούθησης"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Backdrop in Continue Watching"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fondo en Continuar viendo"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Taustakuva Jatka katselua -kohdassa"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Image d'arrière-plan dans Reprendre la lecture"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pozadina u Nastavi gledati"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Háttérkép a Megtekintés folytatásában"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sfondo in Continua a guardare"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "「続きを見る」に背景アートを使用"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이어서 보기에 배경 아트 사용"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bakgrunnsbilde i Fortsett å se"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Achtergrond in Verder kijken"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tło w sekcji Kontynuuj oglądanie"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fundo em Continuar assistindo"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fundo em Continuar a ver"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fundal în Continuă vizionarea"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Фон в разделе «Продолжить просмотр»"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pozadie v Pokračovať v sledovaní"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bakgrund i Fortsätt titta"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "İzlemeye Devam Et'te arka plan görseli"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Тло в «Продовжити перегляд»"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在“继续观看”中使用背景图"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在「繼續觀看」中使用背景圖"
+          }
+        }
+      }
+    },
+    "settings.appearance.cwBackdrop.subtitle" : {
+      "comment" : "Subtitle for the Continue Watching backdrop toggle",
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "V sekcích Pokračovat v přehrávání a Další na řadě zobrazí pozadí místo snímku z epizody."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vis baggrunden i Fortsæt med at se og Næste i stedet for et billede fra episoden."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zeigt in Weiterschauen und Als Nächstes das Hintergrundbild statt eines Standbilds aus der Episode."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Εμφανίζει το φόντο στη Συνέχιση παρακολούθησης και στο Επόμενο αντί για καρέ του επεισοδίου."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show the backdrop in Continue Watching and Up Next instead of the episode's video frame."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Muestra el fondo en Continuar viendo y A continuación en lugar de un fotograma del episodio."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Näyttää taustakuvan Jatka katselua- ja Seuraavaksi-kohdissa jaksokuvan sijaan."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Affiche l'image d'arrière-plan dans Reprendre la lecture et À suivre au lieu d'une image de l'épisode."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Prikazuje pozadinu u Nastavi gledati i Sljedeće umjesto sličice epizode."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A háttérképet jeleníti meg a Megtekintés folytatása és a Következő részben az epizód képkockája helyett."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostra lo sfondo in Continua a guardare e Da vedere invece di un fotogramma dell'episodio."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "「続きを見る」と「次に見る」で、エピソードの映像コマの代わりに背景アートを表示します。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이어서 보기와 다음 볼 콘텐츠에서 에피소드 장면 대신 배경 아트를 표시합니다."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Viser bakgrunnsbildet i Fortsett å se og Neste i stedet for et bilde fra episoden."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toont de achtergrond in Verder kijken en Volgende in plaats van een beeld uit de aflevering."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pokazuje tło w sekcjach Kontynuuj oglądanie i Następne zamiast kadru z odcinka."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostra o fundo em Continuar assistindo e A seguir em vez de um quadro do episódio."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostra o fundo em Continuar a ver e A seguir em vez de um fotograma do episódio."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Afișează fundalul în Continuă vizionarea și Următorul în loc de un cadru din episod."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Показывает фон в разделах «Продолжить просмотр» и «Дальше» вместо кадра из эпизода."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "V sekciách Pokračovať v sledovaní a Ďalšie zobrazí pozadie namiesto snímky z epizódy."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Visar bakgrunden i Fortsätt titta och Näst på tur i stället för en bild från avsnittet."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "İzlemeye Devam Et ve Sıradaki bölümlerinde, bölümün video karesi yerine arka plan görselini gösterir."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Показує тло в розділах «Продовжити перегляд» і «Далі» замість кадру з епізоду."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在“继续观看”和“接下来观看”中显示背景图，而非剧集的视频画面。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在「繼續觀看」和「接下來觀看」中顯示背景圖，而非劇集的影片畫面。"
           }
         }
       }

@@ -92,7 +92,7 @@ final class AppearancePreferences {
     private enum Keys {
         static let accentChoice = "appearance.accentChoice"
         static let showContentLogos = "appearance.showContentLogos"
-        static let continueWatchingUsesSeriesArt = "appearance.continueWatchingUsesSeriesArt"
+        static let continueWatchingUsesBackdrop = "appearance.continueWatchingUsesBackdrop"
         static let largeCards = "appearance.largeCards"
         static let nowPlayingUsesSeriesPoster = "appearance.nowPlayingUsesSeriesPoster"
     }
@@ -117,12 +117,11 @@ final class AppearancePreferences {
         didSet { store.set(showContentLogos, forKey: Keys.showContentLogos) }
     }
 
-    /// Continue Watching / Up Next cards show the series' landscape Thumb
-    /// art instead of the episode's video-frame still. Default off (keeps
-    /// the where-you-left-off frame). Falls back Thumb -> Backdrop ->
-    /// still when a show has no Thumb.
-    var continueWatchingUsesSeriesArt: Bool {
-        didSet { store.set(continueWatchingUsesSeriesArt, forKey: Keys.continueWatchingUsesSeriesArt) }
+    /// Continue Watching / Up Next cards show the backdrop (the show's
+    /// cinematic landscape image) instead of the episode's video-frame
+    /// still. Default off (keeps the where-you-left-off frame).
+    var continueWatchingUsesBackdrop: Bool {
+        didSet { store.set(continueWatchingUsesBackdrop, forKey: Keys.continueWatchingUsesBackdrop) }
     }
 
     /// Render the Home media cards larger (Apple TV-style). Default off.
@@ -151,7 +150,7 @@ final class AppearancePreferences {
         let raw = store.string(forKey: Keys.accentChoice) ?? AccentChoice.system.rawValue
         self.accentChoice = AccentChoice(rawValue: raw) ?? .system
         self.showContentLogos = store.object(forKey: Keys.showContentLogos) as? Bool ?? true
-        self.continueWatchingUsesSeriesArt = store.object(forKey: Keys.continueWatchingUsesSeriesArt) as? Bool ?? false
+        self.continueWatchingUsesBackdrop = store.object(forKey: Keys.continueWatchingUsesBackdrop) as? Bool ?? false
         self.largeCards = store.object(forKey: Keys.largeCards) as? Bool ?? false
         self.nowPlayingUsesSeriesPoster = store.object(forKey: Keys.nowPlayingUsesSeriesPoster) as? Bool ?? false
     }

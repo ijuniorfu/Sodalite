@@ -24,10 +24,6 @@ import UIKit
 ///    avatar/poster thumbnails.
 struct AsyncCachedImage<Content: View, Placeholder: View>: View {
     let url: URL?
-    /// Optional second URL tried when the primary one is nil or fails
-    /// (404 / decode error). Lets a caller offer a graceful image
-    /// fallback, e.g. a series Thumb that falls back to the episode still.
-    var fallbackURL: URL? = nil
     @ViewBuilder let content: (Image) -> Content
     @ViewBuilder let placeholder: () -> Placeholder
 
@@ -43,7 +39,7 @@ struct AsyncCachedImage<Content: View, Placeholder: View>: View {
                 placeholder()
             }
         }
-        .task(id: "\(url?.absoluteString ?? "")|\(fallbackURL?.absoluteString ?? "")") {
+        .task(id: url) {
             await load()
         }
     }
@@ -54,23 +50,11 @@ struct AsyncCachedImage<Content: View, Placeholder: View>: View {
         // previous profile's cache doesn't flash while the new one
         // loads.
         loaded = nil
-        if let image = await loadImage(from: url) {
-            loaded = image
-            return
-        }
-        // Primary missing or failed: try the fallback (e.g. a series
-        // Thumb 404 falling back to the episode still).
-        if let image = await loadImage(from: fallbackURL) {
-            loaded = image
-        }
-    }
-
-    @MainActor
-    private func loadImage(from url: URL?) async -> UIImage? {
-        guard let url else { return nil }
+        guard let url else { return }
 
         if let cached = ImageCache.shared.image(for: url) {
-            return cached
+            loaded = cached
+            return
         }
 
         // Build the request on MainActor, we need to read the
@@ -91,7 +75,7 @@ struct AsyncCachedImage<Content: View, Placeholder: View>: View {
         }
 
         let prepared = await Self.fetchAndDecode(request: request)
-        guard let prepared else { return nil }
+        guard let prepared else { return }
         // Persist to cache *before* the cancellation check. A tab
         // switch (or any upstream `.task(id:)` invalidation) may
         // cancel us between the successful decode and the @State
@@ -100,8 +84,8 @@ struct AsyncCachedImage<Content: View, Placeholder: View>: View {
         // again for the same URL, which on a flaky connection or a
         // 30-season show with 20 stills per tab adds up fast.
         ImageCache.shared.store(prepared, for: url)
-        guard !Task.isCancelled else { return nil }
-        return prepared
+        guard !Task.isCancelled else { return }
+        loaded = prepared
     }
 
     /// Network + decode + force-decompress, all off the MainActor.
