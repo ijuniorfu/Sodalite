@@ -118,7 +118,7 @@ extension PlayerViewModel {
 
     private func buildExternalMetadataItems(artworkData: Data?) -> [AVMetadataItem] {
         var items: [AVMetadataItem] = []
-        items.append(makeStringItem(.commonIdentifierTitle, item.name))
+        items.append(makeStringItem(.commonIdentifierTitle, nowPlayingTitle))
         if let descriptionLine = displayDescriptionLine {
             items.append(makeStringItem(.commonIdentifierDescription, descriptionLine))
         }
@@ -126,6 +126,35 @@ extension PlayerViewModel {
             items.append(makeArtworkItem(data: data))
         }
         return items
+    }
+
+    /// System Now-Playing title. The iPhone Control Center remote widget
+    /// only surfaces this one content line (the gray line above it is the
+    /// Apple TV's route name, owned by the system, not our description),
+    /// so for episodes we fold the series and SxxExx into the title:
+    /// "Bluey · S2E5 · Schnuffis guter Riecher". Without this the widget
+    /// showed only the episode name, with no show or episode number
+    /// (issue #15). Movies keep their plain title.
+    private var nowPlayingTitle: String {
+        guard item.type == .episode else { return item.name }
+        var parts: [String] = []
+        if let series = item.seriesName, !series.isEmpty {
+            parts.append(series)
+        }
+        var seasonEpisode = ""
+        if let season = item.parentIndexNumber {
+            seasonEpisode += "S\(season)"
+        }
+        if let ep = item.indexNumber {
+            seasonEpisode += "E\(ep)"
+        }
+        if !seasonEpisode.isEmpty {
+            parts.append(seasonEpisode)
+        }
+        if !item.name.isEmpty {
+            parts.append(item.name)
+        }
+        return parts.isEmpty ? item.name : parts.joined(separator: " · ")
     }
 
     private var displayDescriptionLine: String? {
