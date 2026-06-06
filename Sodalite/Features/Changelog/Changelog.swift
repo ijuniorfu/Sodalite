@@ -13,6 +13,78 @@ import Foundation
 /// previously affected behaviour.
 enum Changelog {
     static let entries: [ChangelogEntry] = [
+        // MARK: 0.9.0
+        ChangelogEntry(
+            version: "0.9.0",
+            highlights: [
+                ChangelogHighlight(
+                    .new,
+                    "changelog.0_9_0.music.title",
+                    "changelog.0_9_0.music.body",
+                    icon: "music.note.list"
+                ),
+                ChangelogHighlight(
+                    .new,
+                    "changelog.0_9_0.watched.title",
+                    "changelog.0_9_0.watched.body",
+                    icon: "checkmark.circle.fill"
+                ),
+                ChangelogHighlight(
+                    .new,
+                    "changelog.0_9_0.detailLogos.title",
+                    "changelog.0_9_0.detailLogos.body",
+                    icon: "photo.fill"
+                ),
+                ChangelogHighlight(
+                    .new,
+                    "changelog.0_9_0.restart.title",
+                    "changelog.0_9_0.restart.body",
+                    icon: "backward.end.fill"
+                ),
+                ChangelogHighlight(
+                    .new,
+                    "changelog.0_9_0.artwork.title",
+                    "changelog.0_9_0.artwork.body",
+                    icon: "paintbrush.fill"
+                ),
+                ChangelogHighlight(
+                    .improve,
+                    "changelog.0_9_0.fasterDetail.title",
+                    "changelog.0_9_0.fasterDetail.body",
+                    icon: "bolt.fill"
+                ),
+                ChangelogHighlight(
+                    .improve,
+                    "changelog.0_9_0.episodeNowPlaying.title",
+                    "changelog.0_9_0.episodeNowPlaying.body",
+                    icon: "tv.fill"
+                ),
+                ChangelogHighlight(
+                    .fix,
+                    "changelog.0_9_0.playbackSync.title",
+                    "changelog.0_9_0.playbackSync.body",
+                    icon: "timeline.selection"
+                ),
+                ChangelogHighlight(
+                    .fix,
+                    "changelog.0_9_0.nowPlaying.title",
+                    "changelog.0_9_0.nowPlaying.body",
+                    icon: "info.circle.fill"
+                ),
+                ChangelogHighlight(
+                    .fix,
+                    "changelog.0_9_0.surround.title",
+                    "changelog.0_9_0.surround.body",
+                    icon: "speaker.wave.3.fill"
+                ),
+                ChangelogHighlight(
+                    .fix,
+                    "changelog.0_9_0.streaming.title",
+                    "changelog.0_9_0.streaming.body",
+                    icon: "antenna.radiowaves.left.and.right"
+                ),
+            ]
+        ),
         // MARK: 0.8.1
         ChangelogEntry(
             version: "0.8.1",
