@@ -15,7 +15,9 @@ extension PlayerViewModel {
         // fall back to the hardcoded 30 s-before-end threshold.
         let shouldFetch: Bool
         if let outro = outroSegment {
-            shouldFetch = playbackTime >= outro.startSeconds
+            // outro.startSeconds is absolute source time; compare against
+            // sourceTime, not the AVPlayer clock (playbackTime).
+            shouldFetch = player.sourceTime >= outro.startSeconds
         } else {
             shouldFetch = remaining < 30
         }

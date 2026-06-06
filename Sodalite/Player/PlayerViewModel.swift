@@ -808,8 +808,14 @@ final class PlayerViewModel {
             .sink { [weak self] time in
                 guard let self else { return }
                 self.playbackTime = time
-                self.updateIntroVisibility(time: time)
-                self.updateOutroAutoSkip(time: time)
+                // Segment markers (intro/outro) from Jellyfin live on the
+                // absolute source timeline; player.currentTime is the
+                // AVPlayer clock (source - playlistShiftSeconds on the
+                // native HLS path). Compare against sourceTime so the
+                // ranges line up regardless of the per-session shift,
+                // mirroring how the subtitle path already keys off it.
+                self.updateIntroVisibility(time: self.player.sourceTime)
+                self.updateOutroAutoSkip(time: self.player.sourceTime)
                 self.checkForNextEpisode()
                 let dur = self.effectiveDuration
                 let remaining = dur - time
@@ -845,7 +851,9 @@ final class PlayerViewModel {
                     //   hits 0 right at playback end, seamless
                     //   transition that doesn't cut anything off.
                     if let outro = self.outroSegment {
-                        let pastOutroStart = time >= outro.startSeconds
+                        // sourceTime, not the AVPlayer clock: outro.startSeconds
+                        // is an absolute source-timeline marker.
+                        let pastOutroStart = self.player.sourceTime >= outro.startSeconds
                         if pastOutroStart && !self.showNextEpisodeOverlay {
                             self.showNextEpisodeOverlay = true
                         }
@@ -1328,7 +1336,9 @@ final class PlayerViewModel {
         isInsideIntro = false
         didSkipCurrentIntro = true
         Task { [weak self] in
-            await self?.player.seek(to: seg.endSeconds)
+            // seg.endSeconds is absolute source time; route through the
+            // source-time seek so the AVPlayer-clock shift is applied.
+            await self?.player.seek(toSourceTime: seg.endSeconds)
             // Lockout only needs to cover the seek-in-flight stale-tick
             // window. Once seek() returns the seek has landed; a brief
             // settle absorbs AVPlayer's post-seek time jitter, then
@@ -1368,7 +1378,7 @@ final class PlayerViewModel {
                 await self?.playNextEpisode()
             }
         } else {
-            Task { [weak self] in await self?.player.seek(to: seg.endSeconds) }
+            Task { [weak self] in await self?.player.seek(toSourceTime: seg.endSeconds) }
         }
     }
 
