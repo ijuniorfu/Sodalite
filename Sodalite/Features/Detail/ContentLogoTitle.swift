@@ -15,39 +15,39 @@ struct ContentLogoTitle<Fallback: View>: View {
     /// the episode panel shows the show's logo, not a (nonexistent)
     /// per-episode one.
     let itemID: String
-    let logoTag: String?
     /// Capped logo height. Sized per surface by the caller.
     let maxHeight: CGFloat
     @ViewBuilder let fallback: () -> Fallback
 
     @Environment(\.dependencies) private var dependencies
 
-    /// Resolved logo URL, or nil when logos are off or the item has no
-    /// logo tag yet. Computed (not branched in the body) so the view
-    /// structure below stays stable across the tag arriving.
+    /// Resolved logo URL, addressed by item ID only. Jellyfin's
+    /// `/Items/{id}/Images/Logo` serves the current logo without an image
+    /// tag (the tag is just a cache key), so this works even when we only
+    /// hold a stub: an episode deep-link opens SeriesDetailView with a
+    /// series stub whose id IS the series id, so the show's logo loads on
+    /// the first frame, no imageTags round-trip required. The id-based URL
+    /// is also stable across the stub being replaced by the full item, so
+    /// the image never reloads or flashes. Items without a logo simply 404
+    /// and fall back to the text title. Returns nil only when logos are
+    /// turned off.
     private var logoURL: URL? {
-        guard dependencies.appearancePreferences.showContentLogos,
-              let tag = logoTag else {
+        guard dependencies.appearancePreferences.showContentLogos else {
             return nil
         }
         return dependencies.jellyfinImageService.imageURL(
             itemID: itemID,
             imageType: .logo,
-            tag: tag,
             maxWidth: 600
         )
     }
 
     var body: some View {
         // Always an AsyncCachedImage, never a branch between image and
-        // text. With no logo (or logos off) the URL is nil and the
-        // fallback text shows as the placeholder. When the logo tag
-        // arrives late (an episode deep-link opens SeriesDetailView with
-        // a series stub that has no imageTags yet), the URL flips
-        // nil -> value and AsyncCachedImage's own `.task(id: url)` loads
-        // it in place. No subtree swap and no `.id` reset, either of
-        // which would disturb the enclosing ScrollView's scroll position
-        // and focus-driven scrolling.
+        // text. The fallback text shows as the placeholder while the logo
+        // loads, and stays put for items that have no logo (the request
+        // 404s). The URL is stable per item id, so there is no subtree
+        // swap or `.id` reset to disturb the enclosing ScrollView.
         AsyncCachedImage(url: logoURL) { image in
             image
                 .resizable()
@@ -67,18 +67,11 @@ struct ContentLogoTitle<Fallback: View>: View {
     }
 }
 
-/// Backdrop hero logo for the Movie / Series detail screens.
-///
-/// Reads `viewModel.item` in its OWN body, so it is a direct observer of
-/// the detail view model. That is the load-bearing detail: episode
-/// deep-links open SeriesDetailView with a series stub that has no
-/// imageTags, and the logo tag only arrives later with loadFullDetail.
-/// A tag read inside the parent's @ViewBuilder hero closure did not
-/// reliably re-render inside the ScrollView when the tag landed (the
-/// logo only appeared after a manual scroll); a dedicated observing view
-/// re-renders itself the moment `item` changes, so the logo swaps in as
-/// soon as it loads. For episodes `viewModel.item` is the SERIES, which
-/// is the logo we want.
+/// Backdrop hero logo for the Movie / Series detail screens. The logo is
+/// addressed by `viewModel.item.id`, which is the series id even for an
+/// episode deep-link's stub, so the show's logo loads on the first frame
+/// without waiting for the full detail. Reading `viewModel.item` keeps the
+/// text fallback (the item name) in sync once the real name lands.
 struct DetailHeroLogo: View {
     let viewModel: DetailViewModel
     var maxHeight: CGFloat = 150
@@ -86,7 +79,6 @@ struct DetailHeroLogo: View {
     var body: some View {
         ContentLogoTitle(
             itemID: viewModel.item.id,
-            logoTag: viewModel.item.imageTags?.logo,
             maxHeight: maxHeight
         ) {
             Text(viewModel.item.name)

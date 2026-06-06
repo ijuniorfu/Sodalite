@@ -120,14 +120,7 @@ struct SeriesDetailView: View {
                     .transition(.opacity)
             }
 
-            // Episode deep-links instant-paint a series stub before the
-            // real series detail lands. Hold the loading screen until the
-            // detail has loaded (didLoadDetail) so the page builds once
-            // with full data (logo, layout, scroll) instead of painting
-            // from the stub and reshuffling. Direct series opens
-            // (initialEpisode == nil) keep gating on isLoading only.
-            if let vm = viewModel, !vm.isLoading,
-               initialEpisode == nil || vm.didLoadDetail {
+            if let vm = viewModel, !vm.isLoading {
                 DetailContentOverlay(hero: {
                     // Series logo over the backdrop, shown in both the
                     // series root and the episode panel (the episode has
@@ -230,10 +223,6 @@ struct SeriesDetailView: View {
             }
         }
         .animation(.easeInOut(duration: 0.25), value: viewModel?.isLoading)
-        // Episode deep-links clear their loading screen on didLoadDetail
-        // rather than isLoading; animate that swap too so the spinner
-        // crossfades into the finished page.
-        .animation(.easeInOut(duration: 0.25), value: viewModel?.didLoadDetail)
         .ignoresSafeArea()
         .overlay {
             if let userID = appState.activeUser?.id {

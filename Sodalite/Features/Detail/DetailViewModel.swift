@@ -4,13 +4,6 @@ import Observation
 @Observable
 final class DetailViewModel {
     var item: JellyfinItem
-    /// Flips true once `loadFullDetail` has replaced the in-hand item
-    /// (or stub) with the server's full detail. Episode deep-links open
-    /// SeriesDetailView with a series stub and instant-paint before this
-    /// is set; the view keys its content on this so it rebuilds once into
-    /// a clean full-data render (logo present, scroll behaving) the same
-    /// way a series opened directly does behind its loading gate.
-    var didLoadDetail = false
     var isFavorite: Bool
     var isPlayed: Bool
     /// Per-item played overrides keyed by item / episode / season ID.
@@ -176,7 +169,6 @@ final class DetailViewModel {
             isFavorite = detail.userData?.isFavorite ?? false
             isPlayed = detail.userData?.played ?? false
         }
-        didLoadDetail = true
 
         if itemType != .series && itemType != .boxSet {
             prefetchPlaybackInfo(for: itemID)
