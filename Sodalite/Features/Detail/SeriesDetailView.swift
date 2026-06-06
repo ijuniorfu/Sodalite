@@ -142,14 +142,26 @@ struct SeriesDetailView: View {
                         VStack(alignment: .leading, spacing: 40) {
                             glassPanel(vm: vm)
                                 .padding(.horizontal, 50)
-                                .id("\(vm.item.id)-\(vm.item.genres?.count ?? 0)-\(vm.isLoading)")
+                                // Keyed on item + load state only. The genre
+                                // count was in here before, but on an episode
+                                // deep-link (instant-paint) the series genres
+                                // arrive after first paint, flipping the count
+                                // and rebuilding the whole panel mid-view, which
+                                // reset the ScrollView and broke scroll-to-top
+                                // when navigating back up to Play. Genres now
+                                // fill in via in-place diff instead.
+                                .id("\(vm.item.id)-\(vm.isLoading)")
                                 .animation(.easeInOut(duration: 0.3), value: selectedEpisode?.id)
 
-                            // Only the series gets the top synopsis box. In
-                            // episode mode the episode's overview already lives
-                            // in its own navigable synopsis box in the episode
-                            // row, so a top box here would just duplicate it.
-                            if !isShowingEpisode, let overview = displayItem.overview, !overview.isEmpty {
+                            // Navigable synopsis box under the hero, in both
+                            // modes: the series overview for the series root,
+                            // the episode's overview (via displayItem =
+                            // selectedEpisode) when an episode is open. Tap to
+                            // open the full text. As a top-level scroll item
+                            // keyed on the item id it renders reliably when the
+                            // data lands, unlike an in-panel teaser that the
+                            // ScrollView left blank until a scroll.
+                            if let overview = displayItem.overview, !overview.isEmpty {
                                 ExpandableTextBox(text: overview)
                                     .padding(.horizontal, 50)
                                     .id(displayItem.id)
@@ -511,20 +523,9 @@ struct SeriesDetailView: View {
                         }
                     }
 
-                    // Brief episode synopsis directly under the logo +
-                    // title, so the panel hero describes the tapped
-                    // episode without a scroll down to the episode row's
-                    // full navigable synopsis box. Capped at three lines
-                    // to stay a teaser, not a duplicate of that box.
-                    if isShowingEpisode,
-                       let ep = selectedEpisode,
-                       let overview = ep.overview?.trimmingCharacters(in: .whitespacesAndNewlines),
-                       !overview.isEmpty {
-                        Text(overview)
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                            .lineLimit(3)
-                    }
+                    // Episode synopsis now renders as the navigable
+                    // ExpandableTextBox below the panel (shared with the
+                    // series root), not an in-panel teaser.
 
                     // Series genres, shown in both the series root and the
                     // episode panel so the episode view matches the series
