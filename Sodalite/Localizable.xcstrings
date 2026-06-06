@@ -63291,330 +63291,6 @@
         }
       }
     },
-    "settings.appearance.showLogos" : {
-      "comment" : "Settings toggle label: show the title-card logo image instead of the text title on the detail screens",
-      "extractionState" : "manual",
-      "localizations" : {
-        "cs" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Zobrazit loga obsahu"
-          }
-        },
-        "da" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Vis indholdslogoer"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Inhalts-Logos anzeigen"
-          }
-        },
-        "el" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Εμφάνιση λογοτύπων περιεχομένου"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Show content logos"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mostrar logotipos de contenido"
-          }
-        },
-        "fi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Näytä sisällön logot"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Afficher les logos du contenu"
-          }
-        },
-        "hr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Prikaži logotipe sadržaja"
-          }
-        },
-        "hu" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tartalomlogók megjelenítése"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mostra i logo dei contenuti"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "コンテンツのロゴを表示"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "콘텐츠 로고 표시"
-          }
-        },
-        "nb" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Vis innholdslogoer"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Inhoudslogo's tonen"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pokaż logo treści"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mostrar logotipos de conteúdo"
-          }
-        },
-        "pt-PT" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mostrar logótipos de conteúdo"
-          }
-        },
-        "ro" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Afișează logourile conținutului"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Показывать логотипы контента"
-          }
-        },
-        "sk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Zobraziť logá obsahu"
-          }
-        },
-        "sv" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Visa innehållslogotyper"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "İçerik logolarını göster"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Показувати логотипи вмісту"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "显示内容标志"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "顯示內容標誌"
-          }
-        }
-      }
-    },
-    "settings.appearance.showLogos.subtitle" : {
-      "comment" : "Subtitle explaining the Show content logos toggle",
-      "extractionState" : "manual",
-      "localizations" : {
-        "cs" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Na obrazovkách s podrobnostmi použít místo textového názvu logo seriálu nebo filmu, pokud je k dispozici."
-          }
-        },
-        "da" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Brug seriens eller filmens logo i stedet for titlen som tekst på detaljeskærmene, når et logo er tilgængeligt."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Auf den Detailseiten das Logo der Serie oder des Films statt des Texttitels verwenden, sofern vorhanden."
-          }
-        },
-        "el" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Στις οθόνες λεπτομερειών, χρήση του λογοτύπου της σειράς ή της ταινίας αντί του τίτλου κειμένου, όταν υπάρχει."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Use a show or movie's logo image instead of its text title on the detail screens, when one is available."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "En las pantallas de detalles, usar el logotipo de la serie o película en lugar del título de texto, cuando esté disponible."
-          }
-        },
-        "fi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Käytä yksityiskohtanäkymissä sarjan tai elokuvan logoa tekstiotsikon sijaan, kun sellainen on saatavilla."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sur les écrans de détails, utiliser le logo de la série ou du film à la place du titre texte, lorsqu'il est disponible."
-          }
-        },
-        "hr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Na zaslonima s pojedinostima koristi logotip serije ili filma umjesto tekstualnog naslova, kada je dostupan."
-          }
-        },
-        "hu" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "A részletek képernyőkön a sorozat vagy film logóját használja a szöveges cím helyett, ha elérhető."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nelle schermate dei dettagli, usa il logo della serie o del film invece del titolo di testo, quando disponibile."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "詳細画面で、利用可能な場合は番組や映画のテキストタイトルの代わりにロゴ画像を使用します。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "세부 정보 화면에서 사용 가능한 경우 텍스트 제목 대신 프로그램이나 영화의 로고 이미지를 사용합니다."
-          }
-        },
-        "nb" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bruk seriens eller filmens logo i stedet for teksttittelen på detaljskjermene, når en er tilgjengelig."
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Gebruik op de detailschermen het logo van de serie of film in plaats van de teksttitel, wanneer beschikbaar."
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Na ekranach szczegółów używaj logo serialu lub filmu zamiast tytułu tekstowego, jeśli jest dostępne."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nas telas de detalhes, usar o logotipo da série ou filme em vez do título em texto, quando disponível."
-          }
-        },
-        "pt-PT" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nos ecrãs de detalhes, usar o logótipo da série ou filme em vez do título em texto, quando disponível."
-          }
-        },
-        "ro" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pe ecranele de detalii, folosește logoul serialului sau filmului în loc de titlul text, când este disponibil."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "На экранах с подробностями использовать логотип сериала или фильма вместо текстового названия, если он доступен."
-          }
-        },
-        "sk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Na obrazovkách s podrobnosťami použiť namiesto textového názvu logo seriálu alebo filmu, ak je k dispozícii."
-          }
-        },
-        "sv" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Använd seriens eller filmens logotyp i stället för texttiteln på detaljskärmarna, när en finns tillgänglig."
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ayrıntı ekranlarında, varsa metin başlığı yerine dizinin veya filmin logo görselini kullan."
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "На екранах з деталями використовувати логотип серіалу або фільму замість текстової назви, якщо він доступний."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "在详情页面上，如有可用，使用剧集或电影的标志图像代替文字标题。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "在詳細資料畫面上，如有提供，使用劇集或電影的標誌圖像代替文字標題。"
-          }
-        }
-      }
-    },
     "settings.appearance.largeCards" : {
       "comment" : "Appearance toggle: render Home cards larger",
       "extractionState" : "manual",
@@ -63777,6 +63453,330 @@
         }
       }
     },
+    "settings.appearance.showLogos" : {
+      "comment" : "Appearance toggle: show the title logo on detail pages",
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zobrazit loga titulů"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vis titellogoer"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Titel-Logos anzeigen"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Εμφάνιση λογοτύπων τίτλων"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show title logos"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostrar logotipos de títulos"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Näytä otsikkologot"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Afficher les logos des titres"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Prikaži logotipe naslova"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cím-logók megjelenítése"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostra i logo dei titoli"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "タイトルロゴを表示"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "제목 로고 표시"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vis tittellogoer"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Titellogo's tonen"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pokaż logo tytułów"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostrar logotipos de títulos"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostrar logótipos de títulos"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Afișează logourile titlurilor"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Показывать логотипы названий"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zobraziť logá názvov"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Visa titellogotyper"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Başlık logolarını göster"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Показувати логотипи назв"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "显示标题标志"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "顯示標題標誌"
+          }
+        }
+      }
+    },
+    "settings.appearance.showLogos.subtitle" : {
+      "comment" : "Subtitle for the show-title-logos toggle",
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Na stránkách s podrobnostmi zobrazí název jako logo místo prostého textu."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "På detaljesider vises titlen som et logo i stedet for almindelig tekst."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Auf Detailseiten den Titel als Logo-Bild statt als Text zeigen."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Στις σελίδες λεπτομερειών εμφανίζει τον τίτλο ως λογότυπο αντί για απλό κείμενο."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "On detail pages, show the title as a logo image instead of plain text."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En las páginas de detalles, muestra el título como logotipo en lugar de texto."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Näyttää tiedoissa otsikon logona pelkän tekstin sijaan."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sur les pages de détails, affiche le titre sous forme de logo au lieu d'un texte simple."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Na stranicama s pojedinostima prikazuje naslov kao logotip umjesto običnog teksta."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A részletek oldalain a címet logóként jeleníti meg sima szöveg helyett."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nelle pagine dei dettagli mostra il titolo come logo invece del testo semplice."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "詳細ページで、タイトルをテキストではなくロゴ画像で表示します。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "세부 정보 페이지에서 제목을 일반 텍스트 대신 로고 이미지로 표시합니다."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "På detaljsider vises tittelen som en logo i stedet for vanlig tekst."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toont op detailpagina's de titel als logo in plaats van als tekst."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Na stronach szczegółów pokazuje tytuł jako logo zamiast zwykłego tekstu."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nas páginas de detalhes, mostra o título como logotipo em vez de texto."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nas páginas de detalhes, mostra o título como logótipo em vez de texto."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pe paginile de detalii, afișează titlul ca logo în loc de text simplu."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "На страницах с подробностями показывает название логотипом вместо обычного текста."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Na stránkach s podrobnosťami zobrazí názov ako logo namiesto obyčajného textu."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "På detaljsidor visas titeln som en logotyp i stället för vanlig text."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ayrıntı sayfalarında başlığı düz metin yerine logo görseli olarak gösterir."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "На сторінках з деталями показує назву логотипом замість звичайного тексту."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在详情页面上，将标题显示为标志图像而非纯文本。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在詳細資料頁面上，將標題顯示為標誌圖像而非純文字。"
+          }
+        }
+      }
+    },
     "settings.appearance.largeCards.subtitle" : {
       "comment" : "Subtitle for the larger-cards toggle",
       "extractionState" : "manual",
@@ -63784,805 +63784,1291 @@
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Zvětší karty na ploše Domů ve stylu Apple TV. Na řádek se vejde méně karet."
+            "value" : "Zvětší karty na domovské obrazovce."
           }
         },
         "da" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Gør kortene på Hjem større i Apple TV-stil. Færre kort pr. række."
+            "value" : "Gør kortene på startskærmen større."
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Stellt die Karten auf der Startseite größer dar, im Apple-TV-Stil. Weniger Karten pro Reihe."
+            "value" : "Die Karten auf der Startseite größer darstellen."
           }
         },
         "el" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Εμφανίζει μεγαλύτερες κάρτες στην Αρχική, σε στυλ Apple TV. Λιγότερες κάρτες ανά σειρά."
+            "value" : "Εμφανίζει μεγαλύτερες κάρτες στην αρχική οθόνη."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Render Home cards bigger, Apple TV style. Fewer cards fit per row."
+            "value" : "Make the cards on the Home screen bigger."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Muestra las tarjetas de Inicio más grandes, al estilo de Apple TV. Caben menos por fila."
+            "value" : "Aumenta el tamaño de las tarjetas en la pantalla de inicio."
           }
         },
         "fi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Näyttää Koti-näkymän kortit suurempina, Apple TV -tyyliin. Riville mahtuu vähemmän kortteja."
+            "value" : "Suurentaa aloitusnäytön kortteja."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Affiche des cartes plus grandes sur l'Accueil, façon Apple TV. Moins de cartes par rangée."
+            "value" : "Agrandit les cartes sur l'écran d'accueil."
           }
         },
         "hr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Prikazuje veće kartice na početnom zaslonu, u stilu Apple TV-a. Manje kartica po retku."
+            "value" : "Povećava kartice na početnom zaslonu."
           }
         },
         "hu" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Nagyobb kártyák a Kezdőképernyőn, Apple TV stílusban. Soronként kevesebb kártya fér el."
+            "value" : "Nagyobbra veszi a kártyákat a kezdőképernyőn."
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Mostra schede più grandi nella Home, in stile Apple TV. Meno schede per riga."
+            "value" : "Ingrandisce le schede nella schermata Home."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ホームのカードを Apple TV 風に大きく表示します。1 行あたりのカード数は減ります。"
+            "value" : "ホーム画面のカードを大きくします。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "홈 카드를 Apple TV 스타일로 더 크게 표시합니다. 한 줄에 표시되는 카드 수가 줄어듭니다."
+            "value" : "홈 화면의 카드를 더 크게 표시합니다."
           }
         },
         "nb" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Viser kortene på Hjem større, i Apple TV-stil. Færre kort per rad."
+            "value" : "Gjør kortene på Hjem-skjermen større."
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Toont de kaarten op Start groter, Apple TV-stijl. Minder kaarten per rij."
+            "value" : "Maakt de kaarten op het beginscherm groter."
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Wyświetla karty na ekranie głównym większe, w stylu Apple TV. Mniej kart w rzędzie."
+            "value" : "Powiększa karty na ekranie głównym."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Exibe os cartões da Tela inicial maiores, no estilo Apple TV. Cabem menos por linha."
+            "value" : "Aumenta os cartões na tela inicial."
           }
         },
         "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Mostra os cartões do Início maiores, ao estilo Apple TV. Cabem menos por linha."
+            "value" : "Aumenta os cartões no ecrã inicial."
           }
         },
         "ro" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Afișează cardurile de pe Acasă mai mari, în stil Apple TV. Încap mai puține pe rând."
+            "value" : "Mărește cardurile de pe ecranul principal."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Увеличивает карточки на главном экране в стиле Apple TV. В ряд помещается меньше карточек."
+            "value" : "Увеличивает карточки на главном экране."
           }
         },
         "sk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Zobrazí karty na ploche Domov väčšie, v štýle Apple TV. Na riadok sa zmestí menej kariet."
+            "value" : "Zväčší karty na domovskej obrazovke."
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Visar korten på Hem större, i Apple TV-stil. Färre kort ryms per rad."
+            "value" : "Gör korten på hemskärmen större."
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ana ekran kartlarını Apple TV tarzında daha büyük gösterir. Satır başına daha az kart sığar."
+            "value" : "Ana ekrandaki kartları büyütür."
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Показує картки на головному екрані більшими, у стилі Apple TV. У ряд вміщається менше карток."
+            "value" : "Збільшує картки на головному екрані."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "以 Apple TV 风格放大主屏卡片。每行显示的卡片更少。"
+            "value" : "放大主屏幕上的卡片。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "以 Apple TV 風格放大主畫面卡片。每列顯示的卡片更少。"
+            "value" : "放大主畫面上的卡片。"
           }
         }
       }
     },
     "settings.appearance.nowPlayingPoster" : {
-      "comment" : "Appearance toggle: use series poster for the Now Playing artwork",
+      "comment" : "Appearance toggle: poster in the Now Playing controls",
       "extractionState" : "manual",
       "localizations" : {
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Plakát seriálu v Přehrává se"
+            "value" : "Plakát v přehrávání"
           }
         },
         "da" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Serieplakat i Afspilles nu"
+            "value" : "Plakat i Afspilles nu"
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Serien-Poster in „Aktuelle Wiedergabe“"
+            "value" : "Poster in der Wiedergabeanzeige"
           }
         },
         "el" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Αφίσα σειράς στο Αναπαράγεται τώρα"
+            "value" : "Αφίσα στην αναπαραγωγή"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Series poster in Now Playing"
+            "value" : "Poster in Now Playing"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Póster de la serie en Reproduciendo"
+            "value" : "Póster en Reproduciendo"
           }
         },
         "fi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sarjan juliste Toistetaan nyt -näkymässä"
+            "value" : "Juliste toistonäkymässä"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Affiche de la série dans Lecture en cours"
+            "value" : "Affiche dans Lecture en cours"
           }
         },
         "hr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Plakat serije u Sad se reproducira"
+            "value" : "Plakat u reprodukciji"
           }
         },
         "hu" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sorozatplakát a Most játszott részben"
+            "value" : "Poszter a lejátszási nézetben"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Locandina della serie in In riproduzione"
+            "value" : "Locandina in riproduzione"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "再生中にシリーズのポスターを表示"
+            "value" : "再生画面にポスターを表示"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "재생 중에 시리즈 포스터 표시"
+            "value" : "재생 화면에 포스터 표시"
           }
         },
         "nb" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Serieplakat i Spilles nå"
+            "value" : "Plakat i avspilling"
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Serieposter in Wordt afgespeeld"
+            "value" : "Poster in Wordt afgespeeld"
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Plakat serialu w Teraz odtwarzane"
+            "value" : "Plakat w Teraz odtwarzane"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Pôster da série em Tocando agora"
+            "value" : "Pôster em Tocando agora"
           }
         },
         "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Cartaz da série em A reproduzir"
+            "value" : "Cartaz em A reproduzir"
           }
         },
         "ro" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Afișul serialului în Se redă acum"
+            "value" : "Afiș în redare"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Постер сериала в разделе «Сейчас играет»"
+            "value" : "Постер в проигрывателе"
           }
         },
         "sk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Plagát seriálu v Práve sa prehráva"
+            "value" : "Plagát v prehrávaní"
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Serieaffisch i Spelas nu"
+            "value" : "Affisch i Spelas nu"
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Çalınanlar'da dizi afişi"
+            "value" : "Oynatma ekranında afiş"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Постер серіалу в «Зараз відтворюється»"
+            "value" : "Постер у програвачі"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "在“正在播放”中显示剧集海报"
+            "value" : "在播放界面显示海报"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "在「正在播放」中顯示劇集海報"
+            "value" : "在播放介面顯示海報"
           }
         }
       }
     },
     "settings.appearance.nowPlayingPoster.subtitle" : {
-      "comment" : "Subtitle for the Now Playing series-poster toggle",
+      "comment" : "Subtitle for the Now Playing poster toggle",
       "extractionState" : "manual",
       "localizations" : {
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "V Ovládacím centru použije plakát seriálu místo snímku z epizody."
+            "value" : "V ovládání přehrávání na iPhonu zobrazí plakát místo scény."
           }
         },
         "da" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Brug serieplakaten i stedet for et episodebillede til illustrationen i Kontrolcenter."
+            "value" : "Vis plakaten i stedet for en scene i iPhonens afspilningsbetjening."
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Verwendet im Kontrollzentrum das Serien-Poster statt eines Standbilds aus der Episode."
+            "value" : "In der iPhone-Wiedergabeanzeige das Poster statt einer Szene zeigen."
           }
         },
         "el" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Χρησιμοποιεί την αφίσα της σειράς αντί για καρέ του επεισοδίου ως εικαστικό στο Κέντρο ελέγχου."
+            "value" : "Στα χειριστήρια αναπαραγωγής του iPhone εμφανίζει την αφίσα αντί για μια σκηνή."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Use the series poster instead of the episode still for the Control Center artwork."
+            "value" : "Show the poster instead of a scene in the iPhone playback controls."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Usa el póster de la serie en lugar de un fotograma del episodio para la imagen del Centro de control."
+            "value" : "Muestra el póster en lugar de una escena en los controles de reproducción del iPhone."
           }
         },
         "fi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Käyttää Ohjauskeskuksen kuvituksena sarjan julistetta jaksokuvan sijaan."
+            "value" : "Näyttää iPhonen toistosäätimissä julisteen kohtauksen sijaan."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Utilise l'affiche de la série au lieu d'une image de l'épisode pour le visuel du Centre de contrôle."
+            "value" : "Affiche l'affiche au lieu d'une scène dans les commandes de lecture de l'iPhone."
           }
         },
         "hr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Za grafiku u Kontrolnom centru koristi plakat serije umjesto sličice epizode."
+            "value" : "U kontrolama reprodukcije na iPhoneu prikazuje plakat umjesto scene."
           }
         },
         "hu" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "A Vezérlőközpont grafikájához a sorozat plakátját használja az epizód képkockája helyett."
+            "value" : "Az iPhone lejátszásvezérlőjén a posztert jeleníti meg egy jelenet helyett."
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Usa la locandina della serie invece di un fotogramma dell'episodio per l'immagine del Centro di Controllo."
+            "value" : "Mostra la locandina invece di una scena nei controlli di riproduzione dell'iPhone."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "コントロールセンターのアートワークに、エピソードの静止画ではなくシリーズのポスターを使用します。"
+            "value" : "iPhone の再生コントロールで、シーンの代わりにポスターを表示します。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "제어 센터 아트워크에 에피소드 정지 화면 대신 시리즈 포스터를 사용합니다."
+            "value" : "iPhone 재생 제어에서 장면 대신 포스터를 표시합니다."
           }
         },
         "nb" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bruker serieplakaten i stedet for et episodebilde til illustrasjonen i Kontrollsenter."
+            "value" : "Viser plakaten i stedet for en scene i avspillingskontrollene på iPhone."
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Gebruikt de serieposter in plaats van een beeld uit de aflevering voor de artwork in Bedieningspaneel."
+            "value" : "Toont de poster in plaats van een scène in de afspeelregelaars van de iPhone."
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Używa plakatu serialu zamiast kadru z odcinka jako grafiki w Centrum sterowania."
+            "value" : "W elementach sterowania odtwarzaniem na iPhonie pokazuje plakat zamiast sceny."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Usa o pôster da série em vez de um quadro do episódio para a arte da Central de Controle."
+            "value" : "Mostra o pôster em vez de uma cena nos controles de reprodução do iPhone."
           }
         },
         "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Usa o cartaz da série em vez de um fotograma do episódio para a arte do Centro de Controlo."
+            "value" : "Mostra o cartaz em vez de uma cena nos controlos de reprodução do iPhone."
           }
         },
         "ro" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Folosește afișul serialului în loc de un cadru din episod pentru grafica din Centrul de control."
+            "value" : "Afișează afișul în loc de o scenă în comenzile de redare ale iPhone-ului."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Использует постер сериала вместо кадра из эпизода для обложки в Пункте управления."
+            "value" : "Показывает постер вместо сцены в управлении воспроизведением на iPhone."
           }
         },
         "sk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "V Ovládacom centre použije plagát seriálu namiesto snímky z epizódy."
+            "value" : "V ovládaní prehrávania na iPhone zobrazí plagát namiesto scény."
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Använder serieaffischen i stället för en bild från avsnittet som grafik i Kontrollcenter."
+            "value" : "Visar affischen i stället för en scen i iPhones uppspelningskontroller."
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Denetim Merkezi görseli için bölüm karesi yerine dizinin afişini kullanır."
+            "value" : "iPhone oynatma denetimlerinde sahne yerine afişi gösterir."
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Використовує постер серіалу замість кадру з епізоду для обкладинки в Пункті керування."
+            "value" : "У керуванні відтворенням на iPhone показує постер замість сцени."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "在控制中心的封面使用剧集海报，而非剧集的静帧画面。"
+            "value" : "在 iPhone 的播放控制中显示海报，而非场景画面。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "在控制中心的封面使用劇集海報，而非劇集的靜幀畫面。"
+            "value" : "在 iPhone 的播放控制中顯示海報，而非場景畫面。"
           }
         }
       }
     },
-    "settings.appearance.cwBackdrop" : {
-      "comment" : "Appearance toggle: use the backdrop for Continue Watching / Up Next",
+    "settings.appearance.cwImage" : {
+      "comment" : "Appearance picker: which image Continue Watching / Up Next cards use",
       "extractionState" : "manual",
       "localizations" : {
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Pozadí v Pokračovat v přehrávání"
+            "value" : "Obrázek v Pokračovat v přehrávání"
           }
         },
         "da" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Baggrund i Fortsæt med at se"
+            "value" : "Billede i Fortsæt med at se"
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Hintergrundbild bei Weiterschauen"
+            "value" : "Bild in „Weiterschauen“"
           }
         },
         "el" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Φόντο στη Συνέχιση παρακολούθησης"
+            "value" : "Εικόνα στη Συνέχιση παρακολούθησης"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Backdrop in Continue Watching"
+            "value" : "Image in Continue Watching"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Fondo en Continuar viendo"
+            "value" : "Imagen en Continuar viendo"
           }
         },
         "fi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Taustakuva Jatka katselua -kohdassa"
+            "value" : "Kuva Jatka katselua -kohdassa"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Image d'arrière-plan dans Reprendre la lecture"
+            "value" : "Image dans Reprendre la lecture"
           }
         },
         "hr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Pozadina u Nastavi gledati"
+            "value" : "Slika u Nastavi gledati"
           }
         },
         "hu" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Háttérkép a Megtekintés folytatásában"
+            "value" : "Kép a Megtekintés folytatásában"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sfondo in Continua a guardare"
+            "value" : "Immagine in Continua a guardare"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "「続きを見る」に背景アートを使用"
+            "value" : "「続きを見る」の画像"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "이어서 보기에 배경 아트 사용"
+            "value" : "이어서 보기의 이미지"
           }
         },
         "nb" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bakgrunnsbilde i Fortsett å se"
+            "value" : "Bilde i Fortsett å se"
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Achtergrond in Verder kijken"
+            "value" : "Afbeelding in Verder kijken"
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tło w sekcji Kontynuuj oglądanie"
+            "value" : "Obraz w sekcji Kontynuuj oglądanie"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Fundo em Continuar assistindo"
+            "value" : "Imagem em Continuar assistindo"
           }
         },
         "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Fundo em Continuar a ver"
+            "value" : "Imagem em Continuar a ver"
           }
         },
         "ro" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Fundal în Continuă vizionarea"
+            "value" : "Imagine în Continuă vizionarea"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Фон в разделе «Продолжить просмотр»"
+            "value" : "Изображение в разделе «Продолжить просмотр»"
           }
         },
         "sk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Pozadie v Pokračovať v sledovaní"
+            "value" : "Obrázok v Pokračovať v sledovaní"
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bakgrund i Fortsätt titta"
+            "value" : "Bild i Fortsätt titta"
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "İzlemeye Devam Et'te arka plan görseli"
+            "value" : "İzlemeye Devam Et'te görsel"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Тло в «Продовжити перегляд»"
+            "value" : "Зображення в «Продовжити перегляд»"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "在“继续观看”中使用背景图"
+            "value" : "“继续观看”中的图片"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "在「繼續觀看」中使用背景圖"
+            "value" : "「繼續觀看」中的圖片"
           }
         }
       }
     },
-    "settings.appearance.cwBackdrop.subtitle" : {
-      "comment" : "Subtitle for the Continue Watching backdrop toggle",
+    "settings.appearance.cwImage.subtitle" : {
+      "comment" : "Subtitle for the Continue Watching image picker",
       "extractionState" : "manual",
       "localizations" : {
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "V sekcích Pokračovat v přehrávání a Další na řadě zobrazí pozadí místo snímku z epizody."
+            "value" : "Který obrázek použijí karty v Pokračovat v přehrávání a Další na řadě."
           }
         },
         "da" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Vis baggrunden i Fortsæt med at se og Næste i stedet for et billede fra episoden."
+            "value" : "Hvilket billede kortene i Fortsæt med at se og Næste bruger."
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Zeigt in Weiterschauen und Als Nächstes das Hintergrundbild statt eines Standbilds aus der Episode."
+            "value" : "Welches Bild die Karten in „Weiterschauen“ und „Als Nächstes“ verwenden."
           }
         },
         "el" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Εμφανίζει το φόντο στη Συνέχιση παρακολούθησης και στο Επόμενο αντί για καρέ του επεισοδίου."
+            "value" : "Ποια εικόνα χρησιμοποιούν οι κάρτες στη Συνέχιση παρακολούθησης και στο Επόμενο."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Show the backdrop in Continue Watching and Up Next instead of the episode's video frame."
+            "value" : "Which image the Continue Watching and Up Next cards use."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Muestra el fondo en Continuar viendo y A continuación en lugar de un fotograma del episodio."
+            "value" : "Qué imagen usan las tarjetas de Continuar viendo y A continuación."
           }
         },
         "fi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Näyttää taustakuvan Jatka katselua- ja Seuraavaksi-kohdissa jaksokuvan sijaan."
+            "value" : "Mitä kuvaa Jatka katselua- ja Seuraavaksi-kortit käyttävät."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Affiche l'image d'arrière-plan dans Reprendre la lecture et À suivre au lieu d'une image de l'épisode."
+            "value" : "L'image utilisée par les cartes Reprendre la lecture et À suivre."
           }
         },
         "hr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Prikazuje pozadinu u Nastavi gledati i Sljedeće umjesto sličice epizode."
+            "value" : "Koju sliku koriste kartice u Nastavi gledati i Sljedeće."
           }
         },
         "hu" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "A háttérképet jeleníti meg a Megtekintés folytatása és a Következő részben az epizód képkockája helyett."
+            "value" : "Milyen képet használnak a Megtekintés folytatása és a Következő kártyái."
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Mostra lo sfondo in Continua a guardare e Da vedere invece di un fotogramma dell'episodio."
+            "value" : "Quale immagine usano le schede Continua a guardare e Da vedere."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "「続きを見る」と「次に見る」で、エピソードの映像コマの代わりに背景アートを表示します。"
+            "value" : "「続きを見る」と「次に見る」のカードに使う画像。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "이어서 보기와 다음 볼 콘텐츠에서 에피소드 장면 대신 배경 아트를 표시합니다."
+            "value" : "이어서 보기와 다음 볼 콘텐츠 카드에 사용할 이미지."
           }
         },
         "nb" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Viser bakgrunnsbildet i Fortsett å se og Neste i stedet for et bilde fra episoden."
+            "value" : "Hvilket bilde kortene i Fortsett å se og Neste bruker."
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Toont de achtergrond in Verder kijken en Volgende in plaats van een beeld uit de aflevering."
+            "value" : "Welke afbeelding de kaarten in Verder kijken en Volgende gebruiken."
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Pokazuje tło w sekcjach Kontynuuj oglądanie i Następne zamiast kadru z odcinka."
+            "value" : "Jakiego obrazu używają karty w Kontynuuj oglądanie i Następne."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Mostra o fundo em Continuar assistindo e A seguir em vez de um quadro do episódio."
+            "value" : "Qual imagem os cartões de Continuar assistindo e A seguir usam."
           }
         },
         "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Mostra o fundo em Continuar a ver e A seguir em vez de um fotograma do episódio."
+            "value" : "Que imagem usam os cartões de Continuar a ver e A seguir."
           }
         },
         "ro" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Afișează fundalul în Continuă vizionarea și Următorul în loc de un cadru din episod."
+            "value" : "Ce imagine folosesc cardurile Continuă vizionarea și Următorul."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Показывает фон в разделах «Продолжить просмотр» и «Дальше» вместо кадра из эпизода."
+            "value" : "Какое изображение используют карточки «Продолжить просмотр» и «Дальше»."
           }
         },
         "sk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "V sekciách Pokračovať v sledovaní a Ďalšie zobrazí pozadie namiesto snímky z epizódy."
+            "value" : "Ktorý obrázok použijú karty v Pokračovať v sledovaní a Ďalšie."
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Visar bakgrunden i Fortsätt titta och Näst på tur i stället för en bild från avsnittet."
+            "value" : "Vilken bild korten i Fortsätt titta och Näst på tur använder."
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "İzlemeye Devam Et ve Sıradaki bölümlerinde, bölümün video karesi yerine arka plan görselini gösterir."
+            "value" : "İzlemeye Devam Et ve Sıradaki kartlarının kullandığı görsel."
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Показує тло в розділах «Продовжити перегляд» і «Далі» замість кадру з епізоду."
+            "value" : "Яке зображення використовують картки «Продовжити перегляд» і «Далі»."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "在“继续观看”和“接下来观看”中显示背景图，而非剧集的视频画面。"
+            "value" : "“继续观看”和“接下来观看”卡片使用的图片。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "在「繼續觀看」和「接下來觀看」中顯示背景圖，而非劇集的影片畫面。"
+            "value" : "「繼續觀看」和「接下來觀看」卡片使用的圖片。"
+          }
+        }
+      }
+    },
+    "settings.appearance.cwImage.still" : {
+      "comment" : "Continue Watching image option: the episode's own image",
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Obrázek epizody"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Episodebillede"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Episodenbild"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Εικόνα επεισοδίου"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Episode image"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Imagen del episodio"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jakson kuva"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Image de l'épisode"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Slika epizode"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Epizódkép"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Immagine dell'episodio"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "エピソード画像"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "에피소드 이미지"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Episodebilde"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Afleveringsafbeelding"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Obraz odcinka"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Imagem do episódio"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Imagem do episódio"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Imaginea episodului"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Кадр эпизода"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Obrázok epizódy"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Avsnittsbild"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bölüm görseli"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Зображення епізоду"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "剧集图片"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "劇集圖片"
+          }
+        }
+      }
+    },
+    "settings.appearance.cwImage.backdrop" : {
+      "comment" : "Continue Watching image option: the show's backdrop",
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Backdrop"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Backdrop"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Backdrop"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Backdrop"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Backdrop"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Backdrop"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Backdrop"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Backdrop"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Backdrop"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Backdrop"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Backdrop"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Backdrop"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Backdrop"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Backdrop"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Backdrop"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Backdrop"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Backdrop"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Backdrop"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Backdrop"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Backdrop"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Backdrop"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Backdrop"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Backdrop"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Backdrop"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Backdrop"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Backdrop"
+          }
+        }
+      }
+    },
+    "settings.appearance.cwImage.thumb" : {
+      "comment" : "Continue Watching image option: the show's Thumb art",
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thumb"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thumb"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thumb"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thumb"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thumb"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thumb"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thumb"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thumb"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thumb"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thumb"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thumb"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thumb"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thumb"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thumb"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thumb"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thumb"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thumb"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thumb"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thumb"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thumb"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thumb"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thumb"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thumb"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thumb"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thumb"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thumb"
           }
         }
       }
