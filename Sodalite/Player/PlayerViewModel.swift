@@ -1336,9 +1336,9 @@ final class PlayerViewModel {
         isInsideIntro = false
         didSkipCurrentIntro = true
         Task { [weak self] in
-            // seg.endSeconds is absolute source time; route through the
-            // source-time seek so the AVPlayer-clock shift is applied.
-            await self?.player.seek(toSourceTime: seg.endSeconds)
+            // seg.endSeconds is absolute source time; seek(to:) is
+            // source-PTS based and applies any AVPlayer-clock shift itself.
+            await self?.player.seek(to: seg.endSeconds)
             // Lockout only needs to cover the seek-in-flight stale-tick
             // window. Once seek() returns the seek has landed; a brief
             // settle absorbs AVPlayer's post-seek time jitter, then
@@ -1378,7 +1378,7 @@ final class PlayerViewModel {
                 await self?.playNextEpisode()
             }
         } else {
-            Task { [weak self] in await self?.player.seek(toSourceTime: seg.endSeconds) }
+            Task { [weak self] in await self?.player.seek(to: seg.endSeconds) }
         }
     }
 
