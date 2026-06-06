@@ -77,6 +77,8 @@ The Seerr integration isn't a tacked-on link to a web view. It's a first-class p
 - **Image caching & prefetching**: posters and backdrops load before you focus them
 - **Delete from the app**: remove movies, series, or individual seasons from your library, with optional cleanup of matching Radarr / Sonarr entries when Jellyseerr is connected
 - **Rich detail pages**: cast, ratings, where-to-watch and more-like-this on catalog titles; tagline, director, writer and studios on your own library
+- **Title logos & synopses**: detail screens float the title logo over the backdrop and show full episode synopses, both toggleable in Appearance settings
+- **Watched tracking**: mark movies, episodes, seasons or whole series as watched or unwatched, with progress badges across Home and detail screens
 - **Cast & filmography**: tap any cast member to see their photo, biography and full filmography, then jump straight to a title in your library or request it from the catalog
 
 ### 🎬 Watch
@@ -85,6 +87,7 @@ The Seerr integration isn't a tacked-on link to a web view. It's a first-class p
 - **Dolby Atmos** via EAC3+JOC, wrapped as Dolby MAT 2.0 so your AVR's Atmos light actually comes on
 - **Multichannel surround**: 5.1, 7.1 with correct channel layout
 - **Resume** from where you left off, on any device
+- **Restart from the beginning**: a dedicated button on movies, series and episodes to play from the start instead of resuming
 - **Intro skip**: auto-detected from your Jellyfin server, optional one-tap skip
 - **Next episode**: auto-play with countdown, or just an overlay; configurable
 - **Subtitles, all formats, client-side**: text codecs (SubRip, ASS, SSA, WebVTT, mov_text) decoded inline in AetherEngine as packets flow through the demuxer, no server extraction lag on first hit. Bitmap subtitles (PGS, HDMV PGS, DVB, DVD) rendered as native images at the right position on the frame, no more relying on the server having Tesseract installed for Blu-ray rips. Sidecar `.srt` / `.ass` / `.vtt` files parsed by FFmpeg as well. Track switching mid-playback, with auto-resolution against your preferred audio / subtitle language.
@@ -93,6 +96,9 @@ The Seerr integration isn't a tacked-on link to a web view. It's a first-class p
 - **Custom player UI**: a hand-built transport bar and info panel on top of our own video engine, matching the gestures and feel of the Apple TV+ player without using the system player
 - **Stats for Nerds overlay**: optional info panel during playback. Static section shows container, video codec / range / framerate / bitrate / decoder, audio codec / channels / bitrate / decoder, subtitle codec. Live section refreshes at 1 Hz with instant + average bitrate from the demuxer, forward buffer + cached MB, network throughput, dropped frames (native AVPlayer) or observed FPS (software AV1), plus a colour-coded A/V sync gap. A second toggle adds an Engine Diagnostics deep-dive (producer restarts, RSS, demuxer / muxer / audio-bridge bytes, server traffic) for troubleshooting. Enable in Settings → Playback → Advanced.
 - **iPhone Control Center skip**: 10-second forward and backward skip buttons in the iPhone's Now Playing widget route through to the engine via `MPRemoteCommandCenter`, App Store compliant (no private API). Useful when the Siri Remote is across the room.
+
+### 🎵 Listen
+- **Music library**: browse your Jellyfin music by album and play it back through the same engine, with a native tvOS Now Playing screen, cover art and scrubbing
 
 ### 📨 Request what's missing
 - **Seerr integration**: browse trending and popular media right inside the app
@@ -104,6 +110,7 @@ The Seerr integration isn't a tacked-on link to a web view. It's a first-class p
 ### 🌍 Personal
 - **26 languages**: German, English, Spanish, French, Italian, Japanese, Korean, Norwegian, Dutch, Polish, Portuguese (BR + PT), Russian, Swedish, Simplified + Traditional Chinese, Turkish, Ukrainian, Czech, Slovak, Croatian, Finnish, Greek, Hungarian, Romanian, Danish
 - **Dark, minimal design** built for living rooms, not for desks
+- **Appearance options**: choose how Continue Watching and Now Playing artwork looks (full backdrop or episode still), set card size, toggle title logos, plus an accent color with the Supporter Pack
 - **Liquid Glass** UI accents on tvOS 26+
 - **Siri Remote optimized**: touch surface scrubbing, click for play/pause, swipe gestures throughout
 
@@ -157,11 +164,11 @@ For engine-level debugging without an Apple TV in the loop, AetherEngine ships a
 ## Roadmap
 
 - [x] Public TestFlight beta
+- [x] Music library
 - [ ] App Store release
 - [ ] iOS / iPadOS companion app
 - [ ] In-app library-update banner via Jellyfin's WebSocket, surfaces a quiet notification when Sonarr / Radarr ingests new content while Sodalite is open. No backend service, no APNs, same self-hosted data flow as everything else
 - [ ] Live TV + DVR support
-- [ ] Music library support
 
 ## Community
 
