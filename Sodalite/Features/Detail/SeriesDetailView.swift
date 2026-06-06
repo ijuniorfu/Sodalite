@@ -135,12 +135,6 @@ struct SeriesDetailView: View {
                             .font(.largeTitle)
                             .fontWeight(.bold)
                     }
-                    // Episode deep-links open this view with a series
-                    // stub that has no imageTags yet; the logo tag arrives
-                    // with loadFullDetail. Keying on it forces the hero to
-                    // rebuild when the tag lands, so the logo appears
-                    // immediately instead of only after a scroll.
-                    .id(vm.item.imageTags?.logo ?? vm.item.id)
                 }) {
                     // Captured ScrollViewProxy lets the player-dismiss
                     // handler scroll the outer vertical ScrollView back
