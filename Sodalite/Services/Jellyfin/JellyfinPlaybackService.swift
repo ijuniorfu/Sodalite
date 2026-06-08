@@ -16,10 +16,6 @@ protocol JellyfinPlaybackServiceProtocol: Sendable {
     func getEpisodes(seriesID: String, seasonID: String, userID: String) async throws -> [JellyfinItem]
     func getEpisodeSegments(itemID: String) async throws -> EpisodeSegments
     func buildStreamURL(itemID: String, mediaSourceID: String, container: String?, isStatic: Bool) -> URL?
-    /// Static (copy / remux, no re-encode) stream URL for an opened live
-    /// channel. Includes the LiveStreamId + PlaySessionId so the request maps
-    /// to the tuner session Jellyfin opened via AutoOpenLiveStream.
-    func buildLiveStreamURL(itemID: String, mediaSourceID: String, liveStreamID: String?, playSessionID: String?, container: String) -> URL?
     func buildAudioStreamURL(itemID: String, mediaSourceID: String, container: String?, isStatic: Bool) -> URL?
     func buildSubtitleURL(itemID: String, mediaSourceID: String, streamIndex: Int, format: String) -> URL?
     func buildTranscodeURL(relativePath: String) -> URL?
@@ -193,20 +189,6 @@ final class JellyfinPlaybackService: JellyfinPlaybackServiceProtocol {
         if isStatic {
             queryItems.append(URLQueryItem(name: "Static", value: "true"))
         }
-        components?.queryItems = queryItems
-        return components?.url
-    }
-
-    func buildLiveStreamURL(itemID: String, mediaSourceID: String, liveStreamID: String?, playSessionID: String?, container: String) -> URL? {
-        guard let baseURL = client.baseURL else { return nil }
-        var components = URLComponents(url: baseURL.appendingPathComponent("/Videos/\(itemID)/stream.\(container)"), resolvingAgainstBaseURL: true)
-        var queryItems = [
-            URLQueryItem(name: "Static", value: "true"),
-            URLQueryItem(name: "MediaSourceId", value: mediaSourceID),
-            URLQueryItem(name: "api_key", value: client.accessToken),
-        ]
-        if let liveStreamID { queryItems.append(URLQueryItem(name: "LiveStreamId", value: liveStreamID)) }
-        if let playSessionID { queryItems.append(URLQueryItem(name: "PlaySessionId", value: playSessionID)) }
         components?.queryItems = queryItems
         return components?.url
     }
