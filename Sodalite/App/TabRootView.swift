@@ -203,8 +203,7 @@ struct TabRootView: View {
         case .home:
             HomeView()
         case .liveTV:
-            // TODO: replace with LiveTVTabView once that view is implemented
-            Text("Live TV").focusable()
+            LiveTVTabView()
         case .catalog:
             CatalogView()
         case .search:
