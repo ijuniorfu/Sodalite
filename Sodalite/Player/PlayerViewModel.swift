@@ -400,6 +400,9 @@ final class PlayerViewModel {
                 try await loadLiveStream()
                 if Task.isCancelled || isTearingDown {
                     player.stop()
+                    // loadLiveStream() may have opened a tuner before the
+                    // cancel landed; release it so the server does not leak.
+                    releaseLiveTunerIfNeeded()
                     isLoading = false
                     return
                 }
@@ -682,6 +685,9 @@ final class PlayerViewModel {
             Task { [weak self] in await self?.loadSeasonEpisodes() }
 
         } catch {
+            // If a live load opened the tuner before failing, release it.
+            // No-op for VOD (activeLiveStreamID is nil).
+            releaseLiveTunerIfNeeded()
             setError(from: error)
             isLoading = false
         }
@@ -779,13 +785,17 @@ final class PlayerViewModel {
             mediaSourceId: mediaSourceID,
             playSessionId: playSessionID,
             positionTicks: finalTicks,
-            liveStreamId: nil
+            liveStreamId: activeLiveStreamID
         )
         // Engine handles native AVPlayer teardown + HLS server shutdown
         // + AVDisplayManager criteria reset inside stopInternal(). The
         // host just calls stop() and trusts the engine to leave the
         // session in a clean state for the next playback.
         player.stop()
+        // Explicit tuner release safety net. The stop report above already
+        // carries liveStreamId, but if that report fails to deliver this
+        // detached close still frees the server-side tuner. No-op for VOD.
+        releaseLiveTunerIfNeeded()
         // Fire-and-forget: caller (dismissPlayer / viewWillDisappear)
         // returns immediately so the SwiftUI dismiss animation can
         // start without waiting on Jellyfin's PlaybackStopped endpoint.

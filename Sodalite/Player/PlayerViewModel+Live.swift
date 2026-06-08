@@ -72,4 +72,19 @@ extension PlayerViewModel {
     func returnToLiveEdge() {
         Task { await player.seekToLiveEdge() }
     }
+
+    /// Release the Jellyfin live tuner if one is open. Idempotent: reads and
+    /// clears `activeLiveStreamID`, then fires a detached close so a slow
+    /// server cannot stall teardown. Safe to call on any teardown route; a
+    /// no-op for VOD (activeLiveStreamID is nil). The stop report also
+    /// carries the liveStreamId, so this is a belt-and-suspenders safety net
+    /// against a dropped report.
+    func releaseLiveTunerIfNeeded() {
+        guard let liveStreamID = activeLiveStreamID else { return }
+        activeLiveStreamID = nil
+        let svc = playbackService
+        Task.detached {
+            try? await svc.closeLiveStream(liveStreamID: liveStreamID)
+        }
+    }
 }
