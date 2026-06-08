@@ -73,6 +73,7 @@ final class EPGProgramCollectionCell: UICollectionViewCell {
 final class EPGChannelHeaderView: UICollectionReusableView {
     static let reuseID = EPGCollectionLayout.channelHeaderKind
 
+    private let blur = UIVisualEffectView(effect: UIBlurEffect(style: .dark))
     private let logoView = UIImageView()
     private let nameLabel = UILabel()
     private let numberLabel = UILabel()
@@ -80,6 +81,12 @@ final class EPGChannelHeaderView: UICollectionReusableView {
 
     override init(frame: CGRect) {
         super.init(frame: frame)
+        // Opaque backing so programs scrolling left under the pinned column
+        // do not show through.
+        blur.frame = bounds
+        blur.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        addSubview(blur)
+
         logoView.contentMode = .scaleAspectFit
         logoView.tintColor = .secondaryLabel
         logoView.translatesAutoresizingMaskIntoConstraints = false
