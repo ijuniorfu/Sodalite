@@ -47,7 +47,10 @@ struct EPGGuideView: View {
                         selectedProgram = program
                     }
                 )
-                .ignoresSafeArea()
+                // Fill width / bottom, but keep the top safe area so the grid
+                // starts below the tab bar (the time header pins to the top of
+                // this area, not over the tab bar).
+                .ignoresSafeArea(edges: [.horizontal, .bottom])
             }
         }
         .task { await model.loadInitialChannels() }

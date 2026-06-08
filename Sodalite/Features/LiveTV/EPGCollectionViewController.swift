@@ -52,6 +52,11 @@ final class EPGCollectionViewController: UIViewController,
         collectionView.dataSource = self
         collectionView.delegate = self
         collectionView.remembersLastFocusedIndexPath = true
+        // Our contentInset reserves the header / column strips exactly; do not
+        // let tvOS add its own safe-area inset on top (that double-shift was
+        // pushing content under the pinned column and the header over the tab
+        // bar). The SwiftUI frame already keeps us below the tab bar.
+        collectionView.contentInsetAdjustmentBehavior = .never
         collectionView.contentInset = UIEdgeInsets(
             top: layout.headerHeight, left: layout.columnWidth, bottom: 0, right: 0)
         collectionView.register(EPGProgramCollectionCell.self,
