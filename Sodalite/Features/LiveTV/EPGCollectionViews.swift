@@ -1,13 +1,12 @@
 import UIKit
 
-/// Solid backing for the pinned column / header / corner. Opaque so program
-/// cells scrolling underneath them are fully hidden (a translucent blur let
-/// the cells, and their focus highlight, bleed through).
-private let epgPinnedBackground = UIColor(white: 0.12, alpha: 1.0)
+/// Solid backing for the channel column / time header / corner. Opaque so the
+/// hard-split program grid beside them reads as a separate panel.
+let epgPinnedBackground = UIColor(white: 0.12, alpha: 1.0)
 
 // MARK: - Program cell (focusable)
 
-/// One program block in the EPG grid. Focusable; fills with the tint while
+/// One program block in the program grid. Focusable; fills with the tint while
 /// focused (matching the SwiftUI convention of tinted-not-white focus).
 final class EPGProgramCollectionCell: UICollectionViewCell {
     static let reuseID = "EPGProgramCollectionCell"
@@ -73,22 +72,22 @@ final class EPGProgramCollectionCell: UICollectionViewCell {
     }
 }
 
-// MARK: - Channel column header (pinned left)
+// MARK: - Channel column cell (not focusable)
 
-final class EPGChannelHeaderView: UICollectionReusableView {
-    static let reuseID = EPGCollectionLayout.channelHeaderKind
+final class EPGChannelCell: UICollectionViewCell {
+    static let reuseID = "EPGChannelCell"
 
     private let logoView = UIImageView()
     private let nameLabel = UILabel()
     private let numberLabel = UILabel()
     private var logoToken = UUID()
 
+    // The column is a passive index; focus lives on the program grid.
+    override var canBecomeFocused: Bool { false }
+
     override init(frame: CGRect) {
         super.init(frame: frame)
-        // Opaque backing so programs scrolling left under the pinned column
-        // do not show through.
-        backgroundColor = epgPinnedBackground
-
+        contentView.backgroundColor = epgPinnedBackground
         logoView.contentMode = .scaleAspectFit
         logoView.tintColor = .secondaryLabel
         logoView.translatesAutoresizingMaskIntoConstraints = false
@@ -108,14 +107,14 @@ final class EPGChannelHeaderView: UICollectionReusableView {
         hStack.spacing = 12
         hStack.alignment = .center
         hStack.translatesAutoresizingMaskIntoConstraints = false
-        addSubview(hStack)
+        contentView.addSubview(hStack)
 
         NSLayoutConstraint.activate([
             logoView.widthAnchor.constraint(equalToConstant: 56),
             logoView.heightAnchor.constraint(equalToConstant: 56),
-            hStack.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
-            hStack.trailingAnchor.constraint(lessThanOrEqualTo: trailingAnchor, constant: -8),
-            hStack.centerYAnchor.constraint(equalTo: centerYAnchor),
+            hStack.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+            hStack.trailingAnchor.constraint(lessThanOrEqualTo: contentView.trailingAnchor, constant: -8),
+            hStack.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
         ])
     }
 
@@ -150,20 +149,14 @@ final class EPGChannelHeaderView: UICollectionReusableView {
     }
 }
 
-// MARK: - Time header (pinned top)
+// MARK: - Time header content (placed inside a sync scroll view)
 
-final class EPGTimeHeaderView: UICollectionReusableView {
-    static let reuseID = EPGCollectionLayout.timeHeaderKind
-
+/// Tick labels across the timeline. The view controller hosts this inside a
+/// horizontally-scrolling, non-focusable container whose offset is synced to
+/// the program grid.
+final class EPGTimeHeaderContentView: UIView {
     private var tickLabels: [UILabel] = []
     private var ticks: [(x: CGFloat, text: String)] = []
-
-    override init(frame: CGRect) {
-        super.init(frame: frame)
-        backgroundColor = epgPinnedBackground
-    }
-
-    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
 
     func configure(ticks: [(x: CGFloat, text: String)]) {
         self.ticks = ticks
@@ -186,18 +179,6 @@ final class EPGTimeHeaderView: UICollectionReusableView {
             label.frame.origin = CGPoint(x: ticks[i].x + 6, y: (bounds.height - label.bounds.height) / 2)
         }
     }
-}
-
-// MARK: - Corner (pinned top-left)
-
-final class EPGCornerView: UICollectionReusableView {
-    static let reuseID = EPGCollectionLayout.cornerKind
-
-    override init(frame: CGRect) {
-        super.init(frame: frame)
-        backgroundColor = epgPinnedBackground
-    }
-    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
 }
 
 // MARK: - Now line (decoration)

@@ -2,9 +2,13 @@ import UIKit
 import SwiftUI
 import Observation
 
-/// Hosts the EPG `UICollectionView` with `EPGCollectionLayout`. Renders the
-/// channels/programs from `EPGGuideViewModel`, drives lazy loading as rows
-/// come on screen, and reports a program selection back to SwiftUI.
+/// Hosts the EPG as a hard split: a non-focusable channel column on the left,
+/// a focusable program grid on the right, and a time header on top, each
+/// clipped to its own region. The grid is the scroll source of truth; the
+/// column's vertical offset and the header's horizontal offset are synced to
+/// it in `scrollViewDidScroll` (cheap UIKit, no SwiftUI re-render). Because
+/// the grid never overlaps the column, programs cannot scroll behind the
+/// channels and focus cannot land under the column.
 @MainActor
 final class EPGCollectionViewController: UIViewController,
     UICollectionViewDataSource, UICollectionViewDelegate, EPGCollectionLayoutDelegate {
@@ -19,8 +23,16 @@ final class EPGCollectionViewController: UIViewController,
     private let onSelect: (JellyfinChannel, JellyfinProgram) -> Void
     private let logoURLProvider: (JellyfinChannel) -> URL?
 
-    private let layout = EPGCollectionLayout()
-    private var collectionView: UICollectionView!
+    private let columnWidth = EPGGuideViewModel.channelColumnWidth
+    private let rowHeight = EPGGuideViewModel.rowHeight
+    private let headerHeight: CGFloat = 60
+
+    private let gridLayout = EPGCollectionLayout()
+    private var gridView: UICollectionView!
+    private var columnView: UICollectionView!
+    private let timeHeaderScroll = UIScrollView()
+    private let timeHeaderContent = EPGTimeHeaderContentView()
+    private let cornerView = UIView()
     private var rows: [Row] = []
 
     init(model: EPGGuideViewModel, tintColor: UIColor,
@@ -38,46 +50,78 @@ final class EPGCollectionViewController: UIViewController,
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        layout.delegate = self
-        layout.columnWidth = EPGGuideViewModel.channelColumnWidth
-        layout.rowHeight = EPGGuideViewModel.rowHeight
-        layout.headerHeight = 60
-        layout.totalWidth = model.totalWidth
-        layout.nowX = max(0, model.xOffset(for: Date()))
-        layout.register(EPGNowLineView.self, forDecorationViewOfKind: EPGCollectionLayout.nowLineKind)
+        // Program grid (right).
+        gridLayout.delegate = self
+        gridLayout.rowHeight = rowHeight
+        gridLayout.totalWidth = model.totalWidth
+        gridLayout.nowX = max(0, model.xOffset(for: Date()))
+        gridLayout.register(EPGNowLineView.self, forDecorationViewOfKind: EPGCollectionLayout.nowLineKind)
+        gridView = UICollectionView(frame: .zero, collectionViewLayout: gridLayout)
+        gridView.backgroundColor = .clear
+        gridView.clipsToBounds = true
+        gridView.dataSource = self
+        gridView.delegate = self
+        gridView.remembersLastFocusedIndexPath = true
+        gridView.contentInsetAdjustmentBehavior = .never
+        gridView.register(EPGProgramCollectionCell.self,
+                          forCellWithReuseIdentifier: EPGProgramCollectionCell.reuseID)
+        view.addSubview(gridView)
 
-        collectionView = UICollectionView(frame: view.bounds, collectionViewLayout: layout)
-        collectionView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        collectionView.backgroundColor = .clear
-        collectionView.dataSource = self
-        collectionView.delegate = self
-        collectionView.remembersLastFocusedIndexPath = true
-        // Our contentInset reserves the header / column strips exactly; do not
-        // let tvOS add its own safe-area inset on top (that double-shift was
-        // pushing content under the pinned column and the header over the tab
-        // bar). The SwiftUI frame already keeps us below the tab bar.
-        collectionView.contentInsetAdjustmentBehavior = .never
-        collectionView.contentInset = UIEdgeInsets(
-            top: layout.headerHeight, left: layout.columnWidth, bottom: 0, right: 0)
-        collectionView.register(EPGProgramCollectionCell.self,
-                                forCellWithReuseIdentifier: EPGProgramCollectionCell.reuseID)
-        collectionView.register(EPGChannelHeaderView.self,
-            forSupplementaryViewOfKind: EPGCollectionLayout.channelHeaderKind,
-            withReuseIdentifier: EPGChannelHeaderView.reuseID)
-        collectionView.register(EPGTimeHeaderView.self,
-            forSupplementaryViewOfKind: EPGCollectionLayout.timeHeaderKind,
-            withReuseIdentifier: EPGTimeHeaderView.reuseID)
-        collectionView.register(EPGCornerView.self,
-            forSupplementaryViewOfKind: EPGCollectionLayout.cornerKind,
-            withReuseIdentifier: EPGCornerView.reuseID)
-        view.addSubview(collectionView)
+        // Channel column (left), passive, scroll synced to the grid.
+        let columnLayout = UICollectionViewFlowLayout()
+        columnLayout.scrollDirection = .vertical
+        columnLayout.minimumLineSpacing = 0
+        columnLayout.minimumInteritemSpacing = 0
+        columnLayout.itemSize = CGSize(width: columnWidth, height: rowHeight)
+        columnView = UICollectionView(frame: .zero, collectionViewLayout: columnLayout)
+        columnView.backgroundColor = epgPinnedBackground
+        columnView.clipsToBounds = true
+        columnView.isScrollEnabled = false
+        columnView.contentInsetAdjustmentBehavior = .never
+        columnView.dataSource = self
+        columnView.register(EPGChannelCell.self, forCellWithReuseIdentifier: EPGChannelCell.reuseID)
+        view.addSubview(columnView)
+
+        // Time header (top), passive, scroll synced to the grid.
+        timeHeaderScroll.backgroundColor = epgPinnedBackground
+        timeHeaderScroll.clipsToBounds = true
+        timeHeaderScroll.isScrollEnabled = false
+        timeHeaderScroll.isUserInteractionEnabled = false
+        timeHeaderScroll.contentInsetAdjustmentBehavior = .never
+        timeHeaderScroll.addSubview(timeHeaderContent)
+        view.addSubview(timeHeaderScroll)
+
+        // Corner (top-left).
+        cornerView.backgroundColor = epgPinnedBackground
+        view.addSubview(cornerView)
 
         rebuildRows()
-        collectionView.reloadData()
+        gridView.reloadData()
+        columnView.reloadData()
+        timeHeaderContent.configure(ticks: timeTicks())
         startObserving()
     }
 
-    // MARK: - Model observation (re-apply on channel / program changes)
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        let w = view.bounds.width, h = view.bounds.height
+        cornerView.frame = CGRect(x: 0, y: 0, width: columnWidth, height: headerHeight)
+        timeHeaderScroll.frame = CGRect(x: columnWidth, y: 0, width: w - columnWidth, height: headerHeight)
+        timeHeaderScroll.contentSize = CGSize(width: model.totalWidth, height: headerHeight)
+        timeHeaderContent.frame = CGRect(x: 0, y: 0, width: model.totalWidth, height: headerHeight)
+        columnView.frame = CGRect(x: 0, y: headerHeight, width: columnWidth, height: h - headerHeight)
+        gridView.frame = CGRect(x: columnWidth, y: headerHeight, width: w - columnWidth, height: h - headerHeight)
+    }
+
+    // MARK: - Scroll sync (grid drives column + header)
+
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        guard scrollView === gridView else { return }
+        columnView.contentOffset.y = gridView.contentOffset.y
+        timeHeaderScroll.contentOffset.x = gridView.contentOffset.x
+    }
+
+    // MARK: - Model observation
 
     private func startObserving() {
         withObservationTracking {
@@ -97,9 +141,9 @@ final class EPGCollectionViewController: UIViewController,
         rebuildRows()
         let new = rows
 
-        // First population or a non-append change: full reload.
         guard !old.isEmpty, isPrefix(old, of: new) else {
-            collectionView.reloadData()
+            gridView.reloadData()
+            columnView.reloadData()
             return
         }
 
@@ -108,12 +152,16 @@ final class EPGCollectionViewController: UIViewController,
             changed.insert(s)
         }
         let appended = new.count > old.count ? IndexSet(integersIn: old.count..<new.count) : IndexSet()
-
         guard !changed.isEmpty || !appended.isEmpty else { return }
+
         UIView.performWithoutAnimation {
-            collectionView.performBatchUpdates {
-                if !changed.isEmpty { collectionView.reloadSections(changed) }
-                if !appended.isEmpty { collectionView.insertSections(appended) }
+            gridView.performBatchUpdates {
+                if !changed.isEmpty { gridView.reloadSections(changed) }
+                if !appended.isEmpty { gridView.insertSections(appended) }
+            }
+            if !appended.isEmpty {
+                let items = appended.map { IndexPath(item: $0, section: 0) }
+                columnView.insertItems(at: items)
             }
         }
     }
@@ -134,7 +182,7 @@ final class EPGCollectionViewController: UIViewController,
         "\(row.programs.count):\(row.programs.first?.id ?? "-"):\(row.programs.last?.id ?? "-")"
     }
 
-    // MARK: - Layout delegate
+    // MARK: - Program layout delegate
 
     func epgChannelCount() -> Int { rows.count }
 
@@ -144,26 +192,33 @@ final class EPGCollectionViewController: UIViewController,
 
     func epgProgramXWidth(section: Int, item: Int) -> (x: CGFloat, width: CGFloat) {
         let row = rows[section]
-        if row.programs.isEmpty {
-            return (0, layout.totalWidth)
-        }
+        if row.programs.isEmpty { return (0, gridLayout.totalWidth) }
         let program = row.programs[item]
         guard let start = program.startDate, let end = program.endDate else {
-            return (0, layout.totalWidth)
+            return (0, gridLayout.totalWidth)
         }
         return (max(0, model.xOffset(for: start)), model.width(start: start, end: end))
     }
 
-    // MARK: - Data source
+    // MARK: - Data source (grid + column share this VC)
 
-    func numberOfSections(in collectionView: UICollectionView) -> Int { rows.count }
+    func numberOfSections(in collectionView: UICollectionView) -> Int {
+        collectionView === gridView ? rows.count : 1
+    }
 
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        epgProgramCount(section: section)
+        collectionView === gridView ? epgProgramCount(section: section) : rows.count
     }
 
     func collectionView(_ collectionView: UICollectionView,
                         cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        if collectionView === columnView {
+            let cell = collectionView.dequeueReusableCell(
+                withReuseIdentifier: EPGChannelCell.reuseID, for: indexPath) as! EPGChannelCell
+            let channel = rows[indexPath.item].channel
+            cell.configure(name: channel.name, number: channel.channelNumber, logoURL: logoURLProvider(channel))
+            return cell
+        }
         let cell = collectionView.dequeueReusableCell(
             withReuseIdentifier: EPGProgramCollectionCell.reuseID, for: indexPath) as! EPGProgramCollectionCell
         let row = rows[indexPath.section]
@@ -177,32 +232,10 @@ final class EPGCollectionViewController: UIViewController,
         return cell
     }
 
-    func collectionView(_ collectionView: UICollectionView,
-                        viewForSupplementaryElementOfKind kind: String,
-                        at indexPath: IndexPath) -> UICollectionReusableView {
-        switch kind {
-        case EPGCollectionLayout.channelHeaderKind:
-            let view = collectionView.dequeueReusableSupplementaryView(
-                ofKind: kind, withReuseIdentifier: EPGChannelHeaderView.reuseID, for: indexPath) as! EPGChannelHeaderView
-            let channel = rows[indexPath.section].channel
-            view.configure(name: channel.name, number: channel.channelNumber, logoURL: logoURL(for: channel))
-            return view
-        case EPGCollectionLayout.timeHeaderKind:
-            let view = collectionView.dequeueReusableSupplementaryView(
-                ofKind: kind, withReuseIdentifier: EPGTimeHeaderView.reuseID, for: indexPath) as! EPGTimeHeaderView
-            view.configure(ticks: timeTicks())
-            return view
-        case EPGCollectionLayout.cornerKind:
-            return collectionView.dequeueReusableSupplementaryView(
-                ofKind: kind, withReuseIdentifier: EPGCornerView.reuseID, for: indexPath)
-        default:
-            return UICollectionReusableView()
-        }
-    }
-
-    // MARK: - Delegate (selection + lazy load)
+    // MARK: - Grid delegate (selection + lazy load)
 
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        guard collectionView === gridView else { return }
         let row = rows[indexPath.section]
         let program = row.programs.isEmpty
             ? synthesizedProgram(for: row.channel)
@@ -210,30 +243,9 @@ final class EPGCollectionViewController: UIViewController,
         onSelect(row.channel, program)
     }
 
-    /// Keep the focused program cell out from under the pinned column / header.
-    /// tvOS only scrolls a focused cell until it intersects the bounds, so a
-    /// wide cell whose right half is visible stays half-hidden behind the
-    /// column; nudge the offset so its leading edge clears the column.
-    func collectionView(_ collectionView: UICollectionView,
-                        didUpdateFocusIn context: UICollectionViewFocusUpdateContext,
-                        with coordinator: UIFocusAnimationCoordinator) {
-        guard let indexPath = context.nextFocusedIndexPath,
-              let attr = layout.layoutAttributesForItem(at: indexPath) else { return }
-        var offset = collectionView.contentOffset
-        let frame = attr.frame
-        if frame.minX - offset.x < layout.columnWidth {
-            offset.x = frame.minX - layout.columnWidth
-        }
-        if frame.minY - offset.y < layout.headerHeight {
-            offset.y = frame.minY - layout.headerHeight
-        }
-        if offset != collectionView.contentOffset {
-            collectionView.setContentOffset(offset, animated: true)
-        }
-    }
-
     func collectionView(_ collectionView: UICollectionView,
                         willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
+        guard collectionView === gridView else { return }
         let section = indexPath.section
         let ids = (section..<min(section + 6, rows.count)).map { rows[$0].channel.id }
         Task { await model.ensurePrograms(for: ids) }
@@ -257,10 +269,6 @@ final class EPGCollectionViewController: UIViewController,
         f.timeStyle = .short
         f.dateStyle = .none
         return model.timeTicks.map { (model.xOffset(for: $0), f.string(from: $0)) }
-    }
-
-    private func logoURL(for channel: JellyfinChannel) -> URL? {
-        logoURLProvider(channel)
     }
 
     private func synthesizedProgram(for channel: JellyfinChannel) -> JellyfinProgram {
