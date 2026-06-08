@@ -210,6 +210,28 @@ final class EPGCollectionViewController: UIViewController,
         onSelect(row.channel, program)
     }
 
+    /// Keep the focused program cell out from under the pinned column / header.
+    /// tvOS only scrolls a focused cell until it intersects the bounds, so a
+    /// wide cell whose right half is visible stays half-hidden behind the
+    /// column; nudge the offset so its leading edge clears the column.
+    func collectionView(_ collectionView: UICollectionView,
+                        didUpdateFocusIn context: UICollectionViewFocusUpdateContext,
+                        with coordinator: UIFocusAnimationCoordinator) {
+        guard let indexPath = context.nextFocusedIndexPath,
+              let attr = layout.layoutAttributesForItem(at: indexPath) else { return }
+        var offset = collectionView.contentOffset
+        let frame = attr.frame
+        if frame.minX - offset.x < layout.columnWidth {
+            offset.x = frame.minX - layout.columnWidth
+        }
+        if frame.minY - offset.y < layout.headerHeight {
+            offset.y = frame.minY - layout.headerHeight
+        }
+        if offset != collectionView.contentOffset {
+            collectionView.setContentOffset(offset, animated: true)
+        }
+    }
+
     func collectionView(_ collectionView: UICollectionView,
                         willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
         let section = indexPath.section

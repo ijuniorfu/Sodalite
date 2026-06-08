@@ -1,5 +1,10 @@
 import UIKit
 
+/// Solid backing for the pinned column / header / corner. Opaque so program
+/// cells scrolling underneath them are fully hidden (a translucent blur let
+/// the cells, and their focus highlight, bleed through).
+private let epgPinnedBackground = UIColor(white: 0.12, alpha: 1.0)
+
 // MARK: - Program cell (focusable)
 
 /// One program block in the EPG grid. Focusable; fills with the tint while
@@ -73,7 +78,6 @@ final class EPGProgramCollectionCell: UICollectionViewCell {
 final class EPGChannelHeaderView: UICollectionReusableView {
     static let reuseID = EPGCollectionLayout.channelHeaderKind
 
-    private let blur = UIVisualEffectView(effect: UIBlurEffect(style: .dark))
     private let logoView = UIImageView()
     private let nameLabel = UILabel()
     private let numberLabel = UILabel()
@@ -83,9 +87,7 @@ final class EPGChannelHeaderView: UICollectionReusableView {
         super.init(frame: frame)
         // Opaque backing so programs scrolling left under the pinned column
         // do not show through.
-        blur.frame = bounds
-        blur.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        addSubview(blur)
+        backgroundColor = epgPinnedBackground
 
         logoView.contentMode = .scaleAspectFit
         logoView.tintColor = .secondaryLabel
@@ -153,15 +155,12 @@ final class EPGChannelHeaderView: UICollectionReusableView {
 final class EPGTimeHeaderView: UICollectionReusableView {
     static let reuseID = EPGCollectionLayout.timeHeaderKind
 
-    private let blur = UIVisualEffectView(effect: UIBlurEffect(style: .dark))
     private var tickLabels: [UILabel] = []
     private var ticks: [(x: CGFloat, text: String)] = []
 
     override init(frame: CGRect) {
         super.init(frame: frame)
-        blur.frame = bounds
-        blur.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        addSubview(blur)
+        backgroundColor = epgPinnedBackground
     }
 
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
@@ -193,13 +192,10 @@ final class EPGTimeHeaderView: UICollectionReusableView {
 
 final class EPGCornerView: UICollectionReusableView {
     static let reuseID = EPGCollectionLayout.cornerKind
-    private let blur = UIVisualEffectView(effect: UIBlurEffect(style: .dark))
 
     override init(frame: CGRect) {
         super.init(frame: frame)
-        blur.frame = bounds
-        blur.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        addSubview(blur)
+        backgroundColor = epgPinnedBackground
     }
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
 }
