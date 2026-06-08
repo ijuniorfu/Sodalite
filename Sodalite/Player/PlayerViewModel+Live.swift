@@ -11,7 +11,7 @@ extension PlayerViewModel {
     func loadLiveStream() async throws {
         print("[PlayerVM+Live] loadLiveStream getPlaybackInfo itemID=\(item.id)")
         let info = try await playbackService.getPlaybackInfo(
-            itemID: item.id, userID: userID, profile: DirectPlayProfile.current())
+            itemID: item.id, userID: userID, profile: DirectPlayProfile.liveProfile())
         playSessionID = info.playSessionId
         print("[PlayerVM+Live] PlaybackInfo mediaSources=\(info.mediaSources.count) playSession=\(info.playSessionId ?? "nil")")
         guard let source = info.mediaSources.first else {

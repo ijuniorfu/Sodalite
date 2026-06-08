@@ -30,6 +30,28 @@ enum DirectPlayProfile {
         return useHDR ? permissiveHDRProfile() : conservativeSDRProfile()
     }
 
+    /// Profile for live TV channels. A live channel is an unbounded stream,
+    /// so the VOD fallback of a progressive MP4 transcode does not work: an
+    /// MP4 only finalizes its `moov` atom at EOF, which never comes for live,
+    /// so the server returns a broken URL it then rejects with HTTP 400.
+    /// MPEG-TS over progressive HTTP IS live-streamable, and it is exactly
+    /// what AetherEngine's live path consumes (raw MPEG-TS over HTTP via its
+    /// AVIO reader). So we keep the direct-play set but force a TS transcode.
+    static func liveProfile() -> [String: Any] {
+        var profile = current()
+        profile["TranscodingProfiles"] = [
+            [
+                "Type": "Video",
+                "Container": "ts",
+                "Protocol": "http",
+                "VideoCodec": "h264,hevc",
+                "AudioCodec": "aac,ac3,eac3,mp3",
+                "Context": "Streaming",
+            ],
+        ] as [[String: Any]]
+        return profile
+    }
+
     // MARK: - HDR-capable display
 
     /// Profile for HDR-capable Apple TV setups (HDR display + Match
