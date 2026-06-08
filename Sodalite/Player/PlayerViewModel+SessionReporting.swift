@@ -73,7 +73,8 @@ extension PlayerViewModel {
             itemId: item.id,
             mediaSourceId: mediaSourceID,
             playSessionId: playSessionID,
-            positionTicks: ticks
+            positionTicks: ticks,
+            liveStreamId: nil
         )
         do {
             try await playbackService.reportPlaybackStopped(report)

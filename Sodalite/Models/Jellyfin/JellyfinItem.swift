@@ -178,6 +178,49 @@ struct JellyfinItem: Codable, Sendable, Identifiable, Equatable, Hashable {
         self.albumPrimaryImageTag = nil
     }
 
+    /// Minimal item representing a live channel, so PlayerViewModel
+    /// (metadata staging, session reporting) works unchanged for live
+    /// playback. The display name prefers the current program's title.
+    init(liveChannel channel: JellyfinChannel, program: JellyfinProgram?) {
+        self.id = channel.id
+        self.name = program?.name ?? channel.name
+        self.sortName = nil
+        self.originalTitle = nil
+        self.overview = program?.overview
+        self.type = .tvChannel
+        self.seriesName = nil
+        self.seriesId = nil
+        self.seasonId = nil
+        self.parentIndexNumber = nil
+        self.indexNumber = nil
+        self.productionYear = nil
+        self.communityRating = nil
+        self.officialRating = nil
+        self.runTimeTicks = nil
+        self.premiereDate = nil
+        self.endDate = nil
+        self.status = nil
+        self.genres = program?.genres
+        self.taglines = nil
+        self.imageTags = nil
+        self.backdropImageTags = nil
+        self.parentBackdropImageTags = nil
+        self.userData = nil
+        self.mediaStreams = nil
+        self.mediaSources = nil
+        self.people = nil
+        self.studios = nil
+        self.collectionType = nil
+        self.childCount = nil
+        self.seriesPrimaryImageTag = nil
+        self.providerIds = nil
+        self.chapters = nil
+        self.albumArtist = nil
+        self.artists = nil
+        self.albumId = nil
+        self.albumPrimaryImageTag = nil
+    }
+
     static func == (lhs: JellyfinItem, rhs: JellyfinItem) -> Bool {
         lhs.id == rhs.id
     }
@@ -198,6 +241,7 @@ enum ItemType: String, Codable, Sendable {
     case collectionFolder = "CollectionFolder"
     case folder = "Folder"
     case playlist = "Playlist"
+    case tvChannel = "TvChannel"
     case unknown
 
     init(from decoder: Decoder) throws {

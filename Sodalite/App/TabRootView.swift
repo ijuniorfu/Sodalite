@@ -3,6 +3,7 @@ import UIKit
 
 enum AppTab: String, CaseIterable, Sendable {
     case home
+    case liveTV
     case catalog
     case search
     case music
@@ -11,6 +12,7 @@ enum AppTab: String, CaseIterable, Sendable {
     var labelKey: LocalizedStringKey {
         switch self {
         case .home: "tab.home"
+        case .liveTV: "tab.liveTV"
         case .catalog: "tab.catalog"
         case .search: "tab.search"
         case .music: "tab.music"
@@ -21,6 +23,7 @@ enum AppTab: String, CaseIterable, Sendable {
     var systemImage: String {
         switch self {
         case .home: "house"
+        case .liveTV: "tv"
         case .catalog: "film.stack"
         case .search: "magnifyingglass"
         case .music: "music.note"
@@ -31,7 +34,7 @@ enum AppTab: String, CaseIterable, Sendable {
 
 struct TabRootView: View {
     @State private var selectedTab: AppTab = .home
-    @State private var availableTabs: [AppTab] = AppTab.allCases.filter { $0 != .music }
+    @State private var availableTabs: [AppTab] = AppTab.allCases.filter { $0 != .music && $0 != .liveTV }
     @Environment(\.dependencies) private var dependencies
 
     /// Resolved accent color for the tab-bar icons. Falls back to the
@@ -74,11 +77,23 @@ struct TabRootView: View {
         }
         .task {
             guard let userID = dependencies.activeUserID else { return }
+
+            // Live TV probe never throws; run it outside the music do/catch
+            // so a music failure cannot prevent the Live TV tab from appearing.
+            let hasLive = await dependencies.serverHasLiveTV(userID: userID)
+            if hasLive, !availableTabs.contains(.liveTV) {
+                if let homeIndex = availableTabs.firstIndex(of: .home) {
+                    availableTabs.insert(.liveTV, at: homeIndex + 1)
+                } else {
+                    availableTabs.insert(.liveTV, at: 0)
+                }
+            }
+
             do {
                 let hasMusic = try await dependencies.jellyfinMusicService.hasMusicLibrary(userID: userID)
                 if hasMusic, !availableTabs.contains(.music) {
                     // Insert Music before Settings so the order is:
-                    // Home, Catalog, Search, Music, Settings.
+                    // Home, [Live TV,] Catalog, Search, Music, Settings.
                     if let settingsIndex = availableTabs.firstIndex(of: .settings) {
                         availableTabs.insert(.music, at: settingsIndex)
                     } else {
@@ -187,6 +202,8 @@ struct TabRootView: View {
         switch tab {
         case .home:
             HomeView()
+        case .liveTV:
+            LiveTVTabView()
         case .catalog:
             CatalogView()
         case .search:

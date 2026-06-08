@@ -29,6 +29,21 @@ final class JellyfinClient {
         )
     }
 
+    /// Like `request(endpoint:responseType:)` but decodes with a
+    /// caller-supplied decoder. Needed for Live TV, whose Jellyfin date
+    /// format the shared HTTPClient `.iso8601` decoder cannot parse.
+    func request<T: Decodable>(
+        endpoint: APIEndpoint,
+        responseType: T.Type,
+        decoder: JSONDecoder
+    ) async throws -> T {
+        guard let baseURL else { throw APIError.invalidURL }
+        let headers = buildHeaders(requiresAuth: endpoint.requiresAuth)
+        let (data, _) = try await httpClient.requestData(
+            baseURL: baseURL, endpoint: endpoint, headers: headers)
+        return try decoder.decode(T.self, from: data)
+    }
+
     func request(endpoint: APIEndpoint) async throws {
         guard let baseURL else { throw APIError.invalidURL }
         let headers = buildHeaders(requiresAuth: endpoint.requiresAuth)

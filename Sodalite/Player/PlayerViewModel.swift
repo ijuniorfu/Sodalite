@@ -301,13 +301,35 @@ final class PlayerViewModel {
     var activePlayMethod: PlayMethod = .directPlay
     var subtitleStreams: [MediaStream] = []
 
+    // MARK: - Live TV
+
+    /// True when this session is a live channel rather than VOD. Gates DVR
+    /// transport and disables resume / chapters / next-episode.
+    private(set) var isLiveSession = false
+    /// The Jellyfin tuner handle for the current live stream; captured on
+    /// load, released on teardown. Nil for VOD.
+    var activeLiveStreamID: String?
+    /// Live-edge mirror fields, populated by PlayerViewModel+Live from the
+    /// engine's published live surfaces.
+    var liveSeekableRange: ClosedRange<Double>?
+    var isAtLiveEdge: Bool = true
+    var behindLiveSeconds: Double = 0
+    /// The channel being played, for live sessions. Nil for VOD.
+    let liveChannel: JellyfinChannel?
+    /// The live-TV service used by PlayerViewModel+Live for tuner lifecycle.
+    /// Nil for VOD.
+    let liveTvService: JellyfinLiveTvServiceProtocol?
+
     init(
         item: JellyfinItem,
         startFromBeginning: Bool,
         playbackService: JellyfinPlaybackServiceProtocol,
         userID: String,
         preferences: PlaybackPreferences,
-        cachedPlaybackInfo: PlaybackInfoResponse? = nil
+        cachedPlaybackInfo: PlaybackInfoResponse? = nil,
+        isLiveSession: Bool = false,
+        liveChannel: JellyfinChannel? = nil,
+        liveTvService: JellyfinLiveTvServiceProtocol? = nil
     ) {
         self.item = item
         self.player = DependencyContainer.playerEngine
@@ -317,6 +339,9 @@ final class PlayerViewModel {
         self.preferences = preferences
         self.scrubPreview = ScrubPreviewProvider()
         self.cachedPlaybackInfo = cachedPlaybackInfo
+        self.isLiveSession = isLiveSession
+        self.liveChannel = liveChannel
+        self.liveTvService = liveTvService
     }
 
     // MARK: - Lifecycle
@@ -364,6 +389,44 @@ final class PlayerViewModel {
         bindRemoteSkipCommands()
 
         do {
+            // Live channels take a dedicated load path: open the tuner,
+            // pick the infinite live MediaSource, and hand it to the engine
+            // with isLive + a DVR window. The VOD wiring below (resume,
+            // chapters, intro markers, episode picker) does not apply, so we
+            // reproduce only the shared post-load steps and return. Kept as a
+            // separate branch on purpose: the VOD path below stays untouched.
+            if isLiveSession {
+                stageInitialNowPlayingMetadata()
+                try await loadLiveStream()
+                if Task.isCancelled || isTearingDown {
+                    player.stop()
+                    // loadLiveStream() may have opened a tuner before the
+                    // cancel landed; release it so the server does not leak.
+                    releaseLiveTunerIfNeeded()
+                    isLoading = false
+                    return
+                }
+                // Shared post-load wiring (mirrors the VOD path; live skips
+                // resume, chapters, intro markers, and the episode picker).
+                // Duplicated rather than extracted to keep the VOD path intact.
+                let preferredAudio = effectivePreferredAudioLanguage()
+                let chosenAudio = player.audioTracks.first(where: {
+                    preferredAudio != nil && Self.languagesMatch($0.language, preferredAudio)
+                }) ?? player.audioTracks.first(where: { $0.isDefault })
+                  ?? player.audioTracks.first
+                if let chosenAudio, chosenAudio.id != player.activeAudioTrackIndex {
+                    player.selectAudioTrack(index: chosenAudio.id)
+                }
+                applyPreferredSubtitle(forAudioLanguage: chosenAudio?.language)
+                isLoading = false
+                isPlaying = true
+                startObserving()
+                Task { [weak self] in await self?.refreshExternalMetadataWithArtwork() }
+                await reportStart()
+                startProgressReporting()
+                return
+            }
+
             let info: PlaybackInfoResponse
             if let cached = cachedPlaybackInfo, !cached.mediaSources.isEmpty {
                 info = cached
@@ -622,6 +685,9 @@ final class PlayerViewModel {
             Task { [weak self] in await self?.loadSeasonEpisodes() }
 
         } catch {
+            // If a live load opened the tuner before failing, release it.
+            // No-op for VOD (activeLiveStreamID is nil).
+            releaseLiveTunerIfNeeded()
             setError(from: error)
             isLoading = false
         }
@@ -718,13 +784,18 @@ final class PlayerViewModel {
             itemId: item.id,
             mediaSourceId: mediaSourceID,
             playSessionId: playSessionID,
-            positionTicks: finalTicks
+            positionTicks: finalTicks,
+            liveStreamId: activeLiveStreamID
         )
         // Engine handles native AVPlayer teardown + HLS server shutdown
         // + AVDisplayManager criteria reset inside stopInternal(). The
         // host just calls stop() and trusts the engine to leave the
         // session in a clean state for the next playback.
         player.stop()
+        // Explicit tuner release safety net. The stop report above already
+        // carries liveStreamId, but if that report fails to deliver this
+        // detached close still frees the server-side tuner. No-op for VOD.
+        releaseLiveTunerIfNeeded()
         // Fire-and-forget: caller (dismissPlayer / viewWillDisappear)
         // returns immediately so the SwiftUI dismiss animation can
         // start without waiting on Jellyfin's PlaybackStopped endpoint.
@@ -873,7 +944,12 @@ final class PlayerViewModel {
                 self.currentTime = self.formatSeconds(time)
                 let rem = dur - time
                 self.remainingTime = rem > 0 ? "-\(self.formatSeconds(rem))" : "-00:00"
-                self.progress = dur > 0 ? Float(time / dur) : 0
+                // Live owns `progress` via the DVR baseline subscription in
+                // observeLiveEdge (live duration is 0, so the VOD math below
+                // would pin it to 0). Leave VOD untouched.
+                if !self.isLiveSession {
+                    self.progress = dur > 0 ? Float(time / dur) : 0
+                }
                 // Keep one frame warm at the playhead so the first scrub frame
                 // is already on screen the instant the user swipes to scrub.
                 self.scrubPreview.warm(toSeconds: time)
@@ -966,7 +1042,7 @@ final class PlayerViewModel {
     }
 
     func seekJump(seconds: Double) {
-        let dur = effectiveDuration
+        let dur = scrubReferenceDuration
         guard dur > 0 else { return }
 
         if !isScrubbing {
@@ -980,8 +1056,12 @@ final class PlayerViewModel {
 
         let jumpProgress = Float(seconds / dur)
         scrubProgress = max(0, min(1, scrubProgress + jumpProgress))
-        scrubTime = formatSeconds(Double(scrubProgress) * dur)
-        scrubPreview.update(fraction: scrubProgress, durationSeconds: dur)
+        // scrubTime / preview feed the VOD transport bar only; the live bar
+        // renders its own behind-live label, so skip both for live.
+        if !isLiveSession {
+            scrubTime = formatSeconds(Double(scrubProgress) * dur)
+            scrubPreview.update(fraction: scrubProgress, durationSeconds: dur)
+        }
 
         // Auto-cancel on idle, matching `scrubPanEnded`. Commit stays
         // explicit (Select), but if the user taps left / right and

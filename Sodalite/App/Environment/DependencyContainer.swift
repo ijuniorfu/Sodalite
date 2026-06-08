@@ -19,6 +19,7 @@ final class DependencyContainer {
     let serverDiscoveryService: ServerDiscoveryServiceProtocol
     let jellyfinAuthService: JellyfinAuthServiceProtocol
     let jellyfinLibraryService: JellyfinLibraryServiceProtocol
+    let jellyfinLiveTvService: JellyfinLiveTvServiceProtocol
     let jellyfinMusicService: JellyfinMusicServiceProtocol
     let jellyfinItemService: JellyfinItemServiceProtocol
     let jellyfinSearchService: JellyfinSearchServiceProtocol
@@ -69,6 +70,7 @@ final class DependencyContainer {
         self.serverDiscoveryService = ServerDiscoveryService(httpClient: httpClient)
         self.jellyfinAuthService = JellyfinAuthService(client: jellyfinClient)
         self.jellyfinLibraryService = JellyfinLibraryService(client: jellyfinClient)
+        self.jellyfinLiveTvService = JellyfinLiveTvService(client: jellyfinClient)
         self.jellyfinMusicService = JellyfinMusicService(
             client: jellyfinClient,
             libraryService: jellyfinLibraryService
@@ -162,6 +164,18 @@ final class DependencyContainer {
                 jellyfinServerID: server.id
             )
             return nil
+        }
+    }
+
+    /// Light probe: does the active server expose any Live TV channels?
+    /// Used to gate the Live TV tab. Returns false on any error.
+    func serverHasLiveTV(userID: String) async -> Bool {
+        do {
+            let response = try await jellyfinLiveTvService.getChannels(
+                userID: userID, startIndex: 0, limit: 1)
+            return !response.items.isEmpty
+        } catch {
+            return false
         }
     }
 

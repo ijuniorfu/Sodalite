@@ -147,7 +147,8 @@ extension PlayerViewModel {
             itemId: item.id,
             mediaSourceId: mediaSourceID,
             playSessionId: playSessionID,
-            positionTicks: currentPositionTicks
+            positionTicks: currentPositionTicks,
+            liveStreamId: nil
         )
         let svc = playbackService
         Task {
@@ -280,7 +281,8 @@ extension PlayerViewModel {
             itemId: item.id,
             mediaSourceId: mediaSourceID,
             playSessionId: playSessionID,
-            positionTicks: currentPositionTicks
+            positionTicks: currentPositionTicks,
+            liveStreamId: nil
         )
         let svc = playbackService
         Task {
