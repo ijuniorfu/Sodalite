@@ -64,7 +64,6 @@ struct LivePlayerLauncher: UIViewControllerRepresentable {
             }
         )
         playerVC.modalPresentationStyle = .fullScreen
-        print("[LivePlayerLauncher] presenting live player for channel=\(liveContext.channel.name)")
         host.present(playerVC, animated: false)
     }
 }

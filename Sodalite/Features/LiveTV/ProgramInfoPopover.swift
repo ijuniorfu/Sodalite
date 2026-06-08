@@ -28,7 +28,6 @@ struct ProgramInfoPopover: View {
             HStack(spacing: 20) {
                 if isAiring {
                     Button {
-                        print("[ProgramInfoPopover] Watch Live tapped channel=\(channel.name) onWatchLive=\(onWatchLive != nil)")
                         dismiss()
                         onWatchLive?(LivePlaybackContext(channel: channel, program: program))
                     } label: {

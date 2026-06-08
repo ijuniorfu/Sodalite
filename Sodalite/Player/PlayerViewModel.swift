@@ -396,7 +396,6 @@ final class PlayerViewModel {
             // reproduce only the shared post-load steps and return. Kept as a
             // separate branch on purpose: the VOD path below stays untouched.
             if isLiveSession {
-                print("[PlayerVM] live startPlayback for item=\(item.name) id=\(item.id)")
                 stageInitialNowPlayingMetadata()
                 try await loadLiveStream()
                 if Task.isCancelled || isTearingDown {
