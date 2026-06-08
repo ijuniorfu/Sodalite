@@ -19,6 +19,13 @@ extension PlayerViewModel {
         guard let source = info.mediaSources.first else { throw PlayerEngineError.noSource }
         mediaSourceID = source.id
         activeLiveStreamID = source.liveStreamId
+        // DIAG: what is the live source actually made of? Tells us whether
+        // Jellyfin could DirectStream (codec copy / remux) instead of
+        // re-encoding. Remove once the profile is tuned.
+        let streamDesc = (source.mediaStreams ?? []).map {
+            "\($0.type)/\($0.codec ?? "?")\($0.width != nil ? " \($0.width!)x\($0.height ?? 0)" : "")\($0.bitRate != nil ? " \($0.bitRate!/1000)kbps" : "")"
+        }.joined(separator: ", ")
+        print("[LiveSrc] container=\(source.container ?? "nil") directPlay=\(source.supportsDirectPlay ?? false) directStream=\(source.supportsDirectStream ?? false) transcoding=\(source.supportsTranscoding ?? false) streams=[\(streamDesc)]")
 
         // Live channels stream via the transcoding URL (TS over HTTP); fall
         // back to a remux stream URL only if the server gave none.
