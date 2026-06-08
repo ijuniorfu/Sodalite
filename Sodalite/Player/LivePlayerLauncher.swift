@@ -23,31 +23,39 @@ struct LivePlayerLauncher: UIViewControllerRepresentable {
     }
 
     func updateUIViewController(_ host: PlayerLauncherHostVC, context: Context) {
-        print("[LivePlayerLauncher] update isPresented=\(isPresented) hasContext=\(self.context != nil) alreadyPresented=\(host.presentedViewController != nil) inWindow=\(host.viewIfLoaded?.window != nil)")
-        if isPresented, let liveContext = self.context, host.presentedViewController == nil {
-            print("[LivePlayerLauncher] presenting live player for channel=\(liveContext.channel.name)")
-            let item = JellyfinItem(liveChannel: liveContext.channel, program: liveContext.program)
-            let vm = PlayerViewModel(
-                item: item,
-                startFromBeginning: true,
-                playbackService: playbackService,
-                userID: userID,
-                preferences: preferences,
-                isLiveSession: true,
-                liveChannel: liveContext.channel,
-                liveTvService: liveTvService
-            )
-            let playerVC = PlayerHostController(
-                viewModel: vm,
-                tintColor: tintColor,
-                onDismiss: {
-                    host.dismiss(animated: false) { isPresented = false }
-                }
-            )
-            playerVC.modalPresentationStyle = .fullScreen
-            host.present(playerVC, animated: false)
-        } else if !isPresented, host.presentedViewController != nil {
-            host.dismiss(animated: false)
-        }
+        guard isPresented, let liveContext = self.context,
+              let window = host.viewIfLoaded?.window,
+              var top = window.rootViewController else { return }
+        // Present from the topmost presented VC. The info popover (a SwiftUI
+        // sheet) is presented from this same host, so guarding on
+        // host.presentedViewController == nil blocked the player; stacking on
+        // the topmost VC presents reliably regardless of the sheet's state.
+        while let presented = top.presentedViewController { top = presented }
+        print("[LivePlayerLauncher] topmost=\(type(of: top))")
+        guard !(top is PlayerHostController) else { return }
+
+        let item = JellyfinItem(liveChannel: liveContext.channel, program: liveContext.program)
+        let vm = PlayerViewModel(
+            item: item,
+            startFromBeginning: true,
+            playbackService: playbackService,
+            userID: userID,
+            preferences: preferences,
+            isLiveSession: true,
+            liveChannel: liveContext.channel,
+            liveTvService: liveTvService
+        )
+        var playerRef: PlayerHostController?
+        let playerVC = PlayerHostController(
+            viewModel: vm,
+            tintColor: tintColor,
+            onDismiss: {
+                playerRef?.presentingViewController?.dismiss(animated: false) { isPresented = false }
+            }
+        )
+        playerRef = playerVC
+        playerVC.modalPresentationStyle = .fullScreen
+        print("[LivePlayerLauncher] presenting live player for channel=\(liveContext.channel.name) from=\(type(of: top))")
+        top.present(playerVC, animated: false)
     }
 }
