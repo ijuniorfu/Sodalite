@@ -39,6 +39,14 @@ enum DirectPlayProfile {
     /// AVIO reader). So we keep the direct-play set but force a TS transcode.
     static func liveProfile() -> [String: Any] {
         var profile = current()
+        // Cap the bitrate for live. The VOD base profile uses 200 Mbps as a
+        // direct-play ceiling, but for a live channel (always transcoding)
+        // that becomes the encoder's TARGET bitrate, which no server can sustain
+        // in real time, so segment production falls behind playback and AVPlayer
+        // stalls with -12888 ("playlist file unchanged"). 12 Mbps is ample for
+        // a 1080p channel and sustainable as a real-time H.264 transcode.
+        profile["MaxStreamingBitrate"] = 12_000_000
+        profile["MaxStaticBitrate"] = 12_000_000
         profile["TranscodingProfiles"] = [
             [
                 "Type": "Video",
@@ -47,6 +55,7 @@ enum DirectPlayProfile {
                 "VideoCodec": "h264,hevc",
                 "AudioCodec": "aac,ac3,eac3,mp3",
                 "Context": "Streaming",
+                "MaxStreamingBitrate": 12_000_000,
             ],
         ] as [[String: Any]]
         return profile
