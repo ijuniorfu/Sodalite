@@ -24,6 +24,10 @@ struct PlaybackMediaSource: Codable, Sendable, Identifiable {
     let supportsTranscoding: Bool?
     let transcodingUrl: String?
     let mediaStreams: [MediaStream]?
+    /// Set by the server when a live stream (tuner) was opened by
+    /// PlaybackInfo. Echoed back on the stop report and the explicit
+    /// LiveStreams/Close call so the tuner is released. Nil for VOD.
+    let liveStreamId: String?
 
     enum CodingKeys: String, CodingKey {
         case id = "Id"
@@ -37,6 +41,7 @@ struct PlaybackMediaSource: Codable, Sendable, Identifiable {
         case supportsTranscoding = "SupportsTranscoding"
         case transcodingUrl = "TranscodingUrl"
         case mediaStreams = "MediaStreams"
+        case liveStreamId = "LiveStreamId"
     }
 }
 
@@ -152,12 +157,16 @@ struct PlaybackStopReport: Encodable, Sendable {
     let mediaSourceId: String
     let playSessionId: String?
     let positionTicks: Int64
+    /// Non-nil only for live streams; tells the server which tuner to
+    /// release on stop.
+    let liveStreamId: String?
 
     enum CodingKeys: String, CodingKey {
         case itemId = "ItemId"
         case mediaSourceId = "MediaSourceId"
         case playSessionId = "PlaySessionId"
         case positionTicks = "PositionTicks"
+        case liveStreamId = "LiveStreamId"
     }
 }
 

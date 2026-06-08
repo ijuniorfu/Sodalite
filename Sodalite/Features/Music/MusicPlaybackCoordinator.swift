@@ -440,7 +440,8 @@ final class MusicPlaybackCoordinator {
             itemId: item.id,
             mediaSourceId: mediaSourceId,
             playSessionId: playSessionId,
-            positionTicks: positionTicks
+            positionTicks: positionTicks,
+            liveStreamId: nil
         )
         let svc = playbackService
         Task { try? await svc.reportPlaybackStopped(report) }

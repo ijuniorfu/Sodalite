@@ -718,7 +718,8 @@ final class PlayerViewModel {
             itemId: item.id,
             mediaSourceId: mediaSourceID,
             playSessionId: playSessionID,
-            positionTicks: finalTicks
+            positionTicks: finalTicks,
+            liveStreamId: nil
         )
         // Engine handles native AVPlayer teardown + HLS server shutdown
         // + AVDisplayManager criteria reset inside stopInternal(). The
