@@ -350,6 +350,9 @@ struct PlayerOverlayView: View {
 
             VStack {
                 Spacer()
+                if viewModel.isLiveSession {
+                    LiveTransportBar(viewModel: viewModel)
+                } else {
                 TransportBar(
                     progress: viewModel.displayedProgress,
                     currentTime: viewModel.currentTime,
@@ -375,6 +378,7 @@ struct PlayerOverlayView: View {
                     isStatsOverlayOpen: viewModel.showStatsOverlay,
                     previewImage: viewModel.scrubPreview.previewImage
                 )
+                }
             }
             .ignoresSafeArea()
         }

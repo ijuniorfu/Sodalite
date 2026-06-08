@@ -64,6 +64,10 @@ extension PlayerViewModel {
     }
 
     func commitScrub() {
+        // Live takes a dedicated commit: live duration is 0, so the VOD
+        // body below would early-return and never seek. commitLiveScrub
+        // maps scrubProgress across the moving seekable window instead.
+        if isLiveSession { commitLiveScrub(); return }
         let dur = effectiveDuration
         guard isScrubbing, dur > 0 else {
             isScrubbing = false

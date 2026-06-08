@@ -66,11 +66,66 @@ extension PlayerViewModel {
             .receive(on: DispatchQueue.main)
             .sink { [weak self] behind in self?.behindLiveSeconds = behind }
             .store(in: &cancellables)
+
+        // Live baseline for the DVR scrubber: map the playhead across the
+        // current seekable window so `progress` (and thus the scrub-start
+        // baseline + displayedProgress) reflect the position within the
+        // window. Live duration is 0, so the VOD progress math in the main
+        // $currentTime sink would otherwise pin progress to 0. That sink
+        // skips its own progress write for live (see PlayerViewModel), so
+        // this is the sole writer of `progress` during a live session.
+        player.$currentTime
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] time in
+                guard let self, self.isLiveSession, !self.isScrubbing else { return }
+                guard let range = self.liveSeekableRange,
+                      range.upperBound > range.lowerBound else { return }
+                let span = range.upperBound - range.lowerBound
+                let pos = time - range.lowerBound
+                self.progress = Float(max(0, min(1, pos / span)))
+            }
+            .store(in: &cancellables)
     }
 
     /// Snap back to the live edge (return-to-live chip).
     func returnToLiveEdge() {
         Task { await player.seekToLiveEdge() }
+    }
+
+    /// Commit a live (DVR) scrub: map `scrubProgress` (0...1) across the
+    /// current `liveSeekableRange` and seek, clamped to the window. Scrubbing
+    /// fully right (>= 0.99) snaps to the live edge rather than seeking near
+    /// it, so the right edge doubles as the return-to-live affordance in v1.
+    func commitLiveScrub() {
+        guard isScrubbing,
+              let range = liveSeekableRange,
+              range.upperBound > range.lowerBound else {
+            isScrubbing = false
+            return
+        }
+        let p = scrubProgress
+        // Mirror the VOD commit: set progress to the scrub position before
+        // clearing isScrubbing so displayedProgress does not flash back to
+        // the pre-scrub value before the seek lands.
+        progress = p
+        isScrubbing = false
+        scrubPreview.clear()
+
+        if p >= 0.99 {
+            returnToLiveEdge()
+            scheduleControlsHide()
+            return
+        }
+
+        let span = range.upperBound - range.lowerBound
+        let target = min(
+            max(range.lowerBound + Double(p) * span, range.lowerBound),
+            range.upperBound
+        )
+        Task {
+            await player.seek(to: target)
+            scheduleControlsHide()
+        }
     }
 
     /// Release the Jellyfin live tuner if one is open. Idempotent: reads and
