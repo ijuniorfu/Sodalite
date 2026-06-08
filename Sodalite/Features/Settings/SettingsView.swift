@@ -18,6 +18,15 @@ struct SettingsView: View {
                 .padding(.horizontal, 80)
             }
         }
+        // Settings is the only surface that shows the server version, so
+        // refreshing on appear is the natural "live" trigger: a server
+        // upgrade since login is picked up the next time the user opens
+        // Settings, instead of staying stale until a full logout/login.
+        .task {
+            if let updated = await dependencies.refreshActiveServerVersion() {
+                appState.updateActiveServer(updated)
+            }
+        }
     }
 
     // MARK: - Profile Header

@@ -87,6 +87,15 @@ final class AppState {
         )
     }
 
+    /// Replaces `activeServer` with a freshly fetched copy (currently
+    /// used to apply an updated server version after a server-side
+    /// upgrade). Guards on id so a profile switch racing the refresh
+    /// doesn't apply another server's data to the now-current one.
+    func updateActiveServer(_ server: JellyfinServer) {
+        guard activeServer?.id == server.id else { return }
+        activeServer = server
+    }
+
     func logout() {
         activeServer = nil
         activeUser = nil

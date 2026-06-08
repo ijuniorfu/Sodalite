@@ -275,6 +275,46 @@ final class DependencyContainer {
         try keychainService.save(data, for: KeychainKeys.knownServers)
     }
 
+    /// In-place update that preserves list order, unlike `addServer`,
+    /// which floats the entry to the front. Used by the version refresh
+    /// below so a background metadata change doesn't reshuffle the
+    /// profile picker. No-op if the id isn't already known.
+    private func updateKnownServer(_ server: JellyfinServer) throws {
+        var servers = listKnownServers()
+        guard let idx = servers.firstIndex(where: { $0.id == server.id }) else { return }
+        servers[idx] = server
+        let data = try JSONEncoder().encode(servers)
+        try keychainService.save(data, for: KeychainKeys.knownServers)
+    }
+
+    /// Re-fetches the active server's `/System/Info/Public` and, if the
+    /// reported version differs from the cached one, updates the
+    /// knownServers entry in place. Returns the refreshed server when
+    /// the version changed, nil when it was already current or the
+    /// fetch failed.
+    ///
+    /// The version is captured once at discovery (pre-login) and
+    /// otherwise never refreshed, so a server upgrade left Settings
+    /// showing the stale version until a full logout/login. This is the
+    /// refresh path. Reuses the unauthenticated discovery probe against
+    /// the active server's resolved URL; the id guard rejects a
+    /// different server answering at that address.
+    func refreshActiveServerVersion() async -> JellyfinServer? {
+        guard let server = activeServer else { return nil }
+        guard case .success(_, let info) = await serverDiscoveryService.discoverServer(
+            input: server.url.absoluteString
+        ) else { return nil }
+        guard info.id == server.id, info.version != server.version else { return nil }
+        let updated = JellyfinServer(
+            id: server.id,
+            name: server.name,
+            url: server.url,
+            version: info.version
+        )
+        try? updateKnownServer(updated)
+        return updated
+    }
+
     /// Resolves the active-server pointer against the known-servers
     /// list. Returns nil if either is missing (fresh install or a
     /// pointer that no longer resolves; the latter is repaired in
