@@ -13,9 +13,16 @@ extension PlayerViewModel {
         // a live channel is unbounded, and MPEG-TS over HTTP is live-streamable
         // (progressive MP4 is not), which is what the engine's AVIO live path
         // consumes.
+        // High ceiling, not a 12 Mbps cap: the PlaybackInfo MaxStreamingBitrate
+        // is also the encoder TARGET when the server re-encodes, and capping it
+        // below the source bitrate is exactly what forced a real-time 1080p
+        // re-encode (bursty segments, -12888 stalls). At/above the source it
+        // resolves to a stream-copy of the probed H.264 instead. See
+        // DirectPlayProfile.liveCopyCeilingBitrate.
         let info = try await playbackService.getLivePlaybackInfo(
             itemID: item.id, userID: userID,
-            profile: DirectPlayProfile.liveProfile(), maxStreamingBitrate: 12_000_000)
+            profile: DirectPlayProfile.liveProfile(),
+            maxStreamingBitrate: DirectPlayProfile.liveCopyCeilingBitrate)
         playSessionID = info.playSessionId
         guard let source = info.mediaSources.first else { throw PlayerEngineError.noSource }
         mediaSourceID = source.id

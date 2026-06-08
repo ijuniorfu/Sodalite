@@ -30,23 +30,47 @@ enum DirectPlayProfile {
         return useHDR ? permissiveHDRProfile() : conservativeSDRProfile()
     }
 
-    /// Profile for live TV channels. A live channel is an unbounded stream,
-    /// so the VOD fallback of a progressive MP4 transcode does not work: an
-    /// MP4 only finalizes its `moov` atom at EOF, which never comes for live,
-    /// so the server returns a broken URL it then rejects with HTTP 400.
-    /// MPEG-TS over progressive HTTP IS live-streamable, and it is exactly
-    /// what AetherEngine's live path consumes (raw MPEG-TS over HTTP via its
-    /// AVIO reader). So we keep the direct-play set but force a TS transcode.
+    /// Live channel "copy ceiling": the bitrate at/under which a compatible
+    /// codec is stream-copied rather than re-encoded. Kept as high as the VOD
+    /// direct-play ceiling so any broadcast H.264/HEVC (1080p ~20 Mbps, 4K
+    /// ~50 Mbps) stays under it and Jellyfin copies the bitstream instead of
+    /// re-encoding. CAVEAT: this is also the encoder target for the rare
+    /// channel whose source codec is genuinely incompatible (e.g. MPEG-2 OTA),
+    /// where a real-time re-encode to this ceiling would stall. Those need a
+    /// separate per-codec re-encode cap if/when they show up; this environment
+    /// is H.264 IPTV, which copies.
+    static let liveCopyCeilingBitrate = 200_000_000
+
+    /// Profile for live TV channels. Two things differ from VOD:
+    ///
+    /// 1. **Container=ts, Protocol=http.** A live channel is unbounded, so the
+    ///    VOD fallback of a progressive MP4 does not work (MP4 only finalizes
+    ///    its `moov` atom at EOF, which never comes for live, so the server
+    ///    returns a URL it then rejects with HTTP 400). MPEG-TS over HTTP IS
+    ///    live-streamable and is exactly what AetherEngine's AVIO live path
+    ///    consumes. The source live container (e.g. `hls`) is not in our
+    ///    DirectPlay set, so the server must change the container regardless;
+    ///    we steer that to TS.
+    ///
+    /// 2. **No bitrate cap below source.** We want the server to STREAM-COPY
+    ///    the video into the TS container (no re-encode), not downscale it. A
+    ///    cap below the source bitrate silently forces a video re-encode even
+    ///    when the only transcode reason is the container, and a real-time
+    ///    1080p re-encode delivers segments burstily (-12888 / stall). Keeping
+    ///    the ceiling high lets the probed H.264 copy through: cheap on the
+    ///    server, no quality loss, smooth segment cadence. (An earlier 12 Mbps
+    ///    cap was added before AutoOpenLiveStream probing existed, when the
+    ///    server re-encoded blindly to the 200 Mbps VOD target; now that the
+    ///    codec is probed, a high ceiling resolves to a copy, not a 200 Mbps
+    ///    encode.)
     static func liveProfile() -> [String: Any] {
         var profile = current()
-        // Cap the bitrate for live. The VOD base profile uses 200 Mbps as a
-        // direct-play ceiling, but for a live channel (always transcoding)
-        // that becomes the encoder's TARGET bitrate, which no server can sustain
-        // in real time, so segment production falls behind playback and AVPlayer
-        // stalls with -12888 ("playlist file unchanged"). 12 Mbps is ample for
-        // a 1080p channel and sustainable as a real-time H.264 transcode.
-        profile["MaxStreamingBitrate"] = 12_000_000
-        profile["MaxStaticBitrate"] = 12_000_000
+        profile["MaxStreamingBitrate"] = liveCopyCeilingBitrate
+        profile["MaxStaticBitrate"] = liveCopyCeilingBitrate
+        // Copy-friendly TS transcoding profile: list the codecs we accept for
+        // copy, force the live-streamable TS/HTTP container, and impose NO
+        // bitrate cap so the server prefers `-c:v copy` over a downscale
+        // re-encode when the probed source codec is compatible.
         profile["TranscodingProfiles"] = [
             [
                 "Type": "Video",
@@ -55,7 +79,6 @@ enum DirectPlayProfile {
                 "VideoCodec": "h264,hevc",
                 "AudioCodec": "aac,ac3,eac3,mp3",
                 "Context": "Streaming",
-                "MaxStreamingBitrate": 12_000_000,
             ],
         ] as [[String: Any]]
         return profile
