@@ -9,10 +9,10 @@ extension PlayerViewModel {
     /// to the engine with isLive + a 30-minute DVR window. Sets the tuner
     /// handle for teardown to release.
     func loadLiveStream() async throws {
-        // liveProfile() forces a TS transcode (Container=ts, Protocol=http):
-        // a live channel is unbounded, and MPEG-TS over HTTP is live-streamable
-        // (progressive MP4 is not), which is what the engine's AVIO live path
-        // consumes.
+        // liveProfile() requests Protocol=hls, so Jellyfin returns a
+        // master.m3u8 the client plays NATIVELY (LoadOptions.nativeRemoteHLS),
+        // bypassing the engine's demux/remux/loopback pipeline. AVPlayer manages
+        // the live edge, buffering, and reconnect itself.
         //
         // Two-stage bitrate negotiation, because the PlaybackInfo
         // MaxStreamingBitrate serves double duty: it is the COPY THRESHOLD
@@ -76,32 +76,21 @@ extension PlayerViewModel {
         }()
         print("[LiveSrc] container=\(source.container ?? "nil") srcBitrate=\(source.bitrate.map { "\($0/1000)kbps" } ?? "nil") directPlay=\(source.supportsDirectPlay ?? false) directStream=\(source.supportsDirectStream ?? false) transcoding=\(source.supportsTranscoding ?? false) reasons=[\(reasons)] streams=[\(streamDesc)]")
         print("[LiveSrc] transcodeParams: \(tParams)")
+        print("[LiveSrc] transcodingUrl=\(source.transcodingUrl ?? "nil")")
 
-        // Prefer DirectStream (copy / remux, no server re-encode): if the
-        // probe made the source compatible, Jellyfin offers directStream and
-        // we serve it statically with the opened LiveStreamId. Otherwise use
-        // the transcode URL the server built.
-        let url: URL
-        if (source.supportsDirectStream ?? false) || (source.supportsDirectPlay ?? false),
-           let built = playbackService.buildLiveStreamURL(
-            itemID: item.id, mediaSourceID: source.id,
-            liveStreamID: source.liveStreamId, playSessionID: info.playSessionId,
-            container: source.container ?? "ts") {
-            url = built
-        } else if let transcoding = source.transcodingUrl,
-                  let built = playbackService.buildTranscodeURL(relativePath: transcoding) {
-            url = built
-        } else if let built = playbackService.buildStreamURL(
-            itemID: item.id, mediaSourceID: source.id, container: source.container, isStatic: false) {
-            url = built
-        } else {
+        // Native HLS: hand the server-built HLS playlist (master.m3u8) straight
+        // to AVPlayer via nativeRemoteHLS. No engine demux/remux/loopback; the
+        // tuner lifecycle (open via AutoOpenLiveStream above, close on teardown)
+        // is unchanged.
+        guard let transcoding = source.transcodingUrl,
+              let hlsURL = playbackService.buildTranscodeURL(relativePath: transcoding) else {
             throw PlayerEngineError.noSource
         }
 
         observeLiveEdge()
 
         try await player.load(
-            url: url,
+            url: hlsURL,
             startPosition: nil,
             options: LoadOptions(
                 suppressDisplayCriteria: false,
@@ -109,7 +98,7 @@ extension PlayerViewModel {
                 panelIsInHDRMode: Self.panelIsInHDRMode,
                 audioBridgeMode: preferences.audioBridgeMode,
                 isLive: true,
-                dvrWindowSeconds: 1800
+                nativeRemoteHLS: true
             )
         )
     }

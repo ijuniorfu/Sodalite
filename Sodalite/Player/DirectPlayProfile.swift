@@ -53,39 +53,35 @@ enum DirectPlayProfile {
 
     /// Profile for live TV channels. Two things differ from VOD:
     ///
-    /// 1. **Container=ts, Protocol=http.** A live channel is unbounded, so the
-    ///    VOD fallback of a progressive MP4 does not work (MP4 only finalizes
-    ///    its `moov` atom at EOF, which never comes for live, so the server
-    ///    returns a URL it then rejects with HTTP 400). MPEG-TS over HTTP IS
-    ///    live-streamable and is exactly what AetherEngine's AVIO live path
-    ///    consumes. The source live container (e.g. `hls`) is not in our
-    ///    DirectPlay set, so the server must change the container regardless;
-    ///    we steer that to TS.
+    /// 1. **Protocol=hls.** We request an HLS sub-protocol so Jellyfin returns
+    ///    a `master.m3u8` (TS segments under an HLS wrapper) that AVPlayer
+    ///    plays NATIVELY. Live then bypasses AetherEngine's demux/remux/
+    ///    loopback pipeline entirely (see `LoadOptions.nativeRemoteHLS`):
+    ///    AVPlayer manages the live edge, buffering, and reconnect itself.
+    ///    The source live container (e.g. `hls`) isn't in our DirectPlay set,
+    ///    so the server repackages regardless; we steer that to native HLS
+    ///    rather than the progressive TS the engine used to consume.
     ///
     /// 2. **No bitrate cap below source.** We want the server to STREAM-COPY
-    ///    the video into the TS container (no re-encode), not downscale it. A
+    ///    the video into the HLS segments (no re-encode), not downscale it. A
     ///    cap below the source bitrate silently forces a video re-encode even
-    ///    when the only transcode reason is the container, and a real-time
-    ///    1080p re-encode delivers segments burstily (-12888 / stall). Keeping
-    ///    the ceiling high lets the probed H.264 copy through: cheap on the
-    ///    server, no quality loss, smooth segment cadence. (An earlier 12 Mbps
-    ///    cap was added before AutoOpenLiveStream probing existed, when the
-    ///    server re-encoded blindly to the 200 Mbps VOD target; now that the
-    ///    codec is probed, a high ceiling resolves to a copy, not a 200 Mbps
-    ///    encode.)
+    ///    when the only transcode reason is the container. Keeping the ceiling
+    ///    high lets the probed H.264 copy through: cheap on the server, no
+    ///    quality loss. The `liveReencodeCapBitrate` only applies on the
+    ///    re-encode fallback (probe reports `VideoCodecNotSupported`).
     static func liveProfile() -> [String: Any] {
         var profile = current()
         profile["MaxStreamingBitrate"] = liveCopyCeilingBitrate
         profile["MaxStaticBitrate"] = liveCopyCeilingBitrate
-        // Copy-friendly TS transcoding profile: list the codecs we accept for
-        // copy, force the live-streamable TS/HTTP container, and impose NO
-        // bitrate cap so the server prefers `-c:v copy` over a downscale
-        // re-encode when the probed source codec is compatible.
+        // Copy-friendly HLS transcoding profile: accept h264/hevc for copy,
+        // request the HLS sub-protocol so the client plays the m3u8 natively,
+        // and impose NO bitrate cap so the server prefers `-c:v copy` over a
+        // downscale re-encode when the probed source codec is compatible.
         profile["TranscodingProfiles"] = [
             [
                 "Type": "Video",
                 "Container": "ts",
-                "Protocol": "http",
+                "Protocol": "hls",
                 "VideoCodec": "h264,hevc",
                 "AudioCodec": "aac,ac3,eac3,mp3",
                 "Context": "Streaming",
