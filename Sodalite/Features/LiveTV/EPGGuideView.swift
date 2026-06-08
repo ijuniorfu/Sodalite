@@ -14,12 +14,14 @@ struct EPGGuideView: View {
     @Environment(\.dependencies) private var dependencies
     @State private var selectedProgram: JellyfinProgram?
     @State private var selectedChannel: JellyfinChannel?
+    var onWatchLive: ((LivePlaybackContext) -> Void)?
 
     /// Height reserved for the sticky time header above the program rows.
     private let headerHeight: CGFloat = 44
 
-    init(model: EPGGuideViewModel) {
+    init(model: EPGGuideViewModel, onWatchLive: ((LivePlaybackContext) -> Void)? = nil) {
         _model = State(initialValue: model)
+        self.onWatchLive = onWatchLive
     }
 
     private var tint: Color {
@@ -43,16 +45,9 @@ struct EPGGuideView: View {
         }
         .task { await model.loadInitialChannels() }
         .sheet(item: $selectedProgram) { program in
-            // TODO: replace stub with ProgramInfoPopover in Task 9
-            VStack(alignment: .leading, spacing: 16) {
-                Text(program.name).font(.title)
-                if let start = program.startDate, let end = program.endDate {
-                    Text("\(start.formatted(date: .omitted, time: .shortened)) - \(end.formatted(date: .omitted, time: .shortened))")
-                        .foregroundStyle(.secondary)
-                }
-                if let overview = program.overview { Text(overview) }
+            if let channel = selectedChannel {
+                ProgramInfoPopover(program: program, channel: channel, tint: tint, onWatchLive: onWatchLive)
             }
-            .padding(60)
         }
     }
 
