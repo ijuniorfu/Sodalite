@@ -56,6 +56,12 @@ enum JellyfinEndpoint: APIEndpoint {
     // or intro-skipper plugin on older servers)
     case mediaSegments(itemID: String)
 
+    // Live TV
+    case liveTvChannels(userID: String, startIndex: Int, limit: Int)
+    case liveTvPrograms(channelIDs: [String], userID: String, minStartDate: Date, maxStartDate: Date)
+    case liveTvGuideInfo
+    case closeLiveStream(liveStreamID: String)
+
     var path: String {
         switch self {
         case .publicInfo:
@@ -116,6 +122,14 @@ enum JellyfinEndpoint: APIEndpoint {
             "/Search/Hints"
         case .mediaSegments(let itemID):
             "/MediaSegments/\(itemID)"
+        case .liveTvChannels:
+            "/LiveTv/Channels"
+        case .liveTvPrograms:
+            "/LiveTv/Programs"
+        case .liveTvGuideInfo:
+            "/LiveTv/GuideInfo"
+        case .closeLiveStream:
+            "/LiveTv/LiveStreams/Close"
         }
     }
 
@@ -123,7 +137,8 @@ enum JellyfinEndpoint: APIEndpoint {
         switch self {
         case .authenticateByName, .quickConnectInitiate, .quickConnectAuthenticate, .markFavorite,
              .markPlayed,
-             .sessionPlaying, .sessionProgress, .sessionStopped:
+             .sessionPlaying, .sessionProgress, .sessionStopped,
+             .closeLiveStream:
             .post
         case .unmarkFavorite, .unmarkPlayed, .deleteItem:
             .delete
@@ -286,6 +301,34 @@ enum JellyfinEndpoint: APIEndpoint {
                 URLQueryItem(name: "includeSegmentTypes", value: "Intro"),
                 URLQueryItem(name: "includeSegmentTypes", value: "Outro"),
             ]
+
+        case .liveTvChannels(let userID, let startIndex, let limit):
+            return [
+                URLQueryItem(name: "UserId", value: userID),
+                URLQueryItem(name: "StartIndex", value: String(startIndex)),
+                URLQueryItem(name: "Limit", value: String(limit)),
+                URLQueryItem(name: "EnableImages", value: "true"),
+                URLQueryItem(name: "AddCurrentProgram", value: "true"),
+                URLQueryItem(name: "EnableUserData", value: "false"),
+            ]
+
+        case .liveTvPrograms(let channelIDs, let userID, let minStart, let maxStart):
+            // Local formatter: ISO8601DateFormatter is not Sendable, so it
+            // cannot be a shared static under Swift 6 strict concurrency.
+            // Guide program-window requests are low-frequency, so the
+            // per-call allocation is negligible.
+            let iso = ISO8601DateFormatter()
+            return [
+                URLQueryItem(name: "ChannelIds", value: channelIDs.joined(separator: ",")),
+                URLQueryItem(name: "UserId", value: userID),
+                URLQueryItem(name: "MinStartDate", value: iso.string(from: minStart)),
+                URLQueryItem(name: "MaxStartDate", value: iso.string(from: maxStart)),
+                URLQueryItem(name: "SortBy", value: "StartDate"),
+                URLQueryItem(name: "EnableImages", value: "true"),
+            ]
+
+        case .closeLiveStream(let liveStreamID):
+            return [URLQueryItem(name: "LiveStreamId", value: liveStreamID)]
 
         default:
             return nil
