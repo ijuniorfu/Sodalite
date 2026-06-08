@@ -3,6 +3,11 @@ import Foundation
 protocol JellyfinPlaybackServiceProtocol: Sendable {
     var baseURL: URL? { get }
     func getPlaybackInfo(itemID: String, userID: String, profile: [String: Any]?) async throws -> PlaybackInfoResponse
+    /// Live-channel PlaybackInfo: opens + probes the live stream
+    /// (`AutoOpenLiveStream=true`) so the source codecs are known (enabling
+    /// DirectStream / codec-copy when compatible) and a real `LiveStreamId`
+    /// comes back for tuner release. `maxStreamingBitrate` caps any transcode.
+    func getLivePlaybackInfo(itemID: String, userID: String, profile: [String: Any]?, maxStreamingBitrate: Int) async throws -> PlaybackInfoResponse
     func reportPlaybackStart(_ report: PlaybackStartReport) async throws
     func reportPlaybackProgress(_ report: PlaybackProgressReport) async throws
     func reportPlaybackStopped(_ report: PlaybackStopReport) async throws
@@ -11,6 +16,10 @@ protocol JellyfinPlaybackServiceProtocol: Sendable {
     func getEpisodes(seriesID: String, seasonID: String, userID: String) async throws -> [JellyfinItem]
     func getEpisodeSegments(itemID: String) async throws -> EpisodeSegments
     func buildStreamURL(itemID: String, mediaSourceID: String, container: String?, isStatic: Bool) -> URL?
+    /// Static (copy / remux, no re-encode) stream URL for an opened live
+    /// channel. Includes the LiveStreamId + PlaySessionId so the request maps
+    /// to the tuner session Jellyfin opened via AutoOpenLiveStream.
+    func buildLiveStreamURL(itemID: String, mediaSourceID: String, liveStreamID: String?, playSessionID: String?, container: String) -> URL?
     func buildAudioStreamURL(itemID: String, mediaSourceID: String, container: String?, isStatic: Bool) -> URL?
     func buildSubtitleURL(itemID: String, mediaSourceID: String, streamIndex: Int, format: String) -> URL?
     func buildTranscodeURL(relativePath: String) -> URL?
@@ -27,12 +36,31 @@ final class JellyfinPlaybackService: JellyfinPlaybackServiceProtocol {
 
     func getPlaybackInfo(itemID: String, userID: String, profile: [String: Any]? = nil) async throws -> PlaybackInfoResponse {
         guard let baseURL = client.baseURL else { throw APIError.invalidURL }
-
         var components = URLComponents(url: baseURL.appendingPathComponent("/Items/\(itemID)/PlaybackInfo"), resolvingAgainstBaseURL: true)
         components?.queryItems = [URLQueryItem(name: "UserId", value: userID)]
-
         guard let url = components?.url else { throw APIError.invalidURL }
+        return try await postPlaybackInfo(url: url, profile: profile)
+    }
 
+    func getLivePlaybackInfo(itemID: String, userID: String, profile: [String: Any]? = nil, maxStreamingBitrate: Int) async throws -> PlaybackInfoResponse {
+        guard let baseURL = client.baseURL else { throw APIError.invalidURL }
+        var components = URLComponents(url: baseURL.appendingPathComponent("/Items/\(itemID)/PlaybackInfo"), resolvingAgainstBaseURL: true)
+        // AutoOpenLiveStream opens + probes the tuner so the source codecs are
+        // known (so Jellyfin can DirectStream/copy instead of always
+        // re-encoding) and a real LiveStreamId comes back. IsPlayback marks a
+        // real play. MaxStreamingBitrate caps any transcode the server falls to.
+        components?.queryItems = [
+            URLQueryItem(name: "UserId", value: userID),
+            URLQueryItem(name: "AutoOpenLiveStream", value: "true"),
+            URLQueryItem(name: "IsPlayback", value: "true"),
+            URLQueryItem(name: "StartTimeTicks", value: "0"),
+            URLQueryItem(name: "MaxStreamingBitrate", value: String(maxStreamingBitrate)),
+        ]
+        guard let url = components?.url else { throw APIError.invalidURL }
+        return try await postPlaybackInfo(url: url, profile: profile)
+    }
+
+    private func postPlaybackInfo(url: URL, profile: [String: Any]?) async throws -> PlaybackInfoResponse {
         // The caller (PlayerViewModel / DetailViewModel) is responsible
         // for picking the right profile, since DirectPlayProfile.current()
         // touches UIScreen and must run on the main actor. Fall back to
@@ -165,6 +193,20 @@ final class JellyfinPlaybackService: JellyfinPlaybackServiceProtocol {
         if isStatic {
             queryItems.append(URLQueryItem(name: "Static", value: "true"))
         }
+        components?.queryItems = queryItems
+        return components?.url
+    }
+
+    func buildLiveStreamURL(itemID: String, mediaSourceID: String, liveStreamID: String?, playSessionID: String?, container: String) -> URL? {
+        guard let baseURL = client.baseURL else { return nil }
+        var components = URLComponents(url: baseURL.appendingPathComponent("/Videos/\(itemID)/stream.\(container)"), resolvingAgainstBaseURL: true)
+        var queryItems = [
+            URLQueryItem(name: "Static", value: "true"),
+            URLQueryItem(name: "MediaSourceId", value: mediaSourceID),
+            URLQueryItem(name: "api_key", value: client.accessToken),
+        ]
+        if let liveStreamID { queryItems.append(URLQueryItem(name: "LiveStreamId", value: liveStreamID)) }
+        if let playSessionID { queryItems.append(URLQueryItem(name: "PlaySessionId", value: playSessionID)) }
         components?.queryItems = queryItems
         return components?.url
     }

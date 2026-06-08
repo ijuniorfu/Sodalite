@@ -13,8 +13,9 @@ extension PlayerViewModel {
         // a live channel is unbounded, and MPEG-TS over HTTP is live-streamable
         // (progressive MP4 is not), which is what the engine's AVIO live path
         // consumes.
-        let info = try await playbackService.getPlaybackInfo(
-            itemID: item.id, userID: userID, profile: DirectPlayProfile.liveProfile())
+        let info = try await playbackService.getLivePlaybackInfo(
+            itemID: item.id, userID: userID,
+            profile: DirectPlayProfile.liveProfile(), maxStreamingBitrate: 12_000_000)
         playSessionID = info.playSessionId
         guard let source = info.mediaSources.first else { throw PlayerEngineError.noSource }
         mediaSourceID = source.id
@@ -27,11 +28,19 @@ extension PlayerViewModel {
         }.joined(separator: ", ")
         print("[LiveSrc] container=\(source.container ?? "nil") directPlay=\(source.supportsDirectPlay ?? false) directStream=\(source.supportsDirectStream ?? false) transcoding=\(source.supportsTranscoding ?? false) streams=[\(streamDesc)]")
 
-        // Live channels stream via the transcoding URL (TS over HTTP); fall
-        // back to a remux stream URL only if the server gave none.
+        // Prefer DirectStream (copy / remux, no server re-encode): if the
+        // probe made the source compatible, Jellyfin offers directStream and
+        // we serve it statically with the opened LiveStreamId. Otherwise use
+        // the transcode URL the server built.
         let url: URL
-        if let transcoding = source.transcodingUrl,
-           let built = playbackService.buildTranscodeURL(relativePath: transcoding) {
+        if (source.supportsDirectStream ?? false) || (source.supportsDirectPlay ?? false),
+           let built = playbackService.buildLiveStreamURL(
+            itemID: item.id, mediaSourceID: source.id,
+            liveStreamID: source.liveStreamId, playSessionID: info.playSessionId,
+            container: source.container ?? "ts") {
+            url = built
+        } else if let transcoding = source.transcodingUrl,
+                  let built = playbackService.buildTranscodeURL(relativePath: transcoding) {
             url = built
         } else if let built = playbackService.buildStreamURL(
             itemID: item.id, mediaSourceID: source.id, container: source.container, isStatic: false) {
