@@ -1,30 +1,23 @@
 import SwiftUI
 
-/// The EPG guide grid: a pinned channel column on the left, a pinned time
-/// header on top, and a 2D-scrollable program area.
+/// The EPG guide grid: a sticky channel column on the left, a sticky time
+/// header on top, and a 2D-scrollable program area. Consumes
+/// `EPGGuideViewModel` for layout math and data, and renders
+/// `EPGProgramCell` / `EPGPlaceholderCell` blocks.
 ///
-/// Layout model: a single program `ScrollView` is the source of scroll
-/// truth. Its content is inset by the channel-column width (leading) and the
-/// header height (top), so programs never sit under the pinned column. The
-/// channel column and time header are overlays on top of the scroll view; we
-/// observe the scroll content offset via `onScrollGeometryChange` and shift
-/// the column by the vertical offset and the header by the horizontal offset,
-/// so both stay in lockstep with the grid (including tvOS focus-driven
-/// auto-scroll, which moves the same offset).
+/// Known limitation: keeping the sticky channel column and time header
+/// perfectly scroll-synced with the 2D program ScrollView on tvOS is an
+/// open problem (top UI risk in the design). The structure here is
+/// approximately correct; exact scroll coupling is iterated on-device.
 struct EPGGuideView: View {
     @State private var model: EPGGuideViewModel
     @Environment(\.dependencies) private var dependencies
     @State private var selectedProgram: JellyfinProgram?
     @State private var selectedChannel: JellyfinChannel?
-    /// Live content offset of the program ScrollView, mirrored from
-    /// `onScrollGeometryChange`. Drives the pinned column / header offsets.
-    @State private var scrollOffset = CGPoint.zero
     var onWatchLive: ((LivePlaybackContext) -> Void)?
 
-    /// Height reserved for the pinned time header above the program rows.
-    private let headerHeight: CGFloat = 60
-
-    private var columnWidth: CGFloat { EPGGuideViewModel.channelColumnWidth }
+    /// Height reserved for the sticky time header above the program rows.
+    private let headerHeight: CGFloat = 44
 
     init(model: EPGGuideViewModel, onWatchLive: ((LivePlaybackContext) -> Void)? = nil) {
         _model = State(initialValue: model)
@@ -59,40 +52,70 @@ struct EPGGuideView: View {
     }
 
     private var guideBody: some View {
-        GeometryReader { geo in
-            ZStack(alignment: .topLeading) {
-                programScroll
-                pinnedChannelColumn(height: geo.size.height)
-                pinnedTimeHeader(width: geo.size.width)
-                corner
+        HStack(spacing: 0) {
+            channelColumn
+                .frame(width: EPGGuideViewModel.channelColumnWidth)
+            ScrollView([.horizontal, .vertical]) {
+                VStack(alignment: .leading, spacing: 0) {
+                    timeHeader
+                    ForEach(model.channels) { channel in
+                        programRow(for: channel)
+                            .frame(height: EPGGuideViewModel.rowHeight)
+                            .task { await loadProgramsAround(channel) }
+                    }
+                }
+                .overlay(alignment: .topLeading) { nowLine }
             }
         }
     }
 
-    // MARK: - Program scroll (source of truth)
-
-    private var programScroll: some View {
-        ScrollView([.horizontal, .vertical]) {
-            VStack(alignment: .leading, spacing: 0) {
+    private var channelColumn: some View {
+        ScrollView(.vertical) {
+            VStack(spacing: 0) {
+                Color.clear.frame(height: headerHeight)
                 ForEach(model.channels) { channel in
-                    programRow(for: channel)
-                        .frame(width: model.totalWidth, height: EPGGuideViewModel.rowHeight)
-                        .task { await loadProgramsAround(channel) }
+                    HStack(spacing: 12) {
+                        channelLogo(channel)
+                        VStack(alignment: .leading) {
+                            Text(channel.name).font(.headline).lineLimit(1)
+                            if let num = channel.channelNumber {
+                                Text(num).font(.caption).foregroundStyle(.secondary)
+                            }
+                        }
+                        Spacer(minLength: 0)
+                    }
+                    .padding(.horizontal, 16)
+                    .frame(height: EPGGuideViewModel.rowHeight)
                 }
             }
-            // Inset so programs sit to the right of the column and below the
-            // header. The pinned overlays cover these insets.
-            .padding(.leading, columnWidth)
-            .padding(.top, headerHeight)
-            .overlay(alignment: .topLeading) {
-                nowLine
+        }
+        .scrollDisabled(true)
+    }
+
+    @ViewBuilder
+    private func channelLogo(_ channel: JellyfinChannel) -> some View {
+        if let url = dependencies.jellyfinImageService.imageURL(
+            itemID: channel.id, imageType: .primary, tag: channel.primaryImageTag, maxHeight: 80) {
+            AsyncImage(url: url) { image in
+                image.resizable().scaledToFit()
+            } placeholder: {
+                Image(systemName: "tv").foregroundStyle(.secondary)
+            }
+            .frame(width: 64, height: 64)
+        } else {
+            Image(systemName: "tv").frame(width: 64, height: 64).foregroundStyle(.secondary)
+        }
+    }
+
+    private var timeHeader: some View {
+        ZStack(alignment: .leading) {
+            ForEach(model.timeTicks, id: \.self) { tick in
+                Text(tick.formatted(date: .omitted, time: .shortened))
+                    .font(.caption).foregroundStyle(.secondary)
+                    .offset(x: model.xOffset(for: tick) + 6)
             }
         }
-        .onScrollGeometryChange(for: CGPoint.self) { geometry in
-            geometry.contentOffset
-        } action: { _, newValue in
-            scrollOffset = newValue
-        }
+        .frame(width: model.totalWidth, height: headerHeight, alignment: .leading)
     }
 
     private func programRow(for channel: JellyfinChannel) -> some View {
@@ -122,83 +145,10 @@ struct EPGGuideView: View {
         Rectangle()
             .fill(Color.red)
             .frame(width: 2)
-            .offset(x: columnWidth + model.xOffset(for: Date()))
+            .offset(x: model.xOffset(for: Date()))
+            .padding(.top, headerHeight)
             .allowsHitTesting(false)
     }
-
-    // MARK: - Pinned channel column (tracks vertical scroll)
-
-    private func pinnedChannelColumn(height: CGFloat) -> some View {
-        VStack(spacing: 0) {
-            ForEach(model.channels) { channel in
-                channelCell(channel)
-                    .frame(width: columnWidth, height: EPGGuideViewModel.rowHeight)
-            }
-        }
-        // Shift down by the header height (to clear the header band) and up by
-        // the program scroll's vertical offset (to track it).
-        .offset(y: headerHeight - scrollOffset.y)
-        .frame(width: columnWidth, height: height, alignment: .topLeading)
-        .clipped()
-        .allowsHitTesting(false)
-    }
-
-    private func channelCell(_ channel: JellyfinChannel) -> some View {
-        HStack(spacing: 12) {
-            channelLogo(channel)
-            VStack(alignment: .leading) {
-                Text(channel.name).font(.headline).lineLimit(1)
-                if let num = channel.channelNumber {
-                    Text(num).font(.caption).foregroundStyle(.secondary)
-                }
-            }
-            Spacer(minLength: 0)
-        }
-        .padding(.horizontal, 16)
-    }
-
-    @ViewBuilder
-    private func channelLogo(_ channel: JellyfinChannel) -> some View {
-        if let url = dependencies.jellyfinImageService.imageURL(
-            itemID: channel.id, imageType: .primary, tag: channel.primaryImageTag, maxHeight: 64) {
-            AsyncImage(url: url) { image in
-                image.resizable().scaledToFit()
-            } placeholder: {
-                Image(systemName: "tv").foregroundStyle(.secondary)
-            }
-            .frame(width: 56, height: 56)
-        } else {
-            Image(systemName: "tv").frame(width: 56, height: 56).foregroundStyle(.secondary)
-        }
-    }
-
-    // MARK: - Pinned time header (tracks horizontal scroll)
-
-    private func pinnedTimeHeader(width: CGFloat) -> some View {
-        ZStack(alignment: .leading) {
-            ForEach(model.timeTicks, id: \.self) { tick in
-                Text(tick.formatted(date: .omitted, time: .shortened))
-                    .font(.caption).foregroundStyle(.secondary)
-                    .offset(x: columnWidth + model.xOffset(for: tick) + 6)
-            }
-        }
-        .frame(width: width, height: headerHeight, alignment: .leading)
-        .offset(x: -scrollOffset.x)
-        .frame(width: width, height: headerHeight, alignment: .leading)
-        .background(.ultraThinMaterial)
-        .clipped()
-        .allowsHitTesting(false)
-    }
-
-    /// Opaque cover for the top-left intersection of column and header.
-    private var corner: some View {
-        Rectangle()
-            .fill(.ultraThinMaterial)
-            .frame(width: columnWidth, height: headerHeight)
-            .allowsHitTesting(false)
-    }
-
-    // MARK: - Actions / data
 
     private func select(program: JellyfinProgram, channel: JellyfinChannel) {
         selectedChannel = channel
