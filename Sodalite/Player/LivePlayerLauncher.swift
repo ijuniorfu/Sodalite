@@ -23,7 +23,9 @@ struct LivePlayerLauncher: UIViewControllerRepresentable {
     }
 
     func updateUIViewController(_ host: PlayerLauncherHostVC, context: Context) {
+        print("[LivePlayerLauncher] update isPresented=\(isPresented) hasContext=\(self.context != nil) alreadyPresented=\(host.presentedViewController != nil) inWindow=\(host.viewIfLoaded?.window != nil)")
         if isPresented, let liveContext = self.context, host.presentedViewController == nil {
+            print("[LivePlayerLauncher] presenting live player for channel=\(liveContext.channel.name)")
             let item = JellyfinItem(liveChannel: liveContext.channel, program: liveContext.program)
             let vm = PlayerViewModel(
                 item: item,

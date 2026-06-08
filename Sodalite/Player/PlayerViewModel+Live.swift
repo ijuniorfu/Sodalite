@@ -9,12 +9,18 @@ extension PlayerViewModel {
     /// to the engine with isLive + a 30-minute DVR window. Sets the tuner
     /// handle for teardown to release.
     func loadLiveStream() async throws {
+        print("[PlayerVM+Live] loadLiveStream getPlaybackInfo itemID=\(item.id)")
         let info = try await playbackService.getPlaybackInfo(
             itemID: item.id, userID: userID, profile: DirectPlayProfile.current())
         playSessionID = info.playSessionId
-        guard let source = info.mediaSources.first else { throw PlayerEngineError.noSource }
+        print("[PlayerVM+Live] PlaybackInfo mediaSources=\(info.mediaSources.count) playSession=\(info.playSessionId ?? "nil")")
+        guard let source = info.mediaSources.first else {
+            print("[PlayerVM+Live] no media sources -> throwing noSource")
+            throw PlayerEngineError.noSource
+        }
         mediaSourceID = source.id
         activeLiveStreamID = source.liveStreamId
+        print("[PlayerVM+Live] source id=\(source.id) transcodingUrl=\(source.transcodingUrl ?? "nil") liveStreamId=\(source.liveStreamId ?? "nil")")
 
         // Live channels are delivered as HLS via TranscodingUrl; fall back to
         // a remux stream URL only if the server gave none.
@@ -29,6 +35,7 @@ extension PlayerViewModel {
             throw PlayerEngineError.noSource
         }
 
+        print("[PlayerVM+Live] loading engine url=\(url.absoluteString)")
         observeLiveEdge()
 
         try await player.load(
