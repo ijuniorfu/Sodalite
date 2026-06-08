@@ -301,13 +301,35 @@ final class PlayerViewModel {
     var activePlayMethod: PlayMethod = .directPlay
     var subtitleStreams: [MediaStream] = []
 
+    // MARK: - Live TV
+
+    /// True when this session is a live channel rather than VOD. Gates DVR
+    /// transport and disables resume / chapters / next-episode.
+    private(set) var isLiveSession = false
+    /// The Jellyfin tuner handle for the current live stream; captured on
+    /// load, released on teardown. Nil for VOD.
+    var activeLiveStreamID: String?
+    /// Live-edge mirror fields, populated by PlayerViewModel+Live from the
+    /// engine's published live surfaces.
+    var liveSeekableRange: ClosedRange<Double>?
+    var isAtLiveEdge: Bool = true
+    var behindLiveSeconds: Double = 0
+    /// The channel being played, for live sessions. Nil for VOD.
+    let liveChannel: JellyfinChannel?
+    /// The live-TV service used by PlayerViewModel+Live for tuner lifecycle.
+    /// Nil for VOD.
+    let liveTvService: JellyfinLiveTvServiceProtocol?
+
     init(
         item: JellyfinItem,
         startFromBeginning: Bool,
         playbackService: JellyfinPlaybackServiceProtocol,
         userID: String,
         preferences: PlaybackPreferences,
-        cachedPlaybackInfo: PlaybackInfoResponse? = nil
+        cachedPlaybackInfo: PlaybackInfoResponse? = nil,
+        isLiveSession: Bool = false,
+        liveChannel: JellyfinChannel? = nil,
+        liveTvService: JellyfinLiveTvServiceProtocol? = nil
     ) {
         self.item = item
         self.player = DependencyContainer.playerEngine
@@ -317,6 +339,9 @@ final class PlayerViewModel {
         self.preferences = preferences
         self.scrubPreview = ScrubPreviewProvider()
         self.cachedPlaybackInfo = cachedPlaybackInfo
+        self.isLiveSession = isLiveSession
+        self.liveChannel = liveChannel
+        self.liveTvService = liveTvService
     }
 
     // MARK: - Lifecycle
