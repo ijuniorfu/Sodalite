@@ -11,15 +11,33 @@ extension PlayerViewModel {
         return 0
     }
 
+    /// The span the scrubber maps `scrubProgress` (0...1) across. For VOD
+    /// that is the content duration; for live it is the buffered DVR window
+    /// (`liveSeekableRange`). Returns 0 when there is nothing to scrub yet
+    /// (live window not accrued), which keeps the scrub entry points gated.
+    var scrubReferenceDuration: Double {
+        if isLiveSession {
+            guard let range = liveSeekableRange,
+                  range.upperBound > range.lowerBound else { return 0 }
+            return range.upperBound - range.lowerBound
+        }
+        return effectiveDuration
+    }
+
     func scrub(delta: CGFloat) {
-        let dur = effectiveDuration
+        let dur = scrubReferenceDuration
         guard dur > 0 else { return }
 
         if !isScrubbing {
             isScrubbing = true
             scrubStartProgress = progress
             showControls = true
-            scrubPreview.prewarm()
+            // The scrub preview (engine FrameExtractor) is only configured
+            // on the VOD branch, so keep prewarm VOD-only. A live DVR
+            // preview is feasible later (the engine retains the window and
+            // FrameExtractor can sample it), but needs the extractor wired
+            // for live sessions and a preview slot in the live bar.
+            if !isLiveSession { scrubPreview.prewarm() }
         }
         // Always cancel any pending hide / auto-cancel timer, not just
         // on the first scrub() call. Slow touchpad swipes occasionally
@@ -34,8 +52,12 @@ extension PlayerViewModel {
         controlsTimer?.cancel()
 
         scrubProgress = max(0, min(1, scrubStartProgress + Float(delta) * 0.3))
-        scrubTime = formatSeconds(Double(scrubProgress) * dur)
-        scrubPreview.update(fraction: scrubProgress, durationSeconds: dur)
+        // scrubTime / preview feed the VOD transport bar; the live bar draws
+        // its own position label from behindLiveSeconds, so skip both for live.
+        if !isLiveSession {
+            scrubTime = formatSeconds(Double(scrubProgress) * dur)
+            scrubPreview.update(fraction: scrubProgress, durationSeconds: dur)
+        }
     }
 
     func scrubPanEnded() {
@@ -100,7 +122,7 @@ extension PlayerViewModel {
     /// is called on release. Like the tap-skip path, the position is a
     /// preview committed only on release.
     func beginContinuousSeek(direction: Int) {
-        let dur = effectiveDuration
+        let dur = scrubReferenceDuration
         guard dur > 0 else { return }
 
         if !isScrubbing {
@@ -108,7 +130,8 @@ extension PlayerViewModel {
             scrubStartProgress = progress
             scrubProgress = progress
             showControls = true
-            scrubPreview.prewarm()
+            // VOD-only preview (see scrub(delta:) for the FrameExtractor note).
+            if !isLiveSession { scrubPreview.prewarm() }
         }
         controlsTimer?.cancel()
         continuousSeekTask?.cancel()
@@ -119,7 +142,9 @@ extension PlayerViewModel {
             var held = 0.0
             while !Task.isCancelled {
                 guard let self else { return }
-                let dur = self.effectiveDuration
+                // For live this re-reads the DVR window span each tick (it
+                // grows as history accrues); for VOD it is the fixed duration.
+                let dur = self.scrubReferenceDuration
                 guard dur > 0 else { return }
                 // Media-seconds per real second: ramps from 15x, keeping the
                 // same acceleration curve, up to a fast 240x ceiling (~8.6s
@@ -127,8 +152,10 @@ extension PlayerViewModel {
                 let rate = min(15 + held * 26, 240)
                 let deltaProgress = dir * Float(rate * tick / dur)
                 self.scrubProgress = max(0, min(1, self.scrubProgress + deltaProgress))
-                self.scrubTime = self.formatSeconds(Double(self.scrubProgress) * dur)
-                self.scrubPreview.update(fraction: self.scrubProgress, durationSeconds: dur)
+                if !self.isLiveSession {
+                    self.scrubTime = self.formatSeconds(Double(self.scrubProgress) * dur)
+                    self.scrubPreview.update(fraction: self.scrubProgress, durationSeconds: dur)
+                }
                 try? await Task.sleep(for: .seconds(tick))
                 held += tick
             }

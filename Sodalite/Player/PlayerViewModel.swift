@@ -1042,7 +1042,7 @@ final class PlayerViewModel {
     }
 
     func seekJump(seconds: Double) {
-        let dur = effectiveDuration
+        let dur = scrubReferenceDuration
         guard dur > 0 else { return }
 
         if !isScrubbing {
@@ -1056,8 +1056,12 @@ final class PlayerViewModel {
 
         let jumpProgress = Float(seconds / dur)
         scrubProgress = max(0, min(1, scrubProgress + jumpProgress))
-        scrubTime = formatSeconds(Double(scrubProgress) * dur)
-        scrubPreview.update(fraction: scrubProgress, durationSeconds: dur)
+        // scrubTime / preview feed the VOD transport bar only; the live bar
+        // renders its own behind-live label, so skip both for live.
+        if !isLiveSession {
+            scrubTime = formatSeconds(Double(scrubProgress) * dur)
+            scrubPreview.update(fraction: scrubProgress, durationSeconds: dur)
+        }
 
         // Auto-cancel on idle, matching `scrubPanEnded`. Commit stays
         // explicit (Select), but if the user taps left / right and
