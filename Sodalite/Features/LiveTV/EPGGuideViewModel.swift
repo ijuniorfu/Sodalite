@@ -10,7 +10,7 @@ final class EPGGuideViewModel {
     /// Height of a single channel row.
     static let rowHeight: CGFloat = 110
     /// Width of the sticky channel column.
-    static let channelColumnWidth: CGFloat = 260
+    static let channelColumnWidth: CGFloat = 360
     /// How far ahead of `now` the guide axis extends.
     static let windowHours: Int = 24
 

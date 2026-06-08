@@ -16,7 +16,12 @@ struct LiveTVTabView: View {
                     model: model,
                     onWatchLive: { context in
                         liveContext = context
-                        isPlayerPresented = true
+                        // Let the info sheet finish dismissing before the
+                        // full-screen player modal presents; presenting while
+                        // the sheet is still animating out silently no-ops.
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+                            isPlayerPresented = true
+                        }
                     }
                 )
             } else {
