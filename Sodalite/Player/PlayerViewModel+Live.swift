@@ -20,13 +20,30 @@ extension PlayerViewModel {
         guard let source = info.mediaSources.first else { throw PlayerEngineError.noSource }
         mediaSourceID = source.id
         activeLiveStreamID = source.liveStreamId
-        // DIAG: what is the live source actually made of? Tells us whether
-        // Jellyfin could DirectStream (codec copy / remux) instead of
-        // re-encoding. Remove once the profile is tuned.
+        // DIAG: what is the live source actually made of, and what is the
+        // server actually doing with it? `transcodeReasons` + the codec
+        // params parsed out of the TranscodingUrl tell us whether we pay a
+        // full VIDEO RE-ENCODE (expensive, stalls high-bitrate live) or just
+        // a container remux / audio re-encode with `VideoCodec=copy` (cheap).
+        // That is the decisive signal for the copy-vs-encode profile tuning.
+        // Remove once the profile is tuned.
         let streamDesc = (source.mediaStreams ?? []).map {
             "\($0.type)/\($0.codec ?? "?")\($0.width != nil ? " \($0.width!)x\($0.height ?? 0)" : "")\($0.bitRate != nil ? " \($0.bitRate!/1000)kbps" : "")"
         }.joined(separator: ", ")
-        print("[LiveSrc] container=\(source.container ?? "nil") directPlay=\(source.supportsDirectPlay ?? false) directStream=\(source.supportsDirectStream ?? false) transcoding=\(source.supportsTranscoding ?? false) streams=[\(streamDesc)]")
+        let reasons = (source.transcodeReasons ?? []).joined(separator: "+")
+        // Pull the decisive transcode params straight out of the URL the
+        // server built. `VideoCodec=copy` == no re-encode (remux only).
+        let tParams: String = {
+            guard let t = source.transcodingUrl,
+                  let comps = URLComponents(string: t.hasPrefix("http") ? t : "http://x" + t)
+            else { return "n/a" }
+            let keys = ["VideoCodec", "AudioCodec", "VideoBitrate", "AudioBitrate"]
+            return keys.compactMap { k in
+                comps.queryItems?.first(where: { $0.name == k })?.value.map { "\(k)=\($0)" }
+            }.joined(separator: " ")
+        }()
+        print("[LiveSrc] container=\(source.container ?? "nil") srcBitrate=\(source.bitrate.map { "\($0/1000)kbps" } ?? "nil") directPlay=\(source.supportsDirectPlay ?? false) directStream=\(source.supportsDirectStream ?? false) transcoding=\(source.supportsTranscoding ?? false) reasons=[\(reasons)] streams=[\(streamDesc)]")
+        print("[LiveSrc] transcodeParams: \(tParams)")
 
         // Prefer DirectStream (copy / remux, no server re-encode): if the
         // probe made the source compatible, Jellyfin offers directStream and

@@ -28,6 +28,13 @@ struct PlaybackMediaSource: Codable, Sendable, Identifiable {
     /// PlaybackInfo. Echoed back on the stop report and the explicit
     /// LiveStreams/Close call so the tuner is released. Nil for VOD.
     let liveStreamId: String?
+    /// Why the server chose to transcode rather than DirectPlay/DirectStream
+    /// (e.g. `ContainerNotSupported`, `VideoCodecNotSupported`,
+    /// `AudioCodecNotSupported`, `VideoBitrateNotSupported`). The decisive
+    /// signal for whether we are paying a full video re-encode (expensive,
+    /// stalls on high-bitrate live) or merely a container remux / audio
+    /// re-encode (cheap). Drives the live-profile copy-vs-encode tuning.
+    let transcodeReasons: [String]?
 
     enum CodingKeys: String, CodingKey {
         case id = "Id"
@@ -42,6 +49,7 @@ struct PlaybackMediaSource: Codable, Sendable, Identifiable {
         case transcodingUrl = "TranscodingUrl"
         case mediaStreams = "MediaStreams"
         case liveStreamId = "LiveStreamId"
+        case transcodeReasons = "TranscodeReasons"
     }
 }
 
