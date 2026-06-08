@@ -389,6 +389,41 @@ final class PlayerViewModel {
         bindRemoteSkipCommands()
 
         do {
+            // Live channels take a dedicated load path: open the tuner,
+            // pick the infinite live MediaSource, and hand it to the engine
+            // with isLive + a DVR window. The VOD wiring below (resume,
+            // chapters, intro markers, episode picker) does not apply, so we
+            // reproduce only the shared post-load steps and return. Kept as a
+            // separate branch on purpose: the VOD path below stays untouched.
+            if isLiveSession {
+                stageInitialNowPlayingMetadata()
+                try await loadLiveStream()
+                if Task.isCancelled || isTearingDown {
+                    player.stop()
+                    isLoading = false
+                    return
+                }
+                // Shared post-load wiring (mirrors the VOD path; live skips
+                // resume, chapters, intro markers, and the episode picker).
+                // Duplicated rather than extracted to keep the VOD path intact.
+                let preferredAudio = effectivePreferredAudioLanguage()
+                let chosenAudio = player.audioTracks.first(where: {
+                    preferredAudio != nil && Self.languagesMatch($0.language, preferredAudio)
+                }) ?? player.audioTracks.first(where: { $0.isDefault })
+                  ?? player.audioTracks.first
+                if let chosenAudio, chosenAudio.id != player.activeAudioTrackIndex {
+                    player.selectAudioTrack(index: chosenAudio.id)
+                }
+                applyPreferredSubtitle(forAudioLanguage: chosenAudio?.language)
+                isLoading = false
+                isPlaying = true
+                startObserving()
+                Task { [weak self] in await self?.refreshExternalMetadataWithArtwork() }
+                await reportStart()
+                startProgressReporting()
+                return
+            }
+
             let info: PlaybackInfoResponse
             if let cached = cachedPlaybackInfo, !cached.mediaSources.isEmpty {
                 info = cached
