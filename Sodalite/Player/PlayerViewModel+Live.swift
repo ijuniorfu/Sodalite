@@ -13,18 +13,43 @@ extension PlayerViewModel {
         // a live channel is unbounded, and MPEG-TS over HTTP is live-streamable
         // (progressive MP4 is not), which is what the engine's AVIO live path
         // consumes.
-        // High ceiling, not a 12 Mbps cap: the PlaybackInfo MaxStreamingBitrate
-        // is also the encoder TARGET when the server re-encodes, and capping it
-        // below the source bitrate is exactly what forced a real-time 1080p
-        // re-encode (bursty segments, -12888 stalls). At/above the source it
-        // resolves to a stream-copy of the probed H.264 instead. See
-        // DirectPlayProfile.liveCopyCeilingBitrate.
-        let info = try await playbackService.getLivePlaybackInfo(
+        //
+        // Two-stage bitrate negotiation, because the PlaybackInfo
+        // MaxStreamingBitrate serves double duty: it is the COPY THRESHOLD
+        // (source under it stream-copies) AND the ENCODER TARGET (when the
+        // server must re-encode). One value can't satisfy both:
+        //  - A high ceiling lets the probed H.264 copy (cheap, no quality loss,
+        //    smooth) but makes the encoder target absurd for a genuinely
+        //    incompatible source (a 200 Mbps target answered with HTTP 500 +
+        //    an AVIO reconnect storm on device).
+        //  - A low cap bounds the encode but forces the 20 Mbps H.264 to
+        //    re-encode (bursty segments, -12888 stalls).
+        // So probe at the high copy ceiling first; if the probe reports the
+        // video must be re-encoded (VideoCodecNotSupported), re-request at a
+        // sane real-time encode cap, releasing the first tuner we opened.
+        var info = try await playbackService.getLivePlaybackInfo(
             itemID: item.id, userID: userID,
             profile: DirectPlayProfile.liveProfile(),
             maxStreamingBitrate: DirectPlayProfile.liveCopyCeilingBitrate)
+        guard var source = info.mediaSources.first else { throw PlayerEngineError.noSource }
+
+        if (source.transcodeReasons ?? []).contains("VideoCodecNotSupported") {
+            // Incompatible codec: the high ceiling would be the encoder target.
+            // Release the tuner this probe opened, then reopen bounded.
+            let staleTuner = source.liveStreamId
+            info = try await playbackService.getLivePlaybackInfo(
+                itemID: item.id, userID: userID,
+                profile: DirectPlayProfile.liveProfile(),
+                maxStreamingBitrate: DirectPlayProfile.liveReencodeCapBitrate)
+            guard let rebounded = info.mediaSources.first else { throw PlayerEngineError.noSource }
+            source = rebounded
+            if let staleTuner, staleTuner != source.liveStreamId {
+                let svc = playbackService
+                Task.detached { try? await svc.closeLiveStream(liveStreamID: staleTuner) }
+            }
+        }
+
         playSessionID = info.playSessionId
-        guard let source = info.mediaSources.first else { throw PlayerEngineError.noSource }
         mediaSourceID = source.id
         activeLiveStreamID = source.liveStreamId
         // DIAG: what is the live source actually made of, and what is the
