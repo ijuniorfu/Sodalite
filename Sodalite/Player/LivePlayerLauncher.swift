@@ -24,15 +24,26 @@ struct LivePlayerLauncher: UIViewControllerRepresentable {
 
     func updateUIViewController(_ host: PlayerLauncherHostVC, context: Context) {
         guard isPresented, let liveContext = self.context,
-              let window = host.viewIfLoaded?.window,
-              var top = window.rootViewController else { return }
-        // Present from the topmost presented VC. The info popover (a SwiftUI
-        // sheet) is presented from this same host, so guarding on
-        // host.presentedViewController == nil blocked the player; stacking on
-        // the topmost VC presents reliably regardless of the sheet's state.
-        while let presented = top.presentedViewController { top = presented }
-        print("[LivePlayerLauncher] topmost=\(type(of: top))")
-        guard !(top is PlayerHostController) else { return }
+              host.viewIfLoaded?.window != nil else { return }
+        if host.presentedViewController is PlayerHostController || host.pendingLivePresent { return }
+        host.pendingLivePresent = true
+        attemptPresent(host: host, liveContext: liveContext, attempt: 0)
+    }
+
+    /// Present the player from the stable host VC, but only once the info
+    /// popover (a SwiftUI sheet presented from this same host) has finished
+    /// dismissing. Presenting while it is mid-dismiss fails ("view is not in
+    /// the window hierarchy"), so poll until host has nothing presented.
+    private func attemptPresent(host: PlayerLauncherHostVC, liveContext: LivePlaybackContext, attempt: Int) {
+        if let presented = host.presentedViewController, !(presented is PlayerHostController) {
+            guard attempt < 40 else { host.pendingLivePresent = false; return }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                attemptPresent(host: host, liveContext: liveContext, attempt: attempt + 1)
+            }
+            return
+        }
+        host.pendingLivePresent = false
+        if host.presentedViewController is PlayerHostController { return }
 
         let item = JellyfinItem(liveChannel: liveContext.channel, program: liveContext.program)
         let vm = PlayerViewModel(
@@ -45,17 +56,15 @@ struct LivePlayerLauncher: UIViewControllerRepresentable {
             liveChannel: liveContext.channel,
             liveTvService: liveTvService
         )
-        var playerRef: PlayerHostController?
         let playerVC = PlayerHostController(
             viewModel: vm,
             tintColor: tintColor,
             onDismiss: {
-                playerRef?.presentingViewController?.dismiss(animated: false) { isPresented = false }
+                host.dismiss(animated: false) { isPresented = false }
             }
         )
-        playerRef = playerVC
         playerVC.modalPresentationStyle = .fullScreen
-        print("[LivePlayerLauncher] presenting live player for channel=\(liveContext.channel.name) from=\(type(of: top))")
-        top.present(playerVC, animated: false)
+        print("[LivePlayerLauncher] presenting live player for channel=\(liveContext.channel.name)")
+        host.present(playerVC, animated: false)
     }
 }

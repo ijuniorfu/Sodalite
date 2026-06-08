@@ -57,6 +57,10 @@ struct PlayerLauncher: UIViewControllerRepresentable {
 /// window hierarchy so UIKit present() works. Focus restoration is
 /// handled by SwiftUI's @FocusState in the detail views.
 final class PlayerLauncherHostVC: UIViewController {
+    /// Guards the live-player present retry loop against duplicate launches
+    /// while it polls for the info sheet to finish dismissing.
+    var pendingLivePresent = false
+
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .clear
