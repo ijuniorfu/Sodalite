@@ -4,13 +4,18 @@ import SwiftUI
 /// seekable window, a live-edge marker, a position/LIVE label, and a
 /// return-to-live indicator.
 ///
-/// Live transport v1: the return-to-live action ships via scrubbing to the
-/// right edge (commitLiveScrub snaps to the edge at >= 0.99). A dedicated
-/// focusable "Return to Live" button wired into PlayerHostController's
-/// controlsFocus state machine, and audio/subtitle/speed chips for live,
-/// are on-device follow-ups.
+/// Live transport: a "Return to Live" pill focusable via Up from the
+/// scrubber (PlayerHostController routes `.returnToLiveButton` Select to
+/// returnToLiveEdge); scrubbing fully to the right edge still snaps to live
+/// too (commitLiveScrub at >= 0.99). Audio/subtitle/speed chips for live are
+/// a separate follow-up.
 struct LiveTransportBar: View {
     @Bindable var viewModel: PlayerViewModel
+
+    /// The return-to-live pill currently holds remote focus.
+    private var returnToLiveFocused: Bool {
+        viewModel.controlsFocus == .returnToLiveButton
+    }
 
     var body: some View {
         VStack(spacing: 16) {
@@ -24,22 +29,28 @@ struct LiveTransportBar: View {
 
                 Spacer()
 
-                // Informational return-to-live pill. The action itself is
-                // reached by scrubbing fully to the right edge (see
-                // commitLiveScrub); a dedicated focusable button is a v1
-                // follow-up.
+                // Return-to-live pill. Focusable from the scrubber via Up
+                // (controlsFocus == .returnToLiveButton); Select fires
+                // returnToLiveEdge. Focused state fills tinted per the app's
+                // focus convention; unfocused is a muted outline.
                 if !viewModel.isAtLiveEdge {
                     Text("livetv.returnToLive")
                         .font(.caption.bold())
-                        .foregroundStyle(.white)
+                        .foregroundStyle(returnToLiveFocused ? Color.black : .white)
                         .padding(.horizontal, 16)
                         .padding(.vertical, 8)
                         .background(
-                            Capsule().fill(.white.opacity(0.2))
+                            Capsule().fill(
+                                returnToLiveFocused
+                                    ? AnyShapeStyle(.tint)
+                                    : AnyShapeStyle(.white.opacity(0.2))
+                            )
                         )
                         .overlay(
-                            Capsule().strokeBorder(.tint, lineWidth: 2)
+                            Capsule().strokeBorder(.tint, lineWidth: returnToLiveFocused ? 0 : 2)
                         )
+                        .scaleEffect(returnToLiveFocused ? 1.08 : 1.0)
+                        .animation(.easeInOut(duration: 0.15), value: returnToLiveFocused)
                 }
 
                 liveBadge

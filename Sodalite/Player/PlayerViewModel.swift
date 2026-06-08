@@ -71,6 +71,11 @@ final class PlayerViewModel {
         case speedButton
         case pictureButton
         case infoButton
+        // Live-only: the "Return to Live" pill in LiveTransportBar. Reached
+        // by pressing Up from the live scrubber while behind the live edge;
+        // Select fires returnToLiveEdge(). The VOD button row above does not
+        // apply to live (LiveTransportBar renders none of those controls).
+        case returnToLiveButton
     }
 
     /// True while the stats-for-nerds side panel is mounted. Toggled

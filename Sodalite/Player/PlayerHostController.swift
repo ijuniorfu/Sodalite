@@ -907,6 +907,14 @@ final class PlayerHostController: AVPlayerViewController {
             case .infoButton:
                 viewModel.showStatsOverlay.toggle()
                 viewModel.scheduleControlsHide()
+            case .returnToLiveButton:
+                // Snap to the live edge, then drop focus back to the
+                // scrubber: the pill disappears once isAtLiveEdge flips,
+                // so leaving focus on it would strand the user on a
+                // vanished control.
+                viewModel.returnToLiveEdge()
+                viewModel.controlsFocus = .progressBar
+                viewModel.scheduleControlsHide()
             default: break
             }
         } else if viewModel.isScrubbing {
@@ -1051,6 +1059,17 @@ final class PlayerHostController: AVPlayerViewController {
         } else if viewModel.showControls {
             switch viewModel.controlsFocus {
             case .progressBar:
+                // Live: the only control above the scrubber is the
+                // "Return to Live" pill, and only when behind the edge.
+                // LiveTransportBar renders none of the VOD buttons, so
+                // skip that whole row here.
+                if viewModel.isLiveSession {
+                    if !viewModel.isAtLiveEdge {
+                        viewModel.controlsFocus = .returnToLiveButton
+                    }
+                    viewModel.scheduleControlsHide()
+                    break
+                }
                 // Preserve scrub state, user can confirm/cancel when returning
                 let hasAudio = !viewModel.player.audioTracks.isEmpty
                 let hasSubs = !viewModel.subtitleStreams.isEmpty
@@ -1065,7 +1084,7 @@ final class PlayerHostController: AVPlayerViewController {
                 else if hasSubs { viewModel.controlsFocus = .subtitleButton }
                 else { viewModel.controlsFocus = .speedButton }
                 viewModel.scheduleControlsHide()
-            case .skipIntroButton, .chapterButton, .episodeButton, .audioButton, .subtitleButton, .speedButton, .pictureButton, .infoButton:
+            case .skipIntroButton, .chapterButton, .episodeButton, .audioButton, .subtitleButton, .speedButton, .pictureButton, .infoButton, .returnToLiveButton:
                 viewModel.scheduleControlsHide()
             }
         } else {
