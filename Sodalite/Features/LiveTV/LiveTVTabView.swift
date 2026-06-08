@@ -28,8 +28,24 @@ struct LiveTVTabView: View {
             model = EPGGuideViewModel(
                 service: dependencies.jellyfinLiveTvService, userID: userID)
         }
-        // TODO(Task 14): present LivePlayerLauncher here once it exists.
-        // For now the Watch Live tap records the context + flag but does
-        // not yet present a player.
+        .overlay {
+            // Guard userID at the call site (mirrors MovieDetailView's
+            // PlayerLauncher placement) so the live player never launches
+            // with a blank user id.
+            if let userID = dependencies.activeUserID {
+                LivePlayerLauncher(
+                    isPresented: $isPlayerPresented,
+                    context: isPlayerPresented ? liveContext : nil,
+                    playbackService: dependencies.jellyfinPlaybackService,
+                    liveTvService: dependencies.jellyfinLiveTvService,
+                    userID: userID,
+                    preferences: dependencies.playbackPreferences,
+                    tintColor: dependencies.appearancePreferences.effectiveTint(
+                        isSupporter: dependencies.storeKitService.isSupporter
+                    )
+                )
+                .allowsHitTesting(false)
+            }
+        }
     }
 }
