@@ -309,7 +309,12 @@ enum JellyfinEndpoint: APIEndpoint {
                 URLQueryItem(name: "Limit", value: String(limit)),
                 URLQueryItem(name: "EnableImages", value: "true"),
                 URLQueryItem(name: "AddCurrentProgram", value: "true"),
-                URLQueryItem(name: "EnableUserData", value: "false"),
+                // UserData carries IsFavorite; favorite sorting floats
+                // favorited channels to the top server-side, which keeps the
+                // guide's StartIndex pagination and incremental diffing intact
+                // (a client-side re-sort would break both).
+                URLQueryItem(name: "EnableUserData", value: "true"),
+                URLQueryItem(name: "EnableFavoriteSorting", value: "true"),
             ]
 
         case .liveTvPrograms(let channelIDs, let userID, let minStart, let maxStart):

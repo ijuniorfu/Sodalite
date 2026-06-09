@@ -6,8 +6,14 @@ struct ProgramInfoPopover: View {
     let tint: Color
     /// Set by the tab to launch live playback when the user taps Watch Live.
     var onWatchLive: ((LivePlaybackContext) -> Void)?
+    /// Initial favorite state of the channel and a callback to flip it.
+    var channelIsFavorite: Bool = false
+    var onToggleFavorite: (() -> Void)?
 
     @Environment(\.dismiss) private var dismiss
+    /// Local mirror for snappy button feedback; the guide's view model holds
+    /// the source of truth and persists to the server.
+    @State private var isFavorite: Bool = false
 
     private var isAiring: Bool { program.isAiring(at: Date()) }
 
@@ -35,11 +41,20 @@ struct ProgramInfoPopover: View {
                     }
                     .tint(tint)
                 }
+                Button {
+                    isFavorite.toggle()
+                    onToggleFavorite?()
+                } label: {
+                    Label(isFavorite ? "livetv.unfavorite" : "livetv.favorite",
+                          systemImage: isFavorite ? "star.fill" : "star")
+                }
+                .tint(isFavorite ? .yellow : tint)
                 // Record affordance reserved for the recordings sub-project.
             }
             Spacer()
         }
         .padding(60)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .onAppear { isFavorite = channelIsFavorite }
     }
 }

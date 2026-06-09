@@ -4,6 +4,9 @@ protocol JellyfinLiveTvServiceProtocol: Sendable {
     func getChannels(userID: String, startIndex: Int, limit: Int) async throws -> LiveTvChannelsResponse
     func getPrograms(channelIDs: [String], userID: String, start: Date, end: Date) async throws -> [JellyfinProgram]
     func getGuideInfo() async throws -> JellyfinGuideInfo
+    /// Mark/unmark a channel as favorite. Channels are `BaseItemDto`, so this
+    /// reuses the generic FavoriteItems endpoint media items already use.
+    func setFavorite(userID: String, channelID: String, isFavorite: Bool) async throws
 }
 
 final class JellyfinLiveTvService: JellyfinLiveTvServiceProtocol {
@@ -38,5 +41,12 @@ final class JellyfinLiveTvService: JellyfinLiveTvServiceProtocol {
             responseType: JellyfinGuideInfo.self,
             decoder: .jellyfinLiveTv
         )
+    }
+
+    func setFavorite(userID: String, channelID: String, isFavorite: Bool) async throws {
+        let endpoint: JellyfinEndpoint = isFavorite
+            ? .markFavorite(userID: userID, itemID: channelID)
+            : .unmarkFavorite(userID: userID, itemID: channelID)
+        try await client.request(endpoint: endpoint)
     }
 }

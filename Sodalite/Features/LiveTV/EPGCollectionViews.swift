@@ -100,6 +100,7 @@ final class EPGChannelCell: UICollectionViewCell {
     private let logoView = UIImageView()
     private let nameLabel = UILabel()
     private let numberLabel = UILabel()
+    private let favoriteIcon = UIImageView()
     private var logoToken = UUID()
 
     // The column is a passive index; focus lives on the program grid.
@@ -129,22 +130,40 @@ final class EPGChannelCell: UICollectionViewCell {
         hStack.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(hStack)
 
+        favoriteIcon.image = UIImage(systemName: "star.fill")
+        favoriteIcon.tintColor = .systemYellow
+        favoriteIcon.contentMode = .scaleAspectFit
+        favoriteIcon.isHidden = true
+        favoriteIcon.translatesAutoresizingMaskIntoConstraints = false
+        contentView.addSubview(favoriteIcon)
+
         NSLayoutConstraint.activate([
             logoView.widthAnchor.constraint(equalToConstant: 56),
             logoView.heightAnchor.constraint(equalToConstant: 56),
             hStack.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
-            hStack.trailingAnchor.constraint(lessThanOrEqualTo: contentView.trailingAnchor, constant: -8),
+            hStack.trailingAnchor.constraint(lessThanOrEqualTo: favoriteIcon.leadingAnchor, constant: -8),
             hStack.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
+            favoriteIcon.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
+            favoriteIcon.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
+            favoriteIcon.widthAnchor.constraint(equalToConstant: 28),
+            favoriteIcon.heightAnchor.constraint(equalToConstant: 28),
         ])
     }
 
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
 
-    func configure(name: String, number: String?, logoURL: URL?) {
+    func configure(name: String, number: String?, logoURL: URL?, isFavorite: Bool) {
         nameLabel.text = name
         numberLabel.text = number
         numberLabel.isHidden = (number == nil)
+        favoriteIcon.isHidden = !isFavorite
         loadLogo(logoURL)
+    }
+
+    /// Update only the favorite star (driven by an optimistic toggle) without
+    /// re-running configure / reloading the logo.
+    func setFavorite(_ value: Bool) {
+        favoriteIcon.isHidden = !value
     }
 
     private func loadLogo(_ url: URL?) {
@@ -166,6 +185,7 @@ final class EPGChannelCell: UICollectionViewCell {
         super.prepareForReuse()
         logoToken = UUID()
         logoView.image = UIImage(systemName: "tv")
+        favoriteIcon.isHidden = true
     }
 }
 

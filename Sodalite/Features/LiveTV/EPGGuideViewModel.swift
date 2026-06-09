@@ -19,6 +19,11 @@ final class EPGGuideViewModel {
     private(set) var programsByChannel: [String: [JellyfinProgram]] = [:]
     private(set) var isLoadingChannels = false
     private(set) var loadError: String?
+    /// Channel IDs the user has favorited. Seeded from each loaded page's
+    /// server-side IsFavorite, then updated optimistically on toggle. The
+    /// server-side EnableFavoriteSorting floats these to the top on the next
+    /// fresh load; the star marker tracks this set live.
+    private(set) var favoriteChannelIDs: Set<String> = []
 
     /// Guide axis start: floored to the previous half hour from now.
     let axisStart: Date
@@ -93,11 +98,39 @@ final class EPGGuideViewModel {
             let response = try await service.getChannels(
                 userID: userID, startIndex: nextChannelIndex, limit: pageSize)
             channels.append(contentsOf: response.items)
+            for ch in response.items where ch.isFavorite { favoriteChannelIDs.insert(ch.id) }
             nextChannelIndex += response.items.count
             if response.items.count < pageSize { channelsExhausted = true }
             loadError = nil
         } catch {
             loadError = error.localizedDescription
+        }
+    }
+
+    /// Whether a channel is currently favorited (UI source of truth).
+    func isFavorite(_ channelID: String) -> Bool {
+        favoriteChannelIDs.contains(channelID)
+    }
+
+    /// Toggle a channel's favorite state: flip the local set immediately for
+    /// snappy feedback, then persist to the server. Roll back on failure.
+    /// Re-sorting (favorites first) happens on the next fresh guide load via
+    /// the server's EnableFavoriteSorting, not live, so the current scroll /
+    /// focus position is preserved.
+    func toggleFavorite(channelID: String) {
+        let wasFavorite = favoriteChannelIDs.contains(channelID)
+        if wasFavorite { favoriteChannelIDs.remove(channelID) }
+        else { favoriteChannelIDs.insert(channelID) }
+        let target = !wasFavorite
+        Task {
+            do {
+                try await service.setFavorite(
+                    userID: userID, channelID: channelID, isFavorite: target)
+            } catch {
+                // Revert the optimistic change.
+                if target { favoriteChannelIDs.remove(channelID) }
+                else { favoriteChannelIDs.insert(channelID) }
+            }
         }
     }
 

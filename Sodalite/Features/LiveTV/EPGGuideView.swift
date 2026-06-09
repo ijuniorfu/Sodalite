@@ -56,7 +56,11 @@ struct EPGGuideView: View {
         .task { await model.loadInitialChannels() }
         .sheet(item: $selectedProgram) { program in
             if let channel = selectedChannel {
-                ProgramInfoPopover(program: program, channel: channel, tint: tint, onWatchLive: onWatchLive)
+                ProgramInfoPopover(
+                    program: program, channel: channel, tint: tint,
+                    onWatchLive: onWatchLive,
+                    channelIsFavorite: model.isFavorite(channel.id),
+                    onToggleFavorite: { model.toggleFavorite(channelID: channel.id) })
             }
         }
     }

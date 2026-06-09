@@ -107,6 +107,7 @@ final class EPGCollectionViewController: UIViewController,
         columnView.reloadData()
         timeHeaderContent.configure(ticks: timeTicks())
         startObserving()
+        observeFavorites()
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -204,6 +205,29 @@ final class EPGCollectionViewController: UIViewController,
         }
     }
 
+    /// Track favorite changes separately: a toggle doesn't change the rows, so
+    /// it must not run the row-diffing path. Just refresh the visible channel
+    /// column stars in place.
+    private func observeFavorites() {
+        withObservationTracking {
+            _ = model.favoriteChannelIDs
+        } onChange: { [weak self] in
+            Task { @MainActor in
+                guard let self else { return }
+                self.refreshFavoriteStars()
+                self.observeFavorites()
+            }
+        }
+    }
+
+    private func refreshFavoriteStars() {
+        for indexPath in columnView.indexPathsForVisibleItems {
+            guard indexPath.item < rows.count,
+                  let cell = columnView.cellForItem(at: indexPath) as? EPGChannelCell else { continue }
+            cell.setFavorite(model.isFavorite(rows[indexPath.item].channel.id))
+        }
+    }
+
     private func applyModelChange() {
         let old = rows
         rebuildRows()
@@ -284,7 +308,8 @@ final class EPGCollectionViewController: UIViewController,
             let cell = collectionView.dequeueReusableCell(
                 withReuseIdentifier: EPGChannelCell.reuseID, for: indexPath) as! EPGChannelCell
             let channel = rows[indexPath.item].channel
-            cell.configure(name: channel.name, number: channel.channelNumber, logoURL: logoURLProvider(channel))
+            cell.configure(name: channel.name, number: channel.channelNumber,
+                           logoURL: logoURLProvider(channel), isFavorite: model.isFavorite(channel.id))
             return cell
         }
         let cell = collectionView.dequeueReusableCell(

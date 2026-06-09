@@ -9,6 +9,8 @@ struct JellyfinChannel: Codable, Sendable, Identifiable, Equatable {
     let imageTags: [String: String]?
     /// Present when the channel list is fetched with `addCurrentProgram=true`.
     let currentProgram: JellyfinProgram?
+    /// Present when the channel list is fetched with `EnableUserData=true`.
+    let userData: ChannelUserData?
 
     enum CodingKeys: String, CodingKey {
         case id = "Id"
@@ -16,10 +18,25 @@ struct JellyfinChannel: Codable, Sendable, Identifiable, Equatable {
         case channelNumber = "ChannelNumber"
         case imageTags = "ImageTags"
         case currentProgram = "CurrentProgram"
+        case userData = "UserData"
     }
 
     /// Primary image tag, used to build the channel-logo URL.
     var primaryImageTag: String? { imageTags?["Primary"] }
+
+    /// Server-side favorite flag (nil when UserData wasn't requested).
+    var isFavorite: Bool { userData?.isFavorite ?? false }
+}
+
+/// The slice of a channel's `UserData` the guide reads. Channels are
+/// `BaseItemDto`, so favorites flow through the same UserData.IsFavorite the
+/// regular media items use.
+struct ChannelUserData: Codable, Sendable, Equatable {
+    let isFavorite: Bool?
+
+    enum CodingKeys: String, CodingKey {
+        case isFavorite = "IsFavorite"
+    }
 }
 
 /// A single EPG program. Server-side a `BaseItemDto` of type `Program`.
