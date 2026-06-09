@@ -33,7 +33,8 @@ extension PlayerViewModel {
             maxStreamingBitrate: DirectPlayProfile.liveCopyCeilingBitrate)
         guard var source = info.mediaSources.first else { throw PlayerEngineError.noSource }
 
-        if (source.transcodeReasons ?? []).contains("VideoCodecNotSupported") {
+        if Self.liveNeedsVideoReencode(transcodeReasons: source.transcodeReasons,
+                                       transcodingURL: source.transcodingUrl) {
             // Incompatible codec: the high ceiling would be the encoder target.
             // Release the tuner this probe opened, then reopen bounded.
             let staleTuner = source.liveStreamId
@@ -174,5 +175,24 @@ extension PlayerViewModel {
         Task.detached {
             try? await svc.closeLiveStream(liveStreamID: liveStreamID)
         }
+    }
+
+    /// True when the live source's video codec is incompatible and the server
+    /// must RE-ENCODE (not stream-copy). Decisive for the bitrate negotiation:
+    /// a re-encode source must request the bounded `liveReencodeCapBitrate`,
+    /// otherwise the high copy ceiling becomes the encoder target and the
+    /// server answers the absurd value with HTTP 500.
+    ///
+    /// Reads both the `MediaSource.TranscodeReasons` field AND the reasons
+    /// embedded in the TranscodingUrl query. The field is unreliably populated
+    /// by Jellyfin (observed empty for some channels even when a re-encode is
+    /// required), but the TranscodingUrl always carries `TranscodeReasons=...`.
+    static func liveNeedsVideoReencode(transcodeReasons: [String]?, transcodingURL: String?) -> Bool {
+        if (transcodeReasons ?? []).contains("VideoCodecNotSupported") { return true }
+        guard let t = transcodingURL,
+              let comps = URLComponents(string: t.hasPrefix("http") ? t : "http://x" + t),
+              let reasons = comps.queryItems?.first(where: { $0.name == "TranscodeReasons" })?.value
+        else { return false }
+        return reasons.split(separator: ",").map(String.init).contains("VideoCodecNotSupported")
     }
 }
