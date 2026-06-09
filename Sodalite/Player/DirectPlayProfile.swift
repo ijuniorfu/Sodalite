@@ -53,37 +53,32 @@ enum DirectPlayProfile {
 
     /// Profile for live TV channels. Two things differ from VOD:
     ///
-    /// 1. **Protocol=hls.** We request an HLS sub-protocol so Jellyfin returns
-    ///    a `master.m3u8` (TS segments under an HLS wrapper) that AVPlayer
-    ///    plays NATIVELY. Live then bypasses AetherEngine's demux/remux/
-    ///    loopback pipeline entirely (see `LoadOptions.nativeRemoteHLS`):
-    ///    AVPlayer manages the live edge, buffering, and reconnect itself.
-    ///    The source live container (e.g. `hls`) isn't in our DirectPlay set,
-    ///    so the server repackages regardless; we steer that to native HLS
-    ///    rather than the progressive TS the engine used to consume.
+    /// 1. **Protocol=http, Container=ts.** We request a progressive MPEG-TS
+    ///    stream (not an HLS wrapper) that AetherEngine's AVIOReader consumes
+    ///    as a continuous forward-only source, exactly like VOD. The engine
+    ///    demuxes the TS itself and dispatches h264/hevc to the native AVPlayer
+    ///    loopback and MPEG-2 / VC-1 / MPEG-4 Part 2 to the SW decoder, so every
+    ///    live codec plays with no server re-encode.
     ///
-    /// 2. **No bitrate cap below source.** We want the server to STREAM-COPY
-    ///    the video into the HLS segments (no re-encode), not downscale it. A
-    ///    cap below the source bitrate silently forces a video re-encode even
-    ///    when the only transcode reason is the container. Keeping the ceiling
-    ///    high lets the probed H.264 copy through: cheap on the server, no
-    ///    quality loss. The `liveReencodeCapBitrate` only applies on the
-    ///    re-encode fallback (probe reports `VideoCodecNotSupported`).
+    /// 2. **Full copy codec list + no bitrate cap below source.** Listing every
+    ///    source video codec tells Jellyfin to STREAM-COPY whatever the channel
+    ///    is (container remux only, no video re-encode), since the engine
+    ///    decodes it. The high `MaxStreamingBitrate` keeps the server copying
+    ///    rather than downscaling. mp2 audio pairs with MPEG-2 broadcast sources.
     static func liveProfile() -> [String: Any] {
         var profile = current()
         profile["MaxStreamingBitrate"] = liveCopyCeilingBitrate
         profile["MaxStaticBitrate"] = liveCopyCeilingBitrate
-        // Copy-friendly HLS transcoding profile: accept h264/hevc for copy,
-        // request the HLS sub-protocol so the client plays the m3u8 natively,
-        // and impose NO bitrate cap so the server prefers `-c:v copy` over a
-        // downscale re-encode when the probed source codec is compatible.
+        // Progressive MPEG-TS over HTTP (NOT hls): the engine ingests + decodes
+        // the raw stream. The full video codec list makes the server stream-copy
+        // the source bitstream for every codec instead of re-encoding it.
         profile["TranscodingProfiles"] = [
             [
                 "Type": "Video",
                 "Container": "ts",
-                "Protocol": "hls",
-                "VideoCodec": "h264,hevc",
-                "AudioCodec": "aac,ac3,eac3,mp3",
+                "Protocol": "http",
+                "VideoCodec": "h264,hevc,mpeg2video,vc1,mpeg4",
+                "AudioCodec": "aac,ac3,eac3,mp3,mp2",
                 "Context": "Streaming",
             ],
         ] as [[String: Any]]
