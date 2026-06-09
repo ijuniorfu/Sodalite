@@ -52,31 +52,6 @@ extension PlayerViewModel {
         playSessionID = info.playSessionId
         mediaSourceID = source.id
         activeLiveStreamID = source.liveStreamId
-        // DIAG: what is the live source actually made of, and what is the
-        // server actually doing with it? `transcodeReasons` + the codec
-        // params parsed out of the TranscodingUrl tell us whether we pay a
-        // full VIDEO RE-ENCODE (expensive, stalls high-bitrate live) or just
-        // a container remux / audio re-encode with `VideoCodec=copy` (cheap).
-        // That is the decisive signal for the copy-vs-encode profile tuning.
-        // Remove once the profile is tuned.
-        let streamDesc = (source.mediaStreams ?? []).map {
-            "\($0.type)/\($0.codec ?? "?")\($0.width != nil ? " \($0.width!)x\($0.height ?? 0)" : "")\($0.bitRate != nil ? " \($0.bitRate!/1000)kbps" : "")"
-        }.joined(separator: ", ")
-        let reasons = (source.transcodeReasons ?? []).joined(separator: "+")
-        // Pull the decisive transcode params straight out of the URL the
-        // server built. `VideoCodec=copy` == no re-encode (remux only).
-        let tParams: String = {
-            guard let t = source.transcodingUrl,
-                  let comps = URLComponents(string: t.hasPrefix("http") ? t : "http://x" + t)
-            else { return "n/a" }
-            let keys = ["VideoCodec", "AudioCodec", "VideoBitrate", "AudioBitrate"]
-            return keys.compactMap { k in
-                comps.queryItems?.first(where: { $0.name == k })?.value.map { "\(k)=\($0)" }
-            }.joined(separator: " ")
-        }()
-        print("[LiveSrc] container=\(source.container ?? "nil") srcBitrate=\(source.bitrate.map { "\($0/1000)kbps" } ?? "nil") directPlay=\(source.supportsDirectPlay ?? false) directStream=\(source.supportsDirectStream ?? false) transcoding=\(source.supportsTranscoding ?? false) reasons=[\(reasons)] streams=[\(streamDesc)]")
-        print("[LiveSrc] transcodeParams: \(tParams)")
-        print("[LiveSrc] transcodingUrl=\(source.transcodingUrl ?? "nil")")
 
         // Native HLS: hand the server-built HLS playlist (master.m3u8) straight
         // to AVPlayer via nativeRemoteHLS. No engine demux/remux/loopback; the
