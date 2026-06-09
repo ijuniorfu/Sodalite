@@ -41,6 +41,17 @@ enum DirectPlayProfile {
     /// is H.264 IPTV, which copies.
     static let liveCopyCeilingBitrate = 200_000_000
 
+    /// Bounded encoder target for the rare channel whose source video codec
+    /// is NOT in the engine-decode copy list (liveProfile's VideoCodec),
+    /// i.e. Jellyfin reports VideoCodecNotSupported and must really
+    /// re-encode. The PlaybackInfo MaxStreamingBitrate doubles as the
+    /// encoder target on re-encode, so probing such a channel at the
+    /// 200 Mbps copy ceiling asks the server for an absurd real-time
+    /// encode and it answers HTTP 500 (device-verified on "Infomercial",
+    /// again after the engine-decode migration dropped the two-stage
+    /// negotiation). 12 Mbps is a sane real-time 1080p H.264 target.
+    static let liveReencodeCapBitrate = 12_000_000
+
     /// Profile for live TV channels. Two things differ from VOD:
     ///
     /// 1. **Protocol=http, Container=ts.** We request a progressive MPEG-TS

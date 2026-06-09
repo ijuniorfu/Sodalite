@@ -16,21 +16,58 @@ extension PlayerViewModel {
         // decoder, so every live codec plays with no server re-encode. The high
         // copy ceiling (maxStreamingBitrate) keeps the server stream-copying the
         // source bitstream rather than downscaling it.
-        let info = try await playbackService.getLivePlaybackInfo(
+        var info = try await playbackService.getLivePlaybackInfo(
             itemID: item.id, userID: userID,
             profile: DirectPlayProfile.liveProfile(),
             maxStreamingBitrate: DirectPlayProfile.liveCopyCeilingBitrate)
-        guard let source = info.mediaSources.first else { throw PlayerEngineError.noSource }
+        guard var source = info.mediaSources.first else { throw PlayerEngineError.noSource }
+
+        // Two-stage bitrate negotiation. The PlaybackInfo MaxStreamingBitrate
+        // serves double duty: copy threshold AND encoder target. The high copy
+        // ceiling keeps compatible codecs stream-copying, but for a channel
+        // whose source codec is NOT in liveProfile's copy list
+        // (VideoCodecNotSupported) it becomes a 200 Mbps real-time encode
+        // target, which Jellyfin answers with HTTP 500 (device repro:
+        // "Infomercial"). Re-request those at a bounded encode cap, releasing
+        // the tuner the first probe opened.
+        if Self.liveNeedsVideoReencode(transcodeReasons: source.transcodeReasons,
+                                       transcodingURL: source.transcodingUrl) {
+            let staleTuner = source.liveStreamId
+            info = try await playbackService.getLivePlaybackInfo(
+                itemID: item.id, userID: userID,
+                profile: DirectPlayProfile.liveProfile(),
+                maxStreamingBitrate: DirectPlayProfile.liveReencodeCapBitrate)
+            guard let rebounded = info.mediaSources.first else { throw PlayerEngineError.noSource }
+            source = rebounded
+            if let staleTuner, staleTuner != source.liveStreamId {
+                let svc = playbackService
+                Task.detached { try? await svc.closeLiveStream(liveStreamID: staleTuner) }
+            }
+        }
 
         playSessionID = info.playSessionId
         mediaSourceID = source.id
         activeLiveStreamID = source.liveStreamId
 
-        // The copy-TS TranscodingUrl points at the progressive TS stream the
-        // engine's AVIOReader consumes. The tuner lifecycle (open via
-        // AutoOpenLiveStream above, close on teardown) is unchanged.
-        guard let transcoding = source.transcodingUrl,
-              let tsURL = playbackService.buildTranscodeURL(relativePath: transcoding) else {
+        // Resolve the progressive TS URL the engine's AVIOReader consumes.
+        // Transcode/remux channels carry a TranscodingUrl; a source the server
+        // rates DirectPlay/DirectStream (container already ts, codecs in
+        // profile) carries NONE, and bailing on it black-screened those
+        // channels silently (device repro: "ATV HD", directPlay=1). For them
+        // the static stream URL is the pure copy path.
+        let tsURL: URL
+        if let transcoding = source.transcodingUrl,
+           let transcodeURL = playbackService.buildTranscodeURL(relativePath: transcoding) {
+            tsURL = transcodeURL
+        } else if source.supportsDirectStream == true || source.supportsDirectPlay == true,
+                  let staticURL = playbackService.buildStreamURL(
+                    itemID: item.id,
+                    mediaSourceID: source.id,
+                    container: "ts",
+                    isStatic: true
+                  ) {
+            tsURL = staticURL
+        } else {
             throw PlayerEngineError.noSource
         }
 
@@ -146,6 +183,20 @@ extension PlayerViewModel {
         Task.detached {
             try? await svc.closeLiveStream(liveStreamID: liveStreamID)
         }
+    }
+
+    /// Whether the probed live source needs a real VIDEO re-encode (its codec
+    /// is not in liveProfile's copy list). Checks BOTH the MediaSource field
+    /// and the reasons embedded in the TranscodingUrl query: Jellyfin
+    /// populates the field unreliably (empty for some channels even when the
+    /// URL carries TranscodeReasons=...,VideoCodecNotSupported).
+    static func liveNeedsVideoReencode(transcodeReasons: [String]?, transcodingURL: String?) -> Bool {
+        if (transcodeReasons ?? []).contains("VideoCodecNotSupported") { return true }
+        guard let t = transcodingURL,
+              let comps = URLComponents(string: t.hasPrefix("http") ? t : "http://x" + t),
+              let reasons = comps.queryItems?.first(where: { $0.name == "TranscodeReasons" })?.value
+        else { return false }
+        return reasons.split(separator: ",").map(String.init).contains("VideoCodecNotSupported")
     }
 
 }
