@@ -15,6 +15,7 @@ final class EPGProgramCollectionCell: UICollectionViewCell {
     private let timeLabel = UILabel()
     private let container = UIView()
     private var tint: UIColor = .systemBlue
+    private var isOnNow = false
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -50,11 +51,20 @@ final class EPGProgramCollectionCell: UICollectionViewCell {
 
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
 
-    func configure(title: String, subtitle: String?, tint: UIColor) {
+    func configure(title: String, subtitle: String?, tint: UIColor, isOnNow: Bool) {
         self.tint = tint
+        self.isOnNow = isOnNow
         titleLabel.text = title
         timeLabel.text = subtitle
         timeLabel.isHidden = (subtitle == nil)
+        applyFocusStyle(focused: isFocused)
+    }
+
+    /// Update only the "currently airing" state (driven by the now-line timer)
+    /// without re-running the full configure.
+    func setOnNow(_ value: Bool) {
+        guard value != isOnNow else { return }
+        isOnNow = value
         applyFocusStyle(focused: isFocused)
     }
 
@@ -69,6 +79,16 @@ final class EPGProgramCollectionCell: UICollectionViewCell {
     private func applyFocusStyle(focused: Bool) {
         container.backgroundColor = focused ? tint : UIColor.white.withAlphaComponent(0.08)
         titleLabel.textColor = .white
+        // A currently-airing program keeps a tinted outline even when not
+        // focused, so the live row reads at a glance. Focused cells fill
+        // tinted regardless (the border just blends in).
+        if isOnNow {
+            container.layer.borderColor = tint.cgColor
+            container.layer.borderWidth = 2
+        } else {
+            container.layer.borderColor = UIColor.white.withAlphaComponent(0.12).cgColor
+            container.layer.borderWidth = 1
+        }
     }
 }
 
@@ -187,6 +207,20 @@ final class EPGNowLineView: UICollectionReusableView {
     override init(frame: CGRect) {
         super.init(frame: frame)
         backgroundColor = .systemRed
+        isUserInteractionEnabled = false
+    }
+    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+}
+
+// MARK: - Time gridline (decoration)
+
+/// Subtle vertical line marking a half-hour tick across the program grid, so
+/// the time alignment of program blocks is visible. Drawn behind the cells
+/// (layout zIndex -1).
+final class EPGGridLineView: UICollectionReusableView {
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        backgroundColor = UIColor.white.withAlphaComponent(0.06)
         isUserInteractionEnabled = false
     }
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }

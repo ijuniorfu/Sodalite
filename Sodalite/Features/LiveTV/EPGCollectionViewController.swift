@@ -34,6 +34,11 @@ final class EPGCollectionViewController: UIViewController,
     private let timeHeaderContent = EPGTimeHeaderContentView()
     private let cornerView = UIView()
     private var rows: [Row] = []
+    /// Advances the now line (and current-program highlight) as wall-clock
+    /// time passes, so the guide stays accurate without a reload.
+    private var nowLineTimer: Timer?
+    /// One-shot: scroll the grid so "now" is near the left edge on first layout.
+    private var didInitialScroll = false
 
     init(model: EPGGuideViewModel, tintColor: UIColor,
          logoURLProvider: @escaping (JellyfinChannel) -> URL?,
@@ -55,7 +60,9 @@ final class EPGCollectionViewController: UIViewController,
         gridLayout.rowHeight = rowHeight
         gridLayout.totalWidth = model.totalWidth
         gridLayout.nowX = max(0, model.xOffset(for: Date()))
+        gridLayout.gridlineXs = model.timeTicks.map { model.xOffset(for: $0) }
         gridLayout.register(EPGNowLineView.self, forDecorationViewOfKind: EPGCollectionLayout.nowLineKind)
+        gridLayout.register(EPGGridLineView.self, forDecorationViewOfKind: EPGCollectionLayout.gridLineKind)
         gridView = UICollectionView(frame: .zero, collectionViewLayout: gridLayout)
         gridView.backgroundColor = .clear
         gridView.clipsToBounds = true
@@ -102,6 +109,55 @@ final class EPGCollectionViewController: UIViewController,
         startObserving()
     }
 
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        refreshNow()
+        startNowLineTimer()
+    }
+
+    override func viewDidDisappear(_ animated: Bool) {
+        super.viewDidDisappear(animated)
+        nowLineTimer?.invalidate()
+        nowLineTimer = nil
+    }
+
+    // MARK: - Now line + current-program highlight
+
+    /// Tick once a minute (6 pt/min scale, so one minute is the smallest
+    /// visible move). Recompute the now line's x, nudge the layout, and
+    /// refresh the visible cells so the live-program highlight tracks.
+    private func startNowLineTimer() {
+        nowLineTimer?.invalidate()
+        let timer = Timer(timeInterval: 60, repeats: true) { [weak self] _ in
+            Task { @MainActor in self?.refreshNow() }
+        }
+        // .common so it keeps firing while the user scrolls the grid.
+        RunLoop.main.add(timer, forMode: .common)
+        nowLineTimer = timer
+    }
+
+    private func refreshNow() {
+        gridLayout.nowX = max(0, model.xOffset(for: Date()))
+        let ctx = UICollectionViewLayoutInvalidationContext()
+        ctx.invalidateDecorationElements(
+            ofKind: EPGCollectionLayout.nowLineKind, at: [IndexPath(item: 0, section: 0)])
+        gridLayout.invalidateLayout(with: ctx)
+        // Refresh visible cells so the "on now" border follows the clock as
+        // programs end and the next one starts.
+        for indexPath in gridView.indexPathsForVisibleItems {
+            guard let cell = gridView.cellForItem(at: indexPath) as? EPGProgramCollectionCell else { continue }
+            let row = rows[indexPath.section]
+            guard !row.programs.isEmpty else { continue }
+            cell.setOnNow(isProgramOnNow(row.programs[indexPath.item]))
+        }
+    }
+
+    private func isProgramOnNow(_ program: JellyfinProgram) -> Bool {
+        guard let start = program.startDate, let end = program.endDate else { return false }
+        let now = Date()
+        return start <= now && now < end
+    }
+
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         let w = view.bounds.width, h = view.bounds.height
@@ -111,6 +167,18 @@ final class EPGCollectionViewController: UIViewController,
         timeHeaderContent.frame = CGRect(x: 0, y: 0, width: model.totalWidth, height: headerHeight)
         columnView.frame = CGRect(x: 0, y: headerHeight, width: columnWidth, height: h - headerHeight)
         gridView.frame = CGRect(x: columnWidth, y: headerHeight, width: w - columnWidth, height: h - headerHeight)
+
+        // One-shot: open with "now" near the left edge, leaving a little
+        // context to its left so the just-ended part of the current program
+        // is visible. Clamped to the scrollable range.
+        if !didInitialScroll, gridView.bounds.width > 0, model.totalWidth > 0 {
+            didInitialScroll = true
+            let leading = gridView.bounds.width * 0.08
+            let maxOffset = max(0, model.totalWidth - gridView.bounds.width)
+            let target = min(max(0, gridLayout.nowX - leading), maxOffset)
+            gridView.contentOffset.x = target
+            timeHeaderScroll.contentOffset.x = target
+        }
     }
 
     // MARK: - Scroll sync (grid drives column + header)
@@ -224,10 +292,11 @@ final class EPGCollectionViewController: UIViewController,
         let row = rows[indexPath.section]
         if row.programs.isEmpty {
             cell.configure(title: NSLocalizedString("livetv.noProgramInfo", comment: ""),
-                           subtitle: nil, tint: tintColor)
+                           subtitle: nil, tint: tintColor, isOnNow: false)
         } else {
             let program = row.programs[indexPath.item]
-            cell.configure(title: program.name, subtitle: timeRange(program), tint: tintColor)
+            cell.configure(title: program.name, subtitle: timeRange(program),
+                           tint: tintColor, isOnNow: isProgramOnNow(program))
         }
         return cell
     }

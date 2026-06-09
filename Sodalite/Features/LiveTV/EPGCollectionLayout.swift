@@ -18,6 +18,7 @@ protocol EPGCollectionLayoutDelegate: AnyObject {
 final class EPGCollectionLayout: UICollectionViewLayout {
 
     static let nowLineKind = "EPGNowLine"
+    static let gridLineKind = "EPGGridLine"
 
     weak var delegate: EPGCollectionLayoutDelegate?
 
@@ -26,13 +27,17 @@ final class EPGCollectionLayout: UICollectionViewLayout {
     var totalWidth: CGFloat = 0
     /// Content-space x of the "now" line.
     var nowX: CGFloat = 0
+    /// Content-space x positions of the vertical time gridlines (one per
+    /// half-hour tick, matching the time header's labels).
+    var gridlineXs: [CGFloat] = []
 
     private var cellAttributesBySection: [[UICollectionViewLayoutAttributes]] = []
+    private var gridlineAttributes: [UICollectionViewLayoutAttributes] = []
     private var contentHeight: CGFloat = 0
 
     override func prepare() {
         super.prepare()
-        guard let delegate else { cellAttributesBySection = []; return }
+        guard let delegate else { cellAttributesBySection = []; gridlineAttributes = []; return }
         let sections = delegate.epgChannelCount()
         contentHeight = CGFloat(sections) * rowHeight
         cellAttributesBySection = (0..<sections).map { s in
@@ -44,6 +49,15 @@ final class EPGCollectionLayout: UICollectionViewLayout {
                 attr.frame = CGRect(x: x, y: y, width: max(w, 1), height: rowHeight)
                 return attr
             }
+        }
+        // Vertical gridlines span the full content height behind the cells
+        // (zIndex -1) so programs and the now line draw on top.
+        gridlineAttributes = gridlineXs.enumerated().map { idx, x in
+            let attr = UICollectionViewLayoutAttributes(
+                forDecorationViewOfKind: Self.gridLineKind, with: IndexPath(item: idx, section: 0))
+            attr.frame = CGRect(x: x, y: 0, width: 1, height: contentHeight)
+            attr.zIndex = -1
+            return attr
         }
     }
 
@@ -60,9 +74,13 @@ final class EPGCollectionLayout: UICollectionViewLayout {
     override func layoutAttributesForElements(in rect: CGRect) -> [UICollectionViewLayoutAttributes]? {
         let sectionCount = cellAttributesBySection.count
         guard sectionCount > 0, rowHeight > 0 else { return [] }
+        var result: [UICollectionViewLayoutAttributes] = []
+        // Gridlines first (behind, zIndex -1).
+        for attr in gridlineAttributes where attr.frame.intersects(rect) {
+            result.append(attr)
+        }
         let firstRow = max(0, Int(rect.minY / rowHeight))
         let lastRow = min(sectionCount - 1, Int(rect.maxY / rowHeight))
-        var result: [UICollectionViewLayoutAttributes] = []
         if firstRow <= lastRow {
             for s in firstRow...lastRow {
                 for attr in cellAttributesBySection[s] where attr.frame.intersects(rect) {
@@ -77,7 +95,14 @@ final class EPGCollectionLayout: UICollectionViewLayout {
     override func layoutAttributesForDecorationView(
         ofKind elementKind: String, at indexPath: IndexPath
     ) -> UICollectionViewLayoutAttributes? {
-        elementKind == Self.nowLineKind ? nowLineAttributes() : nil
+        switch elementKind {
+        case Self.nowLineKind:
+            return nowLineAttributes()
+        case Self.gridLineKind:
+            return indexPath.item < gridlineAttributes.count ? gridlineAttributes[indexPath.item] : nil
+        default:
+            return nil
+        }
     }
 
     private func nowLineAttributes() -> UICollectionViewLayoutAttributes? {
