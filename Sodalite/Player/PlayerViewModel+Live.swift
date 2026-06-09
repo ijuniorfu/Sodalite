@@ -9,64 +9,35 @@ extension PlayerViewModel {
     /// to the engine with isLive + a 30-minute DVR window. Sets the tuner
     /// handle for teardown to release.
     func loadLiveStream() async throws {
-        // liveProfile() requests Protocol=hls, so Jellyfin returns a
-        // master.m3u8 the client plays NATIVELY (LoadOptions.nativeRemoteHLS),
-        // bypassing the engine's demux/remux/loopback pipeline. AVPlayer manages
-        // the live edge, buffering, and reconnect itself.
-        //
-        // Two-stage bitrate negotiation, because the PlaybackInfo
-        // MaxStreamingBitrate serves double duty: it is the COPY THRESHOLD
-        // (source under it stream-copies) AND the ENCODER TARGET (when the
-        // server must re-encode). One value can't satisfy both:
-        //  - A high ceiling lets the probed H.264 copy (cheap, no quality loss,
-        //    smooth) but makes the encoder target absurd for a genuinely
-        //    incompatible source (a 200 Mbps target answered with HTTP 500 +
-        //    an AVIO reconnect storm on device).
-        //  - A low cap bounds the encode but forces the 20 Mbps H.264 to
-        //    re-encode (bursty segments, -12888 stalls).
-        // So probe at the high copy ceiling first; if the probe reports the
-        // video must be re-encoded (VideoCodecNotSupported), re-request at a
-        // sane real-time encode cap, releasing the first tuner we opened.
-        var info = try await playbackService.getLivePlaybackInfo(
+        // Engine-decode live: request a copy-TS source (liveProfile uses
+        // Protocol=http, full codec list) and hand it to AetherEngine exactly
+        // like VOD. The engine demuxes the TS and dispatches h264/hevc to the
+        // native AVPlayer loopback and MPEG-2 / VC-1 / MPEG-4 Part 2 to the SW
+        // decoder, so every live codec plays with no server re-encode. The high
+        // copy ceiling (maxStreamingBitrate) keeps the server stream-copying the
+        // source bitstream rather than downscaling it.
+        let info = try await playbackService.getLivePlaybackInfo(
             itemID: item.id, userID: userID,
             profile: DirectPlayProfile.liveProfile(),
             maxStreamingBitrate: DirectPlayProfile.liveCopyCeilingBitrate)
-        guard var source = info.mediaSources.first else { throw PlayerEngineError.noSource }
-
-        if Self.liveNeedsVideoReencode(transcodeReasons: source.transcodeReasons,
-                                       transcodingURL: source.transcodingUrl) {
-            // Incompatible codec: the high ceiling would be the encoder target.
-            // Release the tuner this probe opened, then reopen bounded.
-            let staleTuner = source.liveStreamId
-            info = try await playbackService.getLivePlaybackInfo(
-                itemID: item.id, userID: userID,
-                profile: DirectPlayProfile.liveProfile(),
-                maxStreamingBitrate: DirectPlayProfile.liveReencodeCapBitrate)
-            guard let rebounded = info.mediaSources.first else { throw PlayerEngineError.noSource }
-            source = rebounded
-            if let staleTuner, staleTuner != source.liveStreamId {
-                let svc = playbackService
-                Task.detached { try? await svc.closeLiveStream(liveStreamID: staleTuner) }
-            }
-        }
+        guard let source = info.mediaSources.first else { throw PlayerEngineError.noSource }
 
         playSessionID = info.playSessionId
         mediaSourceID = source.id
         activeLiveStreamID = source.liveStreamId
 
-        // Native HLS: hand the server-built HLS playlist (master.m3u8) straight
-        // to AVPlayer via nativeRemoteHLS. No engine demux/remux/loopback; the
-        // tuner lifecycle (open via AutoOpenLiveStream above, close on teardown)
-        // is unchanged.
+        // The copy-TS TranscodingUrl points at the progressive TS stream the
+        // engine's AVIOReader consumes. The tuner lifecycle (open via
+        // AutoOpenLiveStream above, close on teardown) is unchanged.
         guard let transcoding = source.transcodingUrl,
-              let hlsURL = playbackService.buildTranscodeURL(relativePath: transcoding) else {
+              let tsURL = playbackService.buildTranscodeURL(relativePath: transcoding) else {
             throw PlayerEngineError.noSource
         }
 
         observeLiveEdge()
 
         try await player.load(
-            url: hlsURL,
+            url: tsURL,
             startPosition: nil,
             options: LoadOptions(
                 suppressDisplayCriteria: false,
@@ -74,7 +45,7 @@ extension PlayerViewModel {
                 panelIsInHDRMode: Self.panelIsInHDRMode,
                 audioBridgeMode: preferences.audioBridgeMode,
                 isLive: true,
-                nativeRemoteHLS: true
+                dvrWindowSeconds: 600
             )
         )
     }
@@ -177,22 +148,4 @@ extension PlayerViewModel {
         }
     }
 
-    /// True when the live source's video codec is incompatible and the server
-    /// must RE-ENCODE (not stream-copy). Decisive for the bitrate negotiation:
-    /// a re-encode source must request the bounded `liveReencodeCapBitrate`,
-    /// otherwise the high copy ceiling becomes the encoder target and the
-    /// server answers the absurd value with HTTP 500.
-    ///
-    /// Reads both the `MediaSource.TranscodeReasons` field AND the reasons
-    /// embedded in the TranscodingUrl query. The field is unreliably populated
-    /// by Jellyfin (observed empty for some channels even when a re-encode is
-    /// required), but the TranscodingUrl always carries `TranscodeReasons=...`.
-    static func liveNeedsVideoReencode(transcodeReasons: [String]?, transcodingURL: String?) -> Bool {
-        if (transcodeReasons ?? []).contains("VideoCodecNotSupported") { return true }
-        guard let t = transcodingURL,
-              let comps = URLComponents(string: t.hasPrefix("http") ? t : "http://x" + t),
-              let reasons = comps.queryItems?.first(where: { $0.name == "TranscodeReasons" })?.value
-        else { return false }
-        return reasons.split(separator: ",").map(String.init).contains("VideoCodecNotSupported")
-    }
 }

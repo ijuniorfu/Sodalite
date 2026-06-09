@@ -41,16 +41,6 @@ enum DirectPlayProfile {
     /// is H.264 IPTV, which copies.
     static let liveCopyCeilingBitrate = 200_000_000
 
-    /// Bitrate target for live channels the server genuinely has to RE-ENCODE
-    /// (the probe reports `VideoCodecNotSupported`, e.g. an MPEG-2 / MPEG-4
-    /// OTA source). For those the request bitrate IS the encoder target, so it
-    /// must be a value a server can sustain as a real-time encode, not the
-    /// copy ceiling (which produced a 199 Mbps target the server answered with
-    /// HTTP 500). 12 Mbps is a sane real-time H.264 target. Only applied on the
-    /// re-encode fallback path; compatible codecs keep the copy ceiling and are
-    /// stream-copied.
-    static let liveReencodeCapBitrate = 12_000_000
-
     /// Profile for live TV channels. Two things differ from VOD:
     ///
     /// 1. **Protocol=http, Container=ts.** We request a progressive MPEG-TS
