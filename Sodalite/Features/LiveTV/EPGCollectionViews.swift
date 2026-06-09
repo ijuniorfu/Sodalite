@@ -22,6 +22,7 @@ final class EPGProgramCollectionCell: UICollectionViewCell {
         container.layer.cornerRadius = 10
         container.layer.borderWidth = 1
         container.layer.borderColor = UIColor.white.withAlphaComponent(0.12).cgColor
+        container.clipsToBounds = true
         container.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(container)
 
@@ -37,13 +38,27 @@ final class EPGProgramCollectionCell: UICollectionViewCell {
         stack.translatesAutoresizingMaskIntoConstraints = false
         container.addSubview(stack)
 
+        // A very short program (a few minutes) becomes a cell only a few
+        // points wide, where the fixed horizontal insets (container 2+2,
+        // stack 12+12) can't fit inside the layout-imposed cell width. Drop
+        // the horizontal insets just below required so they yield silently on
+        // those narrow cells instead of spamming "unable to satisfy
+        // constraints"; the container clips the overflowing label. Vertical
+        // insets stay required (row height is fixed and always fits).
+        let containerLeading = container.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 2)
+        let containerTrailing = container.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -2)
+        let stackLeading = stack.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 12)
+        let stackTrailing = stack.trailingAnchor.constraint(lessThanOrEqualTo: container.trailingAnchor, constant: -12)
+        [containerLeading, containerTrailing, stackLeading, stackTrailing].forEach {
+            $0.priority = UILayoutPriority(999)
+        }
         NSLayoutConstraint.activate([
-            container.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 2),
-            container.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -2),
+            containerLeading,
+            containerTrailing,
             container.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 4),
             container.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -4),
-            stack.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 12),
-            stack.trailingAnchor.constraint(lessThanOrEqualTo: container.trailingAnchor, constant: -12),
+            stackLeading,
+            stackTrailing,
             stack.centerYAnchor.constraint(equalTo: container.centerYAnchor),
         ])
         applyFocusStyle(focused: false)
