@@ -112,6 +112,16 @@ final class JellyfinPlaybackService: JellyfinPlaybackServiceProtocol {
                     print("[PlaybackInfo] TranscodeReasons: \(reasons.prefix(100))")
                 }
             }
+            // Source codec per stream. Decisive for live channels the server
+            // wants to re-encode (VideoCodecNotSupported): names the exact
+            // codec so the copy list / FFmpegBuild decoder set can be
+            // extended deliberately instead of guessing.
+            if let streams = first["MediaStreams"] as? [[String: Any]] {
+                let desc = streams.map { s in
+                    "\(s["Type"] ?? "?")=\(s["Codec"] ?? "?")\(s["Profile"].map { "(\($0))" } ?? "")"
+                }.joined(separator: " ")
+                print("[PlaybackInfo] Source streams: \(desc)")
+            }
         }
         #endif
 

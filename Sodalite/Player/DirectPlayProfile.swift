@@ -71,14 +71,19 @@ enum DirectPlayProfile {
         profile["MaxStreamingBitrate"] = liveCopyCeilingBitrate
         profile["MaxStaticBitrate"] = liveCopyCeilingBitrate
         // Progressive MPEG-TS over HTTP (NOT hls): the engine ingests + decodes
-        // the raw stream. The full video codec list makes the server stream-copy
-        // the source bitstream for every codec instead of re-encoding it.
+        // the raw stream. The video codec list is exactly the set the engine
+        // can decode (FFmpegBuild build.sh --enable-decoder set: h264/hevc
+        // native or SW, av1 via dav1d, vp9/vp8/mpeg2video/mpeg4/vc1 via the
+        // SW pipeline; dispatch table in AetherEngine.load), so the server
+        // stream-copies all of them instead of re-encoding. A codec OUTSIDE
+        // this list reports VideoCodecNotSupported and takes the bounded
+        // 12 Mbps re-encode via the two-stage negotiation in loadLiveStream.
         profile["TranscodingProfiles"] = [
             [
                 "Type": "Video",
                 "Container": "ts",
                 "Protocol": "http",
-                "VideoCodec": "h264,hevc,mpeg2video,vc1,mpeg4",
+                "VideoCodec": "h264,hevc,av1,vp9,vp8,mpeg2video,vc1,mpeg4",
                 "AudioCodec": "aac,ac3,eac3,mp3,mp2",
                 "Context": "Streaming",
             ],
