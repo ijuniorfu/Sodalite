@@ -33,22 +33,19 @@ struct ProgramInfoPopover: View {
             }
             HStack(spacing: 20) {
                 if isAiring {
-                    Button {
+                    PopoverActionButton(title: "livetv.watchLive", systemImage: "play.fill", accent: tint) {
                         dismiss()
                         onWatchLive?(LivePlaybackContext(channel: channel, program: program))
-                    } label: {
-                        Label("livetv.watchLive", systemImage: "play.fill")
                     }
-                    .tint(tint)
                 }
-                Button {
+                PopoverActionButton(
+                    title: isFavorite ? "livetv.unfavorite" : "livetv.favorite",
+                    systemImage: isFavorite ? "star.fill" : "star",
+                    accent: isFavorite ? .yellow : tint
+                ) {
                     isFavorite.toggle()
                     onToggleFavorite?()
-                } label: {
-                    Label(isFavorite ? "livetv.unfavorite" : "livetv.favorite",
-                          systemImage: isFavorite ? "star.fill" : "star")
                 }
-                .tint(isFavorite ? .yellow : tint)
                 // Record affordance reserved for the recordings sub-project.
             }
             Spacer()
@@ -56,5 +53,39 @@ struct ProgramInfoPopover: View {
         .padding(60)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .onAppear { isFavorite = channelIsFavorite }
+    }
+}
+
+/// Popover action button. A raw `.focusable` surface, not a `Button`: tvOS's
+/// default `Button` over a sheet renders only the focused button's label and
+/// leaves the unfocused one a blank tinted pill. This always shows the label
+/// (white on a translucent fill), and fills tinted when focused (the app's
+/// focus convention), mirroring the Return-to-Live pill + BoolPillRow.
+private struct PopoverActionButton: View {
+    let title: LocalizedStringKey
+    let systemImage: String
+    let accent: Color
+    let action: () -> Void
+
+    @FocusState private var focused: Bool
+
+    var body: some View {
+        Label(title, systemImage: systemImage)
+            .font(.headline)
+            .fontWeight(.semibold)
+            .foregroundStyle(focused ? Color.black : .white)
+            .padding(.horizontal, 28)
+            .padding(.vertical, 16)
+            .background(
+                Capsule().fill(focused ? AnyShapeStyle(accent) : AnyShapeStyle(Color.white.opacity(0.12)))
+            )
+            .overlay(
+                Capsule().strokeBorder(accent, lineWidth: focused ? 0 : 2)
+            )
+            .scaleEffect(focused ? 1.06 : 1.0)
+            .focusable()
+            .focused($focused)
+            .animation(.easeInOut(duration: 0.15), value: focused)
+            .stableTap(isFocused: focused) { action() }
     }
 }

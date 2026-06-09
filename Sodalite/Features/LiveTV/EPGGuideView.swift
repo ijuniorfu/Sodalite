@@ -6,11 +6,20 @@ import SwiftUI
 /// and time header plus cell reuse, the things SwiftUI cannot do performantly
 /// for a large guide. This view owns the loading / error states and the
 /// program info popover.
+/// Bundles the tapped channel + program so the info sheet receives both
+/// atomically. Two separate `@State` values race: `.sheet(item:)` presents as
+/// soon as the program is set, but the channel can still read nil in the
+/// content closure on the first tap, leaving the sheet empty.
+private struct EPGSelection: Identifiable {
+    let channel: JellyfinChannel
+    let program: JellyfinProgram
+    var id: String { "\(channel.id)-\(program.id)" }
+}
+
 struct EPGGuideView: View {
     @State private var model: EPGGuideViewModel
     @Environment(\.dependencies) private var dependencies
-    @State private var selectedProgram: JellyfinProgram?
-    @State private var selectedChannel: JellyfinChannel?
+    @State private var selection: EPGSelection?
     var onWatchLive: ((LivePlaybackContext) -> Void)?
 
     init(model: EPGGuideViewModel, onWatchLive: ((LivePlaybackContext) -> Void)? = nil) {
@@ -43,8 +52,7 @@ struct EPGGuideView: View {
                             tag: channel.primaryImageTag, maxHeight: 64)
                     },
                     onSelect: { channel, program in
-                        selectedChannel = channel
-                        selectedProgram = program
+                        selection = EPGSelection(channel: channel, program: program)
                     }
                 )
                 // Fill width / bottom, but keep the top safe area so the grid
@@ -54,14 +62,12 @@ struct EPGGuideView: View {
             }
         }
         .task { await model.loadInitialChannels() }
-        .sheet(item: $selectedProgram) { program in
-            if let channel = selectedChannel {
-                ProgramInfoPopover(
-                    program: program, channel: channel, tint: tint,
-                    onWatchLive: onWatchLive,
-                    channelIsFavorite: model.isFavorite(channel.id),
-                    onToggleFavorite: { model.toggleFavorite(channelID: channel.id) })
-            }
+        .sheet(item: $selection) { sel in
+            ProgramInfoPopover(
+                program: sel.program, channel: sel.channel, tint: tint,
+                onWatchLive: onWatchLive,
+                channelIsFavorite: model.isFavorite(sel.channel.id),
+                onToggleFavorite: { model.toggleFavorite(channelID: sel.channel.id) })
         }
     }
 }
