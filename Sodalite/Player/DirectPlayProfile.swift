@@ -71,19 +71,25 @@ enum DirectPlayProfile {
         profile["MaxStreamingBitrate"] = liveCopyCeilingBitrate
         profile["MaxStaticBitrate"] = liveCopyCeilingBitrate
         // Progressive MPEG-TS over HTTP (NOT hls): the engine ingests + decodes
-        // the raw stream. The video codec list is exactly the set the engine
-        // can decode (FFmpegBuild build.sh --enable-decoder set: h264/hevc
-        // native or SW, av1 via dav1d, vp9/vp8/mpeg2video/mpeg4/vc1 via the
-        // SW pipeline; dispatch table in AetherEngine.load), so the server
-        // stream-copies all of them instead of re-encoding. A codec OUTSIDE
-        // this list reports VideoCodecNotSupported and takes the bounded
-        // 12 Mbps re-encode via the two-stage negotiation in loadLiveStream.
+        // the raw stream. The video codec list is every engine-decodable codec
+        // that MPEG-TS can legally CARRY. Do NOT add av1/vp9/vp8 here even
+        // though the engine decodes them (dav1d / SW pipeline): MPEG-TS has no
+        // mapping for those codecs (ffmpeg's mpegts muxer rejects them), and
+        // listing them made Jellyfin answer HTTP 400 on EVERY transcode
+        // stream URL, breaking all non-DirectPlay channels (device-verified:
+        // NBC 1 played with this exact list, then 400'd the moment
+        // av1,vp9,vp8 were added, even on the HEAD probe). If a vp9/av1 IPTV
+        // channel ever shows up, it needs a SEPARATE TranscodingProfile with
+        // a container that can host them (e.g. matroska), not this one. A
+        // codec outside this list reports VideoCodecNotSupported and takes
+        // the bounded 12 Mbps re-encode via the two-stage negotiation in
+        // loadLiveStream.
         profile["TranscodingProfiles"] = [
             [
                 "Type": "Video",
                 "Container": "ts",
                 "Protocol": "http",
-                "VideoCodec": "h264,hevc,av1,vp9,vp8,mpeg2video,vc1,mpeg4",
+                "VideoCodec": "h264,hevc,mpeg2video,vc1,mpeg4",
                 "AudioCodec": "aac,ac3,eac3,mp3,mp2",
                 "Context": "Streaming",
             ],
