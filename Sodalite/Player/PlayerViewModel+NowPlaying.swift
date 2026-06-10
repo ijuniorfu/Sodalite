@@ -119,8 +119,15 @@ extension PlayerViewModel {
     private func buildExternalMetadataItems(artworkData: Data?) -> [AVMetadataItem] {
         var items: [AVMetadataItem] = []
         items.append(makeStringItem(.commonIdentifierTitle, nowPlayingTitle))
-        if let subtitle = nowPlayingSubtitle {
-            items.append(makeStringItem(.iTunesMetadataTrackSubTitle, subtitle))
+        if let series = nowPlayingSeriesLine {
+            // Both identifiers carry the series: the iTunes subtitle
+            // feeds the tvOS info panel's second line, the artist item
+            // is what AVKit forwards into MediaRemote's artist slot,
+            // which is the iPhone remote widget's second content line
+            // (device-verified that the subtitle item alone does NOT
+            // surface there, the widget showed only the title).
+            items.append(makeStringItem(.iTunesMetadataTrackSubTitle, series))
+            items.append(makeStringItem(.commonIdentifierArtist, series))
         }
         if let descriptionLine = displayDescriptionLine {
             items.append(makeStringItem(.commonIdentifierDescription, descriptionLine))
@@ -131,27 +138,14 @@ extension PlayerViewModel {
         return items
     }
 
-    /// System Now-Playing title line. For episodes this is the series
-    /// name; the season/episode detail moves to the subtitle item so
-    /// Control Center renders two lines ("Bluey" / "S2E5 · Schnuffis
-    /// guter Riecher") like other video apps, instead of everything
-    /// folded into one title line (issue #15 follow-up; the original
-    /// one-line fold predates the subtitle item, which AVKit surfaces
-    /// as the widget's second line). Movies keep their plain title.
+    /// System Now-Playing title line. For episodes: "S2E5 · Schnuffis
+    /// guter Riecher", with the series name on the second line via the
+    /// artist/subtitle items, matching the music convention (title =
+    /// piece, artist = who it belongs to) that other video apps use in
+    /// Control Center (issue #15 follow-up). Movies keep their plain
+    /// title.
     private var nowPlayingTitle: String {
         guard item.type == .episode else { return item.name }
-        if let series = item.seriesName, !series.isEmpty {
-            return series
-        }
-        return item.name
-    }
-
-    /// Second Now-Playing line ("S2E5 · Schnuffis guter Riecher"),
-    /// published as the iTunes track-subtitle item, which AVKit maps
-    /// to the artist slot in Control Center / the remote widget.
-    /// Episodes only; movies have nothing useful to put here.
-    private var nowPlayingSubtitle: String? {
-        guard item.type == .episode else { return nil }
         var parts: [String] = []
         var seasonEpisode = ""
         if let season = item.parentIndexNumber {
@@ -166,7 +160,16 @@ extension PlayerViewModel {
         if !item.name.isEmpty {
             parts.append(item.name)
         }
-        return parts.isEmpty ? nil : parts.joined(separator: " · ")
+        return parts.isEmpty ? item.name : parts.joined(separator: " · ")
+    }
+
+    /// Series name for the second Now-Playing line. Episodes only;
+    /// movies have nothing useful to put there.
+    private var nowPlayingSeriesLine: String? {
+        guard item.type == .episode, let series = item.seriesName, !series.isEmpty else {
+            return nil
+        }
+        return series
     }
 
     private var displayDescriptionLine: String? {
