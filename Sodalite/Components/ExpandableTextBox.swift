@@ -36,6 +36,18 @@ struct ExpandableTextBox: View {
     }
 }
 
+/// Same footprint as ExpandableTextBox (110 pt text frame + 20 pt
+/// padding), shown while a detail fetch is still in flight so the
+/// overview box doesn't pop in and shift the layout below it.
+struct ExpandableTextBoxPlaceholder: View {
+    var body: some View {
+        RoundedRectangle(cornerRadius: 16)
+            .fill(.white.opacity(0.04))
+            .frame(maxWidth: .infinity)
+            .frame(height: 150)
+    }
+}
+
 struct TextOverlay: View {
     let text: String
     @Binding var isPresented: Bool

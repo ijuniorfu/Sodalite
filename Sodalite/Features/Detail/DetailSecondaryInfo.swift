@@ -31,6 +31,23 @@ func jellyfinCastMembers(
     }
 }
 
+/// Two skeleton lines standing in for DetailSecondaryInfo while the
+/// full-detail fetch is in flight, so the glass panel doesn't grow
+/// when tagline / crew / studios land (Sodalite#15). Callers gate on
+/// `DetailViewModel.hasFullDetail`.
+struct DetailSecondaryInfoPlaceholder: View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            RoundedRectangle(cornerRadius: 4)
+                .fill(Color.Theme.surface)
+                .frame(width: 220, height: 14)
+            RoundedRectangle(cornerRadius: 4)
+                .fill(Color.Theme.surface)
+                .frame(width: 140, height: 14)
+        }
+    }
+}
+
 /// Tagline, crew (director / writer), and studios for a Jellyfin item.
 /// Renders nothing when all are absent. Inserted into the detail glass
 /// panels below the genres line.

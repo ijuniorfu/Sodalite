@@ -36,6 +36,13 @@ final class DetailViewModel {
     var similarItems: [JellyfinItem] = []
     var selectedSeasonID: String?
     var isLoading = false
+    /// Flips true once the full-detail fetch has settled (success or
+    /// failure). The snapshot-paint deadline can flip `isLoading`
+    /// false while the detail roundtrip is still in flight on slow
+    /// servers; the views key placeholder boxes for overview /
+    /// secondary info on this so those sections reserve their space
+    /// instead of popping in and shifting the layout (Sodalite#15).
+    var hasFullDetail = false
     var cachedPlaybackInfo: PlaybackInfoResponse?
 
     private let itemService: JellyfinItemServiceProtocol
@@ -169,6 +176,9 @@ final class DetailViewModel {
             isFavorite = detail.userData?.isFavorite ?? false
             isPlayed = detail.userData?.played ?? false
         }
+        // Settled either way: on failure nothing more will arrive, so
+        // the placeholder boxes must stop reserving space.
+        hasFullDetail = true
 
         if itemType != .series && itemType != .boxSet {
             prefetchPlaybackInfo(for: itemID)

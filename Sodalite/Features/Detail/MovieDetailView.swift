@@ -193,6 +193,11 @@ struct MovieDetailView: View {
                 if let overview = vm.item.overview, !overview.isEmpty {
                     ExpandableTextBox(text: overview)
                         .padding(.horizontal, 50)
+                } else if !vm.hasFullDetail {
+                    // Overview still in flight after a snapshot paint:
+                    // reserve the box's footprint (Sodalite#15).
+                    ExpandableTextBoxPlaceholder()
+                        .padding(.horizontal, 50)
                 }
 
                 if vm.item.mediaStreams != nil || vm.item.mediaSources != nil {
@@ -329,6 +334,13 @@ struct MovieDetailView: View {
                 if DetailSecondaryInfo.hasContent(vm.item) {
                     Spacer(minLength: 24)
                     DetailSecondaryInfo(item: vm.item)
+                        .frame(maxWidth: 360, alignment: .leading)
+                } else if !vm.hasFullDetail {
+                    // Crew/studios still in flight (snapshot paint);
+                    // hold the panel's height so it doesn't grow when
+                    // they land.
+                    Spacer(minLength: 24)
+                    DetailSecondaryInfoPlaceholder()
                         .frame(maxWidth: 360, alignment: .leading)
                 }
             }

@@ -165,6 +165,13 @@ struct SeriesDetailView: View {
                                 ExpandableTextBox(text: overview)
                                     .padding(.horizontal, 50)
                                     .id(displayItem.id)
+                            } else if !isShowingEpisode && !vm.hasFullDetail {
+                                // Snapshot paint from the slim row item: the
+                                // overview is still in flight. Reserve the
+                                // box's footprint so it doesn't pop in and
+                                // shove the season row down (Sodalite#15).
+                                ExpandableTextBoxPlaceholder()
+                                    .padding(.horizontal, 50)
                             }
 
                             if !vm.seasons.isEmpty {
@@ -659,6 +666,13 @@ struct SeriesDetailView: View {
                 if DetailSecondaryInfo.hasContent(vm.item) {
                     Spacer(minLength: 24)
                     DetailSecondaryInfo(item: vm.item)
+                        .frame(maxWidth: 360, alignment: .leading)
+                } else if !vm.hasFullDetail {
+                    // People/studios are still in flight (snapshot
+                    // paint); hold the panel's height so it doesn't
+                    // grow when they land.
+                    Spacer(minLength: 24)
+                    DetailSecondaryInfoPlaceholder()
                         .frame(maxWidth: 360, alignment: .leading)
                 }
             }
@@ -1419,7 +1433,18 @@ struct EpisodeSynopsisBox: View {
     private var hasText: Bool { !text.isEmpty }
 
     var body: some View {
-        Text(text)
+        Group {
+            if hasText {
+                Text(text)
+            } else {
+                // Visible placeholder instead of an invisible spacer:
+                // columns whose episode has no overview otherwise look
+                // broken next to filled ones (Sodalite#15). Stays
+                // non-focusable, there is nothing to expand.
+                Text("detail.noDescription")
+                    .italic()
+            }
+        }
             .font(.caption)
             .foregroundStyle(.secondary)
             .lineLimit(3, reservesSpace: true)
@@ -1429,7 +1454,7 @@ struct EpisodeSynopsisBox: View {
             .padding(.vertical, 12)
             .background(
                 RoundedRectangle(cornerRadius: 12)
-                    .fill(hasText ? (isFocused ? .white.opacity(0.12) : .white.opacity(0.05)) : .clear)
+                    .fill(isFocused ? .white.opacity(0.12) : .white.opacity(0.05))
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 12)
