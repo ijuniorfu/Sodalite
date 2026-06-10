@@ -324,6 +324,17 @@ final class PlayerViewModel {
     /// The live-TV service used by PlayerViewModel+Live for tuner lifecycle.
     /// Nil for VOD.
     let liveTvService: JellyfinLiveTvServiceProtocol?
+    /// Latched by `observeLiveEdge()` so a live retune (which re-runs
+    /// `loadLiveStream`) cannot stack duplicate Combine sinks on the same
+    /// view model.
+    var hasLiveEdgeObservers = false
+    /// Retune guard state for `handleLiveSourceReset`: a retune in flight
+    /// swallows further reset events, and a per-session cap with minimum
+    /// spacing stops a server that replays on EVERY reconnect from looping
+    /// tuner re-negotiations forever.
+    var liveRetuneInFlight = false
+    var lastLiveRetuneAt: Date?
+    var liveRetuneCount = 0
 
     init(
         item: JellyfinItem,
@@ -885,6 +896,15 @@ final class PlayerViewModel {
         player.$sourceTime
             .receive(on: DispatchQueue.main)
             .sink { [weak self] t in self?.subtitleTime = t }
+            .store(in: &cancellables)
+
+        // Live source replay after a reconnect (Jellyfin transcode respawn
+        // re-served the stream from its beginning). The engine parked the
+        // session and cannot recover on the same URL; re-negotiate a fresh
+        // playback session at the live edge.
+        player.liveSourceReset
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] in self?.handleLiveSourceReset() }
             .store(in: &cancellables)
 
         player.$currentTime

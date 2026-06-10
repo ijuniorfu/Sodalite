@@ -92,10 +92,12 @@ extension PlayerViewModel {
     ///
     /// Call once per session. It does not clear prior subscriptions; that is
     /// safe because `cancellables` is wiped on teardown and on episode
-    /// transitions, and startPlayback is single-shot per session. If a future
-    /// switch-channel-without-teardown path reuses the same view model, clear
-    /// the live subscriptions here first to avoid stacking duplicate sinks.
+    /// transitions, and startPlayback is single-shot per session. A live
+    /// retune re-runs `loadLiveStream` on the SAME view model, so the
+    /// `hasLiveEdgeObservers` latch keeps this single-shot there too.
     func observeLiveEdge() {
+        guard !hasLiveEdgeObservers else { return }
+        hasLiveEdgeObservers = true
         player.$seekableLiveRange
             .receive(on: DispatchQueue.main)
             .sink { [weak self] range in self?.liveSeekableRange = range }
@@ -167,6 +169,56 @@ extension PlayerViewModel {
         Task {
             await player.seek(to: target)
             scheduleControlsHide()
+        }
+    }
+
+    /// Entry point for the engine's `liveSourceReset` event: after a
+    /// connection drop the source server restarted its stream from the
+    /// beginning (Jellyfin transcode respawn re-serving from byte 0), so the
+    /// engine parked the session; reopening the same URL would replay the
+    /// already-seen content again. Recovery is a full re-negotiation: fresh
+    /// PlaybackInfo (new PlaySessionId, new transcode anchored at the live
+    /// edge) and a new engine load. Guarded against loops: one retune in
+    /// flight at a time, minimum spacing, bounded per session.
+    func handleLiveSourceReset() {
+        guard isLiveSession, !liveRetuneInFlight else { return }
+        let tooSoon = lastLiveRetuneAt.map { Date().timeIntervalSince($0) < 20 } ?? false
+        guard liveRetuneCount < 3, !tooSoon else {
+            // The server replays on every reconnect; stop cycling tuners
+            // and surface it instead.
+            setEnginePlaybackError(message: String(
+                localized: "player.error.liveSourceReset",
+                defaultValue: "The live stream keeps restarting on the server. Please try the channel again."
+            ))
+            return
+        }
+        liveRetuneInFlight = true
+        liveRetuneCount += 1
+        lastLiveRetuneAt = Date()
+        isLoading = true
+        Task { [weak self] in
+            guard let self else { return }
+            await self.retuneLiveStream()
+            self.liveRetuneInFlight = false
+        }
+    }
+
+    /// Close the dead play session, then re-run the live load. The engine's
+    /// `load` supersedes the parked session internally; a CancellationError
+    /// means a newer load (channel zap) took over mid-retune and owns the
+    /// session now.
+    private func retuneLiveStream() async {
+        await reportStop()
+        hasReportedStart = false
+        releaseLiveTunerIfNeeded()
+        do {
+            try await loadLiveStream()
+            await reportStart()
+        } catch is CancellationError {
+            // Superseded by a newer load; nothing to clean up here.
+        } catch {
+            isLoading = false
+            setEnginePlaybackError(message: error.localizedDescription)
         }
     }
 
