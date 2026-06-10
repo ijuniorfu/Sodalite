@@ -280,7 +280,7 @@ final class MusicPlaybackCoordinator {
     // MARK: - Engine observation
 
     private func subscribeToEngine() {
-        engine.$currentTime
+        engine.clock.$currentTime
             .receive(on: DispatchQueue.main)
             .sink { [weak self] time in
                 guard let self else { return }

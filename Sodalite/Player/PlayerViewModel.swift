@@ -946,7 +946,7 @@ final class PlayerViewModel {
             }
             .store(in: &cancellables)
 
-        player.$sourceTime
+        player.clock.$sourceTime
             .receive(on: DispatchQueue.main)
             .sink { [weak self] t in self?.subtitleTime = t }
             .store(in: &cancellables)
@@ -960,7 +960,7 @@ final class PlayerViewModel {
             .sink { [weak self] in self?.handleLiveSourceReset() }
             .store(in: &cancellables)
 
-        player.$currentTime
+        player.clock.$currentTime
             .receive(on: DispatchQueue.main)
             .sink { [weak self] time in
                 guard let self else { return }

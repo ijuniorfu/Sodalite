@@ -109,15 +109,15 @@ extension PlayerViewModel {
     func observeLiveEdge() {
         guard !hasLiveEdgeObservers else { return }
         hasLiveEdgeObservers = true
-        player.$seekableLiveRange
+        player.clock.$seekableLiveRange
             .receive(on: DispatchQueue.main)
             .sink { [weak self] range in self?.liveSeekableRange = range }
             .store(in: &cancellables)
-        player.$isAtLiveEdge
+        player.clock.$isAtLiveEdge
             .receive(on: DispatchQueue.main)
             .sink { [weak self] atEdge in self?.isAtLiveEdge = atEdge }
             .store(in: &cancellables)
-        player.$behindLiveSeconds
+        player.clock.$behindLiveSeconds
             .receive(on: DispatchQueue.main)
             .sink { [weak self] behind in self?.behindLiveSeconds = behind }
             .store(in: &cancellables)
@@ -129,7 +129,7 @@ extension PlayerViewModel {
         // $currentTime sink would otherwise pin progress to 0. That sink
         // skips its own progress write for live (see PlayerViewModel), so
         // this is the sole writer of `progress` during a live session.
-        player.$currentTime
+        player.clock.$currentTime
             .receive(on: DispatchQueue.main)
             .sink { [weak self] time in
                 guard let self, self.isLiveSession, !self.isScrubbing else { return }
