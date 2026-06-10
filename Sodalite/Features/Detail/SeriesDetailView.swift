@@ -115,7 +115,10 @@ struct SeriesDetailView: View {
             Color.black.ignoresSafeArea()
 
             if let vm = viewModel, !vm.isLoading {
-                DetailBackdrop(imageURL: backdropURL)
+                DetailBackdrop(
+                    imageURL: backdropURL,
+                    posterFallbackURL: vm.posterURL(for: vm.item)
+                )
                     .id(backdropURL?.absoluteString ?? "empty")
                     .transition(.opacity)
             }
@@ -1453,8 +1456,14 @@ struct EpisodeSynopsisBox: View {
             .padding(.horizontal, 14)
             .padding(.vertical, 12)
             .background(
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(isFocused ? .white.opacity(0.12) : .white.opacity(0.05))
+                // Material base for the full-bleed backdrop redesign,
+                // same rationale as ExpandableTextBox.
+                ZStack {
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(.ultraThinMaterial)
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(isFocused ? .white.opacity(0.12) : .clear)
+                }
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 12)

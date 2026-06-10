@@ -225,8 +225,14 @@ struct TechCard<Content: View>: View {
         )
         .frame(height: height > 0 ? height : nil, alignment: .topLeading)
         .background(
-            RoundedRectangle(cornerRadius: 16)
-                .fill(isFocused ? .white.opacity(0.1) : .white.opacity(0.05))
+            // Material base for the full-bleed backdrop redesign,
+            // same rationale as ExpandableTextBox.
+            ZStack {
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(.ultraThinMaterial)
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(isFocused ? .white.opacity(0.1) : .clear)
+            }
         )
         .overlay(
             RoundedRectangle(cornerRadius: 16)

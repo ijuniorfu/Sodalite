@@ -15,8 +15,16 @@ struct ExpandableTextBox: View {
             .frame(height: 110)
             .padding(20)
             .background(
-                RoundedRectangle(cornerRadius: 16)
-                    .fill(isFocused ? .white.opacity(0.1) : .white.opacity(0.04))
+                // Material base instead of a faint white tint: with
+                // the full-bleed backdrop redesign the box can sit on
+                // bright artwork, and body text needs guaranteed
+                // contrast (Sodalite#15).
+                ZStack {
+                    RoundedRectangle(cornerRadius: 16)
+                        .fill(.ultraThinMaterial)
+                    RoundedRectangle(cornerRadius: 16)
+                        .fill(isFocused ? .white.opacity(0.1) : .clear)
+                }
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 16)

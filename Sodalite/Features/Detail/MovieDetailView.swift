@@ -180,7 +180,10 @@ struct MovieDetailView: View {
 
     private func contentView(vm: DetailViewModel) -> some View {
         ZStack {
-            DetailBackdrop(imageURL: vm.backdropURL(for: vm.item))
+            DetailBackdrop(
+                imageURL: vm.backdropURL(for: vm.item),
+                posterFallbackURL: vm.posterURL(for: vm.item)
+            )
                 .id(vm.item.backdropImageTags?.first ?? "empty")
 
             DetailContentOverlay(hero: {

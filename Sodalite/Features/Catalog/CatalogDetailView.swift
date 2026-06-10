@@ -60,7 +60,10 @@ struct CatalogDetailView: View {
 
     var body: some View {
         ZStack {
-            DetailBackdrop(imageURL: SeerrImageURL.backdrop(path: backdropPath))
+            DetailBackdrop(
+                imageURL: SeerrImageURL.backdrop(path: backdropPath),
+                posterFallbackURL: SeerrImageURL.poster(path: media.posterPath)
+            )
                 .id(backdropPath ?? "empty")
 
             content

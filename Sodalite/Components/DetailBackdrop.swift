@@ -3,18 +3,37 @@ import SwiftUI
 /// Shared fullscreen backdrop with gradient overlay used in all detail views.
 struct DetailBackdrop: View {
     let imageURL: URL?
+    /// Blur-fill stand-in for items without any backdrop art: the
+    /// portrait poster (or primary image), zoomed past the frame and
+    /// heavily blurred so it reads as ambient color rather than a
+    /// stretched poster. Replaces the flat grey plate (Sodalite#15).
+    var posterFallbackURL: URL? = nil
+
+    private var usesPosterFill: Bool {
+        imageURL == nil && posterFallbackURL != nil
+    }
 
     var body: some View {
-        AsyncCachedImage(url: imageURL) { image in
-            image
-                .resizable()
-                .aspectRatio(contentMode: .fill)
+        AsyncCachedImage(url: imageURL ?? posterFallbackURL) { image in
+            if usesPosterFill {
+                image
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .scaleEffect(1.3)
+                    .blur(radius: 64)
+            } else {
+                image
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+            }
         } placeholder: {
             Rectangle().fill(Color.Theme.surface)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .clipped()
-        .overlay(Color.black.opacity(0.15))
+        // The blur fill is busier than real backdrop art, give it a
+        // slightly stronger dim so the hero text stays readable.
+        .overlay(Color.black.opacity(usesPosterFill ? 0.3 : 0.15))
     }
 }
 
@@ -51,8 +70,12 @@ struct DetailContentOverlay<Hero: View, Content: View>: View {
                 // Bottom-aligned, it sits just above the content panel at
                 // the gradient's lower edge, and being an overlay it draws
                 // on top of the gradient so the logo stays visible.
+                // Full-bleed redesign (Sodalite#15): the lower half no
+                // longer fades to near-black; the backdrop stays
+                // visible behind a scrim and the text containers carry
+                // their own material backgrounds for legibility.
                 LinearGradient(
-                    colors: [.clear, .black.opacity(0.6), .black.opacity(0.95)],
+                    colors: [.clear, .black.opacity(0.35), .black.opacity(0.55)],
                     startPoint: .top,
                     endPoint: .bottom
                 )
@@ -67,15 +90,16 @@ struct DetailContentOverlay<Hero: View, Content: View>: View {
                     content()
                 }
                 .padding(.bottom, 80)
-                .background(.black)
+                .background(Color.black.opacity(0.55))
 
-                // Trailing solid-black filler so a short content block
-                // (e.g. once "Anfrage gesendet" has replaced the
-                // request flow's tabs) doesn't leave the backdrop
-                // bleeding through with a hard gradient edge at the
-                // bottom of the screen. Sized large enough to push
-                // past any tvOS safe-area inset on a 4K display.
-                Color.black.frame(minHeight: 600)
+                // Trailing filler so a short content block (e.g. once
+                // "Anfrage gesendet" has replaced the request flow's
+                // tabs) doesn't end in a hard gradient edge at the
+                // bottom of the screen. Same scrim as the content
+                // block so the backdrop keeps shining through. Sized
+                // large enough to push past any tvOS safe-area inset
+                // on a 4K display.
+                Color.black.opacity(0.55).frame(minHeight: 600)
             }
         }
     }
