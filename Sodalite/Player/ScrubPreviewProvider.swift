@@ -21,6 +21,9 @@ final class ScrubPreviewProvider {
 
     @ObservationIgnored private var enabled = false
     @ObservationIgnored private var extractor: FrameExtractor?
+    /// Live mode: thumbnails come from the engine's DVR segment cache via
+    /// this closure (seconds, maxWidth) instead of a session FrameExtractor.
+    @ObservationIgnored private var liveThumbnail: ((Double, Int) async -> CGImage?)?
 
     // Debounce + staleness control.
     @ObservationIgnored private var loadTask: Task<Void, Never>?
@@ -40,6 +43,32 @@ final class ScrubPreviewProvider {
         reset()
         self.extractor = extractor
         self.enabled = enabled
+    }
+
+    /// Set up for a live playback session. Mutually exclusive with
+    /// `configure(extractor:enabled:)`; `reset()` clears both.
+    func configureLive(enabled: Bool, thumbnail: @escaping (Double, Int) async -> CGImage?) {
+        reset()
+        self.liveThumbnail = thumbnail
+        self.enabled = enabled
+    }
+
+    /// Live drive entry: absolute session-timeline seconds (the
+    /// `liveSeekableRange` domain). The fraction-based `update` stays
+    /// VOD-only; it needs a duration and live duration is 0. Shares the
+    /// debounce and generation guard.
+    func update(targetSeconds: Double) {
+        guard enabled, let liveThumbnail else { return }
+        generation += 1
+        let gen = generation
+        loadTask?.cancel()
+        loadTask = Task { [weak self] in
+            try? await Task.sleep(for: .milliseconds(60))
+            if Task.isCancelled { return }
+            let image = await liveThumbnail(targetSeconds, 320)
+            guard let self else { return }
+            if gen == self.generation { self.previewImage = image }
+        }
     }
 
     /// Open the decode context ahead of the first scrub frame to hide
@@ -107,6 +136,7 @@ final class ScrubPreviewProvider {
         loadTask = nil
         previewImage = nil
         extractor = nil
+        liveThumbnail = nil
         enabled = false
         lastWarmedSeconds = -Double.infinity
     }
