@@ -112,6 +112,14 @@ final class PlayerHostController: AVPlayerViewController {
     /// ~10-40 MB at 720p-1080p, more at 4K HDR.
     private var playerVideoOutput: AVPlayerItemVideoOutput?
     private var playerVideoOutputItem: AVPlayerItem?
+
+    /// Diagnostic KVO on the AVPlayerLayer AVKit actually renders with.
+    /// The engine's own NativeAVPlayerHost.playerLayer is never mounted
+    /// on the native path (AVKit creates an internal layer off
+    /// `self.player`), so the engine's isReadyForDisplay stamps measure
+    /// a detached layer; for the audio-before-video gap only THIS
+    /// layer's first-frame readiness is authoritative.
+    private var avkitLayerObservation: NSKeyValueObservation?
     private let pixelBufferRenderContext = CIContext(options: nil)
 
     /// True only between `didEnterBackground` and the next
@@ -280,9 +288,12 @@ final class PlayerHostController: AVPlayerViewController {
                     if self.audioSwitchOverlay != nil {
                         self.observeNewPlayerForAudioSwitch(avPlayer)
                     }
+                    self.observeAVKitRenderLayer(for: avPlayer)
                 } else {
                     self.player = nil
                     self.detachVideoOutput()
+                    self.avkitLayerObservation?.invalidate()
+                    self.avkitLayerObservation = nil
                 }
             }
             .store(in: &engineSubscriptions)
@@ -470,6 +481,51 @@ final class PlayerHostController: AVPlayerViewController {
         }
         playerVideoOutput = nil
         playerVideoOutputItem = nil
+    }
+
+    /// Audio-before-video diagnostic: KVO `isReadyForDisplay` on the
+    /// AVPlayerLayer AVKit renders with (found by walking the layer
+    /// tree for the layer bound to `avPlayer`). AVKit creates that
+    /// layer asynchronously after the `self.player` assignment, so
+    /// retry briefly. Correlate the stamps with the engine's
+    /// `timeControlStatus=playing t+...` lines: playing marks audible
+    /// audio, this layer's `isReadyForDisplay=true` marks the first
+    /// visible frame; the difference is the black-screen-with-audio
+    /// window.
+    private func observeAVKitRenderLayer(for avPlayer: AVPlayer, attempt: Int = 0) {
+        avkitLayerObservation?.invalidate()
+        avkitLayerObservation = nil
+
+        func findLayer(_ layer: CALayer) -> AVPlayerLayer? {
+            if let pl = layer as? AVPlayerLayer, pl.player === avPlayer { return pl }
+            for sub in layer.sublayers ?? [] {
+                if let hit = findLayer(sub) { return hit }
+            }
+            return nil
+        }
+
+        guard let root = viewIfLoaded?.layer, let layer = findLayer(root) else {
+            guard attempt < 20 else {
+                LogTap.shared.note("[AVKitLayer] render layer NOT found after \(attempt) attempts")
+                return
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) { [weak self] in
+                guard let self, self.player === avPlayer else { return }
+                self.observeAVKitRenderLayer(for: avPlayer, attempt: attempt + 1)
+            }
+            return
+        }
+
+        let attachedAt = Date()
+        LogTap.shared.note("[AVKitLayer] observing render layer (found on attempt \(attempt), ready=\(layer.isReadyForDisplay))")
+        avkitLayerObservation = layer.observe(
+            \.isReadyForDisplay, options: [.new, .initial]
+        ) { layer, change in
+            let elapsed = Date().timeIntervalSince(attachedAt)
+            LogTap.shared.note(
+                "[AVKitLayer] isReadyForDisplay=\(change.newValue ?? layer.isReadyForDisplay) t+\(String(format: "%.2f", elapsed))s after attach"
+            )
+        }
     }
 
     /// Copy the most recent decoded frame from the attached
