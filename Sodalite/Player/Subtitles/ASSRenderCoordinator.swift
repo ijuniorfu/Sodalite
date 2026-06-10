@@ -26,11 +26,30 @@ final class ASSRenderCoordinator {
     private var cancellables = Set<AnyCancellable>()
     private var lastReloadAt = Date.distantPast
     private var pendingEvents = false
+    /// Earliest start time among events added since the last reload.
+    /// Drives the imminent-flush bypass below.
+    private var earliestPendingStart = Double.infinity
+    /// Last playback offset seen by the clock sink, in source-PTS
+    /// seconds. Compared against `earliestPendingStart`.
+    private var lastOffset: Double = 0
     /// Batch window: collect newly arrived events for up to this long
     /// before reparsing the whole script. libass parses a full movie
     /// script in milliseconds, but reloading per cue (1-2/s) is
-    /// pointless churn.
+    /// pointless churn. Correct for steady-state streaming, where the
+    /// side demuxer runs ~90 s ahead and new events are far in the
+    /// future.
     private let reloadInterval: TimeInterval = 5
+    /// Imminent-flush bypass: right after a seek (or activation
+    /// mid-dialogue) the catch-up burst delivers events that start
+    /// within seconds of the playhead. Holding those for the full
+    /// batch window leaves libass without the continuation lines of a
+    /// running dialogue, so the visible subtitle ends and its
+    /// follow-up never appears until the next reload (field repro:
+    /// subtitles "ending too early" right after scrubs, with the
+    /// first post-scrub reload arriving 5 s late carrying 15 events).
+    /// A pending event starting inside this lead always flushes
+    /// immediately.
+    private let imminentLeadSeconds: Double = 10
 
     init(player: AetherEngine) {
         self.player = player
@@ -69,6 +88,7 @@ final class ASSRenderCoordinator {
             .receive(on: DispatchQueue.main)
             .sink { [weak self] t in
                 guard let self else { return }
+                self.lastOffset = t
                 self.renderer?.setTimeOffset(t)
                 self.flushPendingEventsIfDue()
             }
@@ -81,6 +101,7 @@ final class ASSRenderCoordinator {
         renderer = nil
         builder = nil
         pendingEvents = false
+        earliestPendingStart = .infinity
         lastReloadAt = .distantPast
     }
 
@@ -91,25 +112,31 @@ final class ASSRenderCoordinator {
             guard case .text(let raw) = cue.body else { continue }
             if builder.add(rawEventText: raw, start: cue.startTime, end: cue.endTime) {
                 addedAny = true
+                earliestPendingStart = min(earliestPendingStart, cue.startTime)
             }
         }
         if addedAny { pendingEvents = true }
         flushPendingEventsIfDue()
     }
 
-    /// Reload the renderer's track when new events are waiting and the
-    /// batch window has elapsed. Called from both the cue sink (new
-    /// events) and the clock sink (trailing-batch flush).
+    /// Reload the renderer's track when new events are waiting and
+    /// either the batch window has elapsed or a pending event is
+    /// imminent (starts within `imminentLeadSeconds` of the playhead;
+    /// see that constant for the post-scrub failure this prevents).
+    /// Called from both the cue sink (new events) and the clock sink
+    /// (trailing-batch flush).
     ///
     /// `lastReloadAt` starts at `.distantPast`, so the first batch
     /// always passes the interval check immediately (the elapsed
     /// interval from distantPast is astronomically large).
     private func flushPendingEventsIfDue() {
         guard pendingEvents, let builder, let renderer else { return }
+        let imminent = earliestPendingStart <= lastOffset + imminentLeadSeconds
         let now = Date()
-        guard now.timeIntervalSince(lastReloadAt) >= reloadInterval else { return }
+        guard imminent || now.timeIntervalSince(lastReloadAt) >= reloadInterval else { return }
         lastReloadAt = now
         pendingEvents = false
+        earliestPendingStart = .infinity
         renderer.reloadTrack(content: builder.script())
     }
 
