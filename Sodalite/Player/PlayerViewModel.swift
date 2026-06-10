@@ -675,7 +675,15 @@ final class PlayerViewModel {
                 preferredAudio != nil && Self.languagesMatch($0.language, preferredAudio)
             }) ?? player.audioTracks.first(where: { $0.isDefault })
               ?? player.audioTracks.first
-            if let chosenAudio, chosenAudio.id != player.activeAudioTrackIndex {
+            // Live: keep the engine's auto-pick. The reselect costs a full
+            // pipeline reload (fresh source connection, rejoin at the live
+            // edge), and broadcast channels rarely carry language
+            // alternatives worth it. It also mis-fired on channels whose
+            // session came up video-only (activeAudioTrackIndex nil, KiKA)
+            // and turned a silent stream into an error screen. Manual
+            // selection through the track menu still works.
+            if let chosenAudio, chosenAudio.id != player.activeAudioTrackIndex,
+               !isLiveSession {
                 player.selectAudioTrack(index: chosenAudio.id)
             }
 
