@@ -68,6 +68,14 @@ enum JellyfinEndpoint: APIEndpoint {
     /// kill, network drop, crash) keeps ffmpeg writing an endlessly
     /// growing stream.ts until the server disk fills.
     case stopActiveEncodings(deviceID: String, playSessionID: String)
+    case liveTvRecordings(userID: String)
+    case liveTvTimers
+    case liveTvSeriesTimers
+    case liveTvTimerDefaults(programID: String)
+    case createLiveTvTimer(payload: JSONValue)
+    case deleteLiveTvTimer(timerID: String)
+    case createLiveTvSeriesTimer(payload: JSONValue)
+    case deleteLiveTvSeriesTimer(timerID: String)
 
     var path: String {
         switch self {
@@ -139,6 +147,18 @@ enum JellyfinEndpoint: APIEndpoint {
             "/LiveTv/LiveStreams/Close"
         case .stopActiveEncodings:
             "/Videos/ActiveEncodings"
+        case .liveTvRecordings:
+            "/LiveTv/Recordings"
+        case .liveTvTimers, .createLiveTvTimer:
+            "/LiveTv/Timers"
+        case .liveTvSeriesTimers, .createLiveTvSeriesTimer:
+            "/LiveTv/SeriesTimers"
+        case .liveTvTimerDefaults:
+            "/LiveTv/Timers/Defaults"
+        case .deleteLiveTvTimer(let timerID):
+            "/LiveTv/Timers/\(timerID)"
+        case .deleteLiveTvSeriesTimer(let timerID):
+            "/LiveTv/SeriesTimers/\(timerID)"
         }
     }
 
@@ -147,9 +167,11 @@ enum JellyfinEndpoint: APIEndpoint {
         case .authenticateByName, .quickConnectInitiate, .quickConnectAuthenticate, .markFavorite,
              .markPlayed,
              .sessionPlaying, .sessionProgress, .sessionStopped,
-             .closeLiveStream:
+             .closeLiveStream,
+             .createLiveTvTimer, .createLiveTvSeriesTimer:
             .post
-        case .unmarkFavorite, .unmarkPlayed, .deleteItem, .stopActiveEncodings:
+        case .unmarkFavorite, .unmarkPlayed, .deleteItem, .stopActiveEncodings,
+             .deleteLiveTvTimer, .deleteLiveTvSeriesTimer:
             .delete
         default:
             .get
@@ -358,6 +380,16 @@ enum JellyfinEndpoint: APIEndpoint {
                 URLQueryItem(name: "playSessionId", value: playSessionID),
             ]
 
+        case .liveTvRecordings(let userID):
+            return [
+                URLQueryItem(name: "UserId", value: userID),
+                URLQueryItem(name: "EnableImages", value: "true"),
+                URLQueryItem(name: "Fields", value: "Overview"),
+            ]
+
+        case .liveTvTimerDefaults(let programID):
+            return [URLQueryItem(name: "programId", value: programID)]
+
         default:
             return nil
         }
@@ -375,6 +407,8 @@ enum JellyfinEndpoint: APIEndpoint {
             report
         case .sessionStopped(let report):
             report
+        case .createLiveTvTimer(let payload), .createLiveTvSeriesTimer(let payload):
+            payload
         default:
             nil
         }

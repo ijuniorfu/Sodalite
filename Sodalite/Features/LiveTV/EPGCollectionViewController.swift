@@ -450,7 +450,8 @@ final class EPGCollectionViewController: UIViewController,
             id: "live-\(channel.id)", channelId: channel.id, name: channel.name,
             overview: nil, startDate: Date().addingTimeInterval(-1),
             endDate: Date().addingTimeInterval(3600), genres: nil, imageTags: nil,
-            isLive: true, isNews: nil, isMovie: nil, isSeries: nil)
+            isLive: true, isNews: nil, isMovie: nil, isSeries: nil,
+            timerId: nil, seriesTimerId: nil)
     }
 }
 

@@ -53,6 +53,10 @@ struct JellyfinProgram: Codable, Sendable, Identifiable, Equatable {
     let isNews: Bool?
     let isMovie: Bool?
     let isSeries: Bool?
+    /// Set when a single-program record timer exists for this program.
+    let timerId: String?
+    /// Set when a series timer covers this program.
+    let seriesTimerId: String?
 
     enum CodingKeys: String, CodingKey {
         case id = "Id"
@@ -67,6 +71,8 @@ struct JellyfinProgram: Codable, Sendable, Identifiable, Equatable {
         case isNews = "IsNews"
         case isMovie = "IsMovie"
         case isSeries = "IsSeries"
+        case timerId = "TimerId"
+        case seriesTimerId = "SeriesTimerId"
     }
 
     var primaryImageTag: String? { imageTags?["Primary"] }
@@ -108,6 +114,64 @@ struct LiveTvProgramsResponse: Codable, Sendable {
     enum CodingKeys: String, CodingKey {
         case items = "Items"
         case totalRecordCount = "TotalRecordCount"
+    }
+}
+
+/// A scheduled single-program recording (`/LiveTv/Timers`).
+struct LiveTvTimer: Codable, Sendable, Identifiable, Equatable {
+    let id: String
+    let programId: String?
+    let channelId: String?
+    let name: String?
+    let channelName: String?
+    let startDate: Date?
+    let endDate: Date?
+    /// Set when this timer was spawned by a series timer.
+    let seriesTimerId: String?
+    /// "New" | "InProgress" | "Completed" | "Cancelled" | "Error".
+    let status: String?
+
+    enum CodingKeys: String, CodingKey {
+        case id = "Id"
+        case programId = "ProgramId"
+        case channelId = "ChannelId"
+        case name = "Name"
+        case channelName = "ChannelName"
+        case startDate = "StartDate"
+        case endDate = "EndDate"
+        case seriesTimerId = "SeriesTimerId"
+        case status = "Status"
+    }
+}
+
+/// A series recording rule (`/LiveTv/SeriesTimers`).
+struct LiveTvSeriesTimer: Codable, Sendable, Identifiable, Equatable {
+    let id: String
+    let name: String?
+    let channelName: String?
+    let overview: String?
+
+    enum CodingKeys: String, CodingKey {
+        case id = "Id"
+        case name = "Name"
+        case channelName = "ChannelName"
+        case overview = "Overview"
+    }
+}
+
+struct LiveTvTimersResponse: Codable, Sendable {
+    let items: [LiveTvTimer]
+
+    enum CodingKeys: String, CodingKey {
+        case items = "Items"
+    }
+}
+
+struct LiveTvSeriesTimersResponse: Codable, Sendable {
+    let items: [LiveTvSeriesTimer]
+
+    enum CodingKeys: String, CodingKey {
+        case items = "Items"
     }
 }
 
