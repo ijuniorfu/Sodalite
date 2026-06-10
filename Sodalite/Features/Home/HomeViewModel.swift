@@ -140,6 +140,14 @@ final class HomeViewModel {
             // My Media renders from videoLibraries directly; nothing to
             // fetch in the row fan-out.
             if config.type == .myMedia { return nil }
+            // Merged-row mode: Next Up rides inside Continue Watching
+            // (see loadRow), so its standalone row drops out even
+            // while its config stays enabled, flipping the toggle
+            // back restores it without re-enabling anything.
+            if config.type == .nextUp,
+               HomeRowConfig.mergeContinueWatchingNextUp(serverID: serverID) {
+                return nil
+            }
             return (config, config.type.isTagRow)
         }
 
@@ -656,7 +664,19 @@ final class HomeViewModel {
             switch type {
             case .continueWatching:
                 let response = try await libraryService.getResumeItems(userID: userID, mediaType: "Video", limit: 16)
-                items = response.items
+                if HomeRowConfig.mergeContinueWatchingNextUp(serverID: serverID) {
+                    // Plex-style combined row: resume items first, the
+                    // Next Up episodes appended behind them. Next Up
+                    // already excludes resumable episodes server-side
+                    // (EnableResumable=false), the id dedupe is belt
+                    // and suspenders. Next Up failing must not take
+                    // the resume items down with it.
+                    let nextUp = (try? await libraryService.getNextUp(userID: userID, seriesID: nil, limit: 16))?.items ?? []
+                    var seen = Set(response.items.map(\.id))
+                    items = response.items + nextUp.filter { seen.insert($0.id).inserted }
+                } else {
+                    items = response.items
+                }
 
             case .nextUp:
                 let response = try await libraryService.getNextUp(userID: userID, seriesID: nil, limit: 16)

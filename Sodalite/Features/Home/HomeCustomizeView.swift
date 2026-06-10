@@ -5,6 +5,7 @@ struct HomeCustomizeView: View {
     @Environment(\.dependencies) private var dependencies
     @State private var configs: [HomeRowConfig] = []
     @State private var movingID: String?
+    @State private var mergeCWNextUp = false
 
     private var serverID: String {
         appState.activeServer?.id ?? appState.activeUser?.id ?? ""
@@ -14,6 +15,7 @@ struct HomeCustomizeView: View {
         ScrollView {
             VStack(spacing: 28) {
                 header
+                mergeRowToggle
                 activeSection
                 if !disabledRows.isEmpty { inactiveSection }
             }
@@ -23,6 +25,7 @@ struct HomeCustomizeView: View {
         .toolbar(.hidden, for: .tabBar)
         .onAppear {
             configs = HomeRowConfig.loadFromStorage(serverID: serverID)
+            mergeCWNextUp = HomeRowConfig.mergeContinueWatchingNextUp(serverID: serverID)
             // The per-library rows are otherwise only discovered when the
             // Home screen loads, so opening Customize right after adding or
             // switching a server showed a stale list until Home had run.
@@ -78,6 +81,50 @@ struct HomeCustomizeView: View {
                         Capsule().fill(isFocused ? .white.opacity(0.15) : .white.opacity(0.05))
                     )
             }
+        }
+        .padding(.horizontal, 50)
+    }
+
+    // MARK: - Merge toggle
+
+    /// Plex-style combined row: folds Next Up into Continue Watching.
+    /// Lives here rather than in Appearance because it changes which
+    /// rows exist, same as the enable/disable tiles below it.
+    private var mergeRowToggle: some View {
+        FocusableTile(action: {
+            movingID = nil
+            withAnimation(.easeInOut(duration: 0.25)) {
+                mergeCWNextUp.toggle()
+            }
+            HomeRowConfig.setMergeContinueWatchingNextUp(mergeCWNextUp, serverID: serverID)
+            NotificationCenter.default.post(name: .homeConfigDidChange, object: nil)
+        }) { isFocused in
+            HStack(spacing: 20) {
+                Image(systemName: "arrow.triangle.merge")
+                    .font(.title3)
+                    .frame(width: 44)
+                    .foregroundStyle(.tint)
+
+                Text("home.customize.mergeCwNextUp")
+                    .font(.body)
+
+                Spacer()
+
+                Text(mergeCWNextUp ? "common.on" : "common.off")
+                    .font(.caption)
+                    .foregroundStyle(mergeCWNextUp ? AnyShapeStyle(.tint) : AnyShapeStyle(.secondary))
+            }
+            .padding(.vertical, 14)
+            .padding(.horizontal, 20)
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(tileBackground(isFocused: isFocused, isMoving: false))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .strokeBorder(.tint, lineWidth: 3)
+                    .opacity(isFocused ? 1 : 0)
+            )
         }
         .padding(.horizontal, 50)
     }
@@ -212,12 +259,18 @@ struct HomeCustomizeView: View {
         return AnyShapeStyle(Color.white.opacity(0.05))
     }
 
+    /// Up Next disappears from both lists while the merge toggle is
+    /// on; its content rides inside Continue Watching then, and an
+    /// orderable-but-inert row would just confuse.
     private var enabledRows: [HomeRowConfig] {
-        configs.filter(\.isEnabled).sorted { $0.sortOrder < $1.sortOrder }
+        configs
+            .filter(\.isEnabled)
+            .filter { !(mergeCWNextUp && $0.type == .nextUp) }
+            .sorted { $0.sortOrder < $1.sortOrder }
     }
 
     private var disabledRows: [HomeRowConfig] {
-        configs.filter { !$0.isEnabled }
+        configs.filter { !$0.isEnabled && !(mergeCWNextUp && $0.type == .nextUp) }
     }
 
     @ViewBuilder
@@ -408,5 +461,24 @@ extension HomeRowConfig {
         guard let data = try? JSONEncoder().encode(configs) else { return }
         UserDefaults.standard.set(data, forKey: storageKey(serverID: serverID))
         UserDefaults.standard.synchronize()
+    }
+
+    // MARK: Merge Continue Watching + Up Next
+
+    private static func mergeKey(serverID: String) -> String {
+        "homeMergeCWNextUp.\(serverID)"
+    }
+
+    /// Plex-style combined row (Sodalite#15 request): when on, the
+    /// Continue Watching row also carries the Next Up episodes
+    /// (resume items first) and the separate Up Next row is dropped
+    /// from Home and hidden in the customize list. Per server, like
+    /// the row configs themselves; default off.
+    static func mergeContinueWatchingNextUp(serverID: String) -> Bool {
+        UserDefaults.standard.bool(forKey: mergeKey(serverID: serverID))
+    }
+
+    static func setMergeContinueWatchingNextUp(_ value: Bool, serverID: String) {
+        UserDefaults.standard.set(value, forKey: mergeKey(serverID: serverID))
     }
 }
