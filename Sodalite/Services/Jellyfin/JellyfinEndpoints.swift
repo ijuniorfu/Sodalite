@@ -385,6 +385,9 @@ enum JellyfinEndpoint: APIEndpoint {
                 URLQueryItem(name: "UserId", value: userID),
                 URLQueryItem(name: "EnableImages", value: "true"),
                 URLQueryItem(name: "Fields", value: "Overview"),
+                // userData.playbackPositionTicks drives resume playback,
+                // matching the same flag on liveTvChannels (~line 347).
+                URLQueryItem(name: "EnableUserData", value: "true"),
             ]
 
         case .liveTvTimerDefaults(let programID):

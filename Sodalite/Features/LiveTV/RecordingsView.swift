@@ -167,7 +167,7 @@ private struct RecordingCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             ZStack(alignment: .topLeading) {
-                AsyncImage(url: imageURL) { image in
+                AsyncCachedImage(url: imageURL) { image in
                     image.resizable().aspectRatio(contentMode: .fill)
                 } placeholder: {
                     Rectangle().fill(Color.white.opacity(0.08))

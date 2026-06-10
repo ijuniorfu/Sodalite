@@ -486,6 +486,7 @@ final class EPGCollectionViewController: UIViewController,
 struct EPGCollectionContainer: UIViewControllerRepresentable {
     let model: EPGGuideViewModel
     let tint: Color
+    var isActive: Bool = true
     let logoURLProvider: (JellyfinChannel) -> URL?
     let onSelect: (JellyfinChannel, JellyfinProgram) -> Void
 
@@ -497,5 +498,9 @@ struct EPGCollectionContainer: UIViewControllerRepresentable {
 
     func updateUIViewController(_ controller: EPGCollectionViewController, context: Context) {
         controller.tintColor = UIColor(tint)
+        // allowsHitTesting/opacity do not remove a UIKit subtree from the
+        // tvOS focus engine; isUserInteractionEnabled does. Without this
+        // the invisible guide stays focusable behind the recordings view.
+        controller.view.isUserInteractionEnabled = isActive
     }
 }

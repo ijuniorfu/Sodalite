@@ -26,15 +26,19 @@ final class RecordingsViewModel {
     /// section (an empty timers list is indistinguishable from a failed
     /// one by design; recordings failure surfaces the alert).
     func load() async {
+        guard !isLoading else { return }
         isLoading = true
         defer { isLoading = false }
         async let recs = liveTvService.getRecordings(userID: userID)
         async let tims = liveTvService.getTimers()
         async let series = liveTvService.getSeriesTimers()
         do { recordings = try await recs } catch { errorMessage = error.localizedDescription }
-        timers = (try? await tims) ?? []
+        // The server returns cancelled series-spawned entries; drop them so
+        // only actionable (pending/scheduled) timers appear. Mirrors
+        // EPGGuideViewModel.reconcileTimers which applies the same guard.
+        timers = ((try? await tims) ?? []).filter { $0.status != "Cancelled" }
         seriesTimers = (try? await series) ?? []
-        // Upcoming first; spawned-but-cancelled entries are server-filtered.
+        // Upcoming first.
         timers.sort { ($0.startDate ?? .distantFuture) < ($1.startDate ?? .distantFuture) }
     }
 

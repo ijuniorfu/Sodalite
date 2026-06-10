@@ -33,7 +33,8 @@ struct LiveTVTabView: View {
                                 // dismissing before presenting the player, so we can
                                 // flip this immediately.
                                 isPlayerPresented = true
-                            }
+                            },
+                            isActive: section == .guide
                         )
                     } else {
                         ProgressView()

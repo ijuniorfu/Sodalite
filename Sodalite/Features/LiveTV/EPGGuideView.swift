@@ -21,10 +21,14 @@ struct EPGGuideView: View {
     @Environment(\.dependencies) private var dependencies
     @State private var selection: EPGSelection?
     var onWatchLive: ((LivePlaybackContext) -> Void)?
+    var isActive: Bool = true
 
-    init(model: EPGGuideViewModel, onWatchLive: ((LivePlaybackContext) -> Void)? = nil) {
+    init(model: EPGGuideViewModel,
+         onWatchLive: ((LivePlaybackContext) -> Void)? = nil,
+         isActive: Bool = true) {
         _model = State(initialValue: model)
         self.onWatchLive = onWatchLive
+        self.isActive = isActive
     }
 
     private var tint: Color {
@@ -46,6 +50,7 @@ struct EPGGuideView: View {
                 EPGCollectionContainer(
                     model: model,
                     tint: tint,
+                    isActive: isActive,
                     logoURLProvider: { channel in
                         dependencies.jellyfinImageService.imageURL(
                             itemID: channel.id, imageType: .primary,
