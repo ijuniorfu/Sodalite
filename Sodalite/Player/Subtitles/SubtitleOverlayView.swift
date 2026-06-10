@@ -452,9 +452,16 @@ final class ASSFrameHostView: UIView {
 
     override func layoutSubviews() {
         super.layoutSubviews()
+        // A transient zero-bounds layout pass must never reach the
+        // renderer: a 0x0 canvas renders every event as nil, which
+        // hides the visible subtitle without any reload announced.
+        guard !bounds.isEmpty else {
+            print("[ASSView] layout skipped: zero bounds")
+            return
+        }
         // Rescale the live image to the new bounds (mirrors upstream),
         // then update the renderer canvas.
-        if !lastRenderBounds.isEmpty, !bounds.isEmpty, imageView.image != nil {
+        if !lastRenderBounds.isEmpty, imageView.image != nil, lastRenderBounds != bounds {
             let ratioX = bounds.width / lastRenderBounds.width
             let ratioY = bounds.height / lastRenderBounds.height
             let f = imageView.frame
@@ -462,6 +469,7 @@ final class ASSFrameHostView: UIView {
                 x: f.origin.x * ratioX, y: f.origin.y * ratioY,
                 width: f.width * ratioX, height: f.height * ratioY
             ).integral
+            print("[ASSView] relayout \(Int(lastRenderBounds.width))x\(Int(lastRenderBounds.height)) -> \(Int(bounds.width))x\(Int(bounds.height))")
         }
         renderer.setCanvasSize(bounds.size, scale: canvasScale)
     }
@@ -474,11 +482,17 @@ final class ASSFrameHostView: UIView {
             lastRenderBounds = bounds
             imageView.frame = image.imageRect
             imageView.image = UIImage(cgImage: image.image)
+            if imageView.isHidden {
+                print("[ASSView] show frame \(Int(image.imageRect.width))x\(Int(image.imageRect.height))")
+            }
             imageView.isHidden = false
         } else {
             let remaining = suppressNilDeadline.timeIntervalSinceNow
             guard remaining > 0 else {
                 // Real cue end (no reload announced): hide instantly.
+                if !imageView.isHidden {
+                    print("[ASSView] hide: plain nil (cue end)")
+                }
                 hideWorkItem?.cancel()
                 hideWorkItem = nil
                 hideNow()
@@ -487,6 +501,7 @@ final class ASSFrameHostView: UIView {
             // Reload in flight: keep the last image; arm the safety
             // hide at the deadline in case no frame follows (reload
             // coinciding with a real cue end).
+            print("[ASSView] nil suppressed (reload in flight, \(Int(remaining * 1000))ms left)")
             guard hideWorkItem == nil else { return }
             scheduleSafetyHide(after: remaining)
         }
@@ -503,6 +518,9 @@ final class ASSFrameHostView: UIView {
             if remaining > 0 {
                 self.scheduleSafetyHide(after: remaining)
             } else {
+                if !self.imageView.isHidden {
+                    print("[ASSView] hide: safety deadline (reload coincided with cue end)")
+                }
                 self.hideNow()
             }
         }
