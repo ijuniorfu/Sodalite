@@ -119,6 +119,9 @@ extension PlayerViewModel {
     private func buildExternalMetadataItems(artworkData: Data?) -> [AVMetadataItem] {
         var items: [AVMetadataItem] = []
         items.append(makeStringItem(.commonIdentifierTitle, nowPlayingTitle))
+        if let subtitle = nowPlayingSubtitle {
+            items.append(makeStringItem(.iTunesMetadataTrackSubTitle, subtitle))
+        }
         if let descriptionLine = displayDescriptionLine {
             items.append(makeStringItem(.commonIdentifierDescription, descriptionLine))
         }
@@ -128,19 +131,28 @@ extension PlayerViewModel {
         return items
     }
 
-    /// System Now-Playing title. The iPhone Control Center remote widget
-    /// only surfaces this one content line (the gray line above it is the
-    /// Apple TV's route name, owned by the system, not our description),
-    /// so for episodes we fold the series and SxxExx into the title:
-    /// "Bluey · S2E5 · Schnuffis guter Riecher". Without this the widget
-    /// showed only the episode name, with no show or episode number
-    /// (issue #15). Movies keep their plain title.
+    /// System Now-Playing title line. For episodes this is the series
+    /// name; the season/episode detail moves to the subtitle item so
+    /// Control Center renders two lines ("Bluey" / "S2E5 · Schnuffis
+    /// guter Riecher") like other video apps, instead of everything
+    /// folded into one title line (issue #15 follow-up; the original
+    /// one-line fold predates the subtitle item, which AVKit surfaces
+    /// as the widget's second line). Movies keep their plain title.
     private var nowPlayingTitle: String {
         guard item.type == .episode else { return item.name }
-        var parts: [String] = []
         if let series = item.seriesName, !series.isEmpty {
-            parts.append(series)
+            return series
         }
+        return item.name
+    }
+
+    /// Second Now-Playing line ("S2E5 · Schnuffis guter Riecher"),
+    /// published as the iTunes track-subtitle item, which AVKit maps
+    /// to the artist slot in Control Center / the remote widget.
+    /// Episodes only; movies have nothing useful to put here.
+    private var nowPlayingSubtitle: String? {
+        guard item.type == .episode else { return nil }
+        var parts: [String] = []
         var seasonEpisode = ""
         if let season = item.parentIndexNumber {
             seasonEpisode += "S\(season)"
@@ -154,22 +166,18 @@ extension PlayerViewModel {
         if !item.name.isEmpty {
             parts.append(item.name)
         }
-        return parts.isEmpty ? item.name : parts.joined(separator: " · ")
+        return parts.isEmpty ? nil : parts.joined(separator: " · ")
     }
 
     private var displayDescriptionLine: String? {
         if item.type == .episode {
-            var parts: [String] = []
-            if let series = item.seriesName, !series.isEmpty {
-                parts.append(series)
+            // Title + subtitle already carry series and SxEy; use the
+            // description slot (tvOS info panel) for the synopsis
+            // instead of repeating them a third time.
+            if let overview = item.overview, !overview.isEmpty {
+                return overview
             }
-            if let season = item.parentIndexNumber {
-                parts.append("Season \(season)")
-            }
-            if let ep = item.indexNumber {
-                parts.append("Episode \(ep)")
-            }
-            return parts.isEmpty ? nil : parts.joined(separator: " • ")
+            return nil
         }
         if let year = item.productionYear {
             return "(\(year))"
