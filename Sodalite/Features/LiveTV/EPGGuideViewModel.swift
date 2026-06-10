@@ -243,7 +243,14 @@ final class EPGGuideViewModel {
             timerState[program.id] = (old?.timerId, nil)
             timerStateVersion += 1
             Task {
-                do { try await self.service.cancelSeriesTimer(timerID: seriesID) }
+                do {
+                    try await self.service.cancelSeriesTimer(timerID: seriesID)
+                    // The server cancels the rule's spawned episode timers
+                    // with it; clear every overlay entry tied to this series
+                    // so dead "Cancel Recording" buttons and dots disappear
+                    // (mirrors RecordingsViewModel.cancelSeriesTimer).
+                    self.clearSeriesOverlay(seriesTimerID: seriesID)
+                }
                 catch { self.rollbackTimerState(programID: program.id, to: old, error: error) }
             }
         } else {
@@ -256,6 +263,13 @@ final class EPGGuideViewModel {
                 } catch { self.rollbackTimerState(programID: program.id, to: old, error: error) }
             }
         }
+    }
+
+    private func clearSeriesOverlay(seriesTimerID: String) {
+        for (programID, state) in timerState where state.seriesTimerId == seriesTimerID {
+            timerState[programID] = (nil, nil)
+        }
+        timerStateVersion += 1
     }
 
     private func rollbackTimerState(
@@ -276,6 +290,17 @@ final class EPGGuideViewModel {
             guard timer.status != "Cancelled" else { continue }
             guard let programID = timer.programId else { continue }
             timerState[programID] = (timer.id, timer.seriesTimerId ?? timerState[programID]?.seriesTimerId)
+        }
+        // A create whose timer the server did not report back (failed
+        // fetch was already guarded above; here: a series rule that
+        // spawned no timer for this exact program) must not leave the
+        // sentinel pinned, or both toggles no-op on it forever.
+        for (programID, state) in timerState {
+            let timerID = state.timerId == Self.pendingTimerID ? nil : state.timerId
+            let seriesID = state.seriesTimerId == Self.pendingTimerID ? nil : state.seriesTimerId
+            if timerID != state.timerId || seriesID != state.seriesTimerId {
+                timerState[programID] = (timerID, seriesID)
+            }
         }
         timerStateVersion += 1
     }

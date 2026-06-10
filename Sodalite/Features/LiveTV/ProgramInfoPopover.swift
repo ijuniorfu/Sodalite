@@ -55,7 +55,7 @@ struct ProgramInfoPopover: View {
                 }
                 // Record affordances: future or currently airing programs
                 // only (a finished program cannot be recorded).
-                if let end = program.endDate, end > Date() {
+                if let end = program.endDate, end > Date(), !program.isSynthesized {
                     PopoverActionButton(
                         title: isRecording ? "livetv.cancelRecording" : "livetv.record",
                         systemImage: isRecording ? "stop.circle" : "record.circle",

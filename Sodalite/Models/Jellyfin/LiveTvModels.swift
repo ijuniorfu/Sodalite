@@ -77,6 +77,11 @@ struct JellyfinProgram: Codable, Sendable, Identifiable, Equatable {
 
     var primaryImageTag: String? { imageTags?["Primary"] }
 
+    /// True for the placeholder the guide synthesizes for channels
+    /// without program data ("live-<channelID>"). Such ids do not exist
+    /// server-side; record affordances must not be offered.
+    var isSynthesized: Bool { id.hasPrefix("live-") }
+
     /// True when `now` falls inside [startDate, endDate).
     func isAiring(at now: Date) -> Bool {
         guard let start = startDate, let end = endDate else { return false }
