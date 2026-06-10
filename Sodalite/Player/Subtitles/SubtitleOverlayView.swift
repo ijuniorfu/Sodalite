@@ -88,8 +88,12 @@ struct SubtitleOverlayView: View {
             // same full-bleed rect the cue overlay uses. No user
             // styling / offset / position preferences here, the track
             // author's layout is absolute.
-            ASSRenderedSubtitles(renderer: assRenderer, reloadSignal: assReloadSignal)
-                .allowsHitTesting(false)
+            ASSRenderedSubtitles(
+                renderer: assRenderer,
+                reloadSignal: assReloadSignal,
+                currentOffset: currentTime
+            )
+            .allowsHitTesting(false)
         } else {
             cueOverlay
         }
@@ -399,15 +403,24 @@ struct SubtitleOverlayView: View {
 private struct ASSRenderedSubtitles: UIViewRepresentable {
     let renderer: AssSubtitlesRenderer
     let reloadSignal: PassthroughSubject<Void, Never>
+    /// Current playback offset (the overlay's `currentTime`, which is
+    /// the clock's sourceTime mirror). The frame view needs it for its
+    /// track-data queries; the renderer's own offset is not public.
+    let currentOffset: Double
 
     func makeUIView(context: Context) -> ASSFrameHostView {
         ASSFrameHostView(renderer: renderer, reloadSignal: reloadSignal)
     }
 
-    func updateUIView(_ view: ASSFrameHostView, context: Context) {}
+    func updateUIView(_ view: ASSFrameHostView, context: Context) {
+        view.currentOffset = currentOffset
+    }
 }
 
 final class ASSFrameHostView: UIView {
+    /// Playback offset fed by the representable on every SwiftUI
+    /// update (10 Hz via the overlay's currentTime input).
+    var currentOffset: Double = 0
     private let renderer: AssSubtitlesRenderer
     private let canvasScale: CGFloat
     private let imageView = UIImageView()
@@ -530,7 +543,7 @@ final class ASSFrameHostView: UIView {
                 self.scheduleSafetyHide(after: remaining)
                 return
             }
-            let stillActive = !self.renderer.dialogues(at: self.renderer.currentOffset).isEmpty
+            let stillActive = !self.renderer.dialogues(at: self.currentOffset).isEmpty
             if stillActive {
                 print("[ASSView] safety: cue still active, keeping frame (unchanged re-render)")
                 self.suppressNilDeadline = .distantPast
@@ -559,7 +572,7 @@ final class ASSFrameHostView: UIView {
         let work = DispatchWorkItem { [weak self] in
             guard let self else { return }
             self.hideWorkItem = nil
-            if self.renderer.dialogues(at: self.renderer.currentOffset).isEmpty {
+            if self.renderer.dialogues(at: self.currentOffset).isEmpty {
                 print("[ASSView] hide: end watch (held frame's cue ended)")
                 self.hideNow()
             } else {
