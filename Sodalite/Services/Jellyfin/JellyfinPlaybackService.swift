@@ -12,6 +12,7 @@ protocol JellyfinPlaybackServiceProtocol: Sendable {
     func reportPlaybackProgress(_ report: PlaybackProgressReport) async throws
     func reportPlaybackStopped(_ report: PlaybackStopReport) async throws
     func closeLiveStream(liveStreamID: String) async throws
+    func stopActiveEncodings(playSessionID: String) async throws
     func getSeasons(seriesID: String, userID: String) async throws -> [JellyfinItem]
     func getEpisodes(seriesID: String, seasonID: String, userID: String) async throws -> [JellyfinItem]
     func getEpisodeSegments(itemID: String) async throws -> EpisodeSegments
@@ -150,6 +151,18 @@ final class JellyfinPlaybackService: JellyfinPlaybackServiceProtocol {
     func closeLiveStream(liveStreamID: String) async throws {
         try await client.request(
             endpoint: JellyfinEndpoint.closeLiveStream(liveStreamID: liveStreamID)
+        )
+    }
+
+    /// Kill the server-side transcode job for this device + play session
+    /// and delete its output files. Live transcodes write an endlessly
+    /// growing stream.ts; a job whose stop report gets lost keeps writing
+    /// until the server disk fills, so every teardown fires this
+    /// explicitly (same call jellyfin-web makes on stop).
+    func stopActiveEncodings(playSessionID: String) async throws {
+        try await client.request(
+            endpoint: JellyfinEndpoint.stopActiveEncodings(
+                deviceID: client.deviceID, playSessionID: playSessionID)
         )
     }
 

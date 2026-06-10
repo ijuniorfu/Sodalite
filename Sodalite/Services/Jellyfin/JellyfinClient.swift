@@ -3,7 +3,10 @@ import Foundation
 @MainActor
 final class JellyfinClient {
     let httpClient: HTTPClientProtocol
-    private let deviceID: String
+    /// Stable per-install device identifier; rides in the auth header and
+    /// stream URLs. Read-only exposed because /Videos/ActiveEncodings
+    /// kills transcode jobs by (DeviceId, PlaySessionId) pair.
+    private(set) var deviceID: String
     private let appVersion: String
 
     var baseURL: URL?

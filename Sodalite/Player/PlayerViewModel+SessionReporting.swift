@@ -64,17 +64,20 @@ extension PlayerViewModel {
         }
     }
 
-    func reportStop(positionTicks: Int64? = nil) async {
+    func reportStop(positionTicks: Int64? = nil, liveStreamID: String? = nil) async {
         // Optional override lets stopPlayback() capture the position
         // BEFORE killing the engine, so we can stop audio first (no
         // trailing buffer on dismiss) without losing the right position.
+        // `liveStreamID` lets the live retune path close its dead tuner
+        // through the stop report as well (belt and braces with the
+        // explicit closeLiveStream).
         let ticks = positionTicks ?? currentPositionTicks
         let report = PlaybackStopReport(
             itemId: item.id,
             mediaSourceId: mediaSourceID,
             playSessionId: playSessionID,
             positionTicks: ticks,
-            liveStreamId: nil
+            liveStreamId: liveStreamID
         )
         do {
             try await playbackService.reportPlaybackStopped(report)

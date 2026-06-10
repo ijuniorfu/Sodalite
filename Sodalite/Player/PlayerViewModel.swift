@@ -835,6 +835,7 @@ final class PlayerViewModel {
         // Fire-and-forget: caller (dismissPlayer / viewWillDisappear)
         // returns immediately so the SwiftUI dismiss animation can
         // start without waiting on Jellyfin's PlaybackStopped endpoint.
+        let sessionToKill = playSessionID
         Task.detached {
             do {
                 try await svc.reportPlaybackStopped(stopReport)
@@ -845,6 +846,15 @@ final class PlayerViewModel {
                 #if DEBUG
                 print("[SessionReport] Stop FAILED: \(error)")
                 #endif
+            }
+            // Explicit transcode kill, independent of the stop report's
+            // fate: live transcodes write an endlessly growing stream.ts
+            // server-side, and an orphaned job (lost report, crash, app
+            // kill on a previous run) fills the server disk. Same DELETE
+            // /Videos/ActiveEncodings jellyfin-web fires on every stop;
+            // harmless no-op when nothing is encoding.
+            if let sessionToKill {
+                try? await svc.stopActiveEncodings(playSessionID: sessionToKill)
             }
         }
     }

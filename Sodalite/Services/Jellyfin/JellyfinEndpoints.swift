@@ -61,6 +61,13 @@ enum JellyfinEndpoint: APIEndpoint {
     case liveTvPrograms(channelIDs: [String], userID: String, minEndDate: Date, maxStartDate: Date)
     case liveTvGuideInfo
     case closeLiveStream(liveStreamID: String)
+    /// DELETE /Videos/ActiveEncodings: kill the server-side transcode job
+    /// for this (device, play session) and DELETE its output files. The
+    /// canonical cleanup call jellyfin-web fires on every stop. Without
+    /// it, a live transcode whose PlaybackStopped report is lost (app
+    /// kill, network drop, crash) keeps ffmpeg writing an endlessly
+    /// growing stream.ts until the server disk fills.
+    case stopActiveEncodings(deviceID: String, playSessionID: String)
 
     var path: String {
         switch self {
@@ -130,6 +137,8 @@ enum JellyfinEndpoint: APIEndpoint {
             "/LiveTv/GuideInfo"
         case .closeLiveStream:
             "/LiveTv/LiveStreams/Close"
+        case .stopActiveEncodings:
+            "/Videos/ActiveEncodings"
         }
     }
 
@@ -140,7 +149,7 @@ enum JellyfinEndpoint: APIEndpoint {
              .sessionPlaying, .sessionProgress, .sessionStopped,
              .closeLiveStream:
             .post
-        case .unmarkFavorite, .unmarkPlayed, .deleteItem:
+        case .unmarkFavorite, .unmarkPlayed, .deleteItem, .stopActiveEncodings:
             .delete
         default:
             .get
@@ -342,6 +351,12 @@ enum JellyfinEndpoint: APIEndpoint {
 
         case .closeLiveStream(let liveStreamID):
             return [URLQueryItem(name: "LiveStreamId", value: liveStreamID)]
+
+        case .stopActiveEncodings(let deviceID, let playSessionID):
+            return [
+                URLQueryItem(name: "deviceId", value: deviceID),
+                URLQueryItem(name: "playSessionId", value: playSessionID),
+            ]
 
         default:
             return nil

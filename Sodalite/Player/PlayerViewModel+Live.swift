@@ -209,7 +209,17 @@ extension PlayerViewModel {
     /// means a newer load (channel zap) took over mid-retune and owns the
     /// session now.
     private func retuneLiveStream() async {
-        await reportStop()
+        // Close the dead session server-side BEFORE opening the new one:
+        // stop report (with the tuner handle), explicit transcode kill
+        // (the old ffmpeg writes a growing stream.ts until killed; an
+        // orphan fills the server disk), tuner release.
+        let deadTuner = activeLiveStreamID
+        let deadSession = playSessionID
+        await reportStop(liveStreamID: deadTuner)
+        if let deadSession {
+            let svc = playbackService
+            Task.detached { try? await svc.stopActiveEncodings(playSessionID: deadSession) }
+        }
         hasReportedStart = false
         releaseLiveTunerIfNeeded()
         do {
