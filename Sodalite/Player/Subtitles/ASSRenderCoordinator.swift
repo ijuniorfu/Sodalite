@@ -120,7 +120,9 @@ final class ASSRenderCoordinator {
         // so a hostile value can't escape the cache directory, mirroring
         // the same treatment applied to font filenames in writeFontAttachments.
         let safeID = (itemID as NSString).lastPathComponent
-        let dirName = safeID.isEmpty ? "item" : safeID
+        // lastPathComponent passes ".." through; that would resolve one
+        // level above the cache root when appended. Treat it like empty.
+        let dirName = (safeID.isEmpty || safeID == "..") ? "item" : safeID
         let base = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)[0]
             .appendingPathComponent("ass-fonts", isDirectory: true)
             .appendingPathComponent(dirName, isDirectory: true)
