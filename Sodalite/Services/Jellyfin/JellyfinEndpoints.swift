@@ -68,7 +68,7 @@ enum JellyfinEndpoint: APIEndpoint {
     /// kill, network drop, crash) keeps ffmpeg writing an endlessly
     /// growing stream.ts until the server disk fills.
     case stopActiveEncodings(deviceID: String, playSessionID: String)
-    case liveTvRecordings(userID: String)
+    case liveTvRecordings(userID: String, isInProgress: Bool?)
     case liveTvTimers
     case liveTvSeriesTimers
     case liveTvTimerDefaults(programID: String)
@@ -380,8 +380,8 @@ enum JellyfinEndpoint: APIEndpoint {
                 URLQueryItem(name: "playSessionId", value: playSessionID),
             ]
 
-        case .liveTvRecordings(let userID):
-            return [
+        case .liveTvRecordings(let userID, let isInProgress):
+            var items = [
                 URLQueryItem(name: "UserId", value: userID),
                 URLQueryItem(name: "EnableImages", value: "true"),
                 URLQueryItem(name: "Fields", value: "Overview"),
@@ -389,6 +389,15 @@ enum JellyfinEndpoint: APIEndpoint {
                 // matching the same flag on liveTvChannels (~line 347).
                 URLQueryItem(name: "EnableUserData", value: "true"),
             ]
+            // Active-recording detection: modern Jellyfin does not
+            // populate BaseItemDto.Status on recording items; the
+            // IsInProgress query filter is how jellyfin-web finds the
+            // active ones (verified against the live server: the filter
+            // is accepted and returns the standard envelope).
+            if let isInProgress {
+                items.append(URLQueryItem(name: "IsInProgress", value: isInProgress ? "true" : "false"))
+            }
+            return items
 
         case .liveTvTimerDefaults(let programID):
             return [URLQueryItem(name: "programId", value: programID)]

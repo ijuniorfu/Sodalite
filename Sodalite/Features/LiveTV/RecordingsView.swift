@@ -84,6 +84,7 @@ struct RecordingsView: View {
                         imageURL: imageService.imageURL(
                             itemID: item.id, imageType: .primary,
                             tag: item.imageTags?.primary, maxWidth: 600),
+                        isInProgress: model.isInProgress(item),
                         tint: tint,
                         onPlay: {
                             playerItem = item
@@ -148,6 +149,10 @@ struct RecordingsView: View {
 private struct RecordingCard: View {
     let item: JellyfinItem
     let imageURL: URL?
+    /// Server-confirmed via the IsInProgress filter (see
+    /// RecordingsViewModel.inProgressIDs); item.status stays empty on
+    /// recording items in modern Jellyfin.
+    let isInProgress: Bool
     let tint: Color
     let onPlay: () -> Void
     let onDelete: () -> Void
@@ -179,7 +184,7 @@ private struct RecordingCard: View {
                         .strokeBorder(focused ? tint : .white.opacity(0.15),
                                       lineWidth: focused ? 4 : 1)
                 )
-                if item.status == "InProgress" {
+                if isInProgress {
                     Label("livetv.recordings.inProgress", systemImage: "record.circle")
                         .font(.caption.bold())
                         .foregroundStyle(.white)

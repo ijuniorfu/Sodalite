@@ -7,8 +7,16 @@ final class RecordingsViewModel {
     private(set) var recordings: [JellyfinItem] = []
     private(set) var timers: [LiveTvTimer] = []
     private(set) var seriesTimers: [LiveTvSeriesTimer] = []
+    /// Ids of recordings the server reports as currently being written
+    /// (IsInProgress=true filter). Drives the "Läuft" badge; item fields
+    /// cannot (BaseItemDto.Status stays empty on recording items).
+    private(set) var inProgressIDs: Set<String> = []
     private(set) var isLoading = false
     var errorMessage: String?
+
+    func isInProgress(_ item: JellyfinItem) -> Bool {
+        inProgressIDs.contains(item.id)
+    }
 
     private let liveTvService: JellyfinLiveTvServiceProtocol
     private let itemService: JellyfinItemServiceProtocol
@@ -29,10 +37,14 @@ final class RecordingsViewModel {
         guard !isLoading else { return }
         isLoading = true
         defer { isLoading = false }
-        async let recs = liveTvService.getRecordings(userID: userID)
+        async let recs = liveTvService.getRecordings(userID: userID, isInProgress: nil)
+        // Active recordings come from the IsInProgress server filter, the
+        // same way jellyfin-web builds its "Active Recordings" row.
+        async let active = liveTvService.getRecordings(userID: userID, isInProgress: true)
         async let tims = liveTvService.getTimers()
         async let series = liveTvService.getSeriesTimers()
         do { recordings = try await recs } catch { errorMessage = error.localizedDescription }
+        inProgressIDs = Set(((try? await active) ?? []).map(\.id))
         // The server returns cancelled series-spawned entries; drop them so
         // only actionable (pending/scheduled) timers appear. Mirrors
         // EPGGuideViewModel.reconcileTimers which applies the same guard.

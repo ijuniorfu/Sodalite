@@ -7,7 +7,9 @@ protocol JellyfinLiveTvServiceProtocol: Sendable {
     /// Mark/unmark a channel as favorite. Channels are `BaseItemDto`, so this
     /// reuses the generic FavoriteItems endpoint media items already use.
     func setFavorite(userID: String, channelID: String, isFavorite: Bool) async throws
-    func getRecordings(userID: String) async throws -> [JellyfinItem]
+    /// `isInProgress` nil fetches everything; true/false filters
+    /// server-side (active-recording detection, see the endpoint note).
+    func getRecordings(userID: String, isInProgress: Bool?) async throws -> [JellyfinItem]
     func getTimers() async throws -> [LiveTvTimer]
     func getSeriesTimers() async throws -> [LiveTvSeriesTimer]
     func createTimer(programID: String) async throws
@@ -57,11 +59,11 @@ final class JellyfinLiveTvService: JellyfinLiveTvServiceProtocol {
         try await client.request(endpoint: endpoint)
     }
 
-    func getRecordings(userID: String) async throws -> [JellyfinItem] {
+    func getRecordings(userID: String, isInProgress: Bool?) async throws -> [JellyfinItem] {
         // Recordings are plain BaseItemDtos; the standard item decoder
         // applies (JellyfinItemsResponse), not the lenient LiveTv one.
         let response: JellyfinItemsResponse = try await client.request(
-            endpoint: JellyfinEndpoint.liveTvRecordings(userID: userID),
+            endpoint: JellyfinEndpoint.liveTvRecordings(userID: userID, isInProgress: isInProgress),
             responseType: JellyfinItemsResponse.self
         )
         return response.items
