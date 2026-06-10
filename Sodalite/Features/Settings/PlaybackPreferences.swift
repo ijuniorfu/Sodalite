@@ -25,6 +25,7 @@ final class PlaybackPreferences {
         static let autoSkipIntro = "playback.autoSkipIntro"
         static let autoSkipOutro = "playback.autoSkipOutro"
         static let autoSubtitleForForeignAudio = "playback.autoSubtitleForForeignAudio"
+        static let styledASSSubtitles = "playback.styledASSSubtitles"
         static let subtitleFontSize = "playback.subtitleFontSize"
         static let subtitleColor = "playback.subtitleColor"
         static let subtitleBackground = "playback.subtitleBackground"
@@ -304,6 +305,15 @@ final class PlaybackPreferences {
         didSet { store.set(autoSubtitleForForeignAudio, forKey: Keys.autoSubtitleForForeignAudio) }
     }
 
+    /// Render ASS/SSA subtitle tracks with their authored styling
+    /// (fonts, colors, positioning) via libass. Default ON, that is the
+    /// whole point of the styled pipeline; OFF falls back to the plain
+    /// text path, where the user's own subtitle style settings below
+    /// apply instead of the track author's.
+    var styledASSSubtitles: Bool {
+        didSet { store.set(styledASSSubtitles, forKey: Keys.styledASSSubtitles) }
+    }
+
     var subtitleFontSize: SubtitleFontSize {
         didSet { store.set(subtitleFontSize.rawValue, forKey: Keys.subtitleFontSize) }
     }
@@ -463,6 +473,7 @@ final class PlaybackPreferences {
         self.preferredAudioLanguage = store.string(forKey: Keys.preferredAudioLanguage)
         self.preferredSubtitleLanguage = store.string(forKey: Keys.preferredSubtitleLanguage)
         self.autoSubtitleForForeignAudio = store.object(forKey: Keys.autoSubtitleForForeignAudio) as? Bool ?? true
+        self.styledASSSubtitles = store.object(forKey: Keys.styledASSSubtitles) as? Bool ?? true
         self.subtitleFontSize = (store.string(forKey: Keys.subtitleFontSize))
             .flatMap(SubtitleFontSize.init(rawValue:)) ?? .medium
         self.subtitleColor = (store.string(forKey: Keys.subtitleColor))

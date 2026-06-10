@@ -1649,11 +1649,15 @@ final class PlayerViewModel {
             // the coordinator reassembles them into a script for
             // swift-ass-renderer. Falls back to the stripped-text
             // overlay when the track header is missing.
-            if activeSubtitleCodec == "ass" || activeSubtitleCodec == "ssa" {
+            if (activeSubtitleCodec == "ass" || activeSubtitleCodec == "ssa"),
+               preferences.styledASSSubtitles {
                 let engineTrack = player.subtitleTracks.first(where: { $0.id == id })
                 assCoordinator.activate(header: engineTrack?.assHeader, itemID: item.id)
                 assRenderer = assCoordinator.renderer
             } else {
+                // Non-ASS codec, or the user prefers the plain text
+                // path (settings toggle); the overlay's tag stripper
+                // handles the raw event lines there.
                 deactivateASSRendering()
             }
         } else {

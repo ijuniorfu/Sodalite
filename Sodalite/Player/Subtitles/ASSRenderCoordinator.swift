@@ -154,7 +154,6 @@ final class ASSRenderCoordinator {
         lastReloadAt = now
         pendingEvents = false
         earliestPendingStart = .infinity
-        print("[ASSCoord] reload events=\(builder.eventCount) clock=\(String(format: "%.2f", lastOffset))")
         reloadSignal.send()
         renderer.reloadTrack(content: builder.script())
     }

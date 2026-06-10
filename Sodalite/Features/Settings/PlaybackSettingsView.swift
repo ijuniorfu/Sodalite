@@ -114,6 +114,16 @@ struct PlaybackSettingsView: View {
 
                 sectionHeader("settings.playback.section.subtitleStyle")
 
+                boolRow(
+                    icon: "wand.and.stars",
+                    title: "settings.playback.subtitle.styledASS",
+                    subtitle: "settings.playback.subtitle.styledASS.subtitle",
+                    value: Binding(
+                        get: { prefs.styledASSSubtitles },
+                        set: { prefs.styledASSSubtitles = $0 }
+                    )
+                )
+
                 valueRow(
                     icon: "textformat.size",
                     title: "settings.playback.subtitle.size",

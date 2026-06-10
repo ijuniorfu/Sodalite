@@ -89273,6 +89273,328 @@
         }
       }
     },
+    "settings.playback.subtitle.styledASS" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stylované titulky ASS"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ASS-undertekster med stil"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gestylte ASS-Untertitel"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Στυλιζαρισμένοι υπότιτλοι ASS"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Styled ASS Subtitles"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Subtítulos ASS con estilo"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tyylitellyt ASS-tekstitykset"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sous-titres ASS stylisés"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stilizirani ASS titlovi"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stilizált ASS-feliratok"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sottotitoli ASS stilizzati"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "スタイル付きASS字幕"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "스타일 적용 ASS 자막"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stiliserte ASS-undertekster"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gestileerde ASS-ondertitels"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stylizowane napisy ASS"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Legendas ASS estilizadas"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Legendas ASS estilizadas"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Subtitrări ASS stilizate"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Стилизованные субтитры ASS"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Štylizované titulky ASS"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stiliserade ASS-undertexter"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stilize ASS altyazıları"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Стилізовані субтитри ASS"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "样式化 ASS 字幕"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "樣式化 ASS 字幕"
+          }
+        }
+      }
+    },
+    "settings.playback.subtitle.styledASS.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zobrazovat titulky ASS/SSA s původními fonty, barvami a umístěním. Pokud je vypnuto, zobrazí se jako prostý text."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vis ASS/SSA-undertekster med deres oprindelige skrifttyper, farver og placering. Når slået fra, vises de som almindelig tekst."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ASS/SSA-Untertitel mit Original-Schriften, -Farben und -Positionen darstellen. Wenn aus, erscheinen sie als einfacher Text."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Απόδοση υποτίτλων ASS/SSA με τις αρχικές γραμματοσειρές, τα χρώματα και τη θέση τους. Όταν είναι ανενεργό, εμφανίζονται ως απλό κείμενο."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Render ASS/SSA subtitles with their authored fonts, colors, and positioning. When off, they appear as plain text."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostrar los subtítulos ASS/SSA con sus fuentes, colores y posiciones originales. Si está desactivado, se muestran como texto sin formato."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Näytä ASS/SSA-tekstitykset alkuperäisillä fonteilla, väreillä ja sijainneilla. Kun pois käytöstä, ne näytetään pelkkänä tekstinä."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Afficher les sous-titres ASS/SSA avec leurs polices, couleurs et positions d'origine. Désactivé, ils s'affichent en texte brut."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Prikaži ASS/SSA titlove s izvornim fontovima, bojama i položajem. Kada je isključeno, prikazuju se kao običan tekst."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Az ASS/SSA-feliratok megjelenítése az eredeti betűtípusokkal, színekkel és pozícióval. Kikapcsolva egyszerű szövegként jelennek meg."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostra i sottotitoli ASS/SSA con font, colori e posizioni originali. Se disattivato, vengono mostrati come testo semplice."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ASS/SSA字幕を本来のフォント・色・位置で表示します。オフにするとプレーンテキストで表示されます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ASS/SSA 자막을 원본 글꼴, 색상, 위치로 표시합니다. 끄면 일반 텍스트로 표시됩니다."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vis ASS/SSA-undertekster med opprinnelige skrifter, farger og plassering. Når av, vises de som ren tekst."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toon ASS/SSA-ondertitels met de originele lettertypen, kleuren en posities. Indien uit, worden ze als platte tekst weergegeven."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wyświetlaj napisy ASS/SSA z oryginalnymi czcionkami, kolorami i pozycjami. Po wyłączeniu są pokazywane jako zwykły tekst."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Exibir legendas ASS/SSA com as fontes, cores e posições originais. Quando desativado, aparecem como texto simples."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apresentar legendas ASS/SSA com os tipos de letra, cores e posições originais. Quando desativado, aparecem como texto simples."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Afișează subtitrările ASS/SSA cu fonturile, culorile și pozițiile originale. Când este dezactivat, apar ca text simplu."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Показывать субтитры ASS/SSA с исходными шрифтами, цветами и позициями. Если выключено, они отображаются обычным текстом."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zobrazovať titulky ASS/SSA s pôvodnými písmami, farbami a umiestnením. Ak je vypnuté, zobrazia sa ako obyčajný text."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Visa ASS/SSA-undertexter med ursprungliga typsnitt, färger och placering. När av visas de som vanlig text."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ASS/SSA altyazılarını özgün yazı tipleri, renkler ve konumlarla göster. Kapalıyken düz metin olarak görünür."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Показувати субтитри ASS/SSA з оригінальними шрифтами, кольорами та розташуванням. Якщо вимкнено, вони відображаються звичайним текстом."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "以原始字体、颜色和位置渲染 ASS/SSA 字幕。关闭后将显示为纯文本。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "以原始字型、顏色和位置顯示 ASS/SSA 字幕。關閉後將顯示為純文字。"
+          }
+        }
+      }
+    },
     "settings.playback.subtitle.size" : {
       "extractionState" : "manual",
       "localizations" : {
