@@ -58,7 +58,7 @@ enum JellyfinEndpoint: APIEndpoint {
 
     // Live TV
     case liveTvChannels(userID: String, startIndex: Int, limit: Int)
-    case liveTvPrograms(channelIDs: [String], userID: String, minStartDate: Date, maxStartDate: Date)
+    case liveTvPrograms(channelIDs: [String], userID: String, minEndDate: Date, maxStartDate: Date)
     case liveTvGuideInfo
     case closeLiveStream(liveStreamID: String)
 
@@ -317,7 +317,7 @@ enum JellyfinEndpoint: APIEndpoint {
                 URLQueryItem(name: "EnableFavoriteSorting", value: "true"),
             ]
 
-        case .liveTvPrograms(let channelIDs, let userID, let minStart, let maxStart):
+        case .liveTvPrograms(let channelIDs, let userID, let minEnd, let maxStart):
             // Local formatter: ISO8601DateFormatter is not Sendable, so it
             // cannot be a shared static under Swift 6 strict concurrency.
             // Guide program-window requests are low-frequency, so the
@@ -326,7 +326,15 @@ enum JellyfinEndpoint: APIEndpoint {
             return [
                 URLQueryItem(name: "ChannelIds", value: channelIDs.joined(separator: ",")),
                 URLQueryItem(name: "UserId", value: userID),
-                URLQueryItem(name: "MinStartDate", value: iso.string(from: minStart)),
+                // Overlap semantics, NOT containment: a program belongs in
+                // the guide window when it ends after the window starts
+                // (MinEndDate) and starts before the window ends
+                // (MaxStartDate). The earlier MinStartDate filter dropped
+                // every program that began before the axis start, i.e.
+                // exactly the ones airing RIGHT NOW, so the first column
+                // of the EPG was empty and those channels unplayable from
+                // the grid.
+                URLQueryItem(name: "MinEndDate", value: iso.string(from: minEnd)),
                 URLQueryItem(name: "MaxStartDate", value: iso.string(from: maxStart)),
                 URLQueryItem(name: "SortBy", value: "StartDate"),
                 URLQueryItem(name: "EnableImages", value: "true"),

@@ -28,7 +28,7 @@ final class JellyfinLiveTvService: JellyfinLiveTvServiceProtocol {
         guard !channelIDs.isEmpty else { return [] }
         let response: LiveTvProgramsResponse = try await client.request(
             endpoint: JellyfinEndpoint.liveTvPrograms(
-                channelIDs: channelIDs, userID: userID, minStartDate: start, maxStartDate: end),
+                channelIDs: channelIDs, userID: userID, minEndDate: start, maxStartDate: end),
             responseType: LiveTvProgramsResponse.self,
             decoder: .jellyfinLiveTv
         )

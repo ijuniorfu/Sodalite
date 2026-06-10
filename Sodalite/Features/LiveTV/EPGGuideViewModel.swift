@@ -146,6 +146,11 @@ final class EPGGuideViewModel {
             var grouped = programsByChannel
             for program in programs {
                 guard let cid = program.channelId else { continue }
+                // The MinEndDate overlap query is inclusive; a program
+                // ending exactly at the axis start has zero visible span
+                // and would render as a 1pt sliver. Skip anything that
+                // does not actually reach into the window.
+                if let end = program.endDate, end <= axisStart { continue }
                 grouped[cid, default: []].append(program)
             }
             // Only the newly fetched channels need sorting; already-loaded
