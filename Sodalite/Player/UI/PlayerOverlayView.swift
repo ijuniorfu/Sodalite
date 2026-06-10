@@ -100,6 +100,7 @@ struct PlayerOverlayView: View {
             if viewModel.showStatsOverlay && viewModel.errorMessage == nil {
                 StatsOverlayView(
                     player: viewModel.player,
+                    diagnostics: viewModel.player.diagnostics,
                     item: viewModel.item,
                     activeSubtitleIndex: viewModel.activeSubtitleIndex,
                     scrollSectionIndex: viewModel.statsSectionIndex,

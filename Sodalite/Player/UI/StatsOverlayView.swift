@@ -19,6 +19,12 @@ import AetherEngine
 ///   `item.mediaSources`, which the detail fetch already pulls.
 struct StatsOverlayView: View {
     @ObservedObject var player: AetherEngine
+    /// Timer-sampled telemetry lives on a separate ObservableObject
+    /// since the engine.diagnostics split (the engine's
+    /// objectWillChange no longer fires on 1 Hz samples), so the
+    /// panel observes it explicitly. Only mounted while the panel is
+    /// open, so the 1 Hz re-render stays scoped to this view.
+    @ObservedObject var diagnostics: EngineDiagnostics
     let item: JellyfinItem
     /// Active subtitle stream's container index (matches
     /// `MediaStream.index`), or `nil` when subtitles are off.
@@ -165,7 +171,7 @@ struct StatsOverlayView: View {
     @ViewBuilder
     private var liveSection: some View {
         section("player.stats.section.live") {
-            let telemetry = player.liveTelemetry
+            let telemetry = diagnostics.liveTelemetry
             // Bitrate (instant + average)
             row(
                 "player.stats.bitrate",
@@ -316,7 +322,7 @@ struct StatsOverlayView: View {
 
     @ViewBuilder
     private var engineSection: some View {
-        if let telemetry = player.liveTelemetry {
+        if let telemetry = diagnostics.liveTelemetry {
             section("player.stats.section.engine") {
                 row("player.stats.producerRestarts", value: "\(telemetry.producerRestartCount)")
                 row("player.stats.rss", value: "\(telemetry.rssMb) MB")
@@ -326,7 +332,7 @@ struct StatsOverlayView: View {
 
     @ViewBuilder
     private var bufferSection: some View {
-        if let telemetry = player.liveTelemetry {
+        if let telemetry = diagnostics.liveTelemetry {
             section("player.stats.section.buffer") {
                 row(
                     "player.stats.demuxerBytes",
@@ -346,7 +352,7 @@ struct StatsOverlayView: View {
 
     @ViewBuilder
     private var networkSection: some View {
-        if let telemetry = player.liveTelemetry {
+        if let telemetry = diagnostics.liveTelemetry {
             section("player.stats.section.network") {
                 row(
                     "player.stats.serverSent",
