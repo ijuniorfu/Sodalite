@@ -335,6 +335,10 @@ final class PlayerViewModel {
     var liveRetuneInFlight = false
     var lastLiveRetuneAt: Date?
     var liveRetuneCount = 0
+    /// When live playback FIRST reached .playing. Gates the startup-window
+    /// spinner masking in the state sink (cold transcodes stall once right
+    /// after the start while the server catches up to real time).
+    var liveFirstPlayingAt: Date?
 
     init(
         item: JellyfinItem,
@@ -846,9 +850,29 @@ final class PlayerViewModel {
                 guard let self else { return }
                 switch state {
                 case .playing:
+                    let firstPlay = !self.hasStartedPlaying
                     self.hasStartedPlaying = true
-                    self.isLoading = false
                     self.isPlaying = true
+                    if self.isLiveSession, firstPlay {
+                        // Cold live transcodes: AVPlayer flips to .playing
+                        // ~1s before the segment at its start position has
+                        // arrived, stalls within ~50ms, and resumes after
+                        // the fetch. Clearing the spinner on that first
+                        // flicker swaps it for a frozen frame; debounce the
+                        // clear so the spinner rides through the gun-jump.
+                        self.liveFirstPlayingAt = Date()
+                        Task { @MainActor [weak self] in
+                            try? await Task.sleep(nanoseconds: 700_000_000)
+                            // Engine state, not isPlaying: a stall within
+                            // the window flips state to .loading but leaves
+                            // isPlaying true; the spinner must stay until
+                            // the NEXT .playing clears it.
+                            guard let self, case .playing = self.player.state else { return }
+                            self.isLoading = false
+                        }
+                    } else {
+                        self.isLoading = false
+                    }
                     if self.showControls { self.scheduleControlsHide() }
                 case .paused:
                     self.isLoading = false
@@ -883,7 +907,18 @@ final class PlayerViewModel {
                         self.onPlaybackReachedEnd?()
                     }
                 case .loading:
-                    if !self.hasStartedPlaying { self.isLoading = true }
+                    if !self.hasStartedPlaying {
+                        self.isLoading = true
+                    } else if self.isLiveSession,
+                              let firstPlay = self.liveFirstPlayingAt,
+                              Date().timeIntervalSince(firstPlay) < 15 {
+                        // Early live re-buffer (cold transcode still
+                        // catching up to real time right after start):
+                        // surface the spinner instead of a silent frozen
+                        // frame. Bounded to the startup window so brief
+                        // mid-session blips don't flash the spinner.
+                        self.isLoading = true
+                    }
                 case .seeking:
                     break
                 case .error(let msg):
