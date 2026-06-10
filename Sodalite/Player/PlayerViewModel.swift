@@ -2,6 +2,7 @@ import Foundation
 import Combine
 import Observation
 import AetherEngine
+import SwiftAssRenderer
 import AVKit
 import os
 
@@ -305,6 +306,21 @@ final class PlayerViewModel {
     var playSessionID: String?
     var activePlayMethod: PlayMethod = .directPlay
     var subtitleStreams: [MediaStream] = []
+    /// Codec of the active subtitle stream, lowercased Jellyfin value
+    /// ("ass" / "ssa" / "subrip" / ...). nil when subtitles are off.
+    /// The overlay reads it to gate the raw-ASS-event-line stripper.
+    var activeSubtitleCodec: String?
+    /// Styled ASS rendering bridge; active only while the selected
+    /// embedded subtitle track is ASS/SSA (AetherEngine#30). Lazy so
+    /// it can capture `player`; ignored by @Observable (the macro
+    /// can't expand lazy storage), the observable surface is
+    /// `assRenderer` below.
+    @ObservationIgnored private lazy var assCoordinator = ASSRenderCoordinator(player: player)
+    /// Mirror of `assCoordinator.renderer` on the observable surface,
+    /// updated at every activate/deactivate site so the overlay swaps
+    /// between the styled ASS layer and the cue path reactively
+    /// (the coordinator itself is not @Observable).
+    private(set) var assRenderer: AssSubtitlesRenderer?
 
     // MARK: - Live TV
 
@@ -805,6 +821,7 @@ final class PlayerViewModel {
         // AVKit clears its internal Now Playing registration when
         // the host VC sets `player = nil` (done in dismissPlayer /
         // viewWillDisappear).
+        deactivateASSRendering()
         cancellables.removeAll()
         // Capture position synchronously, then stop the engine, then
         // fire-and-forget the report. The capture-then-stop order is
@@ -1584,15 +1601,19 @@ final class PlayerViewModel {
     func selectSubtitleTrack(id: Int?) {
         guard let id else {
             activeSubtitleIndex = nil
+            activeSubtitleCodec = nil
             subtitleCues = []
+            deactivateASSRendering()
             player.clearSubtitle()
             return
         }
         activeSubtitleIndex = id
         let stream = subtitleStreams.first(where: { $0.index == id })
+        activeSubtitleCodec = stream?.codec?.lowercased()
         let isExternal = stream?.isExternal == true
 
         if isExternal {
+            deactivateASSRendering()
             // Sidecar file (.srt / .ass / .vtt next to the media).
             // Hand the URL to the engine, it fetches the file once
             // and decodes it via FFmpeg, no host-side SRTParser. The
@@ -1618,15 +1639,35 @@ final class PlayerViewModel {
             // PGS). No second connection, no server extraction.
             player.selectSubtitleTrack(index: id)
             subtitleCues = player.subtitleCues
+            // ASS/SSA gets the styled libass path on top: the engine
+            // keeps emitting raw event-line cues (preserveASSMarkup),
+            // the coordinator reassembles them into a script for
+            // swift-ass-renderer. Falls back to the stripped-text
+            // overlay when the track header is missing.
+            if activeSubtitleCodec == "ass" || activeSubtitleCodec == "ssa" {
+                let engineTrack = player.subtitleTracks.first(where: { $0.id == id })
+                assCoordinator.activate(header: engineTrack?.assHeader, itemID: item.id)
+                assRenderer = assCoordinator.renderer
+            } else {
+                deactivateASSRendering()
+            }
         } else {
             // Transcoded session, HLS rewrites stream indices so
             // the engine can't reach the source subtitle. Fall back
             // to the legacy server-extracted SRT loader, which only
             // works for text codecs.
+            deactivateASSRendering()
             player.clearSubtitle()
             subtitleCues = []
             Task { await loadSubtitles(streamIndex: id) }
         }
+    }
+
+    /// Tear down the styled ASS bridge and clear its observable
+    /// mirror. Safe to call when already inactive.
+    private func deactivateASSRendering() {
+        assCoordinator.deactivate()
+        assRenderer = nil
     }
 
     private static let subtitleLog = Logger(

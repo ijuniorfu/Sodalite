@@ -1,5 +1,6 @@
 import SwiftUI
 import AetherEngine
+import SwiftAssRenderer
 
 /// Renders the subtitle cues active at the current playback time on top
 /// of the video. Two body kinds:
@@ -11,6 +12,12 @@ import AetherEngine
 /// - **Image**, a bitmap with normalised position (PGS / DVB / HDMV).
 ///   Multiple bitmap cues can overlap (signs/songs at the top while
 ///   dialogue stays at the bottom), so we render every active one.
+///
+/// When a styled ASS renderer is active (`assRenderer` non-nil), the
+/// whole cue pipeline above is bypassed: swift-ass-renderer's
+/// `AssSubtitlesView` draws the frame itself with the track's authored
+/// fonts, colors and positioning, so none of the user styling /
+/// offset preferences apply (authored positioning is absolute).
 struct SubtitleOverlayView: View {
     let cues: [SubtitleCue]
     let currentTime: Double
@@ -55,6 +62,15 @@ struct SubtitleOverlayView: View {
     /// their source-baked layout (signs / songs at the top of frame
     /// would never be occluded anyway).
     let controlsVisible: Bool
+    /// Styled ASS renderer, non-nil exactly while an embedded ASS/SSA
+    /// track is active AND swift-ass-renderer initialized. When set,
+    /// the package's view replaces the cue rendering below entirely.
+    let assRenderer: AssSubtitlesRenderer?
+    /// Codec of the active subtitle stream, lowercased ("ass" / "ssa" /
+    /// "subrip" / ...). Drives the raw-event-line stripper for the
+    /// fallback case where an ASS track is active but the styled
+    /// renderer bailed (missing header, setup failure).
+    let activeSubtitleCodec: String?
 
     /// Fixed bottom inset for text cues while the transport bar is
     /// visible. Sits above the transport-bar gradient band (300 pt
@@ -62,6 +78,20 @@ struct SubtitleOverlayView: View {
     private static let controlsVisibleBottomInset: CGFloat = 280
 
     var body: some View {
+        if let assRenderer {
+            // Styled ASS path. AssSubtitlesView sizes its canvas and
+            // draws rendered frames itself; we only pin it over the
+            // same full-bleed rect the cue overlay uses. No user
+            // styling / offset / position preferences here, the track
+            // author's layout is absolute.
+            ASSRenderedSubtitles(renderer: assRenderer)
+                .allowsHitTesting(false)
+        } else {
+            cueOverlay
+        }
+    }
+
+    private var cueOverlay: some View {
         GeometryReader { geo in
             // `Color.clear` fills the proposed size so the overlay
             // covers the same rect as the underlying video layer
@@ -77,7 +107,10 @@ struct SubtitleOverlayView: View {
                     ForEach(activeCues, id: \.id) { cue in
                         switch cue.body {
                         case .text(let text):
-                            textOverlay(text, in: geo.size, safeAreaInsets: geo.safeAreaInsets)
+                            let display = isASSTrackActive ? strippedASSText(text) : text
+                            if !display.isEmpty {
+                                textOverlay(display, in: geo.size, safeAreaInsets: geo.safeAreaInsets)
+                            }
                         case .image(let image):
                             imageOverlay(image, in: geo.size)
                         }
@@ -85,6 +118,33 @@ struct SubtitleOverlayView: View {
                 }
         }
         .allowsHitTesting(false)
+    }
+
+    /// True while the selected stream is ASS/SSA. Only reachable in the
+    /// cue path when the styled renderer is nil (coordinator bailed),
+    /// in which case cue text bodies are still RAW event lines
+    /// (`ReadOrder,Layer,...,Text`) and must be stripped before display.
+    private var isASSTrackActive: Bool {
+        activeSubtitleCodec == "ass" || activeSubtitleCodec == "ssa"
+    }
+
+    /// Fallback when the styled renderer is unavailable: raw event lines
+    /// must never reach the screen. Mirrors the engine's cleanASSBody.
+    private func strippedASSText(_ raw: String) -> String {
+        var lines: [String] = []
+        for line in raw.split(separator: "\n") {
+            // ReadOrder,Layer,Style,Name,MarginL,MarginR,MarginV,Effect,Text
+            let fields = line.split(separator: ",", maxSplits: 8, omittingEmptySubsequences: false)
+            guard fields.count == 9 else { lines.append(String(line)); continue }
+            var text = String(fields[8])
+            text = text.replacingOccurrences(of: "\\N", with: "\n")
+            text = text.replacingOccurrences(of: "\\n", with: "\n")
+            text = text.replacingOccurrences(of: "\\h", with: " ")
+            text = text.replacingOccurrences(of: "\\{[^}]*\\}", with: "", options: .regularExpression)
+            let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+            if !trimmed.isEmpty { lines.append(trimmed) }
+        }
+        return lines.joined(separator: "\n")
     }
 
     // MARK: - Text branch
@@ -310,4 +370,18 @@ struct SubtitleOverlayView: View {
         }
         return result.reversed()
     }
+}
+
+// MARK: - Styled ASS host
+
+/// Hosts swift-ass-renderer's AssSubtitlesView (it sizes its canvas
+/// and draws rendered frames itself; we only pin it full-bleed).
+private struct ASSRenderedSubtitles: UIViewRepresentable {
+    let renderer: AssSubtitlesRenderer
+
+    func makeUIView(context: Context) -> AssSubtitlesView {
+        AssSubtitlesView(renderer: renderer)
+    }
+
+    func updateUIView(_ view: AssSubtitlesView, context: Context) {}
 }

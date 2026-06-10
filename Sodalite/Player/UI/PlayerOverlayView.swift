@@ -15,7 +15,10 @@ struct PlayerOverlayView: View {
 
     var body: some View {
         ZStack {
-            if !viewModel.subtitleCues.isEmpty {
+            // The styled ASS layer must stay mounted even while the
+            // engine's cue array is momentarily empty (seek resets),
+            // libass already holds the assembled script.
+            if viewModel.assRenderer != nil || !viewModel.subtitleCues.isEmpty {
                 SubtitleOverlayView(
                     cues: viewModel.subtitleCues,
                     currentTime: viewModel.subtitleTime,
@@ -26,7 +29,9 @@ struct PlayerOverlayView: View {
                     verticalPosition: viewModel.preferences.subtitleVerticalPosition,
                     font: viewModel.preferences.subtitleFont,
                     weight: viewModel.preferences.subtitleWeight,
-                    controlsVisible: viewModel.showControls
+                    controlsVisible: viewModel.showControls,
+                    assRenderer: viewModel.assRenderer,
+                    activeSubtitleCodec: viewModel.activeSubtitleCodec
                 )
             }
 
