@@ -30,6 +30,11 @@ final class EPGGuideViewModel {
     /// the grid dot and a reopened popover agree without refetching the
     /// guide. A nil tuple member means "no such timer".
     private(set) var timerState: [String: (timerId: String?, seriesTimerId: String?)] = [:]
+
+    /// Sentinel marking a create still in flight (the server assigns the
+    /// real id; reconcileTimers replaces it). Toggles no-op on it so a
+    /// double-tap cannot DELETE /LiveTv/Timers/pending.
+    private static let pendingTimerID = "pending"
     /// Bumped on every timerState change; the collection VC observes this
     /// (an Observable dictionary of tuples is not diffable cheaply).
     private(set) var timerStateVersion = 0
@@ -133,6 +138,15 @@ final class EPGGuideViewModel {
     func timerID(programID: String) -> String? { timerState[programID]?.timerId }
     func seriesTimerID(programID: String) -> String? { timerState[programID]?.seriesTimerId }
 
+    /// Effective timer state for a program: the overlay entry when one
+    /// exists (authoritative: it reflects local toggles), else the
+    /// program's server-snapshot fields. The distinction matters after a
+    /// cancel: the overlay holds (nil, ...) and the stale snapshot must
+    /// NOT resurrect the dead timer id.
+    func effectiveTimerState(for program: JellyfinProgram) -> (timerId: String?, seriesTimerId: String?) {
+        timerState[program.id] ?? (program.timerId, program.seriesTimerId)
+    }
+
     /// Toggle a channel's favorite state: flip the local set immediately for
     /// snappy feedback, then persist to the server. Roll back on failure.
     /// Re-sorting (favorites first) happens on the next fresh guide load via
@@ -197,7 +211,9 @@ final class EPGGuideViewModel {
     /// Schedule or cancel a single-program recording, optimistically.
     func toggleRecord(program: JellyfinProgram) {
         let old = timerState[program.id]
-        if let timerID = old?.timerId ?? program.timerId {
+        let effective = effectiveTimerState(for: program)
+        if let timerID = effective.timerId {
+            if timerID == Self.pendingTimerID { return }
             timerState[program.id] = (nil, old?.seriesTimerId)
             timerStateVersion += 1
             Task {
@@ -207,7 +223,7 @@ final class EPGGuideViewModel {
         } else {
             // The server assigns the real timer id; mark with a sentinel
             // and reconcile from /LiveTv/Timers right after.
-            timerState[program.id] = ("pending", old?.seriesTimerId)
+            timerState[program.id] = (Self.pendingTimerID, old?.seriesTimerId)
             timerStateVersion += 1
             Task {
                 do {
@@ -221,7 +237,9 @@ final class EPGGuideViewModel {
     /// Schedule or cancel a series recording rule, optimistically.
     func toggleSeriesRecord(program: JellyfinProgram) {
         let old = timerState[program.id]
-        if let seriesID = old?.seriesTimerId ?? program.seriesTimerId {
+        let effective = effectiveTimerState(for: program)
+        if let seriesID = effective.seriesTimerId {
+            if seriesID == Self.pendingTimerID { return }
             timerState[program.id] = (old?.timerId, nil)
             timerStateVersion += 1
             Task {
@@ -229,7 +247,7 @@ final class EPGGuideViewModel {
                 catch { self.rollbackTimerState(programID: program.id, to: old, error: error) }
             }
         } else {
-            timerState[program.id] = (old?.timerId, "pending")
+            timerState[program.id] = (old?.timerId, Self.pendingTimerID)
             timerStateVersion += 1
             Task {
                 do {
@@ -255,6 +273,7 @@ final class EPGGuideViewModel {
     private func reconcileTimers() async {
         guard let timers = try? await service.getTimers() else { return }
         for timer in timers {
+            guard timer.status != "Cancelled" else { continue }
             guard let programID = timer.programId else { continue }
             timerState[programID] = (timer.id, timer.seriesTimerId ?? timerState[programID]?.seriesTimerId)
         }
