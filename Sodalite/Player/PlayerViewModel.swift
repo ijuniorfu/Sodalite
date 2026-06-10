@@ -1147,7 +1147,7 @@ final class PlayerViewModel {
         if !isLiveSession {
             scrubTime = formatSeconds(Double(scrubProgress) * dur)
             scrubPreview.update(fraction: scrubProgress, durationSeconds: dur)
-        }
+        } else { updateLiveScrubPreview() }
 
         // Auto-cancel on idle, matching `scrubPanEnded`. Commit stays
         // explicit (Select), but if the user taps left / right and

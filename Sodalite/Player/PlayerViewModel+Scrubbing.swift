@@ -57,7 +57,7 @@ extension PlayerViewModel {
         if !isLiveSession {
             scrubTime = formatSeconds(Double(scrubProgress) * dur)
             scrubPreview.update(fraction: scrubProgress, durationSeconds: dur)
-        }
+        } else { updateLiveScrubPreview() }
     }
 
     func scrubPanEnded() {
@@ -155,7 +155,7 @@ extension PlayerViewModel {
                 if !self.isLiveSession {
                     self.scrubTime = self.formatSeconds(Double(self.scrubProgress) * dur)
                     self.scrubPreview.update(fraction: self.scrubProgress, durationSeconds: dur)
-                }
+                } else { self.updateLiveScrubPreview() }
                 try? await Task.sleep(for: .seconds(tick))
                 held += tick
             }

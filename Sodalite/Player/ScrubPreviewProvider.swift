@@ -47,6 +47,7 @@ final class ScrubPreviewProvider {
 
     /// Set up for a live playback session. Mutually exclusive with
     /// `configure(extractor:enabled:)`; `reset()` clears both.
+    /// The closure is retained until the next reset(); capture the engine weakly.
     func configureLive(enabled: Bool, thumbnail: @escaping (Double, Int) async -> CGImage?) {
         reset()
         self.liveThumbnail = thumbnail
@@ -132,6 +133,8 @@ final class ScrubPreviewProvider {
     /// Full teardown for end of session. Drops the extractor reference;
     /// PlayerViewModel owns the extractor's `shutdown()`.
     func reset() {
+        // Invalidate in-flight loads: a task suspended in the thumbnail await would otherwise publish a previous-session frame after reset.
+        generation += 1
         loadTask?.cancel()
         loadTask = nil
         previewImage = nil

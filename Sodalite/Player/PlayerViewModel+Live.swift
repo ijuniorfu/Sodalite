@@ -86,6 +86,16 @@ extension PlayerViewModel {
                 dvrWindowSeconds: 600
             )
         )
+
+        // Live scrub preview: frames come from the engine's DVR segment
+        // cache (liveScrubThumbnail), not a FrameExtractor over the source
+        // URL (the live source is forward-only and FFmpeg has no network).
+        // Same settings toggle as VOD. Retune re-runs this; configureLive
+        // resets first, so that is idempotent.
+        let engine = player
+        scrubPreview.configureLive(enabled: preferences.showScrubPreview) { [weak engine] seconds, maxWidth in
+            await engine?.liveScrubThumbnail(atSessionSeconds: seconds, maxWidth: maxWidth)
+        }
     }
 
     /// Mirror the engine's live-edge publishers into @Observable fields for
@@ -171,6 +181,15 @@ extension PlayerViewModel {
             await player.seek(to: target)
             scheduleControlsHide()
         }
+    }
+
+    /// Feed the scrub preview during a live scrub: map the scrub fraction
+    /// across the DVR window to absolute session seconds (the same math
+    /// commitLiveScrub uses for the seek).
+    func updateLiveScrubPreview() {
+        guard let range = liveSeekableRange, range.upperBound > range.lowerBound else { return }
+        let span = range.upperBound - range.lowerBound
+        scrubPreview.update(targetSeconds: range.lowerBound + Double(scrubProgress) * span)
     }
 
     /// Entry point for the engine's `liveSourceReset` event: after a
