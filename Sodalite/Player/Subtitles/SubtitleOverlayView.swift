@@ -507,9 +507,20 @@ final class ASSFrameHostView: UIView {
         }
     }
 
-    /// Hide at the suppression deadline unless a frame arrived first.
+    /// Resolve a suppression window that ended without a new frame.
     /// Re-arms itself when a newer reload extended the deadline while
     /// the work item was already queued.
+    ///
+    /// The renderer does NOT republish after a reload whose re-render
+    /// is visually identical to what was on screen: libass change
+    /// detection reports "unchanged" and the pipeline skips the
+    /// publish, leaving the frame subject parked on the transient nil
+    /// (device evidence: show -> reload -> suppressed nil -> no frame
+    /// ever -> safety hide cutting an ACTIVE line). So at the
+    /// deadline, ask the track data directly: an event active at the
+    /// current offset means the on-screen image is still correct,
+    /// keep it and end suppression; no active event means the reload
+    /// coincided with a genuine cue end, hide.
     private func scheduleSafetyHide(after delay: TimeInterval) {
         let work = DispatchWorkItem { [weak self] in
             guard let self else { return }
@@ -517,15 +528,46 @@ final class ASSFrameHostView: UIView {
             let remaining = self.suppressNilDeadline.timeIntervalSinceNow
             if remaining > 0 {
                 self.scheduleSafetyHide(after: remaining)
+                return
+            }
+            let stillActive = !self.renderer.dialogues(at: self.renderer.currentOffset).isEmpty
+            if stillActive {
+                print("[ASSView] safety: cue still active, keeping frame (unchanged re-render)")
+                self.suppressNilDeadline = .distantPast
+                // The renderer's frame subject is parked on nil now, so
+                // the REAL cue end would publish nil-after-nil and the
+                // pipeline's duplicate filter swallows it: this frame
+                // would linger forever. Watch the track data for the
+                // end ourselves until the next published frame takes
+                // over.
+                self.scheduleEndWatch()
             } else {
                 if !self.imageView.isHidden {
-                    print("[ASSView] hide: safety deadline (reload coincided with cue end)")
+                    print("[ASSView] hide: safety deadline (no active cue)")
                 }
                 self.hideNow()
             }
         }
         hideWorkItem = work
         DispatchQueue.main.asyncAfter(deadline: .now() + delay, execute: work)
+    }
+
+    /// Poll the track data while holding a manually-kept frame; hide
+    /// the moment no event is active anymore. Cancelled by any freshly
+    /// published frame (handleFrameChanged cancels `hideWorkItem`).
+    private func scheduleEndWatch() {
+        let work = DispatchWorkItem { [weak self] in
+            guard let self else { return }
+            self.hideWorkItem = nil
+            if self.renderer.dialogues(at: self.renderer.currentOffset).isEmpty {
+                print("[ASSView] hide: end watch (held frame's cue ended)")
+                self.hideNow()
+            } else {
+                self.scheduleEndWatch()
+            }
+        }
+        hideWorkItem = work
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1, execute: work)
     }
 
     private func hideNow() {
