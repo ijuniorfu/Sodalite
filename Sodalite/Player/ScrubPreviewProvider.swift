@@ -48,6 +48,7 @@ final class ScrubPreviewProvider {
     /// Set up for a live playback session. Mutually exclusive with
     /// `configure(extractor:enabled:)`; `reset()` clears both.
     /// The closure is retained until the next reset(); capture the engine weakly.
+    /// Staleness: the engine's internal generation guard covers zaps DURING a call; the generation bump in reset() covers stale callers after teardown; the weak capture covers neither (the engine is a process-wide singleton).
     func configureLive(enabled: Bool, thumbnail: @escaping (Double, Int) async -> CGImage?) {
         reset()
         self.liveThumbnail = thumbnail

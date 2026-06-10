@@ -19,6 +19,13 @@ struct LiveTransportBar: View {
 
     var body: some View {
         VStack(spacing: 16) {
+            // Scrub preview: same frame card the VOD bar shows, fed from
+            // the engine's DVR cache. Nil image keeps the bar exactly as
+            // before (the bar already has its own position label).
+            if viewModel.isScrubbing, let preview = viewModel.scrubPreview.previewImage {
+                liveScrubPreviewArea(image: preview)
+            }
+
             // Position label (left) + return-to-live pill + LIVE badge (right).
             HStack(spacing: 16) {
                 Text(positionLabel)
@@ -78,6 +85,36 @@ struct LiveTransportBar: View {
                 Capsule()
                     .fill(viewModel.isAtLiveEdge ? AnyShapeStyle(.tint) : AnyShapeStyle(Color.white.opacity(0.12)))
             )
+    }
+
+    // MARK: - Scrub Preview
+
+    private static let scrubCardWidth: CGFloat = 320
+    private var scrubCardHeight: CGFloat { Self.scrubCardWidth * 9 / 16 }
+
+    /// Frame card tracking the scrub knob, mirroring TransportBar's
+    /// scrubPreviewArea (clamped so the card never leaves the bar).
+    private func liveScrubPreviewArea(image: CGImage) -> some View {
+        GeometryReader { geo in
+            let width = geo.size.width
+            let half = Self.scrubCardWidth / 2
+            let knobX = max(0, min(width, width * CGFloat(viewModel.scrubProgress)))
+            let clampedX = max(half, min(width - half, knobX))
+            Image(decorative: image, scale: 1.0)
+                .resizable()
+                .aspectRatio(16.0 / 9.0, contentMode: .fill)
+                .frame(width: Self.scrubCardWidth, height: scrubCardHeight)
+                .clipShape(RoundedRectangle(cornerRadius: 10))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 10)
+                        .strokeBorder(.white.opacity(0.18), lineWidth: 1)
+                )
+                .shadow(color: .black.opacity(0.5), radius: 12, y: 4)
+                .position(x: clampedX, y: scrubCardHeight / 2)
+        }
+        .frame(height: scrubCardHeight)
+        .padding(.bottom, 4)
+        .transition(.opacity)
     }
 
     // MARK: - Scrubber

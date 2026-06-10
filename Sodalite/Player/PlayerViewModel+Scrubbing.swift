@@ -32,12 +32,14 @@ extension PlayerViewModel {
             isScrubbing = true
             scrubStartProgress = progress
             showControls = true
-            // The scrub preview (engine FrameExtractor) is only configured
-            // on the VOD branch, so keep prewarm VOD-only. A live DVR
-            // preview is feasible later (the engine retains the window and
-            // FrameExtractor can sample it), but needs the extractor wired
-            // for live sessions and a preview slot in the live bar.
-            if !isLiveSession { scrubPreview.prewarm() }
+            // Seed the preview at scrub start so the card has a frame before
+            // the first movement. VOD warms the FrameExtractor; live fetches
+            // the first DVR-cache thumbnail via updateLiveScrubPreview.
+            if !isLiveSession {
+                scrubPreview.prewarm()
+            } else {
+                updateLiveScrubPreview()
+            }
         }
         // Always cancel any pending hide / auto-cancel timer, not just
         // on the first scrub() call. Slow touchpad swipes occasionally
@@ -52,8 +54,9 @@ extension PlayerViewModel {
         controlsTimer?.cancel()
 
         scrubProgress = max(0, min(1, scrubStartProgress + Float(delta) * 0.3))
-        // scrubTime / preview feed the VOD transport bar; the live bar draws
-        // its own position label from behindLiveSeconds, so skip both for live.
+        // scrubTime stays VOD-only: the live bar draws its own position label
+        // from behindLiveSeconds. The preview IS fed for live via
+        // updateLiveScrubPreview (DVR-cache thumbnails from the engine).
         if !isLiveSession {
             scrubTime = formatSeconds(Double(scrubProgress) * dur)
             scrubPreview.update(fraction: scrubProgress, durationSeconds: dur)
@@ -130,8 +133,12 @@ extension PlayerViewModel {
             scrubStartProgress = progress
             scrubProgress = progress
             showControls = true
-            // VOD-only preview (see scrub(delta:) for the FrameExtractor note).
-            if !isLiveSession { scrubPreview.prewarm() }
+            // Seed the preview at scrub start (mirrors scrub(delta:)).
+            if !isLiveSession {
+                scrubPreview.prewarm()
+            } else {
+                updateLiveScrubPreview()
+            }
         }
         controlsTimer?.cancel()
         continuousSeekTask?.cancel()
@@ -152,6 +159,8 @@ extension PlayerViewModel {
                 let rate = min(15 + held * 26, 240)
                 let deltaProgress = dir * Float(rate * tick / dur)
                 self.scrubProgress = max(0, min(1, self.scrubProgress + deltaProgress))
+                // scrubTime stays VOD-only; the preview IS fed for live
+                // via updateLiveScrubPreview (DVR-cache thumbnails).
                 if !self.isLiveSession {
                     self.scrubTime = self.formatSeconds(Double(self.scrubProgress) * dur)
                     self.scrubPreview.update(fraction: self.scrubProgress, durationSeconds: dur)

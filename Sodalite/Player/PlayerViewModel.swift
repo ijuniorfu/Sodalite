@@ -1142,8 +1142,9 @@ final class PlayerViewModel {
 
         let jumpProgress = Float(seconds / dur)
         scrubProgress = max(0, min(1, scrubProgress + jumpProgress))
-        // scrubTime / preview feed the VOD transport bar only; the live bar
-        // renders its own behind-live label, so skip both for live.
+        // scrubTime stays VOD-only: the live bar renders its own behind-live
+        // label. The preview IS fed for live via updateLiveScrubPreview
+        // (DVR-cache thumbnails from the engine).
         if !isLiveSession {
             scrubTime = formatSeconds(Double(scrubProgress) * dur)
             scrubPreview.update(fraction: scrubProgress, durationSeconds: dur)

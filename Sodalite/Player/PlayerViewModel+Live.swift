@@ -189,7 +189,10 @@ extension PlayerViewModel {
     func updateLiveScrubPreview() {
         guard let range = liveSeekableRange, range.upperBound > range.lowerBound else { return }
         let span = range.upperBound - range.lowerBound
-        scrubPreview.update(targetSeconds: range.lowerBound + Double(scrubProgress) * span)
+        // Mirror commitLiveScrub: >= 0.99 snaps to the live edge, so the
+        // preview shows the frame the commit would actually land on.
+        let p = scrubProgress >= 0.99 ? 1.0 : Double(scrubProgress)
+        scrubPreview.update(targetSeconds: range.lowerBound + p * span)
     }
 
     /// Entry point for the engine's `liveSourceReset` event: after a
