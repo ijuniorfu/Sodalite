@@ -31,7 +31,8 @@ extension PlayerViewModel {
         // "Infomercial"). Re-request those at a bounded encode cap, releasing
         // the tuner the first probe opened.
         if Self.liveNeedsVideoReencode(transcodeReasons: source.transcodeReasons,
-                                       transcodingURL: source.transcodingUrl) {
+                                       transcodingURL: source.transcodingUrl)
+            || Self.liveSourceVideoCodecUnknown(source) {
             let staleTuner = source.liveStreamId
             info = try await playbackService.getLivePlaybackInfo(
                 itemID: item.id, userID: userID,
@@ -242,6 +243,21 @@ extension PlayerViewModel {
     /// and the reasons embedded in the TranscodingUrl query: Jellyfin
     /// populates the field unreliably (empty for some channels even when the
     /// URL carries TranscodeReasons=...,VideoCodecNotSupported).
+    /// Whether the server's probe failed to identify the source's video
+    /// codec (no media streams, or a video stream without a codec).
+    /// Jellyfin cannot stream-copy what it could not identify, so for
+    /// these channels the high copy ceiling silently becomes a 200 Mbps
+    /// real-time ENCODE target, which the server answers with HTTP 500.
+    /// Route them through the bounded re-encode cap up front: ffmpeg's
+    /// own runtime probe is more patient than the PlaybackInfo scan and
+    /// may read the source fine. If it cannot, the channel is genuinely
+    /// dead server-side and no client request shape can revive it.
+    static func liveSourceVideoCodecUnknown(_ source: PlaybackMediaSource) -> Bool {
+        guard let video = source.mediaStreams?.first(where: { $0.type == .video })
+        else { return true }
+        return (video.codec ?? "").isEmpty
+    }
+
     static func liveNeedsVideoReencode(transcodeReasons: [String]?, transcodingURL: String?) -> Bool {
         if (transcodeReasons ?? []).contains("VideoCodecNotSupported") { return true }
         guard let t = transcodingURL,
