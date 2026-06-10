@@ -128,6 +128,16 @@ struct HomeRowConfig: Codable, Sendable, Identifiable, Equatable {
     /// asks for.
     var collectionType: String?
 
+    /// Icon for the customize list. `.libraryLatest` rows pick it from
+    /// the library's collectionType; the type-level fallback ("film")
+    /// would slap a movies icon onto TV libraries (Sodalite#15).
+    var systemImage: String {
+        if type == .libraryLatest, collectionType == "tvshows" {
+            return "tv"
+        }
+        return type.systemImage
+    }
+
     /// `.libraryLatest` rows share the same enum rawValue, so identity
     /// has to fold in the libraryID to stay unique and stable.
     var id: String {

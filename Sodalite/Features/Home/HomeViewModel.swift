@@ -606,6 +606,48 @@ final class HomeViewModel {
         }
     }
 
+    /// /Items/Latest with GroupItems (the server default) returns the
+    /// bare Episode object when a series gained exactly one new
+    /// episode; only multi-episode batches come back folded into their
+    /// Series. The web client papers over this by rendering such
+    /// episodes with the series poster and linking to the series.
+    /// Sodalite's Latest rows are series-level, so replace each
+    /// episode with its parent series (one batched Ids lookup) and
+    /// dedupe in case the series is already in the row. On any lookup
+    /// failure the row falls back to the unfolded items rather than
+    /// going empty.
+    private func foldEpisodesIntoSeries(_ items: [JellyfinItem]) async -> [JellyfinItem] {
+        let seriesIDs = items.compactMap { $0.type == .episode ? $0.seriesId : nil }
+        guard !seriesIDs.isEmpty else { return items }
+
+        let query = ItemQuery(
+            ids: Array(Set(seriesIDs)),
+            fields: JellyfinEndpoint.homeRowFields
+        )
+        guard let response = try? await libraryService.getItems(userID: userID, query: query) else {
+            return items
+        }
+        let seriesByID = Dictionary(
+            response.items.map { ($0.id, $0) },
+            uniquingKeysWith: { first, _ in first }
+        )
+
+        var seen = Set<String>()
+        var folded: [JellyfinItem] = []
+        for item in items {
+            let mapped: JellyfinItem
+            if item.type == .episode, let seriesID = item.seriesId, let series = seriesByID[seriesID] {
+                mapped = series
+            } else {
+                mapped = item
+            }
+            if seen.insert(mapped.id).inserted {
+                folded.append(mapped)
+            }
+        }
+        return folded
+    }
+
     private func loadRow(config: HomeRowConfig) async -> HomeRowData? {
         do {
             let type = config.type
@@ -638,14 +680,22 @@ final class HomeViewModel {
 
             case .latestShows:
                 // Same treatment as latestMovies, /Items/Latest
-                // across every accessible library, typed down to
-                // Series so we don't get movies/music mixed in.
-                items = try await libraryService.getLatestMedia(
+                // across every accessible library. Episode must be
+                // in the type filter alongside Series: the filter
+                // applies *before* GroupItems folds episodes into
+                // their series, so Series alone only matches shows
+                // whose own DateCreated is fresh. A server that only
+                // ever gains new episodes of existing shows returned
+                // an empty row (Sodalite#15, DrHurt's CDN server).
+                // Singleton episodes that survive grouping are folded
+                // into their series below, same as libraryLatest.
+                let latest = try await libraryService.getLatestMedia(
                     userID: userID,
                     parentID: nil,
-                    includeItemTypes: [.series],
+                    includeItemTypes: [.series, .episode],
                     limit: 16
                 )
+                items = await foldEpisodesIntoSeries(latest)
 
             case .allMovies:
                 let query = ItemQuery(
@@ -745,12 +795,13 @@ final class HomeViewModel {
                 // drop ParentId) is not just unnecessary here, it's the
                 // bug.
                 guard let libraryID = config.libraryID else { return nil }
-                items = try await libraryService.getLatestMedia(
+                let latest = try await libraryService.getLatestMedia(
                     userID: userID,
                     parentID: libraryID,
                     includeItemTypes: nil,
                     limit: 16
                 )
+                items = await foldEpisodesIntoSeries(latest)
 
             case .myMedia, .genres, .discoverProviders:
                 return nil

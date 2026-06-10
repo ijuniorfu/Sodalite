@@ -105,7 +105,7 @@ struct HomeCustomizeView: View {
                                     .foregroundStyle(.tertiary)
                                     .frame(width: 24)
 
-                                Image(systemName: config.type.systemImage)
+                                Image(systemName: config.systemImage)
                                     .font(.title3)
                                     .frame(width: 44)
                                     .foregroundStyle(.tint)
@@ -173,7 +173,7 @@ struct HomeCustomizeView: View {
                         HStack(spacing: 20) {
                             Spacer().frame(width: 24) // align with position number
 
-                            Image(systemName: config.type.systemImage)
+                            Image(systemName: config.systemImage)
                                 .font(.title3)
                                 .frame(width: 44)
                                 .foregroundStyle(.tertiary)

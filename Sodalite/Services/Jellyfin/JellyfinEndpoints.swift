@@ -481,6 +481,10 @@ enum JellyfinEndpoint: APIEndpoint {
 
 struct ItemQuery: Sendable {
     var parentID: String?
+    /// Exact item-id lookup (`Ids=` on /Items). Used to batch-resolve
+    /// parent series for episode entries that /Items/Latest returns
+    /// ungrouped (series with exactly one fresh episode).
+    var ids: [String]?
     var includeItemTypes: [ItemType]?
     var sortBy: String?
     var sortOrder: String?
@@ -502,6 +506,9 @@ struct ItemQuery: Sendable {
         var items: [URLQueryItem] = []
 
         if let parentID { items.append(URLQueryItem(name: "ParentId", value: parentID)) }
+        if let ids {
+            items.append(URLQueryItem(name: "Ids", value: ids.joined(separator: ",")))
+        }
         if let types = includeItemTypes {
             items.append(URLQueryItem(name: "IncludeItemTypes", value: types.map(\.rawValue).joined(separator: ",")))
         }
