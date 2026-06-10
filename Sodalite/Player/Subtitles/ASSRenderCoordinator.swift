@@ -16,10 +16,18 @@ import SwiftAssRenderer
 @MainActor
 final class ASSRenderCoordinator {
 
-    /// The renderer the overlay's `AssSubtitlesView` binds to.
-    /// Non-nil exactly while an ASS track is active AND the renderer
-    /// initialized; the overlay falls back to the text path otherwise.
+    /// The renderer the overlay's frame view binds to. Non-nil exactly
+    /// while an ASS track is active AND the renderer initialized; the
+    /// overlay falls back to the text path otherwise.
     private(set) var renderer: AssSubtitlesRenderer?
+
+    /// Fires immediately BEFORE every `reloadTrack`. The overlay's
+    /// frame view uses this to suppress the transient nil frame the
+    /// renderer publishes while it frees and re-parses the track
+    /// (deterministic, unlike a pure time-based grace window, which
+    /// loses the race when the re-parse plus font matching runs long
+    /// and the visible subtitle blinks out mid-line).
+    let reloadSignal = PassthroughSubject<Void, Never>()
 
     private let player: AetherEngine
     private var builder: ASSScriptBuilder?
@@ -146,6 +154,7 @@ final class ASSRenderCoordinator {
         lastReloadAt = now
         pendingEvents = false
         earliestPendingStart = .infinity
+        reloadSignal.send()
         renderer.reloadTrack(content: builder.script())
     }
 

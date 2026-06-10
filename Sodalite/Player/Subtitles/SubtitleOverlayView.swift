@@ -67,6 +67,9 @@ struct SubtitleOverlayView: View {
     /// track is active AND swift-ass-renderer initialized. When set,
     /// the package's view replaces the cue rendering below entirely.
     let assRenderer: AssSubtitlesRenderer?
+    /// Reload pre-announcements from the ASS coordinator (see
+    /// `ASSFrameHostView`'s nil suppression).
+    let assReloadSignal: PassthroughSubject<Void, Never>
     /// Codec of the active subtitle stream, lowercased ("ass" / "ssa" /
     /// "subrip" / ...). Drives the raw-event-line stripper for the
     /// fallback case where an ASS track is active but the styled
@@ -85,7 +88,7 @@ struct SubtitleOverlayView: View {
             // same full-bleed rect the cue overlay uses. No user
             // styling / offset / position preferences here, the track
             // author's layout is absolute.
-            ASSRenderedSubtitles(renderer: assRenderer)
+            ASSRenderedSubtitles(renderer: assRenderer, reloadSignal: assReloadSignal)
                 .allowsHitTesting(false)
         } else {
             cueOverlay
@@ -381,21 +384,24 @@ struct SubtitleOverlayView: View {
 /// Hosts the styled ASS frame stream. Functionally a clone of
 /// swift-ass-renderer's `AssSubtitlesView` (canvas sized in
 /// layoutSubviews, frames drawn into an image view at
-/// `ProcessedImage.imageRect`), with ONE behavioral difference: a nil
-/// frame is held back for a short grace period before the image view
-/// hides. The renderer's `reloadTrack` (the coordinator's batched
-/// append path) frees the track and publishes a transient nil before
-/// the identical re-render lands a few ms later; the upstream view
-/// hides immediately on nil, which made every visible subtitle blink
-/// at each reload (field repro: subtitles flickering after the
-/// imminent-flush change increased reload cadence). A genuine cue end
-/// lingers at most the grace period, which is far below perception
-/// for 1-5 s dialogue lines.
+/// `ProcessedImage.imageRect`), with ONE behavioral difference: nil
+/// frames caused by the coordinator's `reloadTrack` are suppressed.
+/// The renderer frees the track and publishes a transient nil before
+/// the identical re-render lands; the upstream view hides immediately
+/// on nil, which made every visible subtitle blink at each batched
+/// reload. The coordinator pre-announces each reload via
+/// `reloadSignal`, so suppression is deterministic: after a signal,
+/// nil frames keep the last image until the next rendered frame
+/// arrives (or a safety timeout elapses, covering the corner where a
+/// reload coincides with a genuine cue end and the re-render's nil is
+/// swallowed by the publisher's duplicate filter). A plain nil with
+/// no announced reload is a real cue end and hides instantly.
 private struct ASSRenderedSubtitles: UIViewRepresentable {
     let renderer: AssSubtitlesRenderer
+    let reloadSignal: PassthroughSubject<Void, Never>
 
     func makeUIView(context: Context) -> ASSFrameHostView {
-        ASSFrameHostView(renderer: renderer)
+        ASSFrameHostView(renderer: renderer, reloadSignal: reloadSignal)
     }
 
     func updateUIView(_ view: ASSFrameHostView, context: Context) {}
@@ -407,18 +413,32 @@ final class ASSFrameHostView: UIView {
     private let imageView = UIImageView()
     private var lastRenderBounds = CGRect.zero
     private var cancellables = Set<AnyCancellable>()
-    /// Pending hide from a nil frame; cancelled when a real frame
-    /// arrives within the grace window.
+    /// Suppress nil frames until this deadline (armed by each reload
+    /// signal). `.distantPast` = no suppression.
+    private var suppressNilDeadline = Date.distantPast
+    /// Deferred hide scheduled while suppression is active, so a
+    /// swallowed real cue end still hides at the deadline.
     private var hideWorkItem: DispatchWorkItem?
-    private static let nilFrameGrace: TimeInterval = 0.25
+    /// Upper bound for one reload round-trip (parse + first-use font
+    /// matching + render). Generous; typical is tens of ms.
+    private static let reloadSuppressWindow: TimeInterval = 0.5
 
-    init(renderer: AssSubtitlesRenderer) {
+    init(renderer: AssSubtitlesRenderer, reloadSignal: PassthroughSubject<Void, Never>) {
         self.renderer = renderer
         self.canvasScale = UITraitCollection.current.displayScale
         super.init(frame: .zero)
         backgroundColor = .clear
         isUserInteractionEnabled = false
         addSubview(imageView)
+        // No receive(on:): the coordinator sends on the main actor
+        // right BEFORE calling reloadTrack, and synchronous delivery
+        // guarantees the suppression is armed before the renderer's
+        // transient nil can possibly arrive.
+        reloadSignal
+            .sink { [weak self] in
+                self?.suppressNilDeadline = Date().addingTimeInterval(Self.reloadSuppressWindow)
+            }
+            .store(in: &cancellables)
         renderer
             .framesPublisher()
             .receive(on: DispatchQueue.main)
@@ -450,23 +470,49 @@ final class ASSFrameHostView: UIView {
         if let image {
             hideWorkItem?.cancel()
             hideWorkItem = nil
+            suppressNilDeadline = .distantPast
             lastRenderBounds = bounds
             imageView.frame = image.imageRect
             imageView.image = UIImage(cgImage: image.image)
             imageView.isHidden = false
         } else {
-            // Hold the last frame through reload-induced transient
-            // nils; only a nil that persists past the grace window is
-            // a real cue end.
-            guard hideWorkItem == nil else { return }
-            let work = DispatchWorkItem { [weak self] in
-                guard let self else { return }
-                self.imageView.isHidden = true
-                self.imageView.image = nil
-                self.hideWorkItem = nil
+            let remaining = suppressNilDeadline.timeIntervalSinceNow
+            guard remaining > 0 else {
+                // Real cue end (no reload announced): hide instantly.
+                hideWorkItem?.cancel()
+                hideWorkItem = nil
+                hideNow()
+                return
             }
-            hideWorkItem = work
-            DispatchQueue.main.asyncAfter(deadline: .now() + Self.nilFrameGrace, execute: work)
+            // Reload in flight: keep the last image; arm the safety
+            // hide at the deadline in case no frame follows (reload
+            // coinciding with a real cue end).
+            guard hideWorkItem == nil else { return }
+            scheduleSafetyHide(after: remaining)
         }
+    }
+
+    /// Hide at the suppression deadline unless a frame arrived first.
+    /// Re-arms itself when a newer reload extended the deadline while
+    /// the work item was already queued.
+    private func scheduleSafetyHide(after delay: TimeInterval) {
+        let work = DispatchWorkItem { [weak self] in
+            guard let self else { return }
+            self.hideWorkItem = nil
+            let remaining = self.suppressNilDeadline.timeIntervalSinceNow
+            if remaining > 0 {
+                self.scheduleSafetyHide(after: remaining)
+            } else {
+                self.hideNow()
+            }
+        }
+        hideWorkItem = work
+        DispatchQueue.main.asyncAfter(deadline: .now() + delay, execute: work)
+    }
+
+    private func hideNow() {
+        imageView.isHidden = true
+        imageView.image = nil
+        suppressNilDeadline = .distantPast
     }
 }

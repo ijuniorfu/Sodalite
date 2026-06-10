@@ -321,6 +321,11 @@ final class PlayerViewModel {
     /// between the styled ASS layer and the cue path reactively
     /// (the coordinator itself is not @Observable).
     private(set) var assRenderer: AssSubtitlesRenderer?
+    /// Reload pre-announcements from the coordinator; the overlay's
+    /// frame view subscribes so reload-induced transient nil frames
+    /// never blank a visible subtitle. Stable for the VM's lifetime
+    /// (the coordinator is created once, lazily).
+    var assReloadSignal: PassthroughSubject<Void, Never> { assCoordinator.reloadSignal }
 
     // MARK: - Live TV
 

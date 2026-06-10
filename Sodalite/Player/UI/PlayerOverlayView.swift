@@ -31,6 +31,7 @@ struct PlayerOverlayView: View {
                     weight: viewModel.preferences.subtitleWeight,
                     controlsVisible: viewModel.showControls,
                     assRenderer: viewModel.assRenderer,
+                    assReloadSignal: viewModel.assReloadSignal,
                     activeSubtitleCodec: viewModel.activeSubtitleCodec
                 )
             }
