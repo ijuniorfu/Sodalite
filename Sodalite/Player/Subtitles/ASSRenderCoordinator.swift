@@ -60,10 +60,18 @@ final class ASSRenderCoordinator {
             .store(in: &cancellables)
 
         // Clock sink: cue times and sourceTime share the source-PTS
-        // coordinate, no conversion.
+        // coordinate, no conversion. Doubles as the trailing-batch
+        // flush: the cue sink only runs on cue-array emissions, so a
+        // batch that lands inside the reload window with no later
+        // emission (movie tail at EOF) would otherwise never reach
+        // the renderer.
         player.clock.$sourceTime
             .receive(on: DispatchQueue.main)
-            .sink { [weak self] t in self?.renderer?.setTimeOffset(t) }
+            .sink { [weak self] t in
+                guard let self else { return }
+                self.renderer?.setTimeOffset(t)
+                self.flushPendingEventsIfDue()
+            }
             .store(in: &cancellables)
     }
 
@@ -86,21 +94,36 @@ final class ASSRenderCoordinator {
             }
         }
         if addedAny { pendingEvents = true }
-        guard pendingEvents else { return }
+        flushPendingEventsIfDue()
+    }
+
+    /// Reload the renderer's track when new events are waiting and the
+    /// batch window has elapsed. Called from both the cue sink (new
+    /// events) and the clock sink (trailing-batch flush).
+    ///
+    /// `lastReloadAt` starts at `.distantPast`, so the first batch
+    /// always passes the interval check immediately (the elapsed
+    /// interval from distantPast is astronomically large).
+    private func flushPendingEventsIfDue() {
+        guard pendingEvents, let builder, let renderer else { return }
         let now = Date()
-        if now.timeIntervalSince(lastReloadAt) >= reloadInterval || lastReloadAt == .distantPast {
-            lastReloadAt = now
-            pendingEvents = false
-            renderer?.reloadTrack(content: builder.script())
-        }
+        guard now.timeIntervalSince(lastReloadAt) >= reloadInterval else { return }
+        lastReloadAt = now
+        pendingEvents = false
+        renderer.reloadTrack(content: builder.script())
     }
 
     // MARK: - Fonts
 
     private static func fontsDirectory(itemID: String) -> URL {
+        // Use only the last path component of the server-supplied itemID
+        // so a hostile value can't escape the cache directory, mirroring
+        // the same treatment applied to font filenames in writeFontAttachments.
+        let safeID = (itemID as NSString).lastPathComponent
+        let dirName = safeID.isEmpty ? "item" : safeID
         let base = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)[0]
             .appendingPathComponent("ass-fonts", isDirectory: true)
-            .appendingPathComponent(itemID, isDirectory: true)
+            .appendingPathComponent(dirName, isDirectory: true)
         try? FileManager.default.createDirectory(at: base, withIntermediateDirectories: true)
         return base
     }

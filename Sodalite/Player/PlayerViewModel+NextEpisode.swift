@@ -180,6 +180,11 @@ extension PlayerViewModel {
         subtitleStreams = []
         activeSubtitleIndex = nil
         activeAudioIndex = nil
+        // This path bypasses teardown() for AVPlayer reuse (issue #15);
+        // deactivate the ASS coordinator explicitly so the previous
+        // episode's rendered script doesn't play over the next episode.
+        deactivateASSRendering()
+        activeSubtitleCodec = nil
         nextEpisode = nil
         hasFetchedNextEpisode = false
         nextEpisodeCancelled = false
@@ -308,6 +313,11 @@ extension PlayerViewModel {
         subtitleStreams = []
         activeSubtitleIndex = nil
         activeAudioIndex = nil
+        // This path bypasses teardown() for AVPlayer reuse (issue #15);
+        // deactivate the ASS coordinator explicitly so the previous
+        // episode's rendered script doesn't play over the next episode.
+        deactivateASSRendering()
+        activeSubtitleCodec = nil
         nextEpisode = nil
         hasFetchedNextEpisode = false
         nextEpisodeCancelled = false

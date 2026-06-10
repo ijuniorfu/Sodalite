@@ -1664,8 +1664,10 @@ final class PlayerViewModel {
     }
 
     /// Tear down the styled ASS bridge and clear its observable
-    /// mirror. Safe to call when already inactive.
-    private func deactivateASSRendering() {
+    /// mirror. Safe to call when already inactive. Internal so the
+    /// NextEpisode extension (cross-file) can call it on the bypass-
+    /// teardown episode transition paths.
+    func deactivateASSRendering() {
         assCoordinator.deactivate()
         assRenderer = nil
     }

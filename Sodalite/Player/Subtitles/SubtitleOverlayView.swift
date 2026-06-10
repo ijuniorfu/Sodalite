@@ -134,8 +134,11 @@ struct SubtitleOverlayView: View {
         var lines: [String] = []
         for line in raw.split(separator: "\n") {
             // ReadOrder,Layer,Style,Name,MarginL,MarginR,MarginV,Effect,Text
+            // Require an integer ReadOrder in the first field so clean
+            // sidecar text with 8+ commas isn't falsely treated as a
+            // raw event line and truncated.
             let fields = line.split(separator: ",", maxSplits: 8, omittingEmptySubsequences: false)
-            guard fields.count == 9 else { lines.append(String(line)); continue }
+            guard fields.count == 9, Int(fields[0]) != nil else { lines.append(String(line)); continue }
             var text = String(fields[8])
             text = text.replacingOccurrences(of: "\\N", with: "\n")
             text = text.replacingOccurrences(of: "\\n", with: "\n")
