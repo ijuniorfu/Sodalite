@@ -50,6 +50,13 @@ final class ASSRenderCoordinator {
     /// A pending event starting inside this lead always flushes
     /// immediately.
     private let imminentLeadSeconds: Double = 10
+    /// Even imminent flushes keep a small spacing so the post-seek
+    /// catch-up burst (events arriving per emission over ~1-2 s)
+    /// coalesces into a handful of reloads instead of one per cue.
+    /// Each reload makes the renderer republish its frame; the
+    /// overlay's grace window hides that, but there is no reason to
+    /// churn libass parses per cue either.
+    private let minImminentSpacing: TimeInterval = 0.25
 
     init(player: AetherEngine) {
         self.player = player
@@ -131,9 +138,11 @@ final class ASSRenderCoordinator {
     /// interval from distantPast is astronomically large).
     private func flushPendingEventsIfDue() {
         guard pendingEvents, let builder, let renderer else { return }
-        let imminent = earliestPendingStart <= lastOffset + imminentLeadSeconds
         let now = Date()
-        guard imminent || now.timeIntervalSince(lastReloadAt) >= reloadInterval else { return }
+        let elapsed = now.timeIntervalSince(lastReloadAt)
+        let imminent = earliestPendingStart <= lastOffset + imminentLeadSeconds
+        let due = imminent ? elapsed >= minImminentSpacing : elapsed >= reloadInterval
+        guard due else { return }
         lastReloadAt = now
         pendingEvents = false
         earliestPendingStart = .infinity

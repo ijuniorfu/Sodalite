@@ -1,4 +1,5 @@
 import SwiftUI
+import Combine
 import AetherEngine
 import SwiftAssRenderer
 
@@ -377,14 +378,95 @@ struct SubtitleOverlayView: View {
 
 // MARK: - Styled ASS host
 
-/// Hosts swift-ass-renderer's AssSubtitlesView (it sizes its canvas
-/// and draws rendered frames itself; we only pin it full-bleed).
+/// Hosts the styled ASS frame stream. Functionally a clone of
+/// swift-ass-renderer's `AssSubtitlesView` (canvas sized in
+/// layoutSubviews, frames drawn into an image view at
+/// `ProcessedImage.imageRect`), with ONE behavioral difference: a nil
+/// frame is held back for a short grace period before the image view
+/// hides. The renderer's `reloadTrack` (the coordinator's batched
+/// append path) frees the track and publishes a transient nil before
+/// the identical re-render lands a few ms later; the upstream view
+/// hides immediately on nil, which made every visible subtitle blink
+/// at each reload (field repro: subtitles flickering after the
+/// imminent-flush change increased reload cadence). A genuine cue end
+/// lingers at most the grace period, which is far below perception
+/// for 1-5 s dialogue lines.
 private struct ASSRenderedSubtitles: UIViewRepresentable {
     let renderer: AssSubtitlesRenderer
 
-    func makeUIView(context: Context) -> AssSubtitlesView {
-        AssSubtitlesView(renderer: renderer)
+    func makeUIView(context: Context) -> ASSFrameHostView {
+        ASSFrameHostView(renderer: renderer)
     }
 
-    func updateUIView(_ view: AssSubtitlesView, context: Context) {}
+    func updateUIView(_ view: ASSFrameHostView, context: Context) {}
+}
+
+final class ASSFrameHostView: UIView {
+    private let renderer: AssSubtitlesRenderer
+    private let canvasScale: CGFloat
+    private let imageView = UIImageView()
+    private var lastRenderBounds = CGRect.zero
+    private var cancellables = Set<AnyCancellable>()
+    /// Pending hide from a nil frame; cancelled when a real frame
+    /// arrives within the grace window.
+    private var hideWorkItem: DispatchWorkItem?
+    private static let nilFrameGrace: TimeInterval = 0.25
+
+    init(renderer: AssSubtitlesRenderer) {
+        self.renderer = renderer
+        self.canvasScale = UITraitCollection.current.displayScale
+        super.init(frame: .zero)
+        backgroundColor = .clear
+        isUserInteractionEnabled = false
+        addSubview(imageView)
+        renderer
+            .framesPublisher()
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] in self?.handleFrameChanged($0) }
+            .store(in: &cancellables)
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) not supported")
+    }
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        // Rescale the live image to the new bounds (mirrors upstream),
+        // then update the renderer canvas.
+        if !lastRenderBounds.isEmpty, !bounds.isEmpty, imageView.image != nil {
+            let ratioX = bounds.width / lastRenderBounds.width
+            let ratioY = bounds.height / lastRenderBounds.height
+            let f = imageView.frame
+            imageView.frame = CGRect(
+                x: f.origin.x * ratioX, y: f.origin.y * ratioY,
+                width: f.width * ratioX, height: f.height * ratioY
+            ).integral
+        }
+        renderer.setCanvasSize(bounds.size, scale: canvasScale)
+    }
+
+    private func handleFrameChanged(_ image: ProcessedImage?) {
+        if let image {
+            hideWorkItem?.cancel()
+            hideWorkItem = nil
+            lastRenderBounds = bounds
+            imageView.frame = image.imageRect
+            imageView.image = UIImage(cgImage: image.image)
+            imageView.isHidden = false
+        } else {
+            // Hold the last frame through reload-induced transient
+            // nils; only a nil that persists past the grace window is
+            // a real cue end.
+            guard hideWorkItem == nil else { return }
+            let work = DispatchWorkItem { [weak self] in
+                guard let self else { return }
+                self.imageView.isHidden = true
+                self.imageView.image = nil
+                self.hideWorkItem = nil
+            }
+            hideWorkItem = work
+            DispatchQueue.main.asyncAfter(deadline: .now() + Self.nilFrameGrace, execute: work)
+        }
+    }
 }
