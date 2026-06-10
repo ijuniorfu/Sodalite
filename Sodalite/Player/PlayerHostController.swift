@@ -120,6 +120,14 @@ final class PlayerHostController: AVPlayerViewController {
     /// a detached layer; for the audio-before-video gap only THIS
     /// layer's first-frame readiness is authoritative.
     private var avkitLayerObservation: NSKeyValueObservation?
+    /// 1 Hz startup sampler for the audio-before-video diagnosis. KiKA HD
+    /// device log showed isReadyForDisplay=true seconds BEFORE audio
+    /// start, yet the user saw 5-6s of sound on black, so readiness alone
+    /// does not prove composition. The sampler logs the layer identity
+    /// (AVKit may swap its internal layer on a player rebind), videoRect
+    /// (zero until video is actually being presented), and the player
+    /// clock, for the first 30s of each rebind.
+    private var avkitLayerSampler: Task<Void, Never>?
     private let pixelBufferRenderContext = CIContext(options: nil)
 
     /// True only between `didEnterBackground` and the next
@@ -294,6 +302,8 @@ final class PlayerHostController: AVPlayerViewController {
                     self.detachVideoOutput()
                     self.avkitLayerObservation?.invalidate()
                     self.avkitLayerObservation = nil
+                    self.avkitLayerSampler?.cancel()
+                    self.avkitLayerSampler = nil
                 }
             }
             .store(in: &engineSubscriptions)
@@ -525,6 +535,29 @@ final class PlayerHostController: AVPlayerViewController {
             LogTap.shared.note(
                 "[AVKitLayer] isReadyForDisplay=\(change.newValue ?? layer.isReadyForDisplay) t+\(String(format: "%.2f", elapsed))s after attach"
             )
+        }
+
+        avkitLayerSampler?.cancel()
+        avkitLayerSampler = Task { @MainActor [weak self] in
+            for _ in 0..<30 {
+                try? await Task.sleep(nanoseconds: 1_000_000_000)
+                guard let self, !Task.isCancelled, self.player === avPlayer else { return }
+                let stamp = String(format: "%.0f", Date().timeIntervalSince(attachedAt))
+                // Re-find each tick: AVKit may have swapped its internal
+                // layer; the identity in the log exposes that.
+                guard let root = self.viewIfLoaded?.layer,
+                      let current = findLayer(root) else {
+                    LogTap.shared.note("[AVKitLayer] sample t+\(stamp)s: layer GONE")
+                    continue
+                }
+                let r = current.videoRect
+                let t = avPlayer.currentTime().seconds
+                LogTap.shared.note(
+                    "[AVKitLayer] sample t+\(stamp)s layer=\(String(UInt(bitPattern: ObjectIdentifier(current).hashValue), radix: 16)) "
+                    + "ready=\(current.isReadyForDisplay) videoRect=\(Int(r.width))x\(Int(r.height)) "
+                    + "clock=\(String(format: "%.2f", t.isFinite ? t : -1)) tcs=\(avPlayer.timeControlStatus.rawValue)"
+                )
+            }
         }
     }
 
