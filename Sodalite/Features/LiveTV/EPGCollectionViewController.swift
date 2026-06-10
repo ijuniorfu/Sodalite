@@ -190,6 +190,86 @@ final class EPGCollectionViewController: UIViewController,
         timeHeaderScroll.contentOffset.x = gridView.contentOffset.x
     }
 
+    // MARK: - Focus column anchoring (vertical moves keep the time column)
+
+    /// The horizontal (timeline) position the user is navigating at,
+    /// updated on horizontal focus moves and kept across vertical ones.
+    /// Without it the focus engine picks the next row's cell nearest to
+    /// the CURRENT cell's center, and a wide cell (a 3h program, or the
+    /// full-width "no program info" placeholder spanning 24h) teleports
+    /// focus hours to the right, dragging the grid's scroll along.
+    private var focusAnchorX: CGFloat?
+    /// One-shot redirect target served via
+    /// `indexPathForPreferredFocusedView` after a vertical move was
+    /// vetoed in `shouldUpdateFocusIn`.
+    private var pendingFocusRedirect: IndexPath?
+
+    func collectionView(_ collectionView: UICollectionView,
+                        shouldUpdateFocusIn context: UICollectionViewFocusUpdateContext) -> Bool {
+        guard collectionView === gridView,
+              pendingFocusRedirect == nil,
+              let next = context.nextFocusedIndexPath,
+              let prev = context.previouslyFocusedIndexPath,
+              next.section != prev.section,
+              context.focusHeading.contains(.up) || context.focusHeading.contains(.down),
+              let anchorX = focusAnchorX
+        else { return true }
+        let desired = itemIndex(nearestToX: anchorX, inSection: next.section)
+        guard desired != next.item else { return true }
+        // Veto the engine's pick and re-run the update; the preferred-
+        // focus hook below serves the column-anchored target instead.
+        pendingFocusRedirect = IndexPath(item: desired, section: next.section)
+        DispatchQueue.main.async { [weak self] in
+            guard let self, self.pendingFocusRedirect != nil else { return }
+            self.gridView.setNeedsFocusUpdate()
+            self.gridView.updateFocusIfNeeded()
+        }
+        return false
+    }
+
+    func indexPathForPreferredFocusedView(in collectionView: UICollectionView) -> IndexPath? {
+        collectionView === gridView ? pendingFocusRedirect : nil
+    }
+
+    func collectionView(_ collectionView: UICollectionView,
+                        didUpdateFocusIn context: UICollectionViewFocusUpdateContext,
+                        with coordinator: UIFocusAnimationCoordinator) {
+        guard collectionView === gridView else { return }
+        let wasRedirect = pendingFocusRedirect != nil
+        pendingFocusRedirect = nil
+        guard let indexPath = context.nextFocusedIndexPath else { return }
+        let vertical = context.focusHeading.contains(.up) || context.focusHeading.contains(.down)
+        // Keep the anchor across vertical moves (including the redirected
+        // ones, whose programmatic heading is not directional); re-anchor
+        // on horizontal moves and on first focus, using the midpoint of
+        // the cell's VISIBLE span so a wide cell anchors where the user
+        // is actually looking, not at its possibly far-offscreen center.
+        guard focusAnchorX == nil || (!vertical && !wasRedirect) else { return }
+        let (x, w) = epgProgramXWidth(section: indexPath.section, item: indexPath.item)
+        let visMin = max(x, gridView.contentOffset.x)
+        let visMax = min(x + w, gridView.contentOffset.x + gridView.bounds.width)
+        focusAnchorX = visMax > visMin ? (visMin + visMax) / 2 : x + w / 2
+    }
+
+    /// Item in `section` whose horizontal span contains `x`, or the one
+    /// nearest to it (rows can have gaps between programs).
+    private func itemIndex(nearestToX x: CGFloat, inSection section: Int) -> Int {
+        let row = rows[section]
+        guard !row.programs.isEmpty else { return 0 }
+        var best = 0
+        var bestDistance = CGFloat.greatestFiniteMagnitude
+        for i in 0..<row.programs.count {
+            let (cx, cw) = epgProgramXWidth(section: section, item: i)
+            if x >= cx && x < cx + cw { return i }
+            let distance = x < cx ? cx - x : x - (cx + cw)
+            if distance < bestDistance {
+                bestDistance = distance
+                best = i
+            }
+        }
+        return best
+    }
+
     // MARK: - Model observation
 
     private func startObserving() {
