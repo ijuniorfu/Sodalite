@@ -689,6 +689,14 @@ final class PlayerViewModel {
             // series leaves the list empty and the picker stays hidden.
             Task { [weak self] in await self?.loadSeasonEpisodes() }
 
+        } catch is CancellationError {
+            // The engine signals a SUPERSEDED load this way: a newer
+            // load/stop took over the singleton engine mid-flight (rapid
+            // channel zap, player dismissed during spin-up). The
+            // successor owns the engine and its UI; showing an error
+            // here would clobber it. Still release any tuner THIS load
+            // opened.
+            releaseLiveTunerIfNeeded()
         } catch {
             // If a live load opened the tuner before failing, release it.
             // No-op for VOD (activeLiveStreamID is nil).
