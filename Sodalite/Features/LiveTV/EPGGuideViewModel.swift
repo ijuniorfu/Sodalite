@@ -25,6 +25,17 @@ final class EPGGuideViewModel {
     /// fresh load; the star marker tracks this set live.
     private(set) var favoriteChannelIDs: Set<String> = []
 
+    /// Timer-state overlay: programID -> (timerId, seriesTimerId). Seeded
+    /// from fetched programs, updated optimistically on record toggles so
+    /// the grid dot and a reopened popover agree without refetching the
+    /// guide. A nil tuple member means "no such timer".
+    private(set) var timerState: [String: (timerId: String?, seriesTimerId: String?)] = [:]
+    /// Bumped on every timerState change; the collection VC observes this
+    /// (an Observable dictionary of tuples is not diffable cheaply).
+    private(set) var timerStateVersion = 0
+    /// Transient record-toggle error for the guide's alert.
+    var recordingError: String?
+
     /// Guide axis start: floored to the previous half hour from now.
     let axisStart: Date
     /// Guide axis end.
@@ -112,6 +123,16 @@ final class EPGGuideViewModel {
         favoriteChannelIDs.contains(channelID)
     }
 
+    // MARK: - Timer state accessors
+
+    func hasTimer(programID: String) -> Bool {
+        let state = timerState[programID]
+        return state?.timerId != nil || state?.seriesTimerId != nil
+    }
+
+    func timerID(programID: String) -> String? { timerState[programID]?.timerId }
+    func seriesTimerID(programID: String) -> String? { timerState[programID]?.seriesTimerId }
+
     /// Toggle a channel's favorite state: flip the local set immediately for
     /// snappy feedback, then persist to the server. Roll back on failure.
     /// Re-sorting (favorites first) happens on the next fresh guide load via
@@ -152,6 +173,9 @@ final class EPGGuideViewModel {
                 // does not actually reach into the window.
                 if let end = program.endDate, end <= axisStart { continue }
                 grouped[cid, default: []].append(program)
+                if program.timerId != nil || program.seriesTimerId != nil {
+                    timerState[program.id] = (program.timerId, program.seriesTimerId)
+                }
             }
             // Only the newly fetched channels need sorting; already-loaded
             // channels were sorted on their first fetch and never refetched
@@ -160,10 +184,80 @@ final class EPGGuideViewModel {
                 grouped[cid]?.sort { ($0.startDate ?? .distantPast) < ($1.startDate ?? .distantPast) }
             }
             programsByChannel = grouped
+            timerStateVersion += 1
         } catch {
             // Leave these channels program-less; the grid shows placeholders.
             // Allow a retry by clearing them from the requested set.
             missing.forEach { requestedProgramChannelIDs.remove($0) }
         }
+    }
+
+    // MARK: - Record toggles
+
+    /// Schedule or cancel a single-program recording, optimistically.
+    func toggleRecord(program: JellyfinProgram) {
+        let old = timerState[program.id]
+        if let timerID = old?.timerId ?? program.timerId {
+            timerState[program.id] = (nil, old?.seriesTimerId)
+            timerStateVersion += 1
+            Task {
+                do { try await self.service.cancelTimer(timerID: timerID) }
+                catch { self.rollbackTimerState(programID: program.id, to: old, error: error) }
+            }
+        } else {
+            // The server assigns the real timer id; mark with a sentinel
+            // and reconcile from /LiveTv/Timers right after.
+            timerState[program.id] = ("pending", old?.seriesTimerId)
+            timerStateVersion += 1
+            Task {
+                do {
+                    try await self.service.createTimer(programID: program.id)
+                    await self.reconcileTimers()
+                } catch { self.rollbackTimerState(programID: program.id, to: old, error: error) }
+            }
+        }
+    }
+
+    /// Schedule or cancel a series recording rule, optimistically.
+    func toggleSeriesRecord(program: JellyfinProgram) {
+        let old = timerState[program.id]
+        if let seriesID = old?.seriesTimerId ?? program.seriesTimerId {
+            timerState[program.id] = (old?.timerId, nil)
+            timerStateVersion += 1
+            Task {
+                do { try await self.service.cancelSeriesTimer(timerID: seriesID) }
+                catch { self.rollbackTimerState(programID: program.id, to: old, error: error) }
+            }
+        } else {
+            timerState[program.id] = (old?.timerId, "pending")
+            timerStateVersion += 1
+            Task {
+                do {
+                    try await self.service.createSeriesTimer(programID: program.id)
+                    await self.reconcileTimers()
+                } catch { self.rollbackTimerState(programID: program.id, to: old, error: error) }
+            }
+        }
+    }
+
+    private func rollbackTimerState(
+        programID: String,
+        to old: (timerId: String?, seriesTimerId: String?)?,
+        error: Error
+    ) {
+        timerState[programID] = old
+        timerStateVersion += 1
+        recordingError = error.localizedDescription
+    }
+
+    /// Replace sentinel ids with the server's real ones (and pick up
+    /// series-spawned episode timers) after a create.
+    private func reconcileTimers() async {
+        guard let timers = try? await service.getTimers() else { return }
+        for timer in timers {
+            guard let programID = timer.programId else { continue }
+            timerState[programID] = (timer.id, timer.seriesTimerId ?? timerState[programID]?.seriesTimerId)
+        }
+        timerStateVersion += 1
     }
 }
