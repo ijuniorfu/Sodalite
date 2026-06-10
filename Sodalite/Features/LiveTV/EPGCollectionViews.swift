@@ -14,6 +14,7 @@ final class EPGProgramCollectionCell: UICollectionViewCell {
     private let titleLabel = UILabel()
     private let timeLabel = UILabel()
     private let container = UIView()
+    private let recordDot = UIView()
     private var tint: UIColor = .systemBlue
     private var isOnNow = false
 
@@ -31,7 +32,24 @@ final class EPGProgramCollectionCell: UICollectionViewCell {
         timeLabel.font = .preferredFont(forTextStyle: .caption1)
         timeLabel.textColor = .secondaryLabel
 
-        let stack = UIStackView(arrangedSubviews: [titleLabel, timeLabel])
+        recordDot.backgroundColor = .systemRed
+        recordDot.layer.cornerRadius = 5
+        recordDot.translatesAutoresizingMaskIntoConstraints = false
+        recordDot.widthAnchor.constraint(equalToConstant: 10).isActive = true
+        recordDot.heightAnchor.constraint(equalToConstant: 10).isActive = true
+        recordDot.isHidden = true
+        // Prevent the dot from being stretched vertically by the outer stack.
+        recordDot.setContentHuggingPriority(.required, for: .vertical)
+        recordDot.setContentCompressionResistancePriority(.required, for: .vertical)
+
+        // Wrap the dot and the title in a horizontal row so the dot sits flush
+        // to the left of the title without affecting row height.
+        let titleRow = UIStackView(arrangedSubviews: [recordDot, titleLabel])
+        titleRow.axis = .horizontal
+        titleRow.spacing = 6
+        titleRow.alignment = .center
+
+        let stack = UIStackView(arrangedSubviews: [titleRow, timeLabel])
         stack.axis = .vertical
         stack.spacing = 4
         stack.alignment = .leading
@@ -66,13 +84,19 @@ final class EPGProgramCollectionCell: UICollectionViewCell {
 
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
 
-    func configure(title: String, subtitle: String?, tint: UIColor, isOnNow: Bool) {
+    func configure(title: String, subtitle: String?, tint: UIColor, isOnNow: Bool, hasTimer: Bool = false) {
         self.tint = tint
         self.isOnNow = isOnNow
         titleLabel.text = title
         timeLabel.text = subtitle
         timeLabel.isHidden = (subtitle == nil)
+        recordDot.isHidden = !hasTimer
         applyFocusStyle(focused: isFocused)
+    }
+
+    /// Update only the record-timer dot without re-running the full configure.
+    func setTimer(_ hasTimer: Bool) {
+        recordDot.isHidden = !hasTimer
     }
 
     /// Update only the "currently airing" state (driven by the now-line timer)

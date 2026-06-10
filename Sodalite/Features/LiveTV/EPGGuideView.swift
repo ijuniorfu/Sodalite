@@ -67,7 +67,22 @@ struct EPGGuideView: View {
                 program: sel.program, channel: sel.channel, tint: tint,
                 onWatchLive: onWatchLive,
                 channelIsFavorite: model.isFavorite(sel.channel.id),
-                onToggleFavorite: { model.toggleFavorite(channelID: sel.channel.id) })
+                onToggleFavorite: { model.toggleFavorite(channelID: sel.channel.id) },
+                hasTimer: model.timerID(programID: sel.program.id) != nil || sel.program.timerId != nil,
+                hasSeriesTimer: model.seriesTimerID(programID: sel.program.id) != nil || sel.program.seriesTimerId != nil,
+                onToggleRecord: { model.toggleRecord(program: sel.program) },
+                onToggleSeriesRecord: { model.toggleSeriesRecord(program: sel.program) })
+        }
+        .alert(
+            Text("livetv.recording.error.title"),
+            isPresented: Binding(
+                get: { model.recordingError != nil },
+                set: { if !$0 { model.recordingError = nil } }
+            )
+        ) {
+            Button("common.ok", role: .cancel) {}
+        } message: {
+            Text(model.recordingError ?? "")
         }
     }
 }

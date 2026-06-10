@@ -9,11 +9,18 @@ struct ProgramInfoPopover: View {
     /// Initial favorite state of the channel and a callback to flip it.
     var channelIsFavorite: Bool = false
     var onToggleFavorite: (() -> Void)?
+    /// Record state + toggles, provided by the guide's view model.
+    var hasTimer: Bool = false
+    var hasSeriesTimer: Bool = false
+    var onToggleRecord: (() -> Void)?
+    var onToggleSeriesRecord: (() -> Void)?
 
     @Environment(\.dismiss) private var dismiss
     /// Local mirror for snappy button feedback; the guide's view model holds
     /// the source of truth and persists to the server.
     @State private var isFavorite: Bool = false
+    @State private var isRecording: Bool = false
+    @State private var isSeriesRecording: Bool = false
 
     private var isAiring: Bool { program.isAiring(at: Date()) }
 
@@ -46,13 +53,38 @@ struct ProgramInfoPopover: View {
                     isFavorite.toggle()
                     onToggleFavorite?()
                 }
-                // Record affordance reserved for the recordings sub-project.
+                // Record affordances: future or currently airing programs
+                // only (a finished program cannot be recorded).
+                if let end = program.endDate, end > Date() {
+                    PopoverActionButton(
+                        title: isRecording ? "livetv.cancelRecording" : "livetv.record",
+                        systemImage: isRecording ? "stop.circle" : "record.circle",
+                        accent: isRecording ? .red : tint
+                    ) {
+                        isRecording.toggle()
+                        onToggleRecord?()
+                    }
+                    if program.isSeries == true {
+                        PopoverActionButton(
+                            title: isSeriesRecording ? "livetv.cancelSeriesRecording" : "livetv.recordSeries",
+                            systemImage: isSeriesRecording ? "stop.circle.fill" : "record.circle.fill",
+                            accent: isSeriesRecording ? .red : tint
+                        ) {
+                            isSeriesRecording.toggle()
+                            onToggleSeriesRecord?()
+                        }
+                    }
+                }
             }
             Spacer()
         }
         .padding(60)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .onAppear { isFavorite = channelIsFavorite }
+        .onAppear {
+            isFavorite = channelIsFavorite
+            isRecording = hasTimer
+            isSeriesRecording = hasSeriesTimer
+        }
     }
 }
 

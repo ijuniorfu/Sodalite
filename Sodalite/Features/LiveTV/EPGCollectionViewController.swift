@@ -108,6 +108,7 @@ final class EPGCollectionViewController: UIViewController,
         timeHeaderContent.configure(ticks: timeTicks())
         startObserving()
         observeFavorites()
+        observeTimerState()
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -308,6 +309,30 @@ final class EPGCollectionViewController: UIViewController,
         }
     }
 
+    /// Track timer-state changes separately: a record toggle doesn't change
+    /// rows, so only the red dot on each program cell needs refreshing.
+    private func observeTimerState() {
+        withObservationTracking {
+            _ = model.timerStateVersion
+        } onChange: { [weak self] in
+            Task { @MainActor in
+                guard let self else { return }
+                self.refreshTimerDots()
+                self.observeTimerState()
+            }
+        }
+    }
+
+    private func refreshTimerDots() {
+        for indexPath in gridView.indexPathsForVisibleItems {
+            guard indexPath.section < rows.count,
+                  let cell = gridView.cellForItem(at: indexPath) as? EPGProgramCollectionCell else { continue }
+            let row = rows[indexPath.section]
+            guard !row.programs.isEmpty, indexPath.item < row.programs.count else { continue }
+            cell.setTimer(model.hasTimer(programID: row.programs[indexPath.item].id))
+        }
+    }
+
     private func applyModelChange() {
         let old = rows
         rebuildRows()
@@ -397,11 +422,12 @@ final class EPGCollectionViewController: UIViewController,
         let row = rows[indexPath.section]
         if row.programs.isEmpty {
             cell.configure(title: NSLocalizedString("livetv.noProgramInfo", comment: ""),
-                           subtitle: nil, tint: tintColor, isOnNow: false)
+                           subtitle: nil, tint: tintColor, isOnNow: false, hasTimer: false)
         } else {
             let program = row.programs[indexPath.item]
             cell.configure(title: program.name, subtitle: timeRange(program),
-                           tint: tintColor, isOnNow: isProgramOnNow(program))
+                           tint: tintColor, isOnNow: isProgramOnNow(program),
+                           hasTimer: model.hasTimer(programID: program.id))
         }
         return cell
     }
