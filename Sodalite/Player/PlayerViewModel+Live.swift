@@ -83,7 +83,11 @@ extension PlayerViewModel {
                 panelIsInHDRMode: Self.panelIsInHDRMode,
                 audioBridgeMode: preferences.audioBridgeMode,
                 isLive: true,
-                dvrWindowSeconds: 600
+                dvrWindowSeconds: 600,
+                // Raw ASS event lines for the styled-subtitle path
+                // (ASSRenderCoordinator). Only changes ASS/SSA cue
+                // content; other subtitle codecs are unaffected.
+                preserveASSMarkup: true
             )
         )
 
