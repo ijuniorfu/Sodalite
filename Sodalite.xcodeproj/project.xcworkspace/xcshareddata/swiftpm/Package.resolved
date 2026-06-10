@@ -1,24 +1,69 @@
 {
-  "originHash": "e346bff54c889a087f74da7ca421ae84c8a6cce9e2ee150db8ab63b357d230ce",
-  "pins": [
+  "originHash" : "9beb2d9a36aee98b02573bc9b7599bc6da3a87e1df403ee8be603269ce37e3a4",
+  "pins" : [
     {
-      "identity": "aetherengine",
-      "kind": "remoteSourceControl",
-      "location": "https://github.com/superuser404notfound/AetherEngine",
-      "state": {
-        "branch": "main",
-        "revision": "29931817e8d4e41349654bb4f22d8c268e2e20d6"
+      "identity" : "aetherengine",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/superuser404notfound/AetherEngine",
+      "state" : {
+        "branch" : "main",
+        "revision" : "29931817e8d4e41349654bb4f22d8c268e2e20d6"
       }
     },
     {
-      "identity": "ffmpegbuild",
-      "kind": "remoteSourceControl",
-      "location": "https://github.com/superuser404notfound/FFmpegBuild",
-      "state": {
-        "branch": "main",
-        "revision": "91572ea3d31ca1fa6aa3d3df572bbc0b2912f585"
+      "identity" : "combine-schedulers",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/pointfreeco/combine-schedulers",
+      "state" : {
+        "revision" : "dcccb979a2183b8df3334237e3dc1ae2b4116a86",
+        "version" : "1.2.0"
+      }
+    },
+    {
+      "identity" : "ffmpegbuild",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/superuser404notfound/FFmpegBuild",
+      "state" : {
+        "branch" : "main",
+        "revision" : "91572ea3d31ca1fa6aa3d3df572bbc0b2912f585"
+      }
+    },
+    {
+      "identity" : "swift-ass-renderer",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/mihai8804858/swift-ass-renderer",
+      "state" : {
+        "revision" : "28919f6b5ddd896d327b0283f8d97624902236e6",
+        "version" : "1.3.1"
+      }
+    },
+    {
+      "identity" : "swift-concurrency-extras",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/pointfreeco/swift-concurrency-extras",
+      "state" : {
+        "revision" : "a90e2e40a7a840a853dd29e57cbef5dbb72c9d5b",
+        "version" : "1.4.0"
+      }
+    },
+    {
+      "identity" : "swift-libass",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/mihai8804858/swift-libass",
+      "state" : {
+        "revision" : "6513c488e377a26c06db327fb2acfc2653a041d5",
+        "version" : "1.4.0"
+      }
+    },
+    {
+      "identity" : "xctest-dynamic-overlay",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/pointfreeco/xctest-dynamic-overlay",
+      "state" : {
+        "revision" : "cb281f343fd953280336dcbd3822cdf47c182f5b",
+        "version" : "1.10.0"
       }
     }
   ],
-  "version": 3
+  "version" : 3
 }
