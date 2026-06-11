@@ -749,7 +749,15 @@ final class PlayerViewModel {
             // If a live load opened the tuner before failing, release it.
             // No-op for VOD (activeLiveStreamID is nil).
             releaseLiveTunerIfNeeded()
-            setError(from: error)
+            if isLiveSession && !(error is APIError) {
+                // Engine-level live open failure (probe fail-fast, no
+                // source): the server cannot deliver this channel's
+                // stream. Friendly message instead of the raw engine
+                // error; APIErrors keep their specific trio.
+                setLiveChannelUnavailableError()
+            } else {
+                setError(from: error)
+            }
             isLoading = false
         }
     }
@@ -966,7 +974,16 @@ final class PlayerViewModel {
                 case .seeking:
                     break
                 case .error(let msg):
-                    self.setEnginePlaybackError(message: msg)
+                    if self.isLiveSession, self.liveFirstPlayingAt == nil {
+                        // Live channel died before ever playing: the
+                        // server could not open the source. Same friendly
+                        // message as the load-path failure; "Playback
+                        // stopped" + raw engine text is for sessions
+                        // that were actually running.
+                        self.setLiveChannelUnavailableError()
+                    } else {
+                        self.setEnginePlaybackError(message: msg)
+                    }
                     self.isLoading = false
                 }
             }
@@ -1248,6 +1265,24 @@ final class PlayerViewModel {
         errorIcon = icon
         errorTitle = title
         errorMessage = error.localizedDescription
+    }
+
+    /// Friendly trio for a live channel whose stream the server cannot
+    /// deliver (dead upstream source; signature: PlaybackInfo without
+    /// stream info, then HTTP 500 with zero bytes on the stream URL).
+    /// Covers the engine-level open failures where the raw message
+    /// ("openFailed(code: -5)") would be noise to the user; network and
+    /// auth APIErrors keep their specific messaging via setError(from:).
+    func setLiveChannelUnavailableError() {
+        errorIcon = "tv.slash"
+        errorTitle = String(
+            localized: "player.error.liveUnavailable.title",
+            defaultValue: "Channel unavailable"
+        )
+        errorMessage = String(
+            localized: "player.error.liveUnavailable.body",
+            defaultValue: "The server could not open this channel's stream. The channel's source may be offline. Try again later."
+        )
     }
 
     /// Engine-side terminal error mid-playback (decoder failure,
