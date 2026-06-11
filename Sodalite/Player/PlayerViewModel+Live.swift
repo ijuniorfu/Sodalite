@@ -4,11 +4,91 @@ import AetherEngine
 
 extension PlayerViewModel {
 
-    /// Live-specific load: open the Jellyfin tuner via PlaybackInfo, pick the
-    /// infinite live MediaSource, prefer its HLS TranscodingUrl, and hand it
-    /// to the engine with isLive + a 30-minute DVR window. Sets the tuner
-    /// handle for teardown to release.
+    /// Live load: try the tuner's HLS upstream directly first (engine
+    /// ingest, Jellyfin out of the data path), fall back to the
+    /// Jellyfin-mediated path once per session. TS/static channels and
+    /// channels without a usable upstream URL go straight to the server
+    /// path. Design: docs/superpowers/specs/2026-06-11-live-hls-ingest-
+    /// direct-play-design.md.
     func loadLiveStream() async throws {
+        // Stage-1 PlaybackInfo: copy ceiling; also the source of the tuner
+        // upstream URL (MediaSource.Path) for the direct attempt.
+        let info = try await playbackService.getLivePlaybackInfo(
+            itemID: item.id, userID: userID,
+            profile: DirectPlayProfile.liveProfile(),
+            maxStreamingBitrate: DirectPlayProfile.liveCopyCeilingBitrate)
+        guard let source = info.mediaSources.first else { throw PlayerEngineError.noSource }
+
+        // Direct eligibility: remux channel (TranscodingUrl present) whose
+        // Path is a real http(s) provider URL. TS/static channels carry no
+        // TranscodingUrl and their Path is Jellyfin's internal
+        // LiveStreamFiles URL, not a provider; they keep the server path.
+        if !didAttemptLiveFallback,
+           source.transcodingUrl != nil,
+           let path = source.path,
+           let upstream = URL(string: path),
+           let scheme = upstream.scheme?.lowercased(),
+           scheme == "http" || scheme == "https" {
+            do {
+                try await loadLiveDirect(info: info, source: source, upstream: upstream)
+                return
+            } catch is CancellationError {
+                throw CancellationError()
+            } catch {
+                // Once per session: fall back to the Jellyfin-mediated
+                // path. The direct attempt already closed the stage-1
+                // tuner; the server path re-negotiates fresh.
+                didAttemptLiveFallback = true
+                usedDirectLivePath = false
+                LogTap.shared.note("[LiveDirect] route=fallback reason=\(error)")
+            }
+        } else {
+            let route = source.transcodingUrl == nil ? "static" : "server"
+            LogTap.shared.note("[LiveDirect] route=\(route)")
+        }
+
+        try await loadLiveStreamViaServer()
+    }
+
+    /// Direct play: close the Jellyfin tuner first (single-connection
+    /// providers must never see two concurrent connections), then hand
+    /// the upstream playlist to the engine's HLS ingest.
+    private func loadLiveDirect(info: PlaybackInfoResponse, source: PlaybackMediaSource, upstream: URL) async throws {
+        if let tuner = source.liveStreamId {
+            let svc = playbackService
+            Task.detached { try? await svc.closeLiveStream(liveStreamID: tuner) }
+        }
+        playSessionID = info.playSessionId
+        mediaSourceID = source.id
+        activeLiveStreamID = nil
+        usedDirectLivePath = true
+        LogTap.shared.note("[LiveDirect] route=direct upstream=\(upstream.absoluteString)")
+
+        observeLiveEdge()
+        try await player.load(
+            source: .custom(HLSLiveIngestReader(playlistURL: upstream), formatHint: "mpegts"),
+            options: LoadOptions(
+                suppressDisplayCriteria: false,
+                matchContentEnabled: Self.matchDynamicRangeEnabled,
+                panelIsInHDRMode: Self.panelIsInHDRMode,
+                audioBridgeMode: preferences.audioBridgeMode,
+                isLive: true,
+                dvrWindowSeconds: 600,
+                preserveASSMarkup: true
+            )
+        )
+
+        let engine = player
+        scrubPreview.configureLive(enabled: preferences.showScrubPreview) { [weak engine] seconds, maxWidth in
+            await engine?.liveScrubThumbnail(atSessionSeconds: seconds, maxWidth: maxWidth)
+        }
+    }
+
+    /// Jellyfin-mediated live load: open the tuner via PlaybackInfo, pick the
+    /// infinite live MediaSource, prefer its HLS TranscodingUrl, and hand it
+    /// to the engine with isLive + a DVR window. Sets the tuner handle for
+    /// teardown to release.
+    private func loadLiveStreamViaServer() async throws {
         // Engine-decode live: request a copy-TS source (liveProfile uses
         // Protocol=http, full codec list) and hand it to AetherEngine exactly
         // like VOD. The engine demuxes the TS and dispatches h264/hevc to the
@@ -49,11 +129,6 @@ extension PlayerViewModel {
         playSessionID = info.playSessionId
         mediaSourceID = source.id
         activeLiveStreamID = source.liveStreamId
-
-        // Temporary diagnostic for the live direct-play / HLS-ingest
-        // scoping (2026-06-11): classify the serving path and probe
-        // the tuner's upstream URL straight from this device.
-        logLiveDirectDiagnostics(source: source)
 
         // Resolve the progressive TS URL the engine's AVIOReader consumes.
         // Transcode/remux channels carry a TranscodingUrl; a source the server
@@ -239,7 +314,7 @@ extension PlayerViewModel {
     /// `load` supersedes the parked session internally; a CancellationError
     /// means a newer load (channel zap) took over mid-retune and owns the
     /// session now.
-    private func retuneLiveStream() async {
+    func retuneLiveStream() async {
         // Close the dead session server-side BEFORE opening the new one:
         // stop report (with the tuner handle), explicit transcode kill
         // (the old ffmpeg writes a growing stream.ts until killed; an
@@ -297,77 +372,6 @@ extension PlayerViewModel {
         guard let video = source.mediaStreams?.first(where: { $0.type == .video })
         else { return true }
         return (video.codec ?? "").isEmpty
-    }
-
-    // MARK: - Direct-play diagnostics (temporary)
-
-    /// One-shot per-tune diagnostic for the live direct-play
-    /// investigation: logs how Jellyfin serves this channel (remux via
-    /// server ffmpeg vs static byte proxy), the tuner's upstream URL,
-    /// and an active reachability probe from this device with a
-    /// content sniff (#EXTM3U = HLS playlist, 0x47 = raw MPEG-TS).
-    /// Read the [LiveDirect] lines from the Support log export.
-    /// Remove once the HLS-ingest decision is made.
-    private func logLiveDirectDiagnostics(source: PlaybackMediaSource) {
-        let serving = source.transcodingUrl != nil
-            ? "remux (TranscodingUrl, server ffmpeg)"
-            : "static proxy (no server ffmpeg)"
-        let upstream = source.path ?? "<no Path exposed>"
-        LogTap.shared.note(
-            "[LiveDirect] channel=\(item.name) serving=\(serving)"
-            + " directPlay=\(source.supportsDirectPlay == true)"
-            + " directStream=\(source.supportsDirectStream == true)"
-            + " container=\(source.container ?? "?")"
-            + " upstream=\(upstream)"
-        )
-        guard let path = source.path,
-              let url = URL(string: path),
-              let scheme = url.scheme?.lowercased(),
-              scheme == "http" || scheme == "https" else {
-            LogTap.shared.note("[LiveDirect] probe skipped: upstream is not an http(s) URL")
-            return
-        }
-        Task.detached {
-            let started = Date()
-            var request = URLRequest(url: url)
-            request.timeoutInterval = 8
-            do {
-                // Plain GET, not HEAD/Range: IPTV heads commonly
-                // reject those. Sniff the first bytes, then cancel.
-                let (bytes, response) = try await URLSession.shared.bytes(for: request)
-                var head = Data()
-                for try await byte in bytes {
-                    head.append(byte)
-                    if head.count >= 512 { break }
-                }
-                bytes.task.cancel()
-                let http = response as? HTTPURLResponse
-                let latencyMs = Int(Date().timeIntervalSince(started) * 1000)
-                let sniff: String
-                if head.starts(with: Data("#EXTM3U".utf8)) {
-                    sniff = "HLS playlist"
-                } else if head.first == 0x47 {
-                    sniff = "raw MPEG-TS"
-                } else {
-                    sniff = "unknown head=\(head.prefix(8).map { String(format: "%02x", $0) }.joined())"
-                }
-                let finalURL = response.url.map {
-                    $0 == url ? "same" : $0.absoluteString
-                } ?? "?"
-                await LogTap.shared.note(
-                    "[LiveDirect] probe ok status=\(http?.statusCode ?? -1)"
-                    + " sniff=\(sniff)"
-                    + " contentType=\(http?.value(forHTTPHeaderField: "Content-Type") ?? "?")"
-                    + " latencyMs=\(latencyMs) bytes=\(head.count)"
-                    + " redirect=\(finalURL)"
-                )
-            } catch {
-                let latencyMs = Int(Date().timeIntervalSince(started) * 1000)
-                await LogTap.shared.note(
-                    "[LiveDirect] probe FAILED after \(latencyMs)ms: \(error.localizedDescription)"
-                )
-            }
-        }
     }
 
     static func liveNeedsVideoReencode(transcodeReasons: [String]?, transcodingURL: String?) -> Bool {

@@ -360,6 +360,12 @@ final class PlayerViewModel {
     /// spinner masking in the state sink (cold transcodes stall once right
     /// after the start while the server catches up to real time).
     var liveFirstPlayingAt: Date?
+    /// True while the current live session plays the tuner upstream
+    /// directly (HLS ingest), Jellyfin out of the data path.
+    var usedDirectLivePath = false
+    /// Latch: the once-per-session fallback from direct to the Jellyfin
+    /// path has been consumed.
+    var didAttemptLiveFallback = false
 
     init(
         item: JellyfinItem,
@@ -438,6 +444,11 @@ final class PlayerViewModel {
             // separate branch on purpose: the VOD path below stays untouched.
             if isLiveSession {
                 stageInitialNowPlayingMetadata()
+                // Reset per-session direct-path flags so a re-entrant
+                // startPlayback (shouldn't happen in practice, but guards
+                // against a future caller) starts clean.
+                usedDirectLivePath = false
+                didAttemptLiveFallback = false
                 try await loadLiveStream()
                 if Task.isCancelled || isTearingDown {
                     player.stop()
@@ -974,17 +985,27 @@ final class PlayerViewModel {
                 case .seeking:
                     break
                 case .error(let msg):
-                    if self.isLiveSession, self.liveFirstPlayingAt == nil {
+                    if self.isLiveSession, self.liveFirstPlayingAt == nil,
+                       self.usedDirectLivePath, !self.didAttemptLiveFallback {
+                        // Direct session died before first frame: consume the
+                        // once-per-session fallback instead of erroring out. The
+                        // spinner stays up through the retune.
+                        self.didAttemptLiveFallback = true
+                        self.usedDirectLivePath = false
+                        LogTap.shared.note("[LiveDirect] route=fallback reason=engine_error_pre_play(\(msg))")
+                        Task { [weak self] in await self?.retuneLiveStream() }
+                    } else if self.isLiveSession, self.liveFirstPlayingAt == nil {
                         // Live channel died before ever playing: the
                         // server could not open the source. Same friendly
                         // message as the load-path failure; "Playback
                         // stopped" + raw engine text is for sessions
                         // that were actually running.
                         self.setLiveChannelUnavailableError()
+                        self.isLoading = false
                     } else {
                         self.setEnginePlaybackError(message: msg)
+                        self.isLoading = false
                     }
-                    self.isLoading = false
                 }
             }
             .store(in: &cancellables)
