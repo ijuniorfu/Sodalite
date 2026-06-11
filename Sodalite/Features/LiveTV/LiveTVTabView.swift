@@ -78,48 +78,20 @@ struct LiveTVTabView: View {
         }
     }
 
-    /// Two focusable pills per the app convention (raw focusable +
-    /// stableTap, tinted focus fill; default tvOS segmented controls
-    /// fight the EPG's custom focus handling).
+    /// Native segmented control, same look as the Catalog tab's
+    /// Entdecken / Meine Anfragen / Alle Anfragen bar (Vincent wants
+    /// the two tabs visually consistent). The original custom pills
+    /// existed because a segmented control was suspected of fighting
+    /// the EPG's custom focus handling; if focus between this picker
+    /// and the UIKit guide grid misbehaves, that suspicion was right,
+    /// revert this commit (the pill implementation lives in its
+    /// parent) instead of patching around it.
     private var sectionPicker: some View {
-        HStack(spacing: 16) {
-            sectionPill(title: "livetv.segment.guide", value: .guide)
-            sectionPill(title: "livetv.segment.recordings", value: .recordings)
-            Spacer()
+        Picker("", selection: $section) {
+            Text("livetv.segment.guide").tag(LiveTVSection.guide)
+            Text("livetv.segment.recordings").tag(LiveTVSection.recordings)
         }
+        .pickerStyle(.segmented)
         .padding(.horizontal, 80)
-    }
-
-    private func sectionPill(title: LocalizedStringKey, value: LiveTVSection) -> some View {
-        SectionPill(title: title, isActive: section == value, tint: tint) {
-            section = value
-        }
-    }
-}
-
-private struct SectionPill: View {
-    let title: LocalizedStringKey
-    let isActive: Bool
-    let tint: Color
-    let action: () -> Void
-
-    @FocusState private var focused: Bool
-
-    var body: some View {
-        Text(title)
-            .font(.headline)
-            .foregroundStyle(focused ? Color.black : (isActive ? .white : .white.opacity(0.6)))
-            .padding(.horizontal, 24)
-            .padding(.vertical, 10)
-            .background(
-                Capsule().fill(
-                    focused ? AnyShapeStyle(tint)
-                            : AnyShapeStyle(Color.white.opacity(isActive ? 0.18 : 0.08)))
-            )
-            .focusable()
-            .focused($focused)
-            .scaleEffect(focused ? 1.06 : 1.0)
-            .animation(.easeInOut(duration: 0.15), value: focused)
-            .stableTap(isFocused: focused) { action() }
     }
 }
