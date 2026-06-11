@@ -709,13 +709,19 @@ final class HomeViewModel {
                 // an empty row (Sodalite#15, DrHurt's CDN server).
                 // Singleton episodes that survive grouping are folded
                 // into their series below, same as libraryLatest.
+                //
+                // Over-fetch, then cap AFTER folding: the server limit
+                // counts raw entries, and a burst of episodes from a
+                // handful of shows collapses to a handful of tiles
+                // after the fold, leaving the row visibly short
+                // (regression report on Sodalite#15's fix).
                 let latest = try await libraryService.getLatestMedia(
                     userID: userID,
                     parentID: nil,
                     includeItemTypes: [.series, .episode],
-                    limit: 16
+                    limit: 64
                 )
-                items = await foldEpisodesIntoSeries(latest)
+                items = Array(await foldEpisodesIntoSeries(latest).prefix(16))
 
             case .allMovies:
                 let query = ItemQuery(
@@ -815,13 +821,17 @@ final class HomeViewModel {
                 // drop ParentId) is not just unnecessary here, it's the
                 // bug.
                 guard let libraryID = config.libraryID else { return nil }
+                // Mild over-fetch with a post-fold cap, same rationale
+                // as latestShows: the fold can dedupe a series object
+                // against its own episode entries, shrinking the row
+                // below the intended 16.
                 let latest = try await libraryService.getLatestMedia(
                     userID: userID,
                     parentID: libraryID,
                     includeItemTypes: nil,
-                    limit: 16
+                    limit: 24
                 )
-                items = await foldEpisodesIntoSeries(latest)
+                items = Array(await foldEpisodesIntoSeries(latest).prefix(16))
 
             case .myMedia, .genres, .discoverProviders:
                 return nil
