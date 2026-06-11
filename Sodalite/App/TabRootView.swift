@@ -106,12 +106,126 @@ struct TabRootView: View {
         }
         .onAppear {
             configureTabBarItemAppearance()
+            scheduleTabBarWidthFix()
         }
         .onChange(of: iconColor) { _, _ in
             // Re-apply when the user changes their accent in
             // Appearance settings; UITabBarItem.appearance() reads
             // the values at configure time, not live.
             configureTabBarItemAppearance()
+        }
+        .onChange(of: availableTabs) { _, _ in
+            // Live TV / Music tabs arrive async and rebuild the bar's
+            // items, which changes the width it needs; re-run the
+            // truncation fix against the new layout.
+            scheduleTabBarWidthFix()
+        }
+    }
+
+    /// The system tab bar sizes itself, and on tvOS 26 long localized
+    /// titles ("Einstellungen") get truncated instead of widening the
+    /// bar. There is no public width API, so after layout settles we
+    /// measure whether any item label is actually truncated and widen
+    /// the system container's width constraints by exactly the missing
+    /// points, capped at the window's safe-area width so the bar can
+    /// never run off-screen. Re-run on tab-set changes; a second pass
+    /// covers slow first layouts.
+    private func scheduleTabBarWidthFix() {
+        deferOnMain(by: 0.5) { Self.widenTruncatedTabBars() }
+        deferOnMain(by: 2.0) { Self.widenTruncatedTabBars() }
+    }
+
+    private static func widenTruncatedTabBars() {
+        for scene in UIApplication.shared.connectedScenes {
+            guard let windowScene = scene as? UIWindowScene else { continue }
+            for window in windowScene.windows {
+                widenTabBarIfTruncated(in: window, window: window)
+            }
+        }
+    }
+
+    private static func widenTabBarIfTruncated(in view: UIView, window: UIWindow) {
+        if let tabBar = view as? UITabBar {
+            applyWidthFix(to: tabBar, window: window)
+        }
+        for subview in view.subviews {
+            widenTabBarIfTruncated(in: subview, window: window)
+        }
+    }
+
+    private static func applyWidthFix(to tabBar: UITabBar, window: UIWindow) {
+        var labels: [UILabel] = []
+        collectLabels(in: tabBar, into: &labels)
+        // Item titles only: skip empty/system labels.
+        let titled = labels.filter { !($0.text?.isEmpty ?? true) }
+        guard !titled.isEmpty else { return }
+
+        let missing = titled.reduce(CGFloat.zero) { sum, label in
+            let needed = label.intrinsicContentSize.width - label.bounds.width
+            return needed > 0.5 ? sum + needed : sum
+        }
+        guard missing > 0.5 else { return }
+
+        let safeWidth = window.safeAreaLayoutGuide.layoutFrame.width
+        LogTap.shared.note(
+            "[TabBar] truncated titles detected, missing=\(Int(missing))pt"
+            + " barWidth=\(Int(tabBar.bounds.width)) safeWidth=\(Int(safeWidth))"
+        )
+
+        // Widen every adjustable width constraint that currently caps
+        // the bar or one of its near ancestors. Required-priority
+        // constraints with a fixed constant are the cap the system
+        // installs; bump the constant, never past the safe area.
+        var node: UIView? = tabBar
+        var depth = 0
+        var adjusted = false
+        while let current = node, depth < 4 {
+            for constraint in current.constraints {
+                guard constraint.firstAttribute == .width,
+                      constraint.secondItem == nil,
+                      constraint.constant > 100,
+                      (constraint.firstItem as? UIView) === current else { continue }
+                let target = min(constraint.constant + missing + 8, safeWidth)
+                if target > constraint.constant + 0.5 {
+                    LogTap.shared.note(
+                        "[TabBar] widening \(type(of: current)) width"
+                        + " \(Int(constraint.constant)) -> \(Int(target))"
+                        + " (id=\(constraint.identifier ?? "-"))"
+                    )
+                    constraint.constant = target
+                    adjusted = true
+                }
+            }
+            node = current.superview
+            depth += 1
+        }
+
+        if adjusted {
+            tabBar.superview?.setNeedsLayout()
+            tabBar.setNeedsLayout()
+        } else {
+            // Nothing adjustable found: dump the geometry so the next
+            // log export tells us which constraint actually caps it.
+            var chain: [String] = []
+            var probe: UIView? = tabBar
+            var level = 0
+            while let current = probe, level < 4 {
+                let widths = current.constraints
+                    .filter { $0.firstAttribute == .width }
+                    .map { "\(Int($0.constant))@\(Int($0.priority.rawValue))" }
+                    .joined(separator: ",")
+                chain.append("\(type(of: current)) w=\(Int(current.bounds.width)) [\(widths)]")
+                probe = current.superview
+                level += 1
+            }
+            LogTap.shared.note("[TabBar] no adjustable width constraint; chain: " + chain.joined(separator: " | "))
+        }
+    }
+
+    private static func collectLabels(in view: UIView, into labels: inout [UILabel]) {
+        if let label = view as? UILabel { labels.append(label) }
+        for subview in view.subviews {
+            collectLabels(in: subview, into: &labels)
         }
     }
 
