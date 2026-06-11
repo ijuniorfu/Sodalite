@@ -988,12 +988,11 @@ final class PlayerViewModel {
                     if self.isLiveSession, self.liveFirstPlayingAt == nil,
                        self.usedDirectLivePath, !self.didAttemptLiveFallback {
                         // Direct session died before first frame: consume the
-                        // once-per-session fallback instead of erroring out. The
-                        // spinner stays up through the retune.
-                        self.didAttemptLiveFallback = true
-                        self.usedDirectLivePath = false
+                        // once-per-session fallback via the guarded retune path
+                        // (handleLiveSourceReset flips the flags, counts the retune,
+                        // and keeps the spinner up).
                         LogTap.shared.note("[LiveDirect] route=fallback reason=engine_error_pre_play(\(msg))")
-                        Task { [weak self] in await self?.retuneLiveStream() }
+                        self.handleLiveSourceReset()
                     } else if self.isLiveSession, self.liveFirstPlayingAt == nil {
                         // Live channel died before ever playing: the
                         // server could not open the source. Same friendly

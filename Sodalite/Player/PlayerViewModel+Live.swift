@@ -29,34 +29,57 @@ extension PlayerViewModel {
            let upstream = URL(string: path),
            let scheme = upstream.scheme?.lowercased(),
            scheme == "http" || scheme == "https" {
+            // Create the reader here so its terminalError is accessible
+            // in the catch block for the fallback log.
+            let reader = HLSLiveIngestReader(playlistURL: upstream)
             do {
-                try await loadLiveDirect(info: info, source: source, upstream: upstream)
+                try await loadLiveDirect(info: info, source: source, upstream: upstream, reader: reader)
                 return
             } catch is CancellationError {
                 throw CancellationError()
             } catch {
                 // Once per session: fall back to the Jellyfin-mediated
                 // path. The direct attempt already closed the stage-1
-                // tuner; the server path re-negotiates fresh.
+                // tuner (awaited); the server path re-negotiates fresh.
                 didAttemptLiveFallback = true
                 usedDirectLivePath = false
-                LogTap.shared.note("[LiveDirect] route=fallback reason=\(error)")
+                let detail = reader.terminalError.map { " ingest=\($0)" } ?? ""
+                LogTap.shared.note("[LiveDirect] route=fallback reason=\(error)\(detail)")
+                try await loadLiveStreamViaServer()
+                return
             }
         } else {
             let route = source.transcodingUrl == nil ? "static" : "server"
             LogTap.shared.note("[LiveDirect] route=\(route)")
         }
 
-        try await loadLiveStreamViaServer()
+        // Ineligible route (static/server): reuse the stage-1 tuner so it
+        // is not leaked and the server path avoids a duplicate roundtrip.
+        try await loadLiveStreamViaServer(reusing: (info: info, source: source))
     }
 
     /// Direct play: close the Jellyfin tuner first (single-connection
     /// providers must never see two concurrent connections), then hand
     /// the upstream playlist to the engine's HLS ingest.
-    private func loadLiveDirect(info: PlaybackInfoResponse, source: PlaybackMediaSource, upstream: URL) async throws {
+    private func loadLiveDirect(
+        info: PlaybackInfoResponse,
+        source: PlaybackMediaSource,
+        upstream: URL,
+        reader: HLSLiveIngestReader
+    ) async throws {
         if let tuner = source.liveStreamId {
+            // Awaited on purpose (spec decision 3): single-connection
+            // providers must never see the Jellyfin tuner and our direct
+            // connection concurrently, and a straggling close must not race
+            // the fallback's freshly opened tuner. Bounded so a hung server
+            // cannot stall the tune.
             let svc = playbackService
-            Task.detached { try? await svc.closeLiveStream(liveStreamID: tuner) }
+            _ = try? await withThrowingTaskGroup(of: Void.self) { group in
+                group.addTask { try await svc.closeLiveStream(liveStreamID: tuner) }
+                group.addTask { try await Task.sleep(nanoseconds: 3_000_000_000) }
+                try await group.next()
+                group.cancelAll()
+            }
         }
         playSessionID = info.playSessionId
         mediaSourceID = source.id
@@ -66,7 +89,7 @@ extension PlayerViewModel {
 
         observeLiveEdge()
         try await player.load(
-            source: .custom(HLSLiveIngestReader(playlistURL: upstream), formatHint: "mpegts"),
+            source: .custom(reader, formatHint: "mpegts"),
             options: LoadOptions(
                 suppressDisplayCriteria: false,
                 matchContentEnabled: Self.matchDynamicRangeEnabled,
@@ -88,7 +111,13 @@ extension PlayerViewModel {
     /// infinite live MediaSource, prefer its HLS TranscodingUrl, and hand it
     /// to the engine with isLive + a DVR window. Sets the tuner handle for
     /// teardown to release.
-    private func loadLiveStreamViaServer() async throws {
+    ///
+    /// Pass `prefetched` to reuse a stage-1 PlaybackInfo result that was
+    /// already obtained by the router (avoids opening a second tuner and a
+    /// duplicate roundtrip). When nil, a fresh negotiation is performed.
+    private func loadLiveStreamViaServer(
+        reusing prefetched: (info: PlaybackInfoResponse, source: PlaybackMediaSource)? = nil
+    ) async throws {
         // Engine-decode live: request a copy-TS source (liveProfile uses
         // Protocol=http, full codec list) and hand it to AetherEngine exactly
         // like VOD. The engine demuxes the TS and dispatches h264/hevc to the
@@ -96,11 +125,19 @@ extension PlayerViewModel {
         // decoder, so every live codec plays with no server re-encode. The high
         // copy ceiling (maxStreamingBitrate) keeps the server stream-copying the
         // source bitstream rather than downscaling it.
-        var info = try await playbackService.getLivePlaybackInfo(
-            itemID: item.id, userID: userID,
-            profile: DirectPlayProfile.liveProfile(),
-            maxStreamingBitrate: DirectPlayProfile.liveCopyCeilingBitrate)
-        guard var source = info.mediaSources.first else { throw PlayerEngineError.noSource }
+        var info: PlaybackInfoResponse
+        var source: PlaybackMediaSource
+        if let prefetched {
+            info = prefetched.info
+            source = prefetched.source
+        } else {
+            info = try await playbackService.getLivePlaybackInfo(
+                itemID: item.id, userID: userID,
+                profile: DirectPlayProfile.liveProfile(),
+                maxStreamingBitrate: DirectPlayProfile.liveCopyCeilingBitrate)
+            guard let first = info.mediaSources.first else { throw PlayerEngineError.noSource }
+            source = first
+        }
 
         // Two-stage bitrate negotiation. The PlaybackInfo MaxStreamingBitrate
         // serves double duty: copy threshold AND encoder target. The high copy
