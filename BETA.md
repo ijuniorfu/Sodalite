@@ -4,7 +4,7 @@ Thanks for testing Sodalite. This page tells you how to get the build, what to l
 
 ## What Sodalite is
 
-A native Apple TV media player for your own Jellyfin server, with built-in [Seerr](https://github.com/Fallenbagel/jellyseerr) browse + request flow. Direct Play, real HDR10 / Dolby Vision, real Dolby Atmos. Open source ([GPL-3.0 with App Store Exception](LICENSE)), no telemetry.
+A native Apple TV media player for your own Jellyfin server, with built-in [Seerr](https://github.com/Fallenbagel/jellyseerr) browse + request flow. Direct Play, live TV with DVR, real HDR10 / Dolby Vision, real Dolby Atmos. Open source ([GPL-3.0 with App Store Exception](LICENSE)), no telemetry.
 
 For the long pitch see the [README](README.md).
 
@@ -35,15 +35,27 @@ The high-value areas, what we most want feedback on:
 - Reconnecting after the app comes back from background
 
 ### Browsing
-- Home customization (Continue Watching, Next Up, Latest, custom rows)
+- Home customization (Continue Watching, Next Up, Latest, custom rows, the combined Continue Watching + Next Up toggle)
+- The All / Unwatched / Watched filter on library grids
 - Series detail view, switch seasons, scroll long episode lists
 - Search, both your library and the Seerr catalog (when Seerr is connected)
+
+### Music (if your server has a music library)
+- Browse albums, play a few tracks, check the Now Playing screen and background playback
+
+### Live TV (if your server has it)
+- The guide: scroll a big channel list, both directions, does focus stay in your time column?
+- Zap through channels: how fast do they start, does anything stall or stay black?
+- Pause live TV, scrub back, return to live
+- Record a program and a series from the guide, check the Recordings tab, play a finished recording
+- A channel that is known-broken on your server: does Sodalite say so quickly instead of spinning?
 
 ### Playback
 - A regular SDR movie
 - An HDR10 / Dolby Vision movie if you have one. Does the TV switch into HDR mode? Does the picture look right?
 - An EAC3+JOC (Atmos) stream if you have one. Does your AVR's Atmos light come on?
 - Track switching mid-playback (audio language, subtitle language)
+- An ASS / SSA subtitle track with heavy styling (anime fansubs are ideal): do fonts, colors and positions look right? Try the styled / plain toggle in Playback settings
 - Resume from where you stopped, on multiple devices
 - Auto-play next episode for series
 
