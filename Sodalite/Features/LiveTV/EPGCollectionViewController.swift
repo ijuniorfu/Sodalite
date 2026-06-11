@@ -208,15 +208,33 @@ final class EPGCollectionViewController: UIViewController,
     func collectionView(_ collectionView: UICollectionView,
                         shouldUpdateFocusIn context: UICollectionViewFocusUpdateContext) -> Bool {
         guard collectionView === gridView,
-              pendingFocusRedirect == nil,
-              let next = context.nextFocusedIndexPath,
-              let prev = context.previouslyFocusedIndexPath,
+              let next = context.nextFocusedIndexPath
+        else { return true }
+        if let redirect = pendingFocusRedirect {
+            // Our own redirect arriving: let it through (didUpdateFocus
+            // clears the marker). Anything ELSE while a redirect is
+            // pending is a move that raced ahead of the async
+            // setNeedsFocusUpdate during fast scrolling; the old
+            // "pass everything while pending" guard waved exactly
+            // those through unanchored, which is how focus still
+            // teleported onto a wide cell far right sometimes. Fall
+            // through and re-veto it against the anchor, replacing
+            // the stale redirect target.
+            if next == redirect { return true }
+        }
+        guard let prev = context.previouslyFocusedIndexPath,
               next.section != prev.section,
               context.focusHeading.contains(.up) || context.focusHeading.contains(.down),
               let anchorX = focusAnchorX
         else { return true }
         let desired = itemIndex(nearestToX: anchorX, inSection: next.section)
-        guard desired != next.item else { return true }
+        guard desired != next.item else {
+            // The engine's pick already sits in the anchor column; a
+            // still-pending redirect is obsolete, drop it so the
+            // async re-run doesn't yank focus back to an older row.
+            pendingFocusRedirect = nil
+            return true
+        }
         // Veto the engine's pick and re-run the update; the preferred-
         // focus hook below serves the column-anchored target instead.
         pendingFocusRedirect = IndexPath(item: desired, section: next.section)
