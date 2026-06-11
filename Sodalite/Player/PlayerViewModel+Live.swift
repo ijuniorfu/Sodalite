@@ -74,11 +74,25 @@ extension PlayerViewModel {
             // the fallback's freshly opened tuner. Bounded so a hung server
             // cannot stall the tune.
             let svc = playbackService
-            _ = try? await withThrowingTaskGroup(of: Void.self) { group in
-                group.addTask { try await svc.closeLiveStream(liveStreamID: tuner) }
-                group.addTask { try await Task.sleep(nanoseconds: 3_000_000_000) }
-                try await group.next()
+            enum CloseRace { case closed, timedOut }
+            let outcome = try? await withThrowingTaskGroup(of: CloseRace.self) { group -> CloseRace? in
+                group.addTask {
+                    try await svc.closeLiveStream(liveStreamID: tuner)
+                    return .closed
+                }
+                group.addTask {
+                    try await Task.sleep(nanoseconds: 3_000_000_000)
+                    return .timedOut
+                }
+                let first = try await group.next()
                 group.cancelAll()
+                return first
+            }
+            if outcome != .closed {
+                // The tuner keeps ingesting (and writing LiveStreamFiles)
+                // server-side until Jellyfin's inactivity cleanup reaps
+                // it; surface that so disk-growth reports are traceable.
+                LogTap.shared.note("[LiveDirect] tuner close timed out, server will reap it")
             }
         }
         playSessionID = info.playSessionId
