@@ -13,6 +13,78 @@ import Foundation
 /// previously affected behaviour.
 enum Changelog {
     static let entries: [ChangelogEntry] = [
+        // MARK: 0.10.0
+        ChangelogEntry(
+            version: "0.10.0",
+            highlights: [
+                ChangelogHighlight(
+                    .new,
+                    "changelog.0_10_0.liveTV.title",
+                    "changelog.0_10_0.liveTV.body",
+                    icon: "tv"
+                ),
+                ChangelogHighlight(
+                    .new,
+                    "changelog.0_10_0.styledSubs.title",
+                    "changelog.0_10_0.styledSubs.body",
+                    icon: "captions.bubble.fill"
+                ),
+                ChangelogHighlight(
+                    .new,
+                    "changelog.0_10_0.watchedFilter.title",
+                    "changelog.0_10_0.watchedFilter.body",
+                    icon: "line.3.horizontal.decrease.circle.fill"
+                ),
+                ChangelogHighlight(
+                    .new,
+                    "changelog.0_10_0.mergedRow.title",
+                    "changelog.0_10_0.mergedRow.body",
+                    icon: "arrow.triangle.merge"
+                ),
+                ChangelogHighlight(
+                    .new,
+                    "changelog.0_10_0.backdrops.title",
+                    "changelog.0_10_0.backdrops.body",
+                    icon: "photo.fill"
+                ),
+                ChangelogHighlight(
+                    .improve,
+                    "changelog.0_10_0.liveDirect.title",
+                    "changelog.0_10_0.liveDirect.body",
+                    icon: "bolt.fill"
+                ),
+                ChangelogHighlight(
+                    .improve,
+                    "changelog.0_10_0.nowPlaying.title",
+                    "changelog.0_10_0.nowPlaying.body",
+                    icon: "iphone"
+                ),
+                ChangelogHighlight(
+                    .improve,
+                    "changelog.0_10_0.detailCalm.title",
+                    "changelog.0_10_0.detailCalm.body",
+                    icon: "doc.text.image"
+                ),
+                ChangelogHighlight(
+                    .fix,
+                    "changelog.0_10_0.latestRows.title",
+                    "changelog.0_10_0.latestRows.body",
+                    icon: "clock.badge.checkmark"
+                ),
+                ChangelogHighlight(
+                    .fix,
+                    "changelog.0_10_0.channelErrors.title",
+                    "changelog.0_10_0.channelErrors.body",
+                    icon: "tv.slash"
+                ),
+                ChangelogHighlight(
+                    .fix,
+                    "changelog.0_10_0.tabBar.title",
+                    "changelog.0_10_0.tabBar.body",
+                    icon: "menubar.rectangle"
+                ),
+            ]
+        ),
         // MARK: 0.9.0
         ChangelogEntry(
             version: "0.9.0",

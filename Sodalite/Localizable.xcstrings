@@ -18814,6 +18814,3570 @@
         }
       }
     },
+    "changelog.0_10_0.backdrops.body" : {
+      "comment" : "0.10.0 What's New highlight body",
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pozadí teď prosvítá celou stránkou detailu a při posouvání tmavne. Tituly bez vlastního pozadí dostanou ambientní plochu z plakátu místo šedé desky."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Baggrundsbilleder skinner nu igennem hele detaljesiden og dæmpes, når du ruller. Titler uden baggrundsbillede får en stemningsfuld plakatflade i stedet for en grå plade."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Backdrops scheinen jetzt durch die ganze Detailseite und dimmen beim Scrollen. Titel ohne Backdrop bekommen eine Poster-Fläche in Ambient-Optik statt grauem Hintergrund."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Τα φόντα διαπερνούν τώρα ολόκληρη τη σελίδα λεπτομερειών και σκουραίνουν καθώς κάνετε κύλιση. Οι τίτλοι χωρίς εικόνα φόντου αποκτούν μια ατμοσφαιρική επιφάνεια από την αφίσα αντί για γκρίζο φόντο."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Backdrops now shine through the whole detail page and dim as you scroll. Items without backdrop art get an ambient poster fill instead of a grey plate."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Los fondos ahora se ven a través de toda la página de detalle y se atenúan al desplazarte. Los títulos sin fondo reciben un relleno ambiental del póster en lugar de una placa gris."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Taustakuvat hohtavat nyt koko tietosivun läpi ja himmenevät vierittäessä. Ilman taustakuvaa olevat nimikkeet saavat julisteesta tehdyn tunnelmataustan harmaan levyn sijaan."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les arrière-plans transparaissent désormais sur toute la page de détail et s'assombrissent au défilement. Les titres sans arrière-plan reçoivent un fond ambiant tiré de l'affiche au lieu d'une plaque grise."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pozadinske slike sada se protežu cijelom stranicom detalja i zatamnjuju pri pomicanju. Naslovi bez pozadinske slike dobivaju ambijentalnu površinu iz plakata umjesto sive ploče."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A háttérképek mostantól az egész részletoldalon átragyognak, és görgetéskor elhalványulnak. A háttérkép nélküli címek szürke felület helyett a plakátból készült hangulatkitöltést kapnak."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gli sfondi ora risplendono su tutta la pagina di dettaglio e si attenuano durante lo scorrimento. I titoli senza sfondo ricevono un riempimento ambientale dal poster invece di una lastra grigia."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "背景アートが詳細ページ全体に広がり、スクロールすると暗くなります。背景アートのない作品には、グレーの背景の代わりにポスターを使ったアンビエント表示が適用されます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "배경 이미지가 이제 상세 페이지 전체에 펼쳐지고 스크롤하면 어두워집니다. 배경 이미지가 없는 항목에는 회색 판 대신 포스터 기반의 앰비언트 배경이 적용됩니다."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bakgrunnsbilder skinner nå gjennom hele detaljsiden og dempes når du blar. Titler uten bakgrunnsbilde får en stemningsfull plakatflate i stedet for en grå plate."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Achtergronden schijnen nu door de hele detailpagina en dimmen terwijl je scrolt. Items zonder achtergrondafbeelding krijgen een sfeervolle postervulling in plaats van een grijs vlak."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tła prześwitują teraz przez całą stronę szczegółów i przyciemniają się podczas przewijania. Pozycje bez grafiki tła otrzymują nastrojowe wypełnienie z plakatu zamiast szarej płyty."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Os planos de fundo agora aparecem por toda a página de detalhes e escurecem conforme você rola. Itens sem arte de fundo ganham um preenchimento ambiente do pôster em vez de uma placa cinza."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Os fundos aparecem agora em toda a página de detalhe e escurecem ao deslocar. Os itens sem imagem de fundo recebem um preenchimento ambiente do cartaz em vez de uma placa cinzenta."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fundalurile se văd acum pe toată pagina de detalii și se estompează la derulare. Titlurile fără imagine de fundal primesc un fundal ambiental din afiș în locul unei plăci gri."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Фоновые изображения теперь занимают всю страницу деталей и затемняются при прокрутке. Элементы без фона получают атмосферную заливку из постера вместо серой плашки."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pozadia teraz presvitajú celou stránkou detailu a pri posúvaní tmavnú. Tituly bez vlastného pozadia dostanú ambientnú plochu z plagátu namiesto sivej dosky."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bakgrundsbilder lyser nu igenom hela detaljsidan och tonas ned när du rullar. Titlar utan bakgrundsbild får en stämningsfull affischfyllning i stället för en grå platta."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Arka planlar artık ayrıntı sayfasının tamamına yayılıyor ve kaydırdıkça kararıyor. Arka plan görseli olmayan öğeler gri bir zemin yerine afişten türetilen ortam dolgusu alıyor."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Фонові зображення тепер займають усю сторінку деталей і затемнюються під час прокручування. Елементи без фону отримують атмосферну заливку з постера замість сірої плашки."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "背景图现在贯穿整个详情页，并随滚动逐渐变暗。没有背景图的条目会以海报生成的氛围填充取代灰色底板。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "背景圖現在會延伸至整個詳細資料頁，並隨捲動逐漸變暗。沒有背景圖的項目會以海報產生的氛圍填充取代灰色底板。"
+          }
+        }
+      }
+    },
+    "changelog.0_10_0.backdrops.title" : {
+      "comment" : "0.10.0 What's New highlight title",
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Detaily přes celou obrazovku"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Detaljesider i fuldt format"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vollflächige Detailseiten"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Σελίδες λεπτομερειών πλήρους κάλυψης"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Full-bleed detail pages"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Páginas de detalle a pantalla completa"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Koko ruudun tietosivut"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pages de détail plein écran"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Detalji preko cijelog zaslona"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Teljes felületű részletoldalak"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pagine di dettaglio a tutto schermo"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "全面表示の詳細ページ"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "전체 화면 상세 페이지"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Detaljsider i fullt format"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Detailpagina's van rand tot rand"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Strony szczegółów na całym ekranie"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Páginas de detalhes em tela cheia"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Páginas de detalhe em ecrã completo"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pagini de detalii pe tot ecranul"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Детальные страницы во весь экран"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Detaily cez celú obrazovku"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Detaljsidor i helskärm"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tam Ekran Ayrıntı Sayfaları"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сторінки деталей на весь екран"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "全屏详情页"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "滿版詳細資料頁"
+          }
+        }
+      }
+    },
+    "changelog.0_10_0.channelErrors.body" : {
+      "comment" : "0.10.0 What's New highlight body",
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kanál s nedostupným zdrojem to teď oznámí hned, místo aby se načítal donekonečna."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En kanal, hvis kilde er offline, siger det med det samme i stedet for at indlæse for evigt."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ein Sender mit toter Quelle sagt das jetzt sofort, statt endlos zu laden."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ένα κανάλι του οποίου η πηγή είναι εκτός σύνδεσης το αναφέρει αμέσως αντί να φορτώνει επ' αόριστον."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A channel whose source is offline says so right away instead of loading forever."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Un canal cuya fuente está fuera de línea lo indica de inmediato en lugar de cargar para siempre."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kanava, jonka lähde on poissa käytöstä, kertoo sen heti loputtoman lataamisen sijaan."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Une chaîne dont la source est hors ligne l'indique immédiatement au lieu de charger indéfiniment."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kanal čiji je izvor nedostupan sada to odmah javlja umjesto da se beskonačno učitava."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Az a csatorna, amelynek a forrása nem elérhető, ezt azonnal jelzi, ahelyett hogy örökké töltene."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Un canale con la sorgente offline ora lo dice subito invece di caricare all'infinito."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ソースがオフラインのチャンネルは、いつまでも読み込み続ける代わりに、すぐにその旨を表示します。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "소스가 오프라인인 채널은 무한 로딩 대신 바로 알려줍니다."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En kanal med en kilde som er frakoblet, sier det med en gang i stedet for å laste evig."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Een zender waarvan de bron offline is, meldt dat nu meteen in plaats van eindeloos te laden."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kanał, którego źródło jest niedostępne, od razu o tym informuje, zamiast ładować się w nieskończoność."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Um canal com a fonte offline avisa isso na hora em vez de carregar para sempre."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Um canal com a fonte offline indica-o de imediato em vez de carregar para sempre."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Un canal a cărui sursă este offline o spune imediat în loc să se încarce la nesfârșit."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Канал с недоступным источником сразу сообщает об этом вместо бесконечной загрузки."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kanál s nedostupným zdrojom to teraz oznámi hneď, namiesto nekonečného načítavania."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En kanal vars källa är offline säger det direkt i stället för att ladda i all evighet."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kaynağı çevrimdışı olan bir kanal, sonsuza dek yüklenmek yerine bunu hemen söyler."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Канал із недоступним джерелом одразу повідомляє про це замість нескінченного завантаження."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "信号源离线的频道会立即提示，而不是一直加载。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "訊號源離線的頻道會立即提示，而不是一直載入。"
+          }
+        }
+      }
+    },
+    "changelog.0_10_0.channelErrors.title" : {
+      "comment" : "0.10.0 What's New highlight title",
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Srozumitelné chyby kanálů"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tydelige kanalfejl"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Klare Sender-Fehler"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Σαφή σφάλματα καναλιών"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clear channel errors"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Errores de canal claros"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Selkeät kanavavirheet"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erreurs de chaîne claires"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jasne pogreške kanala"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Egyértelmű csatornahibák"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Errori dei canali chiari"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "わかりやすいチャンネルエラー"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "명확한 채널 오류"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tydelige kanalfeil"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Duidelijke zenderfouten"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Czytelne błędy kanałów"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erros de canal claros"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erros de canal claros"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erori de canal clare"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Понятные ошибки каналов"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zrozumiteľné chyby kanálov"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tydliga kanalfel"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Net Kanal Hataları"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Зрозумілі помилки каналів"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "清晰的频道错误提示"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "清楚的頻道錯誤提示"
+          }
+        }
+      }
+    },
+    "changelog.0_10_0.detailCalm.body" : {
+      "comment" : "0.10.0 What's New highlight body",
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Synopse a informace o tvůrcích si při načítání rezervují místo, takže nic neskáče, a epizody bez popisu to teď dají vědět."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Synopsis og holdinfo reserverer deres plads under indlæsning, så intet hopper, og episoder uden beskrivelse siger det nu."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Synopsis und Crew-Infos reservieren ihren Platz beim Laden, nichts springt mehr, und Episoden ohne Beschreibung sagen das jetzt."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Η σύνοψη και οι πληροφορίες συντελεστών δεσμεύουν τον χώρο τους κατά τη φόρτωση, ώστε τίποτα να μην μετακινείται, και τα επεισόδια χωρίς περιγραφή το αναφέρουν πλέον."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Synopsis and crew info reserve their space while loading, so nothing jumps, and episodes without a description now say so."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La sinopsis y la información del equipo reservan su espacio mientras cargan, así nada salta, y los episodios sin descripción ahora lo indican."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Juonikuvaus ja tekijätiedot varaavat tilansa latauksen aikana, joten mikään ei hypi, ja jaksot ilman kuvausta kertovat sen nyt."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le synopsis et les infos sur l'équipe réservent leur espace pendant le chargement, plus rien ne saute, et les épisodes sans description l'indiquent désormais."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sažetak i podaci o ekipi rezerviraju svoje mjesto tijekom učitavanja pa ništa ne skače, a epizode bez opisa sada to i kažu."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A tartalomleírás és a stábinfó betöltés közben fenntartja a helyét, így semmi sem ugrál, és a leírás nélküli epizódok mostantól jelzik ezt."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sinossi e informazioni sul cast riservano il loro spazio durante il caricamento, così nulla salta, e gli episodi senza descrizione ora lo dicono."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "あらすじとスタッフ情報は読み込み中もスペースを確保するため、表示が飛び跳ねません。説明のないエピソードはその旨を表示します。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "줄거리와 제작진 정보가 로딩 중에도 자리를 유지해 화면이 튀지 않으며, 설명이 없는 에피소드는 이제 그렇다고 표시됩니다."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Synopsis og stabsinfo reserverer plassen sin under lasting, så ingenting hopper, og episoder uten beskrivelse sier det nå."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Synopsis en crew-info reserveren hun ruimte tijdens het laden, zodat niets verspringt, en afleveringen zonder beschrijving melden dat nu."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opis fabuły i informacje o twórcach rezerwują swoje miejsce podczas ładowania, więc nic nie skacze, a odcinki bez opisu teraz o tym informują."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A sinopse e as informações da equipe reservam seu espaço durante o carregamento, então nada pula, e episódios sem descrição agora avisam isso."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A sinopse e as informações da equipa reservam o seu espaço durante o carregamento, pelo que nada salta, e os episódios sem descrição agora indicam-no."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sinopsisul și informațiile despre echipă își rezervă spațiul în timpul încărcării, astfel nimic nu sare, iar episoadele fără descriere o spun acum."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Описание и сведения о съёмочной группе резервируют место при загрузке, ничего не прыгает, а эпизоды без описания теперь сообщают об этом."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Synopsa a informácie o tvorcoch si pri načítavaní rezervujú miesto, takže nič neskáče, a epizódy bez popisu to teraz dajú vedieť."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Synopsis och teaminfo reserverar sin plats medan de laddas, så inget hoppar, och avsnitt utan beskrivning säger det nu."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Özet ve ekip bilgileri yüklenirken yerlerini korur, böylece hiçbir şey zıplamaz; açıklaması olmayan bölümler de artık bunu belirtir."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Опис і відомості про знімальну групу резервують місце під час завантаження, нічого не стрибає, а епізоди без опису тепер повідомляють про це."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "简介和演职人员信息在加载时会预留位置，画面不再跳动；没有简介的单集现在会明确说明。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "簡介與演職人員資訊在載入時會預留位置，畫面不再跳動；沒有簡介的單集現在會明確說明。"
+          }
+        }
+      }
+    },
+    "changelog.0_10_0.detailCalm.title" : {
+      "comment" : "0.10.0 What's New highlight title",
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Klidnější stránky detailu"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Roligere detaljesider"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ruhigere Detailseiten"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Πιο ήρεμες σελίδες λεπτομερειών"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Calmer detail pages"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Páginas de detalle más estables"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rauhallisemmat tietosivut"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pages de détail plus stables"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mirnije stranice detalja"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nyugodtabb részletoldalak"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pagine di dettaglio più stabili"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "落ち着いた詳細ページ"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "더 안정된 상세 페이지"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Roligere detaljsider"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rustigere detailpagina's"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spokojniejsze strony szczegółów"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Páginas de detalhes mais estáveis"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Páginas de detalhe mais estáveis"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pagini de detalii mai calme"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Более спокойные страницы деталей"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pokojnejšie stránky detailu"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lugnare detaljsidor"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Daha Sakin Ayrıntı Sayfaları"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Спокійніші сторінки деталей"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更安稳的详情页"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更安穩的詳細資料頁"
+          }
+        }
+      }
+    },
+    "changelog.0_10_0.latestRows.body" : {
+      "comment" : "0.10.0 What's New highlight body",
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seriály s jedinou novou epizodou se zase zobrazují jako seriál a Nejnovější seriály pokrývají všechny knihovny, žádné chybějící položky ani oříznuté snímky."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Serier med en enkelt ny episode vises igen som serien, og Nyeste serier dækker alle biblioteker, ikke flere manglende poster eller beskårne billeder."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Serien mit nur einer neuen Folge erscheinen wieder als Serie, und Neueste Serien deckt alle Bibliotheken ab, keine fehlenden Einträge oder beschnittenen Standbilder mehr."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Οι σειρές με ένα μόνο νέο επεισόδιο εμφανίζονται ξανά ως σειρά και οι Τελευταίες σειρές καλύπτουν κάθε βιβλιοθήκη, χωρίς πια ελλείποντα στοιχεία ή κομμένα καρέ."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Series with a single new episode show as the series again, and Latest in TV Shows covers every library, no more missing entries or cropped stills."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Las series con un solo episodio nuevo vuelven a mostrarse como serie, y Últimas series cubre todas las bibliotecas, sin más entradas ausentes ni fotogramas recortados."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sarjat, joissa on vain yksi uusi jakso, näkyvät taas sarjana, ja Uusimmat sarjat kattaa kaikki kirjastot, ei enää puuttuvia kohteita tai rajautuneita kuvia."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les séries avec un seul nouvel épisode s'affichent de nouveau comme la série, et Dernières séries couvre toutes les bibliothèques, fini les entrées manquantes ou les images recadrées."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Serije s jednom novom epizodom ponovno se prikazuju kao serija, a Najnovije serije pokrivaju sve medijateke, nema više nedostajućih stavki ni obrezanih sličica."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Az egyetlen új epizóddal rendelkező sorozatok újra sorozatként jelennek meg, és a Legújabb sorozatok minden könyvtárat lefed, nincs több hiányzó elem vagy levágott állókép."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le serie con un solo nuovo episodio appaiono di nuovo come serie e Ultime serie copre tutte le librerie, niente più voci mancanti o fotogrammi tagliati."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "新しいエピソードが1話だけのシリーズが再びシリーズとして表示され、「最新のドラマ」はすべてのライブラリを対象にします。項目の欠落や切り取られたサムネイルはなくなりました。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "새 에피소드가 하나뿐인 시리즈가 다시 시리즈로 표시되고, 최신 시리즈가 모든 라이브러리를 포함합니다. 누락된 항목이나 잘린 스틸이 더는 없습니다."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Serier med én enkelt ny episode vises igjen som serien, og Nyeste serier dekker alle biblioteker, ikke flere manglende oppføringer eller beskårne bilder."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Series met één nieuwe aflevering verschijnen weer als serie, en Nieuwste series dekt elke bibliotheek, geen ontbrekende items of bijgesneden stills meer."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seriale z jednym nowym odcinkiem znów pokazują się jako serial, a Najnowsze seriale obejmują wszystkie biblioteki, koniec z brakującymi pozycjami i przyciętymi kadrami."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Séries com um único episódio novo voltam a aparecer como série, e Séries recentes cobre todas as bibliotecas, sem mais entradas faltando ou imagens cortadas."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "As séries com um único episódio novo voltam a aparecer como série, e Últimas séries abrange todas as bibliotecas, sem mais entradas em falta ou imagens cortadas."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Serialele cu un singur episod nou apar din nou ca serial, iar Ultimele seriale acoperă toate bibliotecile, fără intrări lipsă sau imagini decupate."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сериалы с одной новой серией снова отображаются как сериал, а Последние сериалы охватывают все библиотеки, больше никаких пропавших элементов и обрезанных кадров."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seriály s jedinou novou epizódou sa opäť zobrazujú ako seriál a Najnovšie seriály pokrývajú všetky knižnice, žiadne chýbajúce položky ani orezané zábery."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Serier med ett enda nytt avsnitt visas som serien igen, och Senaste serier täcker alla bibliotek, inga fler saknade poster eller beskurna bilder."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tek yeni bölümü olan diziler yeniden dizi olarak görünüyor ve Son Diziler tüm kitaplıkları kapsıyor; eksik girişler veya kırpılmış kareler artık yok."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Серіали з одним новим епізодом знову відображаються як серіал, а Останні серіали охоплюють усі бібліотеки, більше жодних зниклих елементів чи обрізаних кадрів."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "只有一集新内容的剧集会重新以剧集形式显示，最新剧集涵盖所有媒体库，不再有缺失条目或被裁剪的剧照。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "只有一集新內容的影集會重新以影集形式顯示，最新影集涵蓋所有媒體庫，不再有缺漏項目或被裁切的劇照。"
+          }
+        }
+      }
+    },
+    "changelog.0_10_0.latestRows.title" : {
+      "comment" : "0.10.0 What's New highlight title",
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kompletní řady novinek"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Komplette Nyeste-rækker"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vollständige Neuheiten-Reihen"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Πλήρεις σειρές πρόσφατων"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Complete Latest rows"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filas de novedades completas"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Täydet Uusimmat-rivit"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rangées Derniers ajouts complètes"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Potpuni redovi najnovijeg"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Teljes Legújabb sorok"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Righe Novità complete"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "最新行の完全表示"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "빠짐없는 최신 항목 행"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Komplette Nyeste-rader"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Volledige Nieuw-rijen"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kompletne wiersze najnowszych"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fileiras de recentes completas"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filas de recentes completas"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rânduri Recente complete"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Полные строки новинок"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kompletné rady noviniek"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kompletta Senaste-rader"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Eksiksiz En Yeniler Satırları"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Повні рядки новинок"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "完整的最新内容行"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "完整的最新內容列"
+          }
+        }
+      }
+    },
+    "changelog.0_10_0.liveDirect.body" : {
+      "comment" : "0.10.0 What's New highlight body",
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Živé kanály se kde to jde přehrávají přímo ze zdroje: start během sekund místo čekání na server, s automatickým záložním režimem, když ho kanál potřebuje."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Live-kanaler afspilles direkte fra kilden, hvor det er muligt: start på sekunder i stedet for at vente på serveren, med automatisk fallback, når en kanal har brug for det."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Live-Sender spielen wo möglich direkt von ihrer Quelle: Start in Sekunden statt Warten auf den Server, mit automatischem Fallback, wenn ein Sender es braucht."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Τα ζωντανά κανάλια αναπαράγονται απευθείας από την πηγή τους όπου είναι δυνατό: εκκίνηση σε δευτερόλεπτα αντί για αναμονή στον διακομιστή, με αυτόματη εναλλακτική όταν τη χρειάζεται ένα κανάλι."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Live channels play straight from their source where possible: starting in seconds instead of waiting on the server, with automatic fallback when a channel needs it."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Los canales en directo se reproducen directamente desde su fuente cuando es posible: arrancan en segundos en lugar de esperar al servidor, con respaldo automático cuando un canal lo necesita."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Suorat kanavat toistetaan mahdollisuuksien mukaan suoraan lähteestä: käynnistys sekunneissa palvelimen odottamisen sijaan, ja automaattinen varareitti, kun kanava sitä tarvitsee."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les chaînes en direct sont lues directement depuis leur source lorsque c'est possible : démarrage en quelques secondes au lieu d'attendre le serveur, avec bascule automatique quand une chaîne en a besoin."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kanali uživo reproduciraju se izravno iz izvora gdje je to moguće: pokretanje u sekundama umjesto čekanja na poslužitelj, uz automatski rezervni način kad ga kanal treba."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Az élő csatornák ahol lehet, közvetlenül a forrásukból játszanak: indulás másodpercek alatt a szerverre várás helyett, automatikus tartalékkal, ha egy csatornának szüksége van rá."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "I canali in diretta vengono riprodotti direttamente dalla loro fonte quando possibile: partono in pochi secondi invece di attendere il server, con fallback automatico quando un canale ne ha bisogno."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ライブチャンネルは可能な場合ソースから直接再生されます。サーバーを待たずに数秒で開始し、必要なチャンネルでは自動的にフォールバックします。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "라이브 채널은 가능한 경우 소스에서 바로 재생됩니다. 서버를 기다리는 대신 몇 초 만에 시작되고, 필요한 채널에서는 자동으로 대체 경로를 사용합니다."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Direktekanaler spilles av rett fra kilden der det er mulig: start på sekunder i stedet for å vente på serveren, med automatisk reserveløsning når en kanal trenger det."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Live zenders spelen waar mogelijk rechtstreeks vanaf hun bron: starten in seconden in plaats van wachten op de server, met automatische terugval wanneer een zender dat nodig heeft."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kanały na żywo odtwarzane są tam, gdzie to możliwe, bezpośrednio ze źródła: start w kilka sekund zamiast czekania na serwer, z automatycznym trybem awaryjnym, gdy kanał tego potrzebuje."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Canais ao vivo são reproduzidos direto da fonte sempre que possível: começam em segundos em vez de esperar pelo servidor, com fallback automático quando um canal precisar."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Os canais em direto são reproduzidos diretamente da fonte sempre que possível: começam em segundos em vez de esperar pelo servidor, com recurso automático quando um canal precisar."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Canalele live sunt redate direct de la sursă acolo unde se poate: pornesc în câteva secunde în loc să aștepte serverul, cu revenire automată când un canal are nevoie."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Каналы по возможности воспроизводятся напрямую из источника: запуск за секунды вместо ожидания сервера, с автоматическим резервным режимом, когда он нужен каналу."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Živé kanály sa kde sa dá prehrávajú priamo zo zdroja: štart za pár sekúnd namiesto čakania na server, s automatickým záložným režimom, keď ho kanál potrebuje."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Livekanaler spelas upp direkt från källan där det är möjligt: start på några sekunder i stället för att vänta på servern, med automatisk reservväg när en kanal behöver det."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Canlı kanallar mümkün olduğunda doğrudan kaynağından oynatılır: sunucuyu beklemek yerine saniyeler içinde başlar, gerektiğinde kanal için otomatik yedek yola geçilir."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Канали за можливості відтворюються напряму з джерела: запуск за лічені секунди замість очікування сервера, з автоматичним резервним режимом, коли він потрібен каналу."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "直播频道在可能时直接从源播放：几秒即可开始，无需等待服务器，频道需要时会自动回退。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "直播頻道在可行時會直接從來源播放：幾秒內即可開始，無需等待伺服器，頻道需要時會自動回退。"
+          }
+        }
+      }
+    },
+    "changelog.0_10_0.liveDirect.title" : {
+      "comment" : "0.10.0 What's New highlight title",
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rychlejší spouštění kanálů"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hurtigere kanalstart"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Schnellere Senderstarts"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ταχύτερη εκκίνηση καναλιών"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Faster channel starts"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Inicio de canales más rápido"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nopeammat kanavien käynnistykset"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Démarrage des chaînes plus rapide"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Brže pokretanje kanala"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gyorsabb csatornaindítás"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Avvio dei canali più rapido"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "チャンネルの高速起動"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "더 빨라진 채널 시작"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Raskere kanalstart"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Snellere zenderstarts"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Szybsze uruchamianie kanałów"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Início de canais mais rápido"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Início de canais mais rápido"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pornire mai rapidă a canalelor"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Быстрый запуск каналов"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rýchlejšie spúšťanie kanálov"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Snabbare kanalstarter"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Daha Hızlı Kanal Açılışı"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Швидший запуск каналів"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更快的频道启动"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更快的頻道啟動"
+          }
+        }
+      }
+    },
+    "changelog.0_10_0.liveTV.body" : {
+      "comment" : "0.10.0 What's New highlight body",
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sledujte živé kanály s plnohodnotným televizním programem, oblíbenými kanály, Timeshiftem s přetáčením a plánovanými nahrávkami, jednotlivě i jako seriálové časovače."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Se live-kanaler med en komplet programguide, kanalfavoritter, timeshift med spoling og planlagte optagelser med enkelt- og serietimere."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Schau Live-Sender mit vollwertigem Programmguide, Sender-Favoriten, Timeshift mit Scrubbing und geplanten Aufnahmen, einzeln oder als Serien-Timer."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Παρακολουθήστε ζωντανά κανάλια με πλήρη οδηγό προγράμματος, αγαπημένα κανάλια, Timeshift με γρήγορη μετακίνηση και προγραμματισμένες εγγραφές με μεμονωμένους χρονοδιακόπτες ή χρονοδιακόπτες σειράς."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Watch live channels with a full programme guide, channel favorites, timeshift with scrubbing, and scheduled recordings with single and series timers."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mira canales en directo con una guía de programación completa, canales favoritos, timeshift con desplazamiento y grabaciones programadas con temporizadores individuales y de serie."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Katso suoria kanavia täyden ohjelmaoppaan, kanavasuosikkien, kelattavan Timeshiftin ja ajastettujen tallennusten kanssa, yksittäin tai sarja-ajastuksina."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Regardez des chaînes en direct avec un guide des programmes complet, des chaînes favorites, le timeshift avec navigation et des enregistrements programmés avec minuteries simples et de série."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gledajte kanale uživo uz potpuni vodič kroz program, omiljene kanale, Timeshift s premotavanjem i zakazane snimke s pojedinačnim i serijskim tajmerima."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nézz élő csatornákat teljes műsorújsággal, kedvenc csatornákkal, tekerhető Timeshifttel és ütemezett felvételekkel, egyszeri és sorozatidőzítőkkel."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Guarda i canali in diretta con una guida programmi completa, canali preferiti, timeshift con scorrimento e registrazioni programmate con timer singoli e di serie."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ライブチャンネルを視聴できます。フル機能の番組表、お気に入りチャンネル、シーク可能なタイムシフト、単発予約とシリーズ予約による録画に対応しています。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "전체 편성표, 채널 즐겨찾기, 탐색 가능한 타임시프트, 단일 및 시리즈 타이머 예약 녹화와 함께 라이브 채널을 시청하세요."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Se direktekanaler med en komplett programguide, kanalfavoritter, timeshift med spoling og planlagte opptak med enkelt- og serietimere."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kijk live zenders met een volledige programmagids, favoriete zenders, timeshift met scrubben en geplande opnamen met losse en serietimers."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Oglądaj kanały na żywo z pełnym przewodnikiem po programach, ulubionymi kanałami, funkcją Timeshift z przewijaniem oraz zaplanowanymi nagraniami z pojedynczymi i serialowymi timerami."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Assista a canais ao vivo com guia de programação completo, canais favoritos, timeshift com navegação e gravações agendadas com timers únicos e de série."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Veja canais em direto com um guia de programação completo, canais favoritos, timeshift com navegação e gravações agendadas com temporizadores únicos e de série."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Urmărește canale live cu un ghid de programe complet, canale favorite, timeshift cu derulare și înregistrări programate cu temporizatoare individuale și de serial."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Смотрите каналы в прямом эфире с полноценным телегидом, избранными каналами, функцией Timeshift с перемоткой и запланированными записями с одиночными и серийными таймерами."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sledujte živé kanály s plnohodnotným programom, obľúbenými kanálmi, Timeshiftom s pretáčaním a plánovanými nahrávkami, jednotlivo aj ako seriálové časovače."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Titta på livekanaler med en komplett programguide, kanalfavoriter, timeshift med spolning och schemalagda inspelningar med enkel- och serietimer."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Canlı kanalları eksiksiz bir program rehberi, kanal favorileri, ileri geri sarılabilen Timeshift ve tekli veya dizi zamanlayıcılı planlı kayıtlarla izleyin."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Дивіться канали в прямому ефірі з повноцінним телегідом, обраними каналами, функцією Timeshift з перемоткою та запланованими записами з одиночними й серійними таймерами."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "观看直播频道：完整节目表、频道收藏、可拖动的时移播放，以及支持单次和剧集定时的预约录制。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "觀看直播頻道：完整節目表、頻道收藏、可拖曳的時移播放，以及支援單次與影集定時的預約錄製。"
+          }
+        }
+      }
+    },
+    "changelog.0_10_0.liveTV.title" : {
+      "comment" : "0.10.0 What's New highlight title",
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Živá TV a nahrávky"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Live-tv og optagelser"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Live-TV & Aufnahmen"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ζωντανή τηλεόραση και εγγραφές"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Live TV & DVR"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "TV en directo y grabaciones"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Live-TV ja tallenteet"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "TV en direct et enregistrements"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "TV uživo i snimke"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Élő TV és felvételek"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "TV in diretta e registrazioni"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ライブTVと録画"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "라이브 TV 및 녹화"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Direkte-TV og opptak"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Live tv en opnamen"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Telewizja na żywo i nagrania"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "TV ao vivo e gravações"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "TV em direto e gravações"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "TV live și înregistrări"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Прямой эфир и записи"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Živá TV a nahrávky"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Live-TV och inspelningar"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Canlı TV ve Kayıtlar"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Прямий ефір і записи"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "电视直播与录制"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "電視直播與錄製"
+          }
+        }
+      }
+    },
+    "changelog.0_10_0.mergedRow.body" : {
+      "comment" : "0.10.0 What's New highlight body",
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Volitelně sloučíte Další do řady Pokračovat ve sledování, jedna řada pro vše rozkoukané. Přepíná se v nabídce Přizpůsobit domov."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fold valgfrit Næste ind i rækken Fortsæt med at se, én række til alt det, du er i gang med. Slå det til under Tilpas hjem."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lege Als Nächstes optional in die Weiterschauen-Reihe, eine Reihe für alles, was du gerade schaust. Umschaltbar unter Startseite anpassen."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Προαιρετικά ενσωματώστε το Επόμενο στη σειρά Συνέχιση παρακολούθησης, μία σειρά για όλα όσα παρακολουθείτε. Ενεργοποιείται στην Προσαρμογή αρχικής."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Optionally fold Next Up into the Continue Watching row, one row for everything you are in the middle of. Toggle it under Customize Homepage."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Integra opcionalmente Siguiente en la fila Seguir viendo, una sola fila para todo lo que tienes a medias. Actívalo en Personalizar inicio."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Voit halutessasi yhdistää Seuraavaksi-rivin Jatka katselua -riviin, yksi rivi kaikelle kesken olevalle. Kytke se päälle kohdassa Mukauta aloitusnäyttö."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Intégrez si vous le souhaitez À suivre dans la rangée Continuer à regarder, une seule rangée pour tout ce que vous avez en cours. À activer dans Personnaliser l'accueil."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Po želji uklopite Sljedeće u red Nastavi gledanje, jedan red za sve što ste započeli. Uključuje se pod Prilagodi početnu."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Igény szerint beolvaszthatod a Következő sort a Folytatás sorba, egyetlen sor mindenhez, ami félbemaradt. A Kezdőképernyő testreszabása alatt kapcsolhatod be."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Se vuoi, unisci Prossimo alla riga Continua a guardare, una sola riga per tutto ciò che hai a metà. Si attiva in Personalizza home."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "オプションで「次の再生」を「視聴を続ける」の列にまとめられます。視聴中の作品がひとつの列に収まります。「ホームをカスタマイズ」で切り替えられます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "원하면 다음을 계속 시청 행에 합칠 수 있습니다. 보던 작품을 하나의 행에서 확인하세요. 홈 사용자 지정에서 전환할 수 있습니다."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fold eventuelt Neste inn i raden Fortsett å se, én rad for alt du er midt i. Slå det på under Tilpass hjem."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Voeg desgewenst Volgende samen met de rij Verder kijken, één rij voor alles waar je middenin zit. In te schakelen onder Home aanpassen."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opcjonalnie scal Następne z wierszem Kontynuuj oglądanie, jeden wiersz na wszystko, co masz w trakcie. Włączysz to w sekcji Dostosuj stronę główną."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Se quiser, integre Próximo à fileira Continuar assistindo, uma única fileira para tudo o que você está no meio. Ative em Personalizar início."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Se quiser, integre A seguir na fila Continuar a ver, uma única fila para tudo o que tem a meio. Ative em Personalizar início."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opțional, integrează Următorul în rândul Continuă vizionarea, un singur rând pentru tot ce ai început. Se activează din Personalizează ecranul principal."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "При желании объедините Далее со строкой Продолжить просмотр, одна строка для всего, что вы смотрите. Включается в разделе Настроить главную."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Voliteľne zlúčite Ďalšie do radu Pokračovať v sledovaní, jeden rad pre všetko rozpozerané. Prepína sa v časti Prispôsobiť domov."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vik valfritt in Nästa i raden Fortsätt titta, en enda rad för allt du håller på med. Slå på det under Anpassa hem."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "İsterseniz Sırada bölümünü İzlemeye Devam Et satırına ekleyin; yarıda kalan her şey tek satırda. Ana Ekranı Özelleştir altından açıp kapatabilirsiniz."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "За бажанням об'єднайте Наступне з рядком Продовжити перегляд, один рядок для всього, що ви дивитеся. Вмикається в розділі Налаштувати головну."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "可选择将接下来并入继续观看一行，所有看了一半的内容集中在一行。可在自定义首页中开关。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "可選擇將接下來併入繼續觀看一列，所有看到一半的內容集中在一列。可在自訂主畫面中切換。"
+          }
+        }
+      }
+    },
+    "changelog.0_10_0.mergedRow.title" : {
+      "comment" : "0.10.0 What's New highlight title",
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sloučené Pokračovat ve sledování"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kombineret Fortsæt med at se"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kombiniertes Weiterschauen"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Συνδυασμένη Συνέχιση παρακολούθησης"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Combined Continue Watching"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seguir viendo combinado"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yhdistetty Jatka katselua"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continuer à regarder combiné"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kombinirano Nastavi gledanje"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kombinált Folytatás"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continua a guardare unificato"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "「視聴を続ける」を統合"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "통합된 계속 시청"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kombinert Fortsett å se"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gecombineerd Verder kijken"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Połączone Kontynuuj oglądanie"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continuar assistindo combinado"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continuar a ver combinado"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continuă vizionarea combinat"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Объединённый раздел «Продолжить просмотр»"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zlúčené Pokračovať v sledovaní"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kombinerad Fortsätt titta"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Birleşik İzlemeye Devam Et"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Об'єднане «Продовжити перегляд»"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "合并的继续观看"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "合併的繼續觀看"
+          }
+        }
+      }
+    },
+    "changelog.0_10_0.nowPlaying.body" : {
+      "comment" : "0.10.0 What's New highlight body",
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Epizody zobrazují v Ovládacím centru seriál a epizodu na dvou samostatných řádcích, jako jiné video aplikace."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Episoder viser serie og episode på to separate linjer i Kontrolcenter, ligesom andre videoapps."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Episoden zeigen Serie und Folge im Control Center auf zwei Zeilen, wie in anderen Video-Apps."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Τα επεισόδια εμφανίζουν τη σειρά και το επεισόδιο σε δύο ξεχωριστές γραμμές στο Κέντρο ελέγχου, όπως άλλες εφαρμογές βίντεο."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Episodes show series and episode on two separate lines in Control Center, like other video apps."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Los episodios muestran la serie y el episodio en dos líneas separadas en el Centro de control, como otras apps de vídeo."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jaksot näyttävät sarjan ja jakson kahdella erillisellä rivillä Ohjauskeskuksessa, kuten muutkin videosovellukset."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les épisodes affichent la série et l'épisode sur deux lignes distinctes dans le Centre de contrôle, comme les autres apps vidéo."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Epizode prikazuju seriju i epizodu u dva odvojena retka u Kontrolnom centru, kao i druge videoaplikacije."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Az epizódok a sorozatot és az epizódot két külön sorban jelenítik meg a Vezérlőközpontban, mint más videóappok."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gli episodi mostrano serie ed episodio su due righe separate nel Centro di Controllo, come le altre app video."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "エピソードはコントロールセンターでシリーズ名とエピソード名を2行に分けて表示します。ほかのビデオアプリと同じ表示です。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "에피소드는 제어 센터에서 시리즈와 에피소드를 두 줄로 나누어 표시합니다. 다른 비디오 앱과 같은 방식입니다."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Episoder viser serie og episode på to separate linjer i Kontrollsenter, som andre videoapper."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Afleveringen tonen serie en aflevering op twee aparte regels in het Bedieningspaneel, net als andere video-apps."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Odcinki pokazują serial i odcinek w dwóch osobnych wierszach w Centrum sterowania, jak w innych aplikacjach wideo."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Os episódios mostram a série e o episódio em duas linhas separadas na Central de Controle, como outros apps de vídeo."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Os episódios mostram a série e o episódio em duas linhas separadas na Central de controlo, como outras apps de vídeo."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Episoadele afișează serialul și episodul pe două rânduri separate în Centrul de control, ca alte aplicații video."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Для эпизодов в Пункте управления сериал и серия отображаются двумя отдельными строками, как в других видеоприложениях."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Epizódy zobrazujú v Ovládacom centre seriál a epizódu v dvoch samostatných riadkoch, ako iné video aplikácie."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Avsnitt visar serie och avsnitt på två separata rader i Kontrollcenter, precis som andra videoappar."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bölümler, Denetim Merkezi'nde dizi ve bölümü diğer video uygulamalarındaki gibi iki ayrı satırda gösterir."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Для епізодів у Центрі керування серіал і епізод відображаються двома окремими рядками, як в інших відеозастосунках."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "剧集会在控制中心分两行显示剧名和单集信息，与其他视频 App 一致。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "影集會在控制中心分兩行顯示影集名稱與單集資訊，與其他影片 App 一致。"
+          }
+        }
+      }
+    },
+    "changelog.0_10_0.nowPlaying.title" : {
+      "comment" : "0.10.0 What's New highlight title",
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Právě hraje na dvou řádcích"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Now Playing på to linjer"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zweizeiliges Now Playing"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Αναπαραγωγή σε δύο γραμμές"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Two-line Now Playing"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reproducción en dos líneas"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kaksirivinen toistonäkymä"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lecture en cours sur deux lignes"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reprodukcija u dva retka"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lejátszás két sorban"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In riproduzione su due righe"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "2行表示の再生情報"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "두 줄 재생 정보"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Now Playing på to linjer"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Now Playing op twee regels"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dwuwierszowe Teraz odtwarzane"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reproduzindo em duas linhas"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reprodução em duas linhas"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Redare pe două rânduri"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Двухстрочный экран воспроизведения"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Práve hrá v dvoch riadkoch"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Now Playing på två rader"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "İki Satırlı Çalınıyor"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Дворядковий екран відтворення"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "两行播放信息"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "兩行播放資訊"
+          }
+        }
+      }
+    },
+    "changelog.0_10_0.styledSubs.body" : {
+      "comment" : "0.10.0 What's New highlight body",
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Titulky ASS a SSA se zobrazují s původními písmy, barvami a umístěním. V nastavení přehrávání můžete přepínat mezi stylovaným a jednoduchým zobrazením."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ASS- og SSA-undertekster vises med deres originale skrifttyper, farver og placering. Skift mellem stilet og almindelig tekstvisning i afspilningsindstillingerne."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ASS- und SSA-Untertitel erscheinen mit ihren Original-Schriften, -Farben und -Positionen. In den Wiedergabe-Einstellungen kannst du zwischen gestylter und einfacher Darstellung wechseln."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Οι υπότιτλοι ASS και SSA εμφανίζονται με τις αρχικές γραμματοσειρές, τα χρώματα και τη θέση τους. Εναλλάξτε μεταξύ στυλιζαρισμένης και απλής απόδοσης κειμένου στις ρυθμίσεις αναπαραγωγής."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ASS and SSA subtitles render with their original fonts, colors and positioning. Switch between styled and plain text rendering in the playback settings."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Los subtítulos ASS y SSA se muestran con sus fuentes, colores y posiciones originales. Cambia entre la representación con estilo y la de texto simple en los ajustes de reproducción."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ASS- ja SSA-tekstitykset näkyvät alkuperäisillä fonteillaan, väreillään ja sijainneillaan. Voit vaihtaa tyylitellyn ja pelkän tekstin välillä toistoasetuksissa."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les sous-titres ASS et SSA s'affichent avec leurs polices, couleurs et positions d'origine. Basculez entre le rendu stylisé et le texte simple dans les réglages de lecture."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Titlovi ASS i SSA prikazuju se s izvornim fontovima, bojama i položajem. U postavkama reprodukcije prebacujte između stiliziranog i običnog prikaza teksta."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Az ASS és SSA feliratok az eredeti betűtípusokkal, színekkel és pozícióval jelennek meg. A lejátszási beállításokban válthatsz a stílusos és az egyszerű szöveges megjelenítés között."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "I sottotitoli ASS e SSA vengono mostrati con i font, i colori e le posizioni originali. Passa dal rendering con stile al testo semplice nelle impostazioni di riproduzione."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ASSおよびSSA字幕を、元のフォント、色、配置のまま表示します。再生設定でスタイル付き表示とプレーンテキスト表示を切り替えられます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ASS 및 SSA 자막이 원본 글꼴, 색상, 위치 그대로 표시됩니다. 재생 설정에서 스타일 표시와 일반 텍스트 표시를 전환할 수 있습니다."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ASS- og SSA-undertekster vises med sine originale skrifter, farger og plassering. Bytt mellom stilisert og enkel tekstvisning i avspillingsinnstillingene."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ASS- en SSA-ondertitels worden weergegeven met hun originele lettertypen, kleuren en positionering. Wissel in de afspeelinstellingen tussen gestileerde en eenvoudige tekstweergave."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Napisy ASS i SSA są wyświetlane z oryginalnymi czcionkami, kolorami i położeniem. W ustawieniach odtwarzania przełączysz się między stylizowanym a zwykłym wyświetlaniem tekstu."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Legendas ASS e SSA aparecem com suas fontes, cores e posições originais. Alterne entre a renderização estilizada e o texto simples nos ajustes de reprodução."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "As legendas ASS e SSA aparecem com os tipos de letra, cores e posições originais. Alterne entre a apresentação estilizada e o texto simples nas definições de reprodução."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Subtitrările ASS și SSA sunt redate cu fonturile, culorile și poziționarea lor originale. Comută între redarea stilizată și textul simplu în setările de redare."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Субтитры ASS и SSA отображаются с оригинальными шрифтами, цветами и расположением. В настройках воспроизведения можно переключаться между стилизованным и простым текстом."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Titulky ASS a SSA sa zobrazujú s pôvodnými písmami, farbami a umiestnením. V nastaveniach prehrávania môžete prepínať medzi štylizovaným a jednoduchým zobrazením."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ASS- och SSA-undertexter visas med sina ursprungliga typsnitt, färger och placeringar. Växla mellan stiliserad och enkel textvisning i uppspelningsinställningarna."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ASS ve SSA altyazıları özgün yazı tipleri, renkleri ve konumlarıyla görüntülenir. Oynatma ayarlarından stilli ve düz metin görünümü arasında geçiş yapın."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Субтитри ASS і SSA відображаються з оригінальними шрифтами, кольорами та розташуванням. У налаштуваннях відтворення можна перемикатися між стилізованим і простим текстом."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ASS 和 SSA 字幕将以原始字体、颜色和位置呈现。可在播放设置中切换样式化渲染与纯文本渲染。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ASS 與 SSA 字幕會以原始字型、顏色和位置呈現。可在播放設定中切換樣式化顯示與純文字顯示。"
+          }
+        }
+      }
+    },
+    "changelog.0_10_0.styledSubs.title" : {
+      "comment" : "0.10.0 What's New highlight title",
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stylované titulky"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stilede undertekster"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gestylte Untertitel"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Στυλιζαρισμένοι υπότιτλοι"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Styled subtitles"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Subtítulos con estilo"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tyylitellyt tekstitykset"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sous-titres stylisés"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stilizirani titlovi"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stílusos feliratok"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sottotitoli con stile"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "スタイル付き字幕"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "스타일 자막"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stiliserte undertekster"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gestileerde ondertitels"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stylizowane napisy"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Legendas estilizadas"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Legendas estilizadas"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Subtitrări stilizate"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Стилизованные субтитры"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Štylizované titulky"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stiliserade undertexter"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stilli Altyazılar"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Стилізовані субтитри"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "样式化字幕"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "樣式化字幕"
+          }
+        }
+      }
+    },
+    "changelog.0_10_0.tabBar.body" : {
+      "comment" : "0.10.0 What's New highlight body",
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lišta karet se u delších jazyků sama rozšíří, takže se žádný popisek neořízne."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fanelinjen gør sig selv bredere til længere sprog, så ingen etiket bliver skåret af."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Tab-Leiste verbreitert sich für längere Sprachen, kein Label wird mehr abgeschnitten."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Η γραμμή καρτελών πλαταίνει μόνη της για πιο μακροσκελείς γλώσσες, ώστε καμία ετικέτα να μην κόβεται."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The tab bar widens itself for longer languages, so no label gets cut off."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La barra de pestañas se ensancha sola para los idiomas más largos, así ninguna etiqueta queda cortada."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Välilehtipalkki levenee itsestään pidemmille kielille, joten yksikään nimike ei leikkaudu."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La barre d'onglets s'élargit d'elle-même pour les langues plus longues, aucun libellé n'est donc coupé."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Traka kartica sama se proširuje za dulje jezike, pa nijedna oznaka više nije odrezana."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A fülsáv hosszabb nyelveknél magától kiszélesedik, így egyetlen felirat sem vágódik le."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La barra delle schede si allarga da sola per le lingue più lunghe, così nessuna etichetta viene tagliata."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "タブバーが長い言語に合わせて自動的に広がるため、ラベルが見切れることはありません。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "탭 막대가 긴 언어에 맞춰 스스로 넓어져 어떤 레이블도 잘리지 않습니다."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fanelinjen utvider seg selv for lengre språk, så ingen etikett blir kuttet av."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "De tabbalk maakt zichzelf breder voor langere talen, zodat geen enkel label wordt afgekapt."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pasek kart sam się poszerza dla dłuższych języków, więc żadna etykieta nie jest ucinana."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A barra de abas se alarga sozinha para idiomas mais longos, então nenhum rótulo fica cortado."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A barra de separadores alarga-se sozinha para idiomas mais longos, pelo que nenhuma etiqueta fica cortada."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bara de file se lărgește singură pentru limbile mai lungi, astfel nicio etichetă nu mai este tăiată."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Панель вкладок сама расширяется для длинных языков, поэтому ни одна надпись не обрезается."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lišta kariet sa pri dlhších jazykoch sama rozšíri, takže sa žiadny popisok neoreže."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Flikraden breddar sig själv för längre språk, så ingen etikett klipps av."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sekme çubuğu daha uzun diller için kendiliğinden genişler, böylece hiçbir etiket kesilmez."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Панель вкладок сама розширюється для довших мов, тому жоден напис не обрізається."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "标签栏会为较长的语言自动加宽，任何标签都不会被截断。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "標籤列會為較長的語言自動加寬，任何標籤都不會被截斷。"
+          }
+        }
+      }
+    },
+    "changelog.0_10_0.tabBar.title" : {
+      "comment" : "0.10.0 What's New highlight title",
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Konec oříznutých karet"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ikke flere afskårne faner"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keine abgeschnittenen Tabs"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Τέλος στις κομμένες καρτέλες"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No more clipped tabs"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Adiós a las pestañas cortadas"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ei enää leikkautuvia välilehtiä"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fini les onglets tronqués"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nema više odrezanih kartica"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nincs több levágott fül"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Niente più schede tagliate"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "タブの見切れを解消"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "잘리는 탭 없음"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ikke flere avkuttede faner"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Geen afgekapte tabbladen meer"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Koniec z przyciętymi kartami"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chega de abas cortadas"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fim dos separadores cortados"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gata cu filele tăiate"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Вкладки больше не обрезаются"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Koniec orezaných kariet"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Inga fler avklippta flikar"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Artık Kırpılan Sekme Yok"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Вкладки більше не обрізаються"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "标签不再被截断"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "標籤頁不再被截斷"
+          }
+        }
+      }
+    },
+    "changelog.0_10_0.watchedFilter.body" : {
+      "comment" : "0.10.0 What's New highlight body",
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filtrujte každou mřížku knihovny podle možností Vše, Nezhlédnuté nebo Zhlédnuté, ideální pro procházení restů na filmový večer."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filtrer alle bibliotekets gitre efter Alle, Usete eller Sete, perfekt til at gennemse puljen til filmaftenen."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filtere jedes Bibliotheks-Grid nach Alle, Ungesehen oder Gesehen, perfekt fürs Stöbern am Filmabend."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Φιλτράρετε κάθε πλέγμα βιβλιοθήκης κατά Όλα, Μη προβεβλημένα ή Προβεβλημένα, ιδανικό για να βρείτε τι θα δείτε στη βραδιά ταινίας."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filter every library grid by All, Unwatched or Watched, perfect for browsing the backlog on movie night."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filtra cada cuadrícula de la biblioteca por Todos, No vistos o Vistos, perfecto para repasar los pendientes en la noche de cine."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Suodata jokainen kirjastonäkymä valinnoilla Kaikki, Katsomattomat tai Katsotut, täydellinen katselujonon selaamiseen leffailtana."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filtrez chaque grille de bibliothèque par Tout, Non vus ou Vus, parfait pour parcourir votre liste en retard lors d'une soirée cinéma."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filtrirajte svaku mrežu medijateke prema Sve, Negledano ili Gledano, savršeno za pregledavanje zaostataka u filmskoj večeri."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Szűrd az összes könyvtárrácsot az Összes, Nem látott vagy Látott lehetőség szerint, tökéletes a lemaradás böngészéséhez filmestén."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filtra ogni griglia della libreria per Tutti, Non visti o Visti, perfetto per sfogliare gli arretrati nella serata film."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ライブラリの一覧を「すべて」「未視聴」「視聴済み」で絞り込めます。映画の夜に観たい作品を探すのにぴったりです。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "모든 라이브러리 그리드를 전체, 시청 안 함, 시청함으로 필터링할 수 있습니다. 영화 보는 날 밀린 작품을 둘러보기에 안성맞춤입니다."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filtrer hvert bibliotekrutenett etter Alle, Usett eller Sett, perfekt for å bla i etterslepet på filmkvelden."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filter elk bibliotheekraster op Alles, Niet bekeken of Bekeken, perfect om op filmavond door je achterstand te bladeren."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filtruj każdą siatkę biblioteki według opcji Wszystkie, Nieobejrzane lub Obejrzane, idealne do przeglądania zaległości w wieczór filmowy."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filtre cada grade da biblioteca por Todos, Não assistidos ou Assistidos, perfeito para explorar a lista de pendentes na noite de cinema."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filtre cada grelha da biblioteca por Todos, Não vistos ou Vistos, perfeito para explorar os pendentes na noite de cinema."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filtrează fiecare grilă de bibliotecă după Toate, Nevizionate sau Vizionate, perfect pentru a răsfoi restanțele în seara de film."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Фильтруйте любую сетку библиотеки по параметрам Все, Непросмотренные или Просмотренные, идеально для выбора фильма на вечер."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filtrujte každú mriežku knižnice podľa možností Všetky, Nepozreté alebo Pozreté, ideálne na prehliadanie restov vo filmový večer."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filtrera varje biblioteksrutnät efter Alla, Osedda eller Sedda, perfekt för att bläddra i högen på filmkvällen."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Her kitaplık ızgarasını Tümü, İzlenmemiş veya İzlenmiş olarak filtreleyin; film gecesinde birikenlere göz atmak için birebir."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Фільтруйте будь-яку сітку бібліотеки за параметрами Усі, Непереглянуті чи Переглянуті, ідеально для вибору фільму на вечір."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "可按全部、未观看或已观看筛选每个媒体库网格，电影之夜挑片再合适不过。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "可依全部、未觀看或已觀看篩選每個媒體庫網格，電影之夜挑片再適合不過。"
+          }
+        }
+      }
+    },
+    "changelog.0_10_0.watchedFilter.title" : {
+      "comment" : "0.10.0 What's New highlight title",
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filtr podle zhlédnutí"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filter efter set-status"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gesehen-Filter"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Φίλτρο κατάστασης προβολής"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Watch-status filter"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filtro de estado de visualización"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Katselutilan suodatin"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filtre de statut de visionnage"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filtar statusa gledanja"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Megtekintési szűrő"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filtro per stato di visione"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "視聴状況フィルタ"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "시청 상태 필터"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filter for sett-status"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kijkstatusfilter"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filtr stanu obejrzenia"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filtro por status de exibição"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filtro por estado de visualização"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filtru după starea vizionării"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Фильтр по просмотру"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filter podľa pozretia"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filter för visningsstatus"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "İzlenme Durumu Filtresi"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Фільтр за переглядом"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "观看状态筛选"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "觀看狀態篩選"
+          }
+        }
+      }
+    },
     "changelog.0_4_0.cardHeights.body" : {
       "extractionState" : "manual",
       "localizations" : {
