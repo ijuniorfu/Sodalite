@@ -204,6 +204,14 @@ final class EPGCollectionViewController: UIViewController,
     /// `indexPathForPreferredFocusedView` after a vertical move was
     /// vetoed in `shouldUpdateFocusIn`.
     private var pendingFocusRedirect: IndexPath?
+    /// The exact (prev, next) proposal we last vetoed. If the engine
+    /// proposes the SAME move again, our redirect never took (the
+    /// anchor-column cell wasn't focusable/materialized, typical at
+    /// the seam between "no program info" placeholder rows and real
+    /// program rows after deep scrolling) and vetoing again would
+    /// strand focus there for good. Letting the engine's unanchored
+    /// pick through beats being stuck.
+    private var lastVetoedMove: (prev: IndexPath, next: IndexPath)?
 
     func collectionView(_ collectionView: UICollectionView,
                         shouldUpdateFocusIn context: UICollectionViewFocusUpdateContext) -> Bool {
@@ -235,6 +243,14 @@ final class EPGCollectionViewController: UIViewController,
             pendingFocusRedirect = nil
             return true
         }
+        if let last = lastVetoedMove, last.prev == prev, last.next == next {
+            // Same proposal again after a veto: the redirect didn't
+            // take. Stop fighting the engine, accept its pick.
+            lastVetoedMove = nil
+            pendingFocusRedirect = nil
+            return true
+        }
+        lastVetoedMove = (prev, next)
         // Veto the engine's pick and re-run the update; the preferred-
         // focus hook below serves the column-anchored target instead.
         pendingFocusRedirect = IndexPath(item: desired, section: next.section)
@@ -256,6 +272,10 @@ final class EPGCollectionViewController: UIViewController,
         guard collectionView === gridView else { return }
         let wasRedirect = pendingFocusRedirect != nil
         pendingFocusRedirect = nil
+        // Focus actually moved, so the redirect mechanism is healthy;
+        // forget the last veto so the escape hatch only fires on a
+        // genuinely repeated (failed) proposal.
+        lastVetoedMove = nil
         guard let indexPath = context.nextFocusedIndexPath else { return }
         let vertical = context.focusHeading.contains(.up) || context.focusHeading.contains(.down)
         // Keep the anchor across vertical moves (including the redirected
