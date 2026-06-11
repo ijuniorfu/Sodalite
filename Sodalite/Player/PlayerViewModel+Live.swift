@@ -299,6 +299,15 @@ extension PlayerViewModel {
             ))
             return
         }
+        // A direct-ingest source that died mid-watch is suspect; retune via
+        // the Jellyfin path instead of the same dead upstream. The next
+        // manual zap tries direct again (flags reset per startPlayback).
+        if usedDirectLivePath {
+            didAttemptLiveFallback = true
+            usedDirectLivePath = false
+            LogTap.shared.note("[LiveDirect] route=fallback reason=mid_session_source_reset")
+        }
+
         liveRetuneInFlight = true
         liveRetuneCount += 1
         lastLiveRetuneAt = Date()
