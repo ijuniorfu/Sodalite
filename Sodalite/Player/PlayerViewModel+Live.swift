@@ -50,6 +50,11 @@ extension PlayerViewModel {
         mediaSourceID = source.id
         activeLiveStreamID = source.liveStreamId
 
+        // Temporary diagnostic for the live direct-play / HLS-ingest
+        // scoping (2026-06-11): classify the serving path and probe
+        // the tuner's upstream URL straight from this device.
+        logLiveDirectDiagnostics(source: source)
+
         // Resolve the progressive TS URL the engine's AVIOReader consumes.
         // Transcode/remux channels carry a TranscodingUrl; a source the server
         // rates DirectPlay/DirectStream (container already ts, codecs in
@@ -292,6 +297,77 @@ extension PlayerViewModel {
         guard let video = source.mediaStreams?.first(where: { $0.type == .video })
         else { return true }
         return (video.codec ?? "").isEmpty
+    }
+
+    // MARK: - Direct-play diagnostics (temporary)
+
+    /// One-shot per-tune diagnostic for the live direct-play
+    /// investigation: logs how Jellyfin serves this channel (remux via
+    /// server ffmpeg vs static byte proxy), the tuner's upstream URL,
+    /// and an active reachability probe from this device with a
+    /// content sniff (#EXTM3U = HLS playlist, 0x47 = raw MPEG-TS).
+    /// Read the [LiveDirect] lines from the Support log export.
+    /// Remove once the HLS-ingest decision is made.
+    private func logLiveDirectDiagnostics(source: PlaybackMediaSource) {
+        let serving = source.transcodingUrl != nil
+            ? "remux (TranscodingUrl, server ffmpeg)"
+            : "static proxy (no server ffmpeg)"
+        let upstream = source.path ?? "<no Path exposed>"
+        LogTap.shared.note(
+            "[LiveDirect] channel=\(item.name) serving=\(serving)"
+            + " directPlay=\(source.supportsDirectPlay == true)"
+            + " directStream=\(source.supportsDirectStream == true)"
+            + " container=\(source.container ?? "?")"
+            + " upstream=\(upstream)"
+        )
+        guard let path = source.path,
+              let url = URL(string: path),
+              let scheme = url.scheme?.lowercased(),
+              scheme == "http" || scheme == "https" else {
+            LogTap.shared.note("[LiveDirect] probe skipped: upstream is not an http(s) URL")
+            return
+        }
+        Task.detached {
+            let started = Date()
+            var request = URLRequest(url: url)
+            request.timeoutInterval = 8
+            do {
+                // Plain GET, not HEAD/Range: IPTV heads commonly
+                // reject those. Sniff the first bytes, then cancel.
+                let (bytes, response) = try await URLSession.shared.bytes(for: request)
+                var head = Data()
+                for try await byte in bytes {
+                    head.append(byte)
+                    if head.count >= 512 { break }
+                }
+                bytes.task.cancel()
+                let http = response as? HTTPURLResponse
+                let latencyMs = Int(Date().timeIntervalSince(started) * 1000)
+                let sniff: String
+                if head.starts(with: Data("#EXTM3U".utf8)) {
+                    sniff = "HLS playlist"
+                } else if head.first == 0x47 {
+                    sniff = "raw MPEG-TS"
+                } else {
+                    sniff = "unknown head=\(head.prefix(8).map { String(format: "%02x", $0) }.joined())"
+                }
+                let finalURL = response.url.map {
+                    $0 == url ? "same" : $0.absoluteString
+                } ?? "?"
+                await LogTap.shared.note(
+                    "[LiveDirect] probe ok status=\(http?.statusCode ?? -1)"
+                    + " sniff=\(sniff)"
+                    + " contentType=\(http?.value(forHTTPHeaderField: "Content-Type") ?? "?")"
+                    + " latencyMs=\(latencyMs) bytes=\(head.count)"
+                    + " redirect=\(finalURL)"
+                )
+            } catch {
+                let latencyMs = Int(Date().timeIntervalSince(started) * 1000)
+                await LogTap.shared.note(
+                    "[LiveDirect] probe FAILED after \(latencyMs)ms: \(error.localizedDescription)"
+                )
+            }
+        }
     }
 
     static func liveNeedsVideoReencode(transcodeReasons: [String]?, transcodingURL: String?) -> Bool {
