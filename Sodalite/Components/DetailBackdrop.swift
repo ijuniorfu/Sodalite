@@ -50,6 +50,14 @@ struct DetailContentOverlay<Hero: View, Content: View>: View {
     @ViewBuilder let hero: () -> Hero
     @ViewBuilder let content: () -> Content
 
+    /// Extra full-screen dim layered between the backdrop and the
+    /// scroll content, driven by scroll position: 0 at the top (the
+    /// backdrop shows at its brightest) ramping to 0.3 once the page
+    /// has scrolled one hero-window deep. Keeps the full-bleed look
+    /// while restoring readability over bright artwork once the user
+    /// is actually down in the content.
+    @State private var scrollDim: Double = 0
+
     init(
         @ViewBuilder hero: @escaping () -> Hero = { EmptyView() },
         @ViewBuilder content: @escaping () -> Content
@@ -101,6 +109,15 @@ struct DetailContentOverlay<Hero: View, Content: View>: View {
                 // on a 4K display.
                 Color.black.opacity(0.55).frame(minHeight: 600)
             }
+        }
+        .background(Color.black.opacity(scrollDim).ignoresSafeArea())
+        .onScrollGeometryChange(for: Double.self) { geometry in
+            geometry.contentOffset.y + geometry.contentInsets.top
+        } action: { _, offset in
+            // Linear ramp over the first 500 pt (the clear hero
+            // window), capped at 0.3. Continuous with the scroll, so
+            // no animation needed.
+            scrollDim = min(max(offset / 500, 0), 1) * 0.3
         }
     }
 }
