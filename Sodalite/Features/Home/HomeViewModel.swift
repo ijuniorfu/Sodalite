@@ -699,29 +699,54 @@ final class HomeViewModel {
                 )
 
             case .latestShows:
-                // Same treatment as latestMovies, /Items/Latest
-                // across every accessible library. Episode must be
-                // in the type filter alongside Series: the filter
-                // applies *before* GroupItems folds episodes into
-                // their series, so Series alone only matches shows
-                // whose own DateCreated is fresh. A server that only
-                // ever gains new episodes of existing shows returned
-                // an empty row (Sodalite#15, DrHurt's CDN server).
-                // Singleton episodes that survive grouping are folded
-                // into their series below, same as libraryLatest.
-                //
-                // Over-fetch, then cap AFTER folding: the server limit
-                // counts raw entries, and a burst of episodes from a
-                // handful of shows collapses to a handful of tiles
-                // after the fold, leaving the row visibly short
-                // (regression report on Sodalite#15's fix).
-                let latest = try await libraryService.getLatestMedia(
-                    userID: userID,
-                    parentID: nil,
-                    includeItemTypes: [.series, .episode],
-                    limit: 64
-                )
-                items = Array(await foldEpisodesIntoSeries(latest).prefix(16))
+                // Per-library fan-out instead of one typed aggregate
+                // query. The aggregate needed IncludeItemTypes=
+                // Series,Episode (Series alone misses shows that only
+                // gained episodes, the filter applies before
+                // grouping), but WITH the explicit type filter the
+                // server's episode grouping is unreliable, so episode
+                // bursts from a few shows crowded everything else out
+                // of the fetch window no matter the over-fetch
+                // (Vincent device reports, 2026-06-11). ParentId-only
+                // queries are the semantics the per-library rows have
+                // used reliably since Sodalite#12: grouping works,
+                // every shows library is represented. Lists arrive
+                // newest-first per library; round-robin interleave
+                // approximates global recency (item DateCreated can't
+                // sort this: a grouped entry carries the SERIES'
+                // creation date, not the new episode's).
+                let showLibraries = videoLibraries.filter { ($0.collectionType ?? "") == "tvshows" }
+                if showLibraries.isEmpty {
+                    // Library list unavailable (getLibraries failed):
+                    // fall back to the typed aggregate, imperfect but
+                    // better than an empty row.
+                    let latest = try await libraryService.getLatestMedia(
+                        userID: userID,
+                        parentID: nil,
+                        includeItemTypes: [.series, .episode],
+                        limit: 64
+                    )
+                    items = Array(await foldEpisodesIntoSeries(latest).prefix(16))
+                } else {
+                    var lists: [[JellyfinItem]] = []
+                    for library in showLibraries {
+                        let list = (try? await libraryService.getLatestMedia(
+                            userID: userID,
+                            parentID: library.id,
+                            includeItemTypes: nil,
+                            limit: 16
+                        )) ?? []
+                        lists.append(list)
+                    }
+                    var merged: [JellyfinItem] = []
+                    let deepest = lists.map(\.count).max() ?? 0
+                    for index in 0..<deepest {
+                        for list in lists where index < list.count {
+                            merged.append(list[index])
+                        }
+                    }
+                    items = Array(await foldEpisodesIntoSeries(merged).prefix(16))
+                }
 
             case .allMovies:
                 let query = ItemQuery(
