@@ -1,5 +1,31 @@
 import SwiftUI
 
+/// Watch-status narrowing for the library grids (Sodalite#17,
+/// requested by RyoShinzo). Maps to Jellyfin's `Filters` parameter;
+/// `.all` sends nothing and is the long-standing default.
+enum WatchStatusFilter: String, CaseIterable, Hashable {
+    case all
+    case unwatched
+    case watched
+
+    /// Jellyfin `Filters` value, nil for the unfiltered default.
+    var jellyfinFilter: String? {
+        switch self {
+        case .all: nil
+        case .unwatched: "IsUnplayed"
+        case .watched: "IsPlayed"
+        }
+    }
+
+    var localizedTitle: LocalizedStringKey {
+        switch self {
+        case .all: "library.filter.all"
+        case .unwatched: "library.filter.unwatched"
+        case .watched: "library.filter.watched"
+        }
+    }
+}
+
 struct FilteredGridView: View {
     @Environment(\.appState) private var appState
     @Environment(\.dependencies) private var dependencies
@@ -7,6 +33,7 @@ struct FilteredGridView: View {
     @State private var isLoading: Bool
     @State private var isAugmenting = false
     @State private var selectedItem: JellyfinItem?
+    @State private var watchFilter: WatchStatusFilter = .all
     @FocusState private var focusedItemID: String?
     @Environment(\.dismiss) private var dismiss
 
@@ -65,6 +92,18 @@ struct FilteredGridView: View {
                 .padding(.horizontal, 60)
                 .padding(.top, 20)
 
+            // Watch-status filter (Sodalite#17). Native segmented
+            // control per the app's section-picker convention
+            // (Catalog tabs, Live TV Guide/Recordings).
+            Picker("", selection: $watchFilter) {
+                ForEach(WatchStatusFilter.allCases, id: \.self) { filter in
+                    Text(filter.localizedTitle).tag(filter)
+                }
+            }
+            .pickerStyle(.segmented)
+            .padding(.horizontal, 60)
+            .padding(.top, 8)
+
             if isLoading {
                 VStack(spacing: 16) {
                     ProgressView()
@@ -116,7 +155,14 @@ struct FilteredGridView: View {
         .navigationDestination(item: $selectedItem) { item in
             DetailRouterView(item: item)
         }
-        .task {
+        .onChange(of: watchFilter) { _, _ in
+            // Filter switch: drop the now-mismatched grid immediately
+            // (stale-while-revalidate would briefly show watched items
+            // under "Unwatched") and let the keyed task below refetch.
+            items = []
+            isLoading = true
+        }
+        .task(id: watchFilter) {
             await loadItems()
             // Nudge focus to the first item only on the very first
             // appearance, if the user has already navigated by the
@@ -148,28 +194,41 @@ struct FilteredGridView: View {
         // background refresh that replaces them with the freshest
         // server response.
 
-        async let studioMatchTask: [JellyfinItem] = {
+        // Watch-status filter applies server-side to BOTH phases:
+        // phase 1 directly, and the full-library map the smart
+        // provider augment resolves against, so phase 2 cannot
+        // re-introduce filtered-out items. `.all` sends nothing.
+        var effectiveQuery = query
+        if let filter = watchFilter.jellyfinFilter {
+            effectiveQuery.filters = [filter]
+        }
+        let isWatchFiltered = watchFilter != .all
+
+        async let studioMatchTask: [JellyfinItem] = { [effectiveQuery] in
             do {
                 return try await dependencies.jellyfinLibraryService.getItems(
-                    userID: userID, query: query
+                    userID: userID, query: effectiveQuery
                 ).items
             } catch {
                 return []
             }
         }()
 
-        async let allLibraryTask: [JellyfinItem] = {
+        async let allLibraryTask: [JellyfinItem] = { [watchFilterValue = watchFilter.jellyfinFilter] in
             guard smartProviderID != nil else { return [] }
             // Fetch the entire library in one shot rather than running
             // per-id `AnyProviderIdEquals` lookups. Robust against
             // Jellyfin version quirks and amortises across every
             // TMDB id we want to resolve.
-            let allQuery = ItemQuery(
+            var allQuery = ItemQuery(
                 includeItemTypes: [.movie, .series],
                 sortBy: "SortName",
                 sortOrder: "Ascending",
                 limit: 10000
             )
+            if let filter = watchFilterValue {
+                allQuery.filters = [filter]
+            }
             return (try? await dependencies.jellyfinLibraryService.getItems(
                 userID: userID, query: allQuery
             ).items) ?? []
@@ -214,7 +273,10 @@ struct FilteredGridView: View {
             if items.map(\.id) != phase1.map(\.id) {
                 items = phase1
             }
-            if let key = cacheKey {
+            // Cache only the unfiltered default: the cached list feeds
+            // init hydration (always .all) and the empty-tile-hide
+            // counts, both of which must reflect the full library.
+            if let key = cacheKey, !isWatchFiltered {
                 FilterCache.shared.setHomeFilterItems(phase1, filterKey: key)
             }
         }
@@ -264,7 +326,8 @@ struct FilteredGridView: View {
         // Persist the fully-resolved list so the next visit can
         // hydrate the grid synchronously, no library fetch, no
         // watch-provider roundtrip needed for the initial display.
-        if let key = cacheKey {
+        // Unfiltered default only, same rationale as the phase-1 write.
+        if let key = cacheKey, watchFilter == .all {
             FilterCache.shared.setHomeFilterItems(merged, filterKey: key)
         }
     }

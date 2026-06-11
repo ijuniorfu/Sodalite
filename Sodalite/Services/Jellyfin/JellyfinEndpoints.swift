@@ -494,6 +494,10 @@ struct ItemQuery: Sendable {
     var genres: [String]?
     var studioNames: [String]?
     var isFavorite: Bool?
+    /// Jellyfin `Filters` values (`IsPlayed`, `IsUnplayed`,
+    /// `IsResumable`, ...). Drives the watch-status filter on the
+    /// library grids (Sodalite#17).
+    var filters: [String]?
     /// Single-value provider-id match like "tmdb.123", used by the
     /// home-page smart provider filter to look up library items by
     /// TMDB id one at a time. Jellyfin's `AnyProviderIdEquals`
@@ -524,6 +528,9 @@ struct ItemQuery: Sendable {
             items.append(URLQueryItem(name: "Studios", value: studioNames.joined(separator: "|")))
         }
         if let isFavorite { items.append(URLQueryItem(name: "IsFavorite", value: String(isFavorite))) }
+        if let filters {
+            items.append(URLQueryItem(name: "Filters", value: filters.joined(separator: ",")))
+        }
         if let anyProviderIdEquals {
             items.append(URLQueryItem(name: "AnyProviderIdEquals", value: anyProviderIdEquals))
         }
