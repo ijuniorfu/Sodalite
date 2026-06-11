@@ -5,8 +5,11 @@ import Observation
 @MainActor
 final class EPGGuideViewModel {
     // Layout constants
-    /// Horizontal scale: points per minute of program time.
-    static let pointsPerMinute: CGFloat = 6
+    /// Horizontal scale: points per minute of program time. 8 pt/min
+    /// puts roughly three and a quarter hours on screen next to the
+    /// channel column; the previous 6 pt/min showed about four and a
+    /// third, which squeezed program titles too hard to read.
+    static let pointsPerMinute: CGFloat = 8
     /// Height of a single channel row.
     static let rowHeight: CGFloat = 110
     /// Width of the sticky channel column.
