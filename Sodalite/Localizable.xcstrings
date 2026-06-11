@@ -48631,6 +48631,168 @@
         }
       }
     },
+    "home.customize.mergeCwNextUp.subtitle" : {
+      "comment" : "Subtitle for the combine Continue Watching and Next Up toggle",
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zobrazí epizody z řady Další v řadě Pokračovat ve sledování."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Viser Næste-afsnittene i rækken Fortsæt med at se."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zeigt die Als-Nächstes-Episoden in der Weiterschauen-Reihe."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Εμφανίζει τα επεισόδια του Επόμενου στη σειρά Συνέχιση παρακολούθησης."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Shows the Next Up episodes inside the Continue Watching row."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Muestra los episodios de Siguiente dentro de la fila Seguir viendo."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Näyttää Seuraavaksi-jaksot Jatka katselua -rivillä."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Affiche les épisodes À suivre dans la rangée Continuer à regarder."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Prikazuje epizode iz Sljedeće u retku Nastavi gledanje."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A Következő epizódokat a Folytatás sorban jeleníti meg."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostra gli episodi di Prossimo nella riga Continua a guardare."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "「次の再生」のエピソードを「視聴を続ける」の列に表示します。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "'다음' 에피소드를 '계속 시청' 행에 표시합니다."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Viser Neste-episodene i raden Fortsett å se."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toont de Volgende-afleveringen in de rij Verder kijken."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wyświetla odcinki z Następne w wierszu Kontynuuj oglądanie."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostra os episódios de Próximo na fileira Continuar assistindo."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostra os episódios de A seguir na fila Continuar a ver."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Afișează episoadele din Următorul în rândul Continuă vizionarea."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Показывает эпизоды из «Далее» в ряду «Продолжить просмотр»."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zobrazuje epizódy z Ďalšie v riadku Pokračovať v sledovaní."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Visar Nästa-avsnitten i raden Fortsätt titta."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sırada bölümlerini İzlemeye Devam Et satırında gösterir."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Показує епізоди з «Наступне» в рядку «Продовжити перегляд»."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在“继续观看”行中显示“接下来”的剧集。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在「繼續觀看」列中顯示「接下來」的劇集。"
+          }
+        }
+      }
+    },
     "home.customize.moveTip" : {
       "comment" : "Tip when a row is selected for moving",
       "extractionState" : "manual",

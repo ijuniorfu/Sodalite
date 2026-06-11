@@ -89,43 +89,32 @@ struct HomeCustomizeView: View {
 
     /// Plex-style combined row: folds Next Up into Continue Watching.
     /// Lives here rather than in Appearance because it changes which
-    /// rows exist, same as the enable/disable tiles below it.
+    /// rows exist, same as the enable/disable tiles below it. App
+    /// toggle convention: a ValuePickerRow whose value flips with
+    /// left/right, like every other On/Off setting, NOT a tap-toggle.
     private var mergeRowToggle: some View {
-        FocusableTile(action: {
-            movingID = nil
-            withAnimation(.easeInOut(duration: 0.25)) {
-                mergeCWNextUp.toggle()
+        ValuePickerRow(
+            icon: "arrow.triangle.merge",
+            title: "home.customize.mergeCwNextUp",
+            subtitle: "home.customize.mergeCwNextUp.subtitle",
+            options: [false, true],
+            selection: Binding(
+                get: { mergeCWNextUp },
+                set: { newValue in
+                    movingID = nil
+                    withAnimation(.easeInOut(duration: 0.25)) {
+                        mergeCWNextUp = newValue
+                    }
+                    HomeRowConfig.setMergeContinueWatchingNextUp(newValue, serverID: serverID)
+                    NotificationCenter.default.post(name: .homeConfigDidChange, object: nil)
+                }
+            ),
+            label: { on in
+                on
+                    ? String(localized: "common.on", defaultValue: "On")
+                    : String(localized: "common.off", defaultValue: "Off")
             }
-            HomeRowConfig.setMergeContinueWatchingNextUp(mergeCWNextUp, serverID: serverID)
-            NotificationCenter.default.post(name: .homeConfigDidChange, object: nil)
-        }) { isFocused in
-            HStack(spacing: 20) {
-                Image(systemName: "arrow.triangle.merge")
-                    .font(.title3)
-                    .frame(width: 44)
-                    .foregroundStyle(.tint)
-
-                Text("home.customize.mergeCwNextUp")
-                    .font(.body)
-
-                Spacer()
-
-                Text(mergeCWNextUp ? "common.on" : "common.off")
-                    .font(.caption)
-                    .foregroundStyle(mergeCWNextUp ? AnyShapeStyle(.tint) : AnyShapeStyle(.secondary))
-            }
-            .padding(.vertical, 14)
-            .padding(.horizontal, 20)
-            .background(
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(tileBackground(isFocused: isFocused, isMoving: false))
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: 12)
-                    .strokeBorder(.tint, lineWidth: 3)
-                    .opacity(isFocused ? 1 : 0)
-            )
-        }
+        )
         .padding(.horizontal, 50)
     }
 
