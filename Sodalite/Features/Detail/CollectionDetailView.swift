@@ -49,10 +49,18 @@ struct CollectionDetailView: View {
                 posterFallbackURL: vm.posterURL(for: vm.item)
             )
 
-            DetailContentOverlay {
-                glassPanel(vm: vm)
-                    .padding(.horizontal, 50)
-
+            DetailContentOverlay(primary: {
+                // Glass panel + action buttons form the first page's
+                // bottom-aligned block, matching the movie and series
+                // detail views (Sodalite#15 round 6): the button row
+                // closes off the fold, overview and the title list
+                // start off-screen.
+                VStack(alignment: .leading, spacing: 24) {
+                    glassPanel(vm: vm)
+                    actionButtonRow(vm: vm)
+                }
+                .padding(.horizontal, 50)
+            }) {
                 if let overview = vm.item.overview, !overview.isEmpty {
                     ExpandableTextBox(text: overview)
                         .padding(.horizontal, 50)
@@ -78,32 +86,35 @@ struct CollectionDetailView: View {
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
             }
-
-            HStack(spacing: 16) {
-                GlassActionButton(
-                    title: "detail.play",
-                    systemImage: "play.fill",
-                    isProminent: true,
-                    action: {
-                        if let first = vm.collectionItems.first {
-                            selectedItem = first
-                        }
-                    }
-                )
-
-                GlassActionButton(
-                    title: vm.isFavorite ? "detail.unfavorite" : "detail.favorite",
-                    systemImage: vm.isFavorite ? "heart.fill" : "heart",
-                    action: { Task { await vm.toggleFavorite() } }
-                )
-            }
-            .padding(.top, 4)
         }
         .padding(30)
         .background(
             RoundedRectangle(cornerRadius: 20)
                 .fill(.ultraThinMaterial)
         )
+    }
+
+    /// Button row directly below the glass panel, outside the plate,
+    /// matching the movie and series detail views.
+    private func actionButtonRow(vm: DetailViewModel) -> some View {
+        HStack(spacing: 16) {
+            GlassActionButton(
+                title: "detail.play",
+                systemImage: "play.fill",
+                isProminent: true,
+                action: {
+                    if let first = vm.collectionItems.first {
+                        selectedItem = first
+                    }
+                }
+            )
+
+            GlassActionButton(
+                title: vm.isFavorite ? "detail.unfavorite" : "detail.favorite",
+                systemImage: vm.isFavorite ? "heart.fill" : "heart",
+                action: { Task { await vm.toggleFavorite() } }
+            )
+        }
     }
 
     // MARK: - Collection Items (vertical list)
