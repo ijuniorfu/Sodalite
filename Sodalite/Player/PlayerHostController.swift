@@ -472,7 +472,11 @@ final class PlayerHostController: AVPlayerViewController {
                 LogTap.shared.note(
                     "[AVKitLayer] sample t+\(stamp)s layer=\(String(UInt(bitPattern: ObjectIdentifier(current).hashValue), radix: 16)) "
                     + "ready=\(current.isReadyForDisplay) videoRect=\(Int(r.width))x\(Int(r.height)) "
-                    + "clock=\(String(format: "%.2f", t.isFinite ? t : -1)) tcs=\(avPlayer.timeControlStatus.rawValue)"
+                    // -1.0, not -1: with CVarArg as the contextual type the
+                    // ternary's branches coerce independently, so a bare -1
+                    // becomes Int and mismatches "%.2f" at runtime (fired
+                    // exactly when the clock went nan during a live stall).
+                    + "clock=\(String(format: "%.2f", t.isFinite ? t : -1.0)) tcs=\(avPlayer.timeControlStatus.rawValue)"
                 )
             }
         }
