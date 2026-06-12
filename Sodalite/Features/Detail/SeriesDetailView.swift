@@ -435,25 +435,8 @@ struct SeriesDetailView: View {
                                 await vm.refreshSeasons()
                             }
                             return .success
-                        } catch let error as MediaDeletionError {
-                            if error.reason == .seerrNotSignedIn {
-                                return .partialSuccess(
-                                    message: String(localized: "delete.toast.seerrNotSignedIn")
-                                )
-                            }
-                            if error.partialSuccess {
-                                return .partialSuccess(
-                                    message: String(localized: "delete.toast.partialSuccess")
-                                )
-                            } else {
-                                return .failure(
-                                    message: String(localized: "delete.toast.failure")
-                                )
-                            }
                         } catch {
-                            return .failure(
-                                message: String(localized: "delete.toast.failure")
-                            )
+                            return .from(error)
                         }
                     }
                 )
@@ -779,16 +762,11 @@ struct SeriesDetailView: View {
     /// Resolve a Jellyfin cast member to a TMDB person id, then open the
     /// person page. Inert when the server has no TMDB id for them.
     private func handlePersonTap(_ member: CastMember) {
-        guard let jid = member.jellyfinPersonID,
-              let userID = appState.activeUser?.id else { return }
-        Task {
-            if let person = try? await dependencies.jellyfinItemService.getItemDetail(
-                   userID: userID, itemID: jid
-               ),
-               let tmdb = person.tmdbID {
-                navigateToPerson = PersonRoute(tmdbID: tmdb, name: member.name)
-            }
-        }
+        resolvePersonRoute(
+            for: member,
+            userID: appState.activeUser?.id,
+            itemService: dependencies.jellyfinItemService
+        ) { navigateToPerson = $0 }
     }
 
     // MARK: - Season Section

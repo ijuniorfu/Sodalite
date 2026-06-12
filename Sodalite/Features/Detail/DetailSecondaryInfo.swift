@@ -9,6 +9,28 @@ struct PersonRoute: Identifiable, Hashable {
     var id: Int { tmdbID }
 }
 
+/// Resolve a Jellyfin cast member to a TMDB person id, then hand the
+/// person route to the caller for navigation. Inert when the server
+/// has no TMDB id for them. Shared by MovieDetailView and
+/// SeriesDetailView's cast-row tap handlers.
+func resolvePersonRoute(
+    for member: CastMember,
+    userID: String?,
+    itemService: JellyfinItemServiceProtocol,
+    onResolved: @escaping (PersonRoute) -> Void
+) {
+    guard let jid = member.jellyfinPersonID,
+          let userID else { return }
+    Task {
+        if let person = try? await itemService.getItemDetail(
+               userID: userID, itemID: jid
+           ),
+           let tmdb = person.tmdbID {
+            onResolved(PersonRoute(tmdbID: tmdb, name: member.name))
+        }
+    }
+}
+
 /// Maps Jellyfin cast people to the shared `CastMember` model. Stores
 /// the Jellyfin person id (resolved to a TMDB id on tap); `personID`
 /// (TMDB) stays nil for Jellyfin-sourced members. Capped at 15.

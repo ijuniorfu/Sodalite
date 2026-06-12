@@ -298,6 +298,33 @@ struct MediaDeletionSheet: View {
     }
 }
 
+extension MediaDeletionSheet.DeletionOutcome {
+    /// Maps a thrown deletion error onto the toast outcome the detail
+    /// views report back from their onConfirm closures. Shared by
+    /// MovieDetailView and SeriesDetailView, which previously carried
+    /// verbatim copies of these catch branches: Seerr-not-signed-in
+    /// and partial failures surface as partialSuccess, everything
+    /// else (including non-MediaDeletionError throws) as the generic
+    /// failure toast.
+    static func from(_ error: Error) -> Self {
+        if let error = error as? MediaDeletionError {
+            if error.reason == .seerrNotSignedIn {
+                return .partialSuccess(
+                    message: String(localized: "delete.toast.seerrNotSignedIn")
+                )
+            }
+            if error.partialSuccess {
+                return .partialSuccess(
+                    message: String(localized: "delete.toast.partialSuccess")
+                )
+            }
+        }
+        return .failure(
+            message: String(localized: "delete.toast.failure")
+        )
+    }
+}
+
 // MARK: - BoolPillRow
 
 /// Focus-friendly inline toggle. Mirrors `ValuePickerRow` from
