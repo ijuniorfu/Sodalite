@@ -462,194 +462,39 @@ struct AppRouter: View {
         // more specific signal and wins over any user-pinned default.
         await resolveTVUserContext()
 
-        // Determine whether a tvOS mapping is currently in effect.
-        // When one is, both the defaultServerID promotion and the
-        // shouldUseDefault launch-behavior branch are suppressed so the
-        // tvOS system identity is not clobbered by the user's pinned
-        // default server or default profile.
-        let hasTVMapping: Bool = {
-            guard let tvUserID = TVUserContext.currentUserID else { return false }
-            return dependencies.tvProfileMappings.mapping(for: tvUserID) != nil
-        }()
-
-        // Promote the user's default server (if set and still known)
-        // before restoreSession runs. Lets the user pin which server
-        // the app cold-launches into, regardless of which one was last
-        // active. No-op when defaultServerID is nil or no longer
-        // resolves (e.g. server was removed). Skipped when the default
-        // already equals the current pointer, or when a tvOS mapping
-        // is in effect (the mapping's server takes precedence).
-        if !hasTVMapping,
-           let defaultID = dependencies.authPreferences.defaultServerID,
-           dependencies.listKnownServers().contains(where: { $0.id == defaultID }),
-           (try? dependencies.keychainService.loadString(for: KeychainKeys.activeServerID)) != defaultID {
-            try? dependencies.keychainService.save(defaultID, for: KeychainKeys.activeServerID)
-        }
-
-        let didRestore = dependencies.restoreSession()
-        tvUserLogger.notice("performRestore: dependencies.restoreSession() returned \(didRestore, privacy: .public). knownServers=\(dependencies.listKnownServers().map { $0.id }.joined(separator: ","), privacy: .public) activeServer=\(dependencies.activeServer?.id ?? "nil", privacy: .public)")
-
-        if !didRestore {
-            // Session couldn't be restored (missing token, unresolved
-            // pointer, etc.). Don't early-exit to ServerDiscoveryView
-            // if we still know about a server: land in its profile
-            // picker so the user can re-pick a remembered profile or
-            // add a new one, without losing every other server's
-            // saved state.
-            let target: JellyfinServer?
-            if let server = dependencies.activeServer {
-                target = server
-            } else if let first = dependencies.listKnownServers().first {
-                // Repair: activeServerID is missing or no longer
-                // resolves, but knownServers has at least one entry.
-                // Promote the most recently added server to active by
-                // writing only the pointer (no switchServer here, that
-                // would clear JellyfinClient.accessToken and SharedSession
-                // Mirror for a target we cannot fully restore in this
-                // pass). Land in the profile picker for the recovered
-                // server; the next launch's normal restoreSession path
-                // resolves token + user from there.
-                try? dependencies.keychainService.save(first.id, for: KeychainKeys.activeServerID)
-                target = first
-            } else {
-                target = nil
-            }
-
-            if let target {
-                // Point the client at the known host so the picker's
-                // avatar fetches + any subsequent LoginView flow hit
-                // the right server. We can't recover the access token
-                // here, but the host URL is enough to bootstrap the
-                // picker.
-                dependencies.jellyfinClient.baseURL = target.url
-                launchPickerServer = target
-            }
-            return
-        }
-
-        // restoreSession succeeded, so activeServer must resolve and
-        // the access token is in place. The guard below is defensive.
-        guard let server = dependencies.activeServer else { return }
-
-        guard let userID = try? dependencies.keychainService.loadString(for: KeychainKeys.userID(serverID: server.id)),
-              let userName = try? dependencies.keychainService.loadString(for: KeychainKeys.activeUserName)
-        else {
-            // We have a server + token but lost the active-user
-            // globals. Don't clearSession (that would nuke every
-            // server's per-server state across the install). Land in
-            // the picker for this server, the user can re-pick a
-            // remembered profile or add a new one.
-            launchPickerServer = server
-            return
-        }
-
-        // primaryImageTag is optional in the keychain, users without
-        // a custom avatar never had one persisted. Missing = initials.
-        // Fallback path covers JellySeeTV migrations whose last login
-        // pre-dated the dedicated activeUserImageTag entry: the
-        // RememberedUser blob still carries the tag, so we can lift
-        // it from there and re-stamp the canonical key so subsequent
-        // restores find it directly.
-        let imageTag: String? = {
-            if let direct = try? dependencies.keychainService.loadString(for: KeychainKeys.activeUserImageTag) {
-                return direct
-            }
-            guard let fromRemembered = dependencies.listRememberedUsers(serverID: server.id)
-                .first(where: { $0.id == userID })?
-                .imageTag, !fromRemembered.isEmpty
-            else { return nil }
-            try? dependencies.keychainService.save(fromRemembered, for: KeychainKeys.activeUserImageTag)
-            return fromRemembered
-        }()
-        let restored = JellyfinUser(
-            id: userID,
-            name: userName,
-            serverID: server.id,
-            hasPassword: nil,
-            primaryImageTag: imageTag,
-            policy: nil
-        )
-
-        // Migrate pre-0.3.0 sessions into the remembered-profiles
-        // list. Legacy installs only persisted the active session,
-        // without this, the "Add another profile" flow would show
-        // the currently signed-in user in the picker (since no
-        // remembered entry existed to filter by).
-        if let token = try? dependencies.keychainService.loadString(
-            for: KeychainKeys.accessToken(serverID: server.id)
-        ), !dependencies.listRememberedUsers(serverID: server.id)
-            .contains(where: { $0.id == userID }) {
-            try? dependencies.rememberUser(
-                RememberedUser(
-                    id: userID,
-                    serverID: server.id,
-                    name: userName,
-                    imageTag: imageTag,
-                    token: token
-                )
-            )
-        }
-
-        // Multi-profile routing. Four possible outcomes:
-        //
-        // - .useDefault + defaultUserID points at a remembered
-        //   profile → restore that one (switchToUser if it differs
-        //   from the last-active one).
-        // - .showPicker + remembered profiles exist → arm the
-        //   launch picker; don't setAuthenticated yet.
-        // - Launch mode says "default" but the default is missing /
-        //   was forgotten → fall back to the picker if we have
-        //   something to pick from.
-        // - Single-profile install or nothing remembered → the
-        //   original behavior: restore and auto-enter the app.
-        let remembered = dependencies.listRememberedUsers(serverID: server.id)
-        let prefs = dependencies.authPreferences
-
-        let shouldUseDefault = !hasTVMapping
-            && prefs.launchBehavior == .useDefault
-            && prefs.defaultUserID.flatMap { id in remembered.first { $0.id == id } } != nil
-
-        if shouldUseDefault,
-           let defaultID = prefs.defaultUserID,
-           let target = remembered.first(where: { $0.id == defaultID }) {
-            if target.id != userID {
-                try? dependencies.switchToUser(target, server: server)
-            }
-            let user = JellyfinUser(
-                id: target.id,
-                name: target.name,
-                serverID: server.id,
-                hasPassword: nil,
-                primaryImageTag: target.imageTag,
-                policy: nil
-            )
+        // The restore policy itself (keychain pointer repair,
+        // default-server promotion, migrations, multi-profile launch
+        // routing) lives in SessionRestorer; this view only maps its
+        // outcome onto AppState + the picker state it owns.
+        let outcome = SessionRestorer(dependencies: dependencies).restore()
+        let syncSeerr: Bool
+        switch outcome {
+        case .authenticated(let server, let user):
             appState.setAuthenticated(server: server, user: user)
             Task { await refreshActiveUserPolicy(expectedUserID: user.id) }
-        } else if remembered.count > 1 {
+            syncSeerr = true
+        case .picker(let server, let wantsSeerr):
             launchPickerServer = server
-            // Fall through, Seerr restore is independent of which
-            // Jellyfin profile ends up active and we want that state
-            // ready by the time the user taps a profile.
-        } else {
-            // Single-profile install (or nothing remembered yet).
-            // Enter the app directly, no point showing a picker
-            // with one card on it.
-            appState.setAuthenticated(server: server, user: restored)
-            Task { await refreshActiveUserPolicy(expectedUserID: restored.id) }
+            syncSeerr = wantsSeerr
+        case .discovery:
+            syncSeerr = false
         }
+        guard syncSeerr else { return }
 
         // Seerr restore, prefer the profile-scoped session when the
         // active user has one saved, fall back to the global
         // last-used entry so legacy (pre-0.3.0) Seerr logins still
         // come back on first upgrade. The restore → probe → keep-or-
         // drop policy (including the legacy bridge persist) lives in
-        // syncSeerrSession.
-        let outcome = await dependencies.syncSeerrSession(
+        // syncSeerrSession. Runs AFTER the AppState flip above so
+        // TabRootView mounts under the splash and starts its loads
+        // concurrently with the Seerr probe.
+        let seerrOutcome = await dependencies.syncSeerrSession(
             forJellyfinUserID: appState.activeUser?.id,
             jellyfinServerID: appState.activeServer?.id,
             allowLegacyFallback: true
         )
-        if case .connected(let seerrServer, let seerrUser) = outcome {
+        if case .connected(let seerrServer, let seerrUser) = seerrOutcome {
             appState.setSeerrConnected(server: seerrServer, user: seerrUser)
         }
     }

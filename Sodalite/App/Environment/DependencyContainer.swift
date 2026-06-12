@@ -337,7 +337,7 @@ final class DependencyContainer {
     /// Resolves the active-server pointer against the known-servers
     /// list. Returns nil if either is missing (fresh install or a
     /// pointer that no longer resolves; the latter is repaired in
-    /// AppRouter.restoreSession).
+    /// SessionRestorer.restore).
     var activeServer: JellyfinServer? {
         guard let id = try? keychainService.loadString(for: KeychainKeys.activeServerID)
         else { return nil }
@@ -425,8 +425,8 @@ final class DependencyContainer {
     /// deleted. If the removed server was the active one and at
     /// least one other server remains, the most recently added
     /// remaining server is promoted to active (with whatever token
-    /// it has cached; AppRouter's restoreSession path handles
-    /// expired tokens). If no servers remain, activeServerID is
+    /// it has cached; the SessionRestorer-driven restore path
+    /// handles expired tokens). If no servers remain, activeServerID is
     /// cleared and SharedSessionMirror is wiped, the next launch
     /// lands in ServerDiscoveryView.
     func removeServer(id serverID: String) throws {
