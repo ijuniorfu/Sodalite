@@ -14,6 +14,9 @@ struct JellyfinItem: Codable, Sendable, Identifiable, Equatable, Hashable {
     let indexNumber: Int?        // Episode number
     let productionYear: Int?
     let communityRating: Double?
+    /// Rotten Tomatoes critic score (0-100), filled by metadata
+    /// providers that deliver it (OMDb). nil on servers without one.
+    let criticRating: Double?
     let officialRating: String?  // e.g. "PG-13"
     let runTimeTicks: Int64?
     let premiereDate: String?
@@ -70,6 +73,7 @@ struct JellyfinItem: Codable, Sendable, Identifiable, Equatable, Hashable {
         case indexNumber = "IndexNumber"
         case productionYear = "ProductionYear"
         case communityRating = "CommunityRating"
+        case criticRating = "CriticRating"
         case officialRating = "OfficialRating"
         case runTimeTicks = "RunTimeTicks"
         case premiereDate = "PremiereDate"
@@ -111,6 +115,7 @@ struct JellyfinItem: Codable, Sendable, Identifiable, Equatable, Hashable {
         self.indexNumber = item.indexNumber
         self.productionYear = item.productionYear
         self.communityRating = item.communityRating
+        self.criticRating = item.criticRating
         self.officialRating = item.officialRating
         self.runTimeTicks = item.runTimeTicks
         self.premiereDate = item.premiereDate
@@ -152,6 +157,7 @@ struct JellyfinItem: Codable, Sendable, Identifiable, Equatable, Hashable {
         self.indexNumber = nil
         self.productionYear = nil
         self.communityRating = nil
+        self.criticRating = nil
         self.officialRating = nil
         self.runTimeTicks = nil
         self.premiereDate = nil
@@ -195,6 +201,7 @@ struct JellyfinItem: Codable, Sendable, Identifiable, Equatable, Hashable {
         self.indexNumber = nil
         self.productionYear = nil
         self.communityRating = nil
+        self.criticRating = nil
         self.officialRating = nil
         self.runTimeTicks = nil
         self.premiereDate = nil

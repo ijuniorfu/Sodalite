@@ -39,6 +39,22 @@ struct ItemMetadataRow: View {
                 }
             }
 
+            // Rotten Tomatoes critic score, shown whenever the server
+            // delivers one (needs a metadata provider that fills
+            // CriticRating, e.g. OMDb). Badge artwork is the original
+            // jellyfin-web vector pair, same fresh/rotten split at 60.
+            if let critic = item.criticRating {
+                separator
+                HStack(spacing: 5) {
+                    Image(critic >= 60 ? "RTFresh" : "RTRotten")
+                        .resizable()
+                        .renderingMode(.original)
+                        .aspectRatio(contentMode: .fit)
+                        .frame(height: 20)
+                    Text(verbatim: "\(Int(critic)) %")
+                }
+            }
+
             if let extra = extraContent {
                 separator
                 extra()
