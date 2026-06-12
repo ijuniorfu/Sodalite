@@ -3,9 +3,9 @@ import AetherEngine
 
 /// Scrubbing for the fullscreen music player, mirroring the video player's
 /// model: touchpad-pan / left-right skip / held spool all build a preview
-/// position (`scrubProgress`), committed on Select or on release. A held
-/// spool accelerates and lands PAUSED (Select resumes), matching the video
-/// player exactly.
+/// position (`scrubProgress`), committed on Select. Playback keeps running
+/// throughout; releasing a spool keeps the preview armed until Select
+/// commits it (see endContinuousSeek).
 extension MusicPlaybackCoordinator {
 
     /// Track duration in seconds (0 when unknown).
@@ -83,6 +83,12 @@ extension MusicPlaybackCoordinator {
     /// Commit the preview position and seek there. Playback continues as it
     /// was (it was never paused while scrubbing).
     func commitScrub() {
+        // Stop a still-running spool first (Select pressed while the
+        // long-press is held): its loop only checks Task.isCancelled,
+        // so it would keep mutating scrubProgress after the commit and
+        // race the next beginScrubIfNeeded's initial position.
+        continuousSeekTask?.cancel()
+        continuousSeekTask = nil
         let dur = scrubDuration
         guard isScrubbing, dur > 0 else {
             isScrubbing = false

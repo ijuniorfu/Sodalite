@@ -77,6 +77,22 @@ struct EPGGuideView: View {
                 hasSeriesTimer: model.effectiveTimerState(for: sel.program).seriesTimerId != nil,
                 onToggleRecord: { model.toggleRecord(program: sel.program) },
                 onToggleSeriesRecord: { model.toggleSeriesRecord(program: sel.program) })
+            // Same alert as below, attached INSIDE the sheet: SwiftUI
+            // won't present an alert and a sheet from the same node at
+            // once, so a fast server failure on a record toggle (fired
+            // from this sheet) was silently dropped while the popover
+            // stayed up with its optimistically flipped button.
+            .alert(
+                Text("livetv.recording.error.title"),
+                isPresented: Binding(
+                    get: { model.recordingError != nil },
+                    set: { if !$0 { model.recordingError = nil } }
+                )
+            ) {
+                Button("common.ok", role: .cancel) {}
+            } message: {
+                Text(model.recordingError ?? "")
+            }
         }
         .alert(
             Text("livetv.recording.error.title"),

@@ -141,15 +141,21 @@ extension MusicPlaybackCoordinator {
 
     // MARK: - Remote commands
 
-    /// Bind transport handlers to the session's command center exactly once.
-    /// Registering on the session center (not the shared one) is what keeps
-    /// commands flowing across a background pause. Done once: the session is
-    /// persistent for the engine's lifetime, so re-registering per track is
-    /// unnecessary churn.
+    /// Bind transport handlers to the session's command center, re-binding
+    /// whenever the RESOLVED center changes. The engine dispatches per track
+    /// on codec: AVPlayer-decodable audio routes through the session path
+    /// (per-session center), Opus/Vorbis through the FFmpeg path (shared
+    /// default center). A once-only registration bound to whichever center
+    /// happened to be live first, so in a mixed queue the other path's
+    /// tracks had a command center with no targets and Control Center /
+    /// Siri Remote transport went dead. Identity-tracked so same-center
+    /// calls stay no-ops (the session is persistent for the engine's
+    /// lifetime, per-track re-registering is unnecessary churn).
     private func registerRemoteCommandsIfNeeded() {
-        guard !didRegisterRemoteCommands else { return }
-        didRegisterRemoteCommands = true
         let center = commandCenter
+        let centerID = ObjectIdentifier(center)
+        guard registeredCommandCenterID != centerID else { return }
+        registeredCommandCenterID = centerID
 
         center.playCommand.removeTarget(nil)
         center.playCommand.isEnabled = true

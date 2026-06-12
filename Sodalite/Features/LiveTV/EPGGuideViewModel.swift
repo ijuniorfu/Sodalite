@@ -217,7 +217,14 @@ final class EPGGuideViewModel {
         let effective = effectiveTimerState(for: program)
         if let timerID = effective.timerId {
             if timerID == Self.pendingTimerID { return }
-            timerState[program.id] = (nil, old?.seriesTimerId)
+            // Preserve the EFFECTIVE series id, not the overlay's: for a
+            // series-spawned timer with no overlay entry yet (the ids
+            // live in the program snapshot), old is nil and writing
+            // (nil, old?.seriesTimerId) would erase the still-live
+            // series rule from effectiveTimerState; the popover then
+            // offers "Record Series" for a series that already has a
+            // rule and a tap creates a duplicate on the server.
+            timerState[program.id] = (nil, effective.seriesTimerId)
             timerStateVersion += 1
             Task {
                 do { try await self.service.cancelTimer(timerID: timerID) }
@@ -225,8 +232,9 @@ final class EPGGuideViewModel {
             }
         } else {
             // The server assigns the real timer id; mark with a sentinel
-            // and reconcile from /LiveTv/Timers right after.
-            timerState[program.id] = (Self.pendingTimerID, old?.seriesTimerId)
+            // and reconcile from /LiveTv/Timers right after. Same
+            // effective-id preservation as the cancel branch above.
+            timerState[program.id] = (Self.pendingTimerID, effective.seriesTimerId)
             timerStateVersion += 1
             Task {
                 do {
@@ -243,7 +251,8 @@ final class EPGGuideViewModel {
         let effective = effectiveTimerState(for: program)
         if let seriesID = effective.seriesTimerId {
             if seriesID == Self.pendingTimerID { return }
-            timerState[program.id] = (old?.timerId, nil)
+            // effective.timerId, not old?.timerId: see toggleRecord.
+            timerState[program.id] = (effective.timerId, nil)
             timerStateVersion += 1
             Task {
                 do {
@@ -257,7 +266,7 @@ final class EPGGuideViewModel {
                 catch { self.rollbackTimerState(programID: program.id, to: old, error: error) }
             }
         } else {
-            timerState[program.id] = (old?.timerId, Self.pendingTimerID)
+            timerState[program.id] = (effective.timerId, Self.pendingTimerID)
             timerStateVersion += 1
             Task {
                 do {
@@ -303,6 +312,58 @@ final class EPGGuideViewModel {
             let seriesID = state.seriesTimerId == Self.pendingTimerID ? nil : state.seriesTimerId
             if timerID != state.timerId || seriesID != state.seriesTimerId {
                 timerState[programID] = (timerID, seriesID)
+            }
+        }
+        timerStateVersion += 1
+    }
+
+    /// Full overlay sync against the server's timer lists. Called when
+    /// the user returns from the Recordings segment, where timers and
+    /// series rules can be cancelled outside this model's optimistic
+    /// overlay; without this the guide keeps showing red dots and the
+    /// popover offers "Cancel Recording" for timers that 404.
+    func syncTimersWithServer() async {
+        async let timersTask = try? service.getTimers()
+        async let seriesTask = try? service.getSeriesTimers()
+        guard let timers = await timersTask else { return }
+        let seriesTimers = await seriesTask
+
+        let live = timers.filter { $0.status != "Cancelled" }
+        let liveTimerIDs = Set(live.map(\.id))
+        // Prefer the dedicated series-rule list; fall back to the ids
+        // referenced by live timers when that fetch failed.
+        let liveSeriesIDs = seriesTimers.map { Set($0.map(\.id)) }
+            ?? Set(live.compactMap(\.seriesTimerId))
+
+        // Adopt server state for programs with live timers.
+        for timer in live {
+            guard let programID = timer.programId else { continue }
+            timerState[programID] = (timer.id, timer.seriesTimerId ?? timerState[programID]?.seriesTimerId)
+        }
+        // Drop overlay ids the server no longer knows.
+        for (programID, state) in timerState {
+            var timerID = state.timerId
+            var seriesID = state.seriesTimerId
+            if let t = timerID, t != Self.pendingTimerID, !liveTimerIDs.contains(t) { timerID = nil }
+            if let s = seriesID, s != Self.pendingTimerID, !liveSeriesIDs.contains(s) { seriesID = nil }
+            if timerID != state.timerId || seriesID != state.seriesTimerId {
+                timerState[programID] = (timerID, seriesID)
+            }
+        }
+        // Programs whose timer ids live only in the immutable program
+        // snapshot (no overlay entry yet): a cancelled timer there
+        // needs an explicit overriding overlay entry, (nil, nil)
+        // shadows the stale snapshot in effectiveTimerState.
+        for programs in programsByChannel.values {
+            for program in programs where timerState[program.id] == nil {
+                let snapTimer = program.timerId
+                let snapSeries = program.seriesTimerId
+                guard snapTimer != nil || snapSeries != nil else { continue }
+                let newTimer = snapTimer.flatMap { liveTimerIDs.contains($0) ? $0 : nil }
+                let newSeries = snapSeries.flatMap { liveSeriesIDs.contains($0) ? $0 : nil }
+                if newTimer != snapTimer || newSeries != snapSeries {
+                    timerState[program.id] = (newTimer, newSeries)
+                }
             }
         }
         timerStateVersion += 1

@@ -85,6 +85,16 @@ struct ProgramInfoPopover: View {
             isRecording = hasTimer
             isSeriesRecording = hasSeriesTimer
         }
+        // Resync the optimistic local mirrors when the model's timer
+        // state changes underneath the open popover (rollback after a
+        // failed toggle, reconcile after a create); without this the
+        // button kept its flipped state until the sheet was reopened.
+        .onChange(of: hasTimer) { _, newValue in
+            isRecording = newValue
+        }
+        .onChange(of: hasSeriesTimer) { _, newValue in
+            isSeriesRecording = newValue
+        }
     }
 }
 

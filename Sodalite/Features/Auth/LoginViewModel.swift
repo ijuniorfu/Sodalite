@@ -118,7 +118,18 @@ final class LoginViewModel {
         quickConnectTask = Task { [weak self] in
             guard let self, let secret = self.quickConnectSecret else { return }
 
+            // Jellyfin expires Quick Connect codes server-side after a
+            // few minutes; this hard cap is the fallback for servers
+            // that keep answering "not authorized" without ever
+            // invalidating the secret, so the UI can't show a dead
+            // code forever.
+            let deadline = Date().addingTimeInterval(6 * 60)
+
             while !Task.isCancelled && self.isPollingQuickConnect {
+                guard Date() < deadline else {
+                    self.expireQuickConnect()
+                    return
+                }
                 try? await Task.sleep(for: .seconds(3))
                 guard !Task.isCancelled else { return }
 
@@ -130,11 +141,26 @@ final class LoginViewModel {
                         await self.authenticateQuickConnect()
                         return
                     }
+                } catch let error as APIError where error.isNotFound || error.isUnauthorized {
+                    // The server no longer knows the secret: the code
+                    // expired (or was consumed elsewhere). Polling it
+                    // further can never succeed; surface it so the
+                    // user requests a fresh code.
+                    self.expireQuickConnect()
+                    return
                 } catch {
-                    // Continue polling on error
+                    // Transient network error: keep polling.
                 }
             }
         }
+    }
+
+    private func expireQuickConnect() {
+        stopQuickConnect()
+        errorMessage = String(
+            localized: "login.quickConnect.expired",
+            defaultValue: "The code expired. Request a new one."
+        )
     }
 
     private func authenticateQuickConnect() async {

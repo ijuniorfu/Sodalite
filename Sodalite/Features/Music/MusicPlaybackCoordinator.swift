@@ -92,11 +92,14 @@ final class MusicPlaybackCoordinator {
     private var didConfigureAudioSession: Bool = false
     private var cancellables = Set<AnyCancellable>()
 
-    /// Now-Playing bookkeeping (see +NowPlaying). `didRegisterRemoteCommands`
-    /// gates one-time MPRemoteCommandCenter target registration;
+    /// Now-Playing bookkeeping (see +NowPlaying).
+    /// `registeredCommandCenterID` is the identity of the
+    /// MPRemoteCommandCenter the transport handlers are currently bound
+    /// to; the resolved center flips between the session center (AVPlayer
+    /// audio path) and the shared default (FFmpeg path) per track.
     /// `nowPlayingArtworkItemID` is the item id captured when an async
     /// artwork load starts, compared on completion to drop stale artwork.
-    var didRegisterRemoteCommands = false
+    var registeredCommandCenterID: ObjectIdentifier?
     var nowPlayingArtworkItemID: String?
     /// The resolved artwork for the current track, cached so a state /
     /// duration now-playing refresh keeps showing it instead of flashing

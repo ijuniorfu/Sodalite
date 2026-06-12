@@ -148,8 +148,11 @@ final class EPGCollectionViewController: UIViewController,
         // programs end and the next one starts.
         for indexPath in gridView.indexPathsForVisibleItems {
             guard let cell = gridView.cellForItem(at: indexPath) as? EPGProgramCollectionCell else { continue }
+            // Same bounds guards as refreshTimerDots/refreshFavoriteStars:
+            // visible index paths can briefly outlive a model mutation.
+            guard indexPath.section < rows.count else { continue }
             let row = rows[indexPath.section]
-            guard !row.programs.isEmpty else { continue }
+            guard indexPath.item < row.programs.count else { continue }
             cell.setOnNow(isProgramOnNow(row.programs[indexPath.item]))
         }
     }
