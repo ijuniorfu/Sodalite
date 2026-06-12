@@ -215,9 +215,14 @@ struct PlayerOverlayView: View {
         // contentOverlayView. Any frame-based or alignment-based
         // anchor recomputes against the smaller frame and the card
         // ends up at "bottom-trailing of a near-empty parent" =
-        // mid-screen. Absolute `.position(x:, y:)` against
-        // `UIScreen.main.bounds` removes the dependency entirely.
-        let screen = UIScreen.main.bounds.size
+        // mid-screen. Absolute `.position(x:, y:)` against the
+        // scene's screen bounds removes the dependency entirely.
+        // (Scene-derived screen instead of the tvOS-26-deprecated
+        // `UIScreen.main`; tvOS has exactly one scene and screen,
+        // the 1080p fallback is for the impossible no-scene case.)
+        let screen = UIApplication.shared.connectedScenes
+            .lazy.compactMap { $0 as? UIWindowScene }
+            .first?.screen.bounds.size ?? CGSize(width: 1920, height: 1080)
         let cardW: CGFloat = 380
         let cardH: CGFloat = 214
         let marginX: CGFloat = viewModel.showControls ? 60 : 40

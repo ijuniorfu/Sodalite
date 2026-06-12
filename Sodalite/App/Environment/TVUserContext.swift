@@ -10,13 +10,34 @@ import TVServices
 enum TVUserContext {
     static var currentUserID: String? {
         #if os(tvOS)
-        if #available(tvOS 13, *) {
-            // currentUserIdentifier is deprecated after tvOS 16 but remains
-            // the only way to read the opaque per-user token at launch.
-            // Suppressed so the build stays warning-clean.
-            return TVUserManager().currentUserIdentifier
-        }
-        #endif
+        // Dispatch through the protocol witness below so the
+        // deprecation marker on the concrete impl doesn't propagate
+        // here (a directly-called deprecated wrapper just moves the
+        // warning to its call site).
+        let reader: any TVUserTokenReading = TVUserTokenReader()
+        return reader.currentToken()
+        #else
         return nil
+        #endif
     }
 }
+
+#if os(tvOS)
+private protocol TVUserTokenReading {
+    func currentToken() -> String?
+}
+
+private struct TVUserTokenReader: TVUserTokenReading {
+    /// `currentUserIdentifier` is deprecated since tvOS 16, but it is
+    /// the only way to learn WHICH system user is active; the suggested
+    /// replacement (runs-as-current-user entitlement + user-independent
+    /// keychain) is a different model in which the app never sees the
+    /// user identity at all, which would replace the whole profile-
+    /// mapping feature. Deliberately kept; the deprecation marker on
+    /// this impl silences the API warning inside the body.
+    @available(tvOS, deprecated: 16.0, message: "Deliberate: only source of the per-user token.")
+    func currentToken() -> String? {
+        TVUserManager().currentUserIdentifier
+    }
+}
+#endif

@@ -19,6 +19,11 @@ import Foundation
 /// different value (e.g. waiting on a 0.2 s scroll animation
 /// before the focus write lands) pass their own number.
 @inlinable
-func deferOnMain(by delay: TimeInterval = 0.05, _ work: @escaping () -> Void) {
-    DispatchQueue.main.asyncAfter(deadline: .now() + delay, execute: work)
+func deferOnMain(by delay: TimeInterval = 0.05, _ work: @escaping @MainActor () -> Void) {
+    // The closure is @MainActor (hence Sendable, satisfying asyncAfter's
+    // @Sendable parameter), and the main queue IS the MainActor's
+    // executor, so assumeIsolated is correct by construction here.
+    DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
+        MainActor.assumeIsolated { work() }
+    }
 }

@@ -126,8 +126,9 @@ struct DetailSecondaryInfo: View {
     }
 
     private func creditLine(labelKey: LocalizedStringKey, names: [String]) -> some View {
-        (Text(labelKey).fontWeight(.semibold)
-            + Text(verbatim: ": \(names.prefix(3).joined(separator: ", "))"))
+        // Text interpolation instead of the tvOS-26-deprecated `Text + Text`
+        // concatenation; both segments keep their own styling.
+        Text("\(Text(labelKey).fontWeight(.semibold))\(Text(verbatim: ": \(names.prefix(3).joined(separator: ", "))"))")
             .font(.caption)
             .foregroundStyle(.secondary)
             .lineLimit(2)

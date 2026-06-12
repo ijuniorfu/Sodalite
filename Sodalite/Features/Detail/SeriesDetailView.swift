@@ -897,7 +897,7 @@ struct SeriesDetailView: View {
                     // can fire it immediately and shave off the
                     // 30 ms latency the user perceived as "fast
                     // press needs two clicks".
-                    let deferFocusWrite = { (work: @escaping () -> Void) in
+                    let deferFocusWrite = { (work: @escaping @MainActor () -> Void) in
                         deferOnMain(by: 0.03, work)
                     }
                     switch lastFocusedArea {

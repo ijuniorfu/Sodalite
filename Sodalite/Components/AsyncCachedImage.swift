@@ -138,7 +138,11 @@ extension AsyncCachedImage where Placeholder == ProgressView<EmptyView, EmptyVie
 // MARK: - Cache
 
 final class ImageCache: @unchecked Sendable {
-    nonisolated(unsafe) static let shared = ImageCache()
+    // Plain `nonisolated` (not `(unsafe)`): a constant of Sendable
+    // type needs no unsafe escape hatch, but still needs nonisolated
+    // so background prefetch paths can reach it under the project's
+    // MainActor default isolation.
+    nonisolated static let shared = ImageCache()
 
     // NSCache is documented thread-safe and the wrapper holds no
     // Swift-level mutable state besides this, `nonisolated(unsafe)`

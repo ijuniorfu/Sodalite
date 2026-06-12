@@ -9,7 +9,9 @@ import Foundation
 struct SeerrPermissions: OptionSet, Sendable {
     let rawValue: Int
 
-    static let none           = SeerrPermissions(rawValue: 0)
+    // No `none` member: OptionSet's empty value is the `[]` literal,
+    // and a rawValue-0 static both shadows it and trips the compiler's
+    // empty-option-set warning. (It was never referenced anyway.)
     static let admin          = SeerrPermissions(rawValue: 2)
     static let manageSettings = SeerrPermissions(rawValue: 4)
     static let manageUsers    = SeerrPermissions(rawValue: 8)

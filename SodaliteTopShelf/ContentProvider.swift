@@ -21,12 +21,10 @@ private let log = Logger(subsystem: "de.superuser404.Sodalite.TopShelf", categor
 @objc(SodaliteTopShelfContentProvider)
 final class ContentProvider: TVTopShelfContentProvider {
     override func loadTopShelfContent() async -> (any TVTopShelfContent)? {
-        let tvUserID: String?
-        if #available(tvOS 13, *) {
-            tvUserID = TVUserManager().currentUserIdentifier
-        } else {
-            tvUserID = nil
-        }
+        // Protocol-witness dispatch so the deprecation marker on the
+        // reader impl doesn't propagate here; see the reader below.
+        let reader: any TVUserTokenReading = TVUserTokenReader()
+        let tvUserID = reader.currentToken()
         guard let session = SharedSession.read(tvUserID: tvUserID) else {
             log.notice("No shared session in keychain — TopShelf will render empty.")
             return nil
@@ -68,6 +66,7 @@ final class ContentProvider: TVTopShelfContentProvider {
         return TVTopShelfSectionedContent(sections: sections)
     }
 
+
     private func makeItem(item: JellyfinItem, session: SharedSession) -> TVTopShelfSectionedItem {
         let cell = TVTopShelfSectionedItem(identifier: item.id)
         cell.title = item.topShelfTitle
@@ -100,5 +99,26 @@ final class ContentProvider: TVTopShelfContentProvider {
             log.error("\(label, privacy: .public) fetch failed: \(error.localizedDescription, privacy: .public)")
             return []
         }
+    }
+}
+
+/// Mirrors TVUserContext in the main app: `currentUserIdentifier` is
+/// deprecated since tvOS 16 but is the only source of the per-user
+/// token the session mirror is keyed by; the suggested entitlement
+/// replacement (runs-as-current-user + user-independent keychain)
+/// would remove the identity entirely. Deliberately kept. The
+/// deprecation marker on the impl silences the API warning in its
+/// body; protocol dispatch keeps it from propagating to callers.
+private protocol TVUserTokenReading {
+    func currentToken() -> String?
+}
+
+private struct TVUserTokenReader: TVUserTokenReading {
+    @available(tvOS, deprecated: 16.0, message: "Deliberate: only source of the per-user token.")
+    func currentToken() -> String? {
+        if #available(tvOS 13, *) {
+            return TVUserManager().currentUserIdentifier
+        }
+        return nil
     }
 }

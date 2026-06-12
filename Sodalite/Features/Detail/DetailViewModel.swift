@@ -55,13 +55,10 @@ final class DetailViewModel {
     /// season and selects it instead of running the next-up logic.
     private let initialEpisode: JellyfinItem?
     /// In-flight prefetch task, cancelled on deinit so a disappearing
-    /// view doesn't keep self alive waiting on network. `nonisolated(unsafe)`
-    /// is required because `deinit` on an actor-isolated class runs
-    /// nonisolated, and the plain `nonisolated` fix-it the compiler
-    /// suggests fails to build here: @Observable expands to a stored-var
-    /// backing that Swift doesn't allow `nonisolated` on. Task<Void, Never>
-    /// is Sendable so the cancel call itself is safe.
-    nonisolated(unsafe) private var prefetchTask: Task<Void, Never>?
+    /// view doesn't keep self alive waiting on network. Plain stored
+    /// property: the `isolated deinit` below runs on MainActor, so no
+    /// isolation escape hatch is needed for the cancel anymore.
+    private var prefetchTask: Task<Void, Never>?
     /// Separate slot for the PlaybackInfo prefetch. It used to share
     /// `prefetchTask` with the season warming, and since loadSeasons
     /// schedules startSeasonPrefetch right after prefetchPlaybackInfo
@@ -69,7 +66,7 @@ final class DetailViewModel {
     /// PlaybackInfo fetch ~immediately: cachedPlaybackInfo stayed nil
     /// and the play button paid the full round trip it was meant to
     /// hide.
-    nonisolated(unsafe) private var playbackInfoPrefetchTask: Task<Void, Never>?
+    private var playbackInfoPrefetchTask: Task<Void, Never>?
 
     /// Per-season episode cache. Hit on `loadEpisodes(seasonID:)` so a
     /// season tab the user has already (or pre-emptively) visited
@@ -82,7 +79,7 @@ final class DetailViewModel {
     /// it here for the TechInfoBox.
     private var episodeDetailCache: [String: JellyfinItem] = [:]
 
-    deinit {
+    isolated deinit {
         prefetchTask?.cancel()
         playbackInfoPrefetchTask?.cancel()
     }
