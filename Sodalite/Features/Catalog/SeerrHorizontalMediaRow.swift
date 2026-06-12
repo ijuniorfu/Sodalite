@@ -20,7 +20,10 @@ struct SeerrHorizontalMediaRow: View {
 
             ScrollView(.horizontal, showsIndicators: false) {
                 LazyHStack(spacing: 30) {
-                    ForEach(Array(items.enumerated()), id: \.element.id) { index, media in
+                    // stableKey, not id: TMDB ids collide across movie/tv
+                    // and trending rows mix both, duplicate ForEach ids
+                    // cause ghost cards and focus jumps.
+                    ForEach(Array(items.enumerated()), id: \.element.stableKey) { index, media in
                         FocusableCard {
                             onItemSelected?(media)
                         } content: { isFocused in

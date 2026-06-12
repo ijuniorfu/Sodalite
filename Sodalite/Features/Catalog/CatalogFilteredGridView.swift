@@ -65,13 +65,15 @@ struct CatalogFilteredGridView: View {
                     emptyState
                 } else {
                     LazyVGrid(columns: columns, spacing: 40) {
-                        ForEach(items) { media in
+                        // stableKey, not Identifiable's id: TMDB ids collide
+                        // across movie/tv and the streaming-service grids
+                        // concatenate both result sets.
+                        ForEach(items, id: \.stableKey) { media in
                             FocusableCard(
                                 action: { selectedMedia = media }
                             ) { focused in
                                 SeerrMediaCard(media: media, isFocused: focused)
                             }
-                            .id(media.stableKey)
                             .onAppear {
                                 if shouldPaginate(after: media) {
                                     Task { await loadMore() }

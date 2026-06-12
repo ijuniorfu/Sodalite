@@ -124,7 +124,9 @@ struct PersonDetailView: View {
                 }
             } else {
                 LazyVGrid(columns: columns, spacing: 40) {
-                    ForEach(filmography) { media in
+                    // stableKey, not Identifiable's id: a filmography mixes
+                    // movie and tv credits whose TMDB ids can collide.
+                    ForEach(filmography, id: \.stableKey) { media in
                         FocusableCard {
                             handleTap(media)
                         } content: { focused in
