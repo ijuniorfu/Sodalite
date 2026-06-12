@@ -53,28 +53,21 @@ func jellyfinCastMembers(
     }
 }
 
-/// Two skeleton lines standing in for DetailSecondaryInfo while the
-/// full-detail fetch is in flight, so the glass panel doesn't grow
-/// when tagline / crew / studios land (Sodalite#15). Callers gate on
-/// `DetailViewModel.hasFullDetail`.
-struct DetailSecondaryInfoPlaceholder: View {
-    var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            RoundedRectangle(cornerRadius: 4)
-                .fill(Color.Theme.surface)
-                .frame(width: 220, height: 14)
-            RoundedRectangle(cornerRadius: 4)
-                .fill(Color.Theme.surface)
-                .frame(width: 140, height: 14)
-        }
-    }
-}
-
-/// Tagline, crew (director / writer), and studios for a Jellyfin item.
-/// Renders nothing when all are absent. Inserted into the detail glass
-/// panels below the genres line.
-struct DetailSecondaryInfo: View {
+/// Two full-width, baseline-aligned info rows for the detail glass
+/// panels: the caller's metadata line pairs with the tagline in row
+/// one, the genres line with the merged credit line in row two, so the
+/// left and right columns sit level instead of drifting apart as two
+/// independently-spaced stacks (Sodalite#15 round 6 follow-up). The
+/// left cells take layout priority and never truncate in favor of the
+/// right; the right cells get the leftover width, trailing-anchored,
+/// and truncate first. While the full-detail fetch is in flight the
+/// right cells hold skeleton bars so the panel doesn't grow when
+/// tagline / credits land.
+struct DetailInfoRows<LeftPrimary: View, LeftSecondary: View>: View {
     let item: JellyfinItem
+    let hasFullDetail: Bool
+    @ViewBuilder let leftPrimary: () -> LeftPrimary
+    @ViewBuilder let leftSecondary: () -> LeftSecondary
 
     /// Whether there is any tagline / crew / studio info to show.
     static func hasContent(_ item: JellyfinItem) -> Bool {
@@ -86,42 +79,52 @@ struct DetailSecondaryInfo: View {
     }
 
     var body: some View {
-        let directors = names(ofType: "Director")
-        let writers = names(ofType: "Writer")
-        let studios = item.studios?.map(\.name) ?? []
         let tagline = item.taglines?.first
+        let credits = mergedCreditLine(
+            directors: names(ofType: "Director"),
+            writers: names(ofType: "Writer"),
+            studios: item.studios?.map(\.name) ?? []
+        )
+        // Skeleton bars only while the right side can still gain
+        // content: once the detail fetch settles empty, the rows
+        // collapse to their left cells.
+        let showPlaceholders = !hasFullDetail && !Self.hasContent(item)
 
-        if hasContent(tagline: tagline, directors: directors, writers: writers, studios: studios) {
-            // Compact two-line layout (Sodalite#15 round 6): tagline on
-            // one line, all credits merged onto a second. The previous
-            // line-per-credit column made the right side of the glass
-            // panel taller than the metadata block next to it, and the
-            // whole panel grew with it. Trailing-aligned: the block is
-            // anchored at the panel's right edge and lines grow toward
-            // the middle, so ragged line lengths stay tidy.
-            VStack(alignment: .trailing, spacing: 6) {
+        VStack(alignment: .leading, spacing: 16) {
+            HStack(alignment: .firstTextBaseline) {
+                leftPrimary()
+                    .layoutPriority(1)
+                Spacer(minLength: 24)
                 if let tagline, !tagline.isEmpty {
                     Text(tagline)
                         .font(.callout)
                         .italic()
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
+                } else if showPlaceholders {
+                    placeholderBar(width: 220)
                 }
-                if let credits = mergedCreditLine(directors: directors, writers: writers, studios: studios) {
+            }
+            HStack(alignment: .firstTextBaseline) {
+                leftSecondary()
+                    .layoutPriority(1)
+                Spacer(minLength: 24)
+                if let credits {
                     credits
                         .font(.caption)
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
+                } else if showPlaceholders {
+                    placeholderBar(width: 140)
                 }
             }
         }
     }
 
-    private func hasContent(tagline: String?, directors: [String], writers: [String], studios: [String]) -> Bool {
-        (tagline.map { !$0.isEmpty } ?? false)
-            || !directors.isEmpty
-            || !writers.isEmpty
-            || !studios.isEmpty
+    private func placeholderBar(width: CGFloat) -> some View {
+        RoundedRectangle(cornerRadius: 4)
+            .fill(Color.Theme.surface)
+            .frame(width: width, height: 14)
     }
 
     private func names(ofType type: String) -> [String] {

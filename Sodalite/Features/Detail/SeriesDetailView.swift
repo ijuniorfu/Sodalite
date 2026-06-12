@@ -540,61 +540,44 @@ struct SeriesDetailView: View {
                     .lineLimit(2)
             }
 
-            HStack(alignment: .top, spacing: 40) {
-                VStack(alignment: .leading, spacing: 16) {
-                    if isShowingEpisode {
-                        // Single metadata line: runtime folded into the
-                        // series genres. The S/E pair left the panel
-                        // (Sodalite#15 round 6), the play-button subtitle
-                        // always carries it ("S1E5" / "S1E5 · 12:34"), so
-                        // repeating it here only cost a text line. Keeps
-                        // the episode panel at title + one line.
-                        if let line = episodeMetadataLine(vm: vm) {
-                            Text(line)
-                                .font(.subheadline)
-                                .foregroundStyle(.secondary)
-                                .lineLimit(1)
-                        }
-                    } else {
-                        ItemMetadataRow(item: vm.item, showRuntime: false) {
-                            if let count = vm.item.childCount, count > 0 {
-                                AnyView(Text("detail.seasonCount \(count)"))
-                            } else {
-                                AnyView(EmptyView())
-                            }
-                        }
-
-                        // Series genres, one line only: a long genre list
-                        // (e.g. One Piece's seven) otherwise wraps to two
-                        // lines, which makes the panel tall enough to land
-                        // at a different scroll position.
-                        if let genres = vm.item.genres, !genres.isEmpty {
-                            Text(genres.joined(separator: " · "))
-                                .font(.subheadline)
-                                .foregroundStyle(.secondary)
-                                .lineLimit(1)
+            // Metadata + tagline form row one, genres + credits row
+            // two, baseline-aligned per row so the left and right
+            // columns sit level (series-level tagline / crew / studios
+            // in both modes, so the episode panel matches the root).
+            DetailInfoRows(item: vm.item, hasFullDetail: vm.hasFullDetail) {
+                if isShowingEpisode {
+                    // Single metadata line: runtime folded into the
+                    // series genres. The S/E pair left the panel
+                    // (Sodalite#15 round 6), the play-button subtitle
+                    // always carries it ("S1E5" / "S1E5 · 12:34"), so
+                    // repeating it here only cost a text line. Keeps
+                    // the episode panel at title + one line.
+                    if let line = episodeMetadataLine(vm: vm) {
+                        Text(line)
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                    }
+                } else {
+                    ItemMetadataRow(item: vm.item, showRuntime: false) {
+                        if let count = vm.item.childCount, count > 0 {
+                            AnyView(Text("detail.seasonCount \(count)"))
+                        } else {
+                            AnyView(EmptyView())
                         }
                     }
                 }
-                // Wins the width fight against the secondary-info
-                // block: metadata and genres render in full, the
-                // credits line on the right truncates first.
-                .layoutPriority(1)
-                // Series-level secondary info (tagline, crew, studios),
-                // shown in both modes so the episode panel matches the
-                // series root. No width cap: the block takes whatever
-                // the metadata column leaves over, growing toward the
-                // middle of the panel before it truncates.
-                if DetailSecondaryInfo.hasContent(vm.item) {
-                    Spacer(minLength: 24)
-                    DetailSecondaryInfo(item: vm.item)
-                } else if !vm.hasFullDetail {
-                    // People/studios are still in flight (snapshot
-                    // paint); hold the panel's height so it doesn't
-                    // grow when they land.
-                    Spacer(minLength: 24)
-                    DetailSecondaryInfoPlaceholder()
-                        .frame(maxWidth: 560, alignment: .leading)
+            } leftSecondary: {
+                // Series genres, one line only: a long genre list
+                // (e.g. One Piece's seven) otherwise wraps to two
+                // lines, which makes the panel tall enough to land
+                // at a different scroll position. The episode panel
+                // already carries the genres in its metadata line.
+                if !isShowingEpisode, let genres = vm.item.genres, !genres.isEmpty {
+                    Text(genres.joined(separator: " · "))
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
                 }
             }
         }
