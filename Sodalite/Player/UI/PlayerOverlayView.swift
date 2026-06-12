@@ -249,7 +249,11 @@ struct PlayerOverlayView: View {
             // poster is available as fallback) blows the card up
             // into a tall portrait.
             if let imageURL = episodeThumbnailURL(for: episode) {
-                AsyncImage(url: imageURL) { image in
+                // AsyncCachedImage, not AsyncImage: the card mounts and
+                // unmounts with the overlay, and a raw AsyncImage
+                // re-fetched the thumbnail each time, at the worst
+                // moment (end of episode, next item prefetching).
+                AsyncCachedImage(url: imageURL) { image in
                     image.resizable().aspectRatio(contentMode: .fill)
                 } placeholder: {
                     Color.clear
@@ -410,9 +414,11 @@ private extension PlayerOverlayView {
                     if viewModel.showControls && viewModel.videoFormat != .sdr {
                         VideoFormatBadge(format: viewModel.videoFormat)
                     }
-                    // Index 2 is 1.0×, the picker default. Anything
-                    // else (0.5/0.75/1.25/1.5/2.0) flips the badge on.
-                    if viewModel.activeSpeedIndex != 2 {
+                    // Badge whenever the applied rate isn't 1.0x;
+                    // keyed on the rate so edits to speedOptions can't
+                    // silently break it.
+                    if PlayerViewModel.speedOptions.indices.contains(viewModel.activeSpeedIndex),
+                       PlayerViewModel.speedOptions[viewModel.activeSpeedIndex] != 1.0 {
                         SpeedBadge(index: viewModel.activeSpeedIndex)
                     }
                 }

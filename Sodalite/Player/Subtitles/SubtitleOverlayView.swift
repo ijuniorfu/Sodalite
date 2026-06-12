@@ -236,7 +236,7 @@ struct SubtitleOverlayView: View {
                 .background(.black.opacity(0.6), in: RoundedRectangle(cornerRadius: 8))
         case .outline:
             ZStack {
-                ForEach(outlineOffsets, id: \.self) { offset in
+                ForEach(Self.outlineOffsets, id: \.self) { offset in
                     Text(text)
                         .font(baseFont)
                         .foregroundStyle(.black)
@@ -308,7 +308,6 @@ struct SubtitleOverlayView: View {
         CGPoint(x: -2, y:  0),                       CGPoint(x: 2, y:  0),
         CGPoint(x: -2, y:  2), CGPoint(x: 0, y:  2), CGPoint(x: 2, y:  2),
     ]
-    private var outlineOffsets: [CGPoint] { Self.outlineOffsets }
 
     // MARK: - Image branch
 
@@ -322,7 +321,7 @@ struct SubtitleOverlayView: View {
         let frameW = image.position.width * size.width
         let frameH = image.position.height * size.height
         let originX = image.position.minX * size.width
-        let originY = image.position.minY * size.height + bitmapVerticalShift(in: size, cueHeight: frameH)
+        let originY = image.position.minY * size.height + bitmapVerticalShift(in: size)
 
         return Image(decorative: image.cgImage, scale: 1, orientation: .up)
             .resizable()
@@ -343,7 +342,7 @@ struct SubtitleOverlayView: View {
     /// that the source placed near the top of frame get dragged up by
     /// the same delta, which can clip on the steeper steps; users
     /// picking a non-default position have opted into the override.
-    private func bitmapVerticalShift(in size: CGSize, cueHeight: CGFloat) -> CGFloat {
+    private func bitmapVerticalShift(in size: CGSize) -> CGFloat {
         guard let fraction = verticalPosition.fractionFromBottom else { return 0 }
         return -CGFloat(fraction) * size.height
     }

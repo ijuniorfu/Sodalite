@@ -86,11 +86,9 @@ final class MusicPlaybackCoordinator {
     /// the `$state == .idle` sink does not mistake the engine's stop for an
     /// end-of-track and recursively advance / re-stop.
     private var isStopping: Bool = false
-    /// True only while the audio session has been configured + activated.
-    /// Keeps `loadAndPlayCurrent` from re-touching `AVAudioSession` on every
-    /// track within a queue.
-    private var didConfigureAudioSession: Bool = false
     private var cancellables = Set<AnyCancellable>()
+    /// The 2 s now-playing refresh; non-nil only while a queue is live.
+    private var nowPlayingKeepAlive: AnyCancellable?
 
     /// Now-Playing bookkeeping (see +NowPlaying).
     /// `registeredCommandCenterID` is the identity of the
@@ -232,7 +230,7 @@ final class MusicPlaybackCoordinator {
         duration = 0
         playSessionId = nil
         currentMediaSourceId = nil
-        didConfigureAudioSession = false
+        stopNowPlayingKeepAlive()
         clearNowPlaying()
         isStopping = false
     }
@@ -303,6 +301,7 @@ final class MusicPlaybackCoordinator {
             // handlers are bound ahead of playback starting (WWDC17 S251).
             updateNowPlaying()
             engine.play()
+            startNowPlayingKeepAlive()
 
             reportStart()
         } catch is CancellationError {
@@ -327,7 +326,6 @@ final class MusicPlaybackCoordinator {
         do {
             try session.setCategory(.playback, mode: .default)
             try session.setActive(true)
-            didConfigureAudioSession = true
             LogTap.shared.note("[MusicCoordinator] audio session active, category=\(session.category.rawValue)")
         } catch {
             LogTap.shared.note("[MusicCoordinator] audio session setup FAILED: \(error.localizedDescription)")
@@ -423,7 +421,7 @@ final class MusicPlaybackCoordinator {
                 self.duration = 0
                 self.playSessionId = nil
                 self.currentMediaSourceId = nil
-                self.didConfigureAudioSession = false
+                self.stopNowPlayingKeepAlive()
                 self.clearNowPlaying()
                 self.isStopping = false
             }
@@ -445,19 +443,31 @@ final class MusicPlaybackCoordinator {
             }
             .store(in: &cancellables)
 
-        // Keep the system now-playing entry continuously fresh while a track
-        // is loaded (playing OR paused). tvOS renders the Home Now-Playing
-        // overlay from a recent entry and drops a stale one, so without this
-        // the badge lags ~2s behind our last discrete write and a pause lets
-        // the overlay (and the remote play route) disappear. A light 2s
-        // elapsed/rate refresh keeps us live and moves the system scrubber.
-        Timer.publish(every: 2, on: .main, in: .common)
+    }
+
+    /// Keep the system now-playing entry continuously fresh while a track
+    /// is loaded (playing OR paused). tvOS renders the Home Now-Playing
+    /// overlay from a recent entry and drops a stale one, so without this
+    /// the badge lags ~2s behind our last discrete write and a pause lets
+    /// the overlay (and the remote play route) disappear. A light 2s
+    /// elapsed/rate refresh keeps us live and moves the system scrubber.
+    /// Started on the first successful track load and cancelled with the
+    /// session: the coordinator is process-lifetime, and the previous
+    /// always-on timer was a permanent 0.5 Hz main-queue wakeup even when
+    /// music never played.
+    private func startNowPlayingKeepAlive() {
+        guard nowPlayingKeepAlive == nil else { return }
+        nowPlayingKeepAlive = Timer.publish(every: 2, on: .main, in: .common)
             .autoconnect()
             .sink { [weak self] _ in
                 guard let self, self.currentItem != nil else { return }
                 self.refreshNowPlayingElapsed()
             }
-            .store(in: &cancellables)
+    }
+
+    private func stopNowPlayingKeepAlive() {
+        nowPlayingKeepAlive?.cancel()
+        nowPlayingKeepAlive = nil
     }
 
     // MARK: - Jellyfin session reporting

@@ -252,17 +252,11 @@ struct LoginView: View {
             try? await Task.sleep(for: .seconds(1.5))
             guard let result = vm.authResult else { return }
 
-            // Persist the server in the multi-aware schema regardless
-            // of mode. addServer upserts so a re-login on a previously
-            // known server just refreshes its entry.
-            try? dependencies.addServer(result.server)
-
-            // Write the active-server pointer so next-launch restoreSession
-            // resolves the correct server. setAuthenticated only touches
-            // in-memory AppState, not the keychain, so this explicit write
-            // is required in both first-run and add-mode.
-            try? dependencies.keychainService.save(result.server.id, for: KeychainKeys.activeServerID)
-
+            // Persistence already happened in finalizeAuth ->
+            // saveSession (addServer + activeServerID pointer + token
+            // + user keys); the explicit addServer / pointer writes
+            // that used to live here were no-op repeats with a comment
+            // wrongly claiming they were required.
             appState.setAuthenticated(server: result.server, user: result.user)
 
             // Re-evaluate the Seerr session against the freshly-signed-in

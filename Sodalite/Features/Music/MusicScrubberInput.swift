@@ -4,7 +4,7 @@ import UIKit
 /// A focusable UIKit input layer for the music scrubber, giving the SwiftUI
 /// player the same feel as the video player (which is UIKit). When focused it
 /// captures: touchpad pan to scrub, left/right click to skip, left/right hold
-/// to spool (accelerating, lands paused), and Select to commit a scrub or
+/// to spool (accelerating; playback keeps running, Select commits), and Select to commit a scrub or
 /// toggle play/pause. The visible bar is drawn in SwiftUI from the
 /// coordinator's scrub state; this transparent view owns the input and
 /// reports its focus state up so the bar can show a focus look.

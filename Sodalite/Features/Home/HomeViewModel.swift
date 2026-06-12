@@ -472,11 +472,12 @@ final class HomeViewModel {
     /// repeated Home re-appearances within a session don't re-run.
     func precomputeGenreCaches() async {
         if genreCachesComputedAt != nil { return }
-        // Wait until tagRows is populated. loadContent + this method
-        // are both kicked off from the same Task.detached point so
-        // they can race; if loadContent hasn't finished yet, just
-        // bail and let the next caller (or the next Home appearance)
-        // pick it up. Cheap enough that we don't bother retrying.
+        // Guard against an all-empty genres row. Since the gating
+        // rework this task is scheduled at the END of loadContent
+        // (+13 s), AFTER tagRows is published, so the old "races
+        // loadContent from the same detach point" rationale no longer
+        // applies; the empty-bail simply lets the next Home appearance
+        // retry when the genres row genuinely had nothing yet.
         let genreNames: [String] = tagRows
             .filter { $0.type == .genres }
             .flatMap { $0.tags.map(\.name) }

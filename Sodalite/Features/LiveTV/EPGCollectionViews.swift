@@ -205,15 +205,26 @@ final class EPGChannelCell: UICollectionViewCell {
         favoriteIcon.isHidden = !value
     }
 
+    /// Decoded-logo cache shared by every channel cell. Cell reuse on
+    /// a long channel list used to re-fetch + re-decode each logo from
+    /// URLSession.shared on every scroll pass; everywhere else images
+    /// route through AsyncCachedImage's cache.
+    private static let logoCache = NSCache<NSURL, UIImage>()
+
     private func loadLogo(_ url: URL?) {
         let token = UUID()
         logoToken = token
         logoView.image = UIImage(systemName: "tv")
         guard let url else { return }
+        if let cached = Self.logoCache.object(forKey: url as NSURL) {
+            logoView.image = cached
+            return
+        }
         Task { [weak self] in
             guard let (data, _) = try? await URLSession.shared.data(from: url),
                   let image = UIImage(data: data) else { return }
             await MainActor.run {
+                Self.logoCache.setObject(image, forKey: url as NSURL)
                 guard let self, self.logoToken == token else { return }
                 self.logoView.image = image
             }

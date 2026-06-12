@@ -25,7 +25,7 @@ import Combine
 /// compiler enforce it.
 final class LogTap: ObservableObject {
 
-    static let shared = LogTap()
+    nonisolated static let shared = LogTap()
 
     /// Whether the diagnostic overlay should be mounted at all.
     /// Always on under the debugger (DEBUG), on for sandbox-receipt
@@ -51,7 +51,7 @@ final class LogTap: ObservableObject {
     /// before the failure landed, defeating its purpose.
     private let maxLines = 300
 
-    private init() {}
+    private nonisolated init() {}
 
     /// Append one line to the overlay. Safe to call from any thread.
     /// Long lines are truncated when rendered in the overlay (the

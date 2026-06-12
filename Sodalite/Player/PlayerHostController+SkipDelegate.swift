@@ -22,7 +22,7 @@ extension PlayerHostController: AVPlayerViewControllerDelegate {
     /// Remote skipItem chord, future tvOS evolution) actually fire
     /// here — we'd rather seek than no-op.
     func skipToNextItem(for playerViewController: AVPlayerViewController) {
-        print("[NowPlaying] delegate skipToNextItem fired (+10s)")
+        LogTap.shared.note("[NowPlaying] delegate skipToNextItem fired (+10s)")
         Task { @MainActor [weak self] in
             guard let self else { return }
             let target = self.viewModel.player.currentTime + 10
@@ -31,7 +31,7 @@ extension PlayerHostController: AVPlayerViewControllerDelegate {
     }
 
     func skipToPreviousItem(for playerViewController: AVPlayerViewController) {
-        print("[NowPlaying] delegate skipToPreviousItem fired (-10s)")
+        LogTap.shared.note("[NowPlaying] delegate skipToPreviousItem fired (-10s)")
         Task { @MainActor [weak self] in
             guard let self else { return }
             let target = max(0, self.viewModel.player.currentTime - 10)
@@ -52,7 +52,7 @@ extension PlayerHostController: AVPlayerViewControllerDelegate {
         timeToSeekAfterUserNavigatedFrom oldTime: CMTime,
         to targetTime: CMTime
     ) -> CMTime {
-        print("[NowPlaying] delegate timeToSeek from=\(oldTime.seconds) to=\(targetTime.seconds)")
+        LogTap.shared.note("[NowPlaying] delegate timeToSeek from=\(oldTime.seconds) to=\(targetTime.seconds)")
         return targetTime
     }
 
@@ -64,6 +64,6 @@ extension PlayerHostController: AVPlayerViewControllerDelegate {
         willResumePlaybackAfterUserNavigatedFrom oldTime: CMTime,
         to targetTime: CMTime
     ) {
-        print("[NowPlaying] delegate willResumePlayback from=\(oldTime.seconds) to=\(targetTime.seconds)")
+        LogTap.shared.note("[NowPlaying] delegate willResumePlayback from=\(oldTime.seconds) to=\(targetTime.seconds)")
     }
 }

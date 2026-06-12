@@ -9,25 +9,24 @@ import AetherEngine
 /// Part 2, MPEG-2 video, VC-1). Server-side transcoding is reserved for
 /// codecs outside this set (WMV3, Theora, RealVideo, etc.).
 ///
-/// Two flavors based on display capabilities (see
-/// `AetherEngine.displayCapabilities`):
-///
-/// - `permissiveHDRProfile`: HDR-capable display. Direct-play 4K HEVC
-///   Main10 HDR10 / Dolby Vision / HLG with multichannel audio.
-///
-/// - `conservativeSDRProfile`: SDR display. HDR content is still
-///   direct-played, VideoToolbox handles the conversion.
+/// There used to be two flavors keyed on display capabilities
+/// (permissive HDR vs conservative SDR), but they converged to the
+/// byte-identical dictionary once HDR sources were direct-played on
+/// SDR panels too (VideoToolbox converts), and the duplicate copies
+/// had already started drifting in their comments. One `baseProfile()`
+/// now; the HDR/SDR split stays real at the ENGINE level
+/// (`AetherEngine.displayCapabilities` drives display criteria), just
+/// not in the server-facing profile.
 @MainActor
 enum DirectPlayProfile {
 
-    /// Picks the right profile based on the runtime display capabilities.
+    /// The device profile shipped with every PlaybackInfo request.
     static func current() -> [String: Any] {
-        let caps = AetherEngine.displayCapabilities
-        let useHDR = caps.supportsHDR
         #if DEBUG
-        print("[Profile] Display: HDR=\(caps.supportsHDR) DV=\(caps.supportsDolbyVision) HDR10=\(caps.supportsHDR10) HLG=\(caps.supportsHLG) → using \(useHDR ? "HDR" : "SDR") profile")
+        let caps = AetherEngine.displayCapabilities
+        print("[Profile] Display: HDR=\(caps.supportsHDR) DV=\(caps.supportsDolbyVision) HDR10=\(caps.supportsHDR10) HLG=\(caps.supportsHLG)")
         #endif
-        return useHDR ? permissiveHDRProfile() : conservativeSDRProfile()
+        return baseProfile()
     }
 
     /// Live channel "copy ceiling": the bitrate at/under which a compatible
@@ -97,13 +96,14 @@ enum DirectPlayProfile {
         return profile
     }
 
-    // MARK: - HDR-capable display
+    // MARK: - Base profile
 
-    /// Profile for HDR-capable Apple TV setups (HDR display + Match
-    /// Dynamic Range on). AetherEngine handles HEVC Main10, HDR10,
-    /// Dolby Vision (Profile 5/8.1/8.4), HLG, and multichannel audio.
-    /// Server only has to remux containers, no re-encoding.
-    static func permissiveHDRProfile() -> [String: Any] {
+    /// AetherEngine handles HEVC Main10, HDR10, Dolby Vision (Profile
+    /// 5/8.1/8.4), HLG, and multichannel audio; HDR sources direct-play
+    /// on SDR panels too (VideoToolbox converts). Server only has to
+    /// remux containers, no re-encoding; server-side transcoding is the
+    /// absolute last resort.
+    static func baseProfile() -> [String: Any] {
         [
             "MaxStreamingBitrate": 200_000_000,
             "MaxStaticBitrate": 200_000_000,
@@ -140,72 +140,6 @@ enum DirectPlayProfile {
             // uses a custom AVIO context with URLSession for HTTP streams,
             // which doesn't support HLS playlists. HTTP progressive download
             // works perfectly with our read-ahead buffer.
-            "TranscodingProfiles": [
-                [
-                    "Type": "Video",
-                    "Container": "mp4",
-                    "Protocol": "http",
-                    "VideoCodec": "h264,hevc,av1,vp9",
-                    "AudioCodec": "aac,ac3,eac3",
-                    "Context": "Streaming",
-                ],
-                [
-                    "Type": "Audio",
-                    "Container": "mp3",
-                    "Protocol": "http",
-                    "AudioCodec": "mp3",
-                    "Context": "Streaming",
-                ],
-            ] as [[String: Any]],
-
-            "ContainerProfiles": [] as [Any],
-            "CodecProfiles": [] as [[String: Any]],
-            "SubtitleProfiles": Self.subtitleProfiles,
-        ]
-    }
-
-    // MARK: - SDR display fallback
-
-    /// Profile for SDR displays (or HDR displays with Match Dynamic
-    /// Range off).
-    ///
-    /// Strategy: maximise direct play and container-remux (DirectStream),
-    /// keep TranscodingProfile permissive so the server can stream-copy
-    /// compatible codecs instead of re-encoding them. Server-side
-    /// transcoding is the absolute last resort.
-    ///
-    /// HDR sources are intentionally NOT constrained here, VideoToolbox
-    /// handles HDR-on-SDR conversion automatically.
-    static func conservativeSDRProfile() -> [String: Any] {
-        [
-            "MaxStreamingBitrate": 200_000_000,
-            "MaxStaticBitrate": 200_000_000,
-            "MusicStreamingTranscodingBitrate": 384_000,
-
-            // AetherEngine (FFmpeg) handles these containers natively.
-            // Video codecs match the engine's dispatch table; see HDR
-            // profile comment for the SW vs native split.
-            "DirectPlayProfiles": [
-                [
-                    "Container": "mp4,m4v,mov,mkv,matroska,avi,mpegts,ts,m2ts,mts,3gp,3g2,vob,ogg,webm,flv",
-                    "Type": "Video",
-                    "VideoCodec": "h264,hevc,av1,vp9,vp8,mpeg4,mpeg2video,vc1",
-                    // Jellyfin reports DTS variants inconsistently, some
-                    // builds use `dts`, some `dca`, some `dts-hd`. Listing
-                    // every spelling we've seen stops the server from
-                    // kicking DTS-HD MA into a transcode just because our
-                    // profile didn't happen to use the exact string it
-                    // chose this release. mp2 pairs with MPEG-2 video
-                    // (broadcast / VOB sources).
-                    "AudioCodec": "aac,ac3,eac3,mp3,mp2,flac,opus,vorbis,alac,truehd,mlp,dts,dca,dts-hd,dtshd,pcm_s16le,pcm_s24le,pcm_f32le",
-                ],
-                [
-                    "Container": "mp3,aac,m4a,m4b,flac,alac,wav,opus,ogg",
-                    "Type": "Audio",
-                ],
-            ] as [[String: Any]],
-
-            // Fallback: progressive MP4 over HTTP (not HLS!).
             "TranscodingProfiles": [
                 [
                     "Type": "Video",

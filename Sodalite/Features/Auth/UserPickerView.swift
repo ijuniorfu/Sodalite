@@ -23,6 +23,10 @@ struct UserPickerView: View {
     @State private var errorMessage: String?
     @State private var selectedUser: JellyfinUser?
     @State private var manualLogin = false
+    /// True when /Users/Public returned profiles but every one is
+    /// already remembered for this server: the empty state then says
+    /// so instead of the misleading "no users visible from server".
+    @State private var allProfilesAlreadyAdded = false
 
     var body: some View {
         VStack(spacing: 40) {
@@ -151,10 +155,15 @@ struct UserPickerView: View {
             Image(systemName: "person.crop.circle.badge.questionmark")
                 .font(.system(size: 60))
                 .foregroundStyle(.tertiary)
-            Text(String(
-                localized: "auth.users.empty",
-                defaultValue: "No users visible from the server. Sign in manually instead."
-            ))
+            Text(allProfilesAlreadyAdded
+                ? String(
+                    localized: "auth.users.allAdded",
+                    defaultValue: "All profiles on this server are already added."
+                )
+                : String(
+                    localized: "auth.users.empty",
+                    defaultValue: "No users visible from the server. Sign in manually instead."
+                ))
             .font(.body)
             .foregroundStyle(.secondary)
             .multilineTextAlignment(.center)
@@ -231,6 +240,7 @@ struct UserPickerView: View {
                 dependencies.listRememberedUsers(serverID: server.id).map(\.id)
             )
             users = fetched.filter { !remembered.contains($0.id) }
+            allProfilesAlreadyAdded = !fetched.isEmpty && users.isEmpty
         } catch {
             errorMessage = error.localizedDescription
         }

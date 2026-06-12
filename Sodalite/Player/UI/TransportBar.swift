@@ -390,7 +390,6 @@ struct TransportBar: View {
         let stamp = TransportBar.formatChapterTime(chapter.startSeconds)
         let name = chapter.name.flatMap { $0.isEmpty ? nil : $0 }
             ?? String(localized: "player.chapter.fallback", defaultValue: "Chapter \(index + 1)")
-            .replacingOccurrences(of: "\(index + 1)", with: "\(index + 1)")
         return "\(stamp)  \(name)"
     }
 

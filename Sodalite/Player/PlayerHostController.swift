@@ -693,11 +693,12 @@ final class PlayerHostController: AVPlayerViewController {
     /// Indices into `PlayerViewModel.statsSectionAnchors` whose
     /// matching section is currently rendered for this source. Mirrors
     /// the @ViewBuilder gates inside `StatsOverlayView`:
-    /// - 0 playback: always rendered
-    /// - 1 video: media has a video stream
-    /// - 2 audio: media has an active audio track
-    /// - 3 subtitle: subtitles are on
-    /// - 4 file: media source is present
+    /// - 0 live + 1 playback: always rendered
+    /// - 2 video: media has a video stream
+    /// - 3 audio: media has an active audio track
+    /// - 4 subtitle: subtitles are on
+    /// - 5 file: media source is present
+    /// - 6-8 engine diagnostics: gated by showEngineDiagnostics
     /// Used by `advanceStatsCursor` so up/down steps land only on
     /// anchors that actually have a view to scroll to; otherwise
     /// `ScrollViewReader.scrollTo` no-ops silently and the user sees
