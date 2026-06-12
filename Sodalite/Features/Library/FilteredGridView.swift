@@ -31,11 +31,22 @@ struct FilteredGridView: View {
     @Environment(\.dependencies) private var dependencies
     @State private var items: [JellyfinItem]
     @State private var isLoading: Bool
-    @State private var isAugmenting = false
     @State private var selectedItem: JellyfinItem?
     @State private var watchFilter: WatchStatusFilter = .all
     @FocusState private var focusedItemID: String?
     @Environment(\.dismiss) private var dismiss
+
+    /// Distinguishes "fetch failed with nothing to show" (error state
+    /// with a retry) from "server says the list is empty".
+    @State private var loadFailed = false
+    /// Stamped at the start of every loadItems run; checked after each
+    /// await so a superseded run (filter flip, retry) can never write
+    /// its results over the newer run's.
+    @State private var loadGeneration = 0
+    /// TotalRecordCount from the last phase-1 response; drives the
+    /// load-more trigger. nil until the first fresh fetch lands.
+    @State private var totalRecordCount: Int?
+    @State private var isLoadingMore = false
 
     let title: String
     let query: ItemQuery
@@ -112,15 +123,37 @@ struct FilteredGridView: View {
                         .opacity(0)
                 }
                 .frame(maxWidth: .infinity, minHeight: 400)
+            } else if items.isEmpty, loadFailed {
+                VStack(spacing: 12) {
+                    Image(systemName: "wifi.exclamationmark")
+                        .font(.system(size: 40))
+                        .foregroundStyle(.tertiary)
+                    Text("home.error.unreachable")
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
+                        .frame(maxWidth: 600)
+                    Button {
+                        isLoading = true
+                        loadFailed = false
+                        Task { await loadItems() }
+                    } label: {
+                        Text("home.retry")
+                            .font(.body)
+                            .padding(.horizontal, 32)
+                            .padding(.vertical, 12)
+                    }
+                    .buttonStyle(SettingsTileButtonStyle())
+                }
+                .frame(maxWidth: .infinity, minHeight: 400)
             } else if items.isEmpty {
                 VStack(spacing: 12) {
                     Image(systemName: "film")
                         .font(.system(size: 40))
                         .foregroundStyle(.tertiary)
-                    Text("home.retry")
+                    Text("library.empty.message")
                         .foregroundStyle(.secondary)
                     Button { dismiss() } label: {
-                        Text("detail.showSeries")
+                        Text("common.back")
                             .font(.body)
                             .padding(.horizontal, 32)
                             .padding(.vertical, 12)
@@ -144,10 +177,16 @@ struct FilteredGridView: View {
                         }
                         .buttonStyle(GridCardButtonStyle())
                         .focused($focusedItemID, equals: item.id)
+                        .onAppear { loadMoreIfNeeded(after: item) }
                     }
                 }
                 .padding(.horizontal, 60)
                 .padding(.vertical, 40)
+
+                if isLoadingMore {
+                    ProgressView()
+                        .padding(.bottom, 40)
+                }
             }
         }
         .navigationBarHidden(true)
@@ -161,6 +200,8 @@ struct FilteredGridView: View {
             // under "Unwatched") and let the keyed task below refetch.
             items = []
             isLoading = true
+            loadFailed = false
+            totalRecordCount = nil
         }
         .task(id: watchFilter) {
             await loadItems()
@@ -188,6 +229,8 @@ struct FilteredGridView: View {
 
     private func loadItems() async {
         guard let userID = appState.activeUser?.id else { return }
+        loadGeneration += 1
+        let generation = loadGeneration
 
         // Cache hydration happened in init(...), items + isLoading
         // already reflect the cache hit (or miss). Now run the
@@ -204,17 +247,18 @@ struct FilteredGridView: View {
         }
         let isWatchFiltered = watchFilter != .all
 
-        async let studioMatchTask: [JellyfinItem] = { [effectiveQuery] in
-            do {
-                return try await dependencies.jellyfinLibraryService.getItems(
-                    userID: userID, query: effectiveQuery
-                ).items
-            } catch {
-                return []
-            }
+        // nil = fetch failed or was cancelled. The distinction from
+        // "server says empty" matters: a failure must never replace
+        // the on-screen grid or be persisted into FilterCache as a
+        // valid empty result (that used to poison the cache and kill
+        // the instant-paint hydration until the next pre-warm).
+        async let studioMatchTask: JellyfinItemsResponse? = { [effectiveQuery] in
+            try? await dependencies.jellyfinLibraryService.getItems(
+                userID: userID, query: effectiveQuery
+            )
         }()
 
-        async let allLibraryTask: [JellyfinItem] = { [watchFilterValue = watchFilter.jellyfinFilter] in
+        async let allLibraryTask: [JellyfinItem]? = { [watchFilterValue = watchFilter.jellyfinFilter] in
             guard smartProviderID != nil else { return [] }
             // Fetch the entire library in one shot rather than running
             // per-id `AnyProviderIdEquals` lookups. Robust against
@@ -229,19 +273,34 @@ struct FilteredGridView: View {
             if let filter = watchFilterValue {
                 allQuery.filters = [filter]
             }
-            return (try? await dependencies.jellyfinLibraryService.getItems(
+            return try? await dependencies.jellyfinLibraryService.getItems(
                 userID: userID, query: allQuery
-            ).items) ?? []
+            ).items
         }()
 
-        let phase1 = await studioMatchTask
-        studioItems = phase1
+        let phase1Response = await studioMatchTask
         let allItems = await allLibraryTask
+
+        // Backed out (Menu press, tap into a detail page) or superseded
+        // by a newer run: leave every piece of state alone.
+        guard !Task.isCancelled, generation == loadGeneration else { return }
+
+        guard let phase1Response else {
+            // Real failure. Keep whatever the cache hydrated; only
+            // surface the error state when there is nothing to show.
+            loadFailed = items.isEmpty
+            isLoading = false
+            return
+        }
+        loadFailed = false
+        let phase1 = phase1Response.items
+        studioItems = phase1
+        totalRecordCount = phase1Response.totalRecordCount
 
         // Build TMDB-id → JellyfinItem map once and reuse for the
         // background refresh.
         var tmdbMap: [Int: JellyfinItem] = [:]
-        for item in allItems {
+        for item in allItems ?? [] {
             if let id = item.tmdbID { tmdbMap[id] = item }
         }
 
@@ -256,10 +315,19 @@ struct FilteredGridView: View {
         // fresh list replaces whatever the cache held, so titles that
         // rotated off the service since last visit drop out.
         if let providerID = smartProviderID, let region = smartProviderRegion {
+            // The 10k library scan feeding tmdbMap failed: the augment
+            // would resolve against an empty map and shrink the grid /
+            // cache to studio-only matches. Skip the refresh round.
+            guard allItems != nil else {
+                isLoading = false
+                return
+            }
             await refreshWatchProviderAugment(
                 providerID: providerID,
                 region: region,
-                tmdbMap: tmdbMap
+                tmdbMap: tmdbMap,
+                generation: generation,
+                isWatchFiltered: isWatchFiltered
             )
         } else {
             // No smart filter (broadcast networks, generic genre /
@@ -269,10 +337,16 @@ struct FilteredGridView: View {
             // the studio-query roundtrip. Skip the assignment when
             // the id list is unchanged: even with identical ids the
             // wholesale replace forces SwiftUI to re-diff every cell,
-            // which reads to the user as a brief reload flash.
-            if items.map(\.id) != phase1.map(\.id) {
+            // which reads to the user as a brief reload flash. And
+            // when the user already paginated past page 1 with an
+            // unchanged first page, keep the appended pages instead
+            // of truncating the grid under their focus.
+            let pagedPastPhase1 = items.count > phase1.count
+                && items.prefix(phase1.count).map(\.id) == phase1.map(\.id)
+            if !pagedPastPhase1, items.map(\.id) != phase1.map(\.id) {
                 items = phase1
             }
+            isLoading = false
             // Cache only the unfiltered default: the cached list feeds
             // init hydration (always .all) and the empty-tile-hide
             // counts, both of which must reflect the full library.
@@ -280,6 +354,50 @@ struct FilteredGridView: View {
                 FilterCache.shared.setHomeFilterItems(phase1, filterKey: key)
             }
         }
+    }
+
+    // MARK: - Pagination
+
+    /// Whether more pages exist server-side. Only the plain (non-smart)
+    /// path paginates: smart-provider grids are merged from the full
+    /// library map and complete by construction, and genre/My-Media
+    /// tiles were previously hard-truncated at their query limit with
+    /// no indication anything was missing.
+    private var canLoadMore: Bool {
+        guard smartProviderID == nil, query.limit != nil else { return false }
+        guard let total = totalRecordCount else { return false }
+        return items.count < total
+    }
+
+    private func loadMoreIfNeeded(after item: JellyfinItem) {
+        guard canLoadMore, !isLoadingMore, !isLoading else { return }
+        // Trigger within the last two grid rows so the next page is
+        // in place before focus reaches the edge.
+        guard let index = items.firstIndex(where: { $0.id == item.id }),
+              index >= items.count - 12 else { return }
+        isLoadingMore = true
+        Task { await loadMore() }
+    }
+
+    private func loadMore() async {
+        defer { isLoadingMore = false }
+        guard let userID = appState.activeUser?.id else { return }
+        let generation = loadGeneration
+
+        var pageQuery = query
+        if let filter = watchFilter.jellyfinFilter {
+            pageQuery.filters = [filter]
+        }
+        pageQuery.startIndex = items.count
+
+        guard let response = try? await dependencies.jellyfinLibraryService.getItems(
+            userID: userID, query: pageQuery
+        ) else { return }
+        guard !Task.isCancelled, generation == loadGeneration else { return }
+
+        totalRecordCount = response.totalRecordCount
+        let known = Set(items.map(\.id))
+        items += response.items.filter { !known.contains($0.id) }
     }
 
     /// Merge studio-match (Phase 1) with watch-provider matches
@@ -305,13 +423,28 @@ struct FilteredGridView: View {
     private func refreshWatchProviderAugment(
         providerID: Int,
         region: String,
-        tmdbMap: [Int: JellyfinItem]
+        tmdbMap: [Int: JellyfinItem],
+        generation: Int,
+        isWatchFiltered: Bool
     ) async {
-        isAugmenting = true
-        defer { isAugmenting = false }
-
         let providerTmdbIDs = await dependencies.seerrDiscoverService
             .collectWatchProviderTmdbIDs(providerID: providerID, region: region)
+
+        guard !Task.isCancelled, generation == loadGeneration else { return }
+
+        // collectWatchProviderTmdbIDs swallows failures into an empty
+        // set, so emptiness is ambiguous: a transient Seerr outage is
+        // indistinguishable from "this service streams nothing". A
+        // real streaming service never has zero titles, treat empty
+        // as a failed round: keep the on-screen grid and the cached
+        // entry, surface phase 1 only if nothing is showing yet.
+        guard !providerTmdbIDs.isEmpty else {
+            if items.isEmpty {
+                items = studioItems
+            }
+            isLoading = false
+            return
+        }
 
         FilterCache.shared.setSmartFilterIDs(
             Array(providerTmdbIDs), providerID: providerID, region: region
@@ -322,12 +455,13 @@ struct FilteredGridView: View {
         if items.map(\.id) != merged.map(\.id) {
             items = merged
         }
+        isLoading = false
 
         // Persist the fully-resolved list so the next visit can
         // hydrate the grid synchronously, no library fetch, no
         // watch-provider roundtrip needed for the initial display.
         // Unfiltered default only, same rationale as the phase-1 write.
-        if let key = cacheKey, watchFilter == .all {
+        if let key = cacheKey, !isWatchFiltered {
             FilterCache.shared.setHomeFilterItems(merged, filterKey: key)
         }
     }
