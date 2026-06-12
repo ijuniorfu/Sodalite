@@ -43,6 +43,7 @@ struct ChannelUserData: Codable, Sendable, Equatable {
 struct JellyfinProgram: Codable, Sendable, Identifiable, Equatable {
     let id: String
     let channelId: String?
+    let channelName: String?
     let name: String
     let overview: String?
     let startDate: Date?
@@ -53,6 +54,8 @@ struct JellyfinProgram: Codable, Sendable, Identifiable, Equatable {
     let isNews: Bool?
     let isMovie: Bool?
     let isSeries: Bool?
+    let isKids: Bool?
+    let isSports: Bool?
     /// Set when a single-program record timer exists for this program.
     let timerId: String?
     /// Set when a series timer covers this program.
@@ -61,6 +64,7 @@ struct JellyfinProgram: Codable, Sendable, Identifiable, Equatable {
     enum CodingKeys: String, CodingKey {
         case id = "Id"
         case channelId = "ChannelId"
+        case channelName = "ChannelName"
         case name = "Name"
         case overview = "Overview"
         case startDate = "StartDate"
@@ -71,6 +75,8 @@ struct JellyfinProgram: Codable, Sendable, Identifiable, Equatable {
         case isNews = "IsNews"
         case isMovie = "IsMovie"
         case isSeries = "IsSeries"
+        case isKids = "IsKids"
+        case isSports = "IsSports"
         case timerId = "TimerId"
         case seriesTimerId = "SeriesTimerId"
     }
