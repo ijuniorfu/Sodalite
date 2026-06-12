@@ -55,36 +55,32 @@ func jellyfinCastMembers(
 
 /// Two full-width, baseline-aligned info rows for the detail glass
 /// panels: the caller's metadata line pairs with the tagline in row
-/// one, the genres line with the merged credit line in row two, so the
+/// one, the genres line with the studios line in row two, so the
 /// left and right columns sit level instead of drifting apart as two
 /// independently-spaced stacks (Sodalite#15 round 6 follow-up). The
 /// left cells take layout priority and never truncate in favor of the
 /// right; the right cells get the leftover width, trailing-anchored,
 /// and truncate first. While the full-detail fetch is in flight the
 /// right cells hold skeleton bars so the panel doesn't grow when
-/// tagline / credits land.
+/// tagline / studios land. Director and writer are deliberately
+/// absent: they already appear in the cast row below, and they
+/// squeezed the studios line out of its width.
 struct DetailInfoRows<LeftPrimary: View, LeftSecondary: View>: View {
     let item: JellyfinItem
     let hasFullDetail: Bool
     @ViewBuilder let leftPrimary: () -> LeftPrimary
     @ViewBuilder let leftSecondary: () -> LeftSecondary
 
-    /// Whether there is any tagline / crew / studio info to show.
+    /// Whether there is any tagline / studio info to show.
     static func hasContent(_ item: JellyfinItem) -> Bool {
-        let directors = (item.people ?? []).contains { $0.type == "Director" }
-        let writers = (item.people ?? []).contains { $0.type == "Writer" }
         let hasStudios = !(item.studios?.isEmpty ?? true)
         let hasTagline = !(item.taglines?.first?.isEmpty ?? true)
-        return hasTagline || directors || writers || hasStudios
+        return hasTagline || hasStudios
     }
 
     var body: some View {
         let tagline = item.taglines?.first
-        let credits = mergedCreditLine(
-            directors: names(ofType: "Director"),
-            writers: names(ofType: "Writer"),
-            studios: item.studios?.map(\.name) ?? []
-        )
+        let credits = studiosLine(item.studios?.map(\.name) ?? [])
         // Skeleton bars only while the right side can still gain
         // content: once the detail fetch settles empty, the rows
         // collapse to their left cells.
@@ -127,38 +123,10 @@ struct DetailInfoRows<LeftPrimary: View, LeftSecondary: View>: View {
             .frame(width: width, height: 14)
     }
 
-    private func names(ofType type: String) -> [String] {
-        (item.people ?? [])
-            .filter { $0.type == type }
-            .map(\.name)
-    }
-
-    /// All credits on a single "Director: A · Writer: B · Studios: C"
-    /// line. Built via Text interpolation (Text + Text concatenation is
-    /// deprecated on tvOS 26); at most three segments exist, so the
-    /// joins are spelled out per count.
-    private func mergedCreditLine(directors: [String], writers: [String], studios: [String]) -> Text? {
-        var segments: [Text] = []
-        if !directors.isEmpty {
-            segments.append(creditSegment(labelKey: "detail.director", names: directors))
-        }
-        if !writers.isEmpty {
-            segments.append(creditSegment(labelKey: "detail.writer", names: writers))
-        }
-        if !studios.isEmpty {
-            segments.append(creditSegment(labelKey: "detail.studios", names: studios))
-        }
-        switch segments.count {
-        case 0: return nil
-        case 1: return segments[0]
-        case 2: return Text("\(segments[0]) · \(segments[1])")
-        default: return Text("\(segments[0]) · \(segments[1]) · \(segments[2])")
-        }
-    }
-
-    private func creditSegment(labelKey: LocalizedStringKey, names: [String]) -> Text {
+    private func studiosLine(_ studios: [String]) -> Text? {
+        guard !studios.isEmpty else { return nil }
         // Text interpolation instead of the tvOS-26-deprecated `Text + Text`
         // concatenation; both segments keep their own styling.
-        Text("\(Text(labelKey).fontWeight(.semibold))\(Text(verbatim: ": \(names.prefix(3).joined(separator: ", "))"))")
+        return Text("\(Text("detail.studios").fontWeight(.semibold))\(Text(verbatim: ": \(studios.prefix(3).joined(separator: ", "))"))")
     }
 }
