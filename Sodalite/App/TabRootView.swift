@@ -90,7 +90,19 @@ struct TabRootView: View {
             let signal = appState.serverDidSwitch
             guard signal != lastProbedServerSwitch else { return }
             let isServerSwitch = lastProbedServerSwitch != -1
+            let previousSignal = lastProbedServerSwitch
             lastProbedServerSwitch = signal
+            // The latch is taken up front so a re-entrant fire of the
+            // same signal can't double-probe, but a cancelled run (view
+            // disappears mid-probe) must give the latch back: the .task
+            // re-fires with the same signal on reappear, and without the
+            // rollback that re-fire would hit the guard above and the
+            // Live TV / Music tabs would stay missing for the session.
+            defer {
+                if Task.isCancelled, lastProbedServerSwitch == signal {
+                    lastProbedServerSwitch = previousSignal
+                }
+            }
             if isServerSwitch {
                 let base = AppTab.allCases.filter { $0 != .music && $0 != .liveTV }
                 availableTabs = base

@@ -131,8 +131,12 @@ struct AppRouter: View {
                 // user restores a session of their own, so without this
                 // wipe the old cookie stays live in seerrClient and the
                 // new user would browse/request as the previous one.
+                // Client-only detach, NOT clearSeerrSession(): the
+                // keychain entries belong to the previous user's
+                // profile and must survive so their session restores
+                // when they switch back.
                 appState.disconnectSeerr()
-                try? dependencies.clearSeerrSession()
+                dependencies.detachSeerrClient()
                 launchPickerServer = nil
                 markTVUserResolved()
                 await performRestore()
@@ -150,10 +154,28 @@ struct AppRouter: View {
         .task(id: appState.serverDidSwitch) {
             guard appState.serverDidSwitch > 0 else { return }
             guard appState.serverDidSwitch != lastHandledServerSwitch else { return }
-            lastHandledServerSwitch = appState.serverDidSwitch
+            let handledSignal = appState.serverDidSwitch
+            lastHandledServerSwitch = handledSignal
+            // Latch rollback on cancellation: a player modal / cover
+            // presenting mid-probe cancels this task AFTER the latch was
+            // recorded; without the rollback the re-fire on reappear
+            // would be guarded away and the switch left half-applied
+            // (pointer moved, AppState stale) for the session.
+            defer {
+                if Task.isCancelled, lastHandledServerSwitch == handledSignal {
+                    lastHandledServerSwitch = handledSignal - 1
+                }
+            }
+            // Capture the probe's target ONCE: re-reading
+            // dependencies.activeServer after the await could observe a
+            // NEWER switch's pointer and authenticate a mixed identity.
+            let probedServer = dependencies.activeServer
             do {
                 let user = try await dependencies.probeActiveUser()
-                if let user, let server = dependencies.activeServer {
+                // Superseded mid-probe (newer switch re-keyed the task):
+                // the stale result must not touch AppState or Seerr.
+                guard !Task.isCancelled else { return }
+                if let user, let server = probedServer {
                     appState.setAuthenticated(server: server, user: user)
                     // Restore the per-(server, user) Seerr session so the
                     // Catalog tab reflects the newly active identity, not
@@ -162,6 +184,7 @@ struct AppRouter: View {
                         forJellyfinUserID: user.id,
                         jellyfinServerID: server.id
                     )
+                    guard !Task.isCancelled else { return }
                     if case .connected(let seerrServer, let seerrUser) = outcome {
                         appState.setSeerrConnected(server: seerrServer, user: seerrUser)
                     } else {

@@ -23,6 +23,13 @@ struct HomeView: View {
     /// snaps that fight with the user's scroll direction.
     @State private var scrollResetTask: Task<Void, Never>?
 
+    /// serverDidSwitch value of the last switch this view reacted to.
+    /// `.task(id:)` re-fires with the SAME id every time the view
+    /// reappears (tab change, sheet dismiss); without the latch each
+    /// reappear would wipe FilterCache and reload the whole feed even
+    /// though no switch happened.
+    @State private var lastHandledServerSwitch = 0
+
     /// How long the home feed is considered fresh before a revisit
     /// triggers an automatic reload.
     private static let refreshStaleSeconds: TimeInterval = 60
@@ -138,7 +145,17 @@ struct HomeView: View {
         }
         .task(id: appState.serverDidSwitch) {
             // Value 0 is the initial state; no switch has occurred yet.
-            guard appState.serverDidSwitch > 0 else { return }
+            let signal = appState.serverDidSwitch
+            guard signal > 0, signal != lastHandledServerSwitch else { return }
+            lastHandledServerSwitch = signal
+            // Roll the latch back if this run is cancelled mid-reload
+            // (view disappears) so the re-fire on reappear finishes
+            // the job instead of being guarded away.
+            defer {
+                if Task.isCancelled, lastHandledServerSwitch == signal {
+                    lastHandledServerSwitch = 0
+                }
+            }
             FilterCache.shared.clearAll()
             await viewModel?.reloadAfterServerSwitch()
         }

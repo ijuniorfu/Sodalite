@@ -98,8 +98,13 @@ final class SeerrServerDiscoveryService: SeerrServerDiscoveryServiceProtocol {
                 if let https = URL(string: "https://\(cleaned)") { candidates.append(https) }
                 if let http = URL(string: "http://\(cleaned)") { candidates.append(http) }
             } else {
-                if let url = URL(string: "http://\(cleaned):5055") { candidates.append(url) }
-                if let url = URL(string: "https://\(cleaned):5055") { candidates.append(url) }
+                // Port variants only without a path (same guard as the
+                // domain branch): appending ":5055" to an IP+path input
+                // glues the port onto the path.
+                if !cleaned.contains("/") {
+                    if let url = URL(string: "http://\(cleaned):5055") { candidates.append(url) }
+                    if let url = URL(string: "https://\(cleaned):5055") { candidates.append(url) }
+                }
                 if let url = URL(string: "https://\(cleaned)") { candidates.append(url) }
                 if let url = URL(string: "http://\(cleaned)") { candidates.append(url) }
             }

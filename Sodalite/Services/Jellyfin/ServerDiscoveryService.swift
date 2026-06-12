@@ -104,11 +104,16 @@ final class ServerDiscoveryService: ServerDiscoveryServiceProtocol {
                 if let https = URL(string: "https://\(cleaned)") { candidates.append(https) }
                 if let http = URL(string: "http://\(cleaned)") { candidates.append(http) }
             } else {
-                // IP without port: try default Jellyfin ports
-                // HTTPS with Jellyfin HTTPS port
-                if let url = URL(string: "https://\(cleaned):8920") { candidates.append(url) }
-                // HTTP with Jellyfin HTTP port
-                if let url = URL(string: "http://\(cleaned):8096") { candidates.append(url) }
+                // IP without port: try default Jellyfin ports. Port
+                // variants only without a path; appending ":8920" to
+                // "192.168.1.5/jellyfin" glues the port onto the path
+                // (same guard as the domain branch below).
+                if !cleaned.contains("/") {
+                    // HTTPS with Jellyfin HTTPS port
+                    if let url = URL(string: "https://\(cleaned):8920") { candidates.append(url) }
+                    // HTTP with Jellyfin HTTP port
+                    if let url = URL(string: "http://\(cleaned):8096") { candidates.append(url) }
+                }
                 // Also try standard ports (reverse proxy setup)
                 if let url = URL(string: "https://\(cleaned)") { candidates.append(url) }
                 if let url = URL(string: "http://\(cleaned)") { candidates.append(url) }

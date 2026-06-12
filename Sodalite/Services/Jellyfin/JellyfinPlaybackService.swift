@@ -232,15 +232,21 @@ final class JellyfinPlaybackService: JellyfinPlaybackServiceProtocol {
         // drop a reverse-proxy subpath like "/jellyfin", 404ing every
         // transcode session on such setups. Splice path and query onto the
         // base URL's components instead.
+        // String-assembled, NOT via the URLComponents percentEncoded
+        // setters: those setters trap with a fatalError on invalid
+        // characters, and TranscodingUrl is server-controlled (a proxy
+        // or plugin injecting a raw space would crash the app).
+        // URL(string:) returns nil for invalid input instead.
         let trimmed = relativePath.hasPrefix("/") ? relativePath : "/\(relativePath)"
         guard var components = URLComponents(url: baseURL, resolvingAgainstBaseURL: true) else {
             return nil
         }
-        let pathAndQuery = trimmed.split(separator: "?", maxSplits: 1, omittingEmptySubsequences: false)
         let encodedBasePath = components.percentEncodedPath
         let basePath = encodedBasePath.hasSuffix("/") ? String(encodedBasePath.dropLast()) : encodedBasePath
-        components.percentEncodedPath = basePath + String(pathAndQuery[0])
-        components.percentEncodedQuery = pathAndQuery.count > 1 ? String(pathAndQuery[1]) : nil
-        return components.url
+        components.percentEncodedPath = ""
+        components.percentEncodedQuery = nil
+        guard let root = components.url?.absoluteString else { return nil }
+        let rootBase = root.hasSuffix("/") ? String(root.dropLast()) : root
+        return URL(string: rootBase + basePath + trimmed)
     }
 }

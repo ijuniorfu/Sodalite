@@ -78,8 +78,11 @@ final class FilterCache: @unchecked Sendable {
         // path separator pointing into a directory that doesn't
         // exist, every write fails inside try? and the entry is a
         // permanent silent cache miss. Percent-encode everything
-        // outside a conservative set; slash-free alphanumeric keys
-        // (all current callers) keep their existing filenames.
+        // outside a conservative set. Purely alphanumeric keys keep
+        // their filenames; keys embedding names with spaces or
+        // punctuation ("Science Fiction") change filename once, a
+        // one-time cache miss whose orphaned old file is removed by
+        // the next clearAll() (profile/server switch).
         let allowed = CharacterSet.alphanumerics.union(CharacterSet(charactersIn: ".-_"))
         let safeKey = key.addingPercentEncoding(withAllowedCharacters: allowed) ?? key
         return directory.appendingPathComponent(safeKey).appendingPathExtension("json")

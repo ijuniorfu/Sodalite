@@ -149,6 +149,15 @@ final class DependencyContainer {
               let userID = try? keychainService.loadString(for: KeychainKeys.userID(serverID: server.id))
         else { return nil }
 
+        // Tokenless short-circuit: switchServer can throw AFTER moving
+        // the pointer when the target's token slot is empty (e.g. the
+        // removeServer fall-through). Probing anyway would issue an
+        // unauthenticated request, or worse, one still carrying the
+        // previous server's client state. No token means picker, no
+        // network roundtrip needed.
+        guard (try? keychainService.loadString(for: KeychainKeys.accessToken(serverID: server.id))) != nil
+        else { return nil }
+
         do {
             let user = try await jellyfinAuthService.getCurrentUser()
             return user
@@ -478,7 +487,11 @@ final class DependencyContainer {
 
         tvProfileMappings.removeMappings(forServer: serverID)
 
-        if !signalAlreadyScheduled {
+        // Only signal when the ACTIVE server was removed: removing an
+        // inactive entry changes nothing the serverDidSwitch observers
+        // care about, and the bump would cancel in-flight probes and
+        // force a full Home reload for no reason.
+        if activeID == serverID, !signalAlreadyScheduled {
             Task { @MainActor in
                 self.appState?.serverDidSwitch &+= 1
             }
@@ -775,9 +788,12 @@ final class DependencyContainer {
                     jellyfinUserID: jellyfinUserID
                 )
             )
-        } else {
+        } else if jellyfinUserID == nil || jellyfinServerID == nil {
             // Login outside any Jellyfin-user context: the global
-            // entry is the only place to persist it.
+            // entry is the only place to persist it. Deliberately NOT
+            // reached when a profile context exists but the cookie is
+            // nil; that would refresh the read-only legacy entry the
+            // scoped branch above just declared deprecated.
             let serverData = try JSONEncoder().encode(server)
             try keychainService.save(serverData, for: KeychainKeys.seerrServer)
             if let cookie = seerrClient.sessionCookie {
@@ -820,6 +836,16 @@ final class DependencyContainer {
                 jellyfinUserID: jellyfinUserID
             )
         )
+    }
+
+    /// Drops the in-memory Seerr identity (cookie + base URL) without
+    /// touching any keychain entry. Used on tvOS-user change: the
+    /// previous user's persisted per-profile session must survive so
+    /// it restores when they switch back, but the live client must
+    /// stop acting as them immediately.
+    func detachSeerrClient() {
+        seerrClient.baseURL = nil
+        seerrClient.sessionCookie = nil
     }
 
     func clearSeerrSession() throws {

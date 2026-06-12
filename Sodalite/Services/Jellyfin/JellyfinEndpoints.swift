@@ -195,6 +195,13 @@ enum JellyfinEndpoint: APIEndpoint {
         switch self {
         case .sessionPlaying, .sessionProgress, .sessionStopped:
             return 90
+        case .playbackInfo, .livePlaybackInfo:
+            // PlaybackInfo ran on URLSession.shared (60 s default)
+            // before it moved onto the HTTPClient stack; keep that
+            // ceiling. The live variant especially needs it:
+            // AutoOpenLiveStream opens + probes the tuner server-side,
+            // and slow IPTV tuners regularly exceed the 30 s default.
+            return 60
         default:
             return nil
         }

@@ -222,9 +222,15 @@ struct LaunchProfilePickerView: View {
     }
 
     private func restoreSeerrForProfile(userID: String, serverID: String) async {
+        // allowLegacyFallback matches the launch-restore path in
+        // AppRouter: a pre-0.3.0 install that lands on the picker
+        // (no default profile) has only the legacy global Seerr
+        // entry, and without the fallback its session would never
+        // bridge to a scoped copy on this path.
         let outcome = await dependencies.syncSeerrSession(
             forJellyfinUserID: userID,
-            jellyfinServerID: serverID
+            jellyfinServerID: serverID,
+            allowLegacyFallback: true
         )
         if case .connected(let server, let user) = outcome {
             appState.setSeerrConnected(server: server, user: user)
