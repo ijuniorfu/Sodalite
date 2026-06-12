@@ -514,11 +514,11 @@ final class EPGCollectionViewController: UIViewController,
 
     private func synthesizedProgram(for channel: JellyfinChannel) -> JellyfinProgram {
         JellyfinProgram(
-            id: "live-\(channel.id)", channelId: channel.id, name: channel.name,
-            overview: nil, startDate: Date().addingTimeInterval(-1),
+            id: "live-\(channel.id)", channelId: channel.id, channelName: channel.name,
+            name: channel.name, overview: nil, startDate: Date().addingTimeInterval(-1),
             endDate: Date().addingTimeInterval(3600), genres: nil, imageTags: nil,
             isLive: true, isNews: nil, isMovie: nil, isSeries: nil,
-            timerId: nil, seriesTimerId: nil)
+            isKids: nil, isSports: nil, timerId: nil, seriesTimerId: nil)
     }
 }
 
