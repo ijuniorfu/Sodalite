@@ -140,7 +140,20 @@ final class PlayerViewModel {
     var activeSpeedIndex: Int = 2
 
     // Tracks
-    var subtitleCues: [SubtitleCue] = []
+    var subtitleCues: [SubtitleCue] = [] {
+        didSet {
+            subtitleMaxCueDuration = subtitleCues.reduce(60.0) {
+                max($0, $1.endTime - $1.startTime)
+            }
+        }
+    }
+    /// Longest cue duration in `subtitleCues` (floor 60 s), recomputed
+    /// on every assignment. Bounds the overlay's active-cue walk-back:
+    /// a fixed 60 s bound silently dropped longer cues (PGS tracks can
+    /// carry effectively unbounded endTimes meaning "until cleared").
+    /// Unbounded sentinels blow the bound up, but the engine prunes
+    /// bitmap cues to a trailing 300 s window so the walk stays short.
+    var subtitleMaxCueDuration: Double = 60
     var activeAudioIndex: Int?
     var activeSubtitleIndex: Int?
 
@@ -1017,6 +1030,15 @@ final class PlayerViewModel {
                         // that were actually running.
                         self.setLiveChannelUnavailableError()
                         self.isLoading = false
+                    } else if self.isLiveSession {
+                        // Mid-session engine error on a live channel:
+                        // retune instead of surfacing raw engine text.
+                        // A live transcode dying is recoverable the same
+                        // way a source reset is, and the retune guard
+                        // (budget + spacing) surfaces a friendly error
+                        // once attempts are exhausted.
+                        LogTap.shared.note("[Live] route=retune reason=engine_error_mid_session(\(msg))")
+                        self.handleLiveSourceReset()
                     } else {
                         self.setEnginePlaybackError(message: msg)
                         self.isLoading = false
@@ -1571,14 +1593,12 @@ final class PlayerViewModel {
     /// if it just disappeared, otherwise the user would be stuck on a
     /// button that's no longer in the row.
     private func setInsideIntro(_ newValue: Bool) {
-        let changed = isInsideIntro != newValue
         isInsideIntro = newValue
         if !newValue && controlsFocus == .skipIntroButton {
             if !player.audioTracks.isEmpty { controlsFocus = .audioButton }
             else if !subtitleStreams.isEmpty { controlsFocus = .subtitleButton }
             else { controlsFocus = .speedButton }
         }
-        _ = changed
     }
 
     /// Jump past the intro. Triggered by the Skip Intro button.

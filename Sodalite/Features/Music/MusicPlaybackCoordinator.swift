@@ -198,8 +198,13 @@ final class MusicPlaybackCoordinator {
             // Restart-in-place: the source is already loaded, a seek is
             // instant and keeps the play session, where a full
             // loadAndPlayCurrent would re-fetch playback info and reload
-            // the engine for an audible gap.
-            Task { await engine.seek(to: 0) }
+            // the engine for an audible gap. Explicit play() after the
+            // seek: restarting from a paused position must resume, the
+            // seek alone leaves the engine parked at 0.
+            Task {
+                await engine.seek(to: 0)
+                engine.play()
+            }
             updateNowPlaying()
         } else {
             reportStopped()

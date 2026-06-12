@@ -22,6 +22,10 @@ import SwiftAssRenderer
 struct SubtitleOverlayView: View {
     let cues: [SubtitleCue]
     let currentTime: Double
+    /// Walk-back bound for the active-cue lookup: the longest cue
+    /// duration present in `cues` (the view model derives it on each
+    /// assignment). See `activeCues`.
+    let maxCueDuration: Double
     /// User-selected text size, applied as a multiplier on top of the
     /// base `.title3` font. Picked up from PlaybackPreferences.
     let fontSize: PlaybackPreferences.SubtitleFontSize
@@ -376,10 +380,9 @@ struct SubtitleOverlayView: View {
         // before lookupTime by construction, so the start-time check
         // alone never terminates the loop and the scan would walk the
         // entire prefix on every evaluation (O(n) per tick on a
-        // full-file sidecar SRT). Real cues are bounded in length;
-        // stop once the start time falls more than a generous
-        // max-cue-duration behind the playhead.
-        let maxCueDuration: Double = 60
+        // full-file sidecar SRT). The bound is data-derived (longest
+        // cue in the track, computed by the view model on assignment);
+        // a fixed constant silently hid cues longer than it.
         while i >= 0, cues[i].startTime >= lookupTime - maxCueDuration {
             if cues[i].endTime >= lookupTime {
                 result.append(cues[i])

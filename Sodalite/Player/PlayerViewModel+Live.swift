@@ -342,11 +342,15 @@ extension PlayerViewModel {
         guard isLiveSession, !liveRetuneInFlight else { return }
         let tooSoon = lastLiveRetuneAt.map { Date().timeIntervalSince($0) < 20 } ?? false
         guard liveRetuneCount < 3, !tooSoon else {
-            // The server replays on every reconnect; stop cycling tuners
-            // and surface it instead.
+            // The stream fails on every retune (server replays from
+            // byte 0, or the transcode keeps dying); stop cycling
+            // tuners and surface it instead. Message is generalized
+            // because this gate also terminates the mid-session
+            // engine-error retune path, not just source resets.
+            isLoading = false
             setEnginePlaybackError(message: String(
-                localized: "player.error.liveSourceReset",
-                defaultValue: "The live stream keeps restarting on the server. Please try the channel again."
+                localized: "player.error.liveRetuneExhausted",
+                defaultValue: "The live stream keeps failing. Please try the channel again."
             ))
             return
         }

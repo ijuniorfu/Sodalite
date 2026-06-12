@@ -66047,163 +66047,163 @@
         }
       }
     },
-    "player.error.liveSourceReset" : {
+    "player.error.liveRetuneExhausted" : {
       "extractionState" : "manual",
       "localizations" : {
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Živý přenos se na serveru neustále restartuje. Zkus kanál spustit znovu."
+            "value" : "Živý přenos opakovaně selhává. Zkuste kanál znovu."
           }
         },
         "da" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Livestreamen genstarter hele tiden på serveren. Prøv kanalen igen."
+            "value" : "Livestreamen fejler hele tiden. Prøv kanalen igen."
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Der Livestream wird auf dem Server immer wieder neu gestartet. Bitte versuche es mit dem Sender erneut."
+            "value" : "Der Livestream schlägt immer wieder fehl. Bitte versuche es mit dem Sender erneut."
           }
         },
         "el" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Η ζωντανή ροή επανεκκινείται συνεχώς στον διακομιστή. Δοκιμάστε ξανά το κανάλι."
+            "value" : "Η ζωντανή ροή αποτυγχάνει συνεχώς. Δοκιμάστε ξανά το κανάλι."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The live stream keeps restarting on the server. Please try the channel again."
+            "value" : "The live stream keeps failing. Please try the channel again."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "La emisión en directo se reinicia continuamente en el servidor. Vuelve a intentarlo con el canal."
+            "value" : "La emisión en directo falla continuamente. Vuelve a intentarlo con el canal."
           }
         },
         "fi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Suora lähetys käynnistyy palvelimella yhä uudelleen. Kokeile kanavaa uudelleen."
+            "value" : "Suora lähetys epäonnistuu toistuvasti. Kokeile kanavaa uudelleen."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Le flux en direct redémarre sans cesse sur le serveur. Veuillez réessayer la chaîne."
+            "value" : "Le flux en direct échoue sans cesse. Veuillez réessayer la chaîne."
           }
         },
         "hr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Prijenos uživo se na poslužitelju stalno ponovno pokreće. Pokušaj ponovno s kanalom."
+            "value" : "Prijenos uživo stalno ne uspijeva. Pokušajte ponovno s kanalom."
           }
         },
         "hu" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Az élő adás folyamatosan újraindul a szerveren. Próbáld újra a csatornát."
+            "value" : "Az élő adás folyamatosan megszakad. Próbáld újra a csatornát."
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Lo streaming dal vivo continua a riavviarsi sul server. Riprova con il canale."
+            "value" : "Lo streaming in diretta continua a interrompersi. Riprova con il canale."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ライブストリームがサーバー上で再起動を繰り返しています。もう一度チャンネルをお試しください。"
+            "value" : "ライブ配信が繰り返し失敗しています。もう一度チャンネルをお試しください。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "라이브 스트림이 서버에서 계속 다시 시작됩니다. 채널을 다시 시도해 주세요."
+            "value" : "라이브 스트림이 계속 실패합니다. 채널을 다시 시도해 주세요."
           }
         },
         "nb" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Direktestrømmen starter stadig på nytt på serveren. Prøv kanalen på nytt."
+            "value" : "Direktestrømmen feiler hele tiden. Prøv kanalen på nytt."
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "De livestream wordt op de server steeds opnieuw gestart. Probeer de zender opnieuw."
+            "value" : "De livestream blijft mislukken. Probeer de zender opnieuw."
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Transmisja na żywo wciąż uruchamia się ponownie na serwerze. Spróbuj ponownie włączyć kanał."
+            "value" : "Transmisja na żywo wciąż zawodzi. Spróbuj ponownie włączyć kanał."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "A transmissão ao vivo fica reiniciando no servidor. Tente o canal novamente."
+            "value" : "A transmissão ao vivo continua falhando. Tente o canal novamente."
           }
         },
         "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "A emissão em direto está sempre a reiniciar no servidor. Tenta novamente o canal."
+            "value" : "A transmissão em direto continua a falhar. Tente novamente o canal."
           }
         },
         "ro" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Transmisiunea live repornește încontinuu pe server. Încearcă din nou canalul."
+            "value" : "Transmisiunea live eșuează în mod repetat. Încercați din nou canalul."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Прямая трансляция постоянно перезапускается на сервере. Попробуйте включить канал ещё раз."
+            "value" : "Прямая трансляция постоянно прерывается. Попробуйте включить канал ещё раз."
           }
         },
         "sk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Živý prenos sa na serveri neustále reštartuje. Skús kanál znova."
+            "value" : "Živý prenos opakovane zlyháva. Skúste kanál znova."
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Livesändningen startar om hela tiden på servern. Prova kanalen igen."
+            "value" : "Livesändningen misslyckas hela tiden. Prova kanalen igen."
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Canlı yayın sunucuda sürekli yeniden başlıyor. Lütfen kanalı tekrar deneyin."
+            "value" : "Canlı yayın sürekli başarısız oluyor. Lütfen kanalı tekrar deneyin."
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Пряма трансляція постійно перезапускається на сервері. Спробуйте ввімкнути канал ще раз."
+            "value" : "Пряма трансляція постійно переривається. Спробуйте канал ще раз."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "直播流在服务器上不断重新启动。请重新尝试该频道。"
+            "value" : "直播流持续失败。请重新尝试该频道。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "直播串流在伺服器上不斷重新啟動。請重新嘗試該頻道。"
+            "value" : "直播串流持續失敗。請再次嘗試該頻道。"
           }
         }
       }

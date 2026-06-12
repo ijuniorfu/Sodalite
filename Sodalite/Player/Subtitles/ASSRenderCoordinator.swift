@@ -229,7 +229,10 @@ final class ASSRenderCoordinator {
             guard !safeName.isEmpty else { continue }
             let url = dir.appendingPathComponent(safeName)
             if !FileManager.default.fileExists(atPath: url.path) {
-                try? font.data.write(to: url)
+                // Atomic so a crash mid-write can't leave a truncated
+                // font that the exists-check above would then treat as
+                // complete on every later session.
+                try? font.data.write(to: url, options: .atomic)
             }
         }
     }

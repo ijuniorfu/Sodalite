@@ -330,10 +330,12 @@ final class EPGGuideViewModel {
 
         let live = timers.filter { $0.status != "Cancelled" }
         let liveTimerIDs = Set(live.map(\.id))
-        // Prefer the dedicated series-rule list; fall back to the ids
-        // referenced by live timers when that fetch failed.
-        let liveSeriesIDs = seriesTimers.map { Set($0.map(\.id)) }
-            ?? Set(live.compactMap(\.seriesTimerId))
+        // Series-rule drops need the dedicated list: the ids referenced
+        // by live timers are NOT a substitute, a rule between airings
+        // has no live timer and would be wrongly dropped. When that
+        // fetch failed, keep existing series state untouched this sync.
+        let seriesListAuthoritative = seriesTimers != nil
+        let liveSeriesIDs = seriesTimers.map { Set($0.map(\.id)) } ?? []
 
         // Adopt server state for programs with live timers.
         for timer in live {
@@ -345,7 +347,8 @@ final class EPGGuideViewModel {
             var timerID = state.timerId
             var seriesID = state.seriesTimerId
             if let t = timerID, t != Self.pendingTimerID, !liveTimerIDs.contains(t) { timerID = nil }
-            if let s = seriesID, s != Self.pendingTimerID, !liveSeriesIDs.contains(s) { seriesID = nil }
+            if seriesListAuthoritative,
+               let s = seriesID, s != Self.pendingTimerID, !liveSeriesIDs.contains(s) { seriesID = nil }
             if timerID != state.timerId || seriesID != state.seriesTimerId {
                 timerState[programID] = (timerID, seriesID)
             }
@@ -360,7 +363,9 @@ final class EPGGuideViewModel {
                 let snapSeries = program.seriesTimerId
                 guard snapTimer != nil || snapSeries != nil else { continue }
                 let newTimer = snapTimer.flatMap { liveTimerIDs.contains($0) ? $0 : nil }
-                let newSeries = snapSeries.flatMap { liveSeriesIDs.contains($0) ? $0 : nil }
+                let newSeries = seriesListAuthoritative
+                    ? snapSeries.flatMap { liveSeriesIDs.contains($0) ? $0 : nil }
+                    : snapSeries
                 if newTimer != snapTimer || newSeries != snapSeries {
                     timerState[program.id] = (newTimer, newSeries)
                 }

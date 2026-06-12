@@ -22,6 +22,7 @@ struct PlayerOverlayView: View {
                 SubtitleOverlayView(
                     cues: viewModel.subtitleCues,
                     currentTime: viewModel.subtitleTime,
+                    maxCueDuration: viewModel.subtitleMaxCueDuration,
                     fontSize: viewModel.preferences.subtitleFontSize,
                     textColor: viewModel.preferences.subtitleColor,
                     background: viewModel.preferences.subtitleBackground,

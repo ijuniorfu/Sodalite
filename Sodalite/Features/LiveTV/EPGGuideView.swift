@@ -94,10 +94,14 @@ struct EPGGuideView: View {
                 Text(model.recordingError ?? "")
             }
         }
+        // Gated on `selection == nil`: while the popover sheet is up,
+        // its inner copy above owns the presentation. Without the gate
+        // both alerts observe the same error and SwiftUI logs a
+        // double-present, leaving one of them undismissable.
         .alert(
             Text("livetv.recording.error.title"),
             isPresented: Binding(
-                get: { model.recordingError != nil },
+                get: { selection == nil && model.recordingError != nil },
                 set: { if !$0 { model.recordingError = nil } }
             )
         ) {
