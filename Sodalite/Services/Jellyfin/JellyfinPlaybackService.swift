@@ -244,13 +244,20 @@ final class JellyfinPlaybackService: JellyfinPlaybackServiceProtocol {
         guard let baseURL = client.baseURL else { return nil }
         // Jellyfin returns TranscodingUrl as a path with query string, e.g.
         // "/videos/<id>/main.m3u8?DeviceId=...&MediaSourceId=...&api_key=..."
-        // We need to splice that onto the base URL while keeping the query.
-        // URL.appendingPathComponent would percent-encode the '?', so use
-        // URLComponents directly.
+        // and that path does NOT include the server's base path. Resolving
+        // it with URL(string:relativeTo:) would anchor at the host root and
+        // drop a reverse-proxy subpath like "/jellyfin", 404ing every
+        // transcode session on such setups. Splice path and query onto the
+        // base URL's components instead.
         let trimmed = relativePath.hasPrefix("/") ? relativePath : "/\(relativePath)"
-        guard let url = URL(string: trimmed, relativeTo: baseURL)?.absoluteURL else {
+        guard var components = URLComponents(url: baseURL, resolvingAgainstBaseURL: true) else {
             return nil
         }
-        return url
+        let pathAndQuery = trimmed.split(separator: "?", maxSplits: 1, omittingEmptySubsequences: false)
+        let encodedBasePath = components.percentEncodedPath
+        let basePath = encodedBasePath.hasSuffix("/") ? String(encodedBasePath.dropLast()) : encodedBasePath
+        components.percentEncodedPath = basePath + String(pathAndQuery[0])
+        components.percentEncodedQuery = pathAndQuery.count > 1 ? String(pathAndQuery[1]) : nil
+        return components.url
     }
 }

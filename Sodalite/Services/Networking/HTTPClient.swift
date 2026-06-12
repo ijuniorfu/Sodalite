@@ -143,6 +143,16 @@ final class HTTPClient: HTTPClientProtocol, @unchecked Sendable {
         let response: URLResponse
         do {
             (data, response) = try await session.data(for: urlRequest)
+        } catch let error as URLError where error.code == .cancelled {
+            // Task cancellation surfaces from URLSession as
+            // URLError(.cancelled). Mapping it to networkError would
+            // paint "Network connection failed" into the UI for a
+            // request the user abandoned by navigating away; rethrow
+            // as CancellationError so callers can ignore it like any
+            // other cancelled task.
+            throw CancellationError()
+        } catch let error as CancellationError {
+            throw error
         } catch let error as URLError where error.code == .timedOut {
             throw APIError.timeout
         } catch let error as URLError where error.code == .notConnectedToInternet || error.code == .cannotConnectToHost {
@@ -172,6 +182,14 @@ final class HTTPClient: HTTPClientProtocol, @unchecked Sendable {
     ) throws -> URLRequest {
         var components = URLComponents(url: baseURL.appendingPathComponent(endpoint.path), resolvingAgainstBaseURL: true)
         components?.queryItems = endpoint.queryItems
+        // URLComponents leaves "+" literal in query values, but
+        // ASP.NET Core (Jellyfin) and Express (Seerr) decode "+" as a
+        // space, so a search for "Disney+" arrives as "Disney ".
+        // Spaces are already %20 at this point, so every remaining
+        // literal "+" is a real plus character and safe to escape.
+        let encodedQuery = components?.percentEncodedQuery
+        components?.percentEncodedQuery = encodedQuery?
+            .replacingOccurrences(of: "+", with: "%2B")
 
         guard let url = components?.url else {
             throw APIError.invalidURL
