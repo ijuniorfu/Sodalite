@@ -166,7 +166,6 @@ extension HomeViewModel {
             .filter { $0.type == .genres }
             .flatMap { $0.tags.map(\.name) }
         if genreNames.isEmpty { return }
-        genreCachesComputedAt = Date()
 
         let lib = libraryService
         let uid = userID
@@ -209,6 +208,12 @@ extension HomeViewModel {
             }
         }.value
 
+        // A cancelled pass (loadContent re-entry, VM teardown) must not
+        // persist results resolved for a config that just changed, and
+        // must not latch: leaving genreCachesComputedAt nil lets the
+        // next Home appearance run the precompute to completion.
+        guard !Task.isCancelled else { return }
+
         // Hop back to MainActor for the cache writes, FilterCache.shared
         // is non-isolated but the detached closure can't see that under
         // the project's strict-concurrency settings, so we collect the
@@ -218,6 +223,9 @@ extension HomeViewModel {
                 items, filterKey: FilterCacheKey.Home.genre(name: name)
             )
         }
+        // Latch at the END: setting it up front meant a cancelled run
+        // marked the session "computed" with nothing in the cache.
+        genreCachesComputedAt = Date()
     }
 
     /// Sendable snapshot of the fields `resolveProviderItems` reads

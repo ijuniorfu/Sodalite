@@ -83,9 +83,34 @@ final class HomeViewModel {
         self.rowConfigs = HomeRowConfig.loadFromStorage(serverID: serverID)
     }
 
+    isolated deinit {
+        // The background fan-outs hold self weakly so they can't keep
+        // a discarded VM alive, but a task still in its deferred-sleep
+        // phase would otherwise linger for up to 13 s after the VM is
+        // gone (profile switch tears the VM down via HomeView). A pass
+        // that is mid-query holds self strongly for its duration; the
+        // cancel also flips Task.isCancelled so its next checkpoint
+        // stops the work early.
+        backdropTask?.cancel()
+        providerCountsTask?.cancel()
+        genreCachesTask?.cancel()
+    }
+
     func loadContent() async {
         loadGeneration += 1
         let myGen = loadGeneration
+
+        // Cancel the previous run's background fan-outs up front, NOT
+        // just before scheduling new ones: the total-failure return
+        // below used to skip the late cancel block, leaving the old
+        // tasks fetching and writing FilterCache for a config this
+        // reload was about to replace.
+        backdropTask?.cancel()
+        providerCountsTask?.cancel()
+        genreCachesTask?.cancel()
+        backdropTask = nil
+        providerCountsTask = nil
+        genreCachesTask = nil
 
         let isFirstLoad = rows.isEmpty && tagRows.isEmpty
         if isFirstLoad {
@@ -245,18 +270,6 @@ final class HomeViewModel {
 
         isLoading = false
         lastLoadedAt = .now
-
-        // Cancel any previous fan-outs before kicking new ones off:
-        // a rapid profile switch / notification-driven reload would
-        // otherwise stack 2× the network calls and 2× the FilterCache
-        // writes, with the older task scribbling stale data over the
-        // newer one if it finished last.
-        backdropTask?.cancel()
-        providerCountsTask?.cancel()
-        genreCachesTask?.cancel()
-        backdropTask = nil
-        providerCountsTask = nil
-        genreCachesTask = nil
 
         // Gate each background pass on its consuming row being enabled.
         // The provider precompute is the heaviest query the app makes

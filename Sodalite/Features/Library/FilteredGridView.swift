@@ -47,6 +47,13 @@ struct FilteredGridView: View {
     /// load-more trigger. nil until the first fresh fetch lands.
     @State private var totalRecordCount: Int?
     @State private var isLoadingMore = false
+    /// True once loadMore has appended at least one page this filter
+    /// cycle. The refresh pass uses it to keep the appended pages
+    /// instead of truncating the grid back to page 1 under the user's
+    /// focus. Explicit flag, not a count/prefix heuristic: a server-
+    /// side reorder of page 1 (new item added at the front) breaks
+    /// prefix comparison even though the user genuinely paginated.
+    @State private var didPaginate = false
 
     let title: String
     let query: ItemQuery
@@ -202,6 +209,7 @@ struct FilteredGridView: View {
             isLoading = true
             loadFailed = false
             totalRecordCount = nil
+            didPaginate = false
         }
         .task(id: watchFilter) {
             await loadItems()
@@ -338,11 +346,12 @@ struct FilteredGridView: View {
             // the id list is unchanged: even with identical ids the
             // wholesale replace forces SwiftUI to re-diff every cell,
             // which reads to the user as a brief reload flash. And
-            // when the user already paginated past page 1 with an
-            // unchanged first page, keep the appended pages instead
-            // of truncating the grid under their focus.
-            let pagedPastPhase1 = items.count > phase1.count
-                && items.prefix(phase1.count).map(\.id) == phase1.map(\.id)
+            // when the user already paginated past page 1, keep the
+            // appended pages instead of truncating the grid under
+            // their focus (explicit didPaginate flag; the old
+            // count/prefix heuristic broke when the server reordered
+            // page 1, truncating a paginated grid).
+            let pagedPastPhase1 = didPaginate && !items.isEmpty
             if !pagedPastPhase1, items.map(\.id) != phase1.map(\.id) {
                 items = phase1
             }
@@ -398,6 +407,7 @@ struct FilteredGridView: View {
         totalRecordCount = response.totalRecordCount
         let known = Set(items.map(\.id))
         items += response.items.filter { !known.contains($0.id) }
+        didPaginate = true
     }
 
     /// Background refresh of the TMDB watch-provider id list: 5

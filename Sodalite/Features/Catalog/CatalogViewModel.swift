@@ -67,6 +67,10 @@ final class CatalogViewModel {
     var lastAdminRequestOutcome: AdminRequestOutcome?
     private var allRequestsTotal: Int = 0
     private var allRequestsSkip: Int = 0
+    /// Bumped by every loadAllRequests; stale responses (superseded by
+    /// a newer reload, e.g. a filter-chip tap mid-flight) check it and
+    /// discard themselves instead of landing in the new filter's list.
+    private var allRequestsGeneration = 0
     private let allRequestsPageSize: Int = 50
 
     /// Per-request enrichment keyed by tmdbID. Populated in the
@@ -478,17 +482,21 @@ final class CatalogViewModel {
     // MARK: - Admin requests
 
     func loadAllRequests() async {
-        guard !isLoadingAllRequests else { return }
+        // Supersede instead of guard: the old `!isLoadingAllRequests`
+        // early-return made a chip tap during the initial load a no-op
+        // for the NEW filter, while the in-flight response then dropped
+        // itself on the filter check, leaving the list empty until the
+        // user tapped the chip again.
+        allRequestsGeneration &+= 1
+        let generation = allRequestsGeneration
         allRequestsSkip = 0
         allRequests = []
         allRequestsTotal = 0
         isLoadingAllRequests = true
-        defer { isLoadingAllRequests = false }
+        defer {
+            if generation == allRequestsGeneration { isLoadingAllRequests = false }
+        }
 
-        // Snapshot the filter: a chip tap mid-flight resets the list
-        // for the NEW filter, and this response (old filter) must not
-        // land in it (disjoint ids defeat the dedupe, and the skip
-        // offset would corrupt the next page).
         let filter = allRequestsFilter
         do {
             let result = try await requestService.allRequests(
@@ -496,12 +504,13 @@ final class CatalogViewModel {
                 take: allRequestsPageSize,
                 skip: allRequestsSkip
             )
-            guard allRequestsFilter == filter else { return }
+            guard generation == allRequestsGeneration else { return }
             allRequests = result.results
             allRequestsTotal = result.pageInfo.results
             allRequestsSkip = result.results.count
             Task { await enrichRequestMetadata(for: result.results) }
         } catch {
+            guard generation == allRequestsGeneration else { return }
             errorMessage = error.localizedDescription
         }
     }
@@ -513,9 +522,11 @@ final class CatalogViewModel {
         isLoadingMoreAllRequests = true
         defer { isLoadingMoreAllRequests = false }
 
-        // Same filter snapshot as loadAllRequests: isLoadingAllRequests
-        // and isLoadingMoreAllRequests are separate flags, so a filter
-        // switch can reset the list while this page is in flight.
+        // Generation snapshot: isLoadingAllRequests and
+        // isLoadingMoreAllRequests are separate flags, so a reload
+        // (filter switch OR same-filter refresh) can reset the list
+        // while this page is in flight; its response must not append.
+        let generation = allRequestsGeneration
         let filter = allRequestsFilter
         do {
             let result = try await requestService.allRequests(
@@ -523,7 +534,7 @@ final class CatalogViewModel {
                 take: allRequestsPageSize,
                 skip: allRequestsSkip
             )
-            guard allRequestsFilter == filter else { return }
+            guard generation == allRequestsGeneration else { return }
             // Dedupe against the visible list. Seerr occasionally
             // returns the same record on adjacent pages when the
             // status counts shift between fetches.
