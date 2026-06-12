@@ -32,40 +32,38 @@ final class JellyfinPlaybackService: JellyfinPlaybackServiceProtocol {
     }
 
     func getPlaybackInfo(itemID: String, userID: String, profile: [String: Any]? = nil) async throws -> PlaybackInfoResponse {
-        guard let baseURL = client.baseURL else { throw APIError.invalidURL }
-        var components = URLComponents(url: baseURL.appendingPathComponent("/Items/\(itemID)/PlaybackInfo"), resolvingAgainstBaseURL: true)
-        components?.queryItems = [URLQueryItem(name: "UserId", value: userID)]
-        guard let url = components?.url else { throw APIError.invalidURL }
-        return try await postPlaybackInfo(url: url, profile: profile)
+        try await postPlaybackInfo(profile: profile) { payload in
+            JellyfinEndpoint.playbackInfo(itemID: itemID, userID: userID, payload: payload)
+        }
     }
 
     func getLivePlaybackInfo(itemID: String, userID: String, profile: [String: Any]? = nil, maxStreamingBitrate: Int) async throws -> PlaybackInfoResponse {
-        guard let baseURL = client.baseURL else { throw APIError.invalidURL }
-        var components = URLComponents(url: baseURL.appendingPathComponent("/Items/\(itemID)/PlaybackInfo"), resolvingAgainstBaseURL: true)
-        // AutoOpenLiveStream opens + probes the tuner so the source codecs are
-        // known (so Jellyfin can DirectStream/copy instead of always
-        // re-encoding) and a real LiveStreamId comes back. IsPlayback marks a
-        // real play. MaxStreamingBitrate caps any transcode the server falls to.
-        components?.queryItems = [
-            URLQueryItem(name: "UserId", value: userID),
-            URLQueryItem(name: "AutoOpenLiveStream", value: "true"),
-            URLQueryItem(name: "IsPlayback", value: "true"),
-            URLQueryItem(name: "StartTimeTicks", value: "0"),
-            URLQueryItem(name: "MaxStreamingBitrate", value: String(maxStreamingBitrate)),
-        ]
-        guard let url = components?.url else { throw APIError.invalidURL }
-        return try await postPlaybackInfo(url: url, profile: profile)
+        try await postPlaybackInfo(profile: profile) { payload in
+            JellyfinEndpoint.livePlaybackInfo(
+                itemID: itemID,
+                userID: userID,
+                maxStreamingBitrate: maxStreamingBitrate,
+                payload: payload
+            )
+        }
     }
 
-    private func postPlaybackInfo(url: URL, profile: [String: Any]?) async throws -> PlaybackInfoResponse {
+    /// Routes through the shared HTTPClient (in-flight limiter, timeout
+    /// regime, APIError mapping, cookie-free session) instead of
+    /// URLSession.shared; raw response data is still needed for the
+    /// DEBUG codec diagnostics, hence requestData + manual decode.
+    private func postPlaybackInfo(
+        profile: [String: Any]?,
+        endpoint: (JSONValue) throws -> JellyfinEndpoint
+    ) async throws -> PlaybackInfoResponse {
+        guard let baseURL = client.baseURL else { throw APIError.invalidURL }
+
         // The caller (PlayerViewModel / DetailViewModel) is responsible
         // for picking the right profile, since DirectPlayProfile.current()
         // touches UIScreen and must run on the main actor. Fall back to
         // an empty profile only if no caller hands one in (shouldn't
         // happen in practice).
         let deviceProfile = profile ?? [:]
-        let body: [String: Any] = ["DeviceProfile": deviceProfile]
-        let bodyData = try JSONSerialization.data(withJSONObject: body)
 
         #if DEBUG
         if let dp = (deviceProfile["DirectPlayProfiles"] as? [[String: Any]])?.first {
@@ -73,34 +71,16 @@ final class JellyfinPlaybackService: JellyfinPlaybackServiceProtocol {
         }
         #endif
 
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.httpBody = bodyData
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.setValue("application/json", forHTTPHeaderField: "Accept")
-
-        // Add Jellyfin auth header
-        let authHeader = client.buildAuthHeader()
-        request.setValue(authHeader, forHTTPHeaderField: "Authorization")
-
-        let (data, response) = try await URLSession.shared.data(for: request)
-
-        guard let httpResponse = response as? HTTPURLResponse else {
-            throw APIError.invalidResponse
-        }
-        guard (200...299).contains(httpResponse.statusCode) else {
-            #if DEBUG
-            print("[PlaybackInfo] Status: \(httpResponse.statusCode)")
-            print("[PlaybackInfo] URL: \(url)")
-            if let bodyStr = String(data: bodyData, encoding: .utf8) {
-                print("[PlaybackInfo] Body: \(bodyStr.prefix(500))")
-            }
-            if let respStr = String(data: data, encoding: .utf8) {
-                print("[PlaybackInfo] Response: \(respStr.prefix(500))")
-            }
-            #endif
-            throw APIError.httpError(statusCode: httpResponse.statusCode, data: data)
-        }
+        let payload = try JSONValue(jsonObject: ["DeviceProfile": deviceProfile])
+        let headers = [
+            "Authorization": client.buildAuthHeader(),
+            "Accept": "application/json",
+        ]
+        let (data, _) = try await client.httpClient.requestData(
+            baseURL: baseURL,
+            endpoint: try endpoint(payload),
+            headers: headers
+        )
 
         #if DEBUG
         if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
@@ -126,8 +106,11 @@ final class JellyfinPlaybackService: JellyfinPlaybackServiceProtocol {
         }
         #endif
 
-        let decoder = JSONDecoder()
-        return try decoder.decode(PlaybackInfoResponse.self, from: data)
+        do {
+            return try JSONDecoder().decode(PlaybackInfoResponse.self, from: data)
+        } catch {
+            throw APIError.decodingError(error)
+        }
     }
 
     func reportPlaybackStart(_ report: PlaybackStartReport) async throws {
@@ -202,12 +185,12 @@ final class JellyfinPlaybackService: JellyfinPlaybackServiceProtocol {
     }
 
     func buildStreamURL(itemID: String, mediaSourceID: String, container: String?, isStatic: Bool) -> URL? {
-        guard let baseURL = client.baseURL else { return nil }
+        guard let baseURL = client.baseURL, let token = client.accessToken else { return nil }
         let ext = container ?? "mp4"
         var components = URLComponents(url: baseURL.appendingPathComponent("/Videos/\(itemID)/stream.\(ext)"), resolvingAgainstBaseURL: true)
         var queryItems = [
             URLQueryItem(name: "MediaSourceId", value: mediaSourceID),
-            URLQueryItem(name: "api_key", value: client.accessToken),
+            URLQueryItem(name: "api_key", value: token),
         ]
         if isStatic {
             queryItems.append(URLQueryItem(name: "Static", value: "true"))
@@ -217,12 +200,12 @@ final class JellyfinPlaybackService: JellyfinPlaybackServiceProtocol {
     }
 
     func buildAudioStreamURL(itemID: String, mediaSourceID: String, container: String?, isStatic: Bool) -> URL? {
-        guard let baseURL = client.baseURL else { return nil }
+        guard let baseURL = client.baseURL, let token = client.accessToken else { return nil }
         let ext = container ?? "mp3"
         var components = URLComponents(url: baseURL.appendingPathComponent("/Audio/\(itemID)/stream.\(ext)"), resolvingAgainstBaseURL: true)
         var queryItems = [
             URLQueryItem(name: "MediaSourceId", value: mediaSourceID),
-            URLQueryItem(name: "api_key", value: client.accessToken),
+            URLQueryItem(name: "api_key", value: token),
         ]
         if isStatic {
             queryItems.append(URLQueryItem(name: "Static", value: "true"))
@@ -232,11 +215,11 @@ final class JellyfinPlaybackService: JellyfinPlaybackServiceProtocol {
     }
 
     func buildSubtitleURL(itemID: String, mediaSourceID: String, streamIndex: Int, format: String) -> URL? {
-        guard let baseURL = client.baseURL else { return nil }
+        guard let baseURL = client.baseURL, let token = client.accessToken else { return nil }
         let fmt = (format == "subrip") ? "srt" : format
         let path = "/Videos/\(itemID)/\(mediaSourceID)/Subtitles/\(streamIndex)/0/Stream.\(fmt)"
         var components = URLComponents(url: baseURL.appendingPathComponent(path), resolvingAgainstBaseURL: true)
-        components?.queryItems = [URLQueryItem(name: "api_key", value: client.accessToken)]
+        components?.queryItems = [URLQueryItem(name: "api_key", value: token)]
         return components?.url
     }
 

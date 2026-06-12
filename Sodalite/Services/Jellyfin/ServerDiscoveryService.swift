@@ -25,6 +25,12 @@ final class ServerDiscoveryService: ServerDiscoveryServiceProtocol {
     func discoverServer(input: String) async -> ServerDiscoveryResult {
         let candidates = buildCandidateURLs(from: input)
 
+        // A candidate that connects but doesn't speak Jellyfin (captive
+        // portal, proxy login page, wrong service) is a better diagnostic
+        // than "unreachable"; remember the first such error and prefer
+        // it for the failure result.
+        var firstProtocolError: APIError?
+
         for url in candidates {
             do {
                 let serverInfo = try await httpClient.request(
@@ -39,12 +45,24 @@ final class ServerDiscoveryService: ServerDiscoveryServiceProtocol {
                     version: serverInfo.version
                 )
                 return .success(url: url, serverInfo: info)
+            } catch is CancellationError {
+                // The caller abandoned the probe; don't keep hammering
+                // the remaining candidates.
+                return .failure(.serverUnreachable)
+            } catch let error as APIError {
+                switch error {
+                case .decodingError, .httpError, .invalidResponse, .unauthorized:
+                    if firstProtocolError == nil { firstProtocolError = error }
+                default:
+                    break
+                }
+                continue
             } catch {
                 continue
             }
         }
 
-        return .failure(.serverUnreachable)
+        return .failure(firstProtocolError ?? .serverUnreachable)
     }
 
     private func buildCandidateURLs(from input: String) -> [URL] {
@@ -54,13 +72,19 @@ final class ServerDiscoveryService: ServerDiscoveryServiceProtocol {
         // If already a full URL with scheme, try it directly + with default ports
         if cleaned.hasPrefix("https://") || cleaned.hasPrefix("http://") {
             if let url = URL(string: cleaned) {
-                // If no port specified, also try with default Jellyfin ports
                 var candidates = [url]
-                if url.port == nil {
-                    if cleaned.hasPrefix("https://"), let withPort = URL(string: "\(cleaned):8920") {
-                        candidates.append(withPort)
-                    }
-                    if cleaned.hasPrefix("http://"), let withPort = URL(string: "\(cleaned):8096") {
+                // If no port is specified and the URL has no path, also
+                // try the default Jellyfin ports. Set the port through
+                // URLComponents: appending ":8920" to the string glues
+                // the port onto the path for inputs like
+                // https://host/jellyfin (yielding /jellyfin:8920, a
+                // candidate that can never succeed), and a URL with a
+                // base path is a reverse-proxy setup where the default
+                // ports don't apply anyway.
+                if url.port == nil, url.path.isEmpty || url.path == "/",
+                   var components = URLComponents(url: url, resolvingAgainstBaseURL: true) {
+                    components.port = cleaned.hasPrefix("https://") ? 8920 : 8096
+                    if let withPort = components.url {
                         candidates.append(withPort)
                     }
                 }
@@ -89,12 +113,21 @@ final class ServerDiscoveryService: ServerDiscoveryServiceProtocol {
                 if let url = URL(string: "https://\(cleaned)") { candidates.append(url) }
                 if let url = URL(string: "http://\(cleaned)") { candidates.append(url) }
             }
+        } else if hasPort {
+            // Domain with explicit port: appending another port would
+            // produce host:port:port, which URL(string:) rejects.
+            if let url = URL(string: "https://\(cleaned)") { candidates.append(url) }
+            if let url = URL(string: "http://\(cleaned)") { candidates.append(url) }
         } else {
             // Domain name: try standard ports first (likely reverse proxy), then Jellyfin ports
             if let url = URL(string: "https://\(cleaned)") { candidates.append(url) }
             if let url = URL(string: "http://\(cleaned)") { candidates.append(url) }
-            if let url = URL(string: "https://\(cleaned):8920") { candidates.append(url) }
-            if let url = URL(string: "http://\(cleaned):8096") { candidates.append(url) }
+            // Port variants only make sense without a path; appending
+            // ":8920" to "host/jellyfin" glues the port onto the path.
+            if !cleaned.contains("/") {
+                if let url = URL(string: "https://\(cleaned):8920") { candidates.append(url) }
+                if let url = URL(string: "http://\(cleaned):8096") { candidates.append(url) }
+            }
         }
 
         return candidates

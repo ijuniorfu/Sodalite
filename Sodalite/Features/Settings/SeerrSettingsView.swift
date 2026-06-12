@@ -480,6 +480,17 @@ struct SeerrSettingsView: View {
             print("[SeerrSettings] remote logout failed (clearing local session anyway): \(error)")
             #endif
         }
+        // Also drop the per-profile remembered cookie. Without this an
+        // explicit logout only cleared the global session: the next
+        // launch/profile switch restored the remembered entry and
+        // silently reconnected the account the user just logged out of.
+        if let userID = appState.activeUser?.id,
+           let serverID = appState.activeServer?.id {
+            dependencies.forgetRememberedSeerr(
+                forJellyfinUserID: userID,
+                jellyfinServerID: serverID
+            )
+        }
         try? dependencies.clearSeerrSession()
         appState.disconnectSeerr()
         discoveredServer = nil

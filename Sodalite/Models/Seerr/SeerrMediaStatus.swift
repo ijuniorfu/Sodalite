@@ -75,4 +75,16 @@ enum SeerrMediaType: String, Codable, Sendable {
     // array parse doesn't fail, then filter them out in the service
     // layer before they reach the UI.
     case person
+    // Lenient fallback, same rationale as SeerrMediaStatus: mediaType
+    // is non-optional on SeerrMedia, so a single unrecognized string
+    // from a future Jellyseerr would otherwise abort the whole
+    // discover/search array decode. Treated like `person` everywhere
+    // (inert, filtered before the UI).
+    case unknown
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        let raw = try container.decode(String.self)
+        self = SeerrMediaType(rawValue: raw) ?? .unknown
+    }
 }

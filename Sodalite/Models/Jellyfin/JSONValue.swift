@@ -44,4 +44,12 @@ enum JSONValue: Codable, Sendable, Equatable {
         case .object(let value): try container.encode(value)
         }
     }
+
+    /// Bridge from a JSONSerialization-style object ([String: Any] /
+    /// [Any]). Used by the PlaybackInfo endpoint, whose DeviceProfile
+    /// body is built as a plain dictionary by DirectPlayProfile.
+    init(jsonObject: Any) throws {
+        let data = try JSONSerialization.data(withJSONObject: jsonObject)
+        self = try JSONDecoder().decode(JSONValue.self, from: data)
+    }
 }

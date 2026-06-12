@@ -134,7 +134,7 @@ struct SeerrRequestAdminRow: View {
         switch request.type {
         case .movie: "film"
         case .tv: "tv"
-        case .person: "person"
+        case .person, .unknown: "person"
         }
     }
 
@@ -142,7 +142,7 @@ struct SeerrRequestAdminRow: View {
         switch request.type {
         case .movie: String(localized: "catalog.request.movie", defaultValue: "Movie")
         case .tv:    String(localized: "catalog.request.tv", defaultValue: "Series")
-        case .person: ""
+        case .person, .unknown: ""
         }
     }
 
@@ -155,7 +155,7 @@ struct SeerrRequestAdminRow: View {
         switch request.type {
         case .movie: return String(localized: "catalog.request.placeholder.movie", defaultValue: "Movie")
         case .tv:    return String(localized: "catalog.request.placeholder.tv", defaultValue: "Series")
-        case .person: return ""
+        case .person, .unknown: return ""
         }
     }
 }

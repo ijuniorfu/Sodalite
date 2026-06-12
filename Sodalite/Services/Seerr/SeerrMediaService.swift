@@ -53,13 +53,13 @@ final class SeerrMediaService: SeerrMediaServiceProtocol {
         switch mediaType {
         case .movie: endpoint = .movieRecommendations(tmdbID: tmdbID, page: 1)
         case .tv: endpoint = .tvRecommendations(tmdbID: tmdbID, page: 1)
-        case .person: return []
+        case .person, .unknown: return []
         }
         let result = try await client.request(
             endpoint: endpoint,
             responseType: SeerrDiscoverResult.self
         )
-        return result.results.filter { $0.mediaType != .person }
+        return result.results.filter { $0.mediaType == .movie || $0.mediaType == .tv }
     }
 
     func similar(mediaType: SeerrMediaType, tmdbID: Int) async throws -> [SeerrMedia] {
@@ -67,13 +67,13 @@ final class SeerrMediaService: SeerrMediaServiceProtocol {
         switch mediaType {
         case .movie: endpoint = .movieSimilar(tmdbID: tmdbID, page: 1)
         case .tv: endpoint = .tvSimilar(tmdbID: tmdbID, page: 1)
-        case .person: return []
+        case .person, .unknown: return []
         }
         let result = try await client.request(
             endpoint: endpoint,
             responseType: SeerrDiscoverResult.self
         )
-        return result.results.filter { $0.mediaType != .person }
+        return result.results.filter { $0.mediaType == .movie || $0.mediaType == .tv }
     }
 
     func personDetail(tmdbID: Int) async throws -> SeerrPersonDetail {

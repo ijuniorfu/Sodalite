@@ -182,7 +182,7 @@ private struct SeerrRequestRow: View {
         switch request.type {
         case .movie: "film"
         case .tv: "tv"
-        case .person: "person"
+        case .person, .unknown: "person"
         }
     }
 
@@ -192,7 +192,7 @@ private struct SeerrRequestRow: View {
             String(localized: "catalog.request.movie", defaultValue: "Movie")
         case .tv:
             String(localized: "catalog.request.tv", defaultValue: "Series")
-        case .person:
+        case .person, .unknown:
             ""
         }
     }

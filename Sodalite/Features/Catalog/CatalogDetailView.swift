@@ -641,7 +641,7 @@ struct CatalogDetailView: View {
         switch media.mediaType {
         case .movie: "catalog.button.request"
         case .tv: "catalog.button.requestSeasons"
-        case .person: "catalog.button.request"
+        case .person, .unknown: "catalog.button.request"
         }
     }
 
@@ -649,7 +649,7 @@ struct CatalogDetailView: View {
         switch media.mediaType {
         case .movie: true
         case .tv: !selectedSeasons.isEmpty
-        case .person: false
+        case .person, .unknown: false
         }
     }
 
@@ -859,7 +859,7 @@ struct CatalogDetailView: View {
                     Task { await loadSeasonEpisodes(seasonNumber: first) }
                 }
                 return
-            case .person:
+            case .person, .unknown:
                 return
             }
         } catch {
@@ -888,7 +888,7 @@ struct CatalogDetailView: View {
             switch media.mediaType {
             case .movie: servers = try await config.radarrServers()
             case .tv: servers = try await config.sonarrServers()
-            case .person: return
+            case .person, .unknown: return
             }
             guard let chosen = servers.first(where: { $0.isDefault == true }) ?? servers.first else {
                 return
@@ -897,7 +897,7 @@ struct CatalogDetailView: View {
             switch media.mediaType {
             case .movie: details = try await config.radarrDetails(serverID: chosen.id)
             case .tv: details = try await config.sonarrDetails(serverID: chosen.id)
-            case .person: return
+            case .person, .unknown: return
             }
             serviceDetails = details
 

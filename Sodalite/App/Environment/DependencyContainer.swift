@@ -92,8 +92,15 @@ final class DependencyContainer {
         self.authPreferences = AuthPreferences()
         self.tvProfileMappings = TVProfileMappings()
 
-        self.seerrClient = SeerrClient(httpClient: httpClient)
-        self.seerrServerDiscoveryService = SeerrServerDiscoveryService(httpClient: httpClient)
+        // The Seerr tree gets its OWN HTTPClient so Catalog browsing
+        // (5 discover rows + genre sliders + per-tile backdrop and
+        // watch-provider fetches) doesn't compete with the Home
+        // fan-out for the same 6 in-flight permits against a possibly
+        // tarpitted Jellyfin CDN; see the inFlightLimiter rationale
+        // in HTTPClient.
+        let seerrHTTPClient = HTTPClient()
+        self.seerrClient = SeerrClient(httpClient: seerrHTTPClient)
+        self.seerrServerDiscoveryService = SeerrServerDiscoveryService(httpClient: seerrHTTPClient)
         self.seerrAuthService = SeerrAuthService(client: seerrClient)
         self.seerrDiscoverService = SeerrDiscoverService(client: seerrClient)
         self.seerrMediaService = SeerrMediaService(client: seerrClient)

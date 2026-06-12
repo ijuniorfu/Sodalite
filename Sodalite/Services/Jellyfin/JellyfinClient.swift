@@ -44,7 +44,14 @@ final class JellyfinClient {
         let headers = buildHeaders(requiresAuth: endpoint.requiresAuth)
         let (data, _) = try await httpClient.requestData(
             baseURL: baseURL, endpoint: endpoint, headers: headers)
-        return try decoder.decode(T.self, from: data)
+        do {
+            return try decoder.decode(T.self, from: data)
+        } catch {
+            // Same mapping as HTTPClient.request: surfaces the localized
+            // "Failed to process server response" instead of a raw
+            // DecodingError description in Live TV error states.
+            throw APIError.decodingError(error)
+        }
     }
 
     func request(endpoint: APIEndpoint) async throws {
@@ -58,36 +65,30 @@ final class JellyfinClient {
     }
 
     func buildAuthHeader() -> String {
+        buildMediaBrowserHeader(includeToken: true)
+    }
+
+    /// Single owner of the MediaBrowser header string so client /
+    /// device / version fields can't drift between the auth-header
+    /// consumers (engine device profile) and per-request headers.
+    private func buildMediaBrowserHeader(includeToken: Bool) -> String {
         var authParts = [
             "Client=\"Sodalite\"",
             "Device=\"Apple TV\"",
             "DeviceId=\"\(deviceID)\"",
             "Version=\"\(appVersion)\"",
         ]
-        if let token = accessToken {
+        if includeToken, let token = accessToken {
             authParts.append("Token=\"\(token)\"")
         }
         return "MediaBrowser \(authParts.joined(separator: ", "))"
     }
 
     private func buildHeaders(requiresAuth: Bool) -> [String: String] {
-        var headers: [String: String] = [:]
-
-        var authParts = [
-            "Client=\"Sodalite\"",
-            "Device=\"Apple TV\"",
-            "DeviceId=\"\(deviceID)\"",
-            "Version=\"\(appVersion)\"",
+        [
+            "Authorization": buildMediaBrowserHeader(includeToken: requiresAuth),
+            "Accept": "application/json",
         ]
-
-        if requiresAuth, let token = accessToken {
-            authParts.append("Token=\"\(token)\"")
-        }
-
-        headers["Authorization"] = "MediaBrowser \(authParts.joined(separator: ", "))"
-        headers["Accept"] = "application/json"
-
-        return headers
     }
 
     private static func getOrCreateDeviceID() -> String {

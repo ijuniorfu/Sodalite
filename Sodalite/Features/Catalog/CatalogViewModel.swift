@@ -94,7 +94,7 @@ final class CatalogViewModel {
         switch request.type {
         case .movie:  return requestMovieDetails[tmdbID]?.title
         case .tv:     return requestTVDetails[tmdbID]?.name
-        case .person: return nil
+        case .person, .unknown: return nil
         }
     }
 
@@ -103,7 +103,7 @@ final class CatalogViewModel {
         switch request.type {
         case .movie:  return requestMovieDetails[tmdbID]?.displayYear
         case .tv:     return requestTVDetails[tmdbID]?.displayYear
-        case .person: return nil
+        case .person, .unknown: return nil
         }
     }
 
@@ -113,7 +113,7 @@ final class CatalogViewModel {
         switch request.type {
         case .movie:  path = requestMovieDetails[tmdbID]?.posterPath
         case .tv:     path = requestTVDetails[tmdbID]?.posterPath
-        case .person: path = nil
+        case .person, .unknown: path = nil
         }
         return SeerrImageURL.poster(path: path, size: .w342)
     }
@@ -372,7 +372,7 @@ final class CatalogViewModel {
                 if requestMovieDetails[tmdbID] == nil { movieIDs.insert(tmdbID) }
             case .tv:
                 if requestTVDetails[tmdbID] == nil { tvIDs.insert(tmdbID) }
-            case .person:
+            case .person, .unknown:
                 break
             }
         }
