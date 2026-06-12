@@ -3,7 +3,7 @@ import Observation
 
 /// Backs the Live TV "Übersicht" tab: fetches recommended programs per
 /// category and synthesizes the channel a tapped program needs for playback.
-/// Timer / favorite state is intentionally NOT held here — the Übersicht view
+/// Timer / favorite state is intentionally NOT held here. The Übersicht view
 /// reuses the shared `EPGGuideViewModel` for those so the optimistic overlay
 /// stays consistent across all three Live TV segments.
 @Observable

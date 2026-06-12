@@ -77,7 +77,9 @@ struct LiveTVTabView: View {
             // The Recordings segment can cancel timers/series rules the
             // guide's optimistic overlay knows nothing about; resync on
             // the way back so dots and popover actions match the server.
-            guard newValue == .guide, let model else { return }
+            // Übersicht shares the same model for record state, so it needs
+            // the resync too (and it is the default landing section).
+            guard newValue == .guide || newValue == .overview, let model else { return }
             Task { await model.syncTimersWithServer() }
         }
         .overlay {
