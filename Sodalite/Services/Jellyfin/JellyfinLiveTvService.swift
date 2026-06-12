@@ -16,6 +16,7 @@ protocol JellyfinLiveTvServiceProtocol: Sendable {
     func cancelTimer(timerID: String) async throws
     func createSeriesTimer(programID: String) async throws
     func cancelSeriesTimer(timerID: String) async throws
+    func getRecommendedPrograms(userID: String, category: LiveProgramCategory, limit: Int) async throws -> [JellyfinProgram]
 }
 
 final class JellyfinLiveTvService: JellyfinLiveTvServiceProtocol {
@@ -125,5 +126,15 @@ final class JellyfinLiveTvService: JellyfinLiveTvServiceProtocol {
         try await client.request(
             endpoint: JellyfinEndpoint.deleteLiveTvSeriesTimer(timerID: timerID)
         )
+    }
+
+    func getRecommendedPrograms(userID: String, category: LiveProgramCategory, limit: Int) async throws -> [JellyfinProgram] {
+        let response: LiveTvProgramsResponse = try await client.request(
+            endpoint: JellyfinEndpoint.liveTvRecommendedPrograms(
+                userID: userID, category: category, limit: limit),
+            responseType: LiveTvProgramsResponse.self,
+            decoder: .jellyfinLiveTv
+        )
+        return response.items
     }
 }
