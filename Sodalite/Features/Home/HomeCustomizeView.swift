@@ -426,7 +426,6 @@ extension HomeRowConfig {
     static func saveToStorage(_ configs: [HomeRowConfig], serverID: String) {
         guard let data = try? JSONEncoder().encode(configs) else { return }
         UserDefaults.standard.set(data, forKey: storageKey(serverID: serverID))
-        UserDefaults.standard.synchronize()
     }
 
     // MARK: Merge Continue Watching + Up Next

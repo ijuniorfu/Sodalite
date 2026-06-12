@@ -196,12 +196,6 @@ final class PlayerViewModel {
     /// get back to the detail screen they came from.
     var onPlaybackReachedEnd: (() -> Void)?
 
-    /// Fires whenever `isInsideIntro` flips. The host hooks this to
-    /// add / remove the "Skip Intro" entry in
-    /// `AVPlayerViewController.contextualActions`, the documented
-    /// tvOS surface for time-bound playback actions.
-    var onIntroStateChanged: ((Bool) -> Void)?
-
     var isCountdownActive = false
     var nextEpisodeTimer: Task<Void, Never>?
     var hasFetchedNextEpisode = false
@@ -1574,7 +1568,7 @@ final class PlayerViewModel {
             else if !subtitleStreams.isEmpty { controlsFocus = .subtitleButton }
             else { controlsFocus = .speedButton }
         }
-        if changed { onIntroStateChanged?(newValue) }
+        _ = changed
     }
 
     /// Jump past the intro. Triggered by the Skip Intro button.

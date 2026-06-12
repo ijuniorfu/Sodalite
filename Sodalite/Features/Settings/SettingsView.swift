@@ -394,30 +394,3 @@ struct GhostTileButtonStyle: ButtonStyle {
     }
 }
 
-// MARK: - Playback Placeholder
-
-struct PlaybackSettingsPlaceholder: View {
-    @Environment(\.dismiss) private var dismiss
-
-    var body: some View {
-        VStack(spacing: 16) {
-            Image(systemName: "play.circle")
-                .font(.system(size: 50))
-                .foregroundStyle(.tertiary)
-            Text("settings.playback.comingSoon")
-                .foregroundStyle(.secondary)
-            Button {
-                dismiss()
-            } label: {
-                Text("home.retry")
-                    .font(.body)
-                    .padding(.horizontal, 32)
-                    .padding(.vertical, 12)
-            }
-            .buttonStyle(SettingsTileButtonStyle())
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .navigationTitle("settings.playback.title")
-        .toolbar(.hidden, for: .tabBar)
-    }
-}

@@ -45,20 +45,21 @@ final class FilterCache: @unchecked Sendable {
     private static let smartIDPrefix = "smart."
     private static let catalogPrefix = "catalog."
 
+    // No timestamps: a `lastFetched` used to be stored but nothing
+    // ever read it (there is no expiry policy; stale-while-revalidate
+    // replaces entries wholesale). Decoding tolerates old files that
+    // still carry the field.
     private struct HomeItemsEntry: Codable {
         let items: [JellyfinItem]
-        let lastFetched: Date
     }
 
     private struct SmartEntry: Codable {
         let tmdbIDs: [Int]
-        let lastFetched: Date
     }
 
     struct CatalogEntry: Codable, Sendable {
         let items: [SeerrMedia]
         let totalPages: Int
-        let lastFetched: Date
     }
 
     init() {
@@ -72,7 +73,16 @@ final class FilterCache: @unchecked Sendable {
     }
 
     private func fileURL(for key: String) -> URL {
-        directory.appendingPathComponent(key).appendingPathExtension("json")
+        // Keys embed server-provided strings (genre / tag names); a
+        // "/" in one ("Action/Adventure") would otherwise become a
+        // path separator pointing into a directory that doesn't
+        // exist, every write fails inside try? and the entry is a
+        // permanent silent cache miss. Percent-encode everything
+        // outside a conservative set; slash-free alphanumeric keys
+        // (all current callers) keep their existing filenames.
+        let allowed = CharacterSet.alphanumerics.union(CharacterSet(charactersIn: ".-_"))
+        let safeKey = key.addingPercentEncoding(withAllowedCharacters: allowed) ?? key
+        return directory.appendingPathComponent(safeKey).appendingPathExtension("json")
     }
 
     private func read<T: Decodable>(_ type: T.Type, key: String) -> T? {
@@ -97,7 +107,7 @@ final class FilterCache: @unchecked Sendable {
     }
 
     func setHomeFilterItems(_ items: [JellyfinItem], filterKey: String) {
-        let entry = HomeItemsEntry(items: items, lastFetched: Date())
+        let entry = HomeItemsEntry(items: items)
         write(entry, key: Self.homeItemsPrefix + filterKey)
     }
 
@@ -108,7 +118,7 @@ final class FilterCache: @unchecked Sendable {
     }
 
     func setSmartFilterIDs(_ ids: [Int], providerID: Int, region: String) {
-        let entry = SmartEntry(tmdbIDs: ids, lastFetched: Date())
+        let entry = SmartEntry(tmdbIDs: ids)
         write(entry, key: Self.smartIDPrefix + "\(providerID)-\(region)")
     }
 
@@ -119,7 +129,7 @@ final class FilterCache: @unchecked Sendable {
     }
 
     func setCatalogPage(_ items: [SeerrMedia], totalPages: Int, filterKey: String) {
-        let entry = CatalogEntry(items: items, totalPages: totalPages, lastFetched: Date())
+        let entry = CatalogEntry(items: items, totalPages: totalPages)
         write(entry, key: Self.catalogPrefix + filterKey)
     }
 

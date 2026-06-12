@@ -7,10 +7,6 @@ enum KeychainKeys {
         "accessToken_\(serverID)"
     }
 
-    static func serverURL(serverID: String) -> String {
-        "serverURL_\(serverID)"
-    }
-
     static func userID(serverID: String) -> String {
         "userID_\(serverID)"
     }

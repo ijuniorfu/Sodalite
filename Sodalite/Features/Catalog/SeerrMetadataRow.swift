@@ -20,8 +20,7 @@ struct SeerrMetadataRow: View {
         .foregroundStyle(.secondary)
     }
 
-    private struct Segment: Identifiable {
-        let id = UUID()
+    private struct Segment {
         let view: AnyView
     }
 

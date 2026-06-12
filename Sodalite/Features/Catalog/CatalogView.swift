@@ -66,7 +66,7 @@ struct CatalogView: View {
             case .allRequests:
                 guard vm.allRequests.isEmpty else { return }
                 Task {
-                    await vm.loadAllRequests(reset: true)
+                    await vm.loadAllRequests()
                     await vm.refreshAllRequestsCounts()
                 }
             case .discover:
@@ -85,7 +85,7 @@ struct CatalogView: View {
             }
             if !vm.allRequests.isEmpty {
                 Task {
-                    await vm.loadAllRequests(reset: true)
+                    await vm.loadAllRequests()
                     await vm.refreshAllRequestsCounts()
                 }
             }
@@ -173,8 +173,4 @@ struct CatalogView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding(40)
     }
-}
-
-extension SeerrMedia {
-    var navigationValue: SeerrMedia { self }
 }

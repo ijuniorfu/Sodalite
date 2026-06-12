@@ -10,9 +10,9 @@ private let log = Logger(subsystem: "de.superuser404.Sodalite.TopShelf", categor
 ///
 /// The main app remains the single source of truth for auth state;
 /// every login/switch/logout writes through `SharedSessionMirror`
-/// which keeps these three keys in sync. If any one of them is
-/// missing we treat the session as absent and the TopShelf renders
-/// empty rather than guessing.
+/// which keeps the per-tvOS-user JSON slot in sync. If the slot is
+/// missing or fails to decode we treat the session as absent and the
+/// TopShelf renders empty rather than guessing.
 struct SharedSession: Sendable {
     let baseURL: URL
     let userID: String
@@ -24,28 +24,6 @@ struct SharedSession: Sendable {
         let serverURL: String
         let userID: String
         let accessToken: String
-    }
-
-    /// Legacy three-key reader. Used before the per-tvOS-user blob
-    /// migration runs. Once `KeychainMigrator` consolidates the old
-    /// triplet into `tvOSSession_default`, this path returns nil and
-    /// callers should use `read(tvUserID:)` instead.
-    static func load() -> SharedSession? {
-        let urlString = readSharedKeychainString(account: SharedSessionKeys.serverURL)
-        let userID = readSharedKeychainString(account: SharedSessionKeys.userID)
-        let token = readSharedKeychainString(account: SharedSessionKeys.accessToken)
-        log.info("SharedSession.load url=\(urlString != nil, privacy: .public) user=\(userID != nil, privacy: .public) token=\(token != nil, privacy: .public) group=\(resolvedAccessGroup, privacy: .public)")
-        guard let urlString, let url = URL(string: urlString), let userID, let token else {
-            return nil
-        }
-        return SharedSession(baseURL: url, userID: userID, accessToken: token)
-    }
-
-    /// Forward-compatible zero-arg accessor. Folds into the
-    /// `tvOSSession_default` slot so callers that haven't been
-    /// updated to pass a tvUserID still read the single-user blob.
-    static func read() -> SharedSession? {
-        read(tvUserID: nil)
     }
 
     /// Reads the per-tvOS-user blob the main app's
@@ -79,15 +57,6 @@ private func sharedSessionSlot(tvUserID: String?) -> String {
 enum SharedSessionKeys {
     static let service = "de.superuser404.Sodalite.shared"
     static let accessGroup = "$(AppIdentifierPrefix)de.superuser404.Sodalite.shared"
-
-    static let serverURL = "shared.serverURL"
-    static let userID = "shared.userID"
-    static let accessToken = "shared.accessToken"
-}
-
-private func readSharedKeychainString(account: String) -> String? {
-    guard let data = readSharedKeychainData(account: account) else { return nil }
-    return String(data: data, encoding: .utf8)
 }
 
 private func readSharedKeychainData(account: String) -> Data? {

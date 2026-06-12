@@ -38,45 +38,6 @@ struct SeerrStatusBadge: View {
     }
 }
 
-struct SeerrRequestStatusBadge: View {
-    let status: SeerrRequestStatus
-
-    var body: some View {
-        Label {
-            Text(LocalizedStringKey(status.localizationKey))
-                .font(.caption)
-                .fontWeight(.medium)
-        } icon: {
-            Image(systemName: systemImage)
-                .font(.caption)
-        }
-        .foregroundStyle(.white)
-        .padding(.horizontal, 10)
-        .padding(.vertical, 4)
-        .background(color, in: Capsule())
-    }
-
-    private var systemImage: String {
-        switch status {
-        case .pendingApproval: "clock"
-        case .approved: "checkmark"
-        case .declined: "xmark"
-        case .failed: "exclamationmark.triangle"
-        case .completed: "checkmark.circle.fill"
-        }
-    }
-
-    private var color: Color {
-        switch status {
-        case .pendingApproval: .orange
-        case .approved: .green
-        case .declined: .red
-        case .failed: .red
-        case .completed: .green
-        }
-    }
-}
-
 /// Single, "effective" status badge for a Seerr request, collapses
 /// `request.status` × `request.media?.status` into one readable case.
 /// Earlier we rendered both badges side by side, which produced

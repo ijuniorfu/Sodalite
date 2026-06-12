@@ -29,7 +29,7 @@ final class SeerrClient {
         responseType: T.Type
     ) async throws -> T {
         guard let baseURL else { throw APIError.invalidURL }
-        let headers = buildHeaders()
+        let headers = buildHeaders(requiresAuth: endpoint.requiresAuth)
         let (data, _) = try await httpClient.requestData(
             baseURL: baseURL,
             endpoint: endpoint,
@@ -44,7 +44,7 @@ final class SeerrClient {
 
     func request(endpoint: APIEndpoint) async throws {
         guard let baseURL else { throw APIError.invalidURL }
-        let headers = buildHeaders()
+        let headers = buildHeaders(requiresAuth: endpoint.requiresAuth)
         _ = try await httpClient.requestData(
             baseURL: baseURL,
             endpoint: endpoint,
@@ -57,7 +57,7 @@ final class SeerrClient {
         responseType: T.Type
     ) async throws -> (T, HTTPURLResponse) {
         guard let baseURL else { throw APIError.invalidURL }
-        let headers = buildHeaders()
+        let headers = buildHeaders(requiresAuth: endpoint.requiresAuth)
         let (data, response) = try await httpClient.requestData(
             baseURL: baseURL,
             endpoint: endpoint,
@@ -71,10 +71,15 @@ final class SeerrClient {
         }
     }
 
-    private func buildHeaders() -> [String: String] {
+    /// `requiresAuth` was previously declared per endpoint but never
+    /// consulted; the cookie went out unconditionally and the login
+    /// flow had to clear it manually so a stale connect.sid couldn't
+    /// poison the fresh /auth/jellyfin POST. Honoring the flag makes
+    /// the endpoint declaration authoritative.
+    private func buildHeaders(requiresAuth: Bool) -> [String: String] {
         var headers: [String: String] = [:]
         headers["Accept"] = "application/json"
-        if let sessionCookie {
+        if requiresAuth, let sessionCookie {
             headers["Cookie"] = sessionCookie
         }
         return headers

@@ -18,12 +18,9 @@ struct JellyfinPublicServerInfo: Codable, Sendable {
     let id: String
     let serverName: String
     let version: String
-    let startupWizardCompleted: Bool?
-
     enum CodingKeys: String, CodingKey {
         case id = "Id"
         case serverName = "ServerName"
         case version = "Version"
-        case startupWizardCompleted = "StartupWizardCompleted"
     }
 }
