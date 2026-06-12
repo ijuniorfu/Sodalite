@@ -1,5 +1,6 @@
 import Foundation
 import Combine
+import StoreKit
 
 /// Ring buffer of recent diagnostic log lines, surfaced into the
 /// player overlay so a TestFlight beta tester can screenshot what
@@ -28,16 +29,41 @@ final class LogTap: ObservableObject {
     nonisolated static let shared = LogTap()
 
     /// Whether the diagnostic overlay should be mounted at all.
-    /// Always on under the debugger (DEBUG), on for sandbox-receipt
-    /// builds (TestFlight), off for App Store builds so end users
-    /// never see a developer overlay.
+    /// Always on under the debugger (DEBUG), on for sandbox builds
+    /// (TestFlight), off for App Store builds so end users never see
+    /// a developer overlay.
+    ///
+    /// Sandbox detection mirrors `StoreKitService.isSupporter`: the
+    /// authoritative answer comes from StoreKit 2's `AppTransaction`
+    /// (the receipt-URL check is deprecated since tvOS 18), but that
+    /// API is async and this flag is consumed synchronously in
+    /// `SodaliteApp.init`. So we read a `UserDefaults` cache here and
+    /// let `refreshDiagnosticBuildFlag()` overwrite it on every launch.
+    /// Net effect: the very first TestFlight launch runs with the
+    /// overlay off, every launch after that has it on.
     nonisolated static let isDiagnosticBuild: Bool = {
         #if DEBUG
         return true
         #else
-        return Bundle.main.appStoreReceiptURL?.lastPathComponent == "sandboxReceipt"
+        return UserDefaults.standard.bool(forKey: sandboxBuildCacheKey)
         #endif
     }()
+
+    private nonisolated static let sandboxBuildCacheKey = "logTap.cachedIsSandboxBuild"
+
+    /// Re-derive the cached sandbox flag from StoreKit 2. Called once
+    /// from `SodaliteApp.init`; the result takes effect on the *next*
+    /// launch (`isDiagnosticBuild` is a per-launch snapshot). Leaves
+    /// the cache untouched when StoreKit can't produce a verified app
+    /// transaction (offline first launch), so a previously-true flag
+    /// isn't lost to a transient failure.
+    nonisolated static func refreshDiagnosticBuildFlag() async {
+        guard case .verified(let transaction)? = try? await AppTransaction.shared else { return }
+        UserDefaults.standard.set(
+            transaction.environment == .sandbox,
+            forKey: sandboxBuildCacheKey
+        )
+    }
 
     @Published private(set) var lines: [String] = []
 

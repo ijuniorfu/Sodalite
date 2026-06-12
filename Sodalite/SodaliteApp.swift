@@ -35,6 +35,13 @@ struct SodaliteApp: App {
                 LogTap.shared.note(line)
             }
         }
+
+        // Re-derive the cached TestFlight/sandbox flag from StoreKit 2
+        // in the background; takes effect on the next launch (see
+        // LogTap.isDiagnosticBuild).
+        Task {
+            await LogTap.refreshDiagnosticBuildFlag()
+        }
     }
 
     var body: some Scene {
