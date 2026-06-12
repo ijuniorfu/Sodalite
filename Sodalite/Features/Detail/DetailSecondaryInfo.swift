@@ -68,6 +68,11 @@ func jellyfinCastMembers(
 struct DetailInfoRows<LeftPrimary: View, LeftSecondary: View>: View {
     let item: JellyfinItem
     let hasFullDetail: Bool
+    /// Whether the leftSecondary builder produces anything (the views
+    /// know: it's the genres line). Gates the second row so a panel
+    /// with neither genres nor a second right-side line doesn't carry
+    /// an invisible row's worth of spacing (episode panel).
+    var hasLeftSecondary: Bool = true
     @ViewBuilder let leftPrimary: () -> LeftPrimary
     @ViewBuilder let leftSecondary: () -> LeftSecondary
 
@@ -80,41 +85,54 @@ struct DetailInfoRows<LeftPrimary: View, LeftSecondary: View>: View {
 
     var body: some View {
         let tagline = item.taglines?.first
-        let credits = studiosLine(item.studios?.map(\.name) ?? [])
+        let hasTagline = !(tagline?.isEmpty ?? true)
+        let studios = studiosLine(item.studios?.map(\.name) ?? [])
         // Skeleton bars only while the right side can still gain
         // content: once the detail fetch settles empty, the rows
         // collapse to their left cells.
         let showPlaceholders = !hasFullDetail && !Self.hasContent(item)
+        // The right column fills top-down: without a tagline the
+        // studios move up into row one, level with the metadata line,
+        // instead of dangling alone a row below it.
+        let studiosInRowOne = !hasTagline && studios != nil
 
         VStack(alignment: .leading, spacing: 16) {
             HStack(alignment: .firstTextBaseline) {
                 leftPrimary()
                     .layoutPriority(1)
                 Spacer(minLength: 24)
-                if let tagline, !tagline.isEmpty {
+                if hasTagline, let tagline {
                     Text(tagline)
                         .font(.callout)
                         .italic()
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
+                } else if let studios {
+                    styled(studios)
                 } else if showPlaceholders {
                     placeholderBar(width: 220)
                 }
             }
-            HStack(alignment: .firstTextBaseline) {
-                leftSecondary()
-                    .layoutPriority(1)
-                Spacer(minLength: 24)
-                if let credits {
-                    credits
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
-                } else if showPlaceholders {
-                    placeholderBar(width: 140)
+            if hasLeftSecondary || (hasTagline && studios != nil) || showPlaceholders {
+                HStack(alignment: .firstTextBaseline) {
+                    leftSecondary()
+                        .layoutPriority(1)
+                    Spacer(minLength: 24)
+                    if !studiosInRowOne, let studios {
+                        styled(studios)
+                    } else if showPlaceholders {
+                        placeholderBar(width: 140)
+                    }
                 }
             }
         }
+    }
+
+    private func styled(_ line: Text) -> some View {
+        line
+            .font(.caption)
+            .foregroundStyle(.secondary)
+            .lineLimit(1)
     }
 
     private func placeholderBar(width: CGFloat) -> some View {

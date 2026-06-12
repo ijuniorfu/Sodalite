@@ -238,7 +238,11 @@ struct MovieDetailView: View {
             // Metadata + tagline form row one, genres + credits row
             // two, baseline-aligned per row so the left and right
             // columns sit level.
-            DetailInfoRows(item: vm.item, hasFullDetail: vm.hasFullDetail) {
+            DetailInfoRows(
+                item: vm.item,
+                hasFullDetail: vm.hasFullDetail,
+                hasLeftSecondary: !(vm.item.genres?.isEmpty ?? true)
+            ) {
                 ItemMetadataRow(item: vm.item)
             } leftSecondary: {
                 if let genres = vm.item.genres, !genres.isEmpty {

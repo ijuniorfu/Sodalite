@@ -544,7 +544,11 @@ struct SeriesDetailView: View {
             // two, baseline-aligned per row so the left and right
             // columns sit level (series-level tagline / crew / studios
             // in both modes, so the episode panel matches the root).
-            DetailInfoRows(item: vm.item, hasFullDetail: vm.hasFullDetail) {
+            DetailInfoRows(
+                item: vm.item,
+                hasFullDetail: vm.hasFullDetail,
+                hasLeftSecondary: !isShowingEpisode && !(vm.item.genres?.isEmpty ?? true)
+            ) {
                 if isShowingEpisode {
                     // Single metadata line: runtime folded into the
                     // series genres. The S/E pair left the panel
