@@ -39244,6 +39244,972 @@
         }
       }
     },
+    "changelog.0_11_0.criticRating.body" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stránky detailu nyní zobrazují skóre kritiků Rotten Tomatoes vedle hodnocení komunity, včetně známých odznaků pro čerstvé a shnilé."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Detaljesider viser nu Rotten Tomatoes-kritikerscoren ved siden af fællesskabsbedømmelsen, med de velkendte friske og rådne mærker."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Detailseiten zeigen jetzt den Rotten-Tomatoes-Kritikerwert neben der Community-Bewertung, samt den bekannten Symbolen für frisch und verdorben."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Οι σελίδες λεπτομερειών εμφανίζουν τώρα τη βαθμολογία κριτικών του Rotten Tomatoes δίπλα στη βαθμολογία της κοινότητας, με τα γνωστά σήματα για φρέσκο και σάπιο."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Detail pages now show the Rotten Tomatoes critic score next to the community rating, with the familiar fresh and rotten badges."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Las páginas de detalle ahora muestran la puntuación de la crítica de Rotten Tomatoes junto a la valoración de la comunidad, con las conocidas insignias de fresco y podrido."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tietosivut näyttävät nyt Rotten Tomatoesin kriitikkopisteet yhteisöarvion vieressä, tuttujen tuore- ja mätä-merkkien kera."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les pages de détail affichent désormais la note des critiques Rotten Tomatoes à côté de la note de la communauté, avec les badges frais et pourri bien connus."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stranice s detaljima sada prikazuju ocjenu kritičara Rotten Tomatoes pokraj ocjene zajednice, s poznatim oznakama za svježe i trulo."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A részletoldalak mostantól a Rotten Tomatoes kritikusi pontszámát is mutatják a közösségi értékelés mellett, az ismerős friss és romlott jelvényekkel."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le pagine di dettaglio ora mostrano il punteggio della critica di Rotten Tomatoes accanto alla valutazione della community, con i celebri badge fresco e marcio."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "詳細ページにRotten Tomatoesの批評家スコアがコミュニティ評価の隣に表示されるようになりました。おなじみのフレッシュとロッテンのバッジ付きです。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "상세 페이지에 로튼 토마토 평론가 점수가 커뮤니티 평점 옆에 표시됩니다. 익숙한 신선/썩음 배지와 함께입니다."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Detaljsider viser nå kritikerscoren fra Rotten Tomatoes ved siden av fellesskapsvurderingen, med de velkjente ferske og råtne merkene."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Detailpagina's tonen nu de criticiscore van Rotten Tomatoes naast de communitybeoordeling, met de bekende verse en rotte badges."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Strony szczegółów pokazują teraz ocenę krytyków Rotten Tomatoes obok oceny społeczności, ze znanymi odznakami świeżego i zgniłego pomidora."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "As páginas de detalhes agora mostram a nota dos críticos do Rotten Tomatoes ao lado da avaliação da comunidade, com os famosos selos de fresco e podre."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "As páginas de detalhes mostram agora a pontuação da crítica do Rotten Tomatoes ao lado da classificação da comunidade, com os conhecidos selos de fresco e podre."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paginile de detalii afișează acum scorul criticilor de pe Rotten Tomatoes lângă evaluarea comunității, cu binecunoscutele insigne proaspăt și putred."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "На страницах описания теперь отображается оценка критиков Rotten Tomatoes рядом с оценкой сообщества, со знакомыми значками свежего и гнилого помидора."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stránky s detailmi teraz zobrazujú skóre kritikov Rotten Tomatoes vedľa hodnotenia komunity, so známymi odznakmi pre čerstvé a zhnité."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Detaljsidorna visar nu kritikerbetyget från Rotten Tomatoes bredvid communitybetyget, med de välkända färska och ruttna märkena."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Detay sayfaları artık topluluk puanının yanında Rotten Tomatoes eleştirmen puanını da gösteriyor, tanıdık taze ve çürük rozetleriyle."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сторінки деталей тепер показують оцінку критиків Rotten Tomatoes поруч з оцінкою спільноти, зі знайомими значками свіжого та гнилого помідора."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "详情页现在会在社区评分旁边显示烂番茄影评人评分，并配有熟悉的新鲜和腐烂徽章。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "詳情頁現在會在社群評分旁顯示爛番茄影評人評分，並附上熟悉的新鮮與腐爛徽章。"
+          }
+        }
+      }
+    },
+    "changelog.0_11_0.criticRating.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hodnocení Rotten Tomatoes"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rotten Tomatoes-bedømmelser"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rotten-Tomatoes-Wertungen"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Βαθμολογίες Rotten Tomatoes"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rotten Tomatoes ratings"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Valoraciones de Rotten Tomatoes"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rotten Tomatoes -arviot"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Notes Rotten Tomatoes"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ocjene Rotten Tomatoes"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rotten Tomatoes-értékelések"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Valutazioni Rotten Tomatoes"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rotten Tomatoesの評価"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "로튼 토마토 평점"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rotten Tomatoes-vurderinger"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rotten Tomatoes-beoordelingen"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Oceny Rotten Tomatoes"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Avaliações do Rotten Tomatoes"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Classificações do Rotten Tomatoes"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Evaluări Rotten Tomatoes"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Оценки Rotten Tomatoes"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hodnotenia Rotten Tomatoes"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rotten Tomatoes-betyg"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rotten Tomatoes puanları"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Оцінки Rotten Tomatoes"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "烂番茄评分"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "爛番茄評分"
+          }
+        }
+      }
+    },
+    "changelog.0_11_0.detailRedesign.body" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kompaktnější informační panel s tlačítky akcí na vlastním řádku pod ním, uspořádanější metadata a kolekce nyní sdílejí stejné rozložení jako filmy a seriály."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Et mere kompakt infopanel med handlingsknapperne på deres egen række nedenunder, pænere metadata, og samlinger bruger nu samme layout som film og serier."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kompakteres Info-Panel mit eigener Button-Zeile darunter, aufgeräumtere Metadaten, und Sammlungen nutzen jetzt dasselbe Layout wie Filme und Serien."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Πιο συμπαγές πάνελ πληροφοριών με τα κουμπιά ενεργειών σε δική τους σειρά από κάτω, πιο τακτικά μεταδεδομένα, και οι συλλογές χρησιμοποιούν πλέον την ίδια διάταξη με ταινίες και σειρές."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A more compact info panel with the action buttons on their own row below it, tidier metadata, and collections now share the same layout as movies and series."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Un panel de información más compacto con los botones de acción en su propia fila debajo, metadatos más ordenados, y las colecciones ahora comparten el mismo diseño que películas y series."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tiiviimpi tietopaneeli, toimintopainikkeet omalla rivillään sen alla, siistimmät metatiedot, ja kokoelmat käyttävät nyt samaa asettelua kuin elokuvat ja sarjat."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Un panneau d'informations plus compact avec les boutons d'action sur leur propre ligne en dessous, des métadonnées mieux rangées, et les collections partagent désormais la même mise en page que les films et les séries."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kompaktnija info ploča s gumbima radnji u vlastitom retku ispod nje, uredniji metapodaci, a kolekcije sada dijele isti raspored kao filmovi i serije."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tömörebb információs panel, alatta a műveletgombok saját sorban, rendezettebb metaadatok, a gyűjtemények pedig mostantól ugyanazt az elrendezést használják, mint a filmek és sorozatok."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Un pannello informazioni più compatto con i pulsanti delle azioni su una riga dedicata sotto di esso, metadati più ordinati, e le raccolte ora condividono lo stesso layout di film e serie."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "情報パネルがよりコンパクトになり、アクションボタンはその下の専用の行に移動しました。メタデータも整理され、コレクションは映画やシリーズと同じレイアウトになりました。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "정보 패널이 더 콤팩트해지고 동작 버튼이 그 아래 전용 줄로 이동했으며, 메타데이터가 정리되고 컬렉션도 영화 및 시리즈와 같은 레이아웃을 사용합니다."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Et mer kompakt infopanel med handlingsknappene på en egen rad under, ryddigere metadata, og samlinger bruker nå samme oppsett som filmer og serier."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Een compacter infopaneel met de actieknoppen op een eigen rij eronder, nettere metadata, en collecties gebruiken nu dezelfde lay-out als films en series."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bardziej kompaktowy panel informacji z przyciskami akcji w osobnym wierszu poniżej, uporządkowane metadane, a kolekcje korzystają teraz z tego samego układu co filmy i seriale."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Um painel de informações mais compacto com os botões de ação em uma linha própria abaixo dele, metadados mais organizados, e as coleções agora usam o mesmo layout de filmes e séries."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Um painel de informações mais compacto com os botões de ação numa linha própria por baixo, metadados mais arrumados, e as coleções usam agora a mesma disposição que filmes e séries."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Un panou de informații mai compact, cu butoanele de acțiune pe propriul rând dedesubt, metadate mai ordonate, iar colecțiile folosesc acum același aspect ca filmele și serialele."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Более компактная информационная панель, кнопки действий в отдельном ряду под ней, упорядоченные метаданные, а коллекции теперь используют ту же компоновку, что фильмы и сериалы."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kompaktnejší informačný panel s tlačidlami akcií vo vlastnom riadku pod ním, upratanejšie metadáta a kolekcie teraz zdieľajú rovnaké rozloženie ako filmy a seriály."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En mer kompakt informationspanel med åtgärdsknapparna på en egen rad under den, prydligare metadata, och samlingar använder nu samma layout som filmer och serier."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Daha kompakt bilgi paneli, altında kendi satırında eylem düğmeleri, daha düzenli meta veriler ve koleksiyonlar artık film ve dizilerle aynı düzeni kullanıyor."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Компактніша інформаційна панель, кнопки дій в окремому рядку під нею, упорядковані метадані, а колекції тепер використовують те саме компонування, що й фільми та серіали."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "信息面板更紧凑，操作按钮移到面板下方的单独一行，元数据更整齐，合集现在与电影和剧集使用相同的布局。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "資訊面板更精簡，操作按鈕移至面板下方的獨立一列，中繼資料更整齊，合輯現在與電影和影集使用相同的版面配置。"
+          }
+        }
+      }
+    },
+    "changelog.0_11_0.detailRedesign.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Přehlednější stránky detailu"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ryddeligere detaljesider"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aufgeräumte Detailseiten"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Πιο τακτοποιημένες σελίδες λεπτομερειών"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cleaner detail pages"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Páginas de detalle más limpias"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Siistimmät tietosivut"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pages de détail plus épurées"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Urednije stranice s detaljima"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Letisztultabb részletoldalak"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pagine di dettaglio più ordinate"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "すっきりした詳細ページ"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "더 깔끔해진 상세 페이지"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ryddigere detaljsider"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opgeruimdere detailpagina's"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bardziej przejrzyste strony szczegółów"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Páginas de detalhes mais organizadas"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Páginas de detalhes mais arrumadas"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pagini de detalii mai aerisite"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Более аккуратные страницы описания"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Prehľadnejšie stránky s detailmi"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Renare detaljsidor"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Daha derli toplu detay sayfaları"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Охайніші сторінки деталей"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更简洁的详情页"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更簡潔的詳情頁"
+          }
+        }
+      }
+    },
+    "changelog.0_11_0.episodeSynopsis.body" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Po otevření epizody už popis nezůstává několik sekund prázdný, zobrazí se spolu se zbytkem stránky."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Når du åbner en episode, står beskrivelsen ikke længere tom i flere sekunder, den vises sammen med resten af siden."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Beim Öffnen einer Episode bleibt die Beschreibung nicht mehr sekundenlang leer, sie erscheint zusammen mit dem Rest der Seite."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ανοίγοντας ένα επεισόδιο, η περίληψη δεν μένει πια κενή για μερικά δευτερόλεπτα, εμφανίζεται μαζί με την υπόλοιπη σελίδα."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opening an episode no longer shows an empty synopsis for a few seconds, the description appears together with the rest of the page."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Al abrir un episodio, la sinopsis ya no queda vacía durante unos segundos, aparece junto con el resto de la página."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jaksoa avattaessa kuvaus ei enää ole tyhjä useita sekunteja, vaan se ilmestyy yhdessä muun sivun kanssa."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "À l'ouverture d'un épisode, le synopsis ne reste plus vide pendant quelques secondes, il s'affiche en même temps que le reste de la page."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pri otvaranju epizode opis više ne ostaje prazan nekoliko sekundi, pojavljuje se zajedno s ostatkom stranice."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Egy epizód megnyitásakor a leírás többé nem marad üres néhány másodpercig, a lap többi részével együtt jelenik meg."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "All'apertura di un episodio la trama non resta più vuota per qualche secondo, appare insieme al resto della pagina."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "エピソードを開いたとき、あらすじが数秒間空白のままになることがなくなり、ページの他の部分と同時に表示されます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "에피소드를 열 때 줄거리가 몇 초간 비어 있지 않고 페이지의 나머지 부분과 함께 표시됩니다."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Når du åpner en episode, står ikke beskrivelsen tom i flere sekunder lenger, den vises sammen med resten av siden."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bij het openen van een aflevering blijft de beschrijving niet meer enkele seconden leeg, hij verschijnt samen met de rest van de pagina."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Po otwarciu odcinka opis nie pozostaje już pusty przez kilka sekund, pojawia się razem z resztą strony."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ao abrir um episódio, a sinopse não fica mais vazia por alguns segundos, ela aparece junto com o restante da página."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ao abrir um episódio, a sinopse já não fica vazia durante alguns segundos, aparece juntamente com o resto da página."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La deschiderea unui episod, rezumatul nu mai rămâne gol câteva secunde, apare odată cu restul paginii."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "При открытии эпизода описание больше не остаётся пустым несколько секунд, оно появляется вместе с остальной страницей."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Po otvorení epizódy už popis nezostáva niekoľko sekúnd prázdny, zobrazí sa spolu so zvyškom stránky."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "När du öppnar ett avsnitt står beskrivningen inte längre tom i flera sekunder, den visas tillsammans med resten av sidan."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bir bölüm açıldığında özet artık birkaç saniye boş kalmıyor, sayfanın geri kalanıyla birlikte görünüyor."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Після відкриття епізоду опис більше не лишається порожнім кілька секунд, він з'являється разом з рештою сторінки."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "打开剧集时，简介不再空白数秒，而是与页面其余内容一同显示。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "打開單集時，簡介不再空白數秒，而是與頁面其餘內容一同顯示。"
+          }
+        }
+      }
+    },
+    "changelog.0_11_0.episodeSynopsis.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Popis epizody bez čekání"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Episodebeskrivelse uden ventetid"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Episodenbeschreibung ohne Wartezeit"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Περίληψη επεισοδίου χωρίς αναμονή"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Episode synopsis without the wait"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sinopsis del episodio sin espera"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jakson kuvaus ilman odottelua"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Synopsis d'épisode sans attente"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opis epizode bez čekanja"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Epizódleírás várakozás nélkül"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trama dell'episodio senza attese"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "あらすじをすぐ表示"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "기다림 없는 에피소드 줄거리"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Episodebeskrivelse uten venting"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Afleveringsbeschrijving zonder wachten"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opis odcinka bez czekania"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sinopse do episódio sem espera"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sinopse do episódio sem espera"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rezumatul episodului fără așteptare"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Описание эпизода без ожидания"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Popis epizódy bez čakania"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Avsnittsbeskrivning utan väntan"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Beklemesiz bölüm özeti"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Опис епізоду без очікування"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "剧集简介即时显示"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "單集簡介即時顯示"
+          }
+        }
+      }
+    },
     "changelog.0_11_0.libraryPaging.body" : {
       "extractionState" : "manual",
       "localizations" : {

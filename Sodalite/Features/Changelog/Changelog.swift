@@ -24,6 +24,18 @@ enum Changelog {
                     icon: "antenna.radiowaves.left.and.right"
                 ),
                 ChangelogHighlight(
+                    .new,
+                    "changelog.0_11_0.criticRating.title",
+                    "changelog.0_11_0.criticRating.body",
+                    icon: "percent"
+                ),
+                ChangelogHighlight(
+                    .improve,
+                    "changelog.0_11_0.detailRedesign.title",
+                    "changelog.0_11_0.detailRedesign.body",
+                    icon: "doc.text.image"
+                ),
+                ChangelogHighlight(
                     .improve,
                     "changelog.0_11_0.liveResilience.title",
                     "changelog.0_11_0.liveResilience.body",
@@ -40,6 +52,12 @@ enum Changelog {
                     "changelog.0_11_0.reliability.title",
                     "changelog.0_11_0.reliability.body",
                     icon: "checkmark.seal.fill"
+                ),
+                ChangelogHighlight(
+                    .fix,
+                    "changelog.0_11_0.episodeSynopsis.title",
+                    "changelog.0_11_0.episodeSynopsis.body",
+                    icon: "text.alignleft"
                 ),
                 ChangelogHighlight(
                     .fix,
