@@ -22538,6 +22538,1938 @@
         }
       }
     },
+    "changelog.0_11_0.libraryPaging.body" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filtrované mřížky při posouvání průběžně načítají další tituly, místo aby skončily u první dávky."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filtrerede gitre indlæser flere titler, mens du scroller, i stedet for at stoppe ved første portion."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gefilterte Raster laden beim Scrollen weitere Titel nach, statt nach dem ersten Schwung zu stoppen."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Τα φιλτραρισμένα πλέγματα συνεχίζουν να φορτώνουν τίτλους καθώς κάνετε κύλιση, αντί να σταματούν στην πρώτη παρτίδα."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filtered grids keep loading more titles as you scroll instead of stopping at the first batch."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Las cuadrículas filtradas siguen cargando títulos al desplazarte, en lugar de detenerse en el primer lote."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Suodatetut ruudukot lataavat lisää nimikkeitä vierittäessä sen sijaan, että pysähtyisivät ensimmäiseen erään."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les grilles filtrées continuent de charger des titres au fil du défilement au lieu de s'arrêter au premier lot."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filtrirane mreže nastavljaju učitavati naslove dok listate, umjesto da stanu na prvoj seriji."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A szűrt rácsok görgetés közben további címeket töltenek be, ahelyett hogy az első adagnál megállnának."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le griglie filtrate continuano a caricare titoli durante lo scorrimento, invece di fermarsi al primo blocco."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "フィルター付きグリッドは最初のひとまとまりで止まらず、スクロールに合わせてタイトルを読み込み続けます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "필터된 그리드가 첫 묶음에서 멈추지 않고 스크롤할 때마다 타이틀을 계속 불러옵니다."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filtrerte rutenett fortsetter å laste inn titler mens du blar, i stedet for å stoppe ved første pulje."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gefilterde rasters blijven titels laden terwijl je scrolt, in plaats van te stoppen bij de eerste lading."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filtrowane siatki doczytują kolejne tytuły podczas przewijania, zamiast zatrzymywać się na pierwszej partii."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "As grades filtradas continuam carregando títulos conforme você rola, em vez de parar no primeiro lote."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "As grelhas filtradas continuam a carregar títulos à medida que percorre, em vez de pararem no primeiro lote."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Grilele filtrate continuă să încarce titluri pe măsură ce derulați, în loc să se oprească la primul lot."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Отфильтрованные сетки подгружают новые позиции при прокрутке, а не останавливаются на первой порции."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filtrované mriežky pri rolovaní priebežne načítavajú ďalšie tituly, namiesto toho aby skončili pri prvej dávke."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filtrerade rutnät fortsätter läsa in titlar medan du bläddrar, i stället för att stanna vid första omgången."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filtrelenmiş ızgaralar ilk grupta durmak yerine kaydırdıkça yeni içerikler yüklemeye devam ediyor."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Відфільтровані сітки підвантажують нові позиції під час прокручування, а не зупиняються на першій порції."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "筛选网格会在滚动时持续加载更多内容,而不再停留在第一批。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "篩選網格會在捲動時持續載入更多內容,而不再停在第一批。"
+          }
+        }
+      }
+    },
+    "changelog.0_11_0.libraryPaging.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Velké knihovny se načítají celé"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Store biblioteker indlæses helt"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Große Bibliotheken laden vollständig"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Οι μεγάλες βιβλιοθήκες φορτώνουν πλήρως"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Large libraries load fully"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Las bibliotecas grandes cargan al completo"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Suuret kirjastot latautuvat kokonaan"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les grandes bibliothèques se chargent entièrement"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Velike knjižnice učitavaju se u cijelosti"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A nagy könyvtárak teljesen betöltődnek"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le librerie grandi si caricano per intero"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "大規模ライブラリも最後まで読み込み"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "대용량 라이브러리 전체 로드"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Store biblioteker lastes helt inn"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Grote bibliotheken laden volledig"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Duże biblioteki ładują się w całości"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bibliotecas grandes carregam por completo"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "As bibliotecas grandes carregam na totalidade"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bibliotecile mari se încarcă integral"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Большие библиотеки загружаются полностью"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Veľké knižnice sa načítajú celé"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stora bibliotek läses in helt"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Büyük kitaplıklar tamamen yükleniyor"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Великі бібліотеки завантажуються повністю"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "大型媒体库可完整加载"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "大型媒體庫可完整載入"
+          }
+        }
+      }
+    },
+    "changelog.0_11_0.liveDirectAudio.body" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kanály, které dodávají obraz a zvuk jako oddělené streamy (ARD a další), se nyní přehrávají přímo v plné kvalitě se zvukem, bez překódování na serveru."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kanaler, der leverer video og lyd som separate streams (ARD med flere), afspilles nu direkte i fuld kvalitet med lyd, uden server-transcoding."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sender, die Video und Ton als getrennte Streams liefern (ARD und andere), spielen jetzt direkt in voller Qualität mit Ton, ohne Server-Transkodierung."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Κανάλια που παρέχουν βίντεο και ήχο ως ξεχωριστές ροές (ARD και άλλα) παίζουν πλέον απευθείας σε πλήρη ποιότητα με ήχο, χωρίς διακωδικοποίηση στον διακομιστή."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Channels that deliver video and audio as separate streams (ARD and others) now play directly with full quality and sound, no server transcoding."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Los canales que entregan vídeo y audio como streams separados (ARD y otros) ahora se reproducen directamente con calidad completa y sonido, sin transcodificación en el servidor."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kanavat, jotka toimittavat kuvan ja äänen erillisinä streameina (ARD ja muut), toistuvat nyt suoraan täydellä laadulla ja äänellä ilman palvelimen transkoodausta."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les chaînes qui livrent la vidéo et l'audio en flux séparés (ARD et autres) se lisent désormais directement en pleine qualité avec le son, sans transcodage serveur."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kanali koji isporučuju video i zvuk kao odvojene streamove (ARD i drugi) sada se reproduciraju izravno u punoj kvaliteti sa zvukom, bez transkodiranja na poslužitelju."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A képet és hangot külön streamként szállító csatornák (ARD és társai) mostantól közvetlenül, teljes minőségben és hanggal játszanak le, szerveroldali átkódolás nélkül."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "I canali che forniscono video e audio come stream separati (ARD e altri) ora si riproducono direttamente in piena qualità con l'audio, senza transcodifica sul server."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "映像と音声を別ストリームで配信するチャンネル(ARDなど)も、サーバーでのトランスコードなしにフル画質・音声付きで直接再生できるようになりました。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "영상과 음성을 별도 스트림으로 제공하는 채널(ARD 등)도 이제 서버 트랜스코딩 없이 전체 화질과 소리로 직접 재생됩니다."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kanaler som leverer video og lyd som separate strømmer (ARD med flere), spilles nå av direkte i full kvalitet med lyd, uten servertranskoding."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kanalen die beeld en geluid als aparte streams leveren (ARD en andere) spelen nu direct af in volle kwaliteit met geluid, zonder servertranscoding."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kanały dostarczające obraz i dźwięk jako osobne strumienie (ARD i inne) odtwarzają się teraz bezpośrednio w pełnej jakości z dźwiękiem, bez transkodowania na serwerze."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Canais que entregam vídeo e áudio como streams separados (ARD e outros) agora tocam diretamente em qualidade total com som, sem transcodificação no servidor."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Os canais que entregam vídeo e áudio como streams separados (ARD e outros) reproduzem agora diretamente em qualidade total com som, sem transcodificação no servidor."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Canalele care livrează imaginea și sunetul ca fluxuri separate (ARD și altele) se redau acum direct, la calitate completă și cu sunet, fără transcodare pe server."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Каналы, передающие видео и звук отдельными потоками (ARD и другие), теперь воспроизводятся напрямую в полном качестве со звуком, без транскодирования на сервере."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kanály, ktoré dodávajú obraz a zvuk ako oddelené streamy (ARD a ďalšie), sa teraz prehrávajú priamo v plnej kvalite so zvukom, bez prekódovania na serveri."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kanaler som levererar bild och ljud som separata strömmar (ARD med flera) spelas nu upp direkt i full kvalitet med ljud, utan servertranskodning."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Görüntü ve sesi ayrı akışlar olarak sunan kanallar (ARD ve diğerleri) artık sunucu dönüştürmesi olmadan tam kalitede ve sesli olarak doğrudan oynatılıyor."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Канали, що передають відео та звук окремими потоками (ARD та інші), тепер відтворюються напряму в повній якості зі звуком, без транскодування на сервері."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "视频与音频分流传输的频道(如 ARD 等)现在可以全画质带声音直接播放,无需服务器转码。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "影音分流傳輸的頻道(如 ARD 等)現在可以全畫質帶聲音直接播放,無需伺服器轉碼。"
+          }
+        }
+      }
+    },
+    "changelog.0_11_0.liveDirectAudio.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Více živých kanálů v přímém přehrávání"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Flere livekanaler i direct play"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mehr Live-Sender in Direct Play"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Περισσότερα ζωντανά κανάλια σε άμεση αναπαραγωγή"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "More live channels in direct play"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Más canales en directo con reproducción directa"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lisää livekanavia suoratoistona"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Plus de chaînes en direct en lecture directe"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Više kanala uživo u izravnoj reprodukciji"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Több élő csatorna közvetlen lejátszással"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Più canali live in riproduzione diretta"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ダイレクト再生できるライブチャンネルが増加"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "더 많은 라이브 채널을 다이렉트 재생"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Flere direktekanaler med direct play"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Meer livekanalen in direct play"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Więcej kanałów na żywo w trybie direct play"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mais canais ao vivo em reprodução direta"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mais canais em direto em reprodução direta"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mai multe canale live în redare directă"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Больше живых каналов в прямом воспроизведении"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Viac živých kanálov v priamom prehrávaní"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fler livekanaler med direct play"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Doğrudan oynatmada daha fazla canlı kanal"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Більше живих каналів у прямому відтворенні"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更多直播频道支持直接播放"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更多直播頻道支援直接播放"
+          }
+        }
+      }
+    },
+    "changelog.0_11_0.liveResilience.body" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Krátké výpadky playlistu se nyní opakují neviditelně a přerušená živá relace se znovu připojí na živou hranu, místo aby zamrzla."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Korte playlist-udfald prøves nu igen usynligt, og en afbrudt live-session hopper tilbage til live-kanten i stedet for at fryse."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kurze Playlist-Aussetzer werden jetzt unsichtbar wiederholt, und eine unterbrochene Live-Sitzung steigt wieder an der Live-Kante ein, statt einzufrieren."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Σύντομες διακοπές της λίστας αναπαραγωγής επαναλαμβάνονται πλέον αόρατα, και μια διακοπείσα ζωντανή συνεδρία επανασυνδέεται στο ζωντανό σημείο αντί να παγώνει."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Short playlist hiccups now retry invisibly, and a disrupted live session rejoins at the live edge instead of freezing."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Los cortes breves de la playlist ahora se reintentan de forma invisible, y una sesión en directo interrumpida se reincorpora al borde en vivo en lugar de congelarse."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lyhyet soittolistakatkokset yritetään nyt uudelleen huomaamattomasti, ja keskeytynyt livesessio liittyy takaisin lähetyksen reunaan jäätymisen sijaan."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les brèves interruptions de playlist sont désormais réessayées de façon invisible, et une session en direct interrompue rejoint le direct au lieu de se figer."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kratki prekidi playliste sada se nevidljivo ponavljaju, a prekinuta sesija uživo ponovno se priključuje na rub uživo umjesto da se zamrzne."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A rövid playlist-kimaradásokat mostantól észrevétlenül újrapróbálja, a megszakadt élő munkamenet pedig az élő szélnél csatlakozik vissza, fagyás helyett."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le brevi interruzioni della playlist ora vengono ritentate in modo invisibile, e una sessione live interrotta si riaggancia al punto live invece di bloccarsi."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "プレイリストの短い途切れは目立たないよう自動的に再試行され、中断されたライブセッションはフリーズせずライブエッジに復帰します。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "짧은 재생목록 끊김은 이제 보이지 않게 재시도되며, 중단된 라이브 세션은 멈추는 대신 라이브 지점으로 다시 합류합니다."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Korte spillelistebrudd prøves nå på nytt usynlig, og en avbrutt direktesending blir med igjen på direktekanten i stedet for å fryse."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Korte playlist-haperingen worden nu onzichtbaar opnieuw geprobeerd, en een onderbroken livesessie sluit weer aan op de live-rand in plaats van te bevriezen."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Krótkie przerwy playlisty są teraz niewidocznie ponawiane, a przerwana sesja na żywo dołącza ponownie na krawędzi na żywo, zamiast się zawieszać."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Falhas breves de playlist agora são repetidas de forma invisível, e uma sessão ao vivo interrompida volta para a borda ao vivo em vez de congelar."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "As falhas breves da playlist são agora repetidas de forma invisível, e uma sessão em direto interrompida volta a juntar-se à margem em direto em vez de congelar."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Întreruperile scurte ale playlistului sunt acum reîncercate invizibil, iar o sesiune live întreruptă se realătură la marginea live în loc să înghețe."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Короткие сбои плейлиста теперь незаметно повторяются, а прерванная живая сессия возвращается к живому краю вместо зависания."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Krátke výpadky playlistu sa teraz neviditeľne opakujú a prerušená živá relácia sa znova pripojí na živý okraj, namiesto toho aby zamrzla."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Korta spellisteavbrott provas nu om osynligt, och en avbruten livesession ansluter igen vid livekanten i stället för att frysa."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kısa oynatma listesi kesintileri artık görünmez şekilde yeniden deneniyor ve kesilen canlı oturum donmak yerine canlı kenara yeniden katılıyor."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Короткі збої плейлиста тепер непомітно повторюються, а перервана жива сесія повертається до живого краю замість зависання."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "播放列表的短暂中断现在会自动无感重试,中断的直播会重新接入直播边缘,而不会卡住。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "播放清單的短暫中斷現在會自動無感重試,中斷的直播會重新接回直播邊緣,而不會卡住。"
+          }
+        }
+      }
+    },
+    "changelog.0_11_0.liveResilience.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stabilnější živé vysílání"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mere stabile livestreams"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stabilere Live-Streams"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Σταθερότερες ζωντανές ροές"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Steadier live streams"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Emisiones en directo más estables"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vakaammat livelähetykset"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Des directs plus stables"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stabilniji prijenosi uživo"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stabilabb élő adások"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dirette più stabili"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "より安定したライブ配信"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "더 안정적인 라이브 스트림"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mer stabile direktestrømmer"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stabielere livestreams"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stabilniejsze transmisje na żywo"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Transmissões ao vivo mais estáveis"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Emissões em direto mais estáveis"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Transmisiuni live mai stabile"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Более стабильные прямые трансляции"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stabilnejšie živé vysielanie"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stabilare livesändningar"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Daha kararlı canlı yayınlar"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Стабільніші прямі трансляції"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更稳定的直播流"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更穩定的直播串流"
+          }
+        }
+      }
+    },
+    "changelog.0_11_0.reliability.body" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kompletní dvojitá revize opravila desítky problémů v přehrávání, profilech, přepínání serverů, živé TV a hudbě."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En komplet dobbelt gennemgang rettede dusinvis af fejl i afspilning, profiler, serverskift, live-tv og musik."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Eine vollständige zweifache Überprüfung hat Dutzende Probleme bei Wiedergabe, Profilen, Serverwechsel, Live TV und Musik behoben."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ένας πλήρης διπλός έλεγχος διόρθωσε δεκάδες προβλήματα σε αναπαραγωγή, προφίλ, εναλλαγή διακομιστών, ζωντανή TV και μουσική."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A full two-pass review fixed dozens of issues across playback, profiles, server switching, Live TV, and music."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Una revisión doble completa corrigió decenas de problemas en reproducción, perfiles, cambio de servidor, TV en directo y música."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Täysi kaksinkertainen tarkastus korjasi kymmeniä ongelmia toistossa, profiileissa, palvelimen vaihdossa, live-TV:ssä ja musiikissa."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Une revue complète en deux passes a corrigé des dizaines de problèmes dans la lecture, les profils, le changement de serveur, la TV en direct et la musique."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Potpuni dvostruki pregled ispravio je desetke problema u reprodukciji, profilima, promjeni poslužitelja, TV-u uživo i glazbi."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Egy teljes, kétmenetes átvizsgálás tucatnyi hibát javított a lejátszásban, a profiloknál, a szerverváltásnál, az élő TV-ben és a zenében."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Una revisione completa in due passate ha corretto decine di problemi in riproduzione, profili, cambio server, Live TV e musica."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "アプリ全体を2回にわたり総点検し、再生、プロファイル、サーバー切替、ライブTV、ミュージックの数十件の問題を修正しました。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "앱 전체를 두 차례 점검하여 재생, 프로필, 서버 전환, 라이브 TV, 음악에서 수십 건의 문제를 수정했습니다."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En fullstendig dobbel gjennomgang rettet dusinvis av problemer i avspilling, profiler, serverbytte, direkte-TV og musikk."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Een volledige dubbele controle verhielp tientallen problemen in afspelen, profielen, serverwissel, live-tv en muziek."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pełny dwukrotny przegląd naprawił dziesiątki problemów w odtwarzaniu, profilach, przełączaniu serwerów, telewizji na żywo i muzyce."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uma revisão completa em duas passadas corrigiu dezenas de problemas em reprodução, perfis, troca de servidor, TV ao vivo e música."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uma revisão completa em duas passagens corrigiu dezenas de problemas na reprodução, perfis, mudança de servidor, TV em direto e música."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O verificare completă în două treceri a corectat zeci de probleme la redare, profiluri, schimbarea serverului, TV live și muzică."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Полная двухэтапная проверка исправила десятки проблем в воспроизведении, профилях, смене сервера, живом ТВ и музыке."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kompletná dvojitá kontrola opravila desiatky problémov v prehrávaní, profiloch, prepínaní serverov, živej TV a hudbe."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En fullständig dubbel genomgång rättade tiotals problem i uppspelning, profiler, serverbyte, live-tv och musik."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tam kapsamlı iki aşamalı bir inceleme; oynatma, profiller, sunucu değişimi, canlı TV ve müzikte onlarca sorunu düzeltti."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Повна дворазова перевірка виправила десятки проблем у відтворенні, профілях, зміні сервера, живому ТБ і музиці."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "对整个应用进行了两轮全面检查,修复了播放、配置文件、服务器切换、直播电视和音乐中的数十个问题。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "對整個應用程式進行了兩輪全面檢查,修正了播放、設定檔、伺服器切換、直播電視和音樂中的數十個問題。"
+          }
+        }
+      }
+    },
+    "changelog.0_11_0.reliability.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kolo spolehlivosti"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pålidelighedsgennemgang"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zuverlässigkeitsdurchlauf"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Πέρασμα αξιοπιστίας"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reliability pass"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pasada de fiabilidad"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Luotettavuuskierros"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Passe de fiabilité"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Krug pouzdanosti"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Megbízhatósági kör"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Passata di affidabilità"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "信頼性向上パス"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "안정성 점검"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pålitelighetsrunde"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Betrouwbaarheidsronde"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Runda niezawodności"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rodada de confiabilidade"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ronda de fiabilidade"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rundă de fiabilitate"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Проход по надёжности"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kolo spoľahlivosti"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tillförlitlighetsrunda"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Güvenilirlik turu"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Прохід надійності"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "可靠性专项"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "可靠性檢查"
+          }
+        }
+      }
+    },
+    "changelog.0_11_0.requestFilters.body" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Přepnutí filtru stavu během načítání už nenechá seznam prázdný."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Skift af statusfilter, mens anmodninger stadig indlæses, efterlader ikke længere listen tom."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ein Wechsel des Statusfilters während des Ladens lässt die Liste nicht mehr leer zurück."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Η αλλαγή φίλτρου κατάστασης κατά τη φόρτωση δεν αφήνει πλέον τη λίστα κενή."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Switching the status filter while requests are still loading no longer leaves the list empty."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cambiar el filtro de estado mientras las solicitudes aún cargan ya no deja la lista vacía."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tilasuodattimen vaihtaminen latauksen aikana ei enää jätä listaa tyhjäksi."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Changer de filtre de statut pendant le chargement ne laisse plus la liste vide."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Promjena filtra statusa tijekom učitavanja više ne ostavlja popis praznim."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A státuszszűrő váltása betöltés közben többé nem hagyja üresen a listát."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cambiare il filtro di stato mentre le richieste si caricano non lascia più la lista vuota."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "読み込み中にステータスフィルターを切り替えても、リストが空のままになりません。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "로딩 중에 상태 필터를 전환해도 목록이 비어 있지 않습니다."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Å bytte statusfilter mens forespørslene fortsatt lastes, etterlater ikke lenger listen tom."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Het wisselen van statusfilter tijdens het laden laat de lijst niet langer leeg achter."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Przełączenie filtra statusu podczas ładowania nie zostawia już pustej listy."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trocar o filtro de status enquanto os pedidos ainda carregam não deixa mais a lista vazia."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mudar o filtro de estado enquanto os pedidos ainda carregam já não deixa a lista vazia."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Schimbarea filtrului de stare în timpul încărcării nu mai lasă lista goală."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Переключение фильтра статуса во время загрузки больше не оставляет список пустым."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Prepnutie filtra stavu počas načítavania už nenechá zoznam prázdny."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Att byta statusfilter medan förfrågningar fortfarande läses in lämnar inte längre listan tom."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yükleme sırasında durum filtresini değiştirmek artık listeyi boş bırakmıyor."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Перемикання фільтра статусу під час завантаження більше не залишає список порожнім."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在加载过程中切换状态筛选不再导致列表为空。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在載入過程中切換狀態篩選不再導致清單為空。"
+          }
+        }
+      }
+    },
+    "changelog.0_11_0.requestFilters.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filtry žádostí reagují okamžitě"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anmodningsfiltre reagerer med det samme"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anfrage-Filter reagieren sofort"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Τα φίλτρα αιτημάτων αποκρίνονται αμέσως"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Request filters respond instantly"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Los filtros de solicitudes responden al instante"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pyyntösuodattimet reagoivat heti"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les filtres de demandes répondent immédiatement"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filtri zahtjeva reagiraju odmah"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A kérésszűrők azonnal reagálnak"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "I filtri delle richieste rispondono subito"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "リクエストフィルターが即座に反応"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "요청 필터가 즉시 반응"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Forespørselsfiltre reagerer umiddelbart"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verzoekfilters reageren direct"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filtry próśb reagują natychmiast"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filtros de pedidos respondem na hora"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Os filtros de pedidos respondem de imediato"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filtrele cererilor răspund imediat"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Фильтры запросов отвечают мгновенно"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filtre žiadostí reagujú okamžite"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Förfrågningsfilter svarar direkt"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "İstek filtreleri anında tepki veriyor"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Фільтри запитів відповідають миттєво"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请求筛选即时响应"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請求篩選即時回應"
+          }
+        }
+      }
+    },
+    "changelog.0_11_0.subtitleLongCues.body" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Titulky delší než minutu, běžné u obrazových stop, už nemizí předčasně."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Undertekster, der står længere end et minut, almindeligt på billedbaserede spor, forsvinder ikke længere for tidligt."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Untertitel, die länger als eine Minute stehen, üblich bei bildbasierten Spuren, verschwinden nicht mehr zu früh."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Υπότιτλοι που διαρκούν πάνω από ένα λεπτό, συνηθισμένοι σε υπότιτλους εικόνας, δεν εξαφανίζονται πια πρόωρα."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Subtitle cues longer than a minute, common on image-based tracks, no longer disappear too early."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Los subtítulos que duran más de un minuto, habituales en pistas de imagen, ya no desaparecen antes de tiempo."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yli minuutin kestävät tekstitykset, jotka ovat yleisiä kuvapohjaisilla raidoilla, eivät enää katoa liian aikaisin."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les sous-titres affichés plus d'une minute, courants sur les pistes images, ne disparaissent plus trop tôt."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Titlovi dulji od minute, uobičajeni na slikovnim zapisima, više ne nestaju prerano."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Az egy percnél tovább megjelenő feliratok, amelyek képalapú sávoknál gyakoriak, többé nem tűnnek el idő előtt."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "I sottotitoli che durano più di un minuto, comuni nelle tracce a immagini, non scompaiono più in anticipo."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "画像ベースの字幕トラックに多い1分を超える字幕が、早く消えてしまうことがなくなりました。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이미지 기반 트랙에서 흔한 1분 이상 표시되는 자막이 더 이상 일찍 사라지지 않습니다."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Undertekster som vises lenger enn ett minutt, vanlig på bildebaserte spor, forsvinner ikke lenger for tidlig."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ondertitels die langer dan een minuut in beeld staan, gebruikelijk bij beeldgebaseerde sporen, verdwijnen niet meer te vroeg."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Napisy wyświetlane dłużej niż minutę, częste na ścieżkach obrazkowych, nie znikają już przedwcześnie."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Legendas exibidas por mais de um minuto, comuns em trilhas baseadas em imagem, não somem mais cedo demais."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "As legendas apresentadas durante mais de um minuto, comuns em faixas baseadas em imagem, já não desaparecem cedo demais."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Subtitrările afișate mai mult de un minut, frecvente pe pistele bazate pe imagini, nu mai dispar prea devreme."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Субтитры длительностью более минуты, обычные для графических дорожек, больше не исчезают раньше времени."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Titulky dlhšie než minútu, bežné pri obrazových stopách, už nemiznú predčasne."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Undertexter som visas längre än en minut, vanligt på bildbaserade spår, försvinner inte längre för tidigt."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Görüntü tabanlı parçalarda yaygın olan bir dakikadan uzun altyazılar artık erken kaybolmuyor."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Субтитри тривалістю понад хвилину, звичні для графічних доріжок, більше не зникають передчасно."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "持续超过一分钟的字幕(常见于图像字幕轨)不再过早消失。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "持續超過一分鐘的字幕(常見於圖像字幕軌)不再過早消失。"
+          }
+        }
+      }
+    },
+    "changelog.0_11_0.subtitleLongCues.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dlouhé titulky zůstávají viditelné"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lange undertekster forbliver synlige"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lange Untertitel bleiben sichtbar"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Οι μεγάλοι υπότιτλοι παραμένουν ορατοί"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Long subtitles stay visible"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Los subtítulos largos permanecen visibles"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pitkät tekstitykset pysyvät näkyvissä"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les sous-titres longs restent visibles"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dugi titlovi ostaju vidljivi"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A hosszú feliratok láthatók maradnak"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "I sottotitoli lunghi restano visibili"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "長い字幕が消えなくなりました"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "긴 자막이 계속 표시됩니다"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lange undertekster forblir synlige"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lange ondertitels blijven zichtbaar"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Długie napisy pozostają widoczne"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Legendas longas permanecem visíveis"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "As legendas longas permanecem visíveis"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Subtitrările lungi rămân vizibile"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Длинные субтитры остаются на экране"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dlhé titulky zostávajú viditeľné"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Långa undertexter förblir synliga"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uzun altyazılar görünür kalıyor"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Довгі субтитри залишаються на екрані"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "长字幕保持显示"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "長字幕保持顯示"
+          }
+        }
+      }
+    },
     "changelog.0_4_0.cardHeights.body" : {
       "extractionState" : "manual",
       "localizations" : {

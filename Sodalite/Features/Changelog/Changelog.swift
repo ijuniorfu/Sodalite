@@ -13,6 +13,48 @@ import Foundation
 /// previously affected behaviour.
 enum Changelog {
     static let entries: [ChangelogEntry] = [
+        // MARK: 0.11.0
+        ChangelogEntry(
+            version: "0.11.0",
+            highlights: [
+                ChangelogHighlight(
+                    .new,
+                    "changelog.0_11_0.liveDirectAudio.title",
+                    "changelog.0_11_0.liveDirectAudio.body",
+                    icon: "antenna.radiowaves.left.and.right"
+                ),
+                ChangelogHighlight(
+                    .improve,
+                    "changelog.0_11_0.liveResilience.title",
+                    "changelog.0_11_0.liveResilience.body",
+                    icon: "dot.radiowaves.left.and.right"
+                ),
+                ChangelogHighlight(
+                    .improve,
+                    "changelog.0_11_0.libraryPaging.title",
+                    "changelog.0_11_0.libraryPaging.body",
+                    icon: "square.grid.3x3.fill"
+                ),
+                ChangelogHighlight(
+                    .improve,
+                    "changelog.0_11_0.reliability.title",
+                    "changelog.0_11_0.reliability.body",
+                    icon: "checkmark.seal.fill"
+                ),
+                ChangelogHighlight(
+                    .fix,
+                    "changelog.0_11_0.subtitleLongCues.title",
+                    "changelog.0_11_0.subtitleLongCues.body",
+                    icon: "captions.bubble.fill"
+                ),
+                ChangelogHighlight(
+                    .fix,
+                    "changelog.0_11_0.requestFilters.title",
+                    "changelog.0_11_0.requestFilters.body",
+                    icon: "line.3.horizontal.decrease.circle.fill"
+                ),
+            ]
+        ),
         // MARK: 0.10.0
         ChangelogEntry(
             version: "0.10.0",
