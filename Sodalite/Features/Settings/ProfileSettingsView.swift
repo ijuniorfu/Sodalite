@@ -318,72 +318,15 @@ struct ProfileSettingsView: View {
     }
 
     private func refreshUserDetails(userID: String, serverID: String) async {
-        // /Users/Me returns the full user including the Policy block;
-        // /Users/Public is the imageTag-only fallback for older
-        // Jellyfin versions / legacy installs. The Policy refresh is
-        // what the File Management permission gate (canDeleteContent)
-        // reads, without it the activeUser stays on the keychain stub
-        // with policy: nil after every profile switch.
-        let me: JellyfinUser? = try? await dependencies.jellyfinAuthService.getCurrentUser()
-        let directTag: String? = (me?.id == userID) ? me?.primaryImageTag : nil
-        let fallbackTag: String? = directTag == nil ? await fetchFreshImageTag(for: userID) : nil
-        let tag = directTag ?? fallbackTag
-
-        guard appState.activeUser?.id == userID else { return }
-        guard let current = appState.activeUser else { return }
-
-        let freshPolicy = (me?.id == userID) ? me?.policy : current.policy
-        let tagChanged = current.primaryImageTag != tag
-        let policyChanged = current.policy != freshPolicy
-        guard tagChanged || policyChanged else { return }
-
-        let fresh = JellyfinUser(
-            id: current.id,
-            name: current.name,
-            serverID: current.serverID,
-            hasPassword: current.hasPassword,
-            primaryImageTag: tag,
-            policy: freshPolicy
-        )
-        appState.activeUser = fresh
-        if let tag, !tag.isEmpty {
-            try? dependencies.keychainService.save(tag, for: KeychainKeys.activeUserImageTag)
-        } else {
-            try? dependencies.keychainService.delete(for: KeychainKeys.activeUserImageTag)
+        // Fetch + keychain/remembered-user persistence live in the
+        // container; this view only applies the refreshed user to
+        // AppState.
+        if let fresh = await dependencies.refreshActiveUserDetails(
+            expectedUserID: userID,
+            serverID: serverID
+        ) {
+            appState.activeUser = fresh
         }
-        if let existing = dependencies.listRememberedUsers(serverID: serverID)
-            .first(where: { $0.id == userID }) {
-            try? dependencies.rememberUser(
-                RememberedUser(
-                    id: existing.id,
-                    serverID: existing.serverID,
-                    name: fresh.name,
-                    imageTag: tag,
-                    token: existing.token,
-                    addedAt: existing.addedAt
-                )
-            )
-        }
-    }
-
-    /// Try /Users/Me first, fall back to /Users/Public when it
-    /// either failed or came back without a PrimaryImageTag (some
-    /// Jellyfin versions only populate the tag on the public
-    /// listing, not the authenticated detail endpoint).
-    private func fetchFreshImageTag(for userID: String) async -> String? {
-        if let me = try? await dependencies.jellyfinAuthService.getCurrentUser(),
-           me.id == userID,
-           let tag = me.primaryImageTag,
-           !tag.isEmpty {
-            return tag
-        }
-        if let publicUsers = try? await dependencies.jellyfinAuthService.getPublicUsers(),
-           let match = publicUsers.first(where: { $0.id == userID }),
-           let tag = match.primaryImageTag,
-           !tag.isEmpty {
-            return tag
-        }
-        return nil
     }
 
     private func restoreSeerrForSwitchedProfile(userID: String, serverID: String) async {

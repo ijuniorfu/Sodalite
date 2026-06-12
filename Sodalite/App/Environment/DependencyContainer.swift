@@ -601,6 +601,96 @@ final class DependencyContainer {
         }
     }
 
+    /// Refresh the active user's details from the server after a
+    /// profile switch. /Users/Me returns the full user including the
+    /// Policy block; /Users/Public is the imageTag-only fallback for
+    /// older Jellyfin versions / legacy installs. The Policy refresh
+    /// is what the File Management permission gate (canDeleteContent)
+    /// reads, without it the activeUser stays on the keychain stub
+    /// with policy: nil after every profile switch. The imageTag
+    /// refresh backfills a nil or stale PrimaryImageTag in the
+    /// RememberedUser entry; older entries (pre backfill-from-picker
+    /// fix) and legacy migrations sometimes landed with imageTag=nil
+    /// even though the user has a Jellyfin avatar.
+    ///
+    /// `expectedUserID` guards against another profile switch racing
+    /// the fetch: if the active profile changed between dispatch and
+    /// response, the result is discarded instead of applying another
+    /// user's details to the now-current user. Persists the refreshed
+    /// tag to the keychain + the remembered-profiles entry, then
+    /// returns the refreshed JellyfinUser for the caller to apply to
+    /// AppState. Returns nil when the guard tripped or nothing
+    /// changed.
+    func refreshActiveUserDetails(
+        expectedUserID userID: String,
+        serverID: String
+    ) async -> JellyfinUser? {
+        let me: JellyfinUser? = try? await jellyfinAuthService.getCurrentUser()
+        let directTag: String? = (me?.id == userID) ? me?.primaryImageTag : nil
+        // /Users/Public fallback when /Users/Me failed, returned a
+        // different user, or came back without a PrimaryImageTag (some
+        // Jellyfin versions only populate the tag on the public
+        // listing, not the authenticated detail endpoint). `me` is
+        // already in hand at this point: whenever directTag is nil,
+        // that result cannot supply a tag either, so the fallback
+        // only consults the public listing.
+        let fallbackTag: String? = directTag == nil ? await fetchPublicImageTag(for: userID) : nil
+        let tag = directTag ?? fallbackTag
+
+        guard appState?.activeUser?.id == userID,
+              let current = appState?.activeUser else { return nil }
+
+        // Always apply the freshly fetched policy when /Users/Me
+        // succeeded; only fall back to the existing value when the
+        // fetch failed (falling back to it preserves a no-op rather
+        // than a regression).
+        let freshPolicy = (me?.id == userID) ? me?.policy : current.policy
+        let tagChanged = current.primaryImageTag != tag
+        let policyChanged = current.policy != freshPolicy
+        guard tagChanged || policyChanged else { return nil }
+
+        let fresh = JellyfinUser(
+            id: current.id,
+            name: current.name,
+            serverID: current.serverID,
+            hasPassword: current.hasPassword,
+            primaryImageTag: tag,
+            policy: freshPolicy
+        )
+        if let tag, !tag.isEmpty {
+            try? keychainService.save(tag, for: KeychainKeys.activeUserImageTag)
+        } else {
+            try? keychainService.delete(for: KeychainKeys.activeUserImageTag)
+        }
+        if let existing = listRememberedUsers(serverID: serverID)
+            .first(where: { $0.id == userID }) {
+            try? rememberUser(
+                RememberedUser(
+                    id: existing.id,
+                    serverID: existing.serverID,
+                    name: fresh.name,
+                    imageTag: tag,
+                    token: existing.token,
+                    addedAt: existing.addedAt
+                )
+            )
+        }
+        return fresh
+    }
+
+    /// Image-tag lookup against /Users/Public for the fallback path
+    /// above. Returns nil if the listing is unavailable or has no
+    /// match with a non-empty tag.
+    private func fetchPublicImageTag(for userID: String) async -> String? {
+        if let publicUsers = try? await jellyfinAuthService.getPublicUsers(),
+           let match = publicUsers.first(where: { $0.id == userID }),
+           let tag = match.primaryImageTag,
+           !tag.isEmpty {
+            return tag
+        }
+        return nil
+    }
+
     func loadJellyfinPassword() -> String? {
         guard let server = activeJellyfinServerID else { return nil }
         return try? keychainService.loadString(for: KeychainKeys.jellyfinPassword(serverID: server))

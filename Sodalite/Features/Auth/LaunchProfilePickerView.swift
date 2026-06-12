@@ -210,75 +210,15 @@ struct LaunchProfilePickerView: View {
     }
 
     private func refreshUserDetails(userID: String, serverID: String) async {
-        // /Users/Me returns the full user including the Policy block;
-        // /Users/Public is the fallback for legacy / public-only
-        // configurations that only expose the imageTag. The Policy
-        // path is the one the File Management permission gate
-        // depends on.
-        let me: JellyfinUser? = try? await dependencies.jellyfinAuthService.getCurrentUser()
-        let directTag: String? = (me?.id == userID) ? me?.primaryImageTag : nil
-        let fallbackTag: String? = directTag == nil ? await fetchFreshImageTagFromPublic(for: userID) : nil
-        let tag = directTag ?? fallbackTag
-
-        guard appState.activeUser?.id == userID else { return }
-        guard let current = appState.activeUser else { return }
-
-        // Always apply the freshly fetched policy when /Users/Me
-        // succeeded; only fall back to the existing value when the
-        // fetch failed (current was previously nil during restore,
-        // so falling back to it preserves a no-op rather than a
-        // regression).
-        let freshPolicy = (me?.id == userID) ? me?.policy : current.policy
-        let tagChanged = current.primaryImageTag != tag
-        let policyChanged = current.policy != freshPolicy
-        guard tagChanged || policyChanged else { return }
-
-        let fresh = JellyfinUser(
-            id: current.id,
-            name: current.name,
-            serverID: current.serverID,
-            hasPassword: current.hasPassword,
-            primaryImageTag: tag,
-            policy: freshPolicy
-        )
-        appState.activeUser = fresh
-        if let tag, !tag.isEmpty {
-            try? dependencies.keychainService.save(tag, for: KeychainKeys.activeUserImageTag)
-        } else {
-            try? dependencies.keychainService.delete(for: KeychainKeys.activeUserImageTag)
+        // Fetch + keychain/remembered-user persistence live in the
+        // container; this view only applies the refreshed user to
+        // AppState.
+        if let fresh = await dependencies.refreshActiveUserDetails(
+            expectedUserID: userID,
+            serverID: serverID
+        ) {
+            appState.activeUser = fresh
         }
-        if let existing = dependencies.listRememberedUsers(serverID: serverID)
-            .first(where: { $0.id == userID }) {
-            try? dependencies.rememberUser(
-                RememberedUser(
-                    id: existing.id,
-                    serverID: existing.serverID,
-                    name: fresh.name,
-                    imageTag: tag,
-                    token: existing.token,
-                    addedAt: existing.addedAt
-                )
-            )
-        }
-    }
-
-    /// Fallback path when `/Users/Me` did not return the active user
-    /// (legacy server, stale token, or the public-users endpoint is
-    /// all we have access to). Caller already attempts `/Users/Me`
-    /// first via `refreshUserDetails`, so this only runs when that
-    /// failed. Returns nil if neither endpoint has a match.
-    private func fetchFreshImageTagFromPublic(for userID: String) async -> String? {
-        if let me = try? await dependencies.jellyfinAuthService.getCurrentUser(),
-           me.id == userID,
-           let tag = me.primaryImageTag, !tag.isEmpty {
-            return tag
-        }
-        if let publicUsers = try? await dependencies.jellyfinAuthService.getPublicUsers(),
-           let match = publicUsers.first(where: { $0.id == userID }),
-           let tag = match.primaryImageTag, !tag.isEmpty {
-            return tag
-        }
-        return nil
     }
 
     private func restoreSeerrForProfile(userID: String, serverID: String) async {
