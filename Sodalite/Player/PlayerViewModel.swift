@@ -460,7 +460,17 @@ final class PlayerViewModel {
                     preferredAudio != nil && Self.languagesMatch($0.language, preferredAudio)
                 }) ?? player.audioTracks.first(where: { $0.isDefault })
                   ?? player.audioTracks.first
-                if let chosenAudio, chosenAudio.id != player.activeAudioTrackIndex {
+                // Only switch when there is an actual CHOICE. A live
+                // audio switch is an engine reload; on a single-track
+                // channel the engine already plays the only track, and a
+                // phantom index mismatch here used to reload the session
+                // ~2 s after start and stall AVPlayer (device repro:
+                // Das Erste on the server route, frozen frame, no audio).
+                // The engine now reconciles its published index after
+                // live loads; this guard is the host-side belt.
+                if let chosenAudio,
+                   player.audioTracks.count > 1,
+                   chosenAudio.id != player.activeAudioTrackIndex {
                     player.selectAudioTrack(index: chosenAudio.id)
                 }
                 applyPreferredSubtitle(forAudioLanguage: chosenAudio?.language)
