@@ -62,6 +62,7 @@ enum JellyfinEndpoint: APIEndpoint {
     // Live TV
     case liveTvChannels(userID: String, startIndex: Int, limit: Int)
     case liveTvPrograms(channelIDs: [String], userID: String, minEndDate: Date, maxStartDate: Date)
+    case liveTvRecommendedPrograms(userID: String, category: LiveProgramCategory, limit: Int)
     case liveTvGuideInfo
     case closeLiveStream(liveStreamID: String)
     /// DELETE /Videos/ActiveEncodings: kill the server-side transcode job
@@ -144,6 +145,8 @@ enum JellyfinEndpoint: APIEndpoint {
             "/LiveTv/Channels"
         case .liveTvPrograms:
             "/LiveTv/Programs"
+        case .liveTvRecommendedPrograms:
+            "/LiveTv/Programs/Recommended"
         case .liveTvGuideInfo:
             "/LiveTv/GuideInfo"
         case .closeLiveStream:
@@ -397,6 +400,27 @@ enum JellyfinEndpoint: APIEndpoint {
                 URLQueryItem(name: "MaxStartDate", value: iso.string(from: maxStart)),
                 URLQueryItem(name: "SortBy", value: "StartDate"),
                 URLQueryItem(name: "EnableImages", value: "true"),
+            ]
+
+        case .liveTvRecommendedPrograms(let userID, let category, let limit):
+            let flag: URLQueryItem = switch category {
+            case .airing: URLQueryItem(name: "IsAiring", value: "true")
+            case .series: URLQueryItem(name: "IsSeries", value: "true")
+            case .movies: URLQueryItem(name: "IsMovie", value: "true")
+            case .sports: URLQueryItem(name: "IsSports", value: "true")
+            case .kids:   URLQueryItem(name: "IsKids", value: "true")
+            case .news:   URLQueryItem(name: "IsNews", value: "true")
+            }
+            return [
+                URLQueryItem(name: "UserId", value: userID),
+                flag,
+                URLQueryItem(name: "EnableImages", value: "true"),
+                // ChannelInfo populates ChannelName on each program so the
+                // card subtitle and the synthesized JellyfinChannel (for
+                // playback / favorite) have a name without a channel fetch.
+                URLQueryItem(name: "Fields", value: "ChannelInfo"),
+                URLQueryItem(name: "SortBy", value: "StartDate"),
+                URLQueryItem(name: "Limit", value: String(limit)),
             ]
 
         case .closeLiveStream(let liveStreamID):
