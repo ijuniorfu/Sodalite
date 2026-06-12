@@ -7,11 +7,12 @@ struct LiveTVTabView: View {
     // inline expression would hand State a fresh throwaway vm each render.
     @State private var model: EPGGuideViewModel?
     @State private var recordingsModel: RecordingsViewModel?
+    @State private var programsModel: LiveProgramsViewModel?
     @State private var liveContext: LivePlaybackContext?
     @State private var isPlayerPresented = false
-    @State private var section: LiveTVSection = .guide
+    @State private var section: LiveTVSection = .overview
 
-    private enum LiveTVSection { case guide, recordings }
+    private enum LiveTVSection { case overview, guide, recordings }
 
     private var tint: Color {
         dependencies.appearancePreferences.effectiveTint(
@@ -45,6 +46,17 @@ struct LiveTVTabView: View {
                 .opacity(section == .guide ? 1 : 0)
                 .allowsHitTesting(section == .guide)
 
+                if section == .overview, let programsModel, let model {
+                    LiveProgramsView(
+                        model: programsModel,
+                        guideModel: model,
+                        tint: tint,
+                        onWatchLive: { context in
+                            liveContext = context
+                            isPlayerPresented = true
+                        })
+                }
+
                 if section == .recordings, let recordingsModel {
                     RecordingsView(model: recordingsModel, tint: tint)
                 }
@@ -58,6 +70,8 @@ struct LiveTVTabView: View {
                 liveTvService: dependencies.jellyfinLiveTvService,
                 itemService: dependencies.jellyfinItemService,
                 userID: userID)
+            programsModel = LiveProgramsViewModel(
+                service: dependencies.jellyfinLiveTvService, userID: userID)
         }
         .onChange(of: section) { _, newValue in
             // The Recordings segment can cancel timers/series rules the
@@ -95,6 +109,7 @@ struct LiveTVTabView: View {
     /// parent) instead of patching around it.
     private var sectionPicker: some View {
         Picker("", selection: $section) {
+            Text("livetv.segment.overview").tag(LiveTVSection.overview)
             Text("livetv.segment.guide").tag(LiveTVSection.guide)
             Text("livetv.segment.recordings").tag(LiveTVSection.recordings)
         }
