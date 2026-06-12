@@ -31,17 +31,29 @@ final class KeychainService: KeychainServiceProtocol {
     /// here and let the OS pick the first entitled group.
 
     func save(_ data: Data, for key: String) throws {
-        try delete(for: key)
-
+        // Upsert (update-then-add), NOT delete-then-add: the old
+        // delete+add destroyed the previous value before the add could
+        // fail, so a failed token-refresh save lost the old token, and
+        // two interleaved saves could collide on errSecDuplicateItem.
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: service,
             kSecAttrAccount as String: key,
-            kSecValueData as String: data,
-            kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly,
         ]
+        let update: [String: Any] = [
+            kSecValueData as String: data,
+        ]
+        let updateStatus = SecItemUpdate(query as CFDictionary, update as CFDictionary)
+        if updateStatus == errSecSuccess { return }
+        guard updateStatus == errSecItemNotFound else {
+            throw KeychainError.saveFailed(updateStatus)
+        }
 
-        let status = SecItemAdd(query as CFDictionary, nil)
+        var addQuery = query
+        addQuery[kSecValueData as String] = data
+        addQuery[kSecAttrAccessible as String] = kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
+
+        let status = SecItemAdd(addQuery as CFDictionary, nil)
         guard status == errSecSuccess else {
             throw KeychainError.saveFailed(status)
         }

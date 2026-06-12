@@ -57,11 +57,9 @@ final class DependencyContainer {
         keychainService: KeychainServiceProtocol = KeychainService(),
         httpClient: HTTPClientProtocol = HTTPClient()
     ) {
-        // First-launch hook: copy credentials over from the old
-        // JellySeeTV install (if any) so existing testers aren't
-        // sent back to the login screen post-rename. Idempotent,
-        // see KeychainMigrator. Has to run BEFORE keychainService
-        // is touched.
+        // One-shot keychain hygiene (pre-entitlement wipe, see
+        // KeychainMigrator). Idempotent; has to run BEFORE
+        // keychainService is touched.
         KeychainMigrator.migrateIfNeeded()
 
         self.keychainService = keychainService
@@ -225,7 +223,7 @@ final class DependencyContainer {
         try keychainService.save(server.id, for: KeychainKeys.activeServerID)
         try keychainService.save(token, for: KeychainKeys.accessToken(serverID: server.id))
         try keychainService.save(user.id, for: KeychainKeys.userID(serverID: server.id))
-        try keychainService.save(user.name, for: "activeUserName")
+        try keychainService.save(user.name, for: KeychainKeys.activeUserName)
 
         // Persist the avatar image tag so Settings can render the
         // profile picture across cold launches instead of falling
@@ -233,9 +231,9 @@ final class DependencyContainer {
         // any previously-stored tag so a removed image doesn't
         // linger and 404 on every restore.
         if let tag = user.primaryImageTag, !tag.isEmpty {
-            try keychainService.save(tag, for: "activeUserImageTag")
+            try keychainService.save(tag, for: KeychainKeys.activeUserImageTag)
         } else {
-            try? keychainService.delete(for: "activeUserImageTag")
+            try? keychainService.delete(for: KeychainKeys.activeUserImageTag)
         }
 
         if let password, !password.isEmpty {
@@ -568,12 +566,12 @@ final class DependencyContainer {
             remembered.id,
             for: KeychainKeys.userID(serverID: server.id)
         )
-        try keychainService.save(remembered.name, for: "activeUserName")
+        try keychainService.save(remembered.name, for: KeychainKeys.activeUserName)
 
         if let tag = remembered.imageTag, !tag.isEmpty {
-            try keychainService.save(tag, for: "activeUserImageTag")
+            try keychainService.save(tag, for: KeychainKeys.activeUserImageTag)
         } else {
-            try? keychainService.delete(for: "activeUserImageTag")
+            try? keychainService.delete(for: KeychainKeys.activeUserImageTag)
         }
 
         try? keychainService.delete(for: KeychainKeys.jellyfinPassword(serverID: server.id))
@@ -632,8 +630,8 @@ final class DependencyContainer {
 
         try? keychainService.delete(for: KeychainKeys.knownServers)
         try? keychainService.delete(for: KeychainKeys.activeServerID)
-        try? keychainService.delete(for: "activeUserName")
-        try? keychainService.delete(for: "activeUserImageTag")
+        try? keychainService.delete(for: KeychainKeys.activeUserName)
+        try? keychainService.delete(for: KeychainKeys.activeUserImageTag)
 
         jellyfinClient.baseURL = nil
         jellyfinClient.accessToken = nil

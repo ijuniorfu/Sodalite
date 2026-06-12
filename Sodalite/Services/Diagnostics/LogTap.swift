@@ -15,6 +15,14 @@ import Combine
 /// We deliberately do **not** redirect `stdout` via `dup2` any more,
 /// the previous approach was unreliable on tvOS Release builds where
 /// stdout is silently null-redirected when no debugger is attached.
+/// The type is MainActor-isolated (project default), which is what
+/// the `lines` publisher wants. `note(_:)`/`clear()` are explicitly
+/// `nonisolated`: they are wired into `AetherEngine.EngineLog.handler`,
+/// which the engine invokes from its own threads, and previously the
+/// documented "safe to call from any thread" contract only held by
+/// accident (the implicitly-isolated body happened not to touch state
+/// outside the main-queue hop). The explicit annotation makes the
+/// compiler enforce it.
 final class LogTap: ObservableObject {
 
     static let shared = LogTap()
@@ -23,7 +31,7 @@ final class LogTap: ObservableObject {
     /// Always on under the debugger (DEBUG), on for sandbox-receipt
     /// builds (TestFlight), off for App Store builds so end users
     /// never see a developer overlay.
-    static let isDiagnosticBuild: Bool = {
+    nonisolated static let isDiagnosticBuild: Bool = {
         #if DEBUG
         return true
         #else
@@ -48,7 +56,7 @@ final class LogTap: ObservableObject {
     /// Append one line to the overlay. Safe to call from any thread.
     /// Long lines are truncated when rendered in the overlay (the
     /// view applies `lineLimit(1)` + tail truncation).
-    func note(_ line: String) {
+    nonisolated func note(_ line: String) {
         // Mirror to the console on diagnostic builds so host-side notes
         // show up in an Xcode/Console capture alongside the engine prints,
         // not only in the in-app overlay.
@@ -56,19 +64,23 @@ final class LogTap: ObservableObject {
             print(line)
         }
         DispatchQueue.main.async { [weak self] in
-            guard let self else { return }
-            self.lines.append(line)
-            if self.lines.count > self.maxLines {
-                self.lines.removeFirst(self.lines.count - self.maxLines)
+            MainActor.assumeIsolated {
+                guard let self else { return }
+                self.lines.append(line)
+                if self.lines.count > self.maxLines {
+                    self.lines.removeFirst(self.lines.count - self.maxLines)
+                }
             }
         }
     }
 
     /// Wipe the buffer (e.g. between playback sessions so the next
     /// test starts with a clean slate).
-    func clear() {
+    nonisolated func clear() {
         DispatchQueue.main.async { [weak self] in
-            self?.lines.removeAll()
+            MainActor.assumeIsolated {
+                self?.lines.removeAll()
+            }
         }
     }
 }

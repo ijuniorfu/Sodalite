@@ -570,7 +570,7 @@ struct AppRouter: View {
         guard let server = dependencies.activeServer else { return }
 
         guard let userID = try? dependencies.keychainService.loadString(for: KeychainKeys.userID(serverID: server.id)),
-              let userName = try? dependencies.keychainService.loadString(for: "activeUserName")
+              let userName = try? dependencies.keychainService.loadString(for: KeychainKeys.activeUserName)
         else {
             // We have a server + token but lost the active-user
             // globals. Don't clearSession (that would nuke every
@@ -589,14 +589,14 @@ struct AppRouter: View {
         // it from there and re-stamp the canonical key so subsequent
         // restores find it directly.
         let imageTag: String? = {
-            if let direct = try? dependencies.keychainService.loadString(for: "activeUserImageTag") {
+            if let direct = try? dependencies.keychainService.loadString(for: KeychainKeys.activeUserImageTag) {
                 return direct
             }
             guard let fromRemembered = dependencies.listRememberedUsers(serverID: server.id)
                 .first(where: { $0.id == userID })?
                 .imageTag, !fromRemembered.isEmpty
             else { return nil }
-            try? dependencies.keychainService.save(fromRemembered, for: "activeUserImageTag")
+            try? dependencies.keychainService.save(fromRemembered, for: KeychainKeys.activeUserImageTag)
             return fromRemembered
         }()
         let restored = JellyfinUser(

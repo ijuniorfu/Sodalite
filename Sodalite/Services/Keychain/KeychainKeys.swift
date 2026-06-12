@@ -34,6 +34,16 @@ enum KeychainKeys {
     /// Cleared only when the user removes the last known server.
     static let activeServerID = "activeServerID"
 
+    /// Display name of the active user, written next to every session
+    /// save so restore paths can render the profile header before the
+    /// first /Users/Me lands. These used to be raw string literals
+    /// scattered across five files; a typo in any one silently split
+    /// the active-user identity.
+    static let activeUserName = "activeUserName"
+    /// PrimaryImageTag of the active user (avatar), same lifecycle as
+    /// `activeUserName`.
+    static let activeUserImageTag = "activeUserImageTag"
+
     static func seerrSession(serverID: String) -> String {
         "seerrSession_\(serverID)"
     }

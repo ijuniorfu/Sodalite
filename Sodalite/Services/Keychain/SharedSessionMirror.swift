@@ -115,7 +115,16 @@ enum SharedSessionMirror {
     /// group from the query and let the OS fall back to the first
     /// entitled group, losing some isolation but keeping the write
     /// from failing outright.
-    private static let resolvedAccessGroup: String? = {
+    /// Caches only a SUCCESSFUL probe. A `static let` latched the very
+    /// first result for the process lifetime, so a probe that ran
+    /// against an empty keychain (first launch right after the
+    /// migrator wipe, or a clear before any login save) pinned the
+    /// nil fallback forever; writes and deletes could then target
+    /// different groups across launches, leaving a stale TopShelf
+    /// session behind after logout.
+    private static var cachedAccessGroup: String?
+    private static var resolvedAccessGroup: String? {
+        if let cachedAccessGroup { return cachedAccessGroup }
         let probe: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecMatchLimit as String: kSecMatchLimitOne,
@@ -132,8 +141,10 @@ enum SharedSessionMirror {
             return nil
         }
         let prefix = String(group[..<group.index(after: dot)])
-        return prefix + "de.superuser404.Sodalite.shared"
-    }()
+        let resolved = prefix + "de.superuser404.Sodalite.shared"
+        cachedAccessGroup = resolved
+        return resolved
+    }
 
     private static let log = Logger(subsystem: "de.superuser404.Sodalite", category: "TopShelfMirror")
 }

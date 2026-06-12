@@ -243,9 +243,9 @@ struct LaunchProfilePickerView: View {
         )
         appState.activeUser = fresh
         if let tag, !tag.isEmpty {
-            try? dependencies.keychainService.save(tag, for: "activeUserImageTag")
+            try? dependencies.keychainService.save(tag, for: KeychainKeys.activeUserImageTag)
         } else {
-            try? dependencies.keychainService.delete(for: "activeUserImageTag")
+            try? dependencies.keychainService.delete(for: KeychainKeys.activeUserImageTag)
         }
         if let existing = dependencies.listRememberedUsers(serverID: serverID)
             .first(where: { $0.id == userID }) {
