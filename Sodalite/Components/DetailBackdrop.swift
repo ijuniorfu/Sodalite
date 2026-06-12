@@ -96,7 +96,10 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
                             primary()
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.bottom, 48)
+                        // Same 24 pt the panel-to-buttons gap uses, so
+                        // the button row sits as close to the fold as
+                        // it does to the bubble above it.
+                        .padding(.bottom, 24)
                         .background(Color.black.opacity(0.55))
                     }
                     .containerRelativeFrame(.vertical)
