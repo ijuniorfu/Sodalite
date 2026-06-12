@@ -14,26 +14,44 @@ struct DetailBackdrop: View {
     }
 
     var body: some View {
-        AsyncCachedImage(url: imageURL ?? posterFallbackURL) { image in
-            if usesPosterFill {
-                image
+        GeometryReader { geo in
+            AsyncCachedImage(url: imageURL ?? posterFallbackURL) { image in
+                let filled = image
                     .resizable()
                     .aspectRatio(contentMode: .fill)
-                    .scaleEffect(1.3)
-                    .blur(radius: 64)
-            } else {
-                image
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
+                    .frame(width: geo.size.width, height: geo.size.height)
+                    .clipped()
+
+                if usesPosterFill {
+                    // Blur a screen-sized, clipped, rasterized layer
+                    // rather than the poster's full pixel surface. The
+                    // old path applied `.scaleEffect(1.3).blur(radius:
+                    // 64)` directly to the unbounded fill image, whose
+                    // offscreen blur buffer grew large enough to break
+                    // the detail overlay's compositing on tvOS: any item
+                    // without backdrop art (e.g. a collection with no
+                    // Backdrop image) then rendered as the blurred poster
+                    // alone, with the glass panel and action buttons
+                    // missing and nothing focusable, so a Back press
+                    // escaped the app. drawingGroup flattens the blur
+                    // into one bounded Metal layer; the gentle scale
+                    // afterwards pushes the soft edges past the frame.
+                    filled
+                        .blur(radius: 64)
+                        .drawingGroup()
+                        .scaleEffect(1.1)
+                } else {
+                    filled
+                }
+            } placeholder: {
+                Rectangle().fill(Color.Theme.surface)
             }
-        } placeholder: {
-            Rectangle().fill(Color.Theme.surface)
+            .frame(width: geo.size.width, height: geo.size.height)
+            .clipped()
+            // The blur fill is busier than real backdrop art, give it a
+            // slightly stronger dim so the hero text stays readable.
+            .overlay(Color.black.opacity(usesPosterFill ? 0.3 : 0.15))
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .clipped()
-        // The blur fill is busier than real backdrop art, give it a
-        // slightly stronger dim so the hero text stays readable.
-        .overlay(Color.black.opacity(usesPosterFill ? 0.3 : 0.15))
     }
 }
 
