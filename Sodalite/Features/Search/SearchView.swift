@@ -43,6 +43,16 @@ struct SearchView: View {
             // without the user having to retype.
             viewModel?.scheduleSearch()
         }
+        .onChange(of: appState.activeUser?.id) { _, newValue in
+            // Profile switch: tear down the old SearchViewModel so the
+            // next .onAppear rebuilds it for the new user (mirrors
+            // HomeView). Keeping the old one would pin the previous
+            // profile's userID into every /Users/{id}/Items search,
+            // 403ing against the new profile's token until app restart.
+            viewModel = nil
+            guard newValue != nil else { return }
+            bootstrap()
+        }
         // Pre-warm the poster cache as soon as either result list
         // changes so the first focus on a card doesn't pay the
         // round-trip + decode itself. Posters are tiny (typically
