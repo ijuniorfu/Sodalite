@@ -88,31 +88,6 @@ final class PlayerHostController: AVPlayerViewController {
     /// the SW path.
     private var engineSubscriptions: Set<AnyCancellable> = []
 
-    /// Freeze-frame overlay shown during audio-track-switch reload to
-    /// hide the ~1 s black frame the engine teardown produces. The
-    /// captured frame is video-only (via `AVPlayerItemVideoOutput`)
-    /// so no UI chrome ends up in the snapshot. Faded when the new
-    /// AVPlayer's timebase first advances (= audio is audible),
-    /// using a periodic time observer instead of a rate KVO because
-    /// the engine may set `rate=1.0` before our `$currentAVPlayer`
-    /// sink registers the observation, in which case `options: [.new]`
-    /// never fires. A 5 s timeout removes the overlay even if the
-    /// reload fails.
-    private var audioSwitchOverlay: UIView?
-    private var audioSwitchTimeObserver: Any?
-    private var audioSwitchObservedPlayer: AVPlayer?
-    private var audioSwitchTimeoutTask: Task<Void, Never>?
-
-    /// Per-AVPlayerItem video output attached in the `$currentAVPlayer`
-    /// sink. Lets us copy the current decoded pixel buffer for the
-    /// audio-switch freeze-frame snapshot without including any UI
-    /// chrome (the old `UIView.snapshotView` path captured the
-    /// SwiftUI overlay + AVKit chrome along with the video). Ring
-    /// buffer is small (4-5 frames at source resolution); cost is
-    /// ~10-40 MB at 720p-1080p, more at 4K HDR.
-    private var playerVideoOutput: AVPlayerItemVideoOutput?
-    private var playerVideoOutputItem: AVPlayerItem?
-
     /// Diagnostic KVO on the AVPlayerLayer AVKit actually renders with.
     /// The engine's own NativeAVPlayerHost.playerLayer is never mounted
     /// on the native path (AVKit creates an internal layer off
@@ -128,7 +103,6 @@ final class PlayerHostController: AVPlayerViewController {
     /// (zero until video is actually being presented), and the player
     /// clock, for the first 30s of each rebind.
     private var avkitLayerSampler: Task<Void, Never>?
-    private let pixelBufferRenderContext = CIContext(options: nil)
 
     /// True only between `didEnterBackground` and the next
     /// `didBecomeActive`. The Apple TV app switcher (double Home)
@@ -279,27 +253,9 @@ final class PlayerHostController: AVPlayerViewController {
                     // tears down the engine's nativeHost and brings up
                     // a fresh one) doesn't silently drop fill mode.
                     self.applyVideoGravity(for: self.viewModel.pictureMode)
-                    // Deliberately do NOT attach AVPlayerItemVideoOutput
-                    // unconditionally: keeping one attached for the full
-                    // session means AVPlayer must keep decoding into a
-                    // 32BGRA pixel buffer (~24 MB per 4K frame) whether
-                    // we ever read it or not. That allocation pressure is
-                    // the current leading suspect for the ~3.8 MB/sec
-                    // RSS growth on long DV 8.1 SDR sessions that
-                    // survived both the per-frame HDR scoping fix and
-                    // the no-store Cache-Control fix. The output is
-                    // only used by `captureCurrentVideoFrame()` at the
-                    // start of an audio-track-switch (freeze-frame
-                    // overlay); attach lazily in
-                    // `installAudioSwitchOverlay()` and detach right
-                    // after the snapshot is captured.
-                    if self.audioSwitchOverlay != nil {
-                        self.observeNewPlayerForAudioSwitch(avPlayer)
-                    }
                     self.observeAVKitRenderLayer(for: avPlayer)
                 } else {
                     self.player = nil
-                    self.detachVideoOutput()
                     self.avkitLayerObservation?.invalidate()
                     self.avkitLayerObservation = nil
                     self.avkitLayerSampler?.cancel()
@@ -307,14 +263,6 @@ final class PlayerHostController: AVPlayerViewController {
                 }
             }
             .store(in: &engineSubscriptions)
-
-        // Host-side freeze-frame mask for audio-track-switch reloads.
-        // Fires synchronously from PlayerViewModel.selectAudioTrack
-        // BEFORE the engine reload begins, so the snapshot captures
-        // the still-live video surface.
-        viewModel.onAudioSwitchBegin = { [weak self] in
-            self?.installAudioSwitchOverlay()
-        }
 
         // Picture-mode is applied to AVPlayerViewController directly
         // because AVKit's internal AVPlayerLayer is what renders the
@@ -462,37 +410,6 @@ final class PlayerHostController: AVPlayerViewController {
         aetherViewMounted = false
     }
 
-    // MARK: - Audio-track-switch freeze-frame overlay
-
-    /// Attach a video-only output to the player's current item. Lets
-    /// `installAudioSwitchOverlay` copy the most recent decoded pixel
-    /// buffer for the freeze-frame snapshot without dragging the UI
-    /// chrome along (the `UIView.snapshotView` path captured the
-    /// SwiftUI overlay too). Detached + reattached on every engine
-    /// reload because each reload produces a fresh AVPlayerItem.
-    private func attachVideoOutput(for player: AVPlayer) {
-        guard let item = player.currentItem else {
-            detachVideoOutput()
-            return
-        }
-        if playerVideoOutputItem === item, playerVideoOutput != nil { return }
-        detachVideoOutput()
-        let output = AVPlayerItemVideoOutput(pixelBufferAttributes: [
-            kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_32BGRA
-        ])
-        item.add(output)
-        playerVideoOutput = output
-        playerVideoOutputItem = item
-    }
-
-    private func detachVideoOutput() {
-        if let output = playerVideoOutput, let item = playerVideoOutputItem {
-            item.remove(output)
-        }
-        playerVideoOutput = nil
-        playerVideoOutputItem = nil
-    }
-
     /// Audio-before-video diagnostic: KVO `isReadyForDisplay` on the
     /// AVPlayerLayer AVKit renders with (found by walking the layer
     /// tree for the layer bound to `avPlayer`). AVKit creates that
@@ -558,114 +475,6 @@ final class PlayerHostController: AVPlayerViewController {
                     + "clock=\(String(format: "%.2f", t.isFinite ? t : -1)) tcs=\(avPlayer.timeControlStatus.rawValue)"
                 )
             }
-        }
-    }
-
-    /// Copy the most recent decoded frame from the attached
-    /// `AVPlayerItemVideoOutput`. Returns nil if no output is
-    /// attached, no buffer is available, or the conversion fails;
-    /// caller treats nil as "no overlay this round" and the user
-    /// sees the regular black frame (no worse than pre-overlay
-    /// behaviour).
-    private func captureCurrentVideoFrame() -> UIImage? {
-        guard let output = playerVideoOutput, let player = self.player else {
-            return nil
-        }
-        let time = output.itemTime(forHostTime: CACurrentMediaTime())
-        guard let buffer = output.copyPixelBuffer(
-            forItemTime: time,
-            itemTimeForDisplay: nil
-        ) ?? output.copyPixelBuffer(
-            forItemTime: player.currentTime(),
-            itemTimeForDisplay: nil
-        ) else {
-            return nil
-        }
-        let ciImage = CIImage(cvPixelBuffer: buffer)
-        guard let cgImage = pixelBufferRenderContext.createCGImage(
-            ciImage,
-            from: ciImage.extent
-        ) else {
-            return nil
-        }
-        return UIImage(cgImage: cgImage)
-    }
-
-    /// Pin the captured pixel-buffer frame over the video surface so
-    /// the user sees a frozen video frame (no UI chrome) instead of
-    /// a black frame while the engine tears down + restarts the
-    /// pipeline. Removed when the new AVPlayer's `rate` goes
-    /// non-zero (engine called `.play()`), or by the 5 s timeout.
-    private func installAudioSwitchOverlay() {
-        guard audioSwitchOverlay == nil else { return }
-        guard let image = captureCurrentVideoFrame() else { return }
-        let imageView = UIImageView(image: image)
-        imageView.contentMode = .scaleAspectFit
-        let host = contentOverlayView ?? view!
-        imageView.frame = host.bounds
-        imageView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        imageView.isUserInteractionEnabled = false
-        imageView.backgroundColor = .black
-        // contentOverlayView sits above AVPlayer's video layer but
-        // below AVKit chrome; the SwiftUI overlay is on self.view
-        // directly so it stays above this snapshot too.
-        host.addSubview(imageView)
-        audioSwitchOverlay = imageView
-
-        audioSwitchTimeoutTask?.cancel()
-        audioSwitchTimeoutTask = Task { @MainActor [weak self] in
-            try? await Task.sleep(for: .seconds(5))
-            guard !Task.isCancelled else { return }
-            self?.removeAudioSwitchOverlay(animated: false)
-        }
-    }
-
-    /// Attach a periodic time observer to the new AVPlayer; fade as
-    /// soon as the player's timebase advances past its starting
-    /// position. The first observer callback fires immediately with
-    /// `currentTime() == startTime` (skipped); the next callback
-    /// fires once playback actually starts producing samples. This
-    /// reliably catches the audio-resume moment regardless of when
-    /// the engine called `.play()`, which a rate KVO can miss if
-    /// rate is set before our sink registers.
-    private func observeNewPlayerForAudioSwitch(_ player: AVPlayer) {
-        cleanupAudioSwitchObservation()
-        let startTime = player.currentTime()
-        audioSwitchObservedPlayer = player
-        audioSwitchTimeObserver = player.addPeriodicTimeObserver(
-            forInterval: CMTime(value: 1, timescale: 20),
-            queue: .main
-        ) { [weak self] currentTime in
-            guard let self else { return }
-            guard currentTime.isNumeric, startTime.isNumeric else { return }
-            guard CMTimeCompare(currentTime, startTime) > 0 else { return }
-            self.removeAudioSwitchOverlay(animated: true)
-        }
-    }
-
-    private func cleanupAudioSwitchObservation() {
-        if let observer = audioSwitchTimeObserver,
-           let player = audioSwitchObservedPlayer {
-            player.removeTimeObserver(observer)
-        }
-        audioSwitchTimeObserver = nil
-        audioSwitchObservedPlayer = nil
-    }
-
-    private func removeAudioSwitchOverlay(animated: Bool) {
-        audioSwitchTimeoutTask?.cancel()
-        audioSwitchTimeoutTask = nil
-        cleanupAudioSwitchObservation()
-        guard let snap = audioSwitchOverlay else { return }
-        audioSwitchOverlay = nil
-        if animated {
-            UIView.animate(
-                withDuration: 0.25,
-                animations: { snap.alpha = 0 },
-                completion: { _ in snap.removeFromSuperview() }
-            )
-        } else {
-            snap.removeFromSuperview()
         }
     }
 

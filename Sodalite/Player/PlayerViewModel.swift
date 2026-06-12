@@ -1355,25 +1355,12 @@ final class PlayerViewModel {
         Task { [weak self] in await self?.player.seek(to: target) }
     }
 
-    /// Called synchronously before the engine starts an audio-track-switch
-    /// reload, while the current AVPlayer is still rendering live frames.
-    /// Host uses this to install a freeze-frame snapshot overlay that
-    /// hides the ~1 s black frame during pipeline reload (engine teardown
-    /// → new producer → new AVPlayer reaches `.playing`).
-    /// `PlayerHostController` sets this in `viewDidLoad`.
-    var onAudioSwitchBegin: (() -> Void)?
-
     func selectAudioTrack(id: Int) {
         // No optimistic `activeAudioIndex = id` here; the Combine
         // subscription on `player.$activeAudioTrackIndex` updates the
         // picker once the engine actually settles on the new track.
         // Setting it now would make the picker claim the switch already
         // happened while the pipeline is still mid-reload.
-        //
-        // `onAudioSwitchBegin` fires synchronously before the async
-        // engine reload so the host can snapshot the still-live video
-        // surface for the freeze-frame overlay.
-        onAudioSwitchBegin?()
         player.selectAudioTrack(index: id)
         // Re-run the auto-subtitle resolution so a manual mid-playback
         // language switch behaves like the initial load did. Without
