@@ -70,6 +70,17 @@ final class MusicPlaybackCoordinator {
     private var playSessionId: String?
     private var currentMediaSourceId: String?
     private var lastProgressReport: Date = .distantPast
+    /// The single in-flight track load. Every transport action cancels the
+    /// previous load before starting its own: loadAndPlayCurrent suspends on
+    /// a network fetch before it reaches engine.load, so two rapid Next
+    /// presses would otherwise race their fetches and whichever resolved
+    /// LAST would win the engine while currentIndex and Now Playing already
+    /// describe the other track.
+    private var loadTask: Task<Void, Never>?
+    /// Generation stamp for loads; checked after every await inside
+    /// loadAndPlayCurrent so a superseded load can never write its
+    /// session ids / now-playing state over the newer track's.
+    private var loadGeneration = 0
     /// Distinguishes a user-driven stop (or a music->video handoff) from a
     /// track reaching its natural end. Latched true before any teardown so
     /// the `$state == .idle` sink does not mistake the engine's stop for an
@@ -119,19 +130,25 @@ final class MusicPlaybackCoordinator {
     /// requests the fullscreen Now-Playing screen: starting playback (track
     /// tap, album play/shuffle) surfaces the player.
     func play(queue items: [JellyfinItem], startAt index: Int, contextTitle: String? = nil) {
+        // An empty queue would present a stuck "Nothing Playing" fullscreen
+        // player (the dismiss onChange never fires because currentItem never
+        // changes). Reachable via album views whose getSongs failed into [].
+        guard !items.isEmpty else { return }
+        reportStopped()
         self.contextTitle = contextTitle
         queue = items
-        currentIndex = items.isEmpty ? 0 : max(0, min(index, items.count - 1))
+        currentIndex = max(0, min(index, items.count - 1))
         requestNowPlayingPresentation()
-        Task { await loadAndPlayCurrent() }
+        startLoadingCurrent()
     }
 
     /// Jump to another track in the CURRENT queue (used by the player's queue
     /// list), keeping the queue + context title intact.
     func skip(toQueueIndex index: Int) {
         guard queue.indices.contains(index), index != currentIndex else { return }
+        reportStopped()
         currentIndex = index
-        Task { await loadAndPlayCurrent() }
+        startLoadingCurrent()
     }
 
     /// Ask AppRouter to present the fullscreen Now-Playing screen (used by
@@ -158,10 +175,15 @@ final class MusicPlaybackCoordinator {
     }
 
     /// Advance to the next track, or stop if the queue is exhausted.
+    /// Reports PlaybackStopped for the outgoing track BEFORE mutating
+    /// currentIndex: Jellyfin marks items played / bumps play counts off
+    /// the stop report, so without this only the final track of a session
+    /// ever registered in play history.
     func next() {
         if hasNext {
+            reportStopped()
             currentIndex += 1
-            Task { await loadAndPlayCurrent() }
+            startLoadingCurrent()
         } else {
             stop()
         }
@@ -172,10 +194,16 @@ final class MusicPlaybackCoordinator {
     /// otherwise step back one track.
     func previous() {
         if currentTime > 3 || !hasPrevious {
-            Task { await loadAndPlayCurrent() }
+            // Restart-in-place: the source is already loaded, a seek is
+            // instant and keeps the play session, where a full
+            // loadAndPlayCurrent would re-fetch playback info and reload
+            // the engine for an audible gap.
+            Task { await engine.seek(to: 0) }
+            updateNowPlaying()
         } else {
+            reportStopped()
             currentIndex -= 1
-            Task { await loadAndPlayCurrent() }
+            startLoadingCurrent()
         }
     }
 
@@ -189,6 +217,9 @@ final class MusicPlaybackCoordinator {
     /// for a natural track end / handoff and does not recursively fire.
     func stop() {
         isStopping = true
+        loadTask?.cancel()
+        loadTask = nil
+        loadGeneration += 1
         reportStopped()
         engine.stop()
         queue = []
@@ -205,7 +236,21 @@ final class MusicPlaybackCoordinator {
 
     // MARK: - Load + play
 
-    private func loadAndPlayCurrent() async {
+    /// Cancel any in-flight load and start loading the current track.
+    /// Single entry point for every transport action so loads are strictly
+    /// serialized; see `loadTask`.
+    private func startLoadingCurrent() {
+        loadTask?.cancel()
+        loadGeneration += 1
+        let generation = loadGeneration
+        loadTask = Task { [weak self] in
+            await self?.loadAndPlayCurrent(generation: generation)
+            guard let self, self.loadGeneration == generation else { return }
+            self.loadTask = nil
+        }
+    }
+
+    private func loadAndPlayCurrent(generation: Int) async {
         guard let item = currentItem, let userID = userIDProvider() else { return }
 
         configureAudioSessionIfNeeded()
@@ -216,6 +261,9 @@ final class MusicPlaybackCoordinator {
                 userID: userID,
                 profile: nil
             )
+            // Superseded while fetching (rapid Next presses, stop, handoff):
+            // a newer load owns the engine and the session bookkeeping now.
+            guard generation == loadGeneration else { return }
             guard let source = info.mediaSources.first else {
                 LogTap.shared.note("[MusicCoordinator] no media source for \(item.name)")
                 return
@@ -243,6 +291,7 @@ final class MusicPlaybackCoordinator {
                 startPosition: nil,
                 options: LoadOptions(audioOnly: true)
             )
+            guard generation == loadGeneration else { return }
 
             // Publish now-playing + register the shared remote commands
             // BEFORE the first play(). tvOS only registers the app as the
@@ -253,7 +302,12 @@ final class MusicPlaybackCoordinator {
             engine.play()
 
             reportStart()
+        } catch is CancellationError {
+            // Our own supersession (loadTask.cancel() or the engine's
+            // load-generation bump); the newer load handles all state.
+            return
         } catch {
+            guard generation == loadGeneration else { return }
             LogTap.shared.note("[MusicCoordinator] load failed for \(item.name): \(error)")
             // Leave state sane: do not advance, do not flip isPlaying true.
             isPlaying = false
@@ -322,10 +376,13 @@ final class MusicPlaybackCoordinator {
 
                 // Natural end-of-track detection. The engine reaches
                 // `.idle` when the source runs out. Only treat it as an
-                // end-of-track when we did NOT initiate the stop ourselves
-                // and a queue is still live; otherwise this is our own
-                // stop()/handoff teardown and must not recurse.
-                if state == .idle, !self.isStopping, !self.queue.isEmpty {
+                // end-of-track when we did NOT initiate the stop ourselves,
+                // a queue is still live, AND no load is in flight: a Next
+                // press racing the natural end has already advanced, but
+                // its load only flips the engine out of .idle after the
+                // network fetch, so without the loadTask gate the stale
+                // .idle would double-advance and skip a track.
+                if state == .idle, !self.isStopping, !self.queue.isEmpty, self.loadTask == nil {
                     if self.hasNext {
                         self.next()
                     } else {
@@ -350,6 +407,11 @@ final class MusicPlaybackCoordinator {
                 guard backend == .native || backend == .software else { return }
                 guard !self.queue.isEmpty else { return }
                 self.isStopping = true
+                // A music load still in flight must not finish into the
+                // engine after the video took it over.
+                self.loadTask?.cancel()
+                self.loadTask = nil
+                self.loadGeneration += 1
                 self.reportStopped()
                 self.queue = []
                 self.currentIndex = 0
