@@ -246,11 +246,17 @@ struct MovieDetailView: View {
                             .foregroundStyle(.secondary)
                     }
                 }
+                // Wins the width fight against the secondary-info
+                // block: metadata and genres render in full, the
+                // credits line on the right truncates first.
+                .layoutPriority(1)
 
+                // No width cap on the secondary info: the block takes
+                // whatever the metadata column leaves over, growing
+                // toward the middle of the panel before it truncates.
                 if DetailSecondaryInfo.hasContent(vm.item) {
                     Spacer(minLength: 24)
                     DetailSecondaryInfo(item: vm.item)
-                        .frame(maxWidth: 560, alignment: .leading)
                 } else if !vm.hasFullDetail {
                     // Crew/studios still in flight (snapshot paint);
                     // hold the panel's height so it doesn't grow when

@@ -96,8 +96,10 @@ struct DetailSecondaryInfo: View {
             // one line, all credits merged onto a second. The previous
             // line-per-credit column made the right side of the glass
             // panel taller than the metadata block next to it, and the
-            // whole panel grew with it.
-            VStack(alignment: .leading, spacing: 6) {
+            // whole panel grew with it. Trailing-aligned: the block is
+            // anchored at the panel's right edge and lines grow toward
+            // the middle, so ragged line lengths stay tidy.
+            VStack(alignment: .trailing, spacing: 6) {
                 if let tagline, !tagline.isEmpty {
                     Text(tagline)
                         .font(.callout)
