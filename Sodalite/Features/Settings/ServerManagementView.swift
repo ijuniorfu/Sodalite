@@ -13,6 +13,7 @@ struct ServerManagementView: View {
     @State private var defaultID: String?
     @State private var showAddServerFlow = false
     @State private var pendingRemoval: JellyfinServer?
+    @State private var showSwitchFailed = false
 
     var body: some View {
         ScrollView {
@@ -68,6 +69,14 @@ struct ServerManagementView: View {
         } message: { server in
             Text("multiServer.remove.confirm.message \(server.name)", bundle: .main)
         }
+        .alert(
+            Text("multiServer.switch.failed.title", bundle: .main),
+            isPresented: $showSwitchFailed
+        ) {
+            Button("common.ok", role: .cancel) {}
+        } message: {
+            Text("multiServer.switch.failed.message", bundle: .main)
+        }
     }
 
     private func load() {
@@ -78,7 +87,21 @@ struct ServerManagementView: View {
 
     private func switchTo(_ server: JellyfinServer) {
         guard server.id != activeID else { return }
-        try? dependencies.switchServer(to: server.id)
+        let previous = activeID
+        do {
+            try dependencies.switchServer(to: server.id)
+        } catch {
+            // switchServer writes the active-server pointer BEFORE it can
+            // throw (.missingToken), so a swallowed error leaves the
+            // keychain pointing at the new server while the client has no
+            // token and no serverDidSwitch signal ever fires: a
+            // half-switched, broken session. Roll back like
+            // ServerSwitchSheet does and tell the user.
+            if let previous {
+                try? dependencies.rollbackSwitch(to: previous)
+            }
+            showSwitchFailed = true
+        }
         load()
     }
 
