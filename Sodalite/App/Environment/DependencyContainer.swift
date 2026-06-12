@@ -718,4 +718,89 @@ final class DependencyContainer {
         seerrClient.baseURL = nil
         seerrClient.sessionCookie = nil
     }
+
+    /// Restore-and-validate flow for the Seerr session that belongs to
+    /// a Jellyfin profile. This is the single owner of the
+    /// "restore → probe /auth/me → keep or drop" policy; every restore
+    /// path (launch, profile switch, server switch, add-profile) maps
+    /// the returned outcome onto AppState instead of re-implementing
+    /// the sequence.
+    ///
+    /// The keychain entry is only dropped on an authentication
+    /// rejection (401/403), per the RememberedSeerrSession contract.
+    /// Transport failures (timeout, unreachable, Seerr container
+    /// restarting) keep the entry so the session comes back on the
+    /// next launch instead of forcing a re-login.
+    func syncSeerrSession(
+        forJellyfinUserID jellyfinUserID: String?,
+        jellyfinServerID: String?,
+        allowLegacyFallback: Bool = false
+    ) async -> SeerrSyncOutcome {
+        let scopedServer: SeerrServer? = {
+            guard let jellyfinUserID, let jellyfinServerID else { return nil }
+            return restoreSeerrSession(
+                forJellyfinUserID: jellyfinUserID,
+                jellyfinServerID: jellyfinServerID
+            )
+        }()
+
+        // Legacy global fallback (pre-0.3.0 single-session entry) so
+        // old installs still come back on first upgrade. Only consulted
+        // when the profile has no scoped entry of its own.
+        let server = scopedServer ?? (allowLegacyFallback ? restoreSeerrSession() : nil)
+
+        guard let server else {
+            // No remembered session anywhere: make sure no stale
+            // client/global state lingers from a previous profile.
+            try? clearSeerrSession()
+            return .notConfigured
+        }
+
+        do {
+            let user = try await seerrAuthService.currentUser()
+
+            // Legacy bridge: a session restored via the global entry
+            // gets persisted as a scoped copy so the next profile
+            // switch can bring it back without the fallback.
+            if scopedServer == nil, let jellyfinUserID, let jellyfinServerID {
+                try? saveSeerrSession(
+                    server: server,
+                    forJellyfinUserID: jellyfinUserID,
+                    jellyfinServerID: jellyfinServerID
+                )
+            }
+            return .connected(server: server, user: user)
+        } catch let error as APIError where error.isUnauthorized {
+            // The server rejected the cookie: this entry is dead,
+            // drop it (scoped copy only when that was the one probed,
+            // keeps other profiles' sessions untouched).
+            if scopedServer != nil, let jellyfinUserID, let jellyfinServerID {
+                forgetRememberedSeerr(
+                    forJellyfinUserID: jellyfinUserID,
+                    jellyfinServerID: jellyfinServerID
+                )
+            }
+            try? clearSeerrSession()
+            return .invalidated
+        } catch {
+            // Timeout / unreachable / cancellation: NOT a verdict on
+            // the cookie. Keep the keychain entry, leave the client
+            // configured, just don't mark the session connected.
+            return .transientFailure
+        }
+    }
+}
+
+/// Result of `syncSeerrSession`. Callers map this onto AppState:
+/// `.connected` → `setSeerrConnected`, everything else →
+/// `disconnectSeerr()` (the keychain handling already happened
+/// inside the container).
+enum SeerrSyncOutcome {
+    case connected(server: SeerrServer, user: SeerrUser)
+    /// No remembered session for this profile.
+    case notConfigured
+    /// Server rejected the stored cookie; entry was forgotten.
+    case invalidated
+    /// Transport failure; entry kept for a later retry.
+    case transientFailure
 }

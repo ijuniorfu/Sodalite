@@ -146,22 +146,14 @@ struct AppRouter: View {
                     // Restore the per-(server, user) Seerr session so the
                     // Catalog tab reflects the newly active identity, not
                     // the previous server's session.
-                    let seerrServer = dependencies.restoreSeerrSession(
+                    let outcome = await dependencies.syncSeerrSession(
                         forJellyfinUserID: user.id,
                         jellyfinServerID: server.id
                     )
-                    if let seerrServer {
-                        if let seerrUser = try? await dependencies.seerrAuthService.currentUser() {
-                            appState.setSeerrConnected(server: seerrServer, user: seerrUser)
-                        } else {
-                            dependencies.forgetRememberedSeerr(
-                                forJellyfinUserID: user.id,
-                                jellyfinServerID: server.id
-                            )
-                            try? dependencies.clearSeerrSession()
-                        }
+                    if case .connected(let seerrServer, let seerrUser) = outcome {
+                        appState.setSeerrConnected(server: seerrServer, user: seerrUser)
                     } else {
-                        try? dependencies.clearSeerrSession()
+                        appState.disconnectSeerr()
                     }
                 } else {
                     // Token expired or no remembered user: route to
@@ -172,6 +164,12 @@ struct AppRouter: View {
                     appState.isAuthenticated = false
                 }
             } catch {
+                // A superseded switch (user picked another server while
+                // this probe was in flight) cancels this task; URLSession
+                // then throws and we'd misread our own cancellation as a
+                // transport failure and roll back the user's NEWER pick.
+                // Cancellation is never a verdict on the target server.
+                guard !Task.isCancelled else { return }
                 // Avoid rollback loops: if appState already holds the
                 // currently-active server (because we just rolled back
                 // and the probe is still failing), let the failure
@@ -650,40 +648,16 @@ struct AppRouter: View {
         // Seerr restore, prefer the profile-scoped session when the
         // active user has one saved, fall back to the global
         // last-used entry so legacy (pre-0.3.0) Seerr logins still
-        // come back on first upgrade.
-        let activeUserID = appState.activeUser?.id
-        let activeServerID = appState.activeServer?.id
-        let scopedSeerrServer: SeerrServer? = {
-            guard let uid = activeUserID, let sid = activeServerID else { return nil }
-            return dependencies.restoreSeerrSession(forJellyfinUserID: uid, jellyfinServerID: sid)
-        }()
-        let seerrServer = scopedSeerrServer ?? dependencies.restoreSeerrSession()
-        if let seerrServer {
-            if let seerrUser = try? await dependencies.seerrAuthService.currentUser() {
-                appState.setSeerrConnected(server: seerrServer, user: seerrUser)
-
-                // Legacy bridge: if we restored via the global
-                // pre-0.3.0 keychain entry (scopedSeerrServer was
-                // nil), persist a per-user copy for the active
-                // profile so the next profile switch can bring this
-                // session back. Without this, pre-0.3.0 Seerr users
-                // would have to re-authenticate after every switch.
-                if scopedSeerrServer == nil, let uid = activeUserID, let sid = activeServerID {
-                    try? dependencies.saveSeerrSession(
-                        server: seerrServer,
-                        forJellyfinUserID: uid,
-                        jellyfinServerID: sid
-                    )
-                }
-            } else {
-                // Only forget the profile-scoped entry when it was the
-                // one that failed, keeps other profiles' sessions
-                // untouched.
-                if scopedSeerrServer != nil, let uid = activeUserID, let sid = activeServerID {
-                    dependencies.forgetRememberedSeerr(forJellyfinUserID: uid, jellyfinServerID: sid)
-                }
-                try? dependencies.clearSeerrSession()
-            }
+        // come back on first upgrade. The restore → probe → keep-or-
+        // drop policy (including the legacy bridge persist) lives in
+        // syncSeerrSession.
+        let outcome = await dependencies.syncSeerrSession(
+            forJellyfinUserID: appState.activeUser?.id,
+            jellyfinServerID: appState.activeServer?.id,
+            allowLegacyFallback: true
+        )
+        if case .connected(let seerrServer, let seerrUser) = outcome {
+            appState.setSeerrConnected(server: seerrServer, user: seerrUser)
         }
     }
 

@@ -278,22 +278,13 @@ struct LaunchProfilePickerView: View {
     }
 
     private func restoreSeerrForProfile(userID: String, serverID: String) async {
-        guard let seerrServer = dependencies.restoreSeerrSession(
+        let outcome = await dependencies.syncSeerrSession(
             forJellyfinUserID: userID,
             jellyfinServerID: serverID
-        ) else {
-            try? dependencies.clearSeerrSession()
-            appState.disconnectSeerr()
-            return
-        }
-        if let seerrUser = try? await dependencies.seerrAuthService.currentUser() {
-            appState.setSeerrConnected(server: seerrServer, user: seerrUser)
+        )
+        if case .connected(let server, let user) = outcome {
+            appState.setSeerrConnected(server: server, user: user)
         } else {
-            dependencies.forgetRememberedSeerr(
-                forJellyfinUserID: userID,
-                jellyfinServerID: serverID
-            )
-            try? dependencies.clearSeerrSession()
             appState.disconnectSeerr()
         }
     }

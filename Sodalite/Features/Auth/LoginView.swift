@@ -296,22 +296,13 @@ struct LoginView: View {
     /// the add-profile path lands on the same end state as a
     /// regular profile switch.
     private func syncSeerrToActiveProfile(userID: String, serverID: String) async {
-        guard let seerrServer = dependencies.restoreSeerrSession(
+        let outcome = await dependencies.syncSeerrSession(
             forJellyfinUserID: userID,
             jellyfinServerID: serverID
-        ) else {
-            try? dependencies.clearSeerrSession()
-            appState.disconnectSeerr()
-            return
-        }
-        if let seerrUser = try? await dependencies.seerrAuthService.currentUser() {
-            appState.setSeerrConnected(server: seerrServer, user: seerrUser)
+        )
+        if case .connected(let server, let user) = outcome {
+            appState.setSeerrConnected(server: server, user: user)
         } else {
-            dependencies.forgetRememberedSeerr(
-                forJellyfinUserID: userID,
-                jellyfinServerID: serverID
-            )
-            try? dependencies.clearSeerrSession()
             appState.disconnectSeerr()
         }
     }
