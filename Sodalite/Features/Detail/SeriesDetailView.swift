@@ -6,6 +6,12 @@ struct SeriesDetailView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var viewModel: DetailViewModel?
     @State private var selectedEpisode: JellyfinItem?
+    /// Episode IDs whose per-episode detail fetch (enrichedEpisode) has
+    /// settled, with or without an overview. Gates the synopsis
+    /// placeholder in episode mode: while the ID is absent the slot is
+    /// reserved; once it settles with no overview the box collapses
+    /// instead of holding an empty placeholder forever.
+    @State private var settledEpisodeDetailIDs: Set<String> = []
     @State private var navigateToItem: JellyfinItem?
     @State private var navigateToPerson: PersonRoute?
     @State private var navigateToSeerrRequest: SeerrMedia?
@@ -106,6 +112,26 @@ struct SeriesDetailView: View {
         selectedEpisode != nil
     }
 
+    /// Overview for the synopsis box. Episodes opened from slim sources
+    /// (Home rows, search results) arrive without an Overview field; the
+    /// per-episode detail fetch backfills it, but on slow CDNs that
+    /// round-trip lands seconds after first paint. The season's episode
+    /// list is fetched immediately anyway and carries Overview for the
+    /// cards (episodeListFields), so fall back to the matching list entry
+    /// and the synopsis paints together with the episode row instead of
+    /// popping in later (Sodalite#15).
+    private var displayOverview: String? {
+        if let overview = displayItem.overview, !overview.isEmpty {
+            return overview
+        }
+        if let id = selectedEpisode?.id,
+           let match = viewModel?.episodes.first(where: { $0.id == id }),
+           let overview = match.overview, !overview.isEmpty {
+            return overview
+        }
+        return nil
+    }
+
     var body: some View {
         ZStack {
             // Solid black behind the spinner, the backdrop image is
@@ -164,7 +190,7 @@ struct SeriesDetailView: View {
                             // keyed on the item id it renders reliably when the
                             // data lands, unlike an in-panel teaser that the
                             // ScrollView left blank until a scroll.
-                            if let overview = displayItem.overview, !overview.isEmpty {
+                            if let overview = displayOverview {
                                 ExpandableTextBox(text: overview)
                                     .padding(.horizontal, 50)
                                     .id(displayItem.id)
@@ -173,6 +199,21 @@ struct SeriesDetailView: View {
                                 // overview is still in flight. Reserve the
                                 // box's footprint so it doesn't pop in and
                                 // shove the season row down (Sodalite#15).
+                                ExpandableTextBoxPlaceholder()
+                                    .padding(.horizontal, 50)
+                            } else if isShowingEpisode, let ep = selectedEpisode,
+                                      ep.mediaStreams == nil, ep.mediaSources == nil,
+                                      !settledEpisodeDetailIDs.contains(ep.id) {
+                                // Episode mode, slim snapshot: the overview can
+                                // still arrive from the episode list or the
+                                // detail fetch. Reserve the slot so the box
+                                // doesn't insert above the season row mid-view
+                                // (Sodalite#15: synopsis invisible on initial
+                                // view, then layout jump). The mediaStreams /
+                                // mediaSources guard mirrors the enrichment
+                                // trigger: an episode that already carries
+                                // streams arrived fully detailed, so a missing
+                                // overview is final and the box stays gone.
                                 ExpandableTextBoxPlaceholder()
                                     .padding(.horizontal, 50)
                             }
@@ -384,6 +425,10 @@ struct SeriesDetailView: View {
                 if selectedEpisode?.id == enriched.id {
                     selectedEpisode = enriched
                 }
+                // Settled either way (enrichedEpisode returns the input
+                // episode on a failed fetch): release the synopsis
+                // placeholder so it can't sit there empty forever.
+                settledEpisodeDetailIDs.insert(episode.id)
             }
         }
         .sheet(isPresented: $isPresentingDeleteSheet) {
