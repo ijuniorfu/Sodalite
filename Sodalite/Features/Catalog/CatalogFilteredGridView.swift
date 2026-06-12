@@ -146,11 +146,24 @@ struct CatalogFilteredGridView: View {
             // since last visit.
             let oldKeys = items.map(\.stableKey)
             let newKeys = result.results.map(\.stableKey)
-            if oldKeys != newKeys {
-                items = result.results
+            if page > 1 {
+                // The user already paginated past page 1 while this
+                // refresh was in flight (cache hydration + fast scroll
+                // on a slow network). A wholesale replace would yank
+                // pages 2+ out from under their focus; only do it when
+                // page 1 itself rotated.
+                if oldKeys.prefix(newKeys.count) != ArraySlice(newKeys) {
+                    items = result.results
+                    page = 1
+                }
+                totalPages = result.totalPages
+            } else {
+                if oldKeys != newKeys {
+                    items = result.results
+                }
+                page = 1
+                totalPages = result.totalPages
             }
-            page = 1
-            totalPages = result.totalPages
             errorMessage = nil
             FilterCache.shared.setCatalogPage(
                 result.results,

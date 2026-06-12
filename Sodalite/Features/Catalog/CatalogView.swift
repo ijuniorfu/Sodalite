@@ -73,6 +73,23 @@ struct CatalogView: View {
                 break
             }
         }
+        .onReceive(NotificationCenter.default.publisher(for: .seerrRequestDidSubmit)) { _ in
+            // A request was just created from a detail view. The
+            // section-switch handlers above only load when a list is
+            // EMPTY, so already-loaded lists would show stale content
+            // until app restart. Refresh whichever lists are loaded;
+            // empty ones get their load on next section switch anyway.
+            guard let vm = viewModel else { return }
+            if !vm.myRequests.isEmpty, let userID = appState.activeSeerrUser?.id {
+                Task { await vm.loadMyRequests(userID: userID) }
+            }
+            if !vm.allRequests.isEmpty {
+                Task {
+                    await vm.loadAllRequests(reset: true)
+                    await vm.refreshAllRequestsCounts()
+                }
+            }
+        }
         .onChange(of: appState.activeUser?.id) { _, _ in
             // Profile switch, the Jellyfin user changed, so any
             // cached Seerr state (discover sections tied to the old

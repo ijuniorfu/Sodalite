@@ -32,8 +32,11 @@ struct CollectionDetailView: View {
                     playbackService: dependencies.jellyfinPlaybackService
                 )
                 Task {
+                    // loadFullDetail already loads the collection's
+                    // items internally for .boxSet; a second explicit
+                    // loadCollectionItems was a redundant round trip
+                    // with a duplicate collectionItems write.
                     await viewModel?.loadFullDetail()
-                    await viewModel?.loadCollectionItems()
                 }
             }
         }

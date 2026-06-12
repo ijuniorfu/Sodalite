@@ -86,21 +86,15 @@ struct CatalogDiscoverView: View {
                                 onSelect: onSelectFilter
                             )
                         }
-                        // Networks row, drop tiles whose cached
-                        // first page is empty so the user isn't
-                        // teased with a card that opens to nothing.
+                        // Networks row, drop tiles whose first page is
+                        // known-empty so the user isn't teased with a
+                        // card that opens to nothing. The hide sets are
+                        // computed once per load in the view model;
+                        // reading FilterCache here meant ~41 synchronous
+                        // disk reads + JSON decodes per body render.
                         let region = Locale.current.region?.identifier ?? "US"
-                        let visibleNetworks = CatalogProviders.networks.filter { provider in
-                            let key: String
-                            if let id = provider.tmdbWatchProviderID {
-                                key = FilterCacheKey.Catalog.streamingService(
-                                    watchProviderID: id, region: region
-                                )
-                            } else {
-                                key = FilterCacheKey.Catalog.tvNetwork(id: provider.id)
-                            }
-                            let count = FilterCache.shared.catalogPage(filterKey: key)?.items.count
-                            return count == nil || count! > 0
+                        let visibleNetworks = CatalogProviders.networks.filter {
+                            !viewModel.hiddenNetworkIDs.contains($0.id)
                         }
                         if !visibleNetworks.isEmpty {
                             CatalogProviderRow(
@@ -129,10 +123,8 @@ struct CatalogDiscoverView: View {
                                 }
                             )
                         }
-                        let visibleStudios = CatalogProviders.studios.filter { provider in
-                            let key = FilterCacheKey.Catalog.movieStudio(id: provider.id)
-                            let count = FilterCache.shared.catalogPage(filterKey: key)?.items.count
-                            return count == nil || count! > 0
+                        let visibleStudios = CatalogProviders.studios.filter {
+                            !viewModel.hiddenStudioIDs.contains($0.id)
                         }
                         if !visibleStudios.isEmpty {
                             CatalogProviderRow(

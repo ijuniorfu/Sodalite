@@ -137,6 +137,15 @@ struct MediaDeletionSheet: View {
                 isOn: $deleteEntireSeries,
                 disabled: false
             )
+            .onAppear {
+                // Series mode opens with deleteEntireSeries=false, so
+                // the cascade row below starts disabled; its onChange
+                // hook never fires for the INITIAL disabled state and
+                // the row would show a checked-but-disabled toggle
+                // while the parent could receive cascade=true with a
+                // seasons-only selection.
+                if !deleteEntireSeries { cascadeToArrStack = false }
+            }
             .onChange(of: deleteEntireSeries) { _, newValue in
                 // Switching to whole-series clears any season selection
                 // so the visual state stays coherent.

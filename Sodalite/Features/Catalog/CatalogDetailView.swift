@@ -948,8 +948,36 @@ struct CatalogDetailView: View {
                 tags: selectedTagIDs.isEmpty ? nil : Array(selectedTagIDs)
             )
             didRequest = true
+            // Tell the request lists (My Requests / admin queue) to
+            // refresh; they only reload-when-empty on section switch.
+            NotificationCenter.default.post(name: .seerrRequestDidSubmit, object: nil)
+            // Re-fetch the detail so mediaInfo reflects the new
+            // pending request: season chips and status badges showed
+            // stale "not requested" state until the next cold open.
+            // Deliberately NOT load(): that would flip the full-screen
+            // loading state and re-run config/recommendations.
+            await refreshDetailAfterRequest()
         } catch {
             requestError = error.localizedDescription
+        }
+    }
+
+    /// Light detail refresh after a successful request: only the
+    /// mediaInfo-carrying detail object is replaced so status badges
+    /// and season chips pick up the pending state; season tab
+    /// selection and episode lists stay untouched.
+    private func refreshDetailAfterRequest() async {
+        do {
+            switch media.mediaType {
+            case .movie:
+                movieDetail = try await dependencies.seerrMediaService.movieDetail(tmdbID: media.id)
+            case .tv:
+                tvDetail = try await dependencies.seerrMediaService.tvDetail(tmdbID: media.id)
+            case .person, .unknown:
+                break
+            }
+        } catch {
+            // Badges stay stale until the next open; not worth an alert.
         }
     }
 }

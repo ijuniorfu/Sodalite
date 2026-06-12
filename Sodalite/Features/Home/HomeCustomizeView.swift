@@ -370,29 +370,6 @@ struct FocusableIcon: View {
     }
 }
 
-// MARK: - Notification
-
-extension Notification.Name {
-    static let homeConfigDidChange = Notification.Name("homeConfigDidChange")
-    static let homeFavoritesDidChange = Notification.Name("homeFavoritesDidChange")
-    static let homePlayedDidChange = Notification.Name("homePlayedDidChange")
-    /// Posted by PlayerViewModel after a successful playback-stop
-    /// report. Lets HomeView (and any other view that cares) refresh
-    /// Continue Watching / Next Up so the user sees their new
-    /// progress as soon as they're back.
-    static let playbackProgressDidChange = Notification.Name("playbackProgressDidChange")
-    /// Posted by the detail views after a successful deletion. Lets
-    /// HomeView reload so the deleted item disappears from the rows
-    /// immediately instead of lingering until the next stale refresh.
-    static let homeItemDidDelete = Notification.Name("homeItemDidDelete")
-    /// Fires after LoginView completes (password or Quick Connect).
-    /// ProfileSettingsView listens so it can pop its "Add another
-    /// profile" navigation branch, without it, the login success
-    /// screen hangs because the user was already authenticated
-    /// before and AppRouter doesn't tear down TabRootView.
-    static let loginDidComplete = Notification.Name("loginDidComplete")
-}
-
 // MARK: - Storage
 
 extension HomeRowConfig {

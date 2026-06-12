@@ -62,6 +62,14 @@ final class DetailViewModel {
     /// backing that Swift doesn't allow `nonisolated` on. Task<Void, Never>
     /// is Sendable so the cancel call itself is safe.
     nonisolated(unsafe) private var prefetchTask: Task<Void, Never>?
+    /// Separate slot for the PlaybackInfo prefetch. It used to share
+    /// `prefetchTask` with the season warming, and since loadSeasons
+    /// schedules startSeasonPrefetch right after prefetchPlaybackInfo
+    /// on every multi-season series, the season pass cancelled the
+    /// PlaybackInfo fetch ~immediately: cachedPlaybackInfo stayed nil
+    /// and the play button paid the full round trip it was meant to
+    /// hide.
+    nonisolated(unsafe) private var playbackInfoPrefetchTask: Task<Void, Never>?
 
     /// Per-season episode cache. Hit on `loadEpisodes(seasonID:)` so a
     /// season tab the user has already (or pre-emptively) visited
@@ -76,6 +84,7 @@ final class DetailViewModel {
 
     deinit {
         prefetchTask?.cancel()
+        playbackInfoPrefetchTask?.cancel()
     }
 
     init(
@@ -517,8 +526,8 @@ final class DetailViewModel {
     func prefetchPlaybackInfo(for itemID: String) {
         guard let playbackService else { return }
         // Cancel any older prefetch, only the latest item matters.
-        prefetchTask?.cancel()
-        prefetchTask = Task { [weak self] in
+        playbackInfoPrefetchTask?.cancel()
+        playbackInfoPrefetchTask = Task { [weak self] in
             guard let self else { return }
             let response = try? await playbackService.getPlaybackInfo(
                 itemID: itemID, userID: self.userID,

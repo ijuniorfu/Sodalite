@@ -333,7 +333,13 @@ final class HomeViewModel {
     /// + counts dict) survives across appearances anyway.
     func precomputeProviderCounts() async {
         if providerCountsComputedAt != nil { return }
-        providerCountsComputedAt = Date()
+        // NOTE: the once-per-session latch is set at the END of the
+        // write pass, not here. Latching up front meant a cancelled or
+        // failed run (loadContent re-entry inside the precompute's
+        // multi-second runtime is common: 60 s staleness, playback
+        // stop, favorites change) left the latch set and the
+        // replacement task bailed instantly, ending the session with
+        // partial or empty provider counts.
 
         let region = Locale.current.region?.identifier ?? "US"
         let lib = libraryService
@@ -358,9 +364,15 @@ final class HomeViewModel {
             limit: 10000,
             fields: JellyfinEndpoint.homeRowFields + ",ProviderIds"
         )
-        let allItems = (try? await libraryService.getItems(
+        // Honest failure handling: a failed or cancelled scan must NOT
+        // proceed with an empty tmdbMap, the resolve pass would then
+        // find studio-only matches and overwrite good FilterCache
+        // entries with shrunken lists (providers whose matches come
+        // only via the TMDB augment, like Paramount+, would count 0
+        // and their tile would hide for the session).
+        guard let allItems = try? await libraryService.getItems(
             userID: userID, query: allItemsQuery
-        ).items) ?? []
+        ).items, !Task.isCancelled else { return }
 
         var tmdbMap: [Int: JellyfinItem] = [:]
         for item in allItems {
@@ -418,6 +430,11 @@ final class HomeViewModel {
             }
         }.value
 
+        // The detached resolve doesn't inherit this task's
+        // cancellation; a cancelled precompute must not write its
+        // (possibly superseded) results over the replacement run's.
+        guard !Task.isCancelled else { return }
+
         // MainActor pass: write counts + cache + sample backdrop
         // for each provider.
         for (providerID, items) in resolved {
@@ -438,6 +455,10 @@ final class HomeViewModel {
                 providerBackdrops[providerID] = url
             }
         }
+
+        // Latch only after a fully-written pass (see the note at the
+        // top of this function).
+        providerCountsComputedAt = Date()
     }
 
     /// Pre-warms FilterCache for every genre tile currently on the
@@ -565,7 +586,14 @@ final class HomeViewModel {
     }
 
     private func loadProviderBackdrops() async {
-        let providers = CatalogProviders.networks
+        // Only providers without a resolved backdrop. loadContent
+        // re-fires on every playback stop / favorites change / 60 s
+        // staleness, and unlike the counts/genre passes this one had
+        // no per-session throttle, so it re-ran all ~33 random-sample
+        // queries each time mostly to overwrite hero images that were
+        // already resolved.
+        let providers = CatalogProviders.networks.filter { providerBackdrops[$0.id] == nil }
+        guard !providers.isEmpty else { return }
         // Stage 1: collect a sample item per provider in parallel.
         // imageService isn't Sendable, so URL construction happens
         // back on MainActor in stage 2, the task group only carries

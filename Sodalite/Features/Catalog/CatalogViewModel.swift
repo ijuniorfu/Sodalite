@@ -33,6 +33,13 @@ final class CatalogViewModel {
     /// service instead of a flat dark plate.
     var networkBackdrops: [Int: String] = [:]
     var studioBackdrops: [Int: String] = [:]
+    /// Provider tiles whose page-1 result is known-empty (nothing to
+    /// stream in the user's region). Computed once per load from the
+    /// cache + the live resolve pass; CatalogDiscoverView used to read
+    /// FilterCache (disk + JSON decode per provider) inside its body
+    /// for this, ~41 synchronous disk reads per render.
+    private(set) var hiddenNetworkIDs: Set<Int> = []
+    private(set) var hiddenStudioIDs: Set<Int> = []
     var myRequests: [SeerrRequest] = []
 
     // MARK: - Admin requests (Phase B)
@@ -190,6 +197,33 @@ final class CatalogViewModel {
         // count is honest. Falls back to the TV-network endpoint for
         // broadcast-only entries (ABC, NBC, CBS).
         let region = Locale.current.region?.identifier ?? "US"
+
+        // Seed the hide sets from the cache so tiles known-empty from
+        // a previous session disappear on first render, before the
+        // live resolve below lands. One read per provider, once per
+        // load, instead of per body render in the view.
+        var hiddenNetworks: Set<Int> = []
+        for provider in CatalogProviders.networks {
+            let key: String
+            if let id = provider.tmdbWatchProviderID {
+                key = FilterCacheKey.Catalog.streamingService(watchProviderID: id, region: region)
+            } else {
+                key = FilterCacheKey.Catalog.tvNetwork(id: provider.id)
+            }
+            if let cached = FilterCache.shared.catalogPage(filterKey: key), cached.items.isEmpty {
+                hiddenNetworks.insert(provider.id)
+            }
+        }
+        hiddenNetworkIDs = hiddenNetworks
+        var hiddenStudios: Set<Int> = []
+        for provider in CatalogProviders.studios {
+            let key = FilterCacheKey.Catalog.movieStudio(id: provider.id)
+            if let cached = FilterCache.shared.catalogPage(filterKey: key), cached.items.isEmpty {
+                hiddenStudios.insert(provider.id)
+            }
+        }
+        hiddenStudioIDs = hiddenStudios
+
         let results = await withTaskGroup(
             of: ProviderResolveResult.self,
             returning: [ProviderResolveResult].self
@@ -223,7 +257,8 @@ final class CatalogViewModel {
                             ),
                             items: merged,
                             totalPages: max(totalPages, 1),
-                            backdrop: backdrop
+                            backdrop: backdrop,
+                            fetchFailed: movies == nil && tv == nil
                         )
                     } else {
                         let result = try? await discoverService.tvByNetwork(
@@ -235,7 +270,8 @@ final class CatalogViewModel {
                             cacheKey: FilterCacheKey.Catalog.tvNetwork(id: provider.id),
                             items: result?.results ?? [],
                             totalPages: max(result?.totalPages ?? 1, 1),
-                            backdrop: result?.results.first(where: { $0.backdropPath != nil })?.backdropPath
+                            backdrop: result?.results.first(where: { $0.backdropPath != nil })?.backdropPath,
+                            fetchFailed: result == nil
                         )
                     }
                 }
@@ -251,7 +287,8 @@ final class CatalogViewModel {
                         cacheKey: FilterCacheKey.Catalog.movieStudio(id: provider.id),
                         items: result?.results ?? [],
                         totalPages: max(result?.totalPages ?? 1, 1),
-                        backdrop: result?.results.first(where: { $0.backdropPath != nil })?.backdropPath
+                        backdrop: result?.results.first(where: { $0.backdropPath != nil })?.backdropPath,
+                        fetchFailed: result == nil
                     )
                 }
             }
@@ -265,11 +302,29 @@ final class CatalogViewModel {
         // closures avoids the async-isolation error and centralises
         // the side effects in one easy-to-read sweep.
         for result in results {
+            // A failed fetch must not be persisted as a valid empty
+            // page (that would hide the tile until a successful
+            // revisit) and must not flip the hide sets.
+            guard !result.fetchFailed else { continue }
             FilterCache.shared.setCatalogPage(
                 result.items,
                 totalPages: result.totalPages,
                 filterKey: result.cacheKey
             )
+            switch result.kind {
+            case .network:
+                if result.items.isEmpty {
+                    hiddenNetworkIDs.insert(result.displayID)
+                } else {
+                    hiddenNetworkIDs.remove(result.displayID)
+                }
+            case .studio:
+                if result.items.isEmpty {
+                    hiddenStudioIDs.insert(result.displayID)
+                } else {
+                    hiddenStudioIDs.remove(result.displayID)
+                }
+            }
             if let backdrop = result.backdrop {
                 switch result.kind {
                 case .network: networkBackdrops[result.displayID] = backdrop
@@ -286,6 +341,7 @@ final class CatalogViewModel {
         let items: [SeerrMedia]
         let totalPages: Int
         let backdrop: String?
+        let fetchFailed: Bool
     }
 
     private enum ProviderKind { case network, studio }
@@ -431,12 +487,18 @@ final class CatalogViewModel {
         isLoadingAllRequests = true
         defer { isLoadingAllRequests = false }
 
+        // Snapshot the filter: a chip tap mid-flight resets the list
+        // for the NEW filter, and this response (old filter) must not
+        // land in it (disjoint ids defeat the dedupe, and the skip
+        // offset would corrupt the next page).
+        let filter = allRequestsFilter
         do {
             let result = try await requestService.allRequests(
-                filter: allRequestsFilter,
+                filter: filter,
                 take: allRequestsPageSize,
                 skip: allRequestsSkip
             )
+            guard allRequestsFilter == filter else { return }
             allRequests = result.results
             allRequestsTotal = result.pageInfo.results
             allRequestsSkip = result.results.count
@@ -453,12 +515,17 @@ final class CatalogViewModel {
         isLoadingMoreAllRequests = true
         defer { isLoadingMoreAllRequests = false }
 
+        // Same filter snapshot as loadAllRequests: isLoadingAllRequests
+        // and isLoadingMoreAllRequests are separate flags, so a filter
+        // switch can reset the list while this page is in flight.
+        let filter = allRequestsFilter
         do {
             let result = try await requestService.allRequests(
-                filter: allRequestsFilter,
+                filter: filter,
                 take: allRequestsPageSize,
                 skip: allRequestsSkip
             )
+            guard allRequestsFilter == filter else { return }
             // Dedupe against the visible list. Seerr occasionally
             // returns the same record on adjacent pages when the
             // status counts shift between fetches.
