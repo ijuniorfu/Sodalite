@@ -158,6 +158,28 @@ struct SeriesDetailView: View {
                     // deep-link's series stub finishes loading its
                     // imageTags, without needing a scroll.
                     DetailHeroLogo(viewModel: vm)
+                }, primary: {
+                    // Glass panel + action buttons form the first page's
+                    // bottom-aligned block (Sodalite#15 round 6): the
+                    // button row closes off the fold, everything below
+                    // starts off-screen. The wrapper keeps panel +
+                    // buttons one unit so the id-rebuild and the episode
+                    // crossfade cover both.
+                    VStack(alignment: .leading, spacing: 24) {
+                        glassPanel(vm: vm)
+                        actionButtonRow(vm: vm)
+                    }
+                    .padding(.horizontal, 50)
+                    // Keyed on item + load state only. The genre
+                    // count was in here before, but on an episode
+                    // deep-link (instant-paint) the series genres
+                    // arrive after first paint, flipping the count
+                    // and rebuilding the whole panel mid-view, which
+                    // reset the ScrollView and broke scroll-to-top
+                    // when navigating back up to Play. Genres now
+                    // fill in via in-place diff instead.
+                    .id("\(vm.item.id)-\(vm.isLoading)")
+                    .animation(.easeInOut(duration: 0.3), value: selectedEpisode?.id)
                 }) {
                     // Captured ScrollViewProxy lets the player-dismiss
                     // handler scroll the outer vertical ScrollView back
@@ -169,28 +191,6 @@ struct SeriesDetailView: View {
                     // on the just-played episode card.
                     ScrollViewReader { outerProxy in
                         VStack(alignment: .leading, spacing: 40) {
-                            // Action buttons sit below the glass panel, not
-                            // inside it (Sodalite#15 round 6): the panel stays
-                            // a compact metadata plate and the backdrop keeps
-                            // the stage. The wrapper keeps panel + buttons one
-                            // scroll item so the id-rebuild and the episode
-                            // crossfade cover both.
-                            VStack(alignment: .leading, spacing: 24) {
-                                glassPanel(vm: vm)
-                                actionButtonRow(vm: vm)
-                            }
-                            .padding(.horizontal, 50)
-                            // Keyed on item + load state only. The genre
-                            // count was in here before, but on an episode
-                            // deep-link (instant-paint) the series genres
-                            // arrive after first paint, flipping the count
-                            // and rebuilding the whole panel mid-view, which
-                            // reset the ScrollView and broke scroll-to-top
-                            // when navigating back up to Play. Genres now
-                            // fill in via in-place diff instead.
-                            .id("\(vm.item.id)-\(vm.isLoading)")
-                            .animation(.easeInOut(duration: 0.3), value: selectedEpisode?.id)
-
                             // Navigable synopsis box under the hero, in both
                             // modes: the series overview for the series root,
                             // the episode's overview (via displayItem =
@@ -582,14 +582,14 @@ struct SeriesDetailView: View {
                 if DetailSecondaryInfo.hasContent(vm.item) {
                     Spacer(minLength: 24)
                     DetailSecondaryInfo(item: vm.item)
-                        .frame(maxWidth: 360, alignment: .leading)
+                        .frame(maxWidth: 560, alignment: .leading)
                 } else if !vm.hasFullDetail {
                     // People/studios are still in flight (snapshot
                     // paint); hold the panel's height so it doesn't
                     // grow when they land.
                     Spacer(minLength: 24)
                     DetailSecondaryInfoPlaceholder()
-                        .frame(maxWidth: 360, alignment: .leading)
+                        .frame(maxWidth: 560, alignment: .leading)
                 }
             }
         }

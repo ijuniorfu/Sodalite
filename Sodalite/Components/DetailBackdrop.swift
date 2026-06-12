@@ -46,8 +46,17 @@ struct DetailBackdrop: View {
 /// would vanish) and frees the panel's top row to start at the title's
 /// height. Defaults to empty, so overlays that pass no hero (collection,
 /// catalog) render exactly as before.
-struct DetailContentOverlay<Hero: View, Content: View>: View {
+/// The optional `primary` slot (the glass panel + action-button row)
+/// turns the first screen into a fixed page: exactly one viewport tall
+/// with hero + panel + buttons bottom-aligned, so the button row closes
+/// off the fold and everything in `content` (synopsis, rows) starts
+/// below it. Maximizes visible backdrop on the first screen
+/// (Sodalite#15 round 6). Defaults to empty, which keeps the original
+/// fixed 500 pt hero window for overlays that don't split their
+/// content (collection, catalog, person).
+struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
     @ViewBuilder let hero: () -> Hero
+    @ViewBuilder let primary: () -> Primary
     @ViewBuilder let content: () -> Content
 
     /// Extra full-screen dim layered between the backdrop and the
@@ -60,38 +69,37 @@ struct DetailContentOverlay<Hero: View, Content: View>: View {
 
     init(
         @ViewBuilder hero: @escaping () -> Hero = { EmptyView() },
+        @ViewBuilder primary: @escaping () -> Primary,
         @ViewBuilder content: @escaping () -> Content
     ) {
         self.hero = hero
+        self.primary = primary
         self.content = content
     }
 
     var body: some View {
         ScrollView(.vertical, showsIndicators: false) {
             VStack(alignment: .leading, spacing: 0) {
-                Color.clear.frame(height: 500)
-
-                // The hero (logo / title) rides as an overlay on the
-                // gradient rather than a separate stacked layer, so the
-                // scroll content stays the same three siblings (clear,
-                // gradient, content) the focus engine scrolls through.
-                // Bottom-aligned, it sits just above the content panel at
-                // the gradient's lower edge, and being an overlay it draws
-                // on top of the gradient so the logo stays visible.
-                // Full-bleed redesign (Sodalite#15): the lower half no
-                // longer fades to near-black; the backdrop stays
-                // visible behind a scrim and the text containers carry
-                // their own material backgrounds for legibility.
-                LinearGradient(
-                    colors: [.clear, .black.opacity(0.35), .black.opacity(0.55)],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-                .frame(height: 200)
-                .overlay(alignment: .bottomLeading) {
-                    hero()
-                        .padding(.horizontal, 50)
-                        .padding(.bottom, 8)
+                if Primary.self == EmptyView.self {
+                    Color.clear.frame(height: 500)
+                    gradientWithHero
+                } else {
+                    // First page: one viewport tall, hero + primary
+                    // bottom-aligned. The Spacer hands every leftover
+                    // point to the backdrop above; the button row ends
+                    // flush with the fold and the first `content` item
+                    // starts off-screen.
+                    VStack(alignment: .leading, spacing: 0) {
+                        Spacer(minLength: 0)
+                        gradientWithHero
+                        VStack(alignment: .leading, spacing: 0) {
+                            primary()
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.bottom, 48)
+                        .background(Color.black.opacity(0.55))
+                    }
+                    .containerRelativeFrame(.vertical)
                 }
 
                 VStack(alignment: .leading, spacing: 40) {
@@ -119,5 +127,40 @@ struct DetailContentOverlay<Hero: View, Content: View>: View {
             // no animation needed.
             scrollDim = min(max(offset / 500, 0), 1) * 0.3
         }
+    }
+
+    // The hero (logo / title) rides as an overlay on the gradient
+    // rather than a separate stacked layer, so the scroll content keeps
+    // the same sibling structure the focus engine scrolls through.
+    // Bottom-aligned, it sits just above the content panel at the
+    // gradient's lower edge, and being an overlay it draws on top of
+    // the gradient so the logo stays visible. Full-bleed redesign
+    // (Sodalite#15): the lower half no longer fades to near-black; the
+    // backdrop stays visible behind a scrim and the text containers
+    // carry their own material backgrounds for legibility.
+    private var gradientWithHero: some View {
+        LinearGradient(
+            colors: [.clear, .black.opacity(0.35), .black.opacity(0.55)],
+            startPoint: .top,
+            endPoint: .bottom
+        )
+        .frame(height: 200)
+        .overlay(alignment: .bottomLeading) {
+            hero()
+                .padding(.horizontal, 50)
+                .padding(.bottom, 8)
+        }
+    }
+}
+
+/// Legacy shape for overlays without a `primary` slot (collection,
+/// catalog, person): same call sites as before the split, rendering
+/// with the fixed 500 pt hero window.
+extension DetailContentOverlay where Primary == EmptyView {
+    init(
+        @ViewBuilder hero: @escaping () -> Hero = { EmptyView() },
+        @ViewBuilder content: @escaping () -> Content
+    ) {
+        self.init(hero: hero, primary: { EmptyView() }, content: content)
     }
 }

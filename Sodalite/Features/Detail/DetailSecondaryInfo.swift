@@ -92,21 +92,24 @@ struct DetailSecondaryInfo: View {
         let tagline = item.taglines?.first
 
         if hasContent(tagline: tagline, directors: directors, writers: writers, studios: studios) {
+            // Compact two-line layout (Sodalite#15 round 6): tagline on
+            // one line, all credits merged onto a second. The previous
+            // line-per-credit column made the right side of the glass
+            // panel taller than the metadata block next to it, and the
+            // whole panel grew with it.
             VStack(alignment: .leading, spacing: 6) {
                 if let tagline, !tagline.isEmpty {
                     Text(tagline)
                         .font(.callout)
                         .italic()
                         .foregroundStyle(.secondary)
+                        .lineLimit(1)
                 }
-                if !directors.isEmpty {
-                    creditLine(labelKey: "detail.director", names: directors)
-                }
-                if !writers.isEmpty {
-                    creditLine(labelKey: "detail.writer", names: writers)
-                }
-                if !studios.isEmpty {
-                    creditLine(labelKey: "detail.studios", names: studios)
+                if let credits = mergedCreditLine(directors: directors, writers: writers, studios: studios) {
+                    credits
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
                 }
             }
         }
@@ -125,12 +128,32 @@ struct DetailSecondaryInfo: View {
             .map(\.name)
     }
 
-    private func creditLine(labelKey: LocalizedStringKey, names: [String]) -> some View {
+    /// All credits on a single "Director: A · Writer: B · Studios: C"
+    /// line. Built via Text interpolation (Text + Text concatenation is
+    /// deprecated on tvOS 26); at most three segments exist, so the
+    /// joins are spelled out per count.
+    private func mergedCreditLine(directors: [String], writers: [String], studios: [String]) -> Text? {
+        var segments: [Text] = []
+        if !directors.isEmpty {
+            segments.append(creditSegment(labelKey: "detail.director", names: directors))
+        }
+        if !writers.isEmpty {
+            segments.append(creditSegment(labelKey: "detail.writer", names: writers))
+        }
+        if !studios.isEmpty {
+            segments.append(creditSegment(labelKey: "detail.studios", names: studios))
+        }
+        switch segments.count {
+        case 0: return nil
+        case 1: return segments[0]
+        case 2: return Text("\(segments[0]) · \(segments[1])")
+        default: return Text("\(segments[0]) · \(segments[1]) · \(segments[2])")
+        }
+    }
+
+    private func creditSegment(labelKey: LocalizedStringKey, names: [String]) -> Text {
         // Text interpolation instead of the tvOS-26-deprecated `Text + Text`
         // concatenation; both segments keep their own styling.
         Text("\(Text(labelKey).fontWeight(.semibold))\(Text(verbatim: ": \(names.prefix(3).joined(separator: ", "))"))")
-            .font(.caption)
-            .foregroundStyle(.secondary)
-            .lineLimit(2)
     }
 }

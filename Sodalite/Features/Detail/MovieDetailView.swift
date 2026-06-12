@@ -171,18 +171,18 @@ struct MovieDetailView: View {
 
             DetailContentOverlay(hero: {
                 DetailHeroLogo(viewModel: vm)
-            }) {
-                // Action buttons sit below the glass panel, not inside it
-                // (Sodalite#15 round 6), mirroring SeriesDetailView: the
-                // panel stays a compact metadata plate and the backdrop
-                // keeps the stage.
+            }, primary: {
+                // Glass panel + action buttons form the first page's
+                // bottom-aligned block (Sodalite#15 round 6), mirroring
+                // SeriesDetailView: the button row closes off the fold,
+                // synopsis and rows start off-screen.
                 VStack(alignment: .leading, spacing: 24) {
                     glassPanel(vm: vm)
                     actionButtonRow(vm: vm)
                 }
                 .padding(.horizontal, 50)
                 .id(vm.item.genres?.first ?? vm.item.name)
-
+            }) {
                 if let overview = vm.item.overview, !overview.isEmpty {
                     ExpandableTextBox(text: overview)
                         .padding(.horizontal, 50)
@@ -250,14 +250,14 @@ struct MovieDetailView: View {
                 if DetailSecondaryInfo.hasContent(vm.item) {
                     Spacer(minLength: 24)
                     DetailSecondaryInfo(item: vm.item)
-                        .frame(maxWidth: 360, alignment: .leading)
+                        .frame(maxWidth: 560, alignment: .leading)
                 } else if !vm.hasFullDetail {
                     // Crew/studios still in flight (snapshot paint);
                     // hold the panel's height so it doesn't grow when
                     // they land.
                     Spacer(minLength: 24)
                     DetailSecondaryInfoPlaceholder()
-                        .frame(maxWidth: 360, alignment: .leading)
+                        .frame(maxWidth: 560, alignment: .leading)
                 }
             }
         }
