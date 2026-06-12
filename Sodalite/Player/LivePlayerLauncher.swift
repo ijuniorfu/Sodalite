@@ -23,11 +23,17 @@ struct LivePlayerLauncher: UIViewControllerRepresentable {
     }
 
     func updateUIViewController(_ host: PlayerLauncherHostVC, context: Context) {
-        guard isPresented, let liveContext = self.context,
-              host.viewIfLoaded?.window != nil else { return }
-        if host.presentedViewController is PlayerHostController || host.pendingLivePresent { return }
-        host.pendingLivePresent = true
-        attemptPresent(host: host, liveContext: liveContext, attempt: 0)
+        if isPresented, let liveContext = self.context {
+            guard host.viewIfLoaded?.window != nil else { return }
+            if host.presentedViewController is PlayerHostController || host.pendingLivePresent { return }
+            host.pendingLivePresent = true
+            attemptPresent(host: host, liveContext: liveContext, attempt: 0)
+        } else if !isPresented, host.presentedViewController is PlayerHostController {
+            // Programmatic dismissal (sign-out, deep link, session
+            // teardown flipping the binding): mirror PlayerLauncher,
+            // otherwise the live player stays as a zombie modal.
+            host.dismiss(animated: false)
+        }
     }
 
     /// Present the player from the stable host VC, but only once the info
@@ -35,6 +41,13 @@ struct LivePlayerLauncher: UIViewControllerRepresentable {
     /// dismissing. Presenting while it is mid-dismiss fails ("view is not in
     /// the window hierarchy"), so poll until host has nothing presented.
     private func attemptPresent(host: PlayerLauncherHostVC, liveContext: LivePlaybackContext, attempt: Int) {
+        // The binding can flip false during the poll window (user backed
+        // out while the info sheet was still dismissing); presenting
+        // anyway would launch a player nobody asked for.
+        guard isPresented else {
+            host.pendingLivePresent = false
+            return
+        }
         if let presented = host.presentedViewController, !(presented is PlayerHostController) {
             guard attempt < 40 else { host.pendingLivePresent = false; return }
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {

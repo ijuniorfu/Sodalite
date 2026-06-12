@@ -373,7 +373,15 @@ struct SubtitleOverlayView: View {
         }
         var result: [SubtitleCue] = []
         var i = lo - 1
-        while i >= 0, cues[i].startTime <= lookupTime {
+        // Bound the walk-back: every cue before `lo` starts at or
+        // before lookupTime by construction, so the start-time check
+        // alone never terminates the loop and the scan would walk the
+        // entire prefix on every evaluation (O(n) per tick on a
+        // full-file sidecar SRT). Real cues are bounded in length;
+        // stop once the start time falls more than a generous
+        // max-cue-duration behind the playhead.
+        let maxCueDuration: Double = 60
+        while i >= 0, cues[i].startTime >= lookupTime - maxCueDuration {
             if cues[i].endTime >= lookupTime {
                 result.append(cues[i])
             }

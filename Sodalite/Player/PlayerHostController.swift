@@ -1028,8 +1028,12 @@ final class PlayerHostController: AVPlayerViewController {
         viewModel.controlsTimer?.cancel()
         // Default to the chapter currently playing so the user lands
         // on a row that matches the on-screen content rather than
-        // having to scroll to find it.
-        let nowSeconds = viewModel.player.currentTime
+        // having to scroll to find it. Chapter marks live on the
+        // absolute source timeline; sourceTime is the matching clock
+        // (currentTime sits at source_pts - videoShiftPts on the
+        // native HLS path, which can highlight the previous chapter
+        // near a boundary). Same rule as the intro/outro comparisons.
+        let nowSeconds = viewModel.player.sourceTime
         var currentIdx = 0
         for (i, chapter) in chapters.enumerated() {
             if chapter.startSeconds <= nowSeconds + 0.001 {

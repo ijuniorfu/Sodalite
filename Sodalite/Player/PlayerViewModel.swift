@@ -837,6 +837,18 @@ final class PlayerViewModel {
         stopProgressReporting()
         progressReportOnDemandTask?.cancel()
         progressReportOnDemandTask = nil
+        // The next-episode countdown is NOT cancelled by external
+        // dismissals (deep link / TopShelf while the overlay counts
+        // down); left running it would fire playNextEpisode() against
+        // the shared engine behind a dismissed player, and
+        // startPlayback resets isTearingDown at entry, defeating the
+        // latch above. Kill every UI timer with the session.
+        nextEpisodeTimer?.cancel()
+        nextEpisodeTimer = nil
+        controlsTimer?.cancel()
+        controlsTimer = nil
+        continuousSeekTask?.cancel()
+        continuousSeekTask = nil
         unbindRemoteSkipCommands()
         scrubPreview.reset()
         let extractorToClose = frameExtractor
@@ -1694,6 +1706,14 @@ final class PlayerViewModel {
             if (activeSubtitleCodec == "ass" || activeSubtitleCodec == "ssa"),
                preferences.styledASSSubtitles {
                 let engineTrack = player.subtitleTracks.first(where: { $0.id == id })
+                // The renderer can arrive asynchronously when font
+                // attachments still need writing (first activation on
+                // a file with embedded fonts); the callback mirrors it
+                // onto the observable surface in that case. The direct
+                // read below covers the synchronous warm path.
+                assCoordinator.onRendererChanged = { [weak self] renderer in
+                    self?.assRenderer = renderer
+                }
                 assCoordinator.activate(header: engineTrack?.assHeader, itemID: item.id)
                 assRenderer = assCoordinator.renderer
             } else {

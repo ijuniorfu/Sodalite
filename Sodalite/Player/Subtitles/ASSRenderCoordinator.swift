@@ -70,18 +70,44 @@ final class ASSRenderCoordinator {
         self.player = player
     }
 
+    /// Fired when the renderer becomes available asynchronously (first
+    /// activation on a file with unwritten font attachments) or is
+    /// torn down. PlayerViewModel mirrors the renderer onto its
+    /// observable surface through this.
+    var onRendererChanged: ((AssSubtitlesRenderer?) -> Void)?
+    /// Guards the async font-write completion against a deactivate /
+    /// re-activate that happened while the writes ran.
+    private var activationGeneration = 0
+
     /// Activate for the selected embedded track. `header` is the
     /// track's `assHeader`; bails (renderer stays nil) when the header
     /// is missing or renderer setup fails, in which case the caller
     /// keeps the plain-text overlay path.
+    ///
+    /// Font attachments are written off the main actor: anime MKVs
+    /// routinely embed dozens of CJK faces at 5-20 MB each, and the
+    /// first activation used to block the main thread for the full
+    /// write. When all files already exist (every re-activation), the
+    /// renderer is still installed synchronously so the existing
+    /// `activate(...); renderer` call pattern keeps working.
     func activate(header: String?, itemID: String) {
         deactivate()
         guard let header, !header.isEmpty else { return }
+        activationGeneration += 1
+        let generation = activationGeneration
         let fontsDir = Self.fontsDirectory(itemID: itemID)
-        Self.writeFontAttachments(player.fontAttachments, to: fontsDir)
-        let config = FontConfig(fontsPath: fontsDir, fontProvider: .coreText)
-        let renderer = AssSubtitlesRenderer(fontConfig: config)
-        self.renderer = renderer
+        let fonts = player.fontAttachments
+        if Self.allFontsPresent(fonts, in: fontsDir) {
+            installRenderer(fontsDir: fontsDir)
+        } else {
+            Task.detached(priority: .userInitiated) { [weak self] in
+                Self.writeFontAttachments(fonts, to: fontsDir)
+                await MainActor.run {
+                    guard let self, self.activationGeneration == generation else { return }
+                    self.installRenderer(fontsDir: fontsDir)
+                }
+            }
+        }
         let builder = ASSScriptBuilder(header: header)
         self.builder = builder
 
@@ -111,6 +137,7 @@ final class ASSRenderCoordinator {
     }
 
     func deactivate() {
+        activationGeneration += 1
         cancellables.removeAll()
         renderer?.freeTrack()
         renderer = nil
@@ -118,6 +145,16 @@ final class ASSRenderCoordinator {
         pendingEvents = false
         earliestPendingStart = .infinity
         lastReloadAt = .distantPast
+    }
+
+    private func installRenderer(fontsDir: URL) {
+        let config = FontConfig(fontsPath: fontsDir, fontProvider: .coreText)
+        let renderer = AssSubtitlesRenderer(fontConfig: config)
+        self.renderer = renderer
+        onRendererChanged?(renderer)
+        // Events that arrived while the fonts were being written are
+        // sitting in the builder; surface them now.
+        flushPendingEventsIfDue()
     }
 
     private func consume(cues: [SubtitleCue]) {
@@ -175,7 +212,15 @@ final class ASSRenderCoordinator {
         return base
     }
 
-    private static func writeFontAttachments(_ fonts: [FontAttachment], to dir: URL) {
+    private nonisolated static func allFontsPresent(_ fonts: [FontAttachment], in dir: URL) -> Bool {
+        fonts.allSatisfy { font in
+            let safeName = (font.filename as NSString).lastPathComponent
+            guard !safeName.isEmpty else { return true }
+            return FileManager.default.fileExists(atPath: dir.appendingPathComponent(safeName).path)
+        }
+    }
+
+    private nonisolated static func writeFontAttachments(_ fonts: [FontAttachment], to dir: URL) {
         for font in fonts {
             // Attachment filenames come from the container; keep only
             // the last path component so a hostile name can't escape

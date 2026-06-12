@@ -58,6 +58,11 @@ extension PlayerViewModel {
                 .filter({ $0.id != currentID })
                 .filter({ ($0.indexNumber ?? -1) > currentIndex })
                 .min(by: { ($0.indexNumber ?? .max) < ($1.indexNumber ?? .max) }) {
+                // The user may have switched episodes via the picker
+                // while this fetch was in flight; a stale result would
+                // seed the OLD episode's successor and an early outro
+                // could auto-advance to the wrong episode.
+                guard item.id == currentID else { return }
                 nextEpisode = candidate
                 return
             }
@@ -82,6 +87,7 @@ extension PlayerViewModel {
             )
             if let firstEpisode = nextSeasonEpisodes
                 .min(by: { ($0.indexNumber ?? .max) < ($1.indexNumber ?? .max) }) {
+                guard item.id == currentID else { return }
                 nextEpisode = firstEpisode
             }
         } catch {
@@ -108,13 +114,17 @@ extension PlayerViewModel {
         isCountdownActive = true
         nextEpisodeTimer?.cancel()
         LogTap.shared.note("[NextEp] countdown_start from=\(nextEpisodeCountdown)s nextId=\(nextEpisode?.id ?? "nil")")
-        nextEpisodeTimer = Task {
-            while nextEpisodeCountdown > 0, !Task.isCancelled {
+        // [weak self]: a dismissed view model must not be kept alive
+        // for the countdown's remainder (the engine outlives the VM,
+        // the timer must not).
+        nextEpisodeTimer = Task { [weak self] in
+            while !Task.isCancelled {
+                guard let self, self.nextEpisodeCountdown > 0 else { break }
                 try? await Task.sleep(for: .seconds(1))
                 guard !Task.isCancelled else { return }
-                nextEpisodeCountdown -= 1
+                self.nextEpisodeCountdown -= 1
             }
-            guard !Task.isCancelled else { return }
+            guard !Task.isCancelled, self != nil else { return }
             LogTap.shared.note("[NextEp] countdown_fired")
             // Launch in a NEW task, if we called playNextEpisode() directly,
             // cancelling nextEpisodeTimer would cancel the playback startup
@@ -128,6 +138,15 @@ extension PlayerViewModel {
     func playNextEpisode() async {
         guard let next = nextEpisode else {
             LogTap.shared.note("[NextEp] playNextEpisode: bailing, nextEpisode is nil")
+            return
+        }
+        // Second latch behind the timer cancellation in stopPlayback:
+        // a countdown that fires into a torn-down session must never
+        // load the next episode on the shared engine behind a
+        // dismissed player (startPlayback resets isTearingDown at
+        // entry, so this is the last line of defense).
+        guard !isTearingDown else {
+            LogTap.shared.note("[NextEp] playNextEpisode: bailing, session is tearing down")
             return
         }
         LogTap.shared.note("[NextEp] playNextEpisode enter: from=\(item.id) to=\(next.id)")
@@ -170,8 +189,21 @@ extension PlayerViewModel {
         // seam so Control Center keeps its metadata.
         LogTap.shared.note("[NextEp] reload_in_place (no engine stop)")
 
-        // Reset state
-        item = next
+        resetSessionState(switchingTo: next)
+
+        // Start new
+        LogTap.shared.note("[NextEp] start_playback_enter id=\(item.id)")
+        await startPlayback()
+        LogTap.shared.note("[NextEp] start_playback_exit error=\(errorMessage ?? "nil") isPlaying=\(isPlaying)")
+    }
+
+    /// Shared per-session reset used by both episode-switch paths
+    /// (auto-advance + season picker). One owner on purpose: the two
+    /// inline copies had already drifted once (a stray player.stop()
+    /// in the picker path, contradicting the issue-#15 AVPlayer-reuse
+    /// design both copies documented).
+    private func resetSessionState(switchingTo newItem: JellyfinItem) {
+        item = newItem
         startFromBeginning = true
         cachedPlaybackInfo = nil
         errorMessage = nil
@@ -205,11 +237,6 @@ extension PlayerViewModel {
         didAutoSkipCurrentIntro = false
         didAutoSkipCurrentOutro = false
         didSkipCurrentIntro = false
-
-        // Start new
-        LogTap.shared.note("[NextEp] start_playback_enter id=\(item.id)")
-        await startPlayback()
-        LogTap.shared.note("[NextEp] start_playback_exit error=\(errorMessage ?? "nil") isPlaying=\(isPlaying)")
     }
 
     func cancelNextEpisode() {
@@ -300,44 +327,13 @@ extension PlayerViewModel {
             }
         }
 
-        player.stop()
-
-        // Same reset surface playNextEpisode uses, the only
-        // difference is which JellyfinItem we hand to startPlayback.
-        item = target
-        startFromBeginning = true
-        cachedPlaybackInfo = nil
-        errorMessage = nil
-        videoFormat = .sdr
-        subtitleCues = []
-        subtitleStreams = []
-        activeSubtitleIndex = nil
-        activeAudioIndex = nil
-        // This path bypasses teardown() for AVPlayer reuse (issue #15);
-        // deactivate the ASS coordinator explicitly so the previous
-        // episode's rendered script doesn't play over the next episode.
-        deactivateASSRendering()
-        activeSubtitleCodec = nil
-        nextEpisode = nil
-        hasFetchedNextEpisode = false
-        nextEpisodeCancelled = false
-        nextEpisodeCountdown = 10
-        isCountdownActive = false
-        hasReportedStart = false
-        hasStartedPlaying = false
-        showControls = false
-        isScrubbing = false
-        controlsFocus = .progressBar
-        trackDropdown = .none
-        progress = 0
-        playbackTime = 0
-        resumePositionTicks = 0
-        introSegment = nil
-        outroSegment = nil
-        isInsideIntro = false
-        didAutoSkipCurrentIntro = false
-        didAutoSkipCurrentOutro = false
-        didSkipCurrentIntro = false
+        // No player.stop() here, mirroring playNextEpisode: the engine
+        // reloads in place via startPlayback -> engine.load(newURL),
+        // preserving the AVPlayer instance so AVKit's system
+        // Now-Playing session survives the seam (issue #15). The stop
+        // this path used to carry was drift from before the reset
+        // surface was shared.
+        resetSessionState(switchingTo: target)
 
         await startPlayback()
     }
