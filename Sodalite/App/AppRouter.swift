@@ -1,6 +1,4 @@
 import SwiftUI
-import UIKit
-import AetherEngine
 import os.log
 
 private let tvUserLogger = Logger(subsystem: "de.superuser404.Sodalite", category: "tvUser")
@@ -392,7 +390,7 @@ struct AppRouter: View {
         // binding-driven dismiss alone proved unreliable across the
         // scene-foreground transition.
         appState.requestPlayerDismissal &+= 1
-        dismissActivePlayerModal()
+        PlayerModalDismisser.dismissActive(logPrefix: "[AppRouter]")
         // Give UIKit a frame to finish the dismiss before we trigger
         // the new fullScreenCover. Without this, the new presentation
         // can race the dismissal and SwiftUI logs the "presenting from
@@ -416,42 +414,6 @@ struct AppRouter: View {
         try? await Task.sleep(for: .milliseconds(300))
         appState.isResolvingDeepLink = false
         appState.pendingDeepLinkItemID = nil
-    }
-
-    /// Walk the active scene's window-level modal chain and dismiss
-    /// the `PlayerHostController` if one is presented. Bypasses the
-    /// SwiftUI binding chain because the binding-only path proved
-    /// unreliable across the scene-foreground transition: a TopShelf
-    /// tap that resumes the app from a paused player would not always
-    /// dispatch the local-state mutation through to UIKit fast enough
-    /// to let the new fullScreenCover present on top.
-    ///
-    /// Calling `dismiss(animated:)` on the VC that directly presented
-    /// the player removes only that modal level; any other modals in
-    /// the chain are left alone. Logged via EngineLog so the
-    /// diagnostic overlay can confirm the path ran on TestFlight.
-    private func dismissActivePlayerModal() {
-        guard let scene = UIApplication.shared.connectedScenes
-            .compactMap({ $0 as? UIWindowScene })
-            .first(where: { $0.activationState != .background }),
-              let window = scene.windows.first(where: { $0.isKeyWindow })
-                ?? scene.windows.first
-        else {
-            EngineLog.emit("[AppRouter] deep-link dismiss: no key window")
-            return
-        }
-
-        var presenter: UIViewController? = window.rootViewController
-        while let current = presenter {
-            guard let presented = current.presentedViewController else { break }
-            if presented is PlayerHostController {
-                EngineLog.emit("[AppRouter] deep-link dismiss: tearing down active player modal")
-                current.dismiss(animated: false)
-                return
-            }
-            presenter = presented
-        }
-        EngineLog.emit("[AppRouter] deep-link dismiss: no player in modal chain")
     }
 
     /// Records the current tvOS user identifier so the scenePhase

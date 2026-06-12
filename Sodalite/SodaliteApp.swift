@@ -1,5 +1,4 @@
 import SwiftUI
-import UIKit
 import AetherEngine
 
 @main
@@ -69,7 +68,7 @@ struct SodaliteApp: App {
         guard url.scheme == "sodalite", url.host == "item" else { return }
         let id = url.pathComponents.dropFirst().first ?? ""
         guard !id.isEmpty else { return }
-        dismissActivePlayerModal()
+        PlayerModalDismisser.dismissActive(logPrefix: "[SodaliteApp]")
         appState.requestPlayerDismissal &+= 1
         // Cover whatever's behind the dismissed player so the user
         // doesn't see the prior detail view flash for the duration of
@@ -77,33 +76,5 @@ struct SodaliteApp: App {
         // clears this once the new sheet has taken over.
         appState.isResolvingDeepLink = true
         appState.pendingDeepLinkItemID = id
-    }
-
-    /// Walk the active scene's window-level modal chain and dismiss
-    /// the `PlayerHostController` if one is presented. Called
-    /// synchronously from the URL handler so the teardown happens
-    /// before the engine reload kicks in.
-    private func dismissActivePlayerModal() {
-        guard let scene = UIApplication.shared.connectedScenes
-            .compactMap({ $0 as? UIWindowScene })
-            .first(where: { $0.activationState != .background }),
-              let window = scene.windows.first(where: { $0.isKeyWindow })
-                ?? scene.windows.first
-        else {
-            EngineLog.emit("[SodaliteApp] deep-link dismiss: no key window")
-            return
-        }
-
-        var presenter: UIViewController? = window.rootViewController
-        while let current = presenter {
-            guard let presented = current.presentedViewController else { break }
-            if presented is PlayerHostController {
-                EngineLog.emit("[SodaliteApp] deep-link dismiss: tearing down active player modal")
-                current.dismiss(animated: false)
-                return
-            }
-            presenter = presented
-        }
-        EngineLog.emit("[SodaliteApp] deep-link dismiss: no player in modal chain")
     }
 }
