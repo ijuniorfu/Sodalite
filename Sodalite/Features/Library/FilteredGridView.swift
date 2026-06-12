@@ -400,20 +400,6 @@ struct FilteredGridView: View {
         items += response.items.filter { !known.contains($0.id) }
     }
 
-    /// Merge studio-match (Phase 1) with watch-provider matches
-    /// (Phase 2). Phase 1 keeps its server-side ordering at the top,
-    /// Phase 2 extras are sorted alphabetically and appended.
-    private func mergePhases(
-        phase1: [JellyfinItem],
-        phase2: [JellyfinItem]
-    ) -> [JellyfinItem] {
-        let phase1IDs = Set(phase1.map(\.id))
-        let extras = phase2
-            .filter { !phase1IDs.contains($0.id) }
-            .sorted { $0.name < $1.name }
-        return phase1 + extras
-    }
-
     /// Background refresh of the TMDB watch-provider id list: 5
     /// pages each on movies + tv, then re-resolve against the local
     /// library map and write the fresh ids to the cache. Shows the
@@ -451,7 +437,7 @@ struct FilteredGridView: View {
         )
 
         let phase2Items = providerTmdbIDs.compactMap { tmdbMap[$0] }
-        let merged = mergePhases(phase1: studioItems, phase2: phase2Items)
+        let merged = ProviderMatchMerging.merge(phase1: studioItems, phase2: phase2Items)
         if items.map(\.id) != merged.map(\.id) {
             items = merged
         }

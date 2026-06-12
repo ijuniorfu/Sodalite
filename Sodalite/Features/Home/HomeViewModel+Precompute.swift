@@ -263,11 +263,7 @@ extension HomeViewModel {
             phase2Items = providerTmdbIDs.compactMap { tmdbMap[$0] }
         }
 
-        let phase1IDs = Set(studioItems.map(\.id))
-        let extras = phase2Items
-            .filter { !phase1IDs.contains($0.id) }
-            .sorted { $0.name < $1.name }
-        return studioItems + extras
+        return ProviderMatchMerging.merge(phase1: studioItems, phase2: phase2Items)
     }
 
     func loadProviderBackdrops() async {
