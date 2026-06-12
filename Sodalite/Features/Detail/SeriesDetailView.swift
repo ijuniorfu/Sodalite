@@ -169,18 +169,27 @@ struct SeriesDetailView: View {
                     // on the just-played episode card.
                     ScrollViewReader { outerProxy in
                         VStack(alignment: .leading, spacing: 40) {
-                            glassPanel(vm: vm)
-                                .padding(.horizontal, 50)
-                                // Keyed on item + load state only. The genre
-                                // count was in here before, but on an episode
-                                // deep-link (instant-paint) the series genres
-                                // arrive after first paint, flipping the count
-                                // and rebuilding the whole panel mid-view, which
-                                // reset the ScrollView and broke scroll-to-top
-                                // when navigating back up to Play. Genres now
-                                // fill in via in-place diff instead.
-                                .id("\(vm.item.id)-\(vm.isLoading)")
-                                .animation(.easeInOut(duration: 0.3), value: selectedEpisode?.id)
+                            // Action buttons sit below the glass panel, not
+                            // inside it (Sodalite#15 round 6): the panel stays
+                            // a compact metadata plate and the backdrop keeps
+                            // the stage. The wrapper keeps panel + buttons one
+                            // scroll item so the id-rebuild and the episode
+                            // crossfade cover both.
+                            VStack(alignment: .leading, spacing: 24) {
+                                glassPanel(vm: vm)
+                                actionButtonRow(vm: vm)
+                            }
+                            .padding(.horizontal, 50)
+                            // Keyed on item + load state only. The genre
+                            // count was in here before, but on an episode
+                            // deep-link (instant-paint) the series genres
+                            // arrive after first paint, flipping the count
+                            // and rebuilding the whole panel mid-view, which
+                            // reset the ScrollView and broke scroll-to-top
+                            // when navigating back up to Play. Genres now
+                            // fill in via in-place diff instead.
+                            .id("\(vm.item.id)-\(vm.isLoading)")
+                            .animation(.easeInOut(duration: 0.3), value: selectedEpisode?.id)
 
                             // Navigable synopsis box under the hero, in both
                             // modes: the series overview for the series root,
@@ -533,24 +542,19 @@ struct SeriesDetailView: View {
 
             HStack(alignment: .top, spacing: 40) {
                 VStack(alignment: .leading, spacing: 16) {
-                    if isShowingEpisode, let ep = selectedEpisode {
-                        HStack(spacing: 8) {
-                            if let s = ep.parentIndexNumber {
-                                Text("S\(s)")
-                                    .fontWeight(.semibold)
-                            }
-                            if let e = ep.indexNumber {
-                                Text("E\(e)")
-                                    .fontWeight(.semibold)
-                                    .foregroundStyle(.tint)
-                            }
-                            if let runtime = ep.runTimeTicks {
-                                Text("·").foregroundStyle(.tertiary)
-                                Text(runtime.ticksToDisplay)
-                            }
+                    if isShowingEpisode {
+                        // Single metadata line: runtime folded into the
+                        // series genres. The S/E pair left the panel
+                        // (Sodalite#15 round 6), the play-button subtitle
+                        // always carries it ("S1E5" / "S1E5 · 12:34"), so
+                        // repeating it here only cost a text line. Keeps
+                        // the episode panel at title + one line.
+                        if let line = episodeMetadataLine(vm: vm) {
+                            Text(line)
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                                .lineLimit(1)
                         }
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
                     } else {
                         ItemMetadataRow(item: vm.item, showRuntime: false) {
                             if let count = vm.item.childCount, count > 0 {
@@ -559,138 +563,19 @@ struct SeriesDetailView: View {
                                 AnyView(EmptyView())
                             }
                         }
-                    }
 
-                    // Episode synopsis now renders as the navigable
-                    // ExpandableTextBox below the panel (shared with the
-                    // series root), not an in-panel teaser.
-
-                    // Series genres, shown in both the series root and the
-                    // episode panel so the episode view matches the series
-                    // view structurally (the series view opens consistently
-                    // at the top regardless of panel height).
-                    if let genres = vm.item.genres, !genres.isEmpty {
-                        Text(genres.joined(separator: " · "))
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                            // One line only: a long genre list (e.g. One Piece's
-                            // seven) otherwise wraps to two lines, which makes the
-                            // episode panel tall enough to land at a different
-                            // scroll position than the series view.
-                            .lineLimit(1)
-                    }
-
-                    HStack(spacing: 16) {
-                        GlassActionButton(
-                            title: playTitle(vm: vm),
-                            systemImage: "play.fill",
-                            isProminent: true,
-                            subtitle: playButtonSubtitle(vm: vm),
-                            progressFraction: playProgressFraction(vm: vm),
-                            // Hold the button on a spinner until we've got
-                            // a concrete play target. Avoids the visible
-                            // "Abspielen" → "Fortsetzen + S1E5 · 12:34"
-                            // repaint that fires when getNextUp lands a few
-                            // hundred ms after the view appears.
-                            isLoading: playTarget(vm: vm) == nil,
-                            action: {
-                                let ep = playTarget(vm: vm)
-                                if let ep {
-                                    playItem = ep
-                                    playFromBeginning = false
-                                    playOriginatedFromPlayButton = true
-                                    showPlayer = true
-                                }
-                            }
-                        )
-                        .focused($playButtonFocused)
-
-                        // Restart-from-beginning whenever the resolved play
-                        // target carries progress (i.e. the play button reads
-                        // "Resume"), mirroring MovieDetailView's replay button.
-                        // Gating on playTarget covers both the series root
-                        // (resume next-up / current episode) and the episode
-                        // panel (resume the selected episode).
-                        if let target = playTarget(vm: vm),
-                           let ticks = target.userData?.playbackPositionTicks,
-                           ticks > 0 {
-                            GlassActionButton(
-                                title: "detail.replay",
-                                systemImage: "arrow.counterclockwise",
-                                action: {
-                                    playItem = target
-                                    playFromBeginning = true
-                                    playOriginatedFromPlayButton = true
-                                    showPlayer = true
-                                }
-                            )
-                        }
-
-                        if !isShowingEpisode {
-                            GlassActionButton(
-                                title: vm.isFavorite ? "detail.unfavorite" : "detail.favorite",
-                                systemImage: vm.isFavorite ? "heart.fill" : "heart",
-                                action: { Task { await vm.toggleFavorite() } }
-                            )
-                        }
-
-                        if !isShowingEpisode {
-                            GlassActionButton(
-                                title: vm.isPlayed ? "detail.markUnwatched" : "detail.markWatched",
-                                systemImage: vm.isPlayed ? "checkmark.circle.fill" : "checkmark.circle",
-                                action: { Task { await vm.togglePlayed() } }
-                            )
-                        }
-
-                        if isShowingEpisode {
-                            GlassActionButton(
-                                title: "detail.showSeries",
-                                systemImage: "xmark",
-                                action: {
-                                    withAnimation { selectedEpisode = nil }
-                                }
-                            )
-                        }
-
-                        if isShowingEpisode, let ep = selectedEpisode {
-                            GlassActionButton(
-                                title: vm.isPlayed(ep) ? "detail.markUnwatched" : "detail.markWatched",
-                                systemImage: vm.isPlayed(ep) ? "checkmark.circle.fill" : "checkmark.circle",
-                                action: {
-                                    let target = !vm.isPlayed(ep)
-                                    Task { await vm.setEpisodePlayed(ep, isPlayed: target) }
-                                }
-                            )
-                        }
-
-                        if !isShowingEpisode,
-                           appState.isSeerrConnected,
-                           let tmdbID = vm.item.tmdbID,
-                           shouldShowSeerrRequest(for: vm.item) {
-                            GlassActionButton(
-                                title: "detail.requestInSeerr",
-                                systemImage: "tray.and.arrow.down",
-                                action: {
-                                    navigateToSeerrRequest = .stub(tmdbID: tmdbID, mediaType: .tv)
-                                }
-                            )
-                        }
-
-                        // Delete sits last in the row, matching MovieDetailView,
-                        // so the destructive action is visually furthest from
-                        // Play and any positive-action buttons.
-                        if canDelete && !isShowingEpisode {
-                            GlassActionButton(
-                                title: "detail.delete.button",
-                                systemImage: "trash",
-                                isDestructive: true,
-                                action: { isPresentingDeleteSheet = true }
-                            )
+                        // Series genres, one line only: a long genre list
+                        // (e.g. One Piece's seven) otherwise wraps to two
+                        // lines, which makes the panel tall enough to land
+                        // at a different scroll position.
+                        if let genres = vm.item.genres, !genres.isEmpty {
+                            Text(genres.joined(separator: " · "))
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                                .lineLimit(1)
                         }
                     }
-                    .padding(.top, 4)
                 }
-
                 // Series-level secondary info (tagline, crew, studios),
                 // shown in both modes so the episode panel matches the
                 // series root.
@@ -714,6 +599,136 @@ struct SeriesDetailView: View {
             RoundedRectangle(cornerRadius: 20)
                 .fill(.ultraThinMaterial)
         )
+    }
+
+    /// Episode panel's single metadata line: "43 min · Genre · Genre".
+    /// Runtime comes from the episode, genres from the series. nil when
+    /// both are missing so the line collapses instead of holding an
+    /// empty Text.
+    private func episodeMetadataLine(vm: DetailViewModel) -> String? {
+        var parts: [String] = []
+        if let runtime = selectedEpisode?.runTimeTicks {
+            parts.append(runtime.ticksToDisplay)
+        }
+        parts.append(contentsOf: vm.item.genres ?? [])
+        return parts.isEmpty ? nil : parts.joined(separator: " · ")
+    }
+
+    // MARK: - Action Buttons
+
+    /// Button row directly below the glass panel. Lives outside the
+    /// panel (Sodalite#15 round 6) so the plate stays a compact metadata
+    /// card and the backdrop keeps the stage; each GlassActionButton
+    /// carries its own material background, so the row needs no plate.
+    private func actionButtonRow(vm: DetailViewModel) -> some View {
+        HStack(spacing: 16) {
+            GlassActionButton(
+                title: playTitle(vm: vm),
+                systemImage: "play.fill",
+                isProminent: true,
+                subtitle: playButtonSubtitle(vm: vm),
+                progressFraction: playProgressFraction(vm: vm),
+                // Hold the button on a spinner until we've got
+                // a concrete play target. Avoids the visible
+                // "Abspielen" → "Fortsetzen + S1E5 · 12:34"
+                // repaint that fires when getNextUp lands a few
+                // hundred ms after the view appears.
+                isLoading: playTarget(vm: vm) == nil,
+                action: {
+                    let ep = playTarget(vm: vm)
+                    if let ep {
+                        playItem = ep
+                        playFromBeginning = false
+                        playOriginatedFromPlayButton = true
+                        showPlayer = true
+                    }
+                }
+            )
+            .focused($playButtonFocused)
+
+            // Restart-from-beginning whenever the resolved play
+            // target carries progress (i.e. the play button reads
+            // "Resume"), mirroring MovieDetailView's replay button.
+            // Gating on playTarget covers both the series root
+            // (resume next-up / current episode) and the episode
+            // panel (resume the selected episode).
+            if let target = playTarget(vm: vm),
+               let ticks = target.userData?.playbackPositionTicks,
+               ticks > 0 {
+                GlassActionButton(
+                    title: "detail.replay",
+                    systemImage: "arrow.counterclockwise",
+                    action: {
+                        playItem = target
+                        playFromBeginning = true
+                        playOriginatedFromPlayButton = true
+                        showPlayer = true
+                    }
+                )
+            }
+
+            if !isShowingEpisode {
+                GlassActionButton(
+                    title: vm.isFavorite ? "detail.unfavorite" : "detail.favorite",
+                    systemImage: vm.isFavorite ? "heart.fill" : "heart",
+                    action: { Task { await vm.toggleFavorite() } }
+                )
+            }
+
+            if !isShowingEpisode {
+                GlassActionButton(
+                    title: vm.isPlayed ? "detail.markUnwatched" : "detail.markWatched",
+                    systemImage: vm.isPlayed ? "checkmark.circle.fill" : "checkmark.circle",
+                    action: { Task { await vm.togglePlayed() } }
+                )
+            }
+
+            if isShowingEpisode {
+                GlassActionButton(
+                    title: "detail.showSeries",
+                    systemImage: "xmark",
+                    action: {
+                        withAnimation { selectedEpisode = nil }
+                    }
+                )
+            }
+
+            if isShowingEpisode, let ep = selectedEpisode {
+                GlassActionButton(
+                    title: vm.isPlayed(ep) ? "detail.markUnwatched" : "detail.markWatched",
+                    systemImage: vm.isPlayed(ep) ? "checkmark.circle.fill" : "checkmark.circle",
+                    action: {
+                        let target = !vm.isPlayed(ep)
+                        Task { await vm.setEpisodePlayed(ep, isPlayed: target) }
+                    }
+                )
+            }
+
+            if !isShowingEpisode,
+               appState.isSeerrConnected,
+               let tmdbID = vm.item.tmdbID,
+               shouldShowSeerrRequest(for: vm.item) {
+                GlassActionButton(
+                    title: "detail.requestInSeerr",
+                    systemImage: "tray.and.arrow.down",
+                    action: {
+                        navigateToSeerrRequest = .stub(tmdbID: tmdbID, mediaType: .tv)
+                    }
+                )
+            }
+
+            // Delete sits last in the row, matching MovieDetailView,
+            // so the destructive action is visually furthest from
+            // Play and any positive-action buttons.
+            if canDelete && !isShowingEpisode {
+                GlassActionButton(
+                    title: "detail.delete.button",
+                    systemImage: "trash",
+                    isDestructive: true,
+                    action: { isPresentingDeleteSheet = true }
+                )
+            }
+        }
     }
 
     /// Single source of truth for "which episode does the play button
