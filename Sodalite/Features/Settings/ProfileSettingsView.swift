@@ -281,6 +281,12 @@ struct ProfileSettingsView: View {
             // token, which might not resolve against the server under
             // the new user's permissions. Force-refresh by clearing.
             ImageCache.shared.clear()
+            // Same cross-profile reason for the filter grids: cached
+            // item lists carry the previous user's library permissions
+            // and watched/favorite flags. switchToUser doesn't bump
+            // serverDidSwitch (same server), so HomeView's clearing
+            // task never fires for this path.
+            FilterCache.shared.clearAll()
             let jf = JellyfinUser(
                 id: user.id,
                 name: user.name,

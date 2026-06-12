@@ -454,9 +454,22 @@ final class DependencyContainer {
         }
 
         let activeID = try? keychainService.loadString(for: KeychainKeys.activeServerID)
+        var signalAlreadyScheduled = false
         if activeID == serverID {
             if let successor = servers.first {
-                try? switchServer(to: successor.id)
+                do {
+                    // A successful switchServer schedules the
+                    // serverDidSwitch bump itself; a second bump here
+                    // would cancel the first probe mid-flight via the
+                    // .task(id:) re-key and double the Home reload.
+                    try switchServer(to: successor.id)
+                    signalAlreadyScheduled = true
+                } catch {
+                    // Missing token: the pointer moved but switchServer
+                    // threw before scheduling its bump. Fall through to
+                    // the trailing bump so AppRouter still reacts and
+                    // routes to the successor's profile picker.
+                }
             } else {
                 try? keychainService.delete(for: KeychainKeys.activeServerID)
                 jellyfinClient.baseURL = nil
@@ -467,8 +480,10 @@ final class DependencyContainer {
 
         tvProfileMappings.removeMappings(forServer: serverID)
 
-        Task { @MainActor in
-            self.appState?.serverDidSwitch &+= 1
+        if !signalAlreadyScheduled {
+            Task { @MainActor in
+                self.appState?.serverDidSwitch &+= 1
+            }
         }
     }
 
@@ -479,12 +494,11 @@ final class DependencyContainer {
     /// state so the rest of the app sees a consistent snapshot of
     /// the previous server.
     func rollbackSwitch(to serverID: String) throws {
+        // A plain switchServer: it restores pointer + client +
+        // mirror to the rollback target and issues one
+        // serverDidSwitch bump, which is all observers need. Kept as
+        // a named alias so call sites read as rollbacks.
         try switchServer(to: serverID)
-        // Re-issue the serverDidSwitch signal so observers reload
-        // against the rolled-back state. The signal would already
-        // fire from switchServer above, but we make the rollback
-        // intent explicit so callers reading the signal stream can
-        // tell rollbacks apart by count (two bumps in quick succession).
     }
 
     // MARK: - Remembered Profiles
@@ -648,20 +662,17 @@ final class DependencyContainer {
         forJellyfinUserID jellyfinUserID: String? = nil,
         jellyfinServerID: String? = nil
     ) throws {
-        let serverData = try JSONEncoder().encode(server)
-        try keychainService.save(serverData, for: KeychainKeys.seerrServer)
-        if let cookie = seerrClient.sessionCookie {
-            try keychainService.save(cookie, for: KeychainKeys.seerrSession(serverID: server.id))
-        }
         seerrClient.baseURL = server.url
 
-        // Additionally persist a per-(Jellyfin-user) copy so profile
-        // switching can restore the right Seerr session for each
-        // profile. Skipped when either ID is missing, callers pass
-        // both when they can (SeerrSettingsView has the full app
-        // state), nothing when the login happens outside of any
-        // Jellyfin-user context.
         if let jellyfinUserID, let jellyfinServerID, let cookie = seerrClient.sessionCookie {
+            // Profile-scoped persistence so profile switching can
+            // restore the right Seerr session for each profile. The
+            // global (pre-0.3.0) entry is deliberately NOT refreshed
+            // here anymore: it used to be rewritten on every login,
+            // which kept the legacy fallback perpetually live, and a
+            // profile without a scoped entry could inherit whichever
+            // profile last logged in. The global keys are read-only
+            // legacy now (see syncSeerrSession).
             let remembered = RememberedSeerrSession(
                 jellyfinUserID: jellyfinUserID,
                 jellyfinServerID: jellyfinServerID,
@@ -676,6 +687,14 @@ final class DependencyContainer {
                     jellyfinUserID: jellyfinUserID
                 )
             )
+        } else {
+            // Login outside any Jellyfin-user context: the global
+            // entry is the only place to persist it.
+            let serverData = try JSONEncoder().encode(server)
+            try keychainService.save(serverData, for: KeychainKeys.seerrServer)
+            if let cookie = seerrClient.sessionCookie {
+                try keychainService.save(cookie, for: KeychainKeys.seerrSession(serverID: server.id))
+            }
         }
     }
 
@@ -768,13 +787,18 @@ final class DependencyContainer {
 
             // Legacy bridge: a session restored via the global entry
             // gets persisted as a scoped copy so the next profile
-            // switch can bring it back without the fallback.
+            // switch can bring it back without the fallback. Once the
+            // scoped copy exists, retire the global entry: leaving it
+            // around lets a DIFFERENT profile without a scoped entry
+            // inherit this cookie at a later cold launch.
             if scopedServer == nil, let jellyfinUserID, let jellyfinServerID {
                 try? saveSeerrSession(
                     server: server,
                     forJellyfinUserID: jellyfinUserID,
                     jellyfinServerID: jellyfinServerID
                 )
+                try? keychainService.delete(for: KeychainKeys.seerrSession(serverID: server.id))
+                try? keychainService.delete(for: KeychainKeys.seerrServer)
             }
             return .connected(server: server, user: user)
         } catch let error as APIError where error.isUnauthorized {

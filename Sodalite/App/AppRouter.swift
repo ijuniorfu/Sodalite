@@ -16,6 +16,11 @@ struct AppRouter: View {
     /// player modal is on screen), without this guard, returning from
     /// the player would show the launch splash again.
     @State private var hasRestored = false
+    /// Same re-fire problem as `hasRestored`, for the server-switch
+    /// handler: once serverDidSwitch > 0, every player dismissal would
+    /// otherwise re-run the full probe + Seerr restore. Records the
+    /// last signal value this view actually handled.
+    @State private var lastHandledServerSwitch = 0
     /// tvOS user identifier as of the last performRestore. Nil before
     /// the first restore completes. Dormant under the current tvOS
     /// SDK (TVUserManager.currentUserIdentifier is deprecated and
@@ -123,6 +128,13 @@ struct AppRouter: View {
                 appState.isAuthenticated = false
                 appState.activeServer = nil
                 appState.activeUser = nil
+                // Also drop the previous tvOS user's Seerr identity:
+                // performRestore only touches Seerr state when the new
+                // user restores a session of their own, so without this
+                // wipe the old cookie stays live in seerrClient and the
+                // new user would browse/request as the previous one.
+                appState.disconnectSeerr()
+                try? dependencies.clearSeerrSession()
                 launchPickerServer = nil
                 markTVUserResolved()
                 await performRestore()
@@ -139,6 +151,8 @@ struct AppRouter: View {
         }
         .task(id: appState.serverDidSwitch) {
             guard appState.serverDidSwitch > 0 else { return }
+            guard appState.serverDidSwitch != lastHandledServerSwitch else { return }
+            lastHandledServerSwitch = appState.serverDidSwitch
             do {
                 let user = try await dependencies.probeActiveUser()
                 if let user, let server = dependencies.activeServer {
@@ -303,12 +317,20 @@ struct AppRouter: View {
     private func resolveContinueWatchingRequest() async {
         guard appState.requestContinueWatching else { return }
 
-        // Same cold-launch wait as the deep-link path: Siri may
-        // hand us control before restoreSession finishes.
-        while !appState.isAuthenticated, !Task.isCancelled {
+        // Same cold-launch wait as the deep-link path: Siri may hand
+        // us control before restoreSession finishes. Same 8 s cap as
+        // the deep-link path: on a fresh install / picker screen an
+        // unbounded loop would poll for the process lifetime and pop a
+        // detail sheet minutes later when the user finally signs in.
+        let waitDeadline = Date().addingTimeInterval(8)
+        while !appState.isAuthenticated, !Task.isCancelled, Date() < waitDeadline {
             try? await Task.sleep(for: .milliseconds(150))
         }
-        guard let user = appState.activeUser else {
+        // Cancelled (view re-keyed / disappeared): leave the signal
+        // armed so the restarted task can still act on it instead of
+        // silently dropping the Siri request.
+        guard !Task.isCancelled else { return }
+        guard appState.isAuthenticated, let user = appState.activeUser else {
             appState.requestContinueWatching = false
             return
         }
@@ -318,6 +340,7 @@ struct AppRouter: View {
             mediaType: "Video",
             limit: 1
         )
+        guard !Task.isCancelled else { return }
         appState.requestContinueWatching = false
         if let item = response?.items.first {
             appState.pendingDeepLinkItemID = item.id
@@ -343,6 +366,9 @@ struct AppRouter: View {
         while !appState.isAuthenticated, !Task.isCancelled, Date() < waitDeadline {
             try? await Task.sleep(for: .milliseconds(150))
         }
+        // Cancelled (re-keyed / view disappeared): don't consume the
+        // pending id; the restarted task picks it up with full time.
+        guard !Task.isCancelled else { return }
         guard appState.isAuthenticated, let user = appState.activeUser else {
             // Couldn't restore in time. Drop the pending link and the
             // overlay so the user can interact with whatever AppRouter
@@ -378,13 +404,18 @@ struct AppRouter: View {
             userID: user.id,
             itemID: id
         )
-        appState.pendingDeepLinkItemID = nil
+        guard !Task.isCancelled else { return }
         deepLinkItem = item
         // Hold the overlay a beat past the fullScreenCover binding
         // flip so the cover's slide-in fully obscures the underlying
-        // view before we fade our black overlay out.
+        // view before we fade our black overlay out. The pending id is
+        // cleared LAST: this task is keyed on it, so nilling it earlier
+        // cancelled ourselves at the next suspension point and the
+        // 300 ms hold never actually happened (the stale-view flash
+        // this overlay exists to mask was back).
         try? await Task.sleep(for: .milliseconds(300))
         appState.isResolvingDeepLink = false
+        appState.pendingDeepLinkItemID = nil
     }
 
     /// Walk the active scene's window-level modal chain and dismiss

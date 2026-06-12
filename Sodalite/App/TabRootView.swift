@@ -35,7 +35,13 @@ enum AppTab: String, CaseIterable, Sendable {
 struct TabRootView: View {
     @State private var selectedTab: AppTab = .home
     @State private var availableTabs: [AppTab] = AppTab.allCases.filter { $0 != .music && $0 != .liveTV }
+    /// serverDidSwitch value of the last completed tab probe. -1 until
+    /// the first probe so the initial run always fires; afterwards a
+    /// `.task` re-fire from a view reappearance is a no-op while a real
+    /// server switch (different signal value) resets and re-probes.
+    @State private var lastProbedServerSwitch = -1
     @Environment(\.dependencies) private var dependencies
+    @Environment(\.appState) private var appState
 
     /// Resolved accent color for the tab-bar icons. Falls back to the
     /// asset-catalog accent when the user is on `.system`, so the icons
@@ -75,12 +81,30 @@ struct TabRootView: View {
                 coordinator.togglePlayPause()
             }
         }
-        .task {
+        .task(id: appState.serverDidSwitch) {
+            // TabRootView stays mounted across a server switch, so the
+            // Live TV / Music tabs have to be recomputed per server:
+            // otherwise the old server's Live TV tab lingers (querying
+            // the wrong backend) and a new server's Music tab never
+            // appears until app relaunch.
+            let signal = appState.serverDidSwitch
+            guard signal != lastProbedServerSwitch else { return }
+            let isServerSwitch = lastProbedServerSwitch != -1
+            lastProbedServerSwitch = signal
+            if isServerSwitch {
+                let base = AppTab.allCases.filter { $0 != .music && $0 != .liveTV }
+                availableTabs = base
+                if !base.contains(selectedTab) {
+                    selectedTab = .home
+                }
+            }
+
             guard let userID = dependencies.activeUserID else { return }
 
             // Live TV probe never throws; run it outside the music do/catch
             // so a music failure cannot prevent the Live TV tab from appearing.
             let hasLive = await dependencies.serverHasLiveTV(userID: userID)
+            guard !Task.isCancelled, signal == lastProbedServerSwitch else { return }
             if hasLive, !availableTabs.contains(.liveTV) {
                 if let homeIndex = availableTabs.firstIndex(of: .home) {
                     availableTabs.insert(.liveTV, at: homeIndex + 1)
@@ -91,6 +115,7 @@ struct TabRootView: View {
 
             do {
                 let hasMusic = try await dependencies.jellyfinMusicService.hasMusicLibrary(userID: userID)
+                guard !Task.isCancelled, signal == lastProbedServerSwitch else { return }
                 if hasMusic, !availableTabs.contains(.music) {
                     // Insert Music before Settings so the order is:
                     // Home, [Live TV,] Catalog, Search, Music, Settings.

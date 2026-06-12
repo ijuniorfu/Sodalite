@@ -179,6 +179,10 @@ struct LaunchProfilePickerView: View {
             // Drop cached thumbnails, they were fetched under the
             // old profile's token which may no longer resolve.
             ImageCache.shared.clear()
+            // Filter-grid caches carry the previous user's library
+            // permissions + watched/favorite flags; same-server
+            // switches never bump serverDidSwitch, so clear here.
+            FilterCache.shared.clearAll()
             let jf = JellyfinUser(
                 id: user.id,
                 name: user.name,
