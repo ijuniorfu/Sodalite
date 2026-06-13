@@ -32,6 +32,9 @@ struct FilteredGridView: View {
     @State private var items: [JellyfinItem]
     @State private var isLoading: Bool
     @State private var selectedItem: JellyfinItem?
+    @State private var showPlayer = false
+    @State private var playItem: JellyfinItem?
+    @State private var playQueue: [JellyfinItem] = []
     @State private var watchFilter: WatchStatusFilter = .all
     @FocusState private var focusedItemID: String?
     @Environment(\.dismiss) private var dismiss
@@ -122,6 +125,36 @@ struct FilteredGridView: View {
             .padding(.horizontal, 60)
             .padding(.top, 8)
 
+            HStack {
+                GlassActionButton(
+                    title: "action.shuffle",
+                    systemImage: "shuffle",
+                    action: {
+                        guard let userID = appState.activeUser?.id else { return }
+                        // Shows libraries shuffle episodes across the whole
+                        // library; everything else keeps its own item types.
+                        var types = query.includeItemTypes ?? [.movie]
+                        if types.contains(.series) { types = [.episode] }
+                        Task {
+                            let queue = await VideoShuffleQueue.build(
+                                parentID: query.parentID,
+                                baseQuery: query,
+                                itemTypes: types,
+                                service: dependencies.jellyfinLibraryService,
+                                userID: userID
+                            )
+                            guard let first = queue.first else { return }
+                            playItem = first
+                            playQueue = queue
+                            showPlayer = true
+                        }
+                    }
+                )
+                Spacer()
+            }
+            .padding(.horizontal, 60)
+            .padding(.top, 8)
+
             if isLoading {
                 VStack(spacing: 16) {
                     ProgressView()
@@ -195,6 +228,28 @@ struct FilteredGridView: View {
                         .padding(.bottom, 40)
                 }
             }
+        }
+        .overlay {
+            if let userID = appState.activeUser?.id {
+                PlayerLauncher(
+                    isPresented: $showPlayer,
+                    item: showPlayer ? playItem : nil,
+                    startFromBeginning: true,
+                    playbackService: dependencies.jellyfinPlaybackService,
+                    userID: userID,
+                    preferences: dependencies.playbackPreferences,
+                    cachedPlaybackInfo: nil,
+                    preferredMediaSourceID: nil,
+                    playQueue: playQueue,
+                    tintColor: dependencies.appearancePreferences.effectiveTint(
+                        isSupporter: dependencies.storeKitService.isSupporter
+                    )
+                )
+                .allowsHitTesting(false)
+            }
+        }
+        .onChange(of: appState.requestPlayerDismissal) { _, _ in
+            if showPlayer { showPlayer = false }
         }
         .navigationBarHidden(true)
         .toolbar(.hidden, for: .tabBar)
