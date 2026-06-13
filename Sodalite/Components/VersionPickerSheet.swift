@@ -107,11 +107,6 @@ struct VersionPickerSheet: View {
                 .font(.title2)
                 .fontWeight(.semibold)
 
-            // TEMP diagnostic: how many sources reached the sheet.
-            Text("sources: \(sorted.count)")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-
             VStack(spacing: 16) {
                 ForEach(sorted) { source in
                     row(source)
@@ -122,25 +117,13 @@ struct VersionPickerSheet: View {
         .padding(80)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(.thinMaterial)
-        .onAppear {
-            focusedID = sorted.first?.id
-            #if DEBUG
-            for s in sorted {
-                let v = s.primaryVideoStream
-                print("[VersionPicker] name=\(s.name ?? "nil") container=\(s.container ?? "nil") size=\(s.size.map(String.init) ?? "nil") streams=\(s.mediaStreams?.count ?? 0) video=\(v?.width ?? 0)x\(v?.height ?? 0) codec=\(v?.codec ?? "nil") -> label='\(s.versionLabel)'")
-            }
-            #endif
-        }
+        .onAppear { focusedID = sorted.first?.id }
     }
 
     private func row(_ source: MediaSource) -> some View {
         let isFocused = focusedID == source.id
-        // TEMP diagnostic: if the derived label is empty, show the raw
-        // fields so we can see exactly what the server delivered.
-        let rawDiag = "name=\(source.name ?? "nil") · size=\(source.size.map(String.init) ?? "nil") · streams=\(source.mediaStreams?.count ?? 0)"
-        let shown = source.versionLabel.isEmpty ? rawDiag : source.versionLabel
         return HStack {
-            Text(shown)
+            Text(source.versionLabel)
                 .font(.title3)
                 .fontWeight(.medium)
             Spacer()
