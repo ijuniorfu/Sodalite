@@ -23,6 +23,20 @@ extension PlayerViewModel {
         }
         guard shouldFetch else { return }
 
+        // Shuffle / play queue: the next item is the next entry in the
+        // queue, resolved synchronously with no series fetch. Must run
+        // before the seriesId guard below, queue items are often movies
+        // and carry no seriesId. When the queue is exhausted nextEpisode
+        // stays nil and the engine's .idle handler dismisses the player.
+        if isQueuePlayback {
+            hasFetchedNextEpisode = true
+            let nextIdx = queueIndex + 1
+            if playQueue.indices.contains(nextIdx) {
+                nextEpisode = playQueue[nextIdx]
+            }
+            return
+        }
+
         guard item.seriesId != nil else { return }
 
         hasFetchedNextEpisode = true
@@ -150,6 +164,13 @@ extension PlayerViewModel {
             return
         }
         LogTap.shared.note("[NextEp] playNextEpisode enter: from=\(item.id) to=\(next.id)")
+        // Queue playback: the item we're about to load is
+        // playQueue[queueIndex + 1]; advance the cursor so the next
+        // checkForNextEpisode seeds from the entry after it. resetSessionState
+        // deliberately leaves playQueue / queueIndex untouched.
+        if isQueuePlayback {
+            queueIndex += 1
+        }
         nextEpisodeTimer?.cancel()
         nextEpisodeTimer = nil
         showNextEpisodeOverlay = false
@@ -297,6 +318,12 @@ extension PlayerViewModel {
         guard seasonEpisodes.indices.contains(index) else { return }
         let target = seasonEpisodes[index]
         guard target.id != item.id else { return }
+
+        // Manually picking an episode from the season picker breaks the
+        // shuffle queue: revert to ordinary series auto-advance from the
+        // chosen episode onward.
+        playQueue = []
+        queueIndex = 0
 
         nextEpisodeTimer?.cancel()
         nextEpisodeTimer = nil
