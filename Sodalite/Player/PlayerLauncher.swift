@@ -20,6 +20,9 @@ struct PlayerLauncher: UIViewControllerRepresentable {
     /// Forwarded to PlayerViewModel so the version picker's choice wins over
     /// the default-first source. Nil keeps the previous behavior.
     var preferredMediaSourceID: String?
+    /// Forwarded to PlayerViewModel to start a shuffle / play queue.
+    /// Empty (the default) keeps ordinary single-item playback.
+    var playQueue: [JellyfinItem] = []
     /// Accent color the overlay should tint with. Nil falls back to the
     /// asset-catalog default. Threaded through by callers because the
     /// WindowGroup `.tint(...)` does not cross into the UIKit modal.
@@ -38,7 +41,8 @@ struct PlayerLauncher: UIViewControllerRepresentable {
                 userID: userID,
                 preferences: preferences,
                 cachedPlaybackInfo: cachedPlaybackInfo,
-                preferredMediaSourceID: preferredMediaSourceID
+                preferredMediaSourceID: preferredMediaSourceID,
+                playQueue: playQueue
             )
             let playerVC = PlayerHostController(
                 viewModel: vm,
