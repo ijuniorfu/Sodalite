@@ -10,6 +10,8 @@ struct MovieDetailView: View {
     @State private var navigateToPerson: PersonRoute?
     @State private var showPlayer = false
     @State private var playFromBeginning = false
+    @State private var showTrailer = false
+    @State private var trailerItem: JellyfinItem?
     @State private var isPresentingDeleteSheet: Bool = false
     @FocusState private var playButtonFocused: Bool
 
@@ -70,6 +72,31 @@ struct MovieDetailView: View {
                     )
                 )
                 .allowsHitTesting(false)
+            }
+        }
+        .overlay {
+            if let userID = appState.activeUser?.id {
+                PlayerLauncher(
+                    isPresented: $showTrailer,
+                    item: showTrailer ? trailerItem : nil,
+                    startFromBeginning: true,
+                    playbackService: dependencies.jellyfinPlaybackService,
+                    userID: userID,
+                    preferences: dependencies.playbackPreferences,
+                    // Trailer is a distinct server item; the movie's
+                    // cached PlaybackInfo does not apply to it.
+                    cachedPlaybackInfo: nil,
+                    tintColor: dependencies.appearancePreferences.effectiveTint(
+                        isSupporter: dependencies.storeKitService.isSupporter
+                    )
+                )
+                .allowsHitTesting(false)
+            }
+        }
+        .onChange(of: showTrailer) { _, isPlaying in
+            if !isPlaying {
+                trailerItem = nil
+                deferOnMain(by: 0.1) { playButtonFocused = true }
             }
         }
         .onChange(of: showPlayer) { _, isPlaying in
@@ -289,6 +316,21 @@ struct MovieDetailView: View {
                     action: {
                         playFromBeginning = true
                         showPlayer = true
+                    }
+                )
+            }
+
+            if vm.hasLocalTrailer {
+                GlassActionButton(
+                    title: "detail.trailer",
+                    systemImage: "play.rectangle",
+                    action: {
+                        Task {
+                            if let trailer = await vm.loadTrailer() {
+                                trailerItem = trailer
+                                showTrailer = true
+                            }
+                        }
                     }
                 )
             }
