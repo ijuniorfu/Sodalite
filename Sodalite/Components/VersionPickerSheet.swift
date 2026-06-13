@@ -89,6 +89,11 @@ struct VersionPickerSheet: View {
                 .font(.title2)
                 .fontWeight(.semibold)
 
+            // TEMP diagnostic: how many sources reached the sheet.
+            Text("sources: \(sorted.count)")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+
             VStack(spacing: 16) {
                 ForEach(sorted) { source in
                     row(source)
@@ -112,8 +117,12 @@ struct VersionPickerSheet: View {
 
     private func row(_ source: MediaSource) -> some View {
         let isFocused = focusedID == source.id
+        // TEMP diagnostic: if the derived label is empty, show the raw
+        // fields so we can see exactly what the server delivered.
+        let rawDiag = "name=\(source.name ?? "nil") · size=\(source.size.map(String.init) ?? "nil") · streams=\(source.mediaStreams?.count ?? 0)"
+        let shown = source.versionLabel.isEmpty ? rawDiag : source.versionLabel
         return HStack {
-            Text(source.versionLabel)
+            Text(shown)
                 .font(.title3)
                 .fontWeight(.medium)
             Spacer()
