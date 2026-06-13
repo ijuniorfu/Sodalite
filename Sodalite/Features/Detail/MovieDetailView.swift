@@ -10,8 +10,7 @@ struct MovieDetailView: View {
     @State private var navigateToPerson: PersonRoute?
     @State private var showPlayer = false
     @State private var playFromBeginning = false
-    @State private var showVersionPicker = false
-    @State private var versionSources: [MediaSource] = []
+    @State private var versionChoice: VersionPickerChoice?
     @State private var pendingSourceID: String?
     /// Latched true only when the user actually picked a version, so the
     /// version sheet's onDismiss launches the player on a pick but not on
@@ -101,21 +100,22 @@ struct MovieDetailView: View {
                 .allowsHitTesting(false)
             }
         }
-        .sheet(isPresented: $showVersionPicker, onDismiss: {
+        .sheet(item: $versionChoice, onDismiss: {
             if didPickVersion {
                 didPickVersion = false
                 showPlayer = true
             }
-        }) {
+        }) { choice in
             VersionPickerSheet(
-                sources: versionSources,
+                sources: choice.sources,
                 tintColor: dependencies.appearancePreferences.effectiveTint(
                     isSupporter: dependencies.storeKitService.isSupporter
                 )
             ) { source in
                 pendingSourceID = source.id
+                playFromBeginning = choice.fromBeginning
                 didPickVersion = true
-                showVersionPicker = false
+                versionChoice = nil
             }
         }
         .onChange(of: showTrailer) { _, isPlaying in
@@ -317,11 +317,15 @@ struct MovieDetailView: View {
     /// Movies carry their media sources from the detail fetch, so the
     /// count check is reliable here.
     private func requestPlay(fromBeginning: Bool, vm: DetailViewModel) {
-        playFromBeginning = fromBeginning
         if let sources = vm.item.mediaSources, sources.count > 1 {
-            versionSources = sources
-            showVersionPicker = true
+            versionChoice = VersionPickerChoice(
+                item: vm.item,
+                sources: sources,
+                fromBeginning: fromBeginning,
+                fromPlayButton: false
+            )
         } else {
+            playFromBeginning = fromBeginning
             pendingSourceID = nil
             showPlayer = true
         }

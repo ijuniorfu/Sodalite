@@ -19,8 +19,7 @@ struct SeriesDetailView: View {
     @State private var showPlayer = false
     @State private var playItem: JellyfinItem?
     @State private var playFromBeginning = false
-    @State private var showVersionPicker = false
-    @State private var versionSources: [MediaSource] = []
+    @State private var versionChoice: VersionPickerChoice?
     @State private var pendingSourceID: String?
     @State private var didPickVersion = false
     /// True when the player was launched from the prominent Play
@@ -112,13 +111,17 @@ struct SeriesDetailView: View {
     /// (episode has multiple sources) or starts directly. `fromPlayButton`
     /// preserves the focus-restoration origin flag the trigger sites set.
     private func requestPlay(_ episode: JellyfinItem, fromBeginning: Bool, fromPlayButton: Bool) {
-        playItem = episode
-        playFromBeginning = fromBeginning
-        playOriginatedFromPlayButton = fromPlayButton
         if let sources = episode.mediaSources, sources.count > 1 {
-            versionSources = sources
-            showVersionPicker = true
+            versionChoice = VersionPickerChoice(
+                item: episode,
+                sources: sources,
+                fromBeginning: fromBeginning,
+                fromPlayButton: fromPlayButton
+            )
         } else {
+            playItem = episode
+            playFromBeginning = fromBeginning
+            playOriginatedFromPlayButton = fromPlayButton
             pendingSourceID = nil
             showPlayer = true
         }
@@ -336,21 +339,24 @@ struct SeriesDetailView: View {
                 .allowsHitTesting(false)
             }
         }
-        .sheet(isPresented: $showVersionPicker, onDismiss: {
+        .sheet(item: $versionChoice, onDismiss: {
             if didPickVersion {
                 didPickVersion = false
                 showPlayer = true
             }
-        }) {
+        }) { choice in
             VersionPickerSheet(
-                sources: versionSources,
+                sources: choice.sources,
                 tintColor: dependencies.appearancePreferences.effectiveTint(
                     isSupporter: dependencies.storeKitService.isSupporter
                 )
             ) { source in
+                playItem = choice.item
+                playFromBeginning = choice.fromBeginning
+                playOriginatedFromPlayButton = choice.fromPlayButton
                 pendingSourceID = source.id
                 didPickVersion = true
-                showVersionPicker = false
+                versionChoice = nil
             }
         }
         .onChange(of: showPlayer) { _, isPlaying in

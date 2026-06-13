@@ -65,6 +65,24 @@ extension MediaSource {
     }
 }
 
+// MARK: - Version picker presentation payload
+
+/// Drives the version sheet via `.sheet(item:)`. Carrying the sources in
+/// the presented item (instead of a separate `@State` array read by a
+/// `.sheet(isPresented:)` content closure) avoids SwiftUI's stale-content
+/// race, where the closure captures the initial empty array and the sheet
+/// renders with zero sources.
+struct VersionPickerChoice: Identifiable {
+    let id = UUID()
+    /// The item to play (a movie, or the chosen episode for series).
+    let item: JellyfinItem
+    let sources: [MediaSource]
+    let fromBeginning: Bool
+    /// Series-only: preserves the focus-restoration origin flag. Ignored
+    /// by movie detail.
+    let fromPlayButton: Bool
+}
+
 // MARK: - Version picker sheet
 
 /// Shown from the detail views when an item has more than one media
