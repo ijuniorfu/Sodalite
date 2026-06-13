@@ -34,6 +34,12 @@ struct JellyfinItem: Codable, Sendable, Identifiable, Equatable, Hashable {
     let studios: [StudioInfo]?
     let collectionType: String?
     let childCount: Int?
+    /// Number of local trailer files Jellyfin has for this item, when
+    /// the request asked for LocalTrailerCount in Fields. Gates the
+    /// detail-view Trailer button without a second round-trip; the
+    /// actual trailer items are fetched lazily on tap. nil when the
+    /// field was not requested.
+    let localTrailerCount: Int?
     let seriesPrimaryImageTag: String?
     let providerIds: [String: String]?
     let chapters: [ChapterInfo]?
@@ -91,6 +97,7 @@ struct JellyfinItem: Codable, Sendable, Identifiable, Equatable, Hashable {
         case studios = "Studios"
         case collectionType = "CollectionType"
         case childCount = "ChildCount"
+        case localTrailerCount = "LocalTrailerCount"
         case seriesPrimaryImageTag = "SeriesPrimaryImageTag"
         case providerIds = "ProviderIds"
         case chapters = "Chapters"
@@ -133,6 +140,7 @@ struct JellyfinItem: Codable, Sendable, Identifiable, Equatable, Hashable {
         self.studios = item.studios
         self.collectionType = item.collectionType
         self.childCount = item.childCount
+        self.localTrailerCount = item.localTrailerCount
         self.seriesPrimaryImageTag = item.seriesPrimaryImageTag
         self.providerIds = item.providerIds
         self.chapters = item.chapters
@@ -175,6 +183,7 @@ struct JellyfinItem: Codable, Sendable, Identifiable, Equatable, Hashable {
         self.studios = nil
         self.collectionType = nil
         self.childCount = nil
+        self.localTrailerCount = nil
         self.seriesPrimaryImageTag = nil
         self.providerIds = nil
         self.chapters = nil
@@ -219,6 +228,7 @@ struct JellyfinItem: Codable, Sendable, Identifiable, Equatable, Hashable {
         self.studios = nil
         self.collectionType = nil
         self.childCount = nil
+        self.localTrailerCount = nil
         self.seriesPrimaryImageTag = nil
         self.providerIds = nil
         self.chapters = nil

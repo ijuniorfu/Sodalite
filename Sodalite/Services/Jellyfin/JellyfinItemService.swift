@@ -2,6 +2,10 @@ import Foundation
 
 protocol JellyfinItemServiceProtocol: Sendable {
     func getItemDetail(userID: String, itemID: String) async throws -> JellyfinItem
+    /// Local trailer files for an item. Returns a (possibly empty)
+    /// array of playable items; the endpoint responds with a bare
+    /// array, not the {Items:[...]} envelope.
+    func getLocalTrailers(userID: String, itemID: String) async throws -> [JellyfinItem]
     func getSeasons(seriesID: String, userID: String) async throws -> JellyfinItemsResponse
     func getEpisodes(seriesID: String, seasonID: String, userID: String) async throws -> JellyfinItemsResponse
     func getSimilarItems(itemID: String, userID: String, limit: Int) async throws -> JellyfinItemsResponse
@@ -26,6 +30,13 @@ final class JellyfinItemService: JellyfinItemServiceProtocol {
         try await client.request(
             endpoint: JellyfinEndpoint.itemDetail(userID: userID, itemID: itemID),
             responseType: JellyfinItem.self
+        )
+    }
+
+    func getLocalTrailers(userID: String, itemID: String) async throws -> [JellyfinItem] {
+        try await client.request(
+            endpoint: JellyfinEndpoint.localTrailers(userID: userID, itemID: itemID),
+            responseType: [JellyfinItem].self
         )
     }
 

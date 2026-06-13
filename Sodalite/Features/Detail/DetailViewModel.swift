@@ -45,6 +45,12 @@ final class DetailViewModel {
     var hasFullDetail = false
     var cachedPlaybackInfo: PlaybackInfoResponse?
 
+    /// True when the server reported at least one local trailer for
+    /// this item. Drives the detail-view Trailer button's visibility.
+    var hasLocalTrailer: Bool {
+        (item.localTrailerCount ?? 0) > 0
+    }
+
     private let itemService: JellyfinItemServiceProtocol
     private let libraryService: JellyfinLibraryServiceProtocol?
     private let playbackService: JellyfinPlaybackServiceProtocol?
@@ -102,6 +108,14 @@ final class DetailViewModel {
         self.imageService = imageService
         self.userID = userID
         self.initialEpisode = initialEpisode
+    }
+
+    /// Fetches the item's local trailers and returns the first one to
+    /// play, or nil if there are none or the request fails. Called on
+    /// Trailer-button tap so we only hit the endpoint on demand.
+    func loadTrailer() async -> JellyfinItem? {
+        let trailers = try? await itemService.getLocalTrailers(userID: userID, itemID: item.id)
+        return trailers?.first
     }
 
     func loadFullDetail() async {

@@ -659,6 +659,23 @@ struct SeriesDetailView: View {
                 )
             }
 
+            if !isShowingEpisode && vm.hasLocalTrailer {
+                GlassActionButton(
+                    title: "detail.trailer",
+                    systemImage: "play.rectangle",
+                    action: {
+                        Task {
+                            if let trailer = await vm.loadTrailer() {
+                                playItem = trailer
+                                playFromBeginning = true
+                                playOriginatedFromPlayButton = false
+                                showPlayer = true
+                            }
+                        }
+                    }
+                )
+            }
+
             if !isShowingEpisode {
                 GlassActionButton(
                     title: vm.isFavorite ? "detail.unfavorite" : "detail.favorite",
