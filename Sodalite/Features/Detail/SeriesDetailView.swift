@@ -19,6 +19,10 @@ struct SeriesDetailView: View {
     @State private var showPlayer = false
     @State private var playItem: JellyfinItem?
     @State private var playFromBeginning = false
+    @State private var showVersionPicker = false
+    @State private var versionSources: [MediaSource] = []
+    @State private var pendingSourceID: String?
+    @State private var didPickVersion = false
     /// True when the player was launched from the prominent Play
     /// button in the glass panel; false when it was launched from
     /// an episode card in the episode row. Used by the player-dismiss
@@ -103,6 +107,22 @@ struct SeriesDetailView: View {
     /// the view model lands on the right season. nil for a normal
     /// series open.
     var initialEpisode: JellyfinItem? = nil
+
+    /// Sets up the episode to play, then either shows the version picker
+    /// (episode has multiple sources) or starts directly. `fromPlayButton`
+    /// preserves the focus-restoration origin flag the trigger sites set.
+    private func requestPlay(_ episode: JellyfinItem, fromBeginning: Bool, fromPlayButton: Bool) {
+        playItem = episode
+        playFromBeginning = fromBeginning
+        playOriginatedFromPlayButton = fromPlayButton
+        if let sources = episode.mediaSources, sources.count > 1 {
+            versionSources = sources
+            showVersionPicker = true
+        } else {
+            pendingSourceID = nil
+            showPlayer = true
+        }
+    }
 
     private var displayItem: JellyfinItem {
         selectedEpisode ?? viewModel?.item ?? item
@@ -308,11 +328,29 @@ struct SeriesDetailView: View {
                     cachedPlaybackInfo: playItem.flatMap { ep in
                         (viewModel?.currentEpisodeID == ep.id) ? viewModel?.cachedPlaybackInfo : nil
                     },
+                    preferredMediaSourceID: pendingSourceID,
                     tintColor: dependencies.appearancePreferences.effectiveTint(
                         isSupporter: dependencies.storeKitService.isSupporter
                     )
                 )
                 .allowsHitTesting(false)
+            }
+        }
+        .sheet(isPresented: $showVersionPicker, onDismiss: {
+            if didPickVersion {
+                didPickVersion = false
+                showPlayer = true
+            }
+        }) {
+            VersionPickerSheet(
+                sources: versionSources,
+                tintColor: dependencies.appearancePreferences.effectiveTint(
+                    isSupporter: dependencies.storeKitService.isSupporter
+                )
+            ) { source in
+                pendingSourceID = source.id
+                didPickVersion = true
+                showVersionPicker = false
             }
         }
         .onChange(of: showPlayer) { _, isPlaying in
@@ -629,10 +667,7 @@ struct SeriesDetailView: View {
                 action: {
                     let ep = playTarget(vm: vm)
                     if let ep {
-                        playItem = ep
-                        playFromBeginning = false
-                        playOriginatedFromPlayButton = true
-                        showPlayer = true
+                        requestPlay(ep, fromBeginning: false, fromPlayButton: true)
                     }
                 }
             )
@@ -651,10 +686,7 @@ struct SeriesDetailView: View {
                     title: "detail.replay",
                     systemImage: "arrow.counterclockwise",
                     action: {
-                        playItem = target
-                        playFromBeginning = true
-                        playOriginatedFromPlayButton = true
-                        showPlayer = true
+                        requestPlay(target, fromBeginning: true, fromPlayButton: true)
                     }
                 )
             }
@@ -1010,10 +1042,7 @@ struct SeriesDetailView: View {
                             ForEach(vm.episodes) { episode in
                                 VStack(alignment: .leading, spacing: 10) {
                                     Button {
-                                        playItem = episode
-                                        playFromBeginning = false
-                                        playOriginatedFromPlayButton = false
-                                        showPlayer = true
+                                        requestPlay(episode, fromBeginning: false, fromPlayButton: false)
                                     } label: {
                                         EpisodeLandscapeCard(
                                             episode: episode,
@@ -1066,20 +1095,14 @@ struct SeriesDetailView: View {
                                         }
 
                                         Button {
-                                            playItem = episode
-                                            playFromBeginning = true
-                                            playOriginatedFromPlayButton = false
-                                            showPlayer = true
+                                            requestPlay(episode, fromBeginning: true, fromPlayButton: false)
                                         } label: {
                                             Label("detail.play", systemImage: "play.fill")
                                         }
 
                                         if let ticks = episode.userData?.playbackPositionTicks, ticks > 0 {
                                             Button {
-                                                playItem = episode
-                                                playFromBeginning = false
-                                                playOriginatedFromPlayButton = false
-                                                showPlayer = true
+                                                requestPlay(episode, fromBeginning: false, fromPlayButton: false)
                                             } label: {
                                                 Label("detail.resume", systemImage: "play.circle")
                                             }
