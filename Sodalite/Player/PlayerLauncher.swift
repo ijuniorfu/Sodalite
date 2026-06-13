@@ -17,6 +17,9 @@ struct PlayerLauncher: UIViewControllerRepresentable {
     let userID: String
     let preferences: PlaybackPreferences
     var cachedPlaybackInfo: PlaybackInfoResponse?
+    /// Forwarded to PlayerViewModel so the version picker's choice wins over
+    /// the default-first source. Nil keeps the previous behavior.
+    var preferredMediaSourceID: String?
     /// Accent color the overlay should tint with. Nil falls back to the
     /// asset-catalog default. Threaded through by callers because the
     /// WindowGroup `.tint(...)` does not cross into the UIKit modal.
@@ -34,7 +37,8 @@ struct PlayerLauncher: UIViewControllerRepresentable {
                 playbackService: playbackService,
                 userID: userID,
                 preferences: preferences,
-                cachedPlaybackInfo: cachedPlaybackInfo
+                cachedPlaybackInfo: cachedPlaybackInfo,
+                preferredMediaSourceID: preferredMediaSourceID
             )
             let playerVC = PlayerHostController(
                 viewModel: vm,

@@ -10,6 +10,12 @@ struct MovieDetailView: View {
     @State private var navigateToPerson: PersonRoute?
     @State private var showPlayer = false
     @State private var playFromBeginning = false
+    @State private var versionChoice: VersionPickerChoice?
+    @State private var pendingSourceID: String?
+    /// Latched true only when the user actually picked a version, so the
+    /// version sheet's onDismiss launches the player on a pick but not on
+    /// a cancel.
+    @State private var didPickVersion = false
     @State private var showTrailer = false
     @State private var trailerItem: JellyfinItem?
     @State private var isPresentingDeleteSheet: Bool = false
@@ -67,6 +73,7 @@ struct MovieDetailView: View {
                     userID: userID,
                     preferences: dependencies.playbackPreferences,
                     cachedPlaybackInfo: viewModel?.cachedPlaybackInfo,
+                    preferredMediaSourceID: pendingSourceID,
                     tintColor: dependencies.appearancePreferences.effectiveTint(
                         isSupporter: dependencies.storeKitService.isSupporter
                     )
@@ -91,6 +98,24 @@ struct MovieDetailView: View {
                     )
                 )
                 .allowsHitTesting(false)
+            }
+        }
+        .sheet(item: $versionChoice, onDismiss: {
+            if didPickVersion {
+                didPickVersion = false
+                showPlayer = true
+            }
+        }) { choice in
+            VersionPickerSheet(
+                sources: choice.sources,
+                tintColor: dependencies.appearancePreferences.effectiveTint(
+                    isSupporter: dependencies.storeKitService.isSupporter
+                )
+            ) { source in
+                pendingSourceID = source.id
+                playFromBeginning = choice.fromBeginning
+                didPickVersion = true
+                versionChoice = nil
             }
         }
         .onChange(of: showTrailer) { _, isPlaying in
@@ -288,6 +313,24 @@ struct MovieDetailView: View {
         )
     }
 
+    /// Decides whether to show the version picker or start directly.
+    /// Movies carry their media sources from the detail fetch, so the
+    /// count check is reliable here.
+    private func requestPlay(fromBeginning: Bool, vm: DetailViewModel) {
+        if let sources = vm.item.mediaSources, sources.count > 1 {
+            versionChoice = VersionPickerChoice(
+                item: vm.item,
+                sources: sources,
+                fromBeginning: fromBeginning,
+                fromPlayButton: false
+            )
+        } else {
+            playFromBeginning = fromBeginning
+            pendingSourceID = nil
+            showPlayer = true
+        }
+    }
+
     // MARK: - Action Buttons
 
     /// Button row directly below the glass panel. Lives outside the
@@ -303,8 +346,7 @@ struct MovieDetailView: View {
                 subtitle: resumeTimestamp(vm: vm),
                 progressFraction: playProgressFraction(vm: vm),
                 action: {
-                    playFromBeginning = false
-                    showPlayer = true
+                    requestPlay(fromBeginning: false, vm: vm)
                 }
             )
             .focused($playButtonFocused)
@@ -314,8 +356,7 @@ struct MovieDetailView: View {
                     title: "detail.replay",
                     systemImage: "arrow.counterclockwise",
                     action: {
-                        playFromBeginning = true
-                        showPlayer = true
+                        requestPlay(fromBeginning: true, vm: vm)
                     }
                 )
             }

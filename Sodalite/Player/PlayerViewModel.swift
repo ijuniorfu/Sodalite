@@ -264,6 +264,11 @@ final class PlayerViewModel {
     var cachedPlaybackInfo: PlaybackInfoResponse?
     let preferences: PlaybackPreferences
 
+    /// When set, `startPlayback()` selects the matching source from the
+    /// PlaybackInfo response instead of taking the first one. Nil keeps the
+    /// previous default-first behavior. Set by the detail-view version picker.
+    let preferredMediaSourceID: String?
+
     /// Produces the scrub-preview thumbnail via the session FrameExtractor.
     /// Configured per session in `startPlayback`, reset in `stopPlayback`.
     let scrubPreview: ScrubPreviewProvider
@@ -381,6 +386,7 @@ final class PlayerViewModel {
         userID: String,
         preferences: PlaybackPreferences,
         cachedPlaybackInfo: PlaybackInfoResponse? = nil,
+        preferredMediaSourceID: String? = nil,
         isLiveSession: Bool = false,
         liveChannel: JellyfinChannel? = nil,
         liveTvService: JellyfinLiveTvServiceProtocol? = nil
@@ -393,6 +399,7 @@ final class PlayerViewModel {
         self.preferences = preferences
         self.scrubPreview = ScrubPreviewProvider()
         self.cachedPlaybackInfo = cachedPlaybackInfo
+        self.preferredMediaSourceID = preferredMediaSourceID
         self.isLiveSession = isLiveSession
         self.liveChannel = liveChannel
         self.liveTvService = liveTvService
@@ -508,7 +515,9 @@ final class PlayerViewModel {
             }
             playSessionID = info.playSessionId
 
-            guard let source = info.mediaSources.first else {
+            let source = info.mediaSources.first(where: { $0.id == preferredMediaSourceID })
+                ?? info.mediaSources.first
+            guard let source else {
                 throw PlayerEngineError.noSource
             }
             mediaSourceID = source.id
