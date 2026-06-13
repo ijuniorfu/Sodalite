@@ -51699,6 +51699,168 @@
         }
       }
     },
+    "detail.version.title" : {
+      "comment" : "Version picker sheet title",
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vyberte verzi"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vælg version"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Version wählen"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Επιλογή έκδοσης"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose Version"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Elegir versión"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Valitse versio"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choisir la version"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Odaberite verziju"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Válasszon verziót"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scegli versione"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "バージョンを選択"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "버전 선택"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Velg versjon"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Versie kiezen"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wybierz wersję"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Escolher versão"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Escolher versão"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alege versiunea"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Выбрать версию"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vyberte verziu"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Välj version"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sürüm seç"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Вибрати версію"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "选择版本"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "選擇版本"
+          }
+        }
+      }
+    },
     "detail.writer" : {
       "comment" : "Writer label",
       "extractionState" : "manual",
