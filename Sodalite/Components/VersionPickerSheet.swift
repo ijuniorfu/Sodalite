@@ -36,11 +36,25 @@ extension MediaSource {
         return ByteCountFormatter.string(fromByteCount: size, countStyle: .file)
     }
 
-    /// Combined "4K · HEVC · 82 GB", dropping any nil component.
+    /// Display label for a version row. Prefers the server's version
+    /// name (Jellyfin fills `MediaSource.Name` with the file's version
+    /// tag, e.g. "1080p" / "Directors Cut", for multi-version items),
+    /// then appends any derived specs the name doesn't already convey.
+    /// Falls back to container so a row is never blank.
     var versionLabel: String {
-        [resolutionLabel, codecLabel, sizeLabel]
-            .compactMap { $0 }
-            .joined(separator: " · ")
+        var parts: [String] = []
+        if let name, !name.trimmingCharacters(in: .whitespaces).isEmpty {
+            parts.append(name)
+        }
+        for spec in [resolutionLabel, codecLabel, sizeLabel].compactMap({ $0 }) {
+            if !parts.contains(where: { $0.caseInsensitiveCompare(spec) == .orderedSame }) {
+                parts.append(spec)
+            }
+        }
+        if parts.isEmpty, let container, !container.isEmpty {
+            parts.append(container.uppercased())
+        }
+        return parts.joined(separator: " · ")
     }
 
     /// Sort key for "highest quality first": bitrate, else pixel count.
@@ -85,7 +99,15 @@ struct VersionPickerSheet: View {
         .padding(80)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(.thinMaterial)
-        .onAppear { focusedID = sorted.first?.id }
+        .onAppear {
+            focusedID = sorted.first?.id
+            #if DEBUG
+            for s in sorted {
+                let v = s.primaryVideoStream
+                print("[VersionPicker] name=\(s.name ?? "nil") container=\(s.container ?? "nil") size=\(s.size.map(String.init) ?? "nil") streams=\(s.mediaStreams?.count ?? 0) video=\(v?.width ?? 0)x\(v?.height ?? 0) codec=\(v?.codec ?? "nil") -> label='\(s.versionLabel)'")
+            }
+            #endif
+        }
     }
 
     private func row(_ source: MediaSource) -> some View {
