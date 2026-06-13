@@ -20,6 +20,11 @@ enum JellyfinEndpoint: APIEndpoint {
     // Items
     case items(userID: String, query: ItemQuery)
     case itemDetail(userID: String, itemID: String)
+    /// GET /Users/{userID}/Items/{itemID}/LocalTrailers — returns the
+    /// item's local trailer files as a bare array of BaseItemDtos
+    /// (not the {Items:[...]} envelope). Each is a real, playable item
+    /// with its own id.
+    case localTrailers(userID: String, itemID: String)
     case resumeItems(userID: String, mediaType: String, limit: Int)
     case nextUp(userID: String, seriesID: String?, limit: Int)
     case latestMedia(userID: String, parentID: String?, includeItemTypes: [ItemType]?, limit: Int)
@@ -103,6 +108,8 @@ enum JellyfinEndpoint: APIEndpoint {
             "/Users/\(userID)/Items"
         case .itemDetail(let userID, let itemID):
             "/Users/\(userID)/Items/\(itemID)"
+        case .localTrailers(let userID, let itemID):
+            "/Users/\(userID)/Items/\(itemID)/LocalTrailers"
         case .resumeItems(let userID, _, _):
             "/Users/\(userID)/Items/Resume"
         case .nextUp:
@@ -235,12 +242,21 @@ enum JellyfinEndpoint: APIEndpoint {
         case .items(_, let query):
             return query.toQueryItems()
 
+        case .localTrailers(let userID, _):
+            // UserId so returned trailers carry user data; defaultFields
+            // so they arrive with MediaSources/Chapters like any other
+            // playable detail item.
+            return [
+                URLQueryItem(name: "UserId", value: userID),
+                URLQueryItem(name: "Fields", value: Self.defaultFields),
+            ]
+
         case .itemDetail:
             // /Users/{id}/Items/{id} otherwise omits the extended
-            // `Fields` (including RemoteTrailers, which the Trailer
-            // button needs to resolve YouTube URLs for a detail
-            // item). defaultFields is our standard "give me enough
-            // to render a rich detail view" set.
+            // `Fields`. defaultFields is our standard "give me enough
+            // to render a rich detail view" set, including
+            // LocalTrailerCount so the Trailer button can gate its
+            // visibility without a second round-trip.
             return [URLQueryItem(name: "Fields", value: Self.defaultFields)]
 
         case .resumeItems(_, let mediaType, let limit):
@@ -489,7 +505,7 @@ enum JellyfinEndpoint: APIEndpoint {
         }
     }
 
-    static let defaultFields = "Overview,Genres,People,Studios,MediaStreams,MediaSources,CommunityRating,CriticRating,OfficialRating,ImageTags,BackdropImageTags,ParentBackdropImageTags,SeriesPrimaryImageTag,ProviderIds,Chapters"
+    static let defaultFields = "Overview,Genres,People,Studios,MediaStreams,MediaSources,CommunityRating,CriticRating,OfficialRating,ImageTags,BackdropImageTags,ParentBackdropImageTags,SeriesPrimaryImageTag,ProviderIds,Chapters,LocalTrailerCount"
 
     /// Minimal field set for the season bar. ItemCounts keeps childCount
     /// (used to size the loading skeleton's card count) without dragging in
