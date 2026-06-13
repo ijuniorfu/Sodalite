@@ -36,8 +36,11 @@ struct DetailBackdrop: View {
                     // escaped the app. drawingGroup flattens the blur
                     // into one bounded Metal layer; the gentle scale
                     // afterwards pushes the soft edges past the frame.
+                    // Radius 32 (down from 64) keeps the poster reading
+                    // as ambient color while leaving the subject faintly
+                    // recognisable, per DrHurt's Sodalite#15 feedback.
                     filled
-                        .blur(radius: 64)
+                        .blur(radius: 32)
                         .drawingGroup()
                         .scaleEffect(1.1)
                 } else {
