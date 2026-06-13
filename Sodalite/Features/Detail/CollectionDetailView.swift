@@ -190,6 +190,21 @@ struct CollectionItemRow: View {
                                     .foregroundStyle(.secondary)
                             }
                         }
+                        // Rotten Tomatoes critic score, mirrors the
+                        // movie detail badge (fresh/rotten split at 60),
+                        // only shown when the server delivers CriticRating.
+                        if let critic = item.criticRating {
+                            HStack(spacing: 3) {
+                                Image(critic >= 60 ? "RTFresh" : "RTRotten")
+                                    .resizable()
+                                    .renderingMode(.original)
+                                    .aspectRatio(contentMode: .fit)
+                                    .frame(height: 16)
+                                Text(verbatim: "\(Int(critic)) %")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
                     }
 
                     if let overview = item.overview {
