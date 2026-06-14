@@ -127,7 +127,11 @@ private struct GlassActionButtonLabel: View {
         // distribution, which otherwise hyphenated "Fortsetzen" onto
         // two lines. The button grows to fit its content instead.
         .fixedSize(horizontal: true, vertical: false)
-        .animation(.easeInOut(duration: 0.15), value: isFocused)
+        // Spring curve (matched to GlassButtonStyle's scale animation)
+        // so the label reveal and the resulting sibling reflow read as
+        // one fluid motion instead of a 0.15 s snap. The width change
+        // here drives the whole row's reposition when focus moves.
+        .animation(.smooth(duration: 0.32), value: isFocused)
     }
 }
 
@@ -205,7 +209,9 @@ struct GlassButtonStyle: ButtonStyle {
             )
             .scaleEffect(isFocused ? 1.08 : (configuration.isPressed ? 0.95 : 1.0))
             .shadow(color: .black.opacity(isFocused ? 0.3 : 0), radius: 10, y: 5)
-            .animation(.easeInOut(duration: 0.15), value: isFocused)
+            // Matches the label-reveal spring in GlassActionButtonLabel so
+            // scale, border and the icon->label expansion move together.
+            .animation(.smooth(duration: 0.32), value: isFocused)
     }
 
     private var backgroundFill: AnyShapeStyle {
