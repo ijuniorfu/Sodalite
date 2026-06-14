@@ -273,7 +273,13 @@ struct PlayerOverlayView: View {
             // distribute header / title / countdown across the card
             // height instead of bunching them in the centre.
             VStack(alignment: .leading, spacing: 0) {
-                Text(String(localized: "player.nextEpisode", defaultValue: "Next Episode"))
+                // Episodes (series autoplay or an episode shuffle queue)
+                // keep "Next Episode"; a movie reached via a shuffle queue
+                // shows "Up Next" instead. The S/E label below is naturally
+                // hidden for movies (no parent/index numbers).
+                Text(episode.type == .episode
+                     ? String(localized: "player.nextEpisode", defaultValue: "Next Episode")
+                     : String(localized: "player.upNext", defaultValue: "Up Next"))
                     .font(.subheadline)
                     .foregroundStyle(.white.opacity(0.85))
 

@@ -6,6 +6,8 @@ struct CollectionDetailView: View {
     @State private var viewModel: DetailViewModel?
     @State private var selectedItem: JellyfinItem?
     @State private var showPlayer = false
+    @State private var playItem: JellyfinItem?
+    @State private var playQueue: [JellyfinItem] = []
 
     let item: JellyfinItem
 
@@ -19,6 +21,28 @@ struct CollectionDetailView: View {
             }
         }
         .ignoresSafeArea()
+        .overlay {
+            if let userID = appState.activeUser?.id {
+                PlayerLauncher(
+                    isPresented: $showPlayer,
+                    item: showPlayer ? playItem : nil,
+                    startFromBeginning: true,
+                    playbackService: dependencies.jellyfinPlaybackService,
+                    userID: userID,
+                    preferences: dependencies.playbackPreferences,
+                    cachedPlaybackInfo: nil,
+                    preferredMediaSourceID: nil,
+                    playQueue: playQueue,
+                    tintColor: dependencies.appearancePreferences.effectiveTint(
+                        isSupporter: dependencies.storeKitService.isSupporter
+                    )
+                )
+                .allowsHitTesting(false)
+            }
+        }
+        .onChange(of: appState.requestPlayerDismissal) { _, _ in
+            if showPlayer { showPlayer = false }
+        }
         .navigationDestination(item: $selectedItem) { item in
             DetailRouterView(item: item)
         }
@@ -110,11 +134,29 @@ struct CollectionDetailView: View {
             )
 
             GlassActionButton(
+                title: "action.shuffle",
+                systemImage: "shuffle",
+                action: {
+                    // Collection members are already loaded; shuffle them
+                    // client-side. Filter to playable leaf types so a stray
+                    // nested series can't seed an unplayable queue entry.
+                    let queue = vm.collectionItems
+                        .filter { $0.type == .movie || $0.type == .episode }
+                        .shuffled()
+                    guard let first = queue.first else { return }
+                    playItem = first
+                    playQueue = queue
+                    showPlayer = true
+                }
+            )
+
+            GlassActionButton(
                 title: vm.isFavorite ? "detail.unfavorite" : "detail.favorite",
                 systemImage: vm.isFavorite ? "heart.fill" : "heart",
                 action: { Task { await vm.toggleFavorite() } }
             )
         }
+        .collapsesActionButtonLabel()
     }
 
     // MARK: - Collection Items (vertical list)

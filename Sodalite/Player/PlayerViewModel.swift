@@ -197,6 +197,23 @@ final class PlayerViewModel {
     // Video format (HDR/DV indicator)
     var videoFormat: VideoFormat = .sdr
 
+    // MARK: - Shuffle / play queue
+
+    /// When non-empty, playback advances through this shuffled list
+    /// instead of (or, for episodes, in preference to) the series
+    /// successor. The currently-playing item is `playQueue[queueIndex]`;
+    /// the next item is `playQueue[queueIndex + 1]`. Empty for ordinary
+    /// single-item and series-autoplay sessions. Reusing the
+    /// next-episode overlay + reload-in-place path keeps the engine
+    /// AVPlayer alive across items (issue #15).
+    var playQueue: [JellyfinItem] = []
+    /// Index of the currently-playing item within `playQueue`. The
+    /// launch item is index 0; `playNextEpisode()` increments it.
+    var queueIndex: Int = 0
+
+    /// True while a shuffle / play queue is driving auto-advance.
+    var isQueuePlayback: Bool { !playQueue.isEmpty }
+
     // Next episode
     var nextEpisode: JellyfinItem?
     var showNextEpisodeOverlay = false
@@ -387,6 +404,7 @@ final class PlayerViewModel {
         preferences: PlaybackPreferences,
         cachedPlaybackInfo: PlaybackInfoResponse? = nil,
         preferredMediaSourceID: String? = nil,
+        playQueue: [JellyfinItem] = [],
         isLiveSession: Bool = false,
         liveChannel: JellyfinChannel? = nil,
         liveTvService: JellyfinLiveTvServiceProtocol? = nil
@@ -400,6 +418,8 @@ final class PlayerViewModel {
         self.scrubPreview = ScrubPreviewProvider()
         self.cachedPlaybackInfo = cachedPlaybackInfo
         self.preferredMediaSourceID = preferredMediaSourceID
+        self.playQueue = playQueue
+        self.queueIndex = 0
         self.isLiveSession = isLiveSession
         self.liveChannel = liveChannel
         self.liveTvService = liveTvService

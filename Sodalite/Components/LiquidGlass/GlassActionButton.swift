@@ -33,46 +33,24 @@ struct GlassActionButton: View {
     var isLoading: Bool = false
     let action: () -> Void
 
+    /// Set by an action row via `.collapsesActionButtonLabel(true)`.
+    /// When on, secondary (non-prominent) buttons collapse to an
+    /// icon-only pill and reveal their title only on focus, so a
+    /// crowded detail-view row (Bluey: 8 actions) fits on screen.
+    @Environment(\.collapsesActionButtonLabel) private var collapsesLabel
+
     var body: some View {
         Button(role: isDestructive ? .destructive : nil) {
             action()
         } label: {
-            HStack(spacing: 10) {
-                if isLoading {
-                    // Spinner alongside the title so the button keeps
-                    // its size + remains recognisable; replacing the
-                    // whole label with a small spinner made the button
-                    // shrink and visually disappear during the wait.
-                    ProgressView()
-                        .controlSize(.small)
-                    Text(title)
-                        .font(.callout)
-                        .fontWeight(.medium)
-                        .lineLimit(1)
-                } else {
-                    Image(systemName: systemImage)
-                        .font(.body)
-                    Text(title)
-                        .font(.callout)
-                        .fontWeight(.medium)
-                        .lineLimit(1)
-                    if let subtitle, !subtitle.isEmpty {
-                        Text(subtitle)
-                            .font(.caption)
-                            .foregroundStyle(.white.opacity(0.75))
-                            .monospacedDigit()
-                            .lineLimit(1)
-                    }
-                }
-            }
-            .padding(.horizontal, 24)
-            .padding(.vertical, 12)
-            // Keep the label at its intrinsic width so a multi-element
-            // prominent button (icon + title + subtitle, e.g. the resume
-            // button) is never compressed by the action row's width
-            // distribution, which otherwise hyphenated "Fortsetzen" onto
-            // two lines. The button grows to fit its content instead.
-            .fixedSize(horizontal: true, vertical: false)
+            GlassActionButtonLabel(
+                title: title,
+                systemImage: systemImage,
+                subtitle: subtitle,
+                isProminent: isProminent,
+                isLoading: isLoading,
+                collapsesLabel: collapsesLabel
+            )
         }
         .buttonStyle(GlassButtonStyle(
             isProminent: isProminent,
@@ -80,6 +58,160 @@ struct GlassActionButton: View {
             progressFraction: progressFraction
         ))
         .disabled(isLoading)
+        // Preserve the title for VoiceOver even when the visible label
+        // collapses to an icon-only pill (unfocused secondary buttons).
+        .accessibilityLabel(Text(title))
+    }
+}
+
+/// The button's label content. Lives in its own view so it can read
+/// `@Environment(\.isFocused)` from inside the focused button's subtree
+/// (the value the GlassButtonStyle already keys its focus ring off).
+private struct GlassActionButtonLabel: View {
+    let title: LocalizedStringKey
+    let systemImage: String
+    let subtitle: String?
+    let isProminent: Bool
+    let isLoading: Bool
+    let collapsesLabel: Bool
+
+    @Environment(\.isFocused) private var isFocused
+    /// Measured intrinsic width of the trailing title/subtitle content
+    /// (its leading gap baked in). The visible copy animates its frame
+    /// between 0 and this, so the reveal interpolates the real layout
+    /// footprint: the text fades in step with the growing width.
+    @State private var labelWidth: CGFloat = 0
+
+    /// Prominent buttons (the primary Play/Resume action) always show
+    /// their title. Secondary buttons reveal it only when the row hasn't
+    /// opted into collapsing, or while focused.
+    private var showsLabel: Bool {
+        !collapsesLabel || isProminent || isFocused
+    }
+
+    /// Animated frame width for the collapsible label. Falls back to
+    /// `nil` (intrinsic) on the very first frame before measurement so
+    /// the auto-focused Play button never flashes open from zero width.
+    private var labelFrameWidth: CGFloat? {
+        guard showsLabel else { return 0 }
+        return labelWidth > 0 ? labelWidth : nil
+    }
+
+    /// The collapsible trailing content: title plus the optional resume
+    /// subtitle, with the gap to the leading glyph baked in so the
+    /// measured width already accounts for it.
+    private var labelInner: some View {
+        HStack(spacing: 8) {
+            Text(title)
+                .font(.callout)
+                .fontWeight(.medium)
+                .lineLimit(1)
+            if let subtitle, !subtitle.isEmpty {
+                Text(subtitle)
+                    .font(.caption)
+                    .foregroundStyle(.white.opacity(0.75))
+                    .monospacedDigit()
+                    .lineLimit(1)
+            }
+        }
+        .padding(.leading, 10)
+        .fixedSize()
+    }
+
+    var body: some View {
+        HStack(spacing: 0) {
+            if isLoading {
+                // Spinner instead of the icon while the host resolves the
+                // play target; the label still reveals on focus as usual.
+                ProgressView()
+                    .controlSize(.small)
+            } else {
+                Image(systemName: systemImage)
+                    .font(.body)
+            }
+
+            labelInner
+                .frame(width: labelFrameWidth, alignment: .leading)
+                .opacity(showsLabel ? 1 : 0)
+                .clipped()
+        }
+        // Icon-only pills get tighter horizontal padding so they read as
+        // compact circles rather than wide empty capsules.
+        .padding(.horizontal, showsLabel ? 24 : 18)
+        .padding(.vertical, 12)
+        .fixedSize(horizontal: true, vertical: false)
+        // Hidden full-size copy measures the label's intrinsic width
+        // without contributing to layout (a background never stretches
+        // its primary). The GeometryReader sits in the fixed-size copy's
+        // own background, so it reports the true intrinsic width even
+        // while the visible copy is clipped to zero.
+        .background(alignment: .leading) {
+            labelInner
+                .hidden()
+                .background(GeometryReader { geo in
+                    Color.clear.preference(
+                        key: ActionLabelWidthKey.self, value: geo.size.width
+                    )
+                })
+        }
+        .onPreferenceChange(ActionLabelWidthKey.self) { labelWidth = $0 }
+        // The width reveal + padding shift are animated by the enclosing
+        // row's shared transaction (CollapsingActionRowModifier), so the
+        // focused button and every sibling interpolate together. In
+        // non-collapsing contexts (sheets) the label never changes width,
+        // so no per-button animation is needed here.
+    }
+}
+
+private struct ActionLabelWidthKey: PreferenceKey {
+    static let defaultValue: CGFloat = 0
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = max(value, nextValue())
+    }
+}
+
+// MARK: - Collapse opt-in environment
+
+private struct CollapsesActionButtonLabelKey: EnvironmentKey {
+    static let defaultValue = false
+}
+
+extension EnvironmentValues {
+    /// Whether secondary GlassActionButtons in this subtree collapse to
+    /// icon-only and reveal their title on focus. Default false keeps
+    /// the always-labelled behaviour (sheets, one-off buttons).
+    var collapsesActionButtonLabel: Bool {
+        get { self[CollapsesActionButtonLabelKey.self] }
+        set { self[CollapsesActionButtonLabelKey.self] = newValue }
+    }
+}
+
+extension View {
+    /// Opt this action row into icon-only secondary buttons (see
+    /// `EnvironmentValues.collapsesActionButtonLabel`) and animate the
+    /// row's reflow when focus moves between buttons.
+    func collapsesActionButtonLabel(_ collapses: Bool = true) -> some View {
+        modifier(CollapsingActionRowModifier(collapses: collapses))
+    }
+}
+
+/// Sets the collapse environment and forces a shared spring onto every
+/// transaction in the row. The focus change, the focused button's label
+/// reveal and ALL sibling offset shifts then interpolate together in the
+/// one focus-driven pass. A preference-keyed `.animation(value:)` lagged
+/// a frame (it ran after layout had already committed), so only the
+/// immediate neighbour glided while buttons further down the row snapped;
+/// `.transaction` rides the same transaction as the focus change, so the
+/// whole row reflows as a unit.
+private struct CollapsingActionRowModifier: ViewModifier {
+    let collapses: Bool
+
+    func body(content: Content) -> some View {
+        content
+            .environment(\.collapsesActionButtonLabel, collapses)
+            .transaction { txn in
+                txn.animation = .smooth(duration: 0.32)
+            }
     }
 }
 
@@ -133,7 +265,9 @@ struct GlassButtonStyle: ButtonStyle {
             )
             .scaleEffect(isFocused ? 1.08 : (configuration.isPressed ? 0.95 : 1.0))
             .shadow(color: .black.opacity(isFocused ? 0.3 : 0), radius: 10, y: 5)
-            .animation(.easeInOut(duration: 0.15), value: isFocused)
+            // Matches the label-reveal spring in GlassActionButtonLabel so
+            // scale, border and the icon->label expansion move together.
+            .animation(.smooth(duration: 0.32), value: isFocused)
     }
 
     private var backgroundFill: AnyShapeStyle {

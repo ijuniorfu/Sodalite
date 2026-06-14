@@ -118,6 +118,7 @@ struct AlbumDetailView: View {
                 )
             }
         }
+        .collapsesActionButtonLabel()
     }
 
     // MARK: Tracklist

@@ -17,6 +17,7 @@ struct SeriesDetailView: View {
     @State private var navigateToSeerrRequest: SeerrMedia?
     @State private var backdropURL: URL?
     @State private var showPlayer = false
+    @State private var playQueue: [JellyfinItem] = []
     @State private var playItem: JellyfinItem?
     @State private var playFromBeginning = false
     @State private var versionChoice: VersionPickerChoice?
@@ -111,6 +112,9 @@ struct SeriesDetailView: View {
     /// (episode has multiple sources) or starts directly. `fromPlayButton`
     /// preserves the focus-restoration origin flag the trigger sites set.
     private func requestPlay(_ episode: JellyfinItem, fromBeginning: Bool, fromPlayButton: Bool) {
+        // Ordinary play is never a shuffle queue; drop any queue a prior
+        // shuffle launch left behind so the launcher reuses single-item play.
+        playQueue = []
         if let sources = episode.mediaSources, sources.count > 1 {
             versionChoice = VersionPickerChoice(
                 item: episode,
@@ -332,6 +336,7 @@ struct SeriesDetailView: View {
                         (viewModel?.currentEpisodeID == ep.id) ? viewModel?.cachedPlaybackInfo : nil
                     },
                     preferredMediaSourceID: pendingSourceID,
+                    playQueue: playQueue,
                     tintColor: dependencies.appearancePreferences.effectiveTint(
                         isSupporter: dependencies.storeKitService.isSupporter
                     )
@@ -679,6 +684,36 @@ struct SeriesDetailView: View {
             )
             .focused($playButtonFocused)
 
+            // Shuffle the whole series: random episodes across all
+            // seasons (server SortBy=Random, scoped by the series id).
+            // Hidden in the episode panel, where the action row acts on
+            // the single selected episode.
+            if !isShowingEpisode {
+                GlassActionButton(
+                    title: "action.shuffle",
+                    systemImage: "shuffle",
+                    action: {
+                        guard let userID = appState.activeUser?.id else { return }
+                        let seriesID = vm.item.id
+                        Task {
+                            let queue = await VideoShuffleQueue.build(
+                                parentID: seriesID,
+                                itemTypes: [.episode],
+                                service: dependencies.jellyfinLibraryService,
+                                userID: userID
+                            )
+                            guard let first = queue.first else { return }
+                            playItem = first
+                            playQueue = queue
+                            playFromBeginning = true
+                            playOriginatedFromPlayButton = true
+                            pendingSourceID = nil
+                            showPlayer = true
+                        }
+                    }
+                )
+            }
+
             // Restart-from-beginning whenever the resolved play
             // target carries progress (i.e. the play button reads
             // "Resume"), mirroring MovieDetailView's replay button.
@@ -776,6 +811,7 @@ struct SeriesDetailView: View {
                 )
             }
         }
+        .collapsesActionButtonLabel()
     }
 
     /// Single source of truth for "which episode does the play button

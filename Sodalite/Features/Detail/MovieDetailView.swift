@@ -425,6 +425,7 @@ struct MovieDetailView: View {
                 )
             }
         }
+        .collapsesActionButtonLabel()
     }
 
     // MARK: - Helpers
