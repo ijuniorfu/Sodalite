@@ -79,10 +79,14 @@ private struct GlassActionButtonLabel: View {
     /// Measured intrinsic width of the trailing title/subtitle content
     /// (its leading gap baked in). The visible copy animates its frame
     /// between 0 and this, so the reveal interpolates the real layout
-    /// footprint: the text fades in step with the growing width and the
-    /// row's other buttons glide along instead of snapping aside to make
-    /// room for a freshly-inserted full-width label.
+    /// footprint: the text fades in step with the growing width.
     @State private var labelWidth: CGFloat = 0
+    /// Stable per-instance id, published up as a preference while this
+    /// button holds focus. The enclosing action row keys its row-wide
+    /// reflow animation on it so the OTHER buttons glide to their new
+    /// positions when focus moves (a per-button animation only covers
+    /// the focused button's own geometry, never its siblings' offsets).
+    @State private var instanceID = UUID().uuidString
 
     /// Prominent buttons (the primary Play/Resume action) always show
     /// their title. Secondary buttons reveal it only when the row hasn't
@@ -157,11 +161,21 @@ private struct GlassActionButtonLabel: View {
                 })
         }
         .onPreferenceChange(ActionLabelWidthKey.self) { labelWidth = $0 }
-        // Spring matched to GlassButtonStyle's scale so the reveal, the
-        // padding shift and the sibling reflow move as one. Keyed on
-        // showsLabel only: a later width remeasure (e.g. resume time
-        // updating) snaps without animating.
+        // Spring matched to GlassButtonStyle's scale so the reveal and
+        // the padding shift move as one. Keyed on showsLabel only: a
+        // later width remeasure (e.g. resume time updating) snaps
+        // without animating.
         .animation(.smooth(duration: 0.32), value: showsLabel)
+        // Publish focus up so the row can animate its reflow (see
+        // CollapsingActionRowModifier).
+        .preference(key: FocusedActionLabelKey.self, value: isFocused ? instanceID : nil)
+    }
+}
+
+private struct FocusedActionLabelKey: PreferenceKey {
+    static let defaultValue: String? = nil
+    static func reduce(value: inout String?, nextValue: () -> String?) {
+        if let next = nextValue() { value = next }
     }
 }
 
@@ -190,9 +204,29 @@ extension EnvironmentValues {
 
 extension View {
     /// Opt this action row into icon-only secondary buttons (see
-    /// `EnvironmentValues.collapsesActionButtonLabel`).
+    /// `EnvironmentValues.collapsesActionButtonLabel`) and animate the
+    /// row's reflow when focus moves between buttons.
     func collapsesActionButtonLabel(_ collapses: Bool = true) -> some View {
-        environment(\.collapsesActionButtonLabel, collapses)
+        modifier(CollapsingActionRowModifier(collapses: collapses))
+    }
+}
+
+/// Sets the collapse environment and, crucially, keys a row-wide spring
+/// on the focused button's id. When focus moves the id changes, so the
+/// `.animation(value:)` transaction covers the whole HStack's relayout
+/// and the sibling buttons glide to their new offsets instead of
+/// snapping. (A per-button animation can only interpolate the focused
+/// button's own frame; the siblings' position changes belong to the
+/// parent's layout pass and need the animation applied here.)
+private struct CollapsingActionRowModifier: ViewModifier {
+    let collapses: Bool
+    @State private var focusedActionID: String?
+
+    func body(content: Content) -> some View {
+        content
+            .environment(\.collapsesActionButtonLabel, collapses)
+            .onPreferenceChange(FocusedActionLabelKey.self) { focusedActionID = $0 }
+            .animation(.smooth(duration: 0.32), value: focusedActionID)
     }
 }
 
