@@ -156,6 +156,7 @@ struct CollectionDetailView: View {
                 action: { Task { await vm.toggleFavorite() } }
             )
         }
+        .collapsesActionButtonLabel()
     }
 
     // MARK: - Collection Items (vertical list)

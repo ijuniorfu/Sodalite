@@ -154,6 +154,7 @@ struct FilteredGridView: View {
             }
             .padding(.horizontal, 60)
             .padding(.top, 8)
+            .collapsesActionButtonLabel()
 
             if isLoading {
                 VStack(spacing: 16) {

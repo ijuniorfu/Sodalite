@@ -811,6 +811,7 @@ struct SeriesDetailView: View {
                 )
             }
         }
+        .collapsesActionButtonLabel()
     }
 
     /// Single source of truth for "which episode does the play button
