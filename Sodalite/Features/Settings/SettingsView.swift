@@ -167,18 +167,24 @@ struct SettingsView: View {
                 AppearanceSettingsView()
             }
 
-            SettingsTile(
+            GatedSettingsTile(
                 icon: "tray.and.arrow.down",
                 title: "settings.seerr.title",
-                subtitle: seerrSubtitle
+                subtitle: seerrSubtitle,
+                reason: .openParentalSettings,
+                requiresPIN: { dependencies.parentalGateRequiredForSessionAction() }
             ) {
                 SeerrSettingsView()
             }
 
-            SettingsTile(
+            // Gated: Support hosts the supporter-pack / tip IAPs, so a kid
+            // on a protected profile must not reach the purchase flow.
+            GatedSettingsTile(
                 icon: "heart",
                 title: "settings.support.title",
-                subtitle: "settings.support.subtitle"
+                subtitle: "settings.support.subtitle",
+                reason: .openParentalSettings,
+                requiresPIN: { dependencies.parentalGateRequiredForSessionAction() }
             ) {
                 SupportDevelopmentView()
             }
