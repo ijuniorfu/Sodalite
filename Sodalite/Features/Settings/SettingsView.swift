@@ -113,20 +113,34 @@ struct SettingsView: View {
         //   5. Integrations   (Seerr)
         //   6. Meta / give-back (Support)
         VStack(spacing: 4) {
-            SettingsTile(
+            GatedSettingsTile(
                 icon: "person.2",
                 title: "settings.profile.title",
-                subtitle: "settings.profile.subtitle"
+                subtitle: "settings.profile.subtitle",
+                reason: .openParentalSettings,
+                requiresPIN: { dependencies.parentalGateRequiredForSessionAction() }
             ) {
                 ProfileSettingsView()
             }
 
-            SettingsTile(
+            GatedSettingsTile(
                 icon: "server.rack",
                 title: "multiServer.settings.entry.title",
-                subtitle: "multiServer.settings.entry.subtitle"
+                subtitle: "multiServer.settings.entry.subtitle",
+                reason: .serverManagement,
+                requiresPIN: { dependencies.parentalGateRequiredForSessionAction() }
             ) {
                 ServerManagementView()
+            }
+
+            GatedSettingsTile(
+                icon: "lock.shield",
+                title: "settings.parental.title",
+                subtitle: "settings.parental.subtitle",
+                reason: .openParentalSettings,
+                requiresPIN: { dependencies.parentalGateRequiredForSessionAction() }
+            ) {
+                ParentalControlsSettingsView()
             }
 
             SettingsTile(
@@ -267,8 +281,17 @@ struct SettingsView: View {
         // sidesteps the default-tvOS-bordered tint trap where icon
         // and background end up the same color.
         Button {
-            try? dependencies.clearSession()
-            appState.logout()
+            if dependencies.parentalGateRequiredForSessionAction() {
+                Task {
+                    if await dependencies.parentalGate.challenge(reason: .logout) {
+                        try? dependencies.clearSession()
+                        appState.logout()
+                    }
+                }
+            } else {
+                try? dependencies.clearSession()
+                appState.logout()
+            }
         } label: {
             Label("settings.logout", systemImage: "rectangle.portrait.and.arrow.right")
                 .font(.body)
@@ -321,6 +344,46 @@ struct SettingsTile<Destination: View>: View {
             .padding(20)
         }
         .buttonStyle(SettingsTileButtonStyle())
+    }
+}
+
+/// Like SettingsTile, but when `requiresPIN()` is true it presents the
+/// Guardian-PIN challenge first and only navigates on success.
+struct GatedSettingsTile<Destination: View>: View {
+    let icon: String
+    let title: LocalizedStringKey
+    let subtitle: LocalizedStringKey
+    let reason: PINReason
+    let requiresPIN: () -> Bool
+    @ViewBuilder let destination: () -> Destination
+
+    @Environment(\.dependencies) private var dependencies
+    @State private var navigate = false
+
+    var body: some View {
+        Button { gateThenNavigate() } label: {
+            HStack(spacing: 28) {
+                Image(systemName: icon).font(.title2).frame(width: 56, alignment: .center).foregroundStyle(.tint)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(title).font(.body).fontWeight(.medium)
+                    Text(subtitle).font(.caption).foregroundStyle(.secondary).lineLimit(1)
+                }
+                Spacer()
+                Image(systemName: "chevron.right").font(.caption).foregroundStyle(.tertiary)
+            }
+            .padding(20)
+        }
+        .buttonStyle(SettingsTileButtonStyle())
+        .navigationDestination(isPresented: $navigate) {
+            destination().toolbar(.hidden, for: .tabBar)
+        }
+    }
+
+    private func gateThenNavigate() {
+        guard requiresPIN() else { navigate = true; return }
+        Task {
+            if await dependencies.parentalGate.challenge(reason: reason) { navigate = true }
+        }
     }
 }
 
