@@ -88,6 +88,7 @@ struct TransportBar: View {
                         label: String(localized: "player.skipIntro", defaultValue: "Skip Intro"),
                         icon: "forward.end.fill",
                         isFocused: controlsFocus == .skipIntroButton,
+                        persistsLabel: false,
                         dropdown: [],
                         isOpen: false
                     )
@@ -98,6 +99,7 @@ struct TransportBar: View {
                         label: episodeButtonLabel,
                         icon: "list.bullet",
                         isFocused: controlsFocus == .episodeButton,
+                        persistsLabel: true,
                         dropdown: episodeDropdownItems,
                         isOpen: isEpisodeDropdownOpen
                     )
@@ -118,6 +120,7 @@ struct TransportBar: View {
                         label: chapterButtonLabel,
                         icon: "list.dash",
                         isFocused: controlsFocus == .chapterButton,
+                        persistsLabel: false,
                         dropdown: chapterDropdownItems,
                         isOpen: isChapterDropdownOpen
                     )
@@ -130,6 +133,7 @@ struct TransportBar: View {
                             ?? String(localized: "player.audio", defaultValue: "Audio"),
                         icon: "speaker.wave.2",
                         isFocused: controlsFocus == .audioButton,
+                        persistsLabel: true,
                         dropdown: audioDropdownItems,
                         isOpen: isAudioDropdownOpen
                     )
@@ -144,6 +148,7 @@ struct TransportBar: View {
                             ?? String(localized: "player.subtitles.off", defaultValue: "Off"),
                         icon: "captions.bubble",
                         isFocused: controlsFocus == .subtitleButton,
+                        persistsLabel: true,
                         dropdown: subtitleDropdownItems,
                         isOpen: isSubtitleDropdownOpen
                     )
@@ -153,6 +158,10 @@ struct TransportBar: View {
                     label: TransportBar.speedLabel(for: activeSpeedIndex),
                     icon: "gauge.with.needle",
                     isFocused: controlsFocus == .speedButton,
+                    // Speed keeps its label only while it deviates from
+                    // 1x; at normal speed it collapses to the gauge icon
+                    // like the other transient buttons.
+                    persistsLabel: !TransportBar.isDefaultSpeed(activeSpeedIndex),
                     dropdown: speedDropdownItems,
                     isOpen: isSpeedDropdownOpen
                 )
@@ -161,6 +170,10 @@ struct TransportBar: View {
                     label: pictureButtonLabel,
                     icon: pictureButtonIcon,
                     isFocused: controlsFocus == .pictureButton,
+                    // The picture icon already swaps between the 16:9 and
+                    // fill glyphs, so the mode reads from the icon alone;
+                    // no need to keep the label pinned.
+                    persistsLabel: false,
                     dropdown: pictureDropdownItems,
                     isOpen: isPictureDropdownOpen
                 )
@@ -175,6 +188,7 @@ struct TransportBar: View {
                         label: String(localized: "player.stats", defaultValue: "Stats"),
                         icon: "info.circle",
                         isFocused: controlsFocus == .infoButton || isStatsOverlayOpen,
+                        persistsLabel: false,
                         dropdown: [],
                         isOpen: false
                     )
@@ -428,6 +442,16 @@ struct TransportBar: View {
         return "\(s)×"
     }
 
+    /// Whether the active speed index is the default 1x rate. The speed
+    /// button only pins its label when the rate deviates from this, so
+    /// at normal speed it collapses to the gauge icon.
+    static func isDefaultSpeed(_ index: Int) -> Bool {
+        let rate = PlayerViewModel.speedOptions[
+            max(0, min(PlayerViewModel.speedOptions.count - 1, index))
+        ]
+        return rate == 1.0
+    }
+
     private var audioDropdownItems: [DropdownItem] {
         guard case .audio(let highlighted) = trackDropdown else { return [] }
         return audioTracks.enumerated().map { idx, track in
@@ -495,7 +519,7 @@ struct TransportBar: View {
     private static let episodeRowHeight: CGFloat = 84
     private static let dropdownMaxVisible: Int = 6
 
-    private func trackButton(label: String, icon: String, isFocused: Bool, dropdown: [DropdownItem], isOpen: Bool) -> some View {
+    private func trackButton(label: String, icon: String, isFocused: Bool, persistsLabel: Bool, dropdown: [DropdownItem], isOpen: Bool) -> some View {
         VStack(spacing: 6) {
             // Dropdown menu (opens upward, scrollable if many items)
             if isOpen {
@@ -571,27 +595,16 @@ struct TransportBar: View {
                 .transition(.opacity.combined(with: .move(edge: .bottom)))
             }
 
-            // Button label
-            Label(label, systemImage: icon)
-                .font(.callout)
-                // Single-line guarantee: when an open dropdown column
-                // pushes layout pressure across the row, this keeps
-                // labels like "Original" / "Deutsch" from breaking
-                // mid-word with hyphenation.
-                .lineLimit(1)
-                .foregroundStyle(isFocused ? .white : .white.opacity(0.6))
-                .padding(.horizontal, 16)
-                .padding(.vertical, 8)
-                .background(
-                    RoundedRectangle(cornerRadius: 8)
-                        .fill(isFocused ? .white.opacity(0.2) : .clear)
-                )
-                .overlay(
-                    RoundedRectangle(cornerRadius: 8)
-                        .strokeBorder(.tint, lineWidth: 3)
-                        .opacity(isFocused ? 1 : 0)
-                )
-                .scaleEffect(isFocused ? 1.05 : 1.0)
+            // Button: icon always visible, label collapses unless the
+            // button is focused or `persistsLabel` keeps it pinned
+            // (active audio / subtitle / episode, non-1x speed). Mirrors
+            // the detail-view GlassActionButton icon-only collapse.
+            TransportTrackLabel(
+                label: label,
+                icon: icon,
+                showsLabel: persistsLabel || isFocused,
+                isFocused: isFocused
+            )
         }
     }
 
@@ -648,6 +661,97 @@ struct TransportBar: View {
             .animation(.easeInOut(duration: 0.2), value: active)
         }
         .frame(height: 22)
+    }
+}
+
+// MARK: - Transport Track Button Label
+
+/// A transport-bar track button's icon + collapsible text label.
+///
+/// The SF Symbol stays visible at all times; the text reveals with a
+/// width animation when `showsLabel` is true (the button is focused, or
+/// the caller pinned the label for active-state buttons like audio /
+/// subtitle / episode and non-1x speed). This mirrors the detail-view
+/// `GlassActionButton` icon-only collapse, but is driven by an explicit
+/// `isFocused` flag instead of `@Environment(\.isFocused)` because the
+/// transport bar's focus lives in `PlayerViewModel.controlsFocus`, not
+/// the SwiftUI focus system.
+private struct TransportTrackLabel: View {
+    let label: String
+    let icon: String
+    let showsLabel: Bool
+    let isFocused: Bool
+
+    /// Measured intrinsic width of the trailing text (its leading gap
+    /// baked in). The visible copy animates its frame between 0 and this
+    /// so the reveal interpolates the real layout footprint.
+    @State private var labelWidth: CGFloat = 0
+
+    private var labelFrameWidth: CGFloat? {
+        guard showsLabel else { return 0 }
+        return labelWidth > 0 ? labelWidth : nil
+    }
+
+    /// The collapsible trailing text, with the gap to the leading glyph
+    /// baked into the measured width.
+    private var labelInner: some View {
+        Text(label)
+            .font(.callout)
+            // Single-line guarantee: when an open dropdown column pushes
+            // layout pressure across the row, this keeps labels like
+            // "Original" / "Deutsch" from breaking mid-word.
+            .lineLimit(1)
+            .padding(.leading, 8)
+            .fixedSize()
+    }
+
+    var body: some View {
+        HStack(spacing: 0) {
+            Image(systemName: icon)
+                .font(.callout)
+
+            labelInner
+                .frame(width: labelFrameWidth, alignment: .leading)
+                .opacity(showsLabel ? 1 : 0)
+                .clipped()
+        }
+        .foregroundStyle(isFocused ? .white : .white.opacity(0.6))
+        // Icon-only pills get tighter padding so they read as compact
+        // squares rather than wide empty capsules.
+        .padding(.horizontal, showsLabel ? 16 : 12)
+        .padding(.vertical, 8)
+        .fixedSize(horizontal: true, vertical: false)
+        // Hidden full-size copy measures the label's intrinsic width
+        // without contributing to layout (a background never stretches
+        // its primary), so it reports the true width even while the
+        // visible copy is clipped to zero.
+        .background(alignment: .leading) {
+            labelInner
+                .hidden()
+                .background(GeometryReader { geo in
+                    Color.clear.preference(
+                        key: TransportLabelWidthKey.self, value: geo.size.width
+                    )
+                })
+        }
+        .onPreferenceChange(TransportLabelWidthKey.self) { labelWidth = $0 }
+        .background(
+            RoundedRectangle(cornerRadius: 8)
+                .fill(isFocused ? .white.opacity(0.2) : .clear)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 8)
+                .strokeBorder(.tint, lineWidth: 3)
+                .opacity(isFocused ? 1 : 0)
+        )
+        .scaleEffect(isFocused ? 1.05 : 1.0)
+    }
+}
+
+private struct TransportLabelWidthKey: PreferenceKey {
+    static let defaultValue: CGFloat = 0
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = max(value, nextValue())
     }
 }
 
