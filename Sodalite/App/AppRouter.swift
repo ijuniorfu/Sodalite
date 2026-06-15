@@ -236,6 +236,14 @@ struct AppRouter: View {
                 }
             }
         }
+        .fullScreenCover(item: Binding(
+            get: { dependencies.parentalGate.activeRequest },
+            set: { if $0 == nil { dependencies.parentalGate.resolve(false) } }
+        )) { request in
+            PINEntryView(mode: .unlock(reason: request.reason)) { unlocked in
+                dependencies.parentalGate.resolve(unlocked)
+            }
+        }
         .onChange(of: appState.isLoading) { _, isLoading in
             // Splash just finished. Fire the What's-New modal if the
             // version stamp says we crossed a release boundary.
