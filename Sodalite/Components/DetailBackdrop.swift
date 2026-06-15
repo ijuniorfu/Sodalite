@@ -3,10 +3,12 @@ import SwiftUI
 /// Shared fullscreen backdrop with gradient overlay used in all detail views.
 struct DetailBackdrop: View {
     let imageURL: URL?
-    /// Blur-fill stand-in for items without any backdrop art: the
-    /// portrait poster (or primary image), zoomed past the frame and
-    /// heavily blurred so it reads as ambient color rather than a
-    /// stretched poster. Replaces the flat grey plate (Sodalite#15).
+    /// Hero stand-in for items without any backdrop art: the portrait
+    /// poster (or primary image), scaled to the full screen width and
+    /// pinned to the top edge so its useful upper half (faces, title)
+    /// stays visible while the lower portion runs off the bottom of the
+    /// screen. Replaces the flat grey plate, then the heavy ambient
+    /// blur-fill (Sodalite#15).
     var posterFallbackURL: URL? = nil
 
     private var usesPosterFill: Bool {
@@ -16,44 +18,45 @@ struct DetailBackdrop: View {
     var body: some View {
         GeometryReader { geo in
             AsyncCachedImage(url: imageURL ?? posterFallbackURL) { image in
-                let filled = image
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-                    .frame(width: geo.size.width, height: geo.size.height)
-                    .clipped()
-
                 if usesPosterFill {
-                    // Blur a screen-sized, clipped, rasterized layer
-                    // rather than the poster's full pixel surface. The
-                    // old path applied `.scaleEffect(1.3).blur(radius:
-                    // 64)` directly to the unbounded fill image, whose
-                    // offscreen blur buffer grew large enough to break
-                    // the detail overlay's compositing on tvOS: any item
-                    // without backdrop art (e.g. a collection with no
-                    // Backdrop image) then rendered as the blurred poster
-                    // alone, with the glass panel and action buttons
-                    // missing and nothing focusable, so a Back press
-                    // escaped the app. drawingGroup flattens the blur
-                    // into one bounded Metal layer; the gentle scale
-                    // afterwards pushes the soft edges past the frame.
-                    // Radius 32 (down from 64) keeps the poster reading
-                    // as ambient color while leaving the subject faintly
-                    // recognisable, per DrHurt's Sodalite#15 feedback.
-                    filled
-                        .blur(radius: 32)
+                    // No backdrop art: use the portrait poster as the
+                    // hero. `.fill` into the landscape frame scales the
+                    // poster so its width matches the screen, with the
+                    // taller-than-screen overflow running off the bottom;
+                    // top alignment keeps the useful upper half (faces,
+                    // title) on screen. A radius-8 blur only smooths
+                    // upscaling artefacts on small posters, the subject
+                    // stays clearly recognisable, per DrHurt's
+                    // Sodalite#15 photo feedback (replacing the old
+                    // radius-32 ambient fill). drawingGroup keeps the
+                    // blur in one bounded Metal layer; an unbounded
+                    // offscreen blur buffer was what broke the detail
+                    // overlay's compositing on tvOS, leaving the glass
+                    // panel and action buttons missing and nothing
+                    // focusable so a Back press escaped the app.
+                    image
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                        .frame(width: geo.size.width, height: geo.size.height, alignment: .top)
+                        .clipped()
+                        .blur(radius: 8)
                         .drawingGroup()
-                        .scaleEffect(1.1)
                 } else {
-                    filled
+                    image
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                        .frame(width: geo.size.width, height: geo.size.height)
+                        .clipped()
                 }
             } placeholder: {
                 Rectangle().fill(Color.Theme.surface)
             }
             .frame(width: geo.size.width, height: geo.size.height)
             .clipped()
-            // The blur fill is busier than real backdrop art, give it a
-            // slightly stronger dim so the hero text stays readable.
-            .overlay(Color.black.opacity(usesPosterFill ? 0.3 : 0.15))
+            // Light, uniform dim so the hero text stays readable; the
+            // poster fill now reads like real backdrop art, so it shares
+            // the same gentle value.
+            .overlay(Color.black.opacity(0.15))
         }
     }
 }
