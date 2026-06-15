@@ -181,6 +181,22 @@ struct SessionRestorer {
         let remembered = dependencies.listRememberedUsers(serverID: server.id)
         let prefs = dependencies.authPreferences
 
+        // Parental-controls cold-start override: if a Guardian-PIN is set
+        // and at least one remembered profile is UNPROTECTED (an escape
+        // target), always land in the picker, overriding useDefault and
+        // the single-profile auto-enter. Otherwise force-quit + relaunch
+        // into an auto-restored unprotected profile would bypass the lock.
+        // Selecting an unprotected card in the picker is PIN-gated by
+        // LaunchProfilePickerView; selecting a protected card is free.
+        if dependencies.parentalControlsActive() {
+            let hasUnprotected = remembered.contains { user in
+                !dependencies.parentalControlsPreferences.isProtected(serverID: server.id, userID: user.id)
+            }
+            if hasUnprotected {
+                return .picker(server: server, syncSeerr: true)
+            }
+        }
+
         let shouldUseDefault = !hasTVMapping
             && prefs.launchBehavior == .useDefault
             && prefs.defaultUserID.flatMap { id in remembered.first { $0.id == id } } != nil
