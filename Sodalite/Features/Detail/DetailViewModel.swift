@@ -158,6 +158,9 @@ final class DetailViewModel {
         let collectionContentTask: Task<Void, Never>? = (itemType == .boxSet) ? Task {
             await loadCollectionItems()
         } : nil
+        let playlistContentTask: Task<Void, Never>? = (itemType == .playlist) ? Task {
+            await loadPlaylistItems()
+        } : nil
 
         // Similar items power a row near the bottom of the detail
         // screen, well below the fold on every reasonable viewport,
@@ -200,7 +203,7 @@ final class DetailViewModel {
         // the placeholder boxes must stop reserving space.
         hasFullDetail = true
 
-        if itemType != .series && itemType != .boxSet {
+        if itemType != .series && itemType != .boxSet && itemType != .playlist {
             prefetchPlaybackInfo(for: itemID)
         }
 
@@ -211,6 +214,7 @@ final class DetailViewModel {
         // a no-op.
         await seriesContentTask?.value
         await collectionContentTask?.value
+        await playlistContentTask?.value
 
         isLoading = false
     }
@@ -462,6 +466,21 @@ final class DetailViewModel {
             collectionItems = response.items
         } catch {
             // Handle error
+        }
+    }
+
+    func loadPlaylistItems() async {
+        guard item.type == .playlist else { return }
+
+        do {
+            // No sortBy: the server returns playlist members in the
+            // user's manual playlist order. Sorting (as collections do by
+            // PremiereDate) would defeat the purpose of a playlist.
+            let query = ItemQuery(parentID: item.id, limit: 200)
+            let response = try await itemService.getCollectionItems(userID: userID, query: query)
+            collectionItems = response.items
+        } catch {
+            // Leave collectionItems empty; the view shows its empty state.
         }
     }
 
