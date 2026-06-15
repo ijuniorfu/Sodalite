@@ -62,6 +62,24 @@ final class PlayerViewModel {
     var controlsFocus: ControlsFocus = .progressBar
     var trackDropdown: TrackDropdown = .none
 
+    // MARK: Subtitle search (Feature #4)
+
+    enum SubtitleSearchState: Equatable {
+        case idle
+        case loading
+        case results([RemoteSubtitleInfo])
+        case empty
+        case downloading(id: String)
+        case error(String)
+    }
+
+    /// Drives the SubtitleSearchView overlay.
+    var subtitleSearchVisible = false
+    var subtitleSearchState: SubtitleSearchState = .idle
+    /// 3-letter ISO language used for the next search. Seeded from the
+    /// preferred subtitle language, fallback the device language.
+    var subtitleSearchLanguage: String = "eng"
+
     enum ControlsFocus: Hashable {
         case progressBar
         case skipIntroButton
