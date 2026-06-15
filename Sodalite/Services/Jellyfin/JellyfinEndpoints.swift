@@ -64,6 +64,12 @@ enum JellyfinEndpoint: APIEndpoint {
     // or intro-skipper plugin on older servers)
     case mediaSegments(itemID: String)
 
+    // Subtitle RemoteSearch (needs a server-side subtitle provider
+    // plugin, e.g. OpenSubtitles). `subtitleID` is provider-scoped and
+    // can contain slashes, so it is percent-encoded into the path.
+    case remoteSearchSubtitles(itemID: String, language: String)
+    case downloadRemoteSubtitle(itemID: String, subtitleID: String)
+
     // Live TV
     case liveTvChannels(userID: String, startIndex: Int, limit: Int)
     case liveTvPrograms(channelIDs: [String], userID: String, minEndDate: Date, maxStartDate: Date)
@@ -148,6 +154,10 @@ enum JellyfinEndpoint: APIEndpoint {
             "/Search/Hints"
         case .mediaSegments(let itemID):
             "/MediaSegments/\(itemID)"
+        case .remoteSearchSubtitles(let itemID, let language):
+            "/Items/\(itemID)/RemoteSearch/Subtitles/\(language)"
+        case .downloadRemoteSubtitle(let itemID, let subtitleID):
+            "/Items/\(itemID)/RemoteSearch/Subtitles/\(subtitleID.addingPercentEncoding(withAllowedCharacters: .alphanumerics) ?? subtitleID)"
         case .liveTvChannels:
             "/LiveTv/Channels"
         case .liveTvPrograms:
@@ -182,7 +192,8 @@ enum JellyfinEndpoint: APIEndpoint {
              .playbackInfo, .livePlaybackInfo,
              .sessionPlaying, .sessionProgress, .sessionStopped,
              .closeLiveStream,
-             .createLiveTvTimer, .createLiveTvSeriesTimer:
+             .createLiveTvTimer, .createLiveTvSeriesTimer,
+             .downloadRemoteSubtitle:
             .post
         case .unmarkFavorite, .unmarkPlayed, .deleteItem, .stopActiveEncodings,
              .deleteLiveTvTimer, .deleteLiveTvSeriesTimer:
