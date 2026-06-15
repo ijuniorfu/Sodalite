@@ -64,6 +64,12 @@ extension PlayerViewModel {
                 }
                 return (lhs.downloadCount ?? 0) > (rhs.downloadCount ?? 0)
             }
+            // Diagnostic: how many of the server's results are hash matches
+            // (exact-file timing). 0 => no "Exact match" badge is expected
+            // for this file, which is normal when OpenSubtitles has no
+            // hash-keyed entry for it.
+            let hashMatchCount = results.filter { $0.isHashMatch == true }.count
+            LogTap.shared.note("[SubSearch] lang=\(subtitleSearchLanguage) results=\(results.count) hashMatch=\(hashMatchCount)")
             if results.isEmpty {
                 subtitleSearchState = .empty
                 subtitleSearchFocus = .language(subtitleSearchCurrentLanguageIndex)
@@ -123,6 +129,9 @@ extension PlayerViewModel {
             }
             selectSubtitleTrack(id: applied.index)
             dismissSubtitleSearch()
+            // Resume the controls auto-hide timer that opening the dropdown
+            // cancelled, so the transport UI fades out as after any picker.
+            scheduleControlsHide()
         } catch {
             subtitleSearchState = .error(
                 String(localized: "player.subtitle.search.downloadFailed",
@@ -214,9 +223,11 @@ extension PlayerViewModel {
                 Task { [weak self] in await self?.performSubtitleDeletion(streamIndex: streamIndex) }
             } else {
                 subtitleDeleteState = .hidden
+                scheduleControlsHide()
             }
         case .error:
             subtitleDeleteState = .hidden
+            scheduleControlsHide()
         case .deleting, .hidden:
             break
         }
@@ -226,6 +237,7 @@ extension PlayerViewModel {
     func subtitleDeletePromptDismiss() {
         if case .deleting = subtitleDeleteState { return }
         subtitleDeleteState = .hidden
+        scheduleControlsHide()
     }
 
     private func performSubtitleDeletion(streamIndex: Int) async {
@@ -241,6 +253,7 @@ extension PlayerViewModel {
                 subtitleStreams = Self.dedupedSubtitleStreams(from: source.mediaStreams)
             }
             subtitleDeleteState = .hidden
+            scheduleControlsHide()
         } catch {
             subtitleDeleteState = .error(
                 String(localized: "player.subtitle.delete.failed",

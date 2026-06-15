@@ -845,7 +845,11 @@ final class PlayerHostController: AVPlayerViewController {
 
     @objc private func menuPressed() {
         if viewModel.isSubtitleDeletePromptVisible { viewModel.subtitleDeletePromptDismiss(); return }
-        if viewModel.subtitleSearchVisible { viewModel.dismissSubtitleSearch(); return }
+        if viewModel.subtitleSearchVisible {
+            viewModel.dismissSubtitleSearch()
+            viewModel.scheduleControlsHide()
+            return
+        }
         // Cancelling the next-episode countdown only hijacks Menu when
         // the transport is hidden. With controls open, Menu behaves
         // normally (close dropdown → abort scrub → step focus → hide
