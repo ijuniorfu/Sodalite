@@ -7,6 +7,15 @@ import Foundation
 @MainActor
 extension PlayerViewModel {
 
+    /// ISO 639-2/T codes (what `Locale` emits) mapped to /B codes (what
+    /// the curated language list and Jellyfin use) for the languages
+    /// where the two variants differ. Only entries that appear in
+    /// `subtitleSearchLanguageOptions` matter here.
+    private static let alpha3TtoB: [String: String] = [
+        "deu": "ger", "fra": "fre", "ces": "cze", "nld": "dut",
+        "ell": "gre", "ron": "rum", "zho": "chi"
+    ]
+
     /// Curated language options for the in-overlay switcher. Reuses the
     /// settings language list (3-letter codes), dropping the "Auto" (nil)
     /// entry which has no concrete code to search.
@@ -18,12 +27,12 @@ extension PlayerViewModel {
     /// language from the preferred subtitle language, else the device
     /// language, else English.
     func presentSubtitleSearch() {
-        let seed = preferences.preferredSubtitleLanguage
-            ?? Locale.current.language.languageCode?.identifier(.alpha3)
-            ?? "eng"
+        let deviceCode = Locale.current.language.languageCode?.identifier(.alpha3)
+            .map { Self.alpha3TtoB[$0] ?? $0 }
+        let seed = preferences.preferredSubtitleLanguage ?? deviceCode ?? "eng"
         subtitleSearchLanguage = seed
         subtitleSearchVisible = true
-        Task { await searchSubtitles() }
+        Task { [weak self] in await self?.searchSubtitles() }
     }
 
     func dismissSubtitleSearch() {
@@ -35,7 +44,7 @@ extension PlayerViewModel {
     func setSubtitleSearchLanguage(_ code: String) {
         guard code != subtitleSearchLanguage else { return }
         subtitleSearchLanguage = code
-        Task { await searchSubtitles() }
+        Task { [weak self] in await self?.searchSubtitles() }
     }
 
     /// Runs a RemoteSearch for the current language and fills state.
@@ -87,8 +96,8 @@ extension PlayerViewModel {
 
             guard let applied = newStream else {
                 subtitleSearchState = .error(
-                    String(localized: "player.subtitle.search.error",
-                           defaultValue: "Subtitle search failed. The server may not have a subtitle provider installed.")
+                    String(localized: "player.subtitle.search.downloadFailed",
+                           defaultValue: "Could not download this subtitle. Please try another one.")
                 )
                 return
             }
@@ -96,8 +105,8 @@ extension PlayerViewModel {
             dismissSubtitleSearch()
         } catch {
             subtitleSearchState = .error(
-                String(localized: "player.subtitle.search.error",
-                       defaultValue: "Subtitle search failed. The server may not have a subtitle provider installed.")
+                String(localized: "player.subtitle.search.downloadFailed",
+                       defaultValue: "Could not download this subtitle. Please try another one.")
             )
         }
     }
