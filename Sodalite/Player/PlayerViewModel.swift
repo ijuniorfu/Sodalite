@@ -80,6 +80,16 @@ final class PlayerViewModel {
     /// preferred subtitle language, fallback the device language.
     var subtitleSearchLanguage: String = "eng"
 
+    /// Which element of the subtitle-search overlay is highlighted.
+    /// The overlay has two regions: the horizontal language switcher and
+    /// the vertical results list. Rendered display-only by
+    /// SubtitleSearchView; driven by PlayerHostController's press handlers.
+    enum SubtitleSearchFocus: Equatable {
+        case language(Int)   // index into subtitleSearchLanguageOptions
+        case result(Int)     // index into the current results
+    }
+    var subtitleSearchFocus: SubtitleSearchFocus = .language(0)
+
     enum ControlsFocus: Hashable {
         case progressBar
         case skipIntroButton

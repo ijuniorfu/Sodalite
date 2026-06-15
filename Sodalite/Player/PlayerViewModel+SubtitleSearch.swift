@@ -31,6 +31,7 @@ extension PlayerViewModel {
             .map { Self.alpha3TtoB[$0] ?? $0 }
         let seed = preferences.preferredSubtitleLanguage ?? deviceCode ?? "eng"
         subtitleSearchLanguage = seed
+        subtitleSearchFocus = .language(subtitleSearchCurrentLanguageIndex)
         subtitleSearchVisible = true
         Task { [weak self] in await self?.searchSubtitles() }
     }
@@ -55,12 +56,19 @@ extension PlayerViewModel {
                 itemID: item.id,
                 language: subtitleSearchLanguage
             )
-            subtitleSearchState = results.isEmpty ? .empty : .results(results)
+            if results.isEmpty {
+                subtitleSearchState = .empty
+                subtitleSearchFocus = .language(subtitleSearchCurrentLanguageIndex)
+            } else {
+                subtitleSearchState = .results(results)
+                subtitleSearchFocus = .result(0)
+            }
         } catch {
             subtitleSearchState = .error(
                 String(localized: "player.subtitle.search.error",
                        defaultValue: "Subtitle search failed. The server may not have a subtitle provider installed.")
             )
+            subtitleSearchFocus = .language(subtitleSearchCurrentLanguageIndex)
         }
     }
 
@@ -108,6 +116,64 @@ extension PlayerViewModel {
                 String(localized: "player.subtitle.search.downloadFailed",
                        defaultValue: "Could not download this subtitle. Please try another one.")
             )
+        }
+    }
+
+    // MARK: - Host-driven focus navigation
+
+    /// Index of the currently searched language within the option list.
+    var subtitleSearchCurrentLanguageIndex: Int {
+        subtitleSearchLanguageOptions.firstIndex { $0.code == subtitleSearchLanguage } ?? 0
+    }
+
+    /// The results currently displayed, or empty.
+    private var currentSubtitleResults: [RemoteSubtitleInfo] {
+        if case .results(let r) = subtitleSearchState { return r }
+        return []
+    }
+
+    func subtitleSearchMoveLeft() {
+        if case .language(let i) = subtitleSearchFocus, i > 0 {
+            subtitleSearchFocus = .language(i - 1)
+        }
+    }
+
+    func subtitleSearchMoveRight() {
+        if case .language(let i) = subtitleSearchFocus,
+           i + 1 < subtitleSearchLanguageOptions.count {
+            subtitleSearchFocus = .language(i + 1)
+        }
+    }
+
+    func subtitleSearchMoveDown() {
+        switch subtitleSearchFocus {
+        case .language:
+            if !currentSubtitleResults.isEmpty { subtitleSearchFocus = .result(0) }
+        case .result(let i):
+            if i + 1 < currentSubtitleResults.count { subtitleSearchFocus = .result(i + 1) }
+        }
+    }
+
+    func subtitleSearchMoveUp() {
+        switch subtitleSearchFocus {
+        case .language:
+            break
+        case .result(let i):
+            subtitleSearchFocus = i > 0 ? .result(i - 1) : .language(subtitleSearchCurrentLanguageIndex)
+        }
+    }
+
+    /// Activates the highlighted element: switch language, or download a result.
+    func subtitleSearchConfirm() {
+        switch subtitleSearchFocus {
+        case .language(let i):
+            let opts = subtitleSearchLanguageOptions
+            guard opts.indices.contains(i), let code = opts[i].code else { return }
+            setSubtitleSearchLanguage(code)
+        case .result(let i):
+            let results = currentSubtitleResults
+            guard results.indices.contains(i) else { return }
+            Task { [weak self] in await self?.downloadAndApplySubtitle(results[i]) }
         }
     }
 }

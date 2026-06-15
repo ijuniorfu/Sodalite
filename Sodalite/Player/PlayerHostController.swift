@@ -763,6 +763,7 @@ final class PlayerHostController: AVPlayerViewController {
     }
 
     @objc private func selectPressed() {
+        if viewModel.subtitleSearchVisible { viewModel.subtitleSearchConfirm(); return }
         // Stats panel: Select closes it like Menu does. The chip on
         // the transport bar still toggles when the panel is closed,
         // but with the panel open every press goes here first.
@@ -831,10 +832,12 @@ final class PlayerHostController: AVPlayerViewController {
     }
 
     @objc private func playPausePressed() {
+        if viewModel.subtitleSearchVisible { return }
         viewModel.togglePlayPause()
     }
 
     @objc private func menuPressed() {
+        if viewModel.subtitleSearchVisible { viewModel.dismissSubtitleSearch(); return }
         // Cancelling the next-episode countdown only hijacks Menu when
         // the transport is hidden. With controls open, Menu behaves
         // normally (close dropdown → abort scrub → step focus → hide
@@ -869,6 +872,7 @@ final class PlayerHostController: AVPlayerViewController {
     }
 
     @objc private func leftPressed() {
+        if viewModel.subtitleSearchVisible { viewModel.subtitleSearchMoveLeft(); return }
         // Stats panel: horizontal nav is a no-op while the panel is
         // open. No focusable rows behind it that left/right could
         // target without confusing the user about what's actually
@@ -884,6 +888,7 @@ final class PlayerHostController: AVPlayerViewController {
     }
 
     @objc private func rightPressed() {
+        if viewModel.subtitleSearchVisible { viewModel.subtitleSearchMoveRight(); return }
         if statsOverlayCapturesPresses { return }
         if viewModel.isDropdownOpen { return }
         if viewModel.showControls && viewModel.controlsFocus != .progressBar {
@@ -909,7 +914,7 @@ final class PlayerHostController: AVPlayerViewController {
     private func handleHold(_ gesture: UILongPressGestureRecognizer, direction: Int) {
         switch gesture.state {
         case .began:
-            if statsOverlayCapturesPresses || viewModel.isDropdownOpen { return }
+            if statsOverlayCapturesPresses || viewModel.isDropdownOpen || viewModel.subtitleSearchVisible { return }
             if viewModel.showControls && viewModel.controlsFocus != .progressBar { return }
             viewModel.beginContinuousSeek(direction: direction)
         case .ended, .cancelled, .failed:
@@ -947,6 +952,7 @@ final class PlayerHostController: AVPlayerViewController {
     }
 
     @objc private func upPressed() {
+        if viewModel.subtitleSearchVisible { viewModel.subtitleSearchMoveUp(); return }
         // Stats panel: up moves the section cursor one step toward
         // the top, skipping sections that aren't currently rendered
         // (subtitle section absent when subs off, etc.). Without the
@@ -997,6 +1003,7 @@ final class PlayerHostController: AVPlayerViewController {
     }
 
     @objc private func downPressed() {
+        if viewModel.subtitleSearchVisible { viewModel.subtitleSearchMoveDown(); return }
         if statsOverlayCapturesPresses {
             advanceStatsCursor(by: 1)
             return
@@ -1237,6 +1244,7 @@ final class PlayerHostController: AVPlayerViewController {
     private static let dropdownStepSize: CGFloat = 300
 
     @objc private func handlePan(_ gesture: UIPanGestureRecognizer) {
+        if viewModel.subtitleSearchVisible { return }
         // Stats overlay open: route vertical swipes to the section
         // cursor, swallow horizontal swipes so they don't scrub the
         // timeline behind the panel. Same gating as the @objc up /
