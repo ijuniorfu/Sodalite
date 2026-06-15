@@ -176,7 +176,7 @@ struct PINEntryView: View {
     // MARK: Logic
 
     private var lockoutRemaining: Int? {
-        guard let until = lockoutUntil ?? dependencies.guardianPINLockout(), until > now else { return nil }
+        guard let until = lockoutUntil, until > now else { return nil }
         return Int(until.timeIntervalSince(now).rounded(.up))
     }
 
