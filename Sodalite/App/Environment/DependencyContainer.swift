@@ -750,7 +750,7 @@ final class DependencyContainer {
 
     // MARK: - Parental Controls / Guardian-PIN
 
-    struct GuardianPINThrottle: Codable {
+    private struct GuardianPINThrottle: Codable {
         var failedAttempts: Int = 0
         /// Unix epoch seconds the lockout expires; nil = not locked.
         var lockoutUntil: TimeInterval?
@@ -807,8 +807,10 @@ final class DependencyContainer {
     }
 
     func verifyGuardianPIN(_ pin: String) -> PINVerifyResult {
-        if let lockout = guardianPINLockout() {
-            return .lockedOut(until: lockout)
+        let throttle = loadThrottle()
+        if let until = throttle.lockoutUntil {
+            let date = Date(timeIntervalSince1970: until)
+            if date > Date() { return .lockedOut(until: date) }
         }
         guard let data = try? keychainService.loadData(for: KeychainKeys.guardianPINBlob),
               let blob = try? JSONDecoder().decode(GuardianPINCrypto.Blob.self, from: data)
@@ -824,19 +826,20 @@ final class DependencyContainer {
         }
 
         // Wrong: bump the counter; lock out after pinMaxAttempts in a row.
-        var throttle = loadThrottle()
-        throttle.failedAttempts += 1
-        if throttle.failedAttempts >= Self.pinMaxAttempts {
-            // Escalating: 60s, 120s, 240s ... capped. The exponent grows
-            // with each completed lockout round past the first.
-            let rounds = throttle.failedAttempts - Self.pinMaxAttempts
+        var updated = throttle
+        updated.failedAttempts += 1
+        if updated.failedAttempts >= Self.pinMaxAttempts {
+            // Escalating: first lockout (attempts == max) is the base 60s;
+            // each additional wrong guess thereafter doubles it (120s, 240s, ...),
+            // capped at pinMaxLockout. rounds = failedAttempts - pinMaxAttempts.
+            let rounds = updated.failedAttempts - Self.pinMaxAttempts
             let duration = min(Self.pinMaxLockout, Self.pinBaseLockout * pow(2, Double(rounds)))
-            throttle.lockoutUntil = Date().timeIntervalSince1970 + duration
-            saveThrottle(throttle)
-            return .lockedOut(until: Date(timeIntervalSince1970: throttle.lockoutUntil!))
+            updated.lockoutUntil = Date().timeIntervalSince1970 + duration
+            saveThrottle(updated)
+            return .lockedOut(until: Date(timeIntervalSince1970: updated.lockoutUntil!))
         }
-        saveThrottle(throttle)
-        return .wrong(remainingBeforeLockout: Self.pinMaxAttempts - throttle.failedAttempts)
+        saveThrottle(updated)
+        return .wrong(remainingBeforeLockout: Self.pinMaxAttempts - updated.failedAttempts)
     }
 
     // MARK: Gate decisions
