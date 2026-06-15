@@ -44,6 +44,17 @@ enum KeychainKeys {
     /// `activeUserName`.
     static let activeUserImageTag = "activeUserImageTag"
 
+    /// JSON-encoded `GuardianPINCrypto.Blob`. Device-global (NOT
+    /// per-server): one household PIN guards every profile. Absent =
+    /// no PIN set. Survives app-data clears (keychain), so the lock and
+    /// its throttle cannot be reset by wiping UserDefaults.
+    static let guardianPINBlob = "guardianPINBlob"
+
+    /// JSON-encoded `GuardianPINThrottle`. Tracks consecutive failed
+    /// unlock attempts + a lockout deadline. Device-global, keychain so
+    /// it resists tampering.
+    static let guardianPINThrottle = "guardianPINThrottle"
+
     static func seerrSession(serverID: String) -> String {
         "seerrSession_\(serverID)"
     }

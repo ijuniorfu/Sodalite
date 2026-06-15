@@ -29,6 +29,8 @@ final class DependencyContainer {
     let storeKitService: StoreKitServiceProtocol
     let appearancePreferences: AppearancePreferences
     let authPreferences: AuthPreferences
+    let parentalControlsPreferences: ParentalControlsPreferences
+    let parentalGate: ParentalGate
     let tvProfileMappings: TVProfileMappings
 
     let seerrClient: SeerrClient
@@ -88,6 +90,8 @@ final class DependencyContainer {
         self.storeKitService = StoreKitService()
         self.appearancePreferences = AppearancePreferences()
         self.authPreferences = AuthPreferences()
+        self.parentalControlsPreferences = ParentalControlsPreferences()
+        self.parentalGate = ParentalGate()
         self.tvProfileMappings = TVProfileMappings()
 
         // The Seerr tree gets its OWN HTTPClient so Catalog browsing
@@ -742,6 +746,145 @@ final class DependencyContainer {
         SharedSessionMirror.clearAll()
 
         try clearSeerrSession()
+    }
+
+    // MARK: - Parental Controls / Guardian-PIN
+
+    private struct GuardianPINThrottle: Codable {
+        var failedAttempts: Int = 0
+        /// Unix epoch seconds the lockout expires; nil = not locked.
+        var lockoutUntil: TimeInterval?
+    }
+
+    enum PINVerifyResult: Equatable {
+        case success
+        /// Wrong PIN; `remainingBeforeLockout` attempts left in this round.
+        case wrong(remainingBeforeLockout: Int)
+        /// Too many failures; locked until `until`.
+        case lockedOut(until: Date)
+    }
+
+    /// Attempts before the first lockout, and the base lockout duration.
+    private static let pinMaxAttempts = 5
+    private static let pinBaseLockout: TimeInterval = 60
+    private static let pinMaxLockout: TimeInterval = 3600
+
+    func isGuardianPINSet() -> Bool {
+        (try? keychainService.loadData(for: KeychainKeys.guardianPINBlob)) != nil
+    }
+
+    func saveGuardianPIN(_ pin: String) throws {
+        let blob = GuardianPINCrypto.makeBlob(pin: pin)
+        let data = try JSONEncoder().encode(blob)
+        try keychainService.save(data, for: KeychainKeys.guardianPINBlob)
+        // A freshly set PIN starts with a clean slate.
+        try? keychainService.delete(for: KeychainKeys.guardianPINThrottle)
+    }
+
+    func clearGuardianPIN() throws {
+        try keychainService.delete(for: KeychainKeys.guardianPINBlob)
+        try? keychainService.delete(for: KeychainKeys.guardianPINThrottle)
+    }
+
+    private func loadThrottle() -> GuardianPINThrottle {
+        guard let data = try? keychainService.loadData(for: KeychainKeys.guardianPINThrottle),
+              let throttle = try? JSONDecoder().decode(GuardianPINThrottle.self, from: data)
+        else { return GuardianPINThrottle() }
+        return throttle
+    }
+
+    private func saveThrottle(_ throttle: GuardianPINThrottle) {
+        if let data = try? JSONEncoder().encode(throttle) {
+            try? keychainService.save(data, for: KeychainKeys.guardianPINThrottle)
+        }
+    }
+
+    /// Current lockout deadline if one is active and still in the future.
+    func guardianPINLockout() -> Date? {
+        guard let until = loadThrottle().lockoutUntil else { return nil }
+        let date = Date(timeIntervalSince1970: until)
+        return date > Date() ? date : nil
+    }
+
+    func verifyGuardianPIN(_ pin: String) -> PINVerifyResult {
+        let throttle = loadThrottle()
+        if let until = throttle.lockoutUntil {
+            let date = Date(timeIntervalSince1970: until)
+            if date > Date() { return .lockedOut(until: date) }
+        }
+        guard let data = try? keychainService.loadData(for: KeychainKeys.guardianPINBlob),
+              let blob = try? JSONDecoder().decode(GuardianPINCrypto.Blob.self, from: data)
+        else {
+            // No PIN set: treat as failure so callers never proceed on a
+            // missing blob. (Gate decisions already require isGuardianPINSet.)
+            return .wrong(remainingBeforeLockout: Self.pinMaxAttempts)
+        }
+
+        if GuardianPINCrypto.verify(pin: pin, blob: blob) {
+            try? keychainService.delete(for: KeychainKeys.guardianPINThrottle)
+            return .success
+        }
+
+        // Wrong: bump the counter; lock out after pinMaxAttempts in a row.
+        var updated = throttle
+        updated.failedAttempts += 1
+        if updated.failedAttempts >= Self.pinMaxAttempts {
+            // Escalating: first lockout (attempts == max) is the base 60s;
+            // each additional wrong guess thereafter doubles it (120s, 240s, ...),
+            // capped at pinMaxLockout. rounds = failedAttempts - pinMaxAttempts.
+            let rounds = updated.failedAttempts - Self.pinMaxAttempts
+            let duration = min(Self.pinMaxLockout, Self.pinBaseLockout * pow(2, Double(rounds)))
+            updated.lockoutUntil = Date().timeIntervalSince1970 + duration
+            saveThrottle(updated)
+            return .lockedOut(until: Date(timeIntervalSince1970: updated.lockoutUntil!))
+        }
+        saveThrottle(updated)
+        return .wrong(remainingBeforeLockout: Self.pinMaxAttempts - updated.failedAttempts)
+    }
+
+    // MARK: Gate decisions
+
+    /// Parental controls are engaged when a PIN is set AND at least one
+    /// remembered profile (on any known server) is marked protected.
+    func parentalControlsActive() -> Bool {
+        guard isGuardianPINSet() else { return false }
+        return parentalControlsPreferences.hasAnyProtectedProfile
+    }
+
+    /// The (serverID, userID) of the active session, read from the
+    /// keychain pointers so this works before AppState is populated.
+    private func activeSessionIdentity() -> (serverID: String, userID: String)? {
+        guard let serverID = try? keychainService.loadString(for: KeychainKeys.activeServerID),
+              let userID = try? keychainService.loadString(for: KeychainKeys.userID(serverID: serverID))
+        else { return nil }
+        return (serverID, userID)
+    }
+
+    /// Is the currently active session a protected profile?
+    func activeProfileIsProtected() -> Bool {
+        guard let id = activeSessionIdentity() else { return false }
+        return parentalControlsPreferences.isProtected(serverID: id.serverID, userID: id.userID)
+    }
+
+    /// Whether activating the given target profile needs the Guardian-PIN.
+    /// Required when parental controls are active, the target is NOT
+    /// protected, and either we are at cold-start (no trusted session
+    /// yet) or the current session is itself a protected profile.
+    func parentalGateRequired(forActivatingUserID userID: String,
+                              serverID: String,
+                              isColdStart: Bool) -> Bool {
+        guard parentalControlsActive() else { return false }
+        if parentalControlsPreferences.isProtected(serverID: serverID, userID: userID) {
+            return false // entering a protected profile is always free
+        }
+        return isColdStart || activeProfileIsProtected()
+    }
+
+    /// Whether a session-scoped escape action (logout, server management,
+    /// opening parental settings, switching server from the picker)
+    /// needs the PIN. Required only while a protected profile is active.
+    func parentalGateRequiredForSessionAction() -> Bool {
+        parentalControlsActive() && activeProfileIsProtected()
     }
 
     /// See `restoreSession()` for the rationale behind silent `try?` here.
