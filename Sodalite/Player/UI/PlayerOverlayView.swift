@@ -12,6 +12,12 @@ import AetherEngine
 struct PlayerOverlayView: View {
     let viewModel: PlayerViewModel
     let onDismiss: () -> Void
+    /// Concrete player tint, threaded from `PlayerHostController` (the same
+    /// `tintColor` the host applies to the overlay via `.tint(...)`). The
+    /// display-only overlay leans on the environment tint for its shape-style
+    /// fills, but the subtitle-search overlay needs the literal `Color` for
+    /// focused-row fills, so the value is passed in explicitly.
+    var tintColor: Color? = nil
 
     var body: some View {
         ZStack {
@@ -140,12 +146,35 @@ struct PlayerOverlayView: View {
                let next = viewModel.nextEpisode {
                 nextEpisodeOverlay(next)
             }
+
+            // Subtitle search overlay (Feature #4). Reaches for the
+            // literal player tint so its focused rows fill with the
+            // server-configured accent rather than white.
+            if viewModel.subtitleSearchVisible {
+                SubtitleSearchView(
+                    viewModel: viewModel,
+                    tint: tintColor ?? .accentColor
+                )
+                .transition(.opacity)
+                .zIndex(50)
+            }
+
+            if viewModel.isSubtitleDeletePromptVisible {
+                SubtitleDeletePromptView(
+                    viewModel: viewModel,
+                    tint: tintColor ?? .accentColor
+                )
+                .transition(.opacity)
+                .zIndex(51)
+            }
         }
         .animation(.easeInOut(duration: 0.3), value: viewModel.isLoading)
         .animation(.easeInOut(duration: 0.3), value: viewModel.showControls)
         .animation(.easeInOut(duration: 0.3), value: viewModel.showNextEpisodeOverlay)
         .animation(.easeInOut(duration: 0.25), value: viewModel.isInsideIntro)
         .animation(.easeInOut(duration: 0.25), value: viewModel.showStatsOverlay)
+        .animation(.easeInOut(duration: 0.3), value: viewModel.subtitleSearchVisible)
+        .animation(.easeInOut(duration: 0.25), value: viewModel.isSubtitleDeletePromptVisible)
     }
 
     private var introSkipOverlay: some View {

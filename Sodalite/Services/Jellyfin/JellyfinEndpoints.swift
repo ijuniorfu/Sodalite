@@ -64,6 +64,16 @@ enum JellyfinEndpoint: APIEndpoint {
     // or intro-skipper plugin on older servers)
     case mediaSegments(itemID: String)
 
+    // Subtitle RemoteSearch (needs a server-side subtitle provider
+    // plugin, e.g. OpenSubtitles). `subtitleID` is provider-scoped and
+    // can contain slashes, so it is percent-encoded into the path.
+    case remoteSearchSubtitles(itemID: String, language: String)
+    case downloadRemoteSubtitle(itemID: String, subtitleID: String)
+    /// DELETE /Videos/{itemID}/Subtitles/{index} — removes an external
+    /// subtitle file from the item. Needs subtitle-management rights on
+    /// the server.
+    case deleteSubtitle(itemID: String, index: Int)
+
     // Live TV
     case liveTvChannels(userID: String, startIndex: Int, limit: Int)
     case liveTvPrograms(channelIDs: [String], userID: String, minEndDate: Date, maxStartDate: Date)
@@ -148,6 +158,12 @@ enum JellyfinEndpoint: APIEndpoint {
             "/Search/Hints"
         case .mediaSegments(let itemID):
             "/MediaSegments/\(itemID)"
+        case .remoteSearchSubtitles(let itemID, let language):
+            "/Items/\(itemID)/RemoteSearch/Subtitles/\(language)"
+        case .deleteSubtitle(let itemID, let index):
+            "/Videos/\(itemID)/Subtitles/\(index)"
+        case .downloadRemoteSubtitle(let itemID, let subtitleID):
+            "/Items/\(itemID)/RemoteSearch/Subtitles/\(subtitleID.addingPercentEncoding(withAllowedCharacters: .alphanumerics) ?? subtitleID)"
         case .liveTvChannels:
             "/LiveTv/Channels"
         case .liveTvPrograms:
@@ -175,6 +191,16 @@ enum JellyfinEndpoint: APIEndpoint {
         }
     }
 
+    var percentEncodedPath: String? {
+        switch self {
+        case .downloadRemoteSubtitle(let itemID, let subtitleID):
+            let encodedID = subtitleID.addingPercentEncoding(withAllowedCharacters: .alphanumerics) ?? subtitleID
+            return "/Items/\(itemID)/RemoteSearch/Subtitles/\(encodedID)"
+        default:
+            return nil
+        }
+    }
+
     var method: HTTPMethod {
         switch self {
         case .authenticateByName, .quickConnectInitiate, .quickConnectAuthenticate, .markFavorite,
@@ -182,10 +208,11 @@ enum JellyfinEndpoint: APIEndpoint {
              .playbackInfo, .livePlaybackInfo,
              .sessionPlaying, .sessionProgress, .sessionStopped,
              .closeLiveStream,
-             .createLiveTvTimer, .createLiveTvSeriesTimer:
+             .createLiveTvTimer, .createLiveTvSeriesTimer,
+             .downloadRemoteSubtitle:
             .post
         case .unmarkFavorite, .unmarkPlayed, .deleteItem, .stopActiveEncodings,
-             .deleteLiveTvTimer, .deleteLiveTvSeriesTimer:
+             .deleteLiveTvTimer, .deleteLiveTvSeriesTimer, .deleteSubtitle:
             .delete
         default:
             .get

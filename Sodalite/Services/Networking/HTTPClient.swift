@@ -180,7 +180,15 @@ final class HTTPClient: HTTPClientProtocol, @unchecked Sendable {
         endpoint: APIEndpoint,
         headers: [String: String]
     ) throws -> URLRequest {
-        var components = URLComponents(url: baseURL.appendingPathComponent(endpoint.path), resolvingAgainstBaseURL: true)
+        var components: URLComponents?
+        if let encodedPath = endpoint.percentEncodedPath {
+            components = URLComponents(url: baseURL, resolvingAgainstBaseURL: true)
+            let basePath = baseURL.path
+            let trimmedBase = basePath.hasSuffix("/") ? String(basePath.dropLast()) : basePath
+            components?.percentEncodedPath = trimmedBase + encodedPath
+        } else {
+            components = URLComponents(url: baseURL.appendingPathComponent(endpoint.path), resolvingAgainstBaseURL: true)
+        }
         components?.queryItems = endpoint.queryItems
         // URLComponents leaves "+" literal in query values, but
         // ASP.NET Core (Jellyfin) and Express (Seerr) decode "+" as a

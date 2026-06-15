@@ -322,7 +322,8 @@ final class PlayerHostController: AVPlayerViewController {
         // the WindowGroup tint set on SodaliteApp never reaches it.
         let overlay = PlayerOverlayView(
             viewModel: viewModel,
-            onDismiss: { [weak self] in self?.dismissPlayer() }
+            onDismiss: { [weak self] in self?.dismissPlayer() },
+            tintColor: tintColor
         )
             .tint(tintColor)
         let hosting = UIHostingController(rootView: overlay)
@@ -336,7 +337,12 @@ final class PlayerHostController: AVPlayerViewController {
         overlayHostingView = hosting.view
 
         // Gesture recognizers for ALL buttons including Menu
-        addPressGesture(.select, action: #selector(selectPressed))
+        // A short Select click activates; holding Select deletes the
+        // highlighted external subtitle (Feature #4). The tap requires the
+        // hold to fail so a quick click never triggers a delete.
+        let selectTap = addPressGesture(.select, action: #selector(selectPressed))
+        let selectHold = addHoldGesture(.select, action: #selector(selectHeld(_:)))
+        selectTap.require(toFail: selectHold)
         addPressGesture(.playPause, action: #selector(playPausePressed))
         addPressGesture(.menu, action: #selector(menuPressed))
         // left/right: a short click is a discrete skip, holding it spools
@@ -762,6 +768,8 @@ final class PlayerHostController: AVPlayerViewController {
     }
 
     @objc private func selectPressed() {
+        if viewModel.isSubtitleDeletePromptVisible { viewModel.subtitleDeletePromptConfirm(); return }
+        if viewModel.subtitleSearchVisible { viewModel.subtitleSearchConfirm(); return }
         // Stats panel: Select closes it like Menu does. The chip on
         // the transport bar still toggles when the panel is closed,
         // but with the panel open every press goes here first.
@@ -830,10 +838,18 @@ final class PlayerHostController: AVPlayerViewController {
     }
 
     @objc private func playPausePressed() {
+        if viewModel.isSubtitleDeletePromptVisible { return }
+        if viewModel.subtitleSearchVisible { return }
         viewModel.togglePlayPause()
     }
 
     @objc private func menuPressed() {
+        if viewModel.isSubtitleDeletePromptVisible { viewModel.subtitleDeletePromptDismiss(); return }
+        if viewModel.subtitleSearchVisible {
+            viewModel.dismissSubtitleSearch()
+            viewModel.scheduleControlsHide()
+            return
+        }
         // Cancelling the next-episode countdown only hijacks Menu when
         // the transport is hidden. With controls open, Menu behaves
         // normally (close dropdown → abort scrub → step focus → hide
@@ -868,6 +884,8 @@ final class PlayerHostController: AVPlayerViewController {
     }
 
     @objc private func leftPressed() {
+        if viewModel.isSubtitleDeletePromptVisible { viewModel.subtitleDeletePromptToggleFocus(); return }
+        if viewModel.subtitleSearchVisible { viewModel.subtitleSearchMoveLeft(); return }
         // Stats panel: horizontal nav is a no-op while the panel is
         // open. No focusable rows behind it that left/right could
         // target without confusing the user about what's actually
@@ -883,6 +901,8 @@ final class PlayerHostController: AVPlayerViewController {
     }
 
     @objc private func rightPressed() {
+        if viewModel.isSubtitleDeletePromptVisible { viewModel.subtitleDeletePromptToggleFocus(); return }
+        if viewModel.subtitleSearchVisible { viewModel.subtitleSearchMoveRight(); return }
         if statsOverlayCapturesPresses { return }
         if viewModel.isDropdownOpen { return }
         if viewModel.showControls && viewModel.controlsFocus != .progressBar {
@@ -901,6 +921,19 @@ final class PlayerHostController: AVPlayerViewController {
         handleHold(gesture, direction: 1)
     }
 
+    /// Hold Select on an external subtitle row in the subtitle dropdown to
+    /// delete it (Feature #4). Ignored for embedded tracks, the Off / Search
+    /// rows, and any other dropdown.
+    @objc private func selectHeld(_ gesture: UILongPressGestureRecognizer) {
+        guard gesture.state == .began else { return }
+        guard case .subtitle(let idx) = viewModel.trackDropdown else { return }
+        let streams = viewModel.displaySubtitleStreams
+        let streamIdx = idx - 1 // 0 = Off, 1...count = streams, count+1 = Search
+        guard streamIdx >= 0, streamIdx < streams.count,
+              streams[streamIdx].isExternal == true else { return }
+        viewModel.requestSubtitleDeletion(streamIndex: streams[streamIdx].index)
+    }
+
     /// Drive the continuous hold-to-seek spool from a directional long
     /// press: begin on `.began`, commit on release. Gated by the same
     /// conditions as the tap-skip path so a hold while navigating the
@@ -908,7 +941,7 @@ final class PlayerHostController: AVPlayerViewController {
     private func handleHold(_ gesture: UILongPressGestureRecognizer, direction: Int) {
         switch gesture.state {
         case .began:
-            if statsOverlayCapturesPresses || viewModel.isDropdownOpen { return }
+            if statsOverlayCapturesPresses || viewModel.isDropdownOpen || viewModel.subtitleSearchVisible || viewModel.isSubtitleDeletePromptVisible { return }
             if viewModel.showControls && viewModel.controlsFocus != .progressBar { return }
             viewModel.beginContinuousSeek(direction: direction)
         case .ended, .cancelled, .failed:
@@ -946,6 +979,8 @@ final class PlayerHostController: AVPlayerViewController {
     }
 
     @objc private func upPressed() {
+        if viewModel.isSubtitleDeletePromptVisible { return }
+        if viewModel.subtitleSearchVisible { viewModel.subtitleSearchMoveUp(); return }
         // Stats panel: up moves the section cursor one step toward
         // the top, skipping sections that aren't currently rendered
         // (subtitle section absent when subs off, etc.). Without the
@@ -996,6 +1031,8 @@ final class PlayerHostController: AVPlayerViewController {
     }
 
     @objc private func downPressed() {
+        if viewModel.isSubtitleDeletePromptVisible { return }
+        if viewModel.subtitleSearchVisible { viewModel.subtitleSearchMoveDown(); return }
         if statsOverlayCapturesPresses {
             advanceStatsCursor(by: 1)
             return
@@ -1101,7 +1138,8 @@ final class PlayerHostController: AVPlayerViewController {
             let newIdx = max(0, min(count - 1, idx + offset))
             viewModel.trackDropdown = .audio(highlighted: newIdx)
         case .subtitle(let idx):
-            let count = viewModel.displaySubtitleStreams.count + 1 // +1 for "Off"
+            // +1 for "Off", +1 for the "Search online..." row
+            let count = viewModel.displaySubtitleStreams.count + 2
             guard count > 0 else { return }
             let newIdx = max(0, min(count - 1, idx + offset))
             viewModel.trackDropdown = .subtitle(highlighted: newIdx)
@@ -1139,17 +1177,23 @@ final class PlayerHostController: AVPlayerViewController {
             viewModel.trackDropdown = .none
             viewModel.scheduleControlsHide()
         case .subtitle(let idx):
+            let streams = viewModel.displaySubtitleStreams
             if idx == 0 {
                 viewModel.selectSubtitleTrack(id: nil)
+                viewModel.trackDropdown = .none
+                viewModel.scheduleControlsHide()
+            } else if idx == streams.count + 1 {
+                // "Search online..." row -> open the search overlay.
+                viewModel.trackDropdown = .none
+                viewModel.presentSubtitleSearch()
             } else {
-                let streams = viewModel.displaySubtitleStreams
                 let streamIdx = idx - 1
                 if streamIdx < streams.count {
                     viewModel.selectSubtitleTrack(id: streams[streamIdx].index)
                 }
+                viewModel.trackDropdown = .none
+                viewModel.scheduleControlsHide()
             }
-            viewModel.trackDropdown = .none
-            viewModel.scheduleControlsHide()
         case .speed(let idx):
             viewModel.selectSpeed(index: idx)
             viewModel.trackDropdown = .none
@@ -1229,6 +1273,8 @@ final class PlayerHostController: AVPlayerViewController {
     private static let dropdownStepSize: CGFloat = 300
 
     @objc private func handlePan(_ gesture: UIPanGestureRecognizer) {
+        if viewModel.isSubtitleDeletePromptVisible { return }
+        if viewModel.subtitleSearchVisible { return }
         // Stats overlay open: route vertical swipes to the section
         // cursor, swallow horizontal swipes so they don't scrub the
         // timeline behind the panel. Same gating as the @objc up /

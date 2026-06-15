@@ -62,6 +62,52 @@ final class PlayerViewModel {
     var controlsFocus: ControlsFocus = .progressBar
     var trackDropdown: TrackDropdown = .none
 
+    // MARK: Subtitle search (Feature #4)
+
+    enum SubtitleSearchState: Equatable {
+        case idle
+        case loading
+        case results([RemoteSubtitleInfo])
+        case empty
+        case downloading(id: String)
+        case error(String)
+    }
+
+    /// Drives the SubtitleSearchView overlay.
+    var subtitleSearchVisible = false
+    var subtitleSearchState: SubtitleSearchState = .idle
+    /// 3-letter ISO language used for the next search. Seeded from the
+    /// preferred subtitle language, fallback the device language.
+    var subtitleSearchLanguage: String = "eng"
+
+    /// Which element of the subtitle-search overlay is highlighted.
+    /// The overlay has two regions: the horizontal language switcher and
+    /// the vertical results list. Rendered display-only by
+    /// SubtitleSearchView; driven by PlayerHostController's press handlers.
+    enum SubtitleSearchFocus: Equatable {
+        case language(Int)   // index into subtitleSearchLanguageOptions
+        case result(Int)     // index into the current results
+    }
+    var subtitleSearchFocus: SubtitleSearchFocus = .language(0)
+
+    /// Delete-confirmation flow for an external subtitle (hold-to-delete
+    /// on an external row in the subtitle dropdown). Host-driven overlay,
+    /// rendered display-only by SubtitleDeletePromptView. Feature #4.
+    enum SubtitleDeleteState: Equatable {
+        case hidden
+        case confirm(streamIndex: Int)
+        case deleting
+        case error(String)
+    }
+    enum SubtitleDeleteButton { case cancel, delete }
+    var subtitleDeleteState: SubtitleDeleteState = .hidden
+    var subtitleDeleteFocus: SubtitleDeleteButton = .cancel
+    /// True while a delete confirmation / progress / error is on screen.
+    var isSubtitleDeletePromptVisible: Bool {
+        if case .hidden = subtitleDeleteState { return false }
+        return true
+    }
+
     enum ControlsFocus: Hashable {
         case progressBar
         case skipIntroButton
@@ -567,31 +613,7 @@ final class PlayerViewModel {
             // The dedupe step below uses `forced` / `signs` / `sdh` /
             // etc. as descriptors so distinct tracks for the same
             // language don't collapse into one.
-            let allSubStreams = source.mediaStreams?.filter { stream in
-                stream.type == .subtitle
-            } ?? []
-
-            // Deduplicate: if multiple streams share the same language and
-            // neither has a distinguishing title (SDH, Forced, etc.),
-            // keep only the first one. Streams with descriptors keep
-            // each variant under its own key so e.g. "Forced (SRT)"
-            // and "Full (PGS)" both survive even when they share a
-            // language tag.
-            var seen = Set<String>()
-            subtitleStreams = allSubStreams.filter { stream in
-                let lang = stream.language ?? "und"
-                let hasDescriptor = stream.isForced == true
-                    || (stream.title?.lowercased()).map { t in
-                        ["sdh", "commentary", "cc", "signs", "songs", "hearing", "forced", "musik", "music", "full"].contains(where: { t.contains($0) })
-                    } ?? false
-                let codecKey = stream.codec?.lowercased() ?? ""
-                let key = hasDescriptor
-                    ? "\(lang)_\(stream.title ?? "")_\(codecKey)"
-                    : "\(lang)_\(codecKey)"
-                if seen.contains(key) { return false }
-                seen.insert(key)
-                return true
-            }
+            subtitleStreams = Self.dedupedSubtitleStreams(from: source.mediaStreams)
 
             let url: URL
             if source.supportsDirectPlay == true || source.supportsDirectStream == true {
@@ -1436,6 +1458,35 @@ final class PlayerViewModel {
         // German subs at load-time for the same audio choice.
         let language = player.audioTracks.first(where: { $0.id == id })?.language
         applyPreferredSubtitle(forAudioLanguage: language)
+    }
+
+    /// Deduplicates subtitle streams in a media source's stream list.
+    /// Keeps one EMBEDDED track per (language, codec); embedded tracks
+    /// with a descriptor (SDH / Forced / commentary / etc.) keep their own
+    /// variant so distinct same-language tracks don't collapse. EXTERNAL
+    /// subtitles (sidecar files and in-app downloads) are never collapsed:
+    /// each is a distinct user-curated file and must stay individually
+    /// selectable, even when several share the same language and codec.
+    /// Shared by initial load and the post-download refetch.
+    static func dedupedSubtitleStreams(from mediaStreams: [MediaStream]?) -> [MediaStream] {
+        let allSubStreams = mediaStreams?.filter { $0.type == .subtitle } ?? []
+        var seen = Set<String>()
+        return allSubStreams.filter { stream in
+            // External subs are individual files; keep every one.
+            if stream.isExternal == true { return true }
+            let lang = stream.language ?? "und"
+            let hasDescriptor = stream.isForced == true
+                || (stream.title?.lowercased()).map { t in
+                    ["sdh", "commentary", "cc", "signs", "songs", "hearing", "forced", "musik", "music", "full"].contains(where: { t.contains($0) })
+                } ?? false
+            let codecKey = stream.codec?.lowercased() ?? ""
+            let key = hasDescriptor
+                ? "\(lang)_\(stream.title ?? "")_\(codecKey)"
+                : "\(lang)_\(codecKey)"
+            if seen.contains(key) { return false }
+            seen.insert(key)
+            return true
+        }
     }
 
     /// Resolves which subtitle track to surface, given the language of
