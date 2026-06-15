@@ -10,6 +10,9 @@ struct SeerrEpisodeCard: View {
 
     private let width: CGFloat = 320
     private let imageHeight: CGFloat = 180
+    // Reserves room for the title line plus an optional subtitle line so
+    // cards with and without a subtitle end up the exact same height.
+    private let captionHeight: CGFloat = 58
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -49,7 +52,17 @@ struct SeerrEpisodeCard: View {
             }
             .frame(width: width, height: imageHeight)
             .clipShape(RoundedRectangle(cornerRadius: 12))
+            // Focus border lives on the still itself (fixed height), so it
+            // can't drift when the caption block below grows or shrinks.
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .strokeBorder(.tint, lineWidth: 4)
+                    .opacity(isFocused ? 1 : 0)
+            )
 
+            // Fixed-height caption block keeps every card the same total
+            // height regardless of whether the optional subtitle is present,
+            // so cards stay top-aligned in the row.
             VStack(alignment: .leading, spacing: 2) {
                 Text(episode.name ?? "")
                     .font(.body)
@@ -64,16 +77,9 @@ struct SeerrEpisodeCard: View {
                         .lineLimit(1)
                 }
             }
-            .frame(width: width, alignment: .leading)
+            .frame(width: width, height: captionHeight, alignment: .topLeading)
         }
         .frame(width: width)
-        .overlay(
-            RoundedRectangle(cornerRadius: 12)
-                .strokeBorder(.tint, lineWidth: 4)
-                .frame(width: width, height: imageHeight)
-                .opacity(isFocused ? 1 : 0)
-                .offset(y: -((width - imageHeight) / 4))
-        )
         .scaleEffect(isFocused ? 1.04 : 1.0)
         .shadow(color: .black.opacity(isFocused ? 0.3 : 0), radius: 14, y: 6)
         .animation(.easeInOut(duration: 0.15), value: isFocused)
