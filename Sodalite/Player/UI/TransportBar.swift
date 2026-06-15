@@ -465,7 +465,9 @@ struct TransportBar: View {
                 title: String(localized: "player.subtitle.searchOnline",
                               defaultValue: "Search online..."),
                 isActive: false,
-                isHighlighted: highlighted == subtitleStreams.count + 1
+                isHighlighted: highlighted == subtitleStreams.count + 1,
+                isPinnedFooter: true,
+                separatorAbove: true
             )
         )
         return items
@@ -499,38 +501,58 @@ struct TransportBar: View {
             if isOpen {
                 let hasImages = dropdown.contains(where: { $0.image != nil })
                 let rowHeight = hasImages ? Self.episodeRowHeight : Self.dropdownItemHeight
-                let itemCount = dropdown.count
-                let visibleCount = min(itemCount, Self.dropdownMaxVisible)
+                // Pinned footer rows (the subtitle "Search online..." row)
+                // render below the scroll area so they stay visible no
+                // matter how long the list is. Indices are preserved so the
+                // host-driven highlight math is unaffected.
+                let indexed = Array(dropdown.enumerated())
+                let scrollIndexed = indexed.filter { !$0.element.isPinnedFooter }
+                let pinnedIndexed = indexed.filter { $0.element.isPinnedFooter }
+                let visibleCount = min(scrollIndexed.count, Self.dropdownMaxVisible)
                 let height = CGFloat(visibleCount) * rowHeight
 
-                ScrollViewReader { proxy in
-                    ScrollView {
-                        VStack(spacing: 0) {
-                            ForEach(Array(dropdown.enumerated()), id: \.offset) { idx, item in
-                                dropdownRow(item: item, hasImages: hasImages, rowHeight: rowHeight)
-                                    .id(idx)
+                VStack(spacing: 0) {
+                    ScrollViewReader { proxy in
+                        ScrollView {
+                            VStack(spacing: 0) {
+                                ForEach(scrollIndexed, id: \.offset) { idx, item in
+                                    dropdownRow(item: item, hasImages: hasImages, rowHeight: rowHeight)
+                                        .id(idx)
+                                }
+                            }
+                        }
+                        .onAppear {
+                            // The first render needs an explicit scroll,
+                            // .onChange only fires when the highlighted
+                            // index *changes*, not for the value the
+                            // dropdown was opened at. Without this the
+                            // scrollview anchors at index 0 and the
+                            // active row is offscreen until the user
+                            // moves the highlight one step.
+                            if let highlighted = scrollIndexed.first(where: { $0.element.isHighlighted })?.offset {
+                                proxy.scrollTo(highlighted, anchor: .center)
+                            }
+                        }
+                        .onChange(of: scrollIndexed.first(where: { $0.element.isHighlighted })?.offset) { _, highlighted in
+                            if let highlighted {
+                                withAnimation { proxy.scrollTo(highlighted, anchor: .center) }
                             }
                         }
                     }
-                    .onAppear {
-                        // The first render needs an explicit scroll,
-                        // .onChange only fires when the highlighted
-                        // index *changes*, not for the value the
-                        // dropdown was opened at. Without this the
-                        // scrollview anchors at index 0 and the
-                        // active row is offscreen until the user
-                        // moves the highlight one step.
-                        if let highlighted = dropdown.firstIndex(where: { $0.isHighlighted }) {
-                            proxy.scrollTo(highlighted, anchor: .center)
+                    .frame(height: height)
+
+                    // Fixed footer (e.g. "Search online..."), always visible.
+                    ForEach(pinnedIndexed, id: \.offset) { idx, item in
+                        if item.separatorAbove {
+                            Rectangle()
+                                .fill(Color.white.opacity(0.15))
+                                .frame(height: 1)
+                                .padding(.horizontal, 16)
                         }
-                    }
-                    .onChange(of: dropdown.firstIndex(where: { $0.isHighlighted })) { _, highlighted in
-                        if let highlighted {
-                            withAnimation { proxy.scrollTo(highlighted, anchor: .center) }
-                        }
+                        dropdownRow(item: item, hasImages: hasImages, rowHeight: rowHeight)
+                            .id(idx)
                     }
                 }
-                .frame(height: height)
                 // Image dropdowns (episodes / chapters w/ thumbnails)
                 // get a tight cap so long titles wrap inside the row
                 // instead of stretching the column wide enough to
@@ -646,6 +668,13 @@ private struct DropdownItem {
     /// Optional trailing affordance caption (e.g. "Hold to delete" on
     /// external subtitle rows). nil for rows without a secondary action.
     var hint: String? = nil
+    /// Pins this row as a fixed footer below the scrollable list, so it
+    /// stays visible no matter how long the list is (the subtitle
+    /// dropdown's "Search online..." row).
+    var isPinnedFooter: Bool = false
+    /// Draws a thin separator above this row, to set it apart from the
+    /// rows above (used with `isPinnedFooter`).
+    var separatorAbove: Bool = false
 }
 
 // MARK: - Chapter Thumbnail View
