@@ -237,6 +237,10 @@ extension PlayerViewModel {
         // deactivate the ASS coordinator explicitly so the previous
         // episode's rendered script doesn't play over the next episode.
         deactivateASSRendering()
+        // The remote subtitle-search overlay is part of the prior
+        // session's UI; without this the stale overlay can stay mounted
+        // over the next episode after a reload-in-place (issue #15 path).
+        dismissSubtitleSearch()
         activeSubtitleCodec = nil
         nextEpisode = nil
         hasFetchedNextEpisode = false

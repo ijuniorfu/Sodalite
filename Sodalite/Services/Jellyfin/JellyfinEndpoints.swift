@@ -185,6 +185,16 @@ enum JellyfinEndpoint: APIEndpoint {
         }
     }
 
+    var percentEncodedPath: String? {
+        switch self {
+        case .downloadRemoteSubtitle(let itemID, let subtitleID):
+            let encodedID = subtitleID.addingPercentEncoding(withAllowedCharacters: .alphanumerics) ?? subtitleID
+            return "/Items/\(itemID)/RemoteSearch/Subtitles/\(encodedID)"
+        default:
+            return nil
+        }
+    }
+
     var method: HTTPMethod {
         switch self {
         case .authenticateByName, .quickConnectInitiate, .quickConnectAuthenticate, .markFavorite,
