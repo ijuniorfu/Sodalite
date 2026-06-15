@@ -567,31 +567,7 @@ final class PlayerViewModel {
             // The dedupe step below uses `forced` / `signs` / `sdh` /
             // etc. as descriptors so distinct tracks for the same
             // language don't collapse into one.
-            let allSubStreams = source.mediaStreams?.filter { stream in
-                stream.type == .subtitle
-            } ?? []
-
-            // Deduplicate: if multiple streams share the same language and
-            // neither has a distinguishing title (SDH, Forced, etc.),
-            // keep only the first one. Streams with descriptors keep
-            // each variant under its own key so e.g. "Forced (SRT)"
-            // and "Full (PGS)" both survive even when they share a
-            // language tag.
-            var seen = Set<String>()
-            subtitleStreams = allSubStreams.filter { stream in
-                let lang = stream.language ?? "und"
-                let hasDescriptor = stream.isForced == true
-                    || (stream.title?.lowercased()).map { t in
-                        ["sdh", "commentary", "cc", "signs", "songs", "hearing", "forced", "musik", "music", "full"].contains(where: { t.contains($0) })
-                    } ?? false
-                let codecKey = stream.codec?.lowercased() ?? ""
-                let key = hasDescriptor
-                    ? "\(lang)_\(stream.title ?? "")_\(codecKey)"
-                    : "\(lang)_\(codecKey)"
-                if seen.contains(key) { return false }
-                seen.insert(key)
-                return true
-            }
+            subtitleStreams = Self.dedupedSubtitleStreams(from: source.mediaStreams)
 
             let url: URL
             if source.supportsDirectPlay == true || source.supportsDirectStream == true {
@@ -1436,6 +1412,30 @@ final class PlayerViewModel {
         // German subs at load-time for the same audio choice.
         let language = player.audioTracks.first(where: { $0.id == id })?.language
         applyPreferredSubtitle(forAudioLanguage: language)
+    }
+
+    /// Deduplicates subtitle streams in a media source's stream list.
+    /// Keeps one track per (language, codec); tracks with a descriptor
+    /// (SDH / Forced / commentary / etc.) keep their own variant so
+    /// distinct same-language tracks don't collapse. Shared by initial
+    /// load and the post-download refetch so both produce identical lists.
+    static func dedupedSubtitleStreams(from mediaStreams: [MediaStream]?) -> [MediaStream] {
+        let allSubStreams = mediaStreams?.filter { $0.type == .subtitle } ?? []
+        var seen = Set<String>()
+        return allSubStreams.filter { stream in
+            let lang = stream.language ?? "und"
+            let hasDescriptor = stream.isForced == true
+                || (stream.title?.lowercased()).map { t in
+                    ["sdh", "commentary", "cc", "signs", "songs", "hearing", "forced", "musik", "music", "full"].contains(where: { t.contains($0) })
+                } ?? false
+            let codecKey = stream.codec?.lowercased() ?? ""
+            let key = hasDescriptor
+                ? "\(lang)_\(stream.title ?? "")_\(codecKey)"
+                : "\(lang)_\(codecKey)"
+            if seen.contains(key) { return false }
+            seen.insert(key)
+            return true
+        }
     }
 
     /// Resolves which subtitle track to surface, given the language of
