@@ -57519,6 +57519,330 @@
         }
       }
     },
+    "home.customize.rewatchNextUp" : {
+      "comment": "Customize Homepage toggle that enables Jellyfin rewatching in the Next Up row",
+      "extractionState": "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Povolit opětovné sledování v řadě Další"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Aktivér gensyn i Næste"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Erneutes Ansehen in „Als Nächstes“"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Ενεργοποίηση επανάληψης στο Επόμενο"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Enable Rewatching in Next Up"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Activar volver a ver en Siguiente"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Ota uudelleenkatselu käyttöön Seuraavaksi-rivillä"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Activer le revisionnage dans À suivre"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Omogući ponovno gledanje u retku Sljedeće"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Újranézés engedélyezése a Következő sorban"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Abilita la rivisione in Prossimo"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "「次の再生」で再視聴を有効にする"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "‘다음’에서 다시 보기 사용"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Aktiver gjensyn i Neste"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Opnieuw kijken inschakelen in Volgende"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Włącz ponowne oglądanie w rzędzie Następne"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Ativar reexibição em Próximo"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Ativar revisualização em A seguir"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Activează revizionarea în Următorul"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Включить повторный просмотр в разделе «Далее»"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Povoliť opätovné pozeranie v riadku Ďalšie"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Aktivera omtittning i Nästa"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Sırada bölümünde yeniden izlemeyi etkinleştir"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Увімкнути повторний перегляд у розділі «Наступне»"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "在“接下来”中启用重温"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "在「接下來」中啟用重溫"
+          }
+        }
+      }
+    },
+    "home.customize.rewatchNextUp.subtitle" : {
+      "comment": "Subtitle for the enable rewatching in Next Up toggle",
+      "extractionState": "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Ponechá další epizodu v řadě Další i po dokončení seriálu, pro opětovné sledování."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Beholder næste afsnit i Næste, efter du har set en serie færdig, til gensyn."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Behält die nächste Episode in „Als Nächstes“, auch wenn eine Serie fertig gesehen ist, zum erneuten Ansehen."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Διατηρεί το επόμενο επεισόδιο στο Επόμενο αφού ολοκληρώσετε μια σειρά, για επανάληψη."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Keeps the next episode in Next Up after you finish a series, for rewatching."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Mantiene el siguiente episodio en Siguiente tras terminar una serie, para volver a verla."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Pitää seuraavan jakson Seuraavaksi-rivillä, vaikka sarja olisi katsottu loppuun, uudelleenkatselua varten."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Conserve l’épisode suivant dans À suivre après avoir terminé une série, pour la revoir."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Zadržava sljedeću epizodu u retku Sljedeće nakon što završite seriju, za ponovno gledanje."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Megtartja a következő epizódot a Következő sorban a sorozat befejezése után is, újranézéshez."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Mantiene l’episodio successivo in Prossimo dopo aver finito una serie, per rivederla."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "シリーズを見終わった後も「次の再生」に次のエピソードを表示し、繰り返し視聴できます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "시리즈를 다 본 후에도 ‘다음’에 다음 에피소드를 유지하여 다시 볼 수 있습니다."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Beholder neste episode i Neste etter at du har sett ferdig en serie, for gjensyn."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Houdt de volgende aflevering in Volgende nadat je een serie hebt uitgekeken, om opnieuw te kijken."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Zachowuje następny odcinek w rzędzie Następne po obejrzeniu całego serialu, do ponownego oglądania."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Mantém o próximo episódio em Próximo após você terminar uma série, para rever."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Mantém o episódio seguinte em A seguir depois de terminar uma série, para rever."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Păstrează episodul următor în Următorul după ce termini un serial, pentru revizionare."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Сохраняет следующий эпизод в разделе «Далее» после завершения сериала для повторного просмотра."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Ponechá ďalšiu epizódu v riadku Ďalšie aj po dopozeraní seriálu, na opätovné pozeranie."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Behåller nästa avsnitt i Nästa efter att du sett klart en serie, för omtittning."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Bir diziyi bitirdikten sonra bile sonraki bölümü Sırada’da tutar, yeniden izlemek için."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Зберігає наступну серію в рядку «Наступне» після завершення серіалу для повторного перегляду."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "看完一部剧集后仍在“接下来”中保留下一集，方便重温。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "看完一部影集後仍在「接下來」中保留下一集，方便重溫。"
+          }
+        }
+      }
+    },
     "home.customize.title" : {
       "comment": "Title for home customization",
       "extractionState": "manual",
