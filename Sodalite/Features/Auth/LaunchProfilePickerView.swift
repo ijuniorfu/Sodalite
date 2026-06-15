@@ -24,7 +24,7 @@ struct LaunchProfilePickerView: View {
             VStack(spacing: 40) {
                 header
 
-                Button(action: { showServerSwitchSheet = true }) {
+                Button(action: { gateThenServerSwitch() }) {
                     HStack(spacing: 12) {
                         VStack(alignment: .leading, spacing: 2) {
                             Text("multiServer.picker.header.label", bundle: .main)
@@ -149,7 +149,7 @@ struct LaunchProfilePickerView: View {
 
     private var addProfileButton: some View {
         Button {
-            navigateToAddProfile = true
+            gateThenAddProfile()
         } label: {
             Label {
                 Text(String(
@@ -174,6 +174,21 @@ struct LaunchProfilePickerView: View {
     // MARK: - Actions
 
     private func select(_ user: RememberedUser) {
+        // Cold-start picker context: activating an UNPROTECTED profile
+        // requires the Guardian-PIN. Protected profiles enter free.
+        if dependencies.parentalGateRequired(forActivatingUserID: user.id,
+                                              serverID: server.id,
+                                              isColdStart: true) {
+            Task {
+                let unlocked = await dependencies.parentalGate.challenge(reason: .switchProfile)
+                if unlocked { performSelect(user) }
+            }
+        } else {
+            performSelect(user)
+        }
+    }
+
+    private func performSelect(_ user: RememberedUser) {
         do {
             try dependencies.switchToUser(user, server: server)
             // Drop cached thumbnails, they were fetched under the
@@ -206,6 +221,24 @@ struct LaunchProfilePickerView: View {
             Task { await refreshUserDetails(userID: user.id, serverID: server.id) }
         } catch {
             switchError = error.localizedDescription
+        }
+    }
+
+    private func gateThenServerSwitch() {
+        guard dependencies.parentalControlsActive() else { showServerSwitchSheet = true; return }
+        Task {
+            if await dependencies.parentalGate.challenge(reason: .serverManagement) {
+                showServerSwitchSheet = true
+            }
+        }
+    }
+
+    private func gateThenAddProfile() {
+        guard dependencies.parentalControlsActive() else { navigateToAddProfile = true; return }
+        Task {
+            if await dependencies.parentalGate.challenge(reason: .serverManagement) {
+                navigateToAddProfile = true
+            }
         }
     }
 
