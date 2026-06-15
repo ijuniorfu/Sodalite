@@ -455,6 +455,14 @@ struct TransportBar: View {
                 isHighlighted: idx + 1 == highlighted
             )
         }
+        items.append(
+            DropdownItem(
+                title: String(localized: "player.subtitle.searchOnline",
+                              defaultValue: "Search online..."),
+                isActive: false,
+                isHighlighted: highlighted == subtitleStreams.count + 1
+            )
+        )
         return items
     }
 

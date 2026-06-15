@@ -1101,7 +1101,8 @@ final class PlayerHostController: AVPlayerViewController {
             let newIdx = max(0, min(count - 1, idx + offset))
             viewModel.trackDropdown = .audio(highlighted: newIdx)
         case .subtitle(let idx):
-            let count = viewModel.displaySubtitleStreams.count + 1 // +1 for "Off"
+            // +1 for "Off", +1 for the "Search online..." row
+            let count = viewModel.displaySubtitleStreams.count + 2
             guard count > 0 else { return }
             let newIdx = max(0, min(count - 1, idx + offset))
             viewModel.trackDropdown = .subtitle(highlighted: newIdx)
@@ -1139,17 +1140,23 @@ final class PlayerHostController: AVPlayerViewController {
             viewModel.trackDropdown = .none
             viewModel.scheduleControlsHide()
         case .subtitle(let idx):
+            let streams = viewModel.displaySubtitleStreams
             if idx == 0 {
                 viewModel.selectSubtitleTrack(id: nil)
+                viewModel.trackDropdown = .none
+                viewModel.scheduleControlsHide()
+            } else if idx == streams.count + 1 {
+                // "Search online..." row -> open the search overlay.
+                viewModel.trackDropdown = .none
+                viewModel.presentSubtitleSearch()
             } else {
-                let streams = viewModel.displaySubtitleStreams
                 let streamIdx = idx - 1
                 if streamIdx < streams.count {
                     viewModel.selectSubtitleTrack(id: streams[streamIdx].index)
                 }
+                viewModel.trackDropdown = .none
+                viewModel.scheduleControlsHide()
             }
-            viewModel.trackDropdown = .none
-            viewModel.scheduleControlsHide()
         case .speed(let idx):
             viewModel.selectSpeed(index: idx)
             viewModel.trackDropdown = .none
