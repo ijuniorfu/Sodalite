@@ -6,6 +6,7 @@ struct HomeCustomizeView: View {
     @State private var configs: [HomeRowConfig] = []
     @State private var movingID: String?
     @State private var mergeCWNextUp = false
+    @State private var rewatchNextUp = false
 
     private var serverID: String {
         appState.activeServer?.id ?? appState.activeUser?.id ?? ""
@@ -16,6 +17,7 @@ struct HomeCustomizeView: View {
             VStack(spacing: 28) {
                 header
                 mergeRowToggle
+                rewatchRowToggle
                 activeSection
                 if !disabledRows.isEmpty { inactiveSection }
             }
@@ -26,6 +28,7 @@ struct HomeCustomizeView: View {
         .onAppear {
             configs = HomeRowConfig.loadFromStorage(serverID: serverID)
             mergeCWNextUp = HomeRowConfig.mergeContinueWatchingNextUp(serverID: serverID)
+            rewatchNextUp = HomeRowConfig.enableRewatchingNextUp(serverID: serverID)
             // The per-library rows are otherwise only discovered when the
             // Home screen loads, so opening Customize right after adding or
             // switching a server showed a stale list until Home had run.
@@ -106,6 +109,36 @@ struct HomeCustomizeView: View {
                         mergeCWNextUp = newValue
                     }
                     HomeRowConfig.setMergeContinueWatchingNextUp(newValue, serverID: serverID)
+                    NotificationCenter.default.post(name: .homeConfigDidChange, object: nil)
+                }
+            ),
+            label: { on in
+                on
+                    ? String(localized: "common.on", defaultValue: "On")
+                    : String(localized: "common.off", defaultValue: "Off")
+            }
+        )
+        .padding(.horizontal, 50)
+    }
+
+    // MARK: - Rewatching toggle
+
+    /// Jellyfin's EnableRewatching for Next Up: keeps surfacing the next
+    /// episode after the last one played once a series is fully watched, for
+    /// rewatching. Same On/Off ValuePickerRow convention as the merge toggle
+    /// above; per server, drives a Home reload via .homeConfigDidChange.
+    private var rewatchRowToggle: some View {
+        ValuePickerRow(
+            icon: "arrow.clockwise",
+            title: "home.customize.rewatchNextUp",
+            subtitle: "home.customize.rewatchNextUp.subtitle",
+            options: [false, true],
+            selection: Binding(
+                get: { rewatchNextUp },
+                set: { newValue in
+                    movingID = nil
+                    rewatchNextUp = newValue
+                    HomeRowConfig.setEnableRewatchingNextUp(newValue, serverID: serverID)
                     NotificationCenter.default.post(name: .homeConfigDidChange, object: nil)
                 }
             ),
@@ -445,5 +478,24 @@ extension HomeRowConfig {
 
     static func setMergeContinueWatchingNextUp(_ value: Bool, serverID: String) {
         UserDefaults.standard.set(value, forKey: mergeKey(serverID: serverID))
+    }
+
+    // MARK: Enable Rewatching in Next Up
+
+    private static func rewatchingKey(serverID: String) -> String {
+        "homeRewatchNextUp.\(serverID)"
+    }
+
+    /// Jellyfin's EnableRewatching for /Shows/NextUp (Sodalite#19): when
+    /// on, Next Up keeps surfacing the episode after the last one played
+    /// even once a series is fully watched, for rewatching. Applies to the
+    /// Home Next Up row only (standalone row + the merged Continue Watching
+    /// path). Per server, like the row configs themselves; default off.
+    static func enableRewatchingNextUp(serverID: String) -> Bool {
+        UserDefaults.standard.bool(forKey: rewatchingKey(serverID: serverID))
+    }
+
+    static func setEnableRewatchingNextUp(_ value: Bool, serverID: String) {
+        UserDefaults.standard.set(value, forKey: rewatchingKey(serverID: serverID))
     }
 }

@@ -26,7 +26,7 @@ enum JellyfinEndpoint: APIEndpoint {
     /// with its own id.
     case localTrailers(userID: String, itemID: String)
     case resumeItems(userID: String, mediaType: String, limit: Int)
-    case nextUp(userID: String, seriesID: String?, limit: Int)
+    case nextUp(userID: String, seriesID: String?, limit: Int, rewatching: Bool)
     case latestMedia(userID: String, parentID: String?, includeItemTypes: [ItemType]?, limit: Int)
     case seasons(seriesID: String, userID: String)
     case episodes(seriesID: String, seasonID: String, userID: String)
@@ -296,7 +296,7 @@ enum JellyfinEndpoint: APIEndpoint {
                 URLQueryItem(name: "Fields", value: Self.homeRowFields),
             ]
 
-        case .nextUp(let userID, let seriesID, let limit):
+        case .nextUp(let userID, let seriesID, let limit, let rewatching):
             var items = [
                 URLQueryItem(name: "UserId", value: userID),
                 URLQueryItem(name: "Limit", value: String(limit)),
@@ -313,6 +313,14 @@ enum JellyfinEndpoint: APIEndpoint {
                 // the parameter, which simply leaves the prior behaviour.
                 URLQueryItem(name: "EnableResumable", value: "false"),
             ]
+            // Keep surfacing the next episode after the last one played even
+            // once a series is fully watched, for rewatching. Orthogonal to
+            // EnableResumable (in-progress episodes still land only in
+            // Continue Watching). Only sent when on; omitted otherwise so
+            // servers predating the parameter keep their prior behaviour.
+            if rewatching {
+                items.append(URLQueryItem(name: "EnableRewatching", value: "true"))
+            }
             if let seriesID {
                 items.append(URLQueryItem(name: "SeriesId", value: seriesID))
             }

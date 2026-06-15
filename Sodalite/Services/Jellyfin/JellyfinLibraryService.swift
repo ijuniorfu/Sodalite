@@ -4,10 +4,20 @@ protocol JellyfinLibraryServiceProtocol: Sendable {
     func getLibraries(userID: String) async throws -> [JellyfinLibrary]
     func getItems(userID: String, query: ItemQuery) async throws -> JellyfinItemsResponse
     func getResumeItems(userID: String, mediaType: String, limit: Int) async throws -> JellyfinItemsResponse
-    func getNextUp(userID: String, seriesID: String?, limit: Int) async throws -> JellyfinItemsResponse
+    func getNextUp(userID: String, seriesID: String?, limit: Int, rewatching: Bool) async throws -> JellyfinItemsResponse
     func getLatestMedia(userID: String, parentID: String?, includeItemTypes: [ItemType]?, limit: Int) async throws -> [JellyfinItem]
     func getGenres(userID: String) async throws -> [NamedItem]
     func getStudios(userID: String) async throws -> [NamedItem]
+}
+
+extension JellyfinLibraryServiceProtocol {
+    /// Convenience for the common "ordinary Next Up" callers (series
+    /// detail, anything that isn't the Home Next Up row). Rewatching is a
+    /// Home-row-only opt-in, so default it off and let those callers omit
+    /// the argument entirely.
+    func getNextUp(userID: String, seriesID: String?, limit: Int) async throws -> JellyfinItemsResponse {
+        try await getNextUp(userID: userID, seriesID: seriesID, limit: limit, rewatching: false)
+    }
 }
 
 final class JellyfinLibraryService: JellyfinLibraryServiceProtocol {
@@ -47,9 +57,9 @@ final class JellyfinLibraryService: JellyfinLibraryServiceProtocol {
         )
     }
 
-    func getNextUp(userID: String, seriesID: String?, limit: Int) async throws -> JellyfinItemsResponse {
+    func getNextUp(userID: String, seriesID: String?, limit: Int, rewatching: Bool) async throws -> JellyfinItemsResponse {
         try await client.request(
-            endpoint: JellyfinEndpoint.nextUp(userID: userID, seriesID: seriesID, limit: limit),
+            endpoint: JellyfinEndpoint.nextUp(userID: userID, seriesID: seriesID, limit: limit, rewatching: rewatching),
             responseType: JellyfinItemsResponse.self
         )
     }

@@ -61,7 +61,8 @@ extension HomeViewModel {
                     // (EnableResumable=false), the id dedupe is belt
                     // and suspenders. Next Up failing must not take
                     // the resume items down with it.
-                    let nextUp = (try? await libraryService.getNextUp(userID: userID, seriesID: nil, limit: 16))?.items ?? []
+                    let rewatching = HomeRowConfig.enableRewatchingNextUp(serverID: serverID)
+                    let nextUp = (try? await libraryService.getNextUp(userID: userID, seriesID: nil, limit: 16, rewatching: rewatching))?.items ?? []
                     var seen = Set(response.items.map(\.id))
                     items = response.items + nextUp.filter { seen.insert($0.id).inserted }
                 } else {
@@ -69,7 +70,8 @@ extension HomeViewModel {
                 }
 
             case .nextUp:
-                let response = try await libraryService.getNextUp(userID: userID, seriesID: nil, limit: 16)
+                let rewatching = HomeRowConfig.enableRewatchingNextUp(serverID: serverID)
+                let response = try await libraryService.getNextUp(userID: userID, seriesID: nil, limit: 16, rewatching: rewatching)
                 items = response.items
 
             case .latestMovies:
