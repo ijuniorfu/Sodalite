@@ -69,6 +69,10 @@ enum JellyfinEndpoint: APIEndpoint {
     // can contain slashes, so it is percent-encoded into the path.
     case remoteSearchSubtitles(itemID: String, language: String)
     case downloadRemoteSubtitle(itemID: String, subtitleID: String)
+    /// DELETE /Videos/{itemID}/Subtitles/{index} — removes an external
+    /// subtitle file from the item. Needs subtitle-management rights on
+    /// the server.
+    case deleteSubtitle(itemID: String, index: Int)
 
     // Live TV
     case liveTvChannels(userID: String, startIndex: Int, limit: Int)
@@ -156,6 +160,8 @@ enum JellyfinEndpoint: APIEndpoint {
             "/MediaSegments/\(itemID)"
         case .remoteSearchSubtitles(let itemID, let language):
             "/Items/\(itemID)/RemoteSearch/Subtitles/\(language)"
+        case .deleteSubtitle(let itemID, let index):
+            "/Videos/\(itemID)/Subtitles/\(index)"
         case .downloadRemoteSubtitle(let itemID, let subtitleID):
             "/Items/\(itemID)/RemoteSearch/Subtitles/\(subtitleID.addingPercentEncoding(withAllowedCharacters: .alphanumerics) ?? subtitleID)"
         case .liveTvChannels:
@@ -206,7 +212,7 @@ enum JellyfinEndpoint: APIEndpoint {
              .downloadRemoteSubtitle:
             .post
         case .unmarkFavorite, .unmarkPlayed, .deleteItem, .stopActiveEncodings,
-             .deleteLiveTvTimer, .deleteLiveTvSeriesTimer:
+             .deleteLiveTvTimer, .deleteLiveTvSeriesTimer, .deleteSubtitle:
             .delete
         default:
             .get

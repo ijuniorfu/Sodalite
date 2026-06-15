@@ -452,7 +452,12 @@ struct TransportBar: View {
             DropdownItem(
                 title: TrackDisplayFormatter.subtitleStreamDisplayName(for: stream),
                 isActive: stream.index == activeSubtitleIndex,
-                isHighlighted: idx + 1 == highlighted
+                isHighlighted: idx + 1 == highlighted,
+                // External subs (sidecar / downloaded) can be removed by
+                // holding Select on the row (Feature #4).
+                hint: stream.isExternal == true
+                    ? String(localized: "player.subtitle.delete.hint", defaultValue: "Hold to delete")
+                    : nil
             )
         }
         items.append(
@@ -638,6 +643,9 @@ private struct DropdownItem {
     /// Optional thumbnail source. Episode picker uses `.url`; chapter
     /// picker uses `.chapterThumbnail`. Other dropdowns leave it nil.
     var image: DropdownImage? = nil
+    /// Optional trailing affordance caption (e.g. "Hold to delete" on
+    /// external subtitle rows). nil for rows without a secondary action.
+    var hint: String? = nil
 }
 
 // MARK: - Chapter Thumbnail View
@@ -696,6 +704,12 @@ private extension TransportBar {
                 .multilineTextAlignment(.leading)
 
             Spacer()
+
+            if let hint = item.hint {
+                Text(hint)
+                    .font(.caption2)
+                    .foregroundStyle(item.isHighlighted ? .white.opacity(0.7) : .white.opacity(0.4))
+            }
 
             if item.isActive {
                 Image(systemName: "checkmark")

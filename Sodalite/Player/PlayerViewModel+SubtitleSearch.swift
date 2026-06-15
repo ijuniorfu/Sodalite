@@ -52,10 +52,18 @@ extension PlayerViewModel {
     func searchSubtitles() async {
         subtitleSearchState = .loading
         do {
-            let results = try await playbackService.searchRemoteSubtitles(
+            let raw = try await playbackService.searchRemoteSubtitles(
                 itemID: item.id,
                 language: subtitleSearchLanguage
             )
+            // Hash matches are timed against this exact file (perfect
+            // sync); surface them first, then order by popularity.
+            let results = raw.sorted { lhs, rhs in
+                if (lhs.isHashMatch == true) != (rhs.isHashMatch == true) {
+                    return lhs.isHashMatch == true
+                }
+                return (lhs.downloadCount ?? 0) > (rhs.downloadCount ?? 0)
+            }
             if results.isEmpty {
                 subtitleSearchState = .empty
                 subtitleSearchFocus = .language(subtitleSearchCurrentLanguageIndex)
@@ -178,6 +186,66 @@ extension PlayerViewModel {
             let results = currentSubtitleResults
             guard results.indices.contains(i) else { return }
             Task { [weak self] in await self?.downloadAndApplySubtitle(results[i]) }
+        }
+    }
+
+    // MARK: - Delete external subtitle (hold-to-delete)
+
+    /// Opens the delete confirmation for the external subtitle at
+    /// `streamIndex`. Closes the dropdown so the prompt takes over.
+    func requestSubtitleDeletion(streamIndex: Int) {
+        subtitleDeleteFocus = .cancel
+        subtitleDeleteState = .confirm(streamIndex: streamIndex)
+        trackDropdown = .none
+    }
+
+    /// Toggles the highlighted button in the delete prompt (left/right).
+    func subtitleDeletePromptToggleFocus() {
+        guard case .confirm = subtitleDeleteState else { return }
+        subtitleDeleteFocus = subtitleDeleteFocus == .cancel ? .delete : .cancel
+    }
+
+    /// Select press on the delete prompt: confirm (Delete) or dismiss.
+    func subtitleDeletePromptConfirm() {
+        switch subtitleDeleteState {
+        case .confirm(let streamIndex):
+            if subtitleDeleteFocus == .delete {
+                subtitleDeleteState = .deleting
+                Task { [weak self] in await self?.performSubtitleDeletion(streamIndex: streamIndex) }
+            } else {
+                subtitleDeleteState = .hidden
+            }
+        case .error:
+            subtitleDeleteState = .hidden
+        case .deleting, .hidden:
+            break
+        }
+    }
+
+    /// Menu/back on the delete prompt: dismiss (ignored mid-deletion).
+    func subtitleDeletePromptDismiss() {
+        if case .deleting = subtitleDeleteState { return }
+        subtitleDeleteState = .hidden
+    }
+
+    private func performSubtitleDeletion(streamIndex: Int) async {
+        // If we're deleting the active track, turn subtitles off first.
+        if activeSubtitleIndex == streamIndex { selectSubtitleTrack(id: nil) }
+        do {
+            try await playbackService.deleteSubtitle(itemID: item.id, index: streamIndex)
+            let response = try await playbackService.getPlaybackInfo(
+                itemID: item.id, userID: userID, profile: nil
+            )
+            if let source = response.mediaSources.first(where: { $0.id == mediaSourceID })
+                ?? response.mediaSources.first {
+                subtitleStreams = Self.dedupedSubtitleStreams(from: source.mediaStreams)
+            }
+            subtitleDeleteState = .hidden
+        } catch {
+            subtitleDeleteState = .error(
+                String(localized: "player.subtitle.delete.failed",
+                       defaultValue: "Could not delete the subtitle. You may not have permission.")
+            )
         }
     }
 }

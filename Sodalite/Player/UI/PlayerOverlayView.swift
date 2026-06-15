@@ -158,6 +158,15 @@ struct PlayerOverlayView: View {
                 .transition(.opacity)
                 .zIndex(50)
             }
+
+            if viewModel.isSubtitleDeletePromptVisible {
+                SubtitleDeletePromptView(
+                    viewModel: viewModel,
+                    tint: tintColor ?? .accentColor
+                )
+                .transition(.opacity)
+                .zIndex(51)
+            }
         }
         .animation(.easeInOut(duration: 0.3), value: viewModel.isLoading)
         .animation(.easeInOut(duration: 0.3), value: viewModel.showControls)
@@ -165,6 +174,7 @@ struct PlayerOverlayView: View {
         .animation(.easeInOut(duration: 0.25), value: viewModel.isInsideIntro)
         .animation(.easeInOut(duration: 0.25), value: viewModel.showStatsOverlay)
         .animation(.easeInOut(duration: 0.3), value: viewModel.subtitleSearchVisible)
+        .animation(.easeInOut(duration: 0.25), value: viewModel.isSubtitleDeletePromptVisible)
     }
 
     private var introSkipOverlay: some View {

@@ -90,6 +90,24 @@ final class PlayerViewModel {
     }
     var subtitleSearchFocus: SubtitleSearchFocus = .language(0)
 
+    /// Delete-confirmation flow for an external subtitle (hold-to-delete
+    /// on an external row in the subtitle dropdown). Host-driven overlay,
+    /// rendered display-only by SubtitleDeletePromptView. Feature #4.
+    enum SubtitleDeleteState: Equatable {
+        case hidden
+        case confirm(streamIndex: Int)
+        case deleting
+        case error(String)
+    }
+    enum SubtitleDeleteButton { case cancel, delete }
+    var subtitleDeleteState: SubtitleDeleteState = .hidden
+    var subtitleDeleteFocus: SubtitleDeleteButton = .cancel
+    /// True while a delete confirmation / progress / error is on screen.
+    var isSubtitleDeletePromptVisible: Bool {
+        if case .hidden = subtitleDeleteState { return false }
+        return true
+    }
+
     enum ControlsFocus: Hashable {
         case progressBar
         case skipIntroButton

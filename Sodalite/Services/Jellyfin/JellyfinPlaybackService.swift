@@ -26,6 +26,9 @@ protocol JellyfinPlaybackServiceProtocol: Sendable {
     /// Tells the server to download `subtitleID` and attach it to
     /// `itemID` as an external subtitle stream.
     func downloadRemoteSubtitle(itemID: String, subtitleID: String) async throws
+    /// Deletes the external subtitle at `index` from `itemID`. Needs
+    /// subtitle-management rights on the server.
+    func deleteSubtitle(itemID: String, index: Int) async throws
     func buildTranscodeURL(relativePath: String) -> URL?
 }
 
@@ -201,6 +204,12 @@ final class JellyfinPlaybackService: JellyfinPlaybackServiceProtocol {
     func downloadRemoteSubtitle(itemID: String, subtitleID: String) async throws {
         try await client.request(
             endpoint: JellyfinEndpoint.downloadRemoteSubtitle(itemID: itemID, subtitleID: subtitleID)
+        )
+    }
+
+    func deleteSubtitle(itemID: String, index: Int) async throws {
+        try await client.request(
+            endpoint: JellyfinEndpoint.deleteSubtitle(itemID: itemID, index: index)
         )
     }
 

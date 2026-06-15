@@ -100,9 +100,21 @@ struct SubtitleSearchView: View {
     private func resultRow(_ info: RemoteSubtitleInfo, focused: Bool) -> some View {
         HStack(spacing: 16) {
             VStack(alignment: .leading, spacing: 4) {
-                Text(info.name ?? info.providerName ?? "Subtitle")
-                    .lineLimit(1)
-                    .foregroundStyle(focused ? .black : .primary)
+                HStack(spacing: 8) {
+                    if info.isHashMatch == true {
+                        Label(
+                            String(localized: "player.subtitle.search.exactMatch",
+                                   defaultValue: "Exact match"),
+                            systemImage: "checkmark.seal.fill"
+                        )
+                        .labelStyle(.titleAndIcon)
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(focused ? .black : .green)
+                    }
+                    Text(info.name ?? info.providerName ?? "Subtitle")
+                        .lineLimit(1)
+                        .foregroundStyle(focused ? .black : .primary)
+                }
                 HStack(spacing: 12) {
                     if let provider = info.providerName { Text(provider) }
                     if let lang = info.threeLetterISOLanguageName { Text(lang.uppercased()) }

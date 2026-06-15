@@ -241,6 +241,7 @@ extension PlayerViewModel {
         // session's UI; without this the stale overlay can stay mounted
         // over the next episode after a reload-in-place (issue #15 path).
         dismissSubtitleSearch()
+        subtitleDeleteState = .hidden
         activeSubtitleCodec = nil
         nextEpisode = nil
         hasFetchedNextEpisode = false
