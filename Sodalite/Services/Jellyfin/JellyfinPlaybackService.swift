@@ -19,6 +19,13 @@ protocol JellyfinPlaybackServiceProtocol: Sendable {
     func buildStreamURL(itemID: String, mediaSourceID: String, container: String?, isStatic: Bool) -> URL?
     func buildAudioStreamURL(itemID: String, mediaSourceID: String, container: String?, isStatic: Bool) -> URL?
     func buildSubtitleURL(itemID: String, mediaSourceID: String, streamIndex: Int, format: String) -> URL?
+    /// Searches the server's subtitle provider(s) for `itemID` in
+    /// `language` (3-letter ISO 639-2). Empty array = no results.
+    /// Throws on a missing provider plugin (server 404/500).
+    func searchRemoteSubtitles(itemID: String, language: String) async throws -> [RemoteSubtitleInfo]
+    /// Tells the server to download `subtitleID` and attach it to
+    /// `itemID` as an external subtitle stream.
+    func downloadRemoteSubtitle(itemID: String, subtitleID: String) async throws
     func buildTranscodeURL(relativePath: String) -> URL?
 }
 
@@ -182,6 +189,19 @@ final class JellyfinPlaybackService: JellyfinPlaybackServiceProtocol {
         } catch APIError.httpError(let status, _) where status == 404 {
             return EpisodeSegments(intro: nil, outro: nil)
         }
+    }
+
+    func searchRemoteSubtitles(itemID: String, language: String) async throws -> [RemoteSubtitleInfo] {
+        try await client.request(
+            endpoint: JellyfinEndpoint.remoteSearchSubtitles(itemID: itemID, language: language),
+            responseType: [RemoteSubtitleInfo].self
+        )
+    }
+
+    func downloadRemoteSubtitle(itemID: String, subtitleID: String) async throws {
+        try await client.request(
+            endpoint: JellyfinEndpoint.downloadRemoteSubtitle(itemID: itemID, subtitleID: subtitleID)
+        )
     }
 
     func buildStreamURL(itemID: String, mediaSourceID: String, container: String?, isStatic: Bool) -> URL? {
