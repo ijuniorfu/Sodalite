@@ -322,7 +322,8 @@ final class PlayerHostController: AVPlayerViewController {
         // the WindowGroup tint set on SodaliteApp never reaches it.
         let overlay = PlayerOverlayView(
             viewModel: viewModel,
-            onDismiss: { [weak self] in self?.dismissPlayer() }
+            onDismiss: { [weak self] in self?.dismissPlayer() },
+            tintColor: tintColor
         )
             .tint(tintColor)
         let hosting = UIHostingController(rootView: overlay)
