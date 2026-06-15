@@ -216,6 +216,17 @@ extension HomeViewModel {
                 let response = try await libraryService.getItems(userID: userID, query: query)
                 items = response.items
 
+            case .playlists:
+                let query = ItemQuery(
+                    includeItemTypes: [.playlist],
+                    sortBy: "SortName",
+                    sortOrder: "Ascending",
+                    limit: 30,
+                    fields: JellyfinEndpoint.homeRowFields
+                )
+                let response = try await libraryService.getItems(userID: userID, query: query)
+                items = response.items
+
             case .libraryLatest:
                 // Per-library Latest: scope /Items/Latest to this
                 // library via parentID alone, exactly like the Jellyfin
