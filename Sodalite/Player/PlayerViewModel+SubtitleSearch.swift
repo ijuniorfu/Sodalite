@@ -78,6 +78,10 @@ extension PlayerViewModel {
     func downloadAndApplySubtitle(_ info: RemoteSubtitleInfo) async {
         subtitleSearchState = .downloading(id: info.id)
         do {
+            // External subtitles are never collapsed by the dedupe, so the
+            // current `subtitleStreams` already lists every external track;
+            // its index set is a sound "before" snapshot for spotting the
+            // newly attached one.
             let before = Set(subtitleStreams.map(\.index))
             try await playbackService.downloadRemoteSubtitle(itemID: item.id, subtitleID: info.id)
 

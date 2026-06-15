@@ -1443,14 +1443,19 @@ final class PlayerViewModel {
     }
 
     /// Deduplicates subtitle streams in a media source's stream list.
-    /// Keeps one track per (language, codec); tracks with a descriptor
-    /// (SDH / Forced / commentary / etc.) keep their own variant so
-    /// distinct same-language tracks don't collapse. Shared by initial
-    /// load and the post-download refetch so both produce identical lists.
+    /// Keeps one EMBEDDED track per (language, codec); embedded tracks
+    /// with a descriptor (SDH / Forced / commentary / etc.) keep their own
+    /// variant so distinct same-language tracks don't collapse. EXTERNAL
+    /// subtitles (sidecar files and in-app downloads) are never collapsed:
+    /// each is a distinct user-curated file and must stay individually
+    /// selectable, even when several share the same language and codec.
+    /// Shared by initial load and the post-download refetch.
     static func dedupedSubtitleStreams(from mediaStreams: [MediaStream]?) -> [MediaStream] {
         let allSubStreams = mediaStreams?.filter { $0.type == .subtitle } ?? []
         var seen = Set<String>()
         return allSubStreams.filter { stream in
+            // External subs are individual files; keep every one.
+            if stream.isExternal == true { return true }
             let lang = stream.language ?? "und"
             let hasDescriptor = stream.isForced == true
                 || (stream.title?.lowercased()).map { t in
