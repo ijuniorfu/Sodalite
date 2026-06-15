@@ -102,8 +102,14 @@ struct PINRecoveryView: View {
         guard let user = selected, let server = selectedServer else { return }
         isValidating = true
         defer { isValidating = false }
-        // Point the client at the right host, then validate credentials.
-        // login() is a pure REST call; it does not mutate stored session.
+        // Point the client at the candidate's host to validate credentials.
+        // login() is a pure REST call; it does not mutate stored session or
+        // token. Restore the previous baseURL on failure so a wrong-password
+        // attempt against a different server doesn't leave the shared client
+        // pointed away from the active session's host (the active token is
+        // unchanged, so this is tidiness, not a leak). On success we proceed
+        // to set a new PIN and the normal restore path realigns the client.
+        let previousBaseURL = dependencies.jellyfinClient.baseURL
         dependencies.jellyfinClient.baseURL = server.url
         do {
             _ = try await dependencies.jellyfinAuthService.login(
@@ -111,6 +117,7 @@ struct PINRecoveryView: View {
             )
             onRecovered()
         } catch {
+            dependencies.jellyfinClient.baseURL = previousBaseURL
             self.error = "parental.pin.recovery.failed"
         }
     }

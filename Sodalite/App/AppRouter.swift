@@ -291,6 +291,14 @@ struct AppRouter: View {
         tvUserLogger.notice("resolveTVUserContext: keychain state currentServer=\(currentServerID ?? "nil", privacy: .public) currentUser=\(currentUserID ?? "nil", privacy: .public) matches=\(keychainAlreadyMatches, privacy: .public)")
 
         if !keychainAlreadyMatches {
+            // SECURITY (parental controls): this is the ONLY profile-activation
+            // path not behind the Guardian-PIN gate. It is dormant on the
+            // current tvOS SDK (TVUserManager.currentUserIdentifier always
+            // returns nil, so TVUserContext.currentUserID is nil and the guard
+            // above already returned). If Apple revives tvOS multi-user, gate
+            // this switch with dependencies.parentalGate before switchToUser,
+            // or a tvOS-user change could swap into an unprotected profile and
+            // bypass the lock.
             tvUserLogger.notice("resolveTVUserContext: SWITCH path. Calling switchServer + switchToUser")
             try? dependencies.switchServer(to: mapping.serverID)
             if let server = dependencies.activeServer,
