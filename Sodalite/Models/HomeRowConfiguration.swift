@@ -14,6 +14,7 @@ enum HomeRowType: String, Codable, Sendable, CaseIterable, Identifiable {
     case discoverProviders
     case genres
     case collections
+    case playlists
     case recentlyAdded
     case topRatedMovies
     case topRatedShows
@@ -86,6 +87,7 @@ enum HomeRowType: String, Codable, Sendable, CaseIterable, Identifiable {
         case .recentlyAdded: "home.recentlyAdded"
         case .genres: "home.genres"
         case .collections: "home.collections"
+        case .playlists: "home.playlists"
         case .discoverProviders: "home.discoverProviders"
         case .myMedia: "home.myMedia"
         case .libraryLatest: "home.latestMovies"
@@ -106,6 +108,7 @@ enum HomeRowType: String, Codable, Sendable, CaseIterable, Identifiable {
         case .recentlyAdded: "clock"
         case .genres: "tag"
         case .collections: "rectangle.stack.fill"
+        case .playlists: "list.and.film"
         case .discoverProviders: "tv.badge.wifi"
         case .myMedia: "rectangle.grid.2x2"
         case .libraryLatest: "film"
