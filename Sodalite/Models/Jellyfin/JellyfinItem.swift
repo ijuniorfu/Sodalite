@@ -312,6 +312,11 @@ struct UserItemData: Codable, Sendable, Equatable {
     let played: Bool?
     let unplayedItemCount: Int?
     let playedPercentage: Double?
+    /// ISO-8601 timestamp of the user's last play, as delivered by
+    /// Jellyfin's UserData. Kept as a raw String to match the model's
+    /// date convention (premiereDate / endDate). Not parsed today;
+    /// recency ordering is done server-side via SortBy=DatePlayed.
+    let lastPlayedDate: String?
 
     enum CodingKeys: String, CodingKey {
         case playbackPositionTicks = "PlaybackPositionTicks"
@@ -320,6 +325,7 @@ struct UserItemData: Codable, Sendable, Equatable {
         case played = "Played"
         case unplayedItemCount = "UnplayedItemCount"
         case playedPercentage = "PlayedPercentage"
+        case lastPlayedDate = "LastPlayedDate"
     }
 }
 
