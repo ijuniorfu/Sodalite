@@ -462,6 +462,13 @@ final class PlayerHostController: AVPlayerViewController {
 
         avkitLayerSampler?.cancel()
         avkitLayerSampler = Task { @MainActor [weak self] in
+            // Sample once a second for 30s after attach, but only emit a
+            // line when the observable state CHANGES (layer ready, video
+            // rect appears, time-control status, or whether the clock is
+            // advancing). That keeps every transition that matters for the
+            // black-frame / live-stall diagnostics while dropping the 15+
+            // identical steady-state repeats that dominated the log.
+            var lastSignature: String?
             for _ in 0..<30 {
                 try? await Task.sleep(nanoseconds: 1_000_000_000)
                 guard let self, !Task.isCancelled, self.player === avPlayer else { return }
@@ -470,11 +477,24 @@ final class PlayerHostController: AVPlayerViewController {
                 // layer; the identity in the log exposes that.
                 guard let root = self.viewIfLoaded?.layer,
                       let current = findLayer(root) else {
-                    LogTap.shared.note("[AVKitLayer] sample t+\(stamp)s: layer GONE")
+                    let sig = "GONE"
+                    if sig != lastSignature {
+                        lastSignature = sig
+                        LogTap.shared.note("[AVKitLayer] sample t+\(stamp)s: layer GONE")
+                    }
                     continue
                 }
                 let r = current.videoRect
                 let t = avPlayer.currentTime().seconds
+                let tcs = avPlayer.timeControlStatus.rawValue
+                // Quantize the clock to "is it advancing" (whole seconds)
+                // so a normally ticking clock doesn't count as a change
+                // every sample, but a stall (clock frozen) still collapses
+                // to one steady signature.
+                let clockBucket = t.isFinite ? Int(t) : -1
+                let sig = "\(ObjectIdentifier(current))|\(current.isReadyForDisplay)|\(Int(r.width))x\(Int(r.height))|\(tcs)|\(clockBucket > 0)"
+                guard sig != lastSignature else { continue }
+                lastSignature = sig
                 LogTap.shared.note(
                     "[AVKitLayer] sample t+\(stamp)s layer=\(String(UInt(bitPattern: ObjectIdentifier(current).hashValue), radix: 16)) "
                     + "ready=\(current.isReadyForDisplay) videoRect=\(Int(r.width))x\(Int(r.height)) "
@@ -482,7 +502,7 @@ final class PlayerHostController: AVPlayerViewController {
                     // ternary's branches coerce independently, so a bare -1
                     // becomes Int and mismatches "%.2f" at runtime (fired
                     // exactly when the clock went nan during a live stall).
-                    + "clock=\(String(format: "%.2f", t.isFinite ? t : -1.0)) tcs=\(avPlayer.timeControlStatus.rawValue)"
+                    + "clock=\(String(format: "%.2f", t.isFinite ? t : -1.0)) tcs=\(tcs)"
                 )
             }
         }
