@@ -36,7 +36,6 @@ final class WatchStatsViewModel {
             async let totalMovies = count(types: [.movie], playedOnly: false)
             async let playedEpisodes = count(types: [.episode], playedOnly: true)
             async let totalEpisodes = count(types: [.episode], playedOnly: false)
-            async let seriesCompleted = count(types: [.series], playedOnly: true)
             async let rewatched = fetchRail(sortBy: "PlayCount", rewatchedOnly: true)
             async let recent = fetchRail(sortBy: "DatePlayed", rewatchedOnly: false)
 
@@ -48,7 +47,6 @@ final class WatchStatsViewModel {
                 episodesWatched: try await playedEpisodes,
                 totalEpisodes: try await totalEpisodes,
                 seriesStarted: scan.distinctSeries,
-                seriesCompleted: try await seriesCompleted,
                 estimatedSeconds: scan.seconds,
                 topGenres: scan.topGenres,
                 mostRewatched: try await rewatched,

@@ -18,8 +18,6 @@ struct WatchStats: Sendable, Equatable {
     var totalEpisodes: Int
     /// Distinct series with at least one watched episode (from the scan).
     var seriesStarted: Int
-    /// Series the server marks fully played (IsPlayed on the Series item).
-    var seriesCompleted: Int
     var estimatedSeconds: Int64
     var topGenres: [GenreCount]
     var mostRewatched: [JellyfinItem]
