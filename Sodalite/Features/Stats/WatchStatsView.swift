@@ -1,0 +1,168 @@
+import SwiftUI
+
+struct WatchStatsView: View {
+    @Environment(\.appState) private var appState
+    @Environment(\.dependencies) private var dependencies
+
+    @State private var viewModel: WatchStatsViewModel?
+    @State private var selectedItem: JellyfinItem?
+
+    var body: some View {
+        ScrollView {
+            content
+                .padding(.vertical, 60)
+                .padding(.horizontal, 80)
+        }
+        .navigationTitle(Text("stats.title"))
+        .navigationDestination(item: $selectedItem) { item in
+            DetailRouterView(item: item)
+        }
+        .task {
+            guard viewModel == nil, let userID = appState.activeUser?.id else { return }
+            let vm = WatchStatsViewModel(
+                libraryService: dependencies.jellyfinLibraryService,
+                imageService: dependencies.jellyfinImageService,
+                userID: userID
+            )
+            viewModel = vm
+            await vm.loadStats()
+        }
+    }
+
+    @ViewBuilder
+    private var content: some View {
+        if let vm = viewModel, let stats = vm.stats {
+            if stats.isEmpty {
+                emptyState
+            } else {
+                statsContent(vm: vm, stats: stats)
+            }
+        } else if let message = viewModel?.errorMessage {
+            errorState(message: message)
+        } else {
+            loadingState
+        }
+    }
+
+    // MARK: - States
+
+    private var loadingState: some View {
+        VStack(spacing: 20) {
+            ProgressView()
+            if let count = viewModel?.progressCount, count > 0 {
+                Text("stats.scanProgress \(count)")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .monospacedDigit()
+            }
+        }
+        .frame(maxWidth: .infinity, minHeight: 400)
+    }
+
+    private var emptyState: some View {
+        VStack(spacing: 16) {
+            Image(systemName: "chart.bar.xaxis")
+                .font(.system(size: 60))
+                .foregroundStyle(.tertiary)
+            Text("stats.empty")
+                .font(.title3)
+                .foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity, minHeight: 400)
+    }
+
+    private func errorState(message: String) -> some View {
+        VStack(spacing: 20) {
+            Text(message)
+                .font(.body)
+                .foregroundStyle(.secondary)
+            Button("stats.error.retry") {
+                Task { await viewModel?.loadStats() }
+            }
+            .buttonStyle(SettingsTileButtonStyle())
+        }
+        .frame(maxWidth: .infinity, minHeight: 400)
+    }
+
+    // MARK: - Content
+
+    private func statsContent(vm: WatchStatsViewModel, stats: WatchStats) -> some View {
+        VStack(alignment: .leading, spacing: 48) {
+            watchTimeHeadline(stats)
+            countGrid(stats)
+            if !stats.topGenres.isEmpty { topGenres(stats) }
+            if !stats.mostRewatched.isEmpty {
+                itemRail(title: "stats.mostRewatched", items: stats.mostRewatched, vm: vm)
+            }
+            if !stats.recentlyWatched.isEmpty {
+                itemRail(title: "stats.recentlyWatched", items: stats.recentlyWatched, vm: vm)
+            }
+        }
+    }
+
+    private func watchTimeHeadline(_ stats: WatchStats) -> some View {
+        VStack(spacing: 8) {
+            Text("stats.watchTime.value \(stats.estimatedHours)")
+                .font(.system(size: 64, weight: .bold, design: .rounded))
+                .monospacedDigit()
+            Text("stats.watchTime.days \(stats.estimatedDays.formatted(.number.precision(.fractionLength(1))))")
+                .font(.title3)
+                .foregroundStyle(.secondary)
+            Text("stats.watchTime.approxNote")
+                .font(.caption)
+                .foregroundStyle(.tertiary)
+                .multilineTextAlignment(.center)
+            if stats.scanCapped {
+                Text("stats.scanCapped \(stats.scannedItemCount)")
+                    .font(.caption2)
+                    .foregroundStyle(.tertiary)
+            }
+        }
+        .frame(maxWidth: .infinity)
+    }
+
+    private func countGrid(_ stats: WatchStats) -> some View {
+        let columns = [GridItem(.flexible()), GridItem(.flexible()),
+                       GridItem(.flexible()), GridItem(.flexible())]
+        let completion = (stats.completionRate * 100).formatted(.number.precision(.fractionLength(0)))
+        return LazyVGrid(columns: columns, spacing: 16) {
+            StatTile(icon: "film", value: "\(stats.moviesWatched)", label: "stats.movies")
+            StatTile(icon: "tv", value: "\(stats.episodesWatched)", label: "stats.episodes")
+            StatTile(icon: "rectangle.stack", value: "\(stats.seriesStarted)", label: "stats.seriesStarted")
+            StatTile(icon: "checkmark.seal", value: "\(completion)%", label: "stats.completion")
+        }
+    }
+
+    private func topGenres(_ stats: WatchStats) -> some View {
+        let maxCount = max(1, stats.topGenres.map(\.count).max() ?? 1)
+        return VStack(alignment: .leading, spacing: 16) {
+            Text("stats.topGenres")
+                .font(.title3).fontWeight(.semibold)
+            VStack(spacing: 14) {
+                ForEach(stats.topGenres) { genre in
+                    GenreBar(
+                        name: genre.name,
+                        count: genre.count,
+                        fraction: Double(genre.count) / Double(maxCount)
+                    )
+                }
+            }
+        }
+    }
+
+    private func itemRail(title: LocalizedStringKey, items: [JellyfinItem], vm: WatchStatsViewModel) -> some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text(title)
+                .font(.title3).fontWeight(.semibold)
+            VStack(spacing: 12) {
+                ForEach(items) { item in
+                    CollectionItemRow(
+                        item: item,
+                        imageURL: vm.imageService.posterURL(for: item),
+                        onSelect: { selectedItem = item }
+                    )
+                }
+            }
+        }
+    }
+}
