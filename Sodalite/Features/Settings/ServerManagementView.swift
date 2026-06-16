@@ -189,11 +189,14 @@ private struct ServerManagementRow: View {
         .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .strokeBorder(.tint, lineWidth: 2)
+                .strokeBorder(.tint, lineWidth: 3)
                 .opacity(focused ? 1 : 0)
         )
+        .scaleEffect(focused ? 1.015 : 1.0)
+        .shadow(color: .black.opacity(focused ? 0.3 : 0), radius: 14, y: 6)
         .focusable(true)
         .focused($focused)
+        .animation(.easeInOut(duration: 0.15), value: focused)
         .stableTap(isFocused: focused) {
             if !isActive { onSwitch() }
         }
@@ -296,11 +299,14 @@ private struct AddServerSettingsRow: View {
         .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .strokeBorder(.tint, lineWidth: 2)
+                .strokeBorder(.tint, lineWidth: 3)
                 .opacity(focused ? 1 : 0)
         )
+        .scaleEffect(focused ? 1.015 : 1.0)
+        .shadow(color: .black.opacity(focused ? 0.3 : 0), radius: 14, y: 6)
         .focusable(true)
         .focused($focused)
+        .animation(.easeInOut(duration: 0.15), value: focused)
         .stableTap(isFocused: focused, perform: onTap)
     }
 }
