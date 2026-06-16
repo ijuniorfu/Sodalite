@@ -1,6 +1,2922 @@
 {
   "sourceLanguage": "en",
   "strings" : {
+    "settings.stats.subtitle" : {
+      "comment": "Settings tile subtitle: watch stats",
+      "extractionState": "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Tvoje historie sledování a souhrny"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Din sehistorik og dine totaler"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Dein Verlauf und deine Gesamtwerte"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Το ιστορικό προβολής και τα σύνολά σου"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Your viewing history and totals"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Tu historial de visualización y totales"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Katseluhistoriasi ja kokonaismäärät"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Votre historique de visionnage et vos totaux"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Tvoja povijest gledanja i ukupni zbrojevi"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "A megtekintési előzményeid és összesítéseid"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "La tua cronologia di visione e i totali"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "視聴履歴と合計"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "시청 기록 및 합계"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Sehistorikken og totalene dine"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Je kijkgeschiedenis en totalen"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Twoja historia oglądania i podsumowania"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Seu histórico de exibição e totais"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "O teu histórico de visualização e totais"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Istoricul tău de vizionare și totalurile"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Ваша история просмотров и итоги"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Tvoja história sledovania a súhrny"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Din tittarhistorik och dina totaler"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "İzleme geçmişin ve toplamların"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Ваша історія перегляду та підсумки"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "你的观看历史和总计"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "你的觀看歷史和總計"
+          }
+        }
+      }
+    },
+    "settings.stats.title" : {
+      "comment": "Settings tile title: watch stats",
+      "extractionState": "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Statistiky"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Sestatistik"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Statistiken"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Στατιστικά"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Watch Stats"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Estadísticas"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Katselutilastot"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Statistiques"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Statistika"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Statisztika"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Statistiche"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "視聴統計"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "시청 통계"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Sestatistikk"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Kijkstatistieken"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Statystyki"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Estatísticas"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Estatísticas"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Statistici"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Статистика"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Štatistiky"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Tittarstatistik"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "İzleme İstatistikleri"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Статистика"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "观看统计"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "觀看統計"
+          }
+        }
+      }
+    },
+    "stats.completion" : {
+      "comment": "Count tile label: fraction of the library watched",
+      "extractionState": "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Zhlédnuto z knihovny"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Set af bibliotek"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Bibliothek gesehen"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Βιβλιοθήκη που είδες"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Library watched"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Biblioteca vista"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Kirjastosta katsottu"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Bibliothèque vue"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Pogledano iz knjižnice"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Megnézett könyvtárból"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Libreria vista"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "ライブラリ視聴率"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "라이브러리 시청률"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Sett av bibliotek"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Bibliotheek bekeken"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Obejrzano z biblioteki"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Biblioteca assistida"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Biblioteca vista"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Bibliotecă vizionată"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Просмотрено из библиотеки"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Pozreté z knižnice"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Sett av biblioteket"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "İzlenen kitaplık"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Переглянуто з бібліотеки"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "已观看媒体库"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "已觀看媒體庫"
+          }
+        }
+      }
+    },
+    "stats.empty" : {
+      "comment": "Empty state when nothing has been watched.",
+      "extractionState": "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Zatím nic zhlédnutého."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Intet set endnu."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Noch nichts gesehen."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Δεν έχεις δει τίποτα ακόμη."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Nothing watched yet."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Aún no has visto nada."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Et ole vielä katsonut mitään."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Rien de regardé pour le moment."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Još ništa nije pogledano."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Még semmit sem néztél meg."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Ancora niente di visto."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "まだ何も視聴していません。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "아직 시청한 항목이 없습니다."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Ingenting sett ennå."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Nog niets bekeken."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Jeszcze nic nie obejrzano."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Nada assistido ainda."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Ainda nada visto."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Nimic vizionat încă."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Пока ничего не просмотрено."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Zatiaľ nič pozreté."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Inget sett ännu."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Henüz hiçbir şey izlenmedi."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Поки нічого не переглянуто."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "还没有观看任何内容。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "還沒有觀看任何內容。"
+          }
+        }
+      }
+    },
+    "stats.episodes" : {
+      "comment": "Count tile label: episodes watched",
+      "extractionState": "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Zhlédnuté epizody"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Sete afsnit"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Episoden gesehen"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Επεισόδια που είδες"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Episodes watched"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Episodios vistos"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Katsotut jaksot"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Épisodes regardés"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Pogledane epizode"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Megnézett epizódok"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Episodi visti"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "視聴したエピソード"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "시청한 에피소드"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Sette episoder"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Bekeken afleveringen"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Obejrzane odcinki"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Episódios assistidos"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Episódios vistos"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Episoade vizionate"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Просмотрено серий"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Pozreté epizódy"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Sedda avsnitt"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "İzlenen bölümler"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Переглянуто епізодів"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "已观看剧集"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "已觀看劇集"
+          }
+        }
+      }
+    },
+    "stats.error.generic" : {
+      "comment": "Generic error when stats fail to load.",
+      "extractionState": "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Statistiky se nepodařilo načíst."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Kunne ikke indlæse din statistik."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Statistiken konnten nicht geladen werden."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Δεν ήταν δυνατή η φόρτωση των στατιστικών σου."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Couldn't load your stats."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "No se pudieron cargar tus estadísticas."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Tilastojesi lataaminen epäonnistui."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Impossible de charger vos statistiques."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Statistiku nije moguće učitati."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Nem sikerült betölteni a statisztikáidat."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Impossibile caricare le tue statistiche."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "統計を読み込めませんでした。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "통계를 불러올 수 없습니다."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Kunne ikke laste inn statistikken din."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Kan je statistieken niet laden."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Nie udało się wczytać statystyk."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Não foi possível carregar suas estatísticas."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Não foi possível carregar as tuas estatísticas."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Statisticile tale nu au putut fi încărcate."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Не удалось загрузить статистику."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Štatistiky sa nepodarilo načítať."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Det gick inte att läsa in din statistik."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "İstatistiklerin yüklenemedi."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Не вдалося завантажити статистику."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "无法加载你的统计数据。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "無法載入你的統計資料。"
+          }
+        }
+      }
+    },
+    "stats.error.retry" : {
+      "comment": "Retry button on the stats error state.",
+      "extractionState": "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Zkusit znovu"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Prøv igen"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Erneut versuchen"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Δοκίμασε ξανά"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Try again"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Reintentar"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Yritä uudelleen"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Réessayer"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Pokušaj ponovno"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Próbáld újra"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Riprova"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "再試行"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "다시 시도"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Prøv igjen"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Opnieuw proberen"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Spróbuj ponownie"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Tentar novamente"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Tentar novamente"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Încearcă din nou"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Повторить"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Skúsiť znova"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Försök igen"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Tekrar dene"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Спробувати ще раз"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "重试"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "重試"
+          }
+        }
+      }
+    },
+    "stats.mostRewatched" : {
+      "comment": "Section header: most rewatched items",
+      "extractionState": "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Nejčastěji opakované"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Mest genset"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Am häufigsten wiederholt"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Με τις περισσότερες επαναλήψεις"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Most rewatched"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Lo más revisionado"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Eniten uudelleenkatsottu"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Les plus revus"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Najčešće ponovno gledano"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Legtöbbször újranézett"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Più rivisti"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "再視聴が最も多い"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "가장 많이 다시 본"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Mest gjensett"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Meest herbekeken"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Najczęściej oglądane ponownie"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Mais reassistidos"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Mais revistos"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Cel mai des revizionate"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Чаще всего пересматривают"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Najčastejšie opakované"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Mest omsedda"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "En çok tekrar izlenenler"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Найчастіше переглянуто повторно"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "重复观看最多"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "重複觀看最多"
+          }
+        }
+      }
+    },
+    "stats.movies" : {
+      "comment": "Count tile label: movies watched",
+      "extractionState": "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Zhlédnuté filmy"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Sete film"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Filme gesehen"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Ταινίες που είδες"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Movies watched"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Películas vistas"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Katsotut elokuvat"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Films regardés"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Pogledani filmovi"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Megnézett filmek"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Film visti"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "視聴した映画"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "시청한 영화"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Sette filmer"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Bekeken films"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Obejrzane filmy"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Filmes assistidos"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Filmes vistos"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Filme vizionate"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Просмотрено фильмов"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Pozreté filmy"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Sedda filmer"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "İzlenen filmler"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Переглянуто фільмів"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "已观看电影"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "已觀看電影"
+          }
+        }
+      }
+    },
+    "stats.recentlyWatched" : {
+      "comment": "Section header: recently watched items",
+      "extractionState": "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Naposledy zhlédnuté"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Senest set"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Zuletzt gesehen"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Πρόσφατα προβληθέντα"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Recently watched"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Visto recientemente"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Viimeksi katsottu"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Regardés récemment"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Nedavno gledano"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Nemrég megnézett"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Visti di recente"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "最近視聴した"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "최근에 본"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Nylig sett"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Onlangs bekeken"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Ostatnio oglądane"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Assistidos recentemente"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Vistos recentemente"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Vizionate recent"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Недавно просмотренные"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Naposledy pozreté"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Nyligen sedda"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Son izlenenler"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Нещодавно переглянуто"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "最近观看"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "最近觀看"
+          }
+        }
+      }
+    },
+    "stats.scanCapped" : {
+      "comment": "Shown when the scan hit its cap. %lld is the capped item count.",
+      "extractionState": "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Na základě tvých %lld naposledy zhlédnutých položek."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Baseret på dine %lld senest sete emner."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Basierend auf deinen %lld zuletzt gesehenen Einträgen."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Με βάση τα %lld πιο πρόσφατα στοιχεία που είδες."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Based on your %lld most recent watched items."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Según tus %lld elementos vistos más recientes."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Perustuu %lld viimeksi katsottuun kohteeseesi."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "D'après vos %lld éléments regardés les plus récents."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Na temelju tvojih %lld nedavno gledanih stavki."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "A %lld legutóbb megnézett elemed alapján."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "In base ai tuoi %lld elementi visti più di recente."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "最近視聴した %lld 件に基づきます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "가장 최근에 본 %lld개 항목을 기준으로 합니다."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Basert på dine %lld sist sette elementer."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Op basis van je %lld recentst bekeken items."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Na podstawie %lld ostatnio obejrzanych elementów."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Com base nos seus %lld itens assistidos mais recentes."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Com base nos teus %lld itens vistos mais recentes."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Pe baza celor mai recente %lld elemente vizionate."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "На основе ваших %lld недавно просмотренных элементов."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Na základe tvojich %lld naposledy pozretých položiek."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Baserat på dina %lld senast sedda objekt."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "En son izlediğin %lld öğeye göre."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "На основі ваших %lld нещодавно переглянутих елементів."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "基于你最近观看的 %lld 个项目。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "基於你最近觀看的 %lld 個項目。"
+          }
+        }
+      }
+    },
+    "stats.scanProgress" : {
+      "comment": "Loading progress. %lld is the number of scanned items.",
+      "extractionState": "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Zpracováno %lld položek ..."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Scannede %lld emner ..."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "%lld Einträge ausgewertet ..."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Σαρώθηκαν %lld στοιχεία ..."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Scanned %lld items..."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Analizados %lld elementos ..."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Käyty läpi %lld kohdetta ..."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "%lld éléments analysés ..."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Obrađeno %lld stavki ..."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "%lld elem feldolgozva ..."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Analizzati %lld elementi ..."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "%lld 件を集計中 ..."
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "%lld개 항목 검사 중 ..."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Skannet %lld elementer ..."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "%lld items gescand ..."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Przeanalizowano %lld elementów ..."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "%lld itens analisados ..."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "%lld itens analisados ..."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Au fost scanate %lld elemente ..."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Обработано элементов: %lld ..."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Spracovaných %lld položiek ..."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Skannade %lld objekt ..."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "%lld öğe tarandı ..."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Опрацьовано елементів: %lld ..."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "已扫描 %lld 个项目 ..."
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "已掃描 %lld 個項目 ..."
+          }
+        }
+      }
+    },
+    "stats.seriesStarted" : {
+      "comment": "Count tile label: distinct series started",
+      "extractionState": "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Začaté seriály"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Påbegyndte serier"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Serien begonnen"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Σειρές που ξεκίνησες"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Series started"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Series empezadas"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Aloitetut sarjat"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Séries commencées"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Započete serije"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Elkezdett sorozatok"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Serie iniziate"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "視聴開始したシリーズ"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "시청 시작한 시리즈"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Påbegynte serier"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Begonnen series"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Rozpoczęte seriale"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Séries iniciadas"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Séries começadas"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Seriale începute"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Начато сериалов"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Začaté seriály"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Påbörjade serier"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Başlanan diziler"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Розпочато серіалів"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "已开始的剧集"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "已開始的劇集"
+          }
+        }
+      }
+    },
+    "stats.title" : {
+      "comment": "Watch Stats screen navigation title",
+      "extractionState": "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Statistiky"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Sestatistik"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Statistiken"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Στατιστικά"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Watch Stats"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Estadísticas"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Katselutilastot"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Statistiques"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Statistika"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Statisztika"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Statistiche"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "視聴統計"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "시청 통계"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Sestatistikk"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Kijkstatistieken"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Statystyki"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Estatísticas"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Estatísticas"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Statistici"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Статистика"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Štatistiky"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Tittarstatistik"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "İzleme İstatistikleri"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Статистика"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "观看统计"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "觀看統計"
+          }
+        }
+      }
+    },
+    "stats.topGenres" : {
+      "comment": "Section header: top watched genres",
+      "extractionState": "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Nejčastější žánry"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Topgenrer"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Top-Genres"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Κορυφαία είδη"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Top genres"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Géneros principales"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Suosituimmat lajityypit"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Genres préférés"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Najčešći žanrovi"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Top műfajok"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Generi principali"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "トップジャンル"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "인기 장르"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Toppsjangre"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Topgenres"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Najczęstsze gatunki"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Principais gêneros"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Géneros principais"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Genuri de top"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Топ жанров"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Najčastejšie žánre"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Toppgenrer"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "En çok izlenen türler"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Топ жанрів"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "热门类型"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "熱門類型"
+          }
+        }
+      }
+    },
+    "stats.watchTime.approxNote" : {
+      "comment": "Note that the watch time is an estimate.",
+      "extractionState": "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Odhad podle délky a počtu přehrání. Včetně opakovaného sledování."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Estimeret ud fra spilletid og antal afspilninger. Genvisninger medregnet."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Geschätzt aus Laufzeit und Wiedergabezahl. Wiederholungen eingerechnet."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Εκτίμηση από τη διάρκεια και τον αριθμό αναπαραγωγών. Περιλαμβάνονται οι επαναλήψεις."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Estimated from runtime and play counts. Rewatches included."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Estimado a partir de la duración y el número de reproducciones. Incluye revisionados."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Arvioitu keston ja toistokertojen perusteella. Uusintakatselut mukana."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Estimé à partir de la durée et du nombre de lectures. Visionnages répétés inclus."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Procjena na temelju trajanja i broja reprodukcija. Uključuje ponovna gledanja."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Becslés a hossz és a lejátszások száma alapján. Az ismételt megtekintések beleszámítanak."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Stimato dalla durata e dal numero di riproduzioni. Inclusi i rivisionamenti."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "再生時間と再生回数からの推定です。再視聴を含みます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "재생 시간과 재생 횟수로 추정한 값입니다. 다시 보기 포함."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Estimert ut fra spilletid og antall avspillinger. Gjenvisninger medregnet."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Geschat op basis van speelduur en aantal weergaven. Herhaalde weergaven inbegrepen."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Szacunek na podstawie czasu trwania i liczby odtworzeń. Z uwzględnieniem ponownych odtworzeń."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Estimado a partir da duração e do número de reproduções. Inclui novas exibições."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Estimado a partir da duração e do número de reproduções. Inclui revisões."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Estimat din durată și numărul de redări. Revizionările sunt incluse."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Оценка по длительности и числу воспроизведений. С учётом повторных просмотров."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Odhad podľa dĺžky a počtu prehraní. Vrátane opakovaných sledovaní."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Uppskattat utifrån speltid och antal uppspelningar. Omtittningar medräknade."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Süre ve oynatma sayısından tahmin edilir. Tekrar izlemeler dahildir."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Оцінка за тривалістю та кількістю відтворень. Повторні перегляди враховано."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "根据时长和播放次数估算。包含重复观看。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "根據時長和播放次數估算。包含重複觀看。"
+          }
+        }
+      }
+    },
+    "stats.watchTime.days" : {
+      "comment": "Watch-time subline. %@ is the formatted day count.",
+      "extractionState": "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "přibližně %@ dní sledování"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "omkring %@ dages se"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "etwa %@ Tage Sehzeit"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "περίπου %@ ημέρες προβολής"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "about %@ days of watching"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "unos %@ días de visualización"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "noin %@ päivää katselua"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "environ %@ jours de visionnage"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "otprilike %@ dana gledanja"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "körülbelül %@ nap megtekintés"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "circa %@ giorni di visione"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "約 %@ 日分の視聴"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "약 %@일 분량의 시청"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "omtrent %@ dager med se"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "ongeveer %@ dagen kijken"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "około %@ dni oglądania"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "cerca de %@ dias assistindo"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "cerca de %@ dias a ver"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "aproximativ %@ zile de vizionare"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "примерно %@ дней просмотра"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "približne %@ dní sledovania"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "ungefär %@ dagars tittande"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "yaklaşık %@ gün izleme"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "приблизно %@ днів перегляду"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "约 %@ 天的观看时间"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "約 %@ 天的觀看時間"
+          }
+        }
+      }
+    },
+    "stats.watchTime.value" : {
+      "comment": "Watch-time headline. %lld is estimated whole hours.",
+      "extractionState": "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "≈ %lld h"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "≈ %lld t"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "≈ %lld Std."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "≈ %lld ώ"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "≈ %lld h"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "≈ %lld h"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "≈ %lld t"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "≈ %lld h"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "≈ %lld h"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "≈ %lld ó"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "≈ %lld h"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "≈ %lld 時間"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "≈ %lld시간"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "≈ %lld t"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "≈ %lld u"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "≈ %lld godz."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "≈ %lld h"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "≈ %lld h"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "≈ %lld h"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "≈ %lld ч"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "≈ %lld h"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "≈ %lld tim"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "≈ %lld sa"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "≈ %lld год"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "≈ %lld 小时"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "≈ %lld 小時"
+          }
+        }
+      }
+    },
     "settings.parental.title" : {
       "comment": "Settings tile title: parental controls",
       "extractionState": "manual",
