@@ -339,7 +339,19 @@ extension PlayerViewModel {
     /// edge) and a new engine load. Guarded against loops: one retune in
     /// flight at a time, minimum spacing, bounded per session.
     func handleLiveSourceReset() {
-        guard isLiveSession, !liveRetuneInFlight else { return }
+        guard isLiveSession else {
+            LogTap.shared.note("[Live] retune skipped: not a live session")
+            return
+        }
+        guard !liveRetuneInFlight else {
+            // A retune is already running; a second reset (e.g. the new
+            // attempt also stalled, or engine-error and source-reset both
+            // fired) rides on the in-flight one. Logged so a STUCK
+            // in-flight latch (a hung loadLiveStream) is visible instead of
+            // silently swallowing every future recovery.
+            LogTap.shared.note("[Live] retune skipped: already in flight (count=\(liveRetuneCount))")
+            return
+        }
         let tooSoon = lastLiveRetuneAt.map { Date().timeIntervalSince($0) < 20 } ?? false
         guard liveRetuneCount < 3, !tooSoon else {
             // The stream fails on every retune (server replays from
@@ -347,6 +359,9 @@ extension PlayerViewModel {
             // tuners and surface it instead. Message is generalized
             // because this gate also terminates the mid-session
             // engine-error retune path, not just source resets.
+            LogTap.shared.note(
+                "[Live] retune EXHAUSTED (count=\(liveRetuneCount) tooSoon=\(tooSoon)); surfacing error"
+            )
             isLoading = false
             setEnginePlaybackError(message: String(
                 localized: "player.error.liveRetuneExhausted",
@@ -361,6 +376,8 @@ extension PlayerViewModel {
             didAttemptLiveFallback = true
             usedDirectLivePath = false
             LogTap.shared.note("[LiveDirect] route=fallback reason=mid_session_source_reset")
+        } else {
+            LogTap.shared.note("[Live] retune starting (count=\(liveRetuneCount + 1), already on server route)")
         }
 
         liveRetuneInFlight = true
