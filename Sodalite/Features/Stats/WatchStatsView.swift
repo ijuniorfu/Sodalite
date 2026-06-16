@@ -9,11 +9,16 @@ struct WatchStatsView: View {
 
     var body: some View {
         ScrollView {
-            content
-                .padding(.vertical, 60)
-                .padding(.horizontal, 80)
+            VStack(alignment: .leading, spacing: 40) {
+                Text("stats.title")
+                    .font(.title2)
+                    .fontWeight(.bold)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                content
+            }
+            .padding(.vertical, 60)
+            .padding(.horizontal, 80)
         }
-        .navigationTitle(Text("stats.title"))
         .navigationDestination(item: $selectedItem) { item in
             DetailRouterView(item: item)
         }
@@ -103,7 +108,7 @@ struct WatchStatsView: View {
     private func watchTimeHeadline(_ stats: WatchStats) -> some View {
         VStack(spacing: 8) {
             Text("stats.watchTime.value \(stats.estimatedHours)")
-                .font(.system(size: 64, weight: .bold, design: .rounded))
+                .font(.system(size: 48, weight: .bold, design: .rounded))
                 .monospacedDigit()
             Text("stats.watchTime.days \(stats.estimatedDays.formatted(.number.precision(.fractionLength(1))))")
                 .font(.title3)

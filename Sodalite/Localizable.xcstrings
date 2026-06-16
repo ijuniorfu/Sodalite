@@ -1621,7 +1621,7 @@
         }
       }
     },
-    "stats.scanCapped" : {
+    "stats.scanCapped %lld" : {
       "comment": "Shown when the scan hit its cap. %lld is the capped item count.",
       "extractionState": "manual",
       "localizations" : {
@@ -1783,7 +1783,7 @@
         }
       }
     },
-    "stats.scanProgress" : {
+    "stats.scanProgress %lld" : {
       "comment": "Loading progress. %lld is the number of scanned items.",
       "extractionState": "manual",
       "localizations" : {
@@ -2593,7 +2593,7 @@
         }
       }
     },
-    "stats.watchTime.days" : {
+    "stats.watchTime.days %@" : {
       "comment": "Watch-time subline. %@ is the formatted day count.",
       "extractionState": "manual",
       "localizations" : {
@@ -2755,7 +2755,7 @@
         }
       }
     },
-    "stats.watchTime.value" : {
+    "stats.watchTime.value %lld" : {
       "comment": "Watch-time headline. %lld is estimated whole hours.",
       "extractionState": "manual",
       "localizations" : {

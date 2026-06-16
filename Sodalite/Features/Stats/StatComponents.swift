@@ -1,10 +1,15 @@
 import SwiftUI
 
-/// A single labelled number tile in the stats count grid.
+/// A single labelled number tile in the stats count grid. Focusable so
+/// the otherwise non-focusable header (title + watch-time) above the grid
+/// is reachable on tvOS: initial focus lands here and the focus engine can
+/// scroll the header into view.
 struct StatTile: View {
     let icon: String
     let value: String
     let label: LocalizedStringKey
+
+    @FocusState private var focused: Bool
 
     var body: some View {
         VStack(spacing: 10) {
@@ -23,8 +28,17 @@ struct StatTile: View {
         .padding(.vertical, 28)
         .background(
             RoundedRectangle(cornerRadius: 16)
-                .fill(.white.opacity(0.05))
+                .fill(.white.opacity(focused ? 0.12 : 0.05))
         )
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .strokeBorder(.tint, lineWidth: 3)
+                .opacity(focused ? 1 : 0)
+        )
+        .scaleEffect(focused ? 1.03 : 1.0)
+        .focusable(true)
+        .focused($focused)
+        .animation(.easeInOut(duration: 0.2), value: focused)
     }
 }
 
