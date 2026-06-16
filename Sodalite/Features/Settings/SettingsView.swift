@@ -190,6 +190,14 @@ struct SettingsView: View {
             }
 
             SettingsTile(
+                icon: "chart.bar.xaxis",
+                title: "settings.stats.title",
+                subtitle: "settings.stats.subtitle"
+            ) {
+                WatchStatsView()
+            }
+
+            SettingsTile(
                 icon: "sparkles",
                 title: "settings.changelog.title",
                 subtitle: "settings.changelog.subtitle"
