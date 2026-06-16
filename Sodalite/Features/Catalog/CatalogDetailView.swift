@@ -508,7 +508,11 @@ struct CatalogDetailView: View {
                         }
                     }
                     .padding(.horizontal, 20)
-                    .padding(.vertical, 12)
+                    // Room for the focused card's scale (1.04) plus its
+                    // drop shadow (radius 14, y 6), which the ScrollView
+                    // would otherwise clip at the top and bottom edges.
+                    .padding(.top, 16)
+                    .padding(.bottom, 24)
                 }
             } else if !loadingSeasons.contains(n) {
                 Text("catalog.seasons.noEpisodes")
