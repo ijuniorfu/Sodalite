@@ -422,6 +422,13 @@ final class PlayerViewModel {
     /// between the styled ASS layer and the cue path reactively
     /// (the coordinator itself is not @Observable).
     private(set) var assRenderer: AssSubtitlesRenderer?
+    /// One-shot observation of `engine.sidecarASSHeader` for the styled
+    /// ASS path on EXTERNAL .ass/.ssa sidecars (AetherEngine#48). Unlike
+    /// embedded tracks (header known at load time via TrackInfo), a
+    /// sidecar's header is published asynchronously when the engine
+    /// finishes decoding the file, so activation waits for the first
+    /// non-nil value. Cancelled on every track change / deactivate.
+    @ObservationIgnored private var sidecarASSHeaderCancellable: AnyCancellable?
     /// Reload pre-announcements from the coordinator; the overlay's
     /// frame view subscribes so reload-induced transient nil frames
     /// never blank a visible subtitle. Stable for the VM's lifetime
@@ -1832,6 +1839,17 @@ final class PlayerViewModel {
             ) {
                 player.selectSidecarSubtitle(url: url)
                 subtitleCues = []
+                // Styled ASS for external .ass/.ssa: the engine decodes
+                // the sidecar with preserveASSMarkup (cues carry raw
+                // event lines) and publishes the script header on
+                // engine.sidecarASSHeader once decoding finishes. Wait
+                // for that async header, then activate the coordinator
+                // exactly like the embedded path (AetherEngine#48). When
+                // styling is off, the overlay strips the raw lines.
+                if (activeSubtitleCodec == "ass" || activeSubtitleCodec == "ssa"),
+                   preferences.styledASSSubtitles {
+                    activateSidecarASSWhenHeaderArrives()
+                }
             } else {
                 player.clearSubtitle()
                 subtitleCues = []
@@ -1920,11 +1938,39 @@ final class PlayerViewModel {
         }
     }
 
+    /// Activate styled ASS for an external sidecar once the engine
+    /// publishes its header. The sidecar header is populated
+    /// asynchronously after `SubtitleDecoder` finishes (unlike embedded
+    /// tracks, whose header is known synchronously from `TrackInfo`), so
+    /// we subscribe to `engine.$sidecarASSHeader` and activate on the
+    /// first non-nil value (AetherEngine#48). The coordinator's cue sink
+    /// then picks up the already-published raw event cues (a @Published
+    /// sink receives the current value on subscription). If the file
+    /// carries no header the value stays nil, the coordinator never
+    /// activates, and the overlay's stripper handles the raw lines.
+    private func activateSidecarASSWhenHeaderArrives() {
+        sidecarASSHeaderCancellable?.cancel()
+        assCoordinator.onRendererChanged = { [weak self] renderer in
+            self?.assRenderer = renderer
+        }
+        sidecarASSHeaderCancellable = player.$sidecarASSHeader
+            .receive(on: DispatchQueue.main)
+            .compactMap { $0 }
+            .first()
+            .sink { [weak self] header in
+                guard let self else { return }
+                self.assCoordinator.activate(header: header, itemID: self.item.id)
+                self.assRenderer = self.assCoordinator.renderer
+            }
+    }
+
     /// Tear down the styled ASS bridge and clear its observable
     /// mirror. Safe to call when already inactive. Internal so the
     /// NextEpisode extension (cross-file) can call it on the bypass-
     /// teardown episode transition paths.
     func deactivateASSRendering() {
+        sidecarASSHeaderCancellable?.cancel()
+        sidecarASSHeaderCancellable = nil
         assCoordinator.deactivate()
         assRenderer = nil
     }
