@@ -61,6 +61,7 @@ The high-value areas, what we most want feedback on:
 - An EAC3+JOC (Atmos) stream if you have one. Does your AVR's Atmos light come on?
 - Track switching mid-playback (audio language, subtitle language)
 - Subtitle search: when a track is missing, search and download one from inside the player
+- Dual subtitles: pick a secondary track from the Secondary section at the top of the subtitle menu and confirm two lines render (try an SRT and an ASS track). Switching the secondary track and turning it off should work, and seeking should keep both lines in sync
 - An ASS / SSA subtitle track with heavy styling (anime fansubs are ideal): do fonts, colors and positions look right? Try the styled / plain toggle in Playback settings
 - Resume from where you stopped, on multiple devices
 - Auto-play next episode for series
