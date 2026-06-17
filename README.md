@@ -74,6 +74,7 @@ The Seerr integration isn't a tacked-on link to a web view. It's a first-class p
 - **Home**: Continue Watching, Next Up, a separate Latest row for each of your libraries, plus a My Media row to jump straight into any library; every row can be toggled and reordered, and Continue Watching and Next Up can optionally merge into a single row
 - **Library**: Movies, Series, Collections with poster grids, instant filtering and an All / Unwatched / Watched watch-status filter on every grid
 - **Series view**: season picker, episode list, "Up Next" highlighting
+- **Playlists**: your Jellyfin playlists get their own Home row and a detail page that plays through in order
 - **Search**: across your whole server, results as you type
 - **Image caching & prefetching**: posters and backdrops load before you focus them
 - **Delete from the app**: remove movies, series, or individual seasons from your library, with optional cleanup of matching Radarr / Sonarr entries when Jellyseerr is connected
@@ -96,6 +97,7 @@ The Seerr integration isn't a tacked-on link to a web view. It's a first-class p
 - **Intro skip**: auto-detected from your Jellyfin server, optional one-tap skip
 - **Next episode**: auto-play with countdown, or just an overlay; configurable
 - **Subtitles, all formats, client-side**: text codecs (SubRip, ASS, SSA, WebVTT, mov_text) decoded inline in AetherEngine as packets flow through the demuxer, no server extraction lag on first hit. Bitmap subtitles (PGS, HDMV PGS, DVB, DVD) rendered as native images at the right position on the frame, no more relying on the server having Tesseract installed for Blu-ray rips. Sidecar `.srt` / `.ass` / `.vtt` files parsed by FFmpeg as well. Styled ASS / SSA rendering keeps the original fonts, colors and positioning (toggle between styled and plain text in Playback settings). Track switching mid-playback, with auto-resolution against your preferred audio / subtitle language.
+- **Subtitle search & download**: when your server is missing the right track, search and download subtitles from inside the player. Files that match by content hash get a badge so you know they line up, and ones you added can be removed with a long press.
 - **Audio track switcher**: pick the language or surround mix you want, mid-playback
 - **Scrub preview**: thumbnails of the exact frame as you scrub, floating above the playhead, generated on-device by AetherEngine straight from the video so they land on the precise frame and work even when your server has no trickplay images prepared
 - **Custom player UI**: a hand-built transport bar and info panel on top of our own video engine, matching the gestures and feel of the Apple TV+ player without using the system player
@@ -103,6 +105,7 @@ The Seerr integration isn't a tacked-on link to a web view. It's a first-class p
 - **iPhone Control Center skip**: 10-second forward and backward skip buttons in the iPhone's Now Playing widget route through to the engine via `MPRemoteCommandCenter`, App Store compliant (no private API). Useful when the Siri Remote is across the room.
 
 ### 📺 Live TV & DVR
+- **Overview tab**: Live TV opens on a category-based overview of what's on right now, with rows mirroring the native Jellyfin guide, before you drop into the full grid
 - **Programme guide**: full EPG grid with a sticky channel column, wall-clock time ruler, live now-line and current-program highlighting; tap a program for info, watch and record actions
 - **Channel favorites**: star channels in the guide, favorites sort to the top
 - **Timeshift**: pause live TV, scrub back up to 10 minutes with on-device frame previews, snap back with Return to Live
@@ -121,6 +124,7 @@ The Seerr integration isn't a tacked-on link to a web view. It's a first-class p
 - **Admin view**: with Jellyseerr admin permissions, approve, decline, edit, or delete any user's request right from the All Requests tab
 
 ### 🌍 Personal
+- **Parental controls**: set a Guardian PIN to protect profiles and lock changes to settings, servers and profiles; a locked device returns to the profile picker on a cold start and gated actions ask for the PIN first, with recovery via your Jellyfin password
 - **Watch Stats**: a Settings screen with your viewing totals, movies and episodes watched, completion rate, estimated hours, top genres, most-rewatched and recently-watched titles, all aggregated client-side from standard Jellyfin data
 - **26 languages**: German, English, Spanish, French, Italian, Japanese, Korean, Norwegian, Dutch, Polish, Portuguese (BR + PT), Russian, Swedish, Simplified + Traditional Chinese, Turkish, Ukrainian, Czech, Slovak, Croatian, Finnish, Greek, Hungarian, Romanian, Danish
 - **Dark, minimal design** built for living rooms, not for desks

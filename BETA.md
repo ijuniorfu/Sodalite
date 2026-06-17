@@ -33,6 +33,7 @@ The high-value areas, what we most want feedback on:
 - Server discovery (auto + manual)
 - Login with username + password, with and without Quick Connect
 - Reconnecting after the app comes back from background
+- Parental controls: set a Guardian PIN, lock a profile, confirm gated actions ask for it, and try recovery via your Jellyfin password
 
 ### Browsing
 - Home customization (Continue Watching, Next Up, Latest, custom rows, the combined Continue Watching + Next Up toggle)
@@ -59,6 +60,7 @@ The high-value areas, what we most want feedback on:
 - An HDR10 / Dolby Vision movie if you have one. Does the TV switch into HDR mode? Does the picture look right?
 - An EAC3+JOC (Atmos) stream if you have one. Does your AVR's Atmos light come on?
 - Track switching mid-playback (audio language, subtitle language)
+- Subtitle search: when a track is missing, search and download one from inside the player
 - An ASS / SSA subtitle track with heavy styling (anime fansubs are ideal): do fonts, colors and positions look right? Try the styled / plain toggle in Playback settings
 - Resume from where you stopped, on multiple devices
 - Auto-play next episode for series
