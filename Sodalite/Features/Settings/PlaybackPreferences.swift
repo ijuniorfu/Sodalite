@@ -220,7 +220,7 @@ final class PlaybackPreferences {
         var fractionFromBottom: Double? {
             switch self {
             case .default: return nil
-            case .bottom:  return 0.01
+            case .bottom:  return 0.005
             case .step1:   return 0.10
             case .step2:   return 0.20
             case .step3:   return 0.30
