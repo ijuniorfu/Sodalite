@@ -203,6 +203,19 @@ final class PlayerViewModel {
     var activeAudioIndex: Int?
     var activeSubtitleIndex: Int?
 
+    /// Cues for the secondary companion subtitle track (issue #47),
+    /// mirrored from `engine.secondarySubtitleCues`.
+    var secondarySubtitleCues: [SubtitleCue] = [] {
+        didSet {
+            secondarySubtitleMaxCueDuration = secondarySubtitleCues.reduce(60.0) {
+                max($0, $1.endTime - $1.startTime)
+            }
+        }
+    }
+    var secondarySubtitleMaxCueDuration: Double = 60
+    /// Stream index of the active secondary track, or nil for off.
+    var activeSecondarySubtitleIndex: Int?
+
     /// Audio tracks in picker order: container-default first, then demuxer order. All picker UI indexes here, not into `player.audioTracks`.
     var displayAudioTracks: [TrackInfo] {
         let tracks = player.audioTracks
@@ -213,6 +226,18 @@ final class PlayerViewModel {
     var displaySubtitleStreams: [MediaStream] {
         let streams = subtitleStreams
         return streams.filter { $0.isDefault == true } + streams.filter { $0.isDefault != true }
+    }
+
+    /// Streams eligible as the SECONDARY track: text codecs only (bitmap
+    /// codecs cannot stack as a companion line) and never the stream
+    /// already chosen as primary. Picker order matches `displaySubtitleStreams`.
+    var secondarySubtitleCandidates: [MediaStream] {
+        let bitmapCodecs: Set<String> = ["pgssub", "hdmv_pgs_subtitle", "dvbsub", "dvb_subtitle", "dvdsub", "dvd_subtitle", "xsub"]
+        return displaySubtitleStreams.filter { stream in
+            if stream.index == activeSubtitleIndex { return false }
+            let codec = stream.codec?.lowercased() ?? ""
+            return !bitmapCodecs.contains(codec)
+        }
     }
 
     /// Episodes from the currently-playing item's season, sorted by
@@ -1243,6 +1268,17 @@ final class PlayerViewModel {
                 guard let self else { return }
                 guard self.player.isSubtitleActive else { return }
                 self.subtitleCues = cues
+            }
+            .store(in: &cancellables)
+
+        // Secondary companion subtitle cues (issue #47). Same mirror
+        // contract as the primary sink, gated on the secondary active flag.
+        player.$secondarySubtitleCues
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] cues in
+                guard let self else { return }
+                guard self.player.isSecondarySubtitleActive else { return }
+                self.secondarySubtitleCues = cues
             }
             .store(in: &cancellables)
 
