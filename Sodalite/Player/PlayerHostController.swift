@@ -1163,6 +1163,9 @@ final class PlayerHostController: AVPlayerViewController {
             guard count > 0 else { return }
             let newIdx = max(0, min(count - 1, idx + offset))
             viewModel.trackDropdown = .subtitle(highlighted: newIdx)
+        case .secondarySubtitle:
+            // Navigation wired in Task 12.
+            break
         case .speed(let idx):
             let count = PlayerViewModel.speedOptions.count
             let newIdx = max(0, min(count - 1, idx + offset))
@@ -1214,6 +1217,9 @@ final class PlayerHostController: AVPlayerViewController {
                 viewModel.trackDropdown = .none
                 viewModel.scheduleControlsHide()
             }
+        case .secondarySubtitle:
+            // Selection wired in Task 12.
+            break
         case .speed(let idx):
             viewModel.selectSpeed(index: idx)
             viewModel.trackDropdown = .none

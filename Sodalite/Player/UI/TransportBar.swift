@@ -530,12 +530,24 @@ struct TransportBar: View {
                 // matter how long the list is. Indices are preserved so the
                 // host-driven highlight math is unaffected.
                 let indexed = Array(dropdown.enumerated())
-                let scrollIndexed = indexed.filter { !$0.element.isPinnedFooter }
+                let headerIndexed = indexed.filter { $0.element.isPinnedHeader }
+                let scrollIndexed = indexed.filter { !$0.element.isPinnedFooter && !$0.element.isPinnedHeader }
                 let pinnedIndexed = indexed.filter { $0.element.isPinnedFooter }
                 let visibleCount = min(scrollIndexed.count, Self.dropdownMaxVisible)
                 let height = CGFloat(visibleCount) * rowHeight
 
                 VStack(spacing: 0) {
+                    // Fixed header (e.g. "Secondary: ..."), always visible.
+                    ForEach(headerIndexed, id: \.offset) { idx, item in
+                        dropdownRow(item: item, hasImages: hasImages, rowHeight: rowHeight)
+                            .id(idx)
+                        if item.separatorBelow {
+                            Rectangle()
+                                .fill(Color.white.opacity(0.15))
+                                .frame(height: 1)
+                                .padding(.horizontal, 16)
+                        }
+                    }
                     ScrollViewReader { proxy in
                         ScrollView {
                             VStack(spacing: 0) {
@@ -779,6 +791,12 @@ private struct DropdownItem {
     /// Draws a thin separator above this row, to set it apart from the
     /// rows above (used with `isPinnedFooter`).
     var separatorAbove: Bool = false
+    /// Pins this row as a fixed HEADER above the scrollable list, so it
+    /// stays visible no matter how long the list is (the subtitle
+    /// dropdown's "Secondary: ..." row). Mirror of `isPinnedFooter`.
+    var isPinnedHeader: Bool = false
+    /// Draws a thin separator below this row (used with `isPinnedHeader`).
+    var separatorBelow: Bool = false
 }
 
 // MARK: - Chapter Thumbnail View

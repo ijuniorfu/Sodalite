@@ -173,6 +173,7 @@ final class PlayerViewModel {
         case episode(highlighted: Int)  // index into seasonEpisodes
         case audio(highlighted: Int)   // index into displayAudioTracks
         case subtitle(highlighted: Int) // index into subtitle items (0=Off, 1..=displaySubtitleStreams)
+        case secondarySubtitle(highlighted: Int) // 0=Off, 1..=secondarySubtitleCandidates
         case speed(highlighted: Int)    // index into PlayerViewModel.speedOptions
         case picture(highlighted: Int)  // index into PlaybackPreferences.PictureMode.allCases
     }
