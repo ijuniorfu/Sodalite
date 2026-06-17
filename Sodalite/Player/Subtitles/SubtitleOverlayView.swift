@@ -26,6 +26,12 @@ struct SubtitleOverlayView: View {
     /// duration present in `cues` (the view model derives it on each
     /// assignment). See `activeCues`.
     let maxCueDuration: Double
+    /// Cues for the secondary companion track (issue #47). Rendered as a
+    /// text line ABOVE the primary line, sharing all styling preferences.
+    /// Empty when no secondary track is active. Text-only by contract.
+    let secondaryCues: [SubtitleCue]
+    /// Walk-back bound for the secondary active-cue lookup.
+    let secondaryMaxCueDuration: Double
     /// User-selected text size, applied as a multiplier on top of the
     /// base `.title3` font. Picked up from PlaybackPreferences.
     let fontSize: PlaybackPreferences.SubtitleFontSize
@@ -127,6 +133,14 @@ struct SubtitleOverlayView: View {
                             imageOverlay(image, in: geo.size)
                         }
                     }
+                    ForEach(activeSecondaryCues, id: \.id) { cue in
+                        if case .text(let text) = cue.body {
+                            let display = text // secondary is plain text; ASS-as-secondary is decoded stripped
+                            if !display.isEmpty {
+                                textOverlay(display, in: geo.size, safeAreaInsets: geo.safeAreaInsets, liftAbovePrimary: true)
+                            }
+                        }
+                    }
                 }
         }
         .allowsHitTesting(false)
@@ -164,7 +178,7 @@ struct SubtitleOverlayView: View {
 
     // MARK: - Text branch
 
-    private func textOverlay(_ text: String, in size: CGSize, safeAreaInsets: EdgeInsets) -> some View {
+    private func textOverlay(_ text: String, in size: CGSize, safeAreaInsets: EdgeInsets, liftAbovePrimary: Bool = false) -> some View {
         // Anchored to the bottom-centre of the video rect: the text
         // block's bottom edge sits the chosen distance above the actual
         // screen bottom, and the block grows upward as it wraps to more
@@ -180,9 +194,13 @@ struct SubtitleOverlayView: View {
         let basePoints: CGFloat = 28
         let pointSize = basePoints * fontSize.scale
         let placement = textBottomPlacement(in: size, safeAreaInsets: safeAreaInsets)
+        // Lift the secondary line one comfortable text block above the
+        // primary baseline (~2.4x the point size covers up to two wrapped
+        // lines plus a gap). Shared styling, so the two lines read as a pair.
+        let liftPad = liftAbovePrimary ? pointSize * 2.4 : 0
         return styledText(text, pointSize: pointSize)
             .frame(maxWidth: maxWidth)
-            .padding(.bottom, placement.padding)
+            .padding(.bottom, placement.padding + liftPad)
             .frame(width: size.width, height: size.height, alignment: .bottom)
             .offset(y: placement.offsetBelowSafeArea)
             .transition(.opacity)
@@ -353,22 +371,25 @@ struct SubtitleOverlayView: View {
 
     // MARK: - Active-cue lookup
 
-    /// Returns every cue whose time range contains `currentTime`.
+    private var activeCues: [SubtitleCue] { activeCues(in: cues, maxDuration: maxCueDuration) }
+    private var activeSecondaryCues: [SubtitleCue] { activeCues(in: secondaryCues, maxDuration: secondaryMaxCueDuration) }
+
+    /// Returns every cue in `source` whose time range contains `currentTime`.
     /// Cues are sorted by `startTime` (engine + sidecar both insert in
     /// order), so we binary-search for the first cue starting after
     /// now and walk back collecting any whose endTime hasn't passed.
-    private var activeCues: [SubtitleCue] {
-        guard !cues.isEmpty else { return [] }
+    private func activeCues(in source: [SubtitleCue], maxDuration: Double) -> [SubtitleCue] {
+        guard !source.isEmpty else { return [] }
         // Apply user's delay offset. delay > 0 means subs should
         // appear LATER than they would by default, so the cue at
         // [10..12] is "perceived" as [11..13] for delay = +1.
         // Equivalently, look up at (currentTime - delay), at audio
         // time 11.0 we want the cue whose intrinsic start was 10.0.
         let lookupTime = currentTime - delaySeconds
-        var lo = 0, hi = cues.count
+        var lo = 0, hi = source.count
         while lo < hi {
             let mid = (lo + hi) / 2
-            if cues[mid].startTime > lookupTime {
+            if source[mid].startTime > lookupTime {
                 hi = mid
             } else {
                 lo = mid + 1
@@ -383,9 +404,9 @@ struct SubtitleOverlayView: View {
         // full-file sidecar SRT). The bound is data-derived (longest
         // cue in the track, computed by the view model on assignment);
         // a fixed constant silently hid cues longer than it.
-        while i >= 0, cues[i].startTime >= lookupTime - maxCueDuration {
-            if cues[i].endTime >= lookupTime {
-                result.append(cues[i])
+        while i >= 0, source[i].startTime >= lookupTime - maxDuration {
+            if source[i].endTime >= lookupTime {
+                result.append(source[i])
             }
             i -= 1
         }

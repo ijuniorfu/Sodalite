@@ -24,11 +24,13 @@ struct PlayerOverlayView: View {
             // The styled ASS layer must stay mounted even while the
             // engine's cue array is momentarily empty (seek resets),
             // libass already holds the assembled script.
-            if viewModel.assRenderer != nil || !viewModel.subtitleCues.isEmpty {
+            if viewModel.assRenderer != nil || !viewModel.subtitleCues.isEmpty || !viewModel.secondarySubtitleCues.isEmpty {
                 SubtitleOverlayView(
                     cues: viewModel.subtitleCues,
                     currentTime: viewModel.subtitleTime,
                     maxCueDuration: viewModel.subtitleMaxCueDuration,
+                    secondaryCues: viewModel.secondarySubtitleCues,
+                    secondaryMaxCueDuration: viewModel.secondarySubtitleMaxCueDuration,
                     fontSize: viewModel.preferences.subtitleFontSize,
                     textColor: viewModel.preferences.subtitleColor,
                     background: viewModel.preferences.subtitleBackground,
