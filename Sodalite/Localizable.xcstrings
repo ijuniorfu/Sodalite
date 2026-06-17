@@ -34322,6 +34322,3548 @@
         }
       }
     },
+    "changelog.0_12_0.parental.body" : {
+      "extractionState": "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Nastav ochranný PIN pro ochranu profilů a uzamčení změn nastavení, serverů a profilů. Zapomněl jsi ho? Obnov ho svým heslem k Jellyfinu."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Indstil en beskyttelses-PIN for at beskytte profiler og låse ændringer af indstillinger, servere og profiler. Glemt den? Gendan med din Jellyfin-adgangskode."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Lege eine Eltern-PIN fest, um Profile zu schützen und Änderungen an Einstellungen, Servern und Profilen zu sperren. Vergessen? Stelle sie mit deinem Jellyfin-Passwort wieder her."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Όρισε ένα PIN προστασίας για να προστατεύεις προφίλ και να κλειδώνεις αλλαγές σε ρυθμίσεις, διακομιστές και προφίλ. Το ξέχασες; Επανάφερέ το με τον κωδικό σου στο Jellyfin."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Set a Guardian PIN to protect profiles and lock changes to settings, servers and profiles. Forgot it? Recover with your Jellyfin password."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Configura un PIN de protección para proteger perfiles y bloquear cambios en ajustes, servidores y perfiles. ¿Lo olvidaste? Recupéralo con tu contraseña de Jellyfin."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Aseta suoja-PIN, joka suojaa profiilit ja lukitsee asetusten, palvelinten ja profiilien muutokset. Unohtuiko se? Palauta se Jellyfin-salasanallasi."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Définis un code PIN de protection pour protéger les profils et verrouiller les modifications des réglages, serveurs et profils. Oublié ? Récupère-le avec ton mot de passe Jellyfin."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Postavi zaštitni PIN za zaštitu profila i zaključavanje promjena postavki, poslužitelja i profila. Zaboravio si ga? Vrati ga svojom Jellyfin lozinkom."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Állíts be egy védő PIN-kódot a profilok védelméhez, és zárold a beállítások, kiszolgálók és profilok módosítását. Elfelejtetted? Állítsd vissza a Jellyfin-jelszavaddal."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Imposta un PIN di protezione per proteggere i profili e bloccare le modifiche a impostazioni, server e profili. Dimenticato? Recuperalo con la tua password Jellyfin."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "保護用PINを設定して、プロファイルを保護し、設定・サーバー・プロファイルの変更をロックできます。忘れた場合は、Jellyfinのパスワードで復元できます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "보호 PIN을 설정해 프로필을 보호하고 설정, 서버, 프로필 변경을 잠그세요. 잊으셨나요? Jellyfin 비밀번호로 복구할 수 있습니다."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Angi en beskyttelses-PIN for å beskytte profiler og låse endringer i innstillinger, servere og profiler. Glemt den? Gjenopprett med Jellyfin-passordet ditt."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Stel een beveiligings-PIN in om profielen te beschermen en wijzigingen aan instellingen, servers en profielen te vergrendelen. Vergeten? Herstel hem met je Jellyfin-wachtwoord."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Ustaw kod PIN, aby chronić profile i blokować zmiany ustawień, serwerów i profili. Zapomniałeś go? Odzyskaj go za pomocą hasła do Jellyfina."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Defina um PIN de proteção para proteger perfis e bloquear alterações em ajustes, servidores e perfis. Esqueceu? Recupere com sua senha do Jellyfin."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Define um PIN de proteção para proteger perfis e bloquear alterações a definições, servidores e perfis. Esqueceste-te? Recupera-o com a tua palavra-passe do Jellyfin."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Setează un cod PIN de protecție pentru a proteja profilurile și a bloca modificările setărilor, serverelor și profilurilor. L-ai uitat? Recuperează-l cu parola ta Jellyfin."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Задайте защитный PIN-код, чтобы защитить профили и заблокировать изменение настроек, серверов и профилей. Забыли его? Восстановите с помощью пароля Jellyfin."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Nastav ochranný PIN na ochranu profilov a uzamknutie zmien nastavení, serverov a profilov. Zabudol si ho? Obnov ho svojím heslom k Jellyfinu."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Ange en skydds-PIN för att skydda profiler och låsa ändringar av inställningar, servrar och profiler. Glömt den? Återställ med ditt Jellyfin-lösenord."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Profilleri korumak ve ayarlar, sunucular ve profillerdeki değişiklikleri kilitlemek için bir koruma PIN'i belirleyin. Unuttunuz mu? Jellyfin parolanızla kurtarın."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Установіть захисний PIN-код, щоб захистити профілі та заблокувати зміни налаштувань, серверів і профілів. Забули його? Відновіть за допомогою пароля Jellyfin."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "设置保护 PIN 码以保护资料库、锁定对设置、服务器和资料的更改。忘记了？用你的 Jellyfin 密码找回。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "設定保護 PIN 碼以保護設定檔、鎖定對設定、伺服器和設定檔的更改。忘記了？用你的 Jellyfin 密碼找回。"
+          }
+        }
+      }
+    },
+    "changelog.0_12_0.parental.title" : {
+      "extractionState": "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Rodičovská kontrola"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Forældrekontrol"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Kindersicherung"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Γονικός έλεγχος"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Parental controls"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Control parental"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Lapsilukko"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Contrôle parental"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Roditeljski nadzor"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Szülői felügyelet"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Controllo genitori"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "ペアレンタルコントロール"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "자녀 보호 기능"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Foreldrekontroll"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Ouderlijk toezicht"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Kontrola rodzicielska"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Controle dos pais"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Controlo parental"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Control parental"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Родительский контроль"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Rodičovská kontrola"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Föräldrakontroll"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Ebeveyn denetimi"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Батьківський контроль"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "家长控制"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "家長控制"
+          }
+        }
+      }
+    },
+    "changelog.0_12_0.subtitleSearch.body" : {
+      "extractionState": "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Najdi a stáhni správné titulky přímo v přehrávači. Soubory shodné podle otisku dostanou odznak a ty, které jsi přidal, smažeš dlouhým stiskem."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Find og hent det rigtige undertekstspor direkte i afspilleren. Hash-matchede filer får et mærke, og dem du selv har tilføjet, kan fjernes med et langt tryk."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Finde und lade den passenden Untertitel direkt im Player. Hash-genaue Treffer bekommen ein Abzeichen, selbst hinzugefügte lassen sich per langem Druck entfernen."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Βρες και κατέβασε το σωστό κανάλι υποτίτλων μέσα από τον player. Τα αρχεία με αντιστοίχιση hash παίρνουν σήμα, ενώ όσα πρόσθεσες αφαιρούνται με παρατεταμένο πάτημα."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Find and download the right subtitle track from inside the player. Hash-matched files get a badge, and ones you added can be removed with a long press."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Encuentra y descarga la pista de subtítulos correcta desde el reproductor. Los archivos que coinciden por hash llevan una insignia, y los que añadas se eliminan con una pulsación larga."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Etsi ja lataa oikea tekstitysraita suoraan soittimessa. Hash-osumat saavat merkin, ja itse lisäämäsi voi poistaa pitkällä painalluksella."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Trouve et télécharge la bonne piste de sous-titres directement dans le lecteur. Les fichiers correspondant par empreinte reçoivent un badge, et ceux que tu ajoutes se suppriment par appui long."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Pronađi i preuzmi pravi zapis titlova izravno u playeru. Datoteke usklađene po hashu dobivaju oznaku, a one koje si dodao uklanjaju se dugim pritiskom."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Keresd meg és töltsd le a megfelelő feliratsávot a lejátszón belül. A hash alapján egyező fájlok jelölést kapnak, a magad által hozzáadottak pedig hosszú nyomással törölhetők."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Trova e scarica la traccia di sottotitoli giusta direttamente nel player. I file corrispondenti per hash ricevono un badge e quelli che aggiungi si rimuovono con una pressione prolungata."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "プレーヤー内から適切な字幕トラックを検索してダウンロードできます。ハッシュ一致したファイルにはバッジが付き、自分で追加したものは長押しで削除できます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "플레이어 안에서 알맞은 자막 트랙을 찾아 내려받으세요. 해시가 일치하는 파일에는 배지가 붙고, 직접 추가한 파일은 길게 눌러 삭제할 수 있습니다."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Finn og last ned riktig undertekstspor rett i spilleren. Hash-treff får et merke, og de du selv la til, kan fjernes med et langt trykk."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Vind en download het juiste ondertitelspoor rechtstreeks in de speler. Bestanden met een hash-match krijgen een markering en wat je zelf toevoegt, verwijder je met lang indrukken."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Znajdź i pobierz właściwą ścieżkę napisów bezpośrednio w odtwarzaczu. Pliki dopasowane skrótem dostają odznakę, a dodane przez Ciebie usuniesz długim naciśnięciem."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Encontre e baixe a faixa de legenda certa de dentro do player. Arquivos com correspondência por hash recebem um selo, e os que você adicionou podem ser removidos com um toque longo."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Encontra e transfere a faixa de legendas certa a partir do leitor. Os ficheiros com correspondência por hash recebem um selo e os que adicionaste removem-se com uma pressão longa."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Găsește și descarcă pista de subtitrare potrivită direct din player. Fișierele potrivite prin hash primesc o insignă, iar cele adăugate de tine se elimină cu o apăsare lungă."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Находите и скачивайте нужную дорожку субтитров прямо в плеере. Файлы, совпавшие по хешу, получают значок, а добавленные вами можно удалить долгим нажатием."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Nájdi a stiahni správnu stopu titulkov priamo v prehrávači. Súbory zhodné podľa odtlačku dostanú odznak a tie, ktoré si pridal, zmažeš dlhým stlačením."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Hitta och ladda ner rätt undertextspår direkt i spelaren. Hash-matchade filer får en bricka, och de du själv lagt till tas bort med ett långt tryck."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Doğru altyazı izini doğrudan oynatıcıdan bulup indirin. Hash ile eşleşen dosyalar bir rozet alır, eklediklerinizi ise uzun basarak kaldırabilirsiniz."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Знаходьте й завантажуйте потрібну доріжку субтитрів прямо в плеєрі. Файли, що збіглися за хешем, отримують значок, а додані вами можна видалити довгим натисканням."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "直接在播放器中查找并下载合适的字幕轨道。哈希匹配的文件会显示标记，你添加的字幕可长按删除。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "直接在播放器中尋找並下載合適的字幕軌。雜湊比對相符的檔案會顯示標記，你新增的字幕可長按刪除。"
+          }
+        }
+      }
+    },
+    "changelog.0_12_0.subtitleSearch.title" : {
+      "extractionState": "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Hledání titulků online"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Søg undertekster online"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Untertitel online suchen"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Αναζήτηση υποτίτλων online"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Search subtitles online"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Buscar subtítulos en línea"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Tekstitysten haku verkosta"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Rechercher des sous-titres en ligne"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Pretraga titlova na mreži"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Feliratok keresése online"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Cerca sottotitoli online"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "字幕をオンライン検索"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "자막 온라인 검색"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Søk etter undertekster på nett"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Ondertitels online zoeken"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Wyszukiwanie napisów online"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Buscar legendas on-line"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Procurar legendas online"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Caută subtitrări online"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Поиск субтитров в сети"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Hľadanie titulkov online"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Sök undertexter online"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Çevrim içi altyazı arama"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Пошук субтитрів онлайн"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "在线搜索字幕"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "線上搜尋字幕"
+          }
+        }
+      }
+    },
+    "changelog.0_12_0.watchStats.body" : {
+      "extractionState": "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Nová obrazovka v Nastavení s tvými souhrny sledování, mírou dokončení, nejčastějšími žánry a nejvíce opakovanými tituly, vše z tvých dat Jellyfinu."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "En ny skærm i Indstillinger med dine visningstotaler, fuldførelsesgrad, topgenrer og mest gensete titler, alt sammen fra dine egne Jellyfin-data."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Ein neuer Einstellungs-Screen mit deinen Seh-Summen, der Abschlussquote, Top-Genres und am häufigsten wiederholten Titeln, alles aus deinen eigenen Jellyfin-Daten."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Μια νέα οθόνη στις Ρυθμίσεις με τα σύνολα προβολών σου, το ποσοστό ολοκλήρωσης, τα κορυφαία είδη και τους τίτλους που είδες ξανά πιο συχνά, όλα από τα δικά σου δεδομένα Jellyfin."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "A new Settings screen with your viewing totals, completion rate, top genres and most-rewatched titles, all from your own Jellyfin data."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Una nueva pantalla en Ajustes con tus totales de visionado, tasa de finalización, géneros principales y títulos más revisionados, todo a partir de tus propios datos de Jellyfin."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Uusi Asetukset-näkymä, jossa näet katselun kokonaismäärät, valmistumisasteen, suosikkilajityypit ja eniten uudelleenkatsotut nimikkeet, kaikki omista Jellyfin-tiedoistasi."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Un nouvel écran dans les Réglages avec tes totaux de visionnage, ton taux d'achèvement, tes genres favoris et tes titres les plus revus, le tout depuis tes propres données Jellyfin."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Novi zaslon u Postavkama s tvojim ukupnim gledanjem, stopom dovršenosti, najgledanijim žanrovima i najčešće ponovno gledanim naslovima, sve iz tvojih Jellyfin podataka."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Új képernyő a Beállításokban a nézési összesítéseiddel, a befejezési aránnyal, a legnépszerűbb műfajokkal és a legtöbbször újranézett címekkel, mind a saját Jellyfin-adataidból."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Una nuova schermata nelle Impostazioni con i tuoi totali di visione, il tasso di completamento, i generi principali e i titoli più rivisti, tutto dai tuoi dati Jellyfin."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "視聴の合計、完了率、トップジャンル、もっとも繰り返し見た作品を、すべて自分のJellyfinデータから表示する新しい設定画面です。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "시청 합계, 완료율, 인기 장르, 가장 많이 다시 본 작품을 모두 내 Jellyfin 데이터로 보여 주는 새 설정 화면입니다."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "En ny skjerm i Innstillinger med dine seertotaler, fullføringsgrad, toppsjangre og mest gjensette titler, alt fra dine egne Jellyfin-data."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Een nieuw scherm in Instellingen met je kijktotalen, voltooiingspercentage, topgenres en meest herbekeken titels, allemaal uit je eigen Jellyfin-gegevens."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Nowy ekran w Ustawieniach z Twoimi sumami oglądania, wskaźnikiem ukończenia, najczęstszymi gatunkami i najczęściej powtarzanymi tytułami, wszystko z Twoich danych Jellyfina."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Uma nova tela em Ajustes com seus totais de exibição, taxa de conclusão, principais gêneros e títulos mais revistos, tudo a partir dos seus próprios dados do Jellyfin."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Um novo ecrã nas Definições com os teus totais de visualização, taxa de conclusão, géneros principais e títulos mais revistos, tudo a partir dos teus próprios dados do Jellyfin."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Un nou ecran în Setări cu totalurile tale de vizionare, rata de finalizare, genurile preferate și titlurile cel mai des revizionate, totul din propriile tale date Jellyfin."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Новый экран в Настройках с вашими итогами просмотра, долей завершённого, любимыми жанрами и чаще всего пересматриваемыми тайтлами, всё из ваших данных Jellyfin."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Nová obrazovka v Nastaveniach s tvojimi súhrnmi sledovania, mierou dokončenia, najobľúbenejšími žánrami a najčastejšie opakovanými titulmi, všetko z tvojich dát Jellyfinu."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "En ny skärm i Inställningar med dina tittartotaler, slutförandegrad, toppgenrer och mest omtittade titlar, allt från dina egna Jellyfin-data."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Ayarlar'da yeni bir ekran: izleme toplamlarınız, tamamlama oranı, en çok izlenen türler ve en çok yeniden izlenen başlıklar, hepsi kendi Jellyfin verilerinizden."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Новий екран у Налаштуваннях із вашими підсумками переглядів, відсотком завершення, улюбленими жанрами та найчастіше переглянутими наново тайтлами, усе з ваших даних Jellyfin."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "“设置”中的新页面，展示你的观看总量、完成率、热门类型和最常重温的影片，全部来自你自己的 Jellyfin 数据。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "「設定」中的新頁面，呈現你的觀看總量、完成率、熱門類型和最常重溫的影片，全部來自你自己的 Jellyfin 資料。"
+          }
+        }
+      }
+    },
+    "changelog.0_12_0.watchStats.title" : {
+      "extractionState": "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Statistiky sledování"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Visningsstatistik"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Statistiken"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Στατιστικά προβολής"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Watch stats"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Estadísticas"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Katselutilastot"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Statistiques"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Statistika gledanja"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Megtekintési statisztika"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Statistiche di visione"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "視聴統計"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "시청 통계"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Sevisningsstatistikk"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Kijkstatistieken"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Statystyki oglądania"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Estatísticas de exibição"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Estatísticas de visualização"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Statistici de vizionare"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Статистика просмотров"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Štatistiky sledovania"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Tittarstatistik"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "İzleme istatistikleri"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Статистика переглядів"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "观看统计"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "觀看統計"
+          }
+        }
+      }
+    },
+    "changelog.0_12_0.versionPicker.body" : {
+      "extractionState": "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Když má film nebo epizoda na serveru více verzí, před spuštěním si vybereš, která se přehraje."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Når en film eller et afsnit har flere versioner på serveren, vælger du, hvilken der skal afspilles, før den starter."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Wenn ein Film oder eine Episode mehrere Versionen auf deinem Server hat, wählst du vor dem Start, welche abgespielt wird."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Όταν μια ταινία ή ένα επεισόδιο έχει πάνω από μία εκδοχή στον διακομιστή σου, διαλέγεις ποια θα παιχτεί πριν ξεκινήσει."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "When a movie or episode has more than one version on your server, pick which one to play before it starts."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Cuando una película o un episodio tiene más de una versión en tu servidor, eliges cuál reproducir antes de empezar."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Kun elokuvalla tai jaksolla on palvelimellasi useampi versio, valitset ennen toistoa, mikä niistä toistetaan."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Quand un film ou un épisode a plusieurs versions sur ton serveur, tu choisis laquelle lire avant le démarrage."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Kad film ili epizoda ima više verzija na tvom poslužitelju, prije početka biraš koju ćeš pustiti."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Ha egy filmnek vagy epizódnak több verziója is van a kiszolgálódon, indítás előtt kiválaszthatod, melyik induljon el."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Quando un film o un episodio ha più versioni sul tuo server, scegli quale riprodurre prima dell'avvio."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "映画やエピソードにサーバー上で複数のバージョンがある場合、再生前にどれを再生するか選べます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "영화나 에피소드에 서버상 여러 버전이 있을 때, 재생 전에 어떤 버전을 재생할지 고를 수 있습니다."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Når en film eller episode har flere versjoner på serveren, velger du hvilken som skal spilles av før den starter."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Als een film of aflevering meerdere versies op je server heeft, kies je vóór het afspelen welke je wilt zien."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Gdy film lub odcinek ma na serwerze więcej niż jedną wersję, przed odtworzeniem wybierasz, którą uruchomić."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Quando um filme ou episódio tem mais de uma versão no seu servidor, você escolhe qual reproduzir antes de começar."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Quando um filme ou episódio tem mais do que uma versão no teu servidor, escolhes qual reproduzir antes de começar."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Când un film sau un episod are mai multe versiuni pe serverul tău, alegi care să fie redată înainte de pornire."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Если у фильма или эпизода на сервере несколько версий, перед началом вы выбираете, какую воспроизвести."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Keď má film alebo epizóda na serveri viac verzií, pred spustením si vyberieš, ktorá sa prehrá."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "När en film eller ett avsnitt har flera versioner på servern väljer du vilken som ska spelas upp innan den startar."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Bir film ya da bölümün sunucunuzda birden fazla sürümü olduğunda, başlamadan önce hangisinin oynatılacağını seçersiniz."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Коли у фільму чи епізоду на сервері кілька версій, перед запуском ви обираєте, яку відтворити."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "当影片或剧集在服务器上有多个版本时，可在播放前选择要播放哪一个。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "當影片或劇集在伺服器上有多個版本時，可在播放前選擇要播放哪一個。"
+          }
+        }
+      }
+    },
+    "changelog.0_12_0.versionPicker.title" : {
+      "extractionState": "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Výběr verze"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Vælg version"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Version wählen"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Επιλογή έκδοσης"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Choose a version"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Elegir versión"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Valitse versio"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Choisir une version"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Odabir verzije"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Verzió kiválasztása"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Scegli una versione"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "バージョンを選択"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "버전 선택"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Velg versjon"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Versie kiezen"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Wybór wersji"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Escolher versão"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Escolher versão"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Alege o versiune"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Выбор версии"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Výber verzie"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Välj version"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Sürüm seçin"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Вибір версії"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "选择版本"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "選擇版本"
+          }
+        }
+      }
+    },
+    "changelog.0_12_0.playlists.body" : {
+      "extractionState": "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Tvé playlisty z Jellyfinu mají vlastní řádek na ploše a detail, který je přehraje popořadě."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Dine Jellyfin-afspilningslister får deres egen række på forsiden og en detaljeside, der spiller dem i rækkefølge."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Deine Jellyfin-Wiedergabelisten bekommen eine eigene Home-Reihe und eine Detailseite, die sie der Reihe nach abspielt."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Οι λίστες αναπαραγωγής σου από το Jellyfin αποκτούν δική τους σειρά στην αρχική και μια σελίδα που τις παίζει με τη σειρά."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Your Jellyfin playlists get their own Home row and a detail page that plays through in order."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Tus listas de reproducción de Jellyfin tienen su propia fila en Inicio y una página de detalle que las reproduce en orden."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Jellyfin-soittolistasi saavat oman rivin etusivulle ja tietonäkymän, joka toistaa ne järjestyksessä."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Tes listes de lecture Jellyfin obtiennent leur propre rangée sur l'accueil et une page de détail qui les lit dans l'ordre."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Tvoji Jellyfin popisi za reprodukciju dobivaju vlastiti redak na početnoj i stranicu s detaljima koja ih pušta redom."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "A Jellyfin-lejátszási listáid saját sort kapnak a kezdőképernyőn, és egy részletező oldalt, amely sorban játssza le őket."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Le tue playlist di Jellyfin hanno una riga dedicata nella Home e una pagina di dettaglio che le riproduce in ordine."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Jellyfinのプレイリストがホームに専用の行を持ち、詳細ページから順番に再生できます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Jellyfin 재생목록이 홈에 전용 행을 갖고, 상세 페이지에서 순서대로 재생됩니다."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Jellyfin-spillelistene dine får sin egen rad på forsiden og en detaljside som spiller dem av i rekkefølge."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Je Jellyfin-afspeellijsten krijgen een eigen rij op het startscherm en een detailpagina die ze op volgorde afspeelt."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Twoje listy odtwarzania z Jellyfina mają własny rząd na ekranie głównym i stronę szczegółów, która odtwarza je po kolei."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Suas listas de reprodução do Jellyfin ganham uma linha própria na Início e uma página de detalhes que reproduz tudo em ordem."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "As tuas listas de reprodução do Jellyfin ganham uma linha própria no Início e uma página de detalhe que as reproduz por ordem."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Listele tale de redare din Jellyfin primesc un rând propriu pe Acasă și o pagină de detalii care le redă în ordine."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Ваши плейлисты Jellyfin получают отдельный ряд на главном экране и страницу с подробностями, которая воспроизводит их по порядку."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Tvoje playlisty z Jellyfinu majú vlastný riadok na ploche a detail, ktorý ich prehrá po poradí."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Dina Jellyfin-spellistor får en egen rad på startsidan och en detaljsida som spelar upp dem i ordning."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Jellyfin çalma listeleriniz Ana ekranda kendi satırını ve hepsini sırayla oynatan bir ayrıntı sayfası kazanır."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Ваші списки відтворення Jellyfin отримують власний рядок на головному екрані та сторінку з деталями, що відтворює їх по черзі."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "你的 Jellyfin 播放列表在主页拥有专属行，详情页会按顺序连续播放。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "你的 Jellyfin 播放清單在主頁擁有專屬列，詳細頁會按順序連續播放。"
+          }
+        }
+      }
+    },
+    "changelog.0_12_0.playlists.title" : {
+      "extractionState": "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Seznamy skladeb"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Afspilningslister"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Wiedergabelisten"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Λίστες αναπαραγωγής"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Playlists"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Listas de reproducción"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Soittolistat"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Listes de lecture"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Popisi za reprodukciju"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Lejátszási listák"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Playlist"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "プレイリスト"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "재생목록"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Spillelister"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Afspeellijsten"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Listy odtwarzania"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Listas de reprodução"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Listas de reprodução"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Liste de redare"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Плейлисты"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Zoznamy skladieb"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Spellistor"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Çalma listeleri"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Списки відтворення"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "播放列表"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "播放清單"
+          }
+        }
+      }
+    },
+    "changelog.0_12_0.shuffle.body" : {
+      "extractionState": "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Zamíchej celý seriál, kolekci nebo jakoukoli mřížku knihovny do náhodné fronty jediným tlačítkem."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Bland en hel serie, en samling eller et hvilket som helst biblioteksgitter til en tilfældig kø med ét tryk."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Mische eine ganze Serie, eine Sammlung oder jedes Mediathek-Raster mit einem Knopf zu einer zufälligen Wiedergabeliste."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Ανακάτεψε μια ολόκληρη σειρά, μια συλλογή ή οποιοδήποτε πλέγμα βιβλιοθήκης σε μια τυχαία ουρά με ένα κουμπί."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Shuffle a whole series, a collection or any library grid into a random queue with one button."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Mezcla una serie entera, una colección o cualquier cuadrícula de la biblioteca en una cola aleatoria con un botón."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Sekoita koko sarja, kokoelma tai mikä tahansa kirjastoruudukko satunnaiseen jonoon yhdellä painikkeella."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Mélange une série entière, une collection ou n'importe quelle grille de bibliothèque en une file aléatoire d'un seul bouton."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Izmiješaj cijelu seriju, kolekciju ili bilo koju mrežu knjižnice u nasumični red jednim gumbom."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Keverj össze egy egész sorozatot, egy gyűjteményt vagy bármely könyvtárrácsot véletlenszerű sorba egyetlen gombbal."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Mescola un'intera serie, una raccolta o qualsiasi griglia della libreria in una coda casuale con un pulsante."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "シリーズ全体、コレクション、ライブラリの一覧を、ボタン1つでランダムなキューにシャッフルできます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "버튼 하나로 시리즈 전체, 컬렉션 또는 모든 라이브러리 그리드를 무작위 대기열로 섞을 수 있습니다."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Bland en hel serie, en samling eller et hvilket som helst bibliotekrutenett til en tilfeldig kø med én knapp."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Schud een hele serie, een collectie of elk bibliotheekraster met één knop tot een willekeurige wachtrij."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Wymieszaj cały serial, kolekcję lub dowolną siatkę biblioteki w losową kolejkę jednym przyciskiem."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Embaralhe uma série inteira, uma coleção ou qualquer grade da biblioteca em uma fila aleatória com um botão."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Baralha uma série inteira, uma coleção ou qualquer grelha da biblioteca numa fila aleatória com um botão."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Amestecă un serial întreg, o colecție sau orice grilă din bibliotecă într-o coadă aleatorie cu un buton."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Перемешайте целый сериал, коллекцию или любую сетку медиатеки в случайную очередь одной кнопкой."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Zamiešaj celý seriál, kolekciu alebo akúkoľvek mriežku knižnice do náhodnej fronty jediným tlačidlom."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Blanda en hel serie, en samling eller valfritt biblioteksrutnät till en slumpmässig kö med en knapp."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Tek bir düğmeyle bütün bir diziyi, koleksiyonu ya da herhangi bir kitaplık ızgarasını rastgele bir sıraya karıştırın."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Перемішайте цілий серіал, колекцію або будь-яку сітку медіатеки у випадкову чергу однією кнопкою."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "一键将整部剧集、合集或任意媒体库网格打乱成随机队列。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "一鍵將整部影集、合集或任意媒體庫格狀清單打亂成隨機佇列。"
+          }
+        }
+      }
+    },
+    "changelog.0_12_0.shuffle.title" : {
+      "extractionState": "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Náhodné přehrávání"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Tilfældig afspilning"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Zufallswiedergabe"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Τυχαία αναπαραγωγή"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Shuffle play"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Reproducción aleatoria"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Satunnaistoisto"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Lecture aléatoire"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Nasumična reprodukcija"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Véletlenszerű lejátszás"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Riproduzione casuale"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "シャッフル再生"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "셔플 재생"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Tilfeldig avspilling"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Willekeurig afspelen"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Odtwarzanie losowe"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Reprodução aleatória"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Reprodução aleatória"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Redare aleatorie"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Случайное воспроизведение"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Náhodné prehrávanie"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Blandad uppspelning"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Karışık oynatma"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Випадкове відтворення"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "随机播放"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "隨機播放"
+          }
+        }
+      }
+    },
+    "changelog.0_12_0.trailers.body" : {
+      "extractionState": "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Přehraj místní upoutávku titulu přímo ze serveru tlačítkem na stránce s detaily."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Afspil en titels lokale trailer direkte fra serveren med en knap på detaljesiden."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Spiele den lokalen Trailer eines Titels direkt von deinem Server, über einen Knopf auf der Detailseite."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Παίξε το τοπικό τρέιλερ ενός τίτλου απευθείας από τον διακομιστή σου, με ένα κουμπί στη σελίδα λεπτομερειών."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Play a title's local trailer straight from your server with a button on the detail page."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Reproduce el tráiler local de un título directamente desde tu servidor con un botón en la página de detalle."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Toista nimikkeen paikallinen traileri suoraan palvelimeltasi tietosivun painikkeella."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Lis la bande-annonce locale d'un titre directement depuis ton serveur grâce à un bouton sur la page de détail."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Pusti lokalnu najavu naslova izravno s tvog poslužitelja gumbom na stranici s detaljima."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Játszd le egy cím helyi előzetesét közvetlenül a kiszolgálódról a részletező oldal egy gombjával."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Riproduci il trailer locale di un titolo direttamente dal tuo server con un pulsante nella pagina di dettaglio."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "作品のローカル予告編を、詳細ページのボタンからサーバー上で直接再生できます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "상세 페이지의 버튼으로 작품의 로컬 예고편을 서버에서 바로 재생합니다."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Spill av en titts lokale trailer rett fra serveren med en knapp på detaljsiden."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Speel de lokale trailer van een titel rechtstreeks vanaf je server af met een knop op de detailpagina."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Odtwórz lokalny zwiastun tytułu prosto z serwera przyciskiem na stronie szczegółów."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Reproduza o trailer local de um título direto do seu servidor com um botão na página de detalhes."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Reproduz o trailer local de um título diretamente do teu servidor com um botão na página de detalhe."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Redă trailerul local al unui titlu direct de pe serverul tău cu un buton de pe pagina de detalii."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Воспроизводите локальный трейлер тайтла прямо с сервера кнопкой на странице с подробностями."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Prehraj lokálnu ukážku titulu priamo zo svojho servera tlačidlom na stránke s detailmi."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Spela en titels lokala trailer direkt från servern med en knapp på detaljsidan."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Bir başlığın yerel fragmanını, ayrıntı sayfasındaki bir düğmeyle doğrudan sunucunuzdan oynatın."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Відтворюйте локальний трейлер тайтлу прямо з сервера кнопкою на сторінці з деталями."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "通过详情页上的按钮，直接从服务器播放影片的本地预告片。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "透過詳細頁上的按鈕，直接從伺服器播放影片的本地預告片。"
+          }
+        }
+      }
+    },
+    "changelog.0_12_0.trailers.title" : {
+      "extractionState": "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Upoutávky"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Trailere"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Trailer"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Τρέιλερ"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Trailers"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Tráilers"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Trailerit"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Bandes-annonces"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Najave"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Előzetesek"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Trailer"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "予告編"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "예고편"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Trailere"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Trailers"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Zwiastuny"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Trailers"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Trailers"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Trailere"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Трейлеры"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Ukážky"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Trailrar"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Fragmanlar"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Трейлери"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "预告片"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "預告片"
+          }
+        }
+      }
+    },
+    "changelog.0_12_0.liveOverview.body" : {
+      "extractionState": "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Nová karta přehledu otevírá živé TV s řádky kategorií podle toho, co právě běží, jako v nativním průvodci Jellyfinu."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "En ny oversigtsfane åbner live-tv med kategorirækker over det, der sendes lige nu, ligesom den native Jellyfin-guide."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Ein neuer Übersichts-Tab öffnet Live-TV mit Kategoriereihen, die zeigen, was gerade läuft, wie im nativen Jellyfin-Guide."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Μια νέα καρτέλα επισκόπησης ανοίγει τη ζωντανή TV με σειρές κατηγοριών για ό,τι παίζει τώρα, όπως ο εγγενής οδηγός του Jellyfin."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "A new overview tab opens Live TV with category rows of what's on right now, mirroring the native Jellyfin guide."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Una nueva pestaña de resumen abre la TV en directo con filas por categoría de lo que se emite ahora, como la guía nativa de Jellyfin."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Uusi yleisnäkymä-välilehti avaa suoran TV:n kategoriariveillä siitä, mitä juuri nyt näytetään, kuten Jellyfinin natiivi opas."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Un nouvel onglet d'aperçu ouvre la TV en direct avec des rangées par catégorie de ce qui passe maintenant, comme le guide natif de Jellyfin."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Nova kartica pregleda otvara TV uživo s redovima kategorija onoga što se trenutačno prikazuje, poput izvornog vodiča Jellyfina."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Egy új áttekintő lap nyitja meg az élő TV-t kategóriasorokkal arról, ami épp megy, akárcsak a natív Jellyfin-műsorújság."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Una nuova scheda panoramica apre la TV in diretta con righe per categoria di ciò che è in onda adesso, come la guida nativa di Jellyfin."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "新しい概要タブがライブTVを開き、いま放送中の番組をカテゴリ別の行で、Jellyfinネイティブの番組表のように表示します。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "새 개요 탭이 실시간 TV를 열어, 지금 방송 중인 프로그램을 카테고리 행으로 보여 줍니다. Jellyfin 기본 가이드와 같은 방식입니다."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "En ny oversiktsfane åpner direkte-TV med kategorirader over det som sendes nå, akkurat som den native Jellyfin-guiden."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Een nieuw overzichtstabblad opent live-tv met categorierijen van wat er nu speelt, net als de native Jellyfin-gids."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Nowa karta przeglądu otwiera telewizję na żywo z rzędami kategorii tego, co leci teraz, tak jak natywny przewodnik Jellyfina."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Uma nova aba de visão geral abre a TV ao vivo com linhas por categoria do que está passando agora, como o guia nativo do Jellyfin."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Um novo separador de vista geral abre a TV em direto com linhas por categoria do que está a passar agora, tal como o guia nativo do Jellyfin."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "O nouă filă de prezentare deschide TV-ul în direct cu rânduri pe categorii pentru ce se difuzează acum, ca ghidul nativ Jellyfin."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Новая вкладка обзора открывает эфирное ТВ с рядами категорий того, что идёт сейчас, как в родном гиде Jellyfin."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Nová karta prehľadu otvára živé TV s riadkami kategórií podľa toho, čo práve beží, ako v natívnom sprievodcovi Jellyfinu."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "En ny översiktsflik öppnar live-TV med kategorirader över det som sänds just nu, precis som den inbyggda Jellyfin-guiden."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Yeni bir genel görünüm sekmesi, şu anda yayında olanları kategori satırlarıyla canlı TV'de açar; tıpkı Jellyfin'in yerel rehberi gibi."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Нова вкладка огляду відкриває ефірне ТБ з рядами категорій того, що йде зараз, як у рідному гіді Jellyfin."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "新的总览标签页打开直播电视，按分类行显示正在播出的节目，与 Jellyfin 原生指南一致。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "新的總覽分頁開啟直播電視，按分類列顯示正在播出的節目，與 Jellyfin 原生指南一致。"
+          }
+        }
+      }
+    },
+    "changelog.0_12_0.liveOverview.title" : {
+      "extractionState": "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Přehled živého TV"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Oversigt over live-tv"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Live-TV-Übersicht"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Επισκόπηση ζωντανής TV"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Live TV overview"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Resumen de TV en directo"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Suoran TV:n yleisnäkymä"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Aperçu de la TV en direct"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Pregled TV uživo"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Élő TV áttekintés"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Panoramica TV in diretta"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "ライブTVの概要"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "실시간 TV 개요"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Oversikt over direkte-TV"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Overzicht live-tv"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Przegląd telewizji na żywo"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Visão geral da TV ao vivo"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Vista geral da TV em direto"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Prezentare TV în direct"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Обзор эфирного ТВ"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Prehľad živého TV"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Översikt för live-TV"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Canlı TV genel görünümü"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Огляд ефірного ТБ"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "直播电视总览"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "直播電視總覽"
+          }
+        }
+      }
+    },
+    "changelog.0_12_0.rewatchNextUp.body" : {
+      "extractionState": "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Seriály, které jsi už dokoukal, se mohou znovu objevit v řadě Další, když začneš opětovné sledování."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Serier, du allerede har set færdig, kan dukke op i Næste igen, når du starter et gensyn."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Bereits abgeschlossene Serien können wieder unter „Als Nächstes“ erscheinen, wenn du sie erneut ansiehst."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Σειρές που έχεις ήδη ολοκληρώσει μπορούν να εμφανιστούν ξανά στο Επόμενο, όταν ξεκινάς επανάληψη."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Series you have already finished can appear in Next Up again when you start a rewatch."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Las series que ya terminaste pueden volver a aparecer en Siguiente cuando empiezas a verlas de nuevo."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Jo loppuun katsomasi sarjat voivat ilmestyä taas Seuraavaksi-riville, kun aloitat uudelleenkatselun."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Les séries que tu as déjà terminées peuvent réapparaître dans À suivre quand tu commences à les revoir."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Serije koje si već završio mogu se ponovno pojaviti u retku Sljedeće kad počneš ponovno gledanje."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "A már befejezett sorozatok újra megjelenhetnek a Következő sorban, amikor újranézésbe kezdesz."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Le serie che hai già finito possono ricomparire in Prossimo quando inizi a rivederle."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "見終わったシリーズも、再視聴を始めると「次の再生」に再び表示されます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "이미 다 본 시리즈도 다시 보기를 시작하면 ‘다음’에 다시 나타날 수 있습니다."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Serier du allerede har sett ferdig, kan dukke opp i Neste igjen når du starter et gjensyn."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Series die je al hebt uitgekeken, kunnen weer in Volgende verschijnen wanneer je opnieuw begint te kijken."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Seriale, które już skończyłeś, mogą znów pojawić się w rzędzie Następne, gdy zaczynasz oglądać je ponownie."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Séries que você já terminou podem aparecer de novo em Próximo quando você começa a rever."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "As séries que já terminaste podem voltar a aparecer em A seguir quando começas a revê-las."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Serialele pe care le-ai terminat deja pot reapărea în Următorul când începi o revizionare."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Сериалы, которые вы уже досмотрели, могут снова появиться в разделе «Далее», когда вы начинаете повторный просмотр."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Seriály, ktoré si už dopozeral, sa môžu znova objaviť v riadku Ďalšie, keď začneš opätovné pozeranie."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Serier du redan sett klart kan dyka upp i Nästa igen när du börjar titta om."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Zaten bitirdiğiniz diziler, yeniden izlemeye başladığınızda Sırada'da tekrar görünebilir."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Серіали, які ви вже завершили, можуть знову з'явитися в рядку «Наступне», коли ви починаєте повторний перегляд."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "已经看完的剧集，在你开始重温时可重新出现在“接下来”中。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "已經看完的影集，在你開始重溫時可重新出現在「接下來」中。"
+          }
+        }
+      }
+    },
+    "changelog.0_12_0.rewatchNextUp.title" : {
+      "extractionState": "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Opětovné sledování v řadě Další"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Gensyn fra Næste"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Erneut ansehen über Als Nächstes"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Επανάληψη από το Επόμενο"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Rewatch from Next Up"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Volver a ver desde Siguiente"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Uudelleenkatselu Seuraavaksi-riviltä"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Revoir depuis À suivre"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Ponovno gledanje iz retka Sljedeće"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Újranézés a Következő sorból"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Rivedi da Prossimo"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "「次の再生」から再視聴"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "‘다음’에서 다시 보기"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Gjensyn fra Neste"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Opnieuw kijken vanuit Volgende"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Ponowne oglądanie z rzędu Następne"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Rever a partir de Próximo"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Rever a partir de A seguir"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Revizionare din Următorul"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Повторный просмотр из «Далее»"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Opätovné pozeranie z riadku Ďalšie"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Återtittning från Nästa"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Sırada'dan yeniden izleme"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Повторний перегляд із «Наступне»"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "从“接下来”重温"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "從「接下來」重溫"
+          }
+        }
+      }
+    },
+    "changelog.0_12_0.compactButtons.body" : {
+      "extractionState": "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Vedlejší tlačítka na stránkách s detaily se zmenší na ikony a popisek ukážou při zaměření, takže stránka zůstává úhledná."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Sekundære knapper på detaljesider skrumper til ikoner og viser deres etiket ved fokus, så siden forbliver ryddelig."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Sekundäre Buttons auf Detailseiten schrumpfen zu Symbolen und zeigen ihr Label bei Fokus, damit die Seite aufgeräumt bleibt."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Τα δευτερεύοντα κουμπιά στις σελίδες λεπτομερειών συμπτύσσονται σε εικονίδια και δείχνουν την ετικέτα τους στην εστίαση, ώστε η σελίδα να μένει τακτοποιημένη."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Secondary buttons on detail pages collapse to icons and reveal their label when focused, keeping the page tidy."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Los botones secundarios en las páginas de detalle se reducen a iconos y muestran su etiqueta al enfocarlos, manteniendo la página ordenada."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Tietosivujen toissijaiset painikkeet kutistuvat kuvakkeiksi ja näyttävät tekstinsä kohdistettaessa, joten sivu pysyy siistinä."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Les boutons secondaires des pages de détail se réduisent à des icônes et affichent leur libellé au focus, gardant la page épurée."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Sporedne tipke na stranicama s detaljima skupljaju se u ikone i prikazuju oznaku pri fokusu, pa stranica ostaje uredna."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "A részletező oldalak másodlagos gombjai ikonokká zsugorodnak, és fókuszban megjelenítik a feliratukat, így az oldal rendezett marad."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "I pulsanti secondari nelle pagine di dettaglio si riducono a icone e mostrano l'etichetta quando sono in focus, mantenendo la pagina ordinata."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "詳細ページの二次的なボタンはアイコンに縮まり、フォーカス時にラベルを表示するので、ページがすっきり保たれます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "상세 페이지의 보조 버튼이 아이콘으로 줄어들고 포커스를 받으면 라벨을 표시해, 페이지가 깔끔하게 유지됩니다."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Sekundære knapper på detaljsider krymper til ikoner og viser etiketten ved fokus, slik at siden holder seg ryddig."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Secundaire knoppen op detailpagina's krimpen tot pictogrammen en tonen hun label bij focus, zodat de pagina overzichtelijk blijft."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Drugorzędne przyciski na stronach szczegółów zwijają się do ikon i pokazują etykietę po zaznaczeniu, dzięki czemu strona pozostaje schludna."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Os botões secundários nas páginas de detalhes encolhem para ícones e mostram o rótulo ao receber foco, mantendo a página organizada."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Os botões secundários nas páginas de detalhe encolhem para ícones e mostram a etiqueta ao receber foco, mantendo a página organizada."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Butoanele secundare de pe paginile de detalii se reduc la pictograme și își arată eticheta când sunt focalizate, păstrând pagina ordonată."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Второстепенные кнопки на страницах с подробностями сворачиваются в значки и показывают подпись при фокусе, сохраняя страницу опрятной."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Vedľajšie tlačidlá na stránkach s detailmi sa zmenšia na ikony a popis ukážu pri zameraní, takže stránka ostáva úhľadná."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Sekundära knappar på detaljsidor krymper till ikoner och visar sin etikett vid fokus, så att sidan hålls städad."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Ayrıntı sayfalarındaki ikincil düğmeler simgelere küçülür ve odaklanınca etiketini gösterir, böylece sayfa düzenli kalır."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Другорядні кнопки на сторінках із деталями згортаються до значків і показують підпис у фокусі, тож сторінка лишається охайною."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "详情页上的次要按钮会收起为图标，获得焦点时显示标签，让页面保持整洁。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "詳細頁上的次要按鈕會收合為圖示，取得焦點時顯示標籤，讓頁面保持整潔。"
+          }
+        }
+      }
+    },
+    "changelog.0_12_0.compactButtons.title" : {
+      "extractionState": "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Přehlednější tlačítka akcí"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Renere handlingsknapper"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Aufgeräumte Aktionsbuttons"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Πιο καθαρά κουμπιά ενεργειών"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Cleaner action buttons"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Botones de acción más limpios"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Selkeämmät toimintopainikkeet"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Boutons d'action plus nets"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Urednije akcijske tipke"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Letisztultabb műveletgombok"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Pulsanti d'azione più puliti"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "すっきりした操作ボタン"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "더 깔끔한 작업 버튼"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Renere handlingsknapper"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Strakkere actieknoppen"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Czytelniejsze przyciski akcji"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Botões de ação mais limpos"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Botões de ação mais limpos"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Butoane de acțiune mai curate"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Аккуратнее кнопки действий"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Prehľadnejšie akčné tlačidlá"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Renare åtgärdsknappar"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Daha derli toplu eylem düğmeleri"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Охайніші кнопки дій"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "更整洁的操作按钮"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "更整潔的操作按鈕"
+          }
+        }
+      }
+    },
+    "changelog.0_12_0.backdropFix.body" : {
+      "extractionState": "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Tituly bez obrázku na pozadí už neschovávají tlačítka za rozostřením, takže celá stránka je opět použitelná."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Titler uden baggrundsbillede skjuler ikke længere knapperne bag en sløring, så hele siden kan bruges igen."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Titel ohne Hintergrundbild verstecken ihre Buttons nicht mehr hinter einem Weichzeichner, die ganze Seite ist wieder bedienbar."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Οι τίτλοι χωρίς εικόνα φόντου δεν κρύβουν πια τα κουμπιά πίσω από θόλωμα, οπότε όλη η σελίδα είναι ξανά λειτουργική."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Titles without backdrop art no longer hide their buttons behind a blur, so the whole page is usable again."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Los títulos sin imagen de fondo ya no ocultan sus botones tras un desenfoque, así que toda la página vuelve a ser utilizable."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Nimikkeet ilman taustakuvaa eivät enää piilota painikkeitaan sumennuksen taakse, joten koko sivu on taas käytettävissä."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Les titres sans image de fond ne cachent plus leurs boutons derrière un flou, toute la page est de nouveau utilisable."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Naslovi bez pozadinske slike više ne skrivaju svoje tipke iza zamućenja, pa je cijela stranica opet upotrebljiva."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "A háttérkép nélküli címek már nem rejtik a gombjaikat egy elmosás mögé, így az egész oldal újra használható."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "I titoli senza immagine di sfondo non nascondono più i pulsanti dietro una sfocatura, così l'intera pagina torna utilizzabile."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "背景アートのない作品でも、ボタンがぼかしの後ろに隠れなくなり、ページ全体が再び使えるようになりました。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "배경 아트가 없는 작품도 더는 버튼이 흐림 효과 뒤에 가려지지 않아, 페이지 전체를 다시 사용할 수 있습니다."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Titler uten bakgrunnsbilde skjuler ikke lenger knappene bak en uskarphet, så hele siden er brukbar igjen."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Titels zonder achtergrondafbeelding verbergen hun knoppen niet meer achter een vervaging, dus de hele pagina is weer bruikbaar."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Tytuły bez grafiki tła nie chowają już przycisków za rozmyciem, więc cała strona znów jest użyteczna."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Títulos sem arte de fundo não escondem mais os botões atrás de um desfoque, então a página inteira volta a ser utilizável."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Os títulos sem imagem de fundo já não escondem os botões atrás de uma desfocagem, por isso toda a página volta a ser utilizável."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Titlurile fără imagine de fundal nu mai ascund butoanele în spatele unui efect de neclaritate, așa că toată pagina e din nou utilizabilă."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Тайтлы без фонового изображения больше не прячут кнопки за размытием, поэтому вся страница снова пригодна для использования."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Tituly bez obrázka na pozadí už neskrývajú tlačidlá za rozostrením, takže celá stránka je opäť použiteľná."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Titlar utan bakgrundsbild döljer inte längre sina knappar bakom en oskärpa, så hela sidan går att använda igen."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Arka plan görseli olmayan başlıklar artık düğmelerini bir bulanıklığın arkasına gizlemiyor, böylece sayfanın tamamı yeniden kullanılabilir."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Тайтли без фонового зображення більше не ховають кнопки за розмиттям, тож уся сторінка знову придатна до використання."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "没有背景图的影片不再把按钮藏在模糊之后，整个页面重新可用。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "沒有背景圖的影片不再把按鈕藏在模糊之後，整個頁面重新可用。"
+          }
+        }
+      }
+    },
+    "changelog.0_12_0.backdropFix.title" : {
+      "extractionState": "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Oprava stránek bez pozadí"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Sider uden baggrund rettet"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Seiten ohne Hintergrundbild korrigiert"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Διόρθωση σελίδων χωρίς φόντο"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Backdrop-less pages fixed"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Páginas sin fondo corregidas"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Taustakuvattomat sivut korjattu"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Pages sans toile de fond corrigées"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Ispravljene stranice bez pozadine"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Háttérkép nélküli oldalak javítva"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Pagine senza sfondo corrette"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "背景画像なしのページを修正"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "배경 이미지 없는 페이지 수정"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Sider uten bakgrunn rettet"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Pagina's zonder achtergrond hersteld"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Naprawa stron bez tła"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Páginas sem fundo corrigidas"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Páginas sem fundo corrigidas"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Pagini fără fundal reparate"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Исправлены страницы без фона"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Opravené stránky bez pozadia"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Sidor utan bakgrund åtgärdade"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Arka planı olmayan sayfalar düzeltildi"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Виправлено сторінки без фону"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "修复无背景图页面"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "修復無背景圖頁面"
+          }
+        }
+      }
+    },
     "changelog.0_4_0.cardHeights.body" : {
       "extractionState": "manual",
       "localizations" : {

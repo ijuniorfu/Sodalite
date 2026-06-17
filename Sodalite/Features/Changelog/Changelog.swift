@@ -13,6 +13,78 @@ import Foundation
 /// previously affected behaviour.
 enum Changelog {
     static let entries: [ChangelogEntry] = [
+        // MARK: 0.12.0
+        ChangelogEntry(
+            version: "0.12.0",
+            highlights: [
+                ChangelogHighlight(
+                    .new,
+                    "changelog.0_12_0.parental.title",
+                    "changelog.0_12_0.parental.body",
+                    icon: "lock.shield.fill"
+                ),
+                ChangelogHighlight(
+                    .new,
+                    "changelog.0_12_0.subtitleSearch.title",
+                    "changelog.0_12_0.subtitleSearch.body",
+                    icon: "text.magnifyingglass"
+                ),
+                ChangelogHighlight(
+                    .new,
+                    "changelog.0_12_0.watchStats.title",
+                    "changelog.0_12_0.watchStats.body",
+                    icon: "chart.bar.xaxis"
+                ),
+                ChangelogHighlight(
+                    .new,
+                    "changelog.0_12_0.versionPicker.title",
+                    "changelog.0_12_0.versionPicker.body",
+                    icon: "square.stack.3d.up.fill"
+                ),
+                ChangelogHighlight(
+                    .new,
+                    "changelog.0_12_0.playlists.title",
+                    "changelog.0_12_0.playlists.body",
+                    icon: "list.bullet.rectangle.portrait.fill"
+                ),
+                ChangelogHighlight(
+                    .new,
+                    "changelog.0_12_0.shuffle.title",
+                    "changelog.0_12_0.shuffle.body",
+                    icon: "shuffle"
+                ),
+                ChangelogHighlight(
+                    .new,
+                    "changelog.0_12_0.trailers.title",
+                    "changelog.0_12_0.trailers.body",
+                    icon: "film.fill"
+                ),
+                ChangelogHighlight(
+                    .new,
+                    "changelog.0_12_0.liveOverview.title",
+                    "changelog.0_12_0.liveOverview.body",
+                    icon: "tv"
+                ),
+                ChangelogHighlight(
+                    .improve,
+                    "changelog.0_12_0.rewatchNextUp.title",
+                    "changelog.0_12_0.rewatchNextUp.body",
+                    icon: "arrow.clockwise"
+                ),
+                ChangelogHighlight(
+                    .improve,
+                    "changelog.0_12_0.compactButtons.title",
+                    "changelog.0_12_0.compactButtons.body",
+                    icon: "rectangle.compress.vertical"
+                ),
+                ChangelogHighlight(
+                    .fix,
+                    "changelog.0_12_0.backdropFix.title",
+                    "changelog.0_12_0.backdropFix.body",
+                    icon: "photo.fill"
+                ),
+            ]
+        ),
         // MARK: 0.11.0
         ChangelogEntry(
             version: "0.11.0",
