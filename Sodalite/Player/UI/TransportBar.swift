@@ -25,6 +25,13 @@ struct TransportBar: View {
     let subtitleStreams: [MediaStream]
     let activeAudioIndex: Int?
     let activeSubtitleIndex: Int?
+    /// Index of the currently-applied SECONDARY subtitle stream, or nil
+    /// when no companion line is shown. Drives the pinned-header row and
+    /// the active mark in the secondary-mode list.
+    let activeSecondarySubtitleIndex: Int?
+    /// Streams eligible as the secondary line (text codecs, excluding the
+    /// primary). Mirrors `viewModel.secondarySubtitleCandidates`.
+    let secondarySubtitleCandidates: [MediaStream]
     let activeSpeedIndex: Int
     let controlsFocus: PlayerViewModel.ControlsFocus
     let trackDropdown: PlayerViewModel.TrackDropdown
@@ -149,8 +156,11 @@ struct TransportBar: View {
                         icon: "captions.bubble",
                         isFocused: controlsFocus == .subtitleButton,
                         persistsLabel: true,
-                        dropdown: subtitleDropdownItems,
-                        isOpen: isSubtitleDropdownOpen
+                        dropdown: {
+                            if case .secondarySubtitle = trackDropdown { return secondarySubtitleDropdownItems }
+                            return subtitleDropdownItems
+                        }(),
+                        isOpen: isSubtitleDropdownOpen || isSecondarySubtitleDropdownOpen
                     )
                 }
 
@@ -283,6 +293,11 @@ struct TransportBar: View {
 
     private var isSubtitleDropdownOpen: Bool {
         if case .subtitle = trackDropdown { return true }
+        return false
+    }
+
+    private var isSecondarySubtitleDropdownOpen: Bool {
+        if case .secondarySubtitle = trackDropdown { return true }
         return false
     }
 
@@ -465,20 +480,33 @@ struct TransportBar: View {
 
     private var subtitleDropdownItems: [DropdownItem] {
         guard case .subtitle(let highlighted) = trackDropdown else { return [] }
+        let secondaryName: String = {
+            guard let idx = activeSecondarySubtitleIndex,
+                  let stream = subtitleStreams.first(where: { $0.index == idx }) else {
+                return String(localized: "player.subtitle.secondary.none", defaultValue: "Secondary: Off")
+            }
+            return String(format: String(localized: "player.subtitle.secondary.value", defaultValue: "Secondary: %@"),
+                          TrackDisplayFormatter.subtitleStreamDisplayName(for: stream))
+        }()
         var items: [DropdownItem] = [
+            DropdownItem(
+                title: secondaryName,
+                isActive: false,
+                isHighlighted: highlighted == 0,
+                isPinnedHeader: true,
+                separatorBelow: true
+            ),
             DropdownItem(
                 title: String(localized: "player.subtitles.off", defaultValue: "Off"),
                 isActive: activeSubtitleIndex == nil,
-                isHighlighted: highlighted == 0
+                isHighlighted: highlighted == 1
             )
         ]
         items += subtitleStreams.enumerated().map { idx, stream in
             DropdownItem(
                 title: TrackDisplayFormatter.subtitleStreamDisplayName(for: stream),
                 isActive: stream.index == activeSubtitleIndex,
-                isHighlighted: idx + 1 == highlighted,
-                // External subs (sidecar / downloaded) can be removed by
-                // holding Select on the row (Feature #4).
+                isHighlighted: idx + 2 == highlighted,
                 hint: stream.isExternal == true
                     ? String(localized: "player.subtitle.delete.hint", defaultValue: "Hold to delete")
                     : nil
@@ -486,14 +514,40 @@ struct TransportBar: View {
         }
         items.append(
             DropdownItem(
-                title: String(localized: "player.subtitle.searchOnline",
-                              defaultValue: "Search online..."),
+                title: String(localized: "player.subtitle.searchOnline", defaultValue: "Search online..."),
                 isActive: false,
-                isHighlighted: highlighted == subtitleStreams.count + 1,
+                isHighlighted: highlighted == subtitleStreams.count + 2,
                 isPinnedFooter: true,
                 separatorAbove: true
             )
         )
+        return items
+    }
+
+    private var secondarySubtitleDropdownItems: [DropdownItem] {
+        guard case .secondarySubtitle(let highlighted) = trackDropdown else { return [] }
+        let candidates = secondarySubtitleCandidates
+        var items: [DropdownItem] = [
+            DropdownItem(
+                title: String(localized: "player.subtitle.secondary.back", defaultValue: "Back"),
+                isActive: false,
+                isHighlighted: highlighted == 0,
+                isPinnedHeader: true,
+                separatorBelow: true
+            ),
+            DropdownItem(
+                title: String(localized: "player.subtitles.off", defaultValue: "Off"),
+                isActive: activeSecondarySubtitleIndex == nil,
+                isHighlighted: highlighted == 1
+            )
+        ]
+        items += candidates.enumerated().map { idx, stream in
+            DropdownItem(
+                title: TrackDisplayFormatter.subtitleStreamDisplayName(for: stream),
+                isActive: stream.index == activeSecondarySubtitleIndex,
+                isHighlighted: idx + 2 == highlighted
+            )
+        }
         return items
     }
 
@@ -530,12 +584,24 @@ struct TransportBar: View {
                 // matter how long the list is. Indices are preserved so the
                 // host-driven highlight math is unaffected.
                 let indexed = Array(dropdown.enumerated())
-                let scrollIndexed = indexed.filter { !$0.element.isPinnedFooter }
+                let headerIndexed = indexed.filter { $0.element.isPinnedHeader }
+                let scrollIndexed = indexed.filter { !$0.element.isPinnedFooter && !$0.element.isPinnedHeader }
                 let pinnedIndexed = indexed.filter { $0.element.isPinnedFooter }
                 let visibleCount = min(scrollIndexed.count, Self.dropdownMaxVisible)
                 let height = CGFloat(visibleCount) * rowHeight
 
                 VStack(spacing: 0) {
+                    // Fixed header (e.g. "Secondary: ..."), always visible.
+                    ForEach(headerIndexed, id: \.offset) { idx, item in
+                        dropdownRow(item: item, hasImages: hasImages, rowHeight: rowHeight)
+                            .id(idx)
+                        if item.separatorBelow {
+                            Rectangle()
+                                .fill(Color.white.opacity(0.15))
+                                .frame(height: 1)
+                                .padding(.horizontal, 16)
+                        }
+                    }
                     ScrollViewReader { proxy in
                         ScrollView {
                             VStack(spacing: 0) {
@@ -779,6 +845,12 @@ private struct DropdownItem {
     /// Draws a thin separator above this row, to set it apart from the
     /// rows above (used with `isPinnedFooter`).
     var separatorAbove: Bool = false
+    /// Pins this row as a fixed HEADER above the scrollable list, so it
+    /// stays visible no matter how long the list is (the subtitle
+    /// dropdown's "Secondary: ..." row). Mirror of `isPinnedFooter`.
+    var isPinnedHeader: Bool = false
+    /// Draws a thin separator below this row (used with `isPinnedHeader`).
+    var separatorBelow: Bool = false
 }
 
 // MARK: - Chapter Thumbnail View

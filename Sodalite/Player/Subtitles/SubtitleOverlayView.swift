@@ -26,6 +26,12 @@ struct SubtitleOverlayView: View {
     /// duration present in `cues` (the view model derives it on each
     /// assignment). See `activeCues`.
     let maxCueDuration: Double
+    /// Cues for the secondary companion track (issue #47). Rendered as a
+    /// text line ABOVE the primary line, sharing all styling preferences.
+    /// Empty when no secondary track is active. Text-only by contract.
+    let secondaryCues: [SubtitleCue]
+    /// Walk-back bound for the secondary active-cue lookup.
+    let secondaryMaxCueDuration: Double
     /// User-selected text size, applied as a multiplier on top of the
     /// base `.title3` font. Picked up from PlaybackPreferences.
     let fontSize: PlaybackPreferences.SubtitleFontSize
@@ -80,18 +86,28 @@ struct SubtitleOverlayView: View {
     /// renderer bailed (missing header, setup failure).
     let activeSubtitleCodec: String?
 
+    /// True when a secondary companion subtitle track is selected. While it
+    /// is, the primary renders through the plain-text cue overlay (not
+    /// libass) so the two lines stack without overlap: libass positions a
+    /// styled ASS primary opaquely, so we cannot place the secondary above
+    /// it reliably (issue #47). Full ASS styling returns once the secondary
+    /// is turned off.
+    let hasSecondaryTrack: Bool
+
     /// Fixed bottom inset for text cues while the transport bar is
     /// visible. Sits above the transport-bar gradient band (300 pt
     /// from the bottom edge) with a small breathing margin.
     private static let controlsVisibleBottomInset: CGFloat = 280
 
     var body: some View {
-        if let assRenderer {
-            // Styled ASS path. AssSubtitlesView sizes its canvas and
-            // draws rendered frames itself; we only pin it over the
-            // same full-bleed rect the cue overlay uses. No user
-            // styling / offset / position preferences here, the track
-            // author's layout is absolute.
+        // Styled ASS uses libass ONLY when no secondary track is active.
+        // With a secondary track the primary falls back to the plain-text
+        // cue overlay (its ASS event lines are stripped there) so primary and
+        // secondary share one bottom-anchored stack and never overlap: libass
+        // positions a styled ASS line opaquely, so the secondary cannot be
+        // placed above it reliably (issue #47 / DrHurt device test). Full ASS
+        // styling returns the moment the secondary is turned off.
+        if let assRenderer, !hasSecondaryTrack {
             ASSRenderedSubtitles(
                 renderer: assRenderer,
                 reloadSignal: assReloadSignal,
@@ -105,27 +121,37 @@ struct SubtitleOverlayView: View {
 
     private var cueOverlay: some View {
         GeometryReader { geo in
-            // `Color.clear` fills the proposed size so the overlay
-            // covers the same rect as the underlying video layer
-            // (otherwise SwiftUI may collapse the ZStack to the
-            // largest child's frame and the .offset math suddenly
-            // anchors against a small box). `.overlay(alignment:
-            // .topLeading)` makes (0, 0) of the inner views the
-            // top-left corner of that rect, so subtitle absolute
-            // positions become a straight `.offset(x: pixels, y:
-            // pixels)` from there.
             Color.clear
                 .overlay(alignment: .topLeading) {
+                    // Bitmap cues keep their absolute, source-positioned
+                    // layout (PGS / DVB place signs / songs at authored
+                    // coordinates).
                     ForEach(activeCues, id: \.id) { cue in
-                        switch cue.body {
-                        case .text(let text):
-                            let display = isASSTrackActive ? strippedASSText(text) : text
-                            if !display.isEmpty {
-                                textOverlay(display, in: geo.size, safeAreaInsets: geo.safeAreaInsets)
-                            }
-                        case .image(let image):
+                        if case .image(let image) = cue.body {
                             imageOverlay(image, in: geo.size)
                         }
+                    }
+                    // Text cues (primary + secondary) share ONE bottom-
+                    // anchored stack so the secondary line sits above the
+                    // primary block with no overlap, regardless of how many
+                    // lines each wraps to (a fixed offset cannot do this:
+                    // a 2-line primary already exceeds it).
+                    let primaryLines: [String] = activeCues.compactMap { cue in
+                        guard case .text(let raw) = cue.body else { return nil }
+                        let display = isASSTrackActive ? strippedASSText(raw) : raw
+                        return display.isEmpty ? nil : display
+                    }
+                    let secondaryLines: [String] = activeSecondaryCues.compactMap { cue in
+                        guard case .text(let raw) = cue.body, !raw.isEmpty else { return nil }
+                        return raw
+                    }
+                    if !primaryLines.isEmpty || !secondaryLines.isEmpty {
+                        stackedText(
+                            primary: primaryLines,
+                            secondary: secondaryLines,
+                            in: geo.size,
+                            safeAreaInsets: geo.safeAreaInsets
+                        )
                     }
                 }
         }
@@ -164,28 +190,34 @@ struct SubtitleOverlayView: View {
 
     // MARK: - Text branch
 
-    private func textOverlay(_ text: String, in size: CGSize, safeAreaInsets: EdgeInsets) -> some View {
-        // Anchored to the bottom-centre of the video rect: the text
-        // block's bottom edge sits the chosen distance above the actual
-        // screen bottom, and the block grows upward as it wraps to more
-        // lines. Center-anchoring (the old `.position` approach) clipped
-        // 3-line cues at large font when "Bottom Edge" put the center at
-        // 99 % of height, because half the block extended past the
-        // screen. Width is capped so long lines wrap with horizontal
-        // margins on either side.
+    /// Render the active text cues as a single bottom-anchored stack:
+    /// secondary lines on top, primary lines below, sharing all styling
+    /// preferences. SwiftUI lays the stack out in one pass, so the
+    /// secondary line never overlaps a multi-line primary block (the old
+    /// fixed `pointSize * 2.4` lift overlapped any 2+ line primary).
+    private func stackedText(
+        primary: [String],
+        secondary: [String],
+        in size: CGSize,
+        safeAreaInsets: EdgeInsets
+    ) -> some View {
         let maxWidth = max(0, size.width - 240)
-        // tvOS .title3 lands around 24-29pt depending on platform
-        // metrics; the user-selected scale multiplies that for
-        // small/medium/large/xlarge.
         let basePoints: CGFloat = 28
         let pointSize = basePoints * fontSize.scale
         let placement = textBottomPlacement(in: size, safeAreaInsets: safeAreaInsets)
-        return styledText(text, pointSize: pointSize)
-            .frame(maxWidth: maxWidth)
-            .padding(.bottom, placement.padding)
-            .frame(width: size.width, height: size.height, alignment: .bottom)
-            .offset(y: placement.offsetBelowSafeArea)
-            .transition(.opacity)
+        return VStack(spacing: 10) {
+            ForEach(Array(secondary.enumerated()), id: \.offset) { _, line in
+                styledText(line, pointSize: pointSize)
+            }
+            ForEach(Array(primary.enumerated()), id: \.offset) { _, line in
+                styledText(line, pointSize: pointSize)
+            }
+        }
+        .frame(maxWidth: maxWidth)
+        .padding(.bottom, placement.padding)
+        .frame(width: size.width, height: size.height, alignment: .bottom)
+        .offset(y: placement.offsetBelowSafeArea)
+        .transition(.opacity)
     }
 
     /// Distance from the actual screen bottom to the bottom of the
@@ -353,22 +385,25 @@ struct SubtitleOverlayView: View {
 
     // MARK: - Active-cue lookup
 
-    /// Returns every cue whose time range contains `currentTime`.
+    private var activeCues: [SubtitleCue] { activeCues(in: cues, maxDuration: maxCueDuration) }
+    private var activeSecondaryCues: [SubtitleCue] { activeCues(in: secondaryCues, maxDuration: secondaryMaxCueDuration) }
+
+    /// Returns every cue in `source` whose time range contains `currentTime`.
     /// Cues are sorted by `startTime` (engine + sidecar both insert in
     /// order), so we binary-search for the first cue starting after
     /// now and walk back collecting any whose endTime hasn't passed.
-    private var activeCues: [SubtitleCue] {
-        guard !cues.isEmpty else { return [] }
+    private func activeCues(in source: [SubtitleCue], maxDuration: Double) -> [SubtitleCue] {
+        guard !source.isEmpty else { return [] }
         // Apply user's delay offset. delay > 0 means subs should
         // appear LATER than they would by default, so the cue at
         // [10..12] is "perceived" as [11..13] for delay = +1.
         // Equivalently, look up at (currentTime - delay), at audio
         // time 11.0 we want the cue whose intrinsic start was 10.0.
         let lookupTime = currentTime - delaySeconds
-        var lo = 0, hi = cues.count
+        var lo = 0, hi = source.count
         while lo < hi {
             let mid = (lo + hi) / 2
-            if cues[mid].startTime > lookupTime {
+            if source[mid].startTime > lookupTime {
                 hi = mid
             } else {
                 lo = mid + 1
@@ -383,9 +418,9 @@ struct SubtitleOverlayView: View {
         // full-file sidecar SRT). The bound is data-derived (longest
         // cue in the track, computed by the view model on assignment);
         // a fixed constant silently hid cues longer than it.
-        while i >= 0, cues[i].startTime >= lookupTime - maxCueDuration {
-            if cues[i].endTime >= lookupTime {
-                result.append(cues[i])
+        while i >= 0, source[i].startTime >= lookupTime - maxDuration {
+            if source[i].endTime >= lookupTime {
+                result.append(source[i])
             }
             i -= 1
         }

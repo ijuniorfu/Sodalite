@@ -173,6 +173,7 @@ final class PlayerViewModel {
         case episode(highlighted: Int)  // index into seasonEpisodes
         case audio(highlighted: Int)   // index into displayAudioTracks
         case subtitle(highlighted: Int) // index into subtitle items (0=Off, 1..=displaySubtitleStreams)
+        case secondarySubtitle(highlighted: Int) // 0=Off, 1..=secondarySubtitleCandidates
         case speed(highlighted: Int)    // index into PlayerViewModel.speedOptions
         case picture(highlighted: Int)  // index into PlaybackPreferences.PictureMode.allCases
     }
@@ -203,6 +204,19 @@ final class PlayerViewModel {
     var activeAudioIndex: Int?
     var activeSubtitleIndex: Int?
 
+    /// Cues for the secondary companion subtitle track (issue #47),
+    /// mirrored from `engine.secondarySubtitleCues`.
+    var secondarySubtitleCues: [SubtitleCue] = [] {
+        didSet {
+            secondarySubtitleMaxCueDuration = secondarySubtitleCues.reduce(60.0) {
+                max($0, $1.endTime - $1.startTime)
+            }
+        }
+    }
+    var secondarySubtitleMaxCueDuration: Double = 60
+    /// Stream index of the active secondary track, or nil for off.
+    var activeSecondarySubtitleIndex: Int?
+
     /// Audio tracks in picker order: container-default first, then demuxer order. All picker UI indexes here, not into `player.audioTracks`.
     var displayAudioTracks: [TrackInfo] {
         let tracks = player.audioTracks
@@ -213,6 +227,18 @@ final class PlayerViewModel {
     var displaySubtitleStreams: [MediaStream] {
         let streams = subtitleStreams
         return streams.filter { $0.isDefault == true } + streams.filter { $0.isDefault != true }
+    }
+
+    /// Streams eligible as the SECONDARY track: text codecs only (bitmap
+    /// codecs cannot stack as a companion line) and never the stream
+    /// already chosen as primary. Picker order matches `displaySubtitleStreams`.
+    var secondarySubtitleCandidates: [MediaStream] {
+        let bitmapCodecs: Set<String> = ["pgssub", "hdmv_pgs_subtitle", "dvbsub", "dvb_subtitle", "dvdsub", "dvd_subtitle", "xsub"]
+        return displaySubtitleStreams.filter { stream in
+            if stream.index == activeSubtitleIndex { return false }
+            let codec = stream.codec?.lowercased() ?? ""
+            return !bitmapCodecs.contains(codec)
+        }
     }
 
     /// Episodes from the currently-playing item's season, sorted by
@@ -1246,6 +1272,17 @@ final class PlayerViewModel {
             }
             .store(in: &cancellables)
 
+        // Secondary companion subtitle cues (issue #47). Same mirror
+        // contract as the primary sink, gated on the secondary active flag.
+        player.$secondarySubtitleCues
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] cues in
+                guard let self else { return }
+                guard self.player.isSecondarySubtitleActive else { return }
+                self.secondarySubtitleCues = cues
+            }
+            .store(in: &cancellables)
+
         // Engine is the source of truth for which audio track is
         // currently muxed: the picker reflects whatever the pipeline
         // actually settled on, including the brief window during a
@@ -1771,6 +1808,11 @@ final class PlayerViewModel {
             return
         }
         activeSubtitleIndex = id
+        // If the newly chosen primary equals the active secondary, drop
+        // the secondary (a track cannot be both lines at once).
+        if activeSecondarySubtitleIndex == id {
+            selectSecondarySubtitleTrack(id: nil)
+        }
         let stream = subtitleStreams.first(where: { $0.index == id })
         activeSubtitleCodec = stream?.codec?.lowercased()
         let isExternal = stream?.isExternal == true
@@ -1835,6 +1877,46 @@ final class PlayerViewModel {
             player.clearSubtitle()
             subtitleCues = []
             Task { await loadSubtitles(streamIndex: id) }
+        }
+    }
+
+    /// Select the SECONDARY companion subtitle track (issue #47).
+    /// Text-only and session-only: no styled-ASS path (secondary always
+    /// renders as plain text), no transcode fallback (only direct play /
+    /// sidecar offer a secondary), no persistence.
+    func selectSecondarySubtitleTrack(id: Int?) {
+        guard let id else {
+            activeSecondarySubtitleIndex = nil
+            secondarySubtitleCues = []
+            player.clearSecondarySubtitle()
+            return
+        }
+        activeSecondarySubtitleIndex = id
+        let stream = subtitleStreams.first(where: { $0.index == id })
+        let isExternal = stream?.isExternal == true
+
+        if isExternal {
+            if let url = playbackService.buildSubtitleURL(
+                itemID: item.id,
+                mediaSourceID: mediaSourceID,
+                streamIndex: id,
+                format: stream?.codec ?? "srt"
+            ) {
+                player.selectSecondarySidecarSubtitle(url: url)
+                secondarySubtitleCues = []
+            } else {
+                player.clearSecondarySubtitle()
+                secondarySubtitleCues = []
+                activeSecondarySubtitleIndex = nil
+            }
+        } else if activePlayMethod != .transcode {
+            player.selectSecondarySubtitleTrack(index: id)
+            secondarySubtitleCues = player.secondarySubtitleCues
+        } else {
+            // Transcoded session: no secondary path in v1.
+            player.clearSecondarySubtitle()
+            secondarySubtitleCues = []
+            activeSecondarySubtitleIndex = nil
         }
     }
 

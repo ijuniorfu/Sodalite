@@ -24,11 +24,13 @@ struct PlayerOverlayView: View {
             // The styled ASS layer must stay mounted even while the
             // engine's cue array is momentarily empty (seek resets),
             // libass already holds the assembled script.
-            if viewModel.assRenderer != nil || !viewModel.subtitleCues.isEmpty {
+            if viewModel.assRenderer != nil || !viewModel.subtitleCues.isEmpty || !viewModel.secondarySubtitleCues.isEmpty {
                 SubtitleOverlayView(
                     cues: viewModel.subtitleCues,
                     currentTime: viewModel.subtitleTime,
                     maxCueDuration: viewModel.subtitleMaxCueDuration,
+                    secondaryCues: viewModel.secondarySubtitleCues,
+                    secondaryMaxCueDuration: viewModel.secondarySubtitleMaxCueDuration,
                     fontSize: viewModel.preferences.subtitleFontSize,
                     textColor: viewModel.preferences.subtitleColor,
                     background: viewModel.preferences.subtitleBackground,
@@ -39,7 +41,8 @@ struct PlayerOverlayView: View {
                     controlsVisible: viewModel.showControls,
                     assRenderer: viewModel.assRenderer,
                     assReloadSignal: viewModel.assReloadSignal,
-                    activeSubtitleCodec: viewModel.activeSubtitleCodec
+                    activeSubtitleCodec: viewModel.activeSubtitleCodec,
+                    hasSecondaryTrack: viewModel.activeSecondarySubtitleIndex != nil
                 )
             }
 
@@ -415,6 +418,8 @@ struct PlayerOverlayView: View {
                     subtitleStreams: viewModel.displaySubtitleStreams,
                     activeAudioIndex: viewModel.activeAudioIndex,
                     activeSubtitleIndex: viewModel.activeSubtitleIndex,
+                    activeSecondarySubtitleIndex: viewModel.activeSecondarySubtitleIndex,
+                    secondarySubtitleCandidates: viewModel.secondarySubtitleCandidates,
                     activeSpeedIndex: viewModel.activeSpeedIndex,
                     controlsFocus: viewModel.controlsFocus,
                     trackDropdown: viewModel.trackDropdown,
