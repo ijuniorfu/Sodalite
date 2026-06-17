@@ -948,7 +948,7 @@ final class PlayerHostController: AVPlayerViewController {
         guard gesture.state == .began else { return }
         guard case .subtitle(let idx) = viewModel.trackDropdown else { return }
         let streams = viewModel.displaySubtitleStreams
-        let streamIdx = idx - 1 // 0 = Off, 1...count = streams, count+1 = Search
+        let streamIdx = idx - 2 // 0 = header, 1 = Off, 2...n+1 = streams, n+2 = Search
         guard streamIdx >= 0, streamIdx < streams.count,
               streams[streamIdx].isExternal == true else { return }
         viewModel.requestSubtitleDeletion(streamIndex: streams[streamIdx].index)
@@ -1158,14 +1158,17 @@ final class PlayerHostController: AVPlayerViewController {
             let newIdx = max(0, min(count - 1, idx + offset))
             viewModel.trackDropdown = .audio(highlighted: newIdx)
         case .subtitle(let idx):
-            // +1 for "Off", +1 for the "Search online..." row
-            let count = viewModel.displaySubtitleStreams.count + 2
+            // header(Secondary) + Off + streams + Search online
+            let count = viewModel.displaySubtitleStreams.count + 3
             guard count > 0 else { return }
             let newIdx = max(0, min(count - 1, idx + offset))
             viewModel.trackDropdown = .subtitle(highlighted: newIdx)
-        case .secondarySubtitle:
-            // Navigation wired in Task 12.
-            break
+        case .secondarySubtitle(let idx):
+            // Back + Off + candidate streams
+            let count = viewModel.secondarySubtitleCandidates.count + 2
+            guard count > 0 else { return }
+            let newIdx = max(0, min(count - 1, idx + offset))
+            viewModel.trackDropdown = .secondarySubtitle(highlighted: newIdx)
         case .speed(let idx):
             let count = PlayerViewModel.speedOptions.count
             let newIdx = max(0, min(count - 1, idx + offset))
@@ -1202,24 +1205,41 @@ final class PlayerHostController: AVPlayerViewController {
         case .subtitle(let idx):
             let streams = viewModel.displaySubtitleStreams
             if idx == 0 {
+                // Header row "Secondary: ..." -> enter secondary mode.
+                viewModel.trackDropdown = .secondarySubtitle(highlighted: 0)
+            } else if idx == 1 {
                 viewModel.selectSubtitleTrack(id: nil)
                 viewModel.trackDropdown = .none
                 viewModel.scheduleControlsHide()
-            } else if idx == streams.count + 1 {
-                // "Search online..." row -> open the search overlay.
+            } else if idx == streams.count + 2 {
+                // "Search online..." row.
                 viewModel.trackDropdown = .none
                 viewModel.presentSubtitleSearch()
             } else {
-                let streamIdx = idx - 1
+                let streamIdx = idx - 2
                 if streamIdx < streams.count {
                     viewModel.selectSubtitleTrack(id: streams[streamIdx].index)
                 }
                 viewModel.trackDropdown = .none
                 viewModel.scheduleControlsHide()
             }
-        case .secondarySubtitle:
-            // Selection wired in Task 12.
-            break
+        case .secondarySubtitle(let idx):
+            let candidates = viewModel.secondarySubtitleCandidates
+            if idx == 0 {
+                // Back row -> return to the primary subtitle list.
+                viewModel.trackDropdown = .subtitle(highlighted: 0)
+            } else if idx == 1 {
+                viewModel.selectSecondarySubtitleTrack(id: nil)
+                viewModel.trackDropdown = .none
+                viewModel.scheduleControlsHide()
+            } else {
+                let candidateIdx = idx - 2
+                if candidateIdx < candidates.count {
+                    viewModel.selectSecondarySubtitleTrack(id: candidates[candidateIdx].index)
+                }
+                viewModel.trackDropdown = .none
+                viewModel.scheduleControlsHide()
+            }
         case .speed(let idx):
             viewModel.selectSpeed(index: idx)
             viewModel.trackDropdown = .none
