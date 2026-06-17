@@ -86,26 +86,33 @@ struct SubtitleOverlayView: View {
     /// renderer bailed (missing header, setup failure).
     let activeSubtitleCodec: String?
 
+    /// True when a secondary companion subtitle track is selected. While it
+    /// is, the primary renders through the plain-text cue overlay (not
+    /// libass) so the two lines stack without overlap: libass positions a
+    /// styled ASS primary opaquely, so we cannot place the secondary above
+    /// it reliably (issue #47). Full ASS styling returns once the secondary
+    /// is turned off.
+    let hasSecondaryTrack: Bool
+
     /// Fixed bottom inset for text cues while the transport bar is
     /// visible. Sits above the transport-bar gradient band (300 pt
     /// from the bottom edge) with a small breathing margin.
     private static let controlsVisibleBottomInset: CGFloat = 280
 
     var body: some View {
-        if let assRenderer {
-            // Styled ASS primary draws its own frame (author-absolute
-            // layout), which bypasses the cue overlay below. Overlay the
-            // secondary companion line on top so it still shows; lift it
-            // above the typical bottom position since we cannot know the
-            // ASS author's layout.
-            ZStack {
-                ASSRenderedSubtitles(
-                    renderer: assRenderer,
-                    reloadSignal: assReloadSignal,
-                    currentOffset: currentTime
-                )
-                secondaryASSOverlay
-            }
+        // Styled ASS uses libass ONLY when no secondary track is active.
+        // With a secondary track the primary falls back to the plain-text
+        // cue overlay (its ASS event lines are stripped there) so primary and
+        // secondary share one bottom-anchored stack and never overlap: libass
+        // positions a styled ASS line opaquely, so the secondary cannot be
+        // placed above it reliably (issue #47 / DrHurt device test). Full ASS
+        // styling returns the moment the secondary is turned off.
+        if let assRenderer, !hasSecondaryTrack {
+            ASSRenderedSubtitles(
+                renderer: assRenderer,
+                reloadSignal: assReloadSignal,
+                currentOffset: currentTime
+            )
             .allowsHitTesting(false)
         } else {
             cueOverlay
@@ -151,31 +158,6 @@ struct SubtitleOverlayView: View {
         .allowsHitTesting(false)
     }
 
-    /// Secondary companion line for the styled-ASS branch, where the cue
-    /// overlay is bypassed. Rendered alone (primary is drawn by libass) and
-    /// lifted above the typical bottom subtitle position.
-    private var secondaryASSOverlay: some View {
-        GeometryReader { geo in
-            Color.clear
-                .overlay(alignment: .topLeading) {
-                    let secondaryLines: [String] = activeSecondaryCues.compactMap { cue in
-                        guard case .text(let raw) = cue.body, !raw.isEmpty else { return nil }
-                        return raw
-                    }
-                    if !secondaryLines.isEmpty {
-                        stackedText(
-                            primary: [],
-                            secondary: secondaryLines,
-                            in: geo.size,
-                            safeAreaInsets: geo.safeAreaInsets,
-                            liftWhenPrimaryEmpty: true
-                        )
-                    }
-                }
-        }
-        .allowsHitTesting(false)
-    }
-
     /// True while the selected stream is ASS/SSA. Only reachable in the
     /// cue path when the styled renderer is nil (coordinator bailed),
     /// in which case cue text bodies are still RAW event lines
@@ -213,22 +195,16 @@ struct SubtitleOverlayView: View {
     /// preferences. SwiftUI lays the stack out in one pass, so the
     /// secondary line never overlaps a multi-line primary block (the old
     /// fixed `pointSize * 2.4` lift overlapped any 2+ line primary).
-    ///
-    /// `liftWhenPrimaryEmpty`: when the primary is drawn elsewhere (styled
-    /// ASS) the secondary arrives alone; lift it above the bottom so it does
-    /// not sit on top of the ASS line.
     private func stackedText(
         primary: [String],
         secondary: [String],
         in size: CGSize,
-        safeAreaInsets: EdgeInsets,
-        liftWhenPrimaryEmpty: Bool = false
+        safeAreaInsets: EdgeInsets
     ) -> some View {
         let maxWidth = max(0, size.width - 240)
         let basePoints: CGFloat = 28
         let pointSize = basePoints * fontSize.scale
         let placement = textBottomPlacement(in: size, safeAreaInsets: safeAreaInsets)
-        let extraLift = (liftWhenPrimaryEmpty && primary.isEmpty) ? pointSize * 2.4 : 0
         return VStack(spacing: 10) {
             ForEach(Array(secondary.enumerated()), id: \.offset) { _, line in
                 styledText(line, pointSize: pointSize)
@@ -238,7 +214,7 @@ struct SubtitleOverlayView: View {
             }
         }
         .frame(maxWidth: maxWidth)
-        .padding(.bottom, placement.padding + extraLift)
+        .padding(.bottom, placement.padding)
         .frame(width: size.width, height: size.height, alignment: .bottom)
         .offset(y: placement.offsetBelowSafeArea)
         .transition(.opacity)

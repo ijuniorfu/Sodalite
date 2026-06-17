@@ -41,7 +41,8 @@ struct PlayerOverlayView: View {
                     controlsVisible: viewModel.showControls,
                     assRenderer: viewModel.assRenderer,
                     assReloadSignal: viewModel.assReloadSignal,
-                    activeSubtitleCodec: viewModel.activeSubtitleCodec
+                    activeSubtitleCodec: viewModel.activeSubtitleCodec,
+                    hasSecondaryTrack: viewModel.activeSecondarySubtitleIndex != nil
                 )
             }
 
