@@ -38,6 +38,7 @@ The high-value areas, what we most want feedback on:
 - Home customization (Continue Watching, Next Up, Latest, custom rows, the combined Continue Watching + Next Up toggle)
 - The All / Unwatched / Watched filter on library grids
 - Series detail view, switch seasons, scroll long episode lists
+- Watch Stats (Settings, Watch Stats): do the totals, completion rate and top genres look right for your library?
 - Search, both your library and the Seerr catalog (when Seerr is connected)
 
 ### Music (if your server has a music library)
@@ -51,6 +52,9 @@ The high-value areas, what we most want feedback on:
 - A channel that is known-broken on your server: does Sodalite say so quickly instead of spinning?
 
 ### Playback
+- A title with more than one version on your server: does the version picker appear, and does your pick play?
+- A series shuffle: does the shuffle button queue random episodes across seasons?
+- A local trailer from the detail page
 - A regular SDR movie
 - An HDR10 / Dolby Vision movie if you have one. Does the TV switch into HDR mode? Does the picture look right?
 - An EAC3+JOC (Atmos) stream if you have one. Does your AVR's Atmos light come on?

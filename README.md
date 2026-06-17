@@ -90,6 +90,9 @@ The Seerr integration isn't a tacked-on link to a web view. It's a first-class p
 - **Multichannel surround**: 5.1, 7.1 with correct channel layout
 - **Resume** from where you left off, on any device
 - **Restart from the beginning**: a dedicated button on movies, series and episodes to play from the start instead of resuming
+- **Pick your source**: when a title has more than one version on your server (different rips, resolutions or editions), a picker lets you choose which one to play before playback starts, on both movies and episodes
+- **Shuffle a series**: a shuffle button on series detail queues random episodes across every season
+- **Trailers**: play a title's local trailer straight from your server with a dedicated button on the detail page
 - **Intro skip**: auto-detected from your Jellyfin server, optional one-tap skip
 - **Next episode**: auto-play with countdown, or just an overlay; configurable
 - **Subtitles, all formats, client-side**: text codecs (SubRip, ASS, SSA, WebVTT, mov_text) decoded inline in AetherEngine as packets flow through the demuxer, no server extraction lag on first hit. Bitmap subtitles (PGS, HDMV PGS, DVB, DVD) rendered as native images at the right position on the frame, no more relying on the server having Tesseract installed for Blu-ray rips. Sidecar `.srt` / `.ass` / `.vtt` files parsed by FFmpeg as well. Styled ASS / SSA rendering keeps the original fonts, colors and positioning (toggle between styled and plain text in Playback settings). Track switching mid-playback, with auto-resolution against your preferred audio / subtitle language.
@@ -118,6 +121,7 @@ The Seerr integration isn't a tacked-on link to a web view. It's a first-class p
 - **Admin view**: with Jellyseerr admin permissions, approve, decline, edit, or delete any user's request right from the All Requests tab
 
 ### 🌍 Personal
+- **Watch Stats**: a Settings screen with your viewing totals, movies and episodes watched, completion rate, estimated hours, top genres, most-rewatched and recently-watched titles, all aggregated client-side from standard Jellyfin data
 - **26 languages**: German, English, Spanish, French, Italian, Japanese, Korean, Norwegian, Dutch, Polish, Portuguese (BR + PT), Russian, Swedish, Simplified + Traditional Chinese, Turkish, Ukrainian, Czech, Slovak, Croatian, Finnish, Greek, Hungarian, Romanian, Danish
 - **Dark, minimal design** built for living rooms, not for desks
 - **Appearance options**: choose how Continue Watching and Now Playing artwork looks (episode still, backdrop or series thumb), set card size, toggle title logos, plus an accent color with the Supporter Pack
