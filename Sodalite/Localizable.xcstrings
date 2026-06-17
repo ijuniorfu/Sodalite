@@ -34966,6 +34966,328 @@
         }
       }
     },
+    "changelog.0_12_0.dualSubtitles.body" : {
+      "extractionState": "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Zobraz druhý řádek titulků nad prvním, například původní jazyk a k tomu překlad. Druhou stopu vyber v nové sekci v horní části nabídky titulků."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Vis en anden undertekstlinje over den første, for eksempel originalsproget plus en oversættelse. Vælg et sekundært spor i den nye sektion øverst i undertekstmenuen."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Zeige eine zweite Untertitelzeile über der ersten, zum Beispiel die Originalsprache plus eine Übersetzung. Wähle eine zweite Spur im neuen Bereich oben im Untertitelmenü."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Δείξε μια δεύτερη γραμμή υποτίτλων πάνω από την πρώτη, για παράδειγμα την αρχική γλώσσα μαζί με μια μετάφραση. Διάλεξε ένα δευτερεύον κανάλι από τη νέα ενότητα στην κορυφή του μενού υποτίτλων."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Show a second subtitle line above the first, for example the original language plus a translation. Pick a secondary track from the new section at the top of the subtitle menu."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Muestra una segunda línea de subtítulos sobre la primera, por ejemplo el idioma original más una traducción. Elige una pista secundaria en la nueva sección de la parte superior del menú de subtítulos."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Näytä toinen tekstitysrivi ensimmäisen yläpuolella, esimerkiksi alkukieli ja sen käännös. Valitse toissijainen raita uudesta osiosta tekstitysvalikon yläreunasta."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Affiche une deuxième ligne de sous-titres au-dessus de la première, par exemple la langue d’origine et une traduction. Choisis une piste secondaire dans la nouvelle section en haut du menu des sous-titres."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Prikaži drugi redak titlova iznad prvog, na primjer izvorni jezik uz prijevod. Odaberi sekundarni zapis u novom odjeljku na vrhu izbornika titlova."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Jeleníts meg egy második feliratsort az első felett, például az eredeti nyelvet és egy fordítást. Válassz másodlagos sávot a feliratmenü tetején lévő új szakaszban."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Mostra una seconda riga di sottotitoli sopra la prima, ad esempio la lingua originale insieme a una traduzione. Scegli una traccia secondaria dalla nuova sezione in cima al menu dei sottotitoli."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "1行目の上に2行目の字幕を表示できます。たとえば元の言語と翻訳を同時に表示できます。字幕メニュー上部の新しいセクションから副字幕トラックを選んでください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "첫 번째 자막 위에 두 번째 자막 줄을 표시합니다. 예를 들어 원어와 번역을 함께 볼 수 있습니다. 자막 메뉴 상단의 새 섹션에서 보조 트랙을 선택하세요."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Vis en andre undertekstlinje over den første, for eksempel originalspråket pluss en oversettelse. Velg et sekundært spor i den nye delen øverst i undertekstmenyen."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Toon een tweede ondertitelregel boven de eerste, bijvoorbeeld de oorspronkelijke taal plus een vertaling. Kies een secundair spoor in het nieuwe gedeelte boven aan het ondertitelmenu."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Pokaż drugą linię napisów nad pierwszą, na przykład język oryginału i tłumaczenie. Wybierz dodatkową ścieżkę w nowej sekcji na górze menu napisów."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Mostre uma segunda linha de legenda acima da primeira, por exemplo o idioma original mais uma tradução. Escolha uma faixa secundária na nova seção no topo do menu de legendas."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Mostra uma segunda linha de legendas acima da primeira, por exemplo o idioma original mais uma tradução. Escolhe uma faixa secundária na nova secção no topo do menu de legendas."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Afișează o a doua linie de subtitrare deasupra primei, de exemplu limba originală plus o traducere. Alege o pistă secundară din noua secțiune din partea de sus a meniului de subtitrări."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Показывайте вторую строку субтитров над первой, например язык оригинала и перевод. Выберите дополнительную дорожку в новом разделе вверху меню субтитров."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Zobraz druhý riadok titulkov nad prvým, napríklad pôvodný jazyk a preklad. Vyber sekundárnu stopu v novej sekcii v hornej časti ponuky titulkov."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Visa en andra undertextrad ovanför den första, till exempel originalspråket plus en översättning. Välj ett sekundärt spår i den nya sektionen högst upp i undertextmenyn."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Birinci satırın üzerinde ikinci bir altyazı satırı gösterin, örneğin orijinal dilin yanı sıra bir çeviri. Altyazı menüsünün üstündeki yeni bölümden ikincil bir iz seçin."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Показуйте другий рядок субтитрів над першим, наприклад мову оригіналу та переклад. Виберіть додаткову доріжку в новому розділі вгорі меню субтитрів."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "在第一行字幕上方显示第二行字幕，例如原始语言加上译文。在字幕菜单顶部的新分区中选择副字幕轨道。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "在第一行字幕上方顯示第二行字幕，例如原文語言加上翻譯。在字幕選單頂部的新區段中選擇次字幕軌。"
+          }
+        }
+      }
+    },
+    "changelog.0_12_0.dualSubtitles.title" : {
+      "extractionState": "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Dvojité titulky"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Dobbelte undertekster"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Doppelte Untertitel"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Διπλοί υπότιτλοι"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Dual subtitles"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Subtítulos dobles"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Kaksoistekstitys"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Sous-titres doubles"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Dvostruki titlovi"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Kettős felirat"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Sottotitoli doppi"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "デュアル字幕"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "이중 자막"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Doble undertekster"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Dubbele ondertitels"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Podwójne napisy"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Legendas duplas"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Legendas duplas"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Subtitrări duble"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Двойные субтитры"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Dvojité titulky"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Dubbla undertexter"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Çift altyazı"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Подвійні субтитри"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "双语字幕"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "雙字幕"
+          }
+        }
+      }
+    },
     "changelog.0_12_0.watchStats.body" : {
       "extractionState": "manual",
       "localizations" : {

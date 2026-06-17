@@ -31,6 +31,12 @@ enum Changelog {
                 ),
                 ChangelogHighlight(
                     .new,
+                    "changelog.0_12_0.dualSubtitles.title",
+                    "changelog.0_12_0.dualSubtitles.body",
+                    icon: "captions.bubble.fill"
+                ),
+                ChangelogHighlight(
+                    .new,
                     "changelog.0_12_0.watchStats.title",
                     "changelog.0_12_0.watchStats.body",
                     icon: "chart.bar.xaxis"
