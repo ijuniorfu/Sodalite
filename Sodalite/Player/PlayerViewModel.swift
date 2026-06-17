@@ -1807,6 +1807,11 @@ final class PlayerViewModel {
             return
         }
         activeSubtitleIndex = id
+        // If the newly chosen primary equals the active secondary, drop
+        // the secondary (a track cannot be both lines at once).
+        if activeSecondarySubtitleIndex == id {
+            selectSecondarySubtitleTrack(id: nil)
+        }
         let stream = subtitleStreams.first(where: { $0.index == id })
         activeSubtitleCodec = stream?.codec?.lowercased()
         let isExternal = stream?.isExternal == true
@@ -1871,6 +1876,46 @@ final class PlayerViewModel {
             player.clearSubtitle()
             subtitleCues = []
             Task { await loadSubtitles(streamIndex: id) }
+        }
+    }
+
+    /// Select the SECONDARY companion subtitle track (issue #47).
+    /// Text-only and session-only: no styled-ASS path (secondary always
+    /// renders as plain text), no transcode fallback (only direct play /
+    /// sidecar offer a secondary), no persistence.
+    func selectSecondarySubtitleTrack(id: Int?) {
+        guard let id else {
+            activeSecondarySubtitleIndex = nil
+            secondarySubtitleCues = []
+            player.clearSecondarySubtitle()
+            return
+        }
+        activeSecondarySubtitleIndex = id
+        let stream = subtitleStreams.first(where: { $0.index == id })
+        let isExternal = stream?.isExternal == true
+
+        if isExternal {
+            if let url = playbackService.buildSubtitleURL(
+                itemID: item.id,
+                mediaSourceID: mediaSourceID,
+                streamIndex: id,
+                format: stream?.codec ?? "srt"
+            ) {
+                player.selectSecondarySidecarSubtitle(url: url)
+                secondarySubtitleCues = []
+            } else {
+                player.clearSecondarySubtitle()
+                secondarySubtitleCues = []
+                activeSecondarySubtitleIndex = nil
+            }
+        } else if activePlayMethod != .transcode {
+            player.selectSecondarySubtitleTrack(index: id)
+            secondarySubtitleCues = player.secondarySubtitleCues
+        } else {
+            // Transcoded session: no secondary path in v1.
+            player.clearSecondarySubtitle()
+            secondarySubtitleCues = []
+            activeSecondarySubtitleIndex = nil
         }
     }
 
