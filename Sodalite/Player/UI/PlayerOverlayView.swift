@@ -415,6 +415,8 @@ struct PlayerOverlayView: View {
                     subtitleStreams: viewModel.displaySubtitleStreams,
                     activeAudioIndex: viewModel.activeAudioIndex,
                     activeSubtitleIndex: viewModel.activeSubtitleIndex,
+                    activeSecondarySubtitleIndex: viewModel.activeSecondarySubtitleIndex,
+                    secondarySubtitleCandidates: viewModel.secondarySubtitleCandidates,
                     activeSpeedIndex: viewModel.activeSpeedIndex,
                     controlsFocus: viewModel.controlsFocus,
                     trackDropdown: viewModel.trackDropdown,
