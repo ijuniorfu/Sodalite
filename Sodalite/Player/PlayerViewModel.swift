@@ -229,6 +229,15 @@ final class PlayerViewModel {
         return streams.filter { $0.isDefault == true } + streams.filter { $0.isDefault != true }
     }
 
+    /// Whether the in-player "Search online..." subtitle download flow is
+    /// reachable. Available for any VOD library item (the Jellyfin
+    /// RemoteSearch keys on `item.id`); live channels have no searchable
+    /// library item, so it is suppressed there. Drives showing the
+    /// subtitle button even when the file ships zero subtitle tracks, so
+    /// the download entry point is reachable in exactly the case it is
+    /// most needed (issue #15).
+    var supportsSubtitleSearch: Bool { !isLiveSession }
+
     /// Streams eligible as the SECONDARY track: text codecs only (bitmap
     /// codecs cannot stack as a companion line) and never the stream
     /// already chosen as primary. Picker order matches `displaySubtitleStreams`.

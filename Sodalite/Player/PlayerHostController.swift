@@ -985,7 +985,9 @@ final class PlayerHostController: AVPlayerViewController {
             order.append(.chapterButton)
         }
         if !viewModel.player.audioTracks.isEmpty { order.append(.audioButton) }
-        if !viewModel.subtitleStreams.isEmpty { order.append(.subtitleButton) }
+        if !viewModel.subtitleStreams.isEmpty || viewModel.supportsSubtitleSearch {
+            order.append(.subtitleButton)
+        }
         order.append(.speedButton)
         order.append(.pictureButton)
         if viewModel.preferences.showStatsForNerds {
@@ -1030,7 +1032,7 @@ final class PlayerHostController: AVPlayerViewController {
                 }
                 // Preserve scrub state, user can confirm/cancel when returning
                 let hasAudio = !viewModel.player.audioTracks.isEmpty
-                let hasSubs = !viewModel.subtitleStreams.isEmpty
+                let hasSubs = !viewModel.subtitleStreams.isEmpty || viewModel.supportsSubtitleSearch
                 let hasEpisodes = viewModel.seasonEpisodes.count > 1
                 // Mirror the TransportBar visibility gate, chapter
                 // button is suppressed for series episodes.
@@ -1320,7 +1322,51 @@ final class PlayerHostController: AVPlayerViewController {
 
     @objc private func handlePan(_ gesture: UIPanGestureRecognizer) {
         if viewModel.isSubtitleDeletePromptVisible { return }
-        if viewModel.subtitleSearchVisible { return }
+        // Subtitle search overlay open: swipes navigate it the same way
+        // the remote's arrow keys do, routed through the same @objc
+        // handlers (which already special-case subtitleSearchVisible).
+        // Vertical steps between the language row and the result list,
+        // horizontal steps through the language options. Uses the
+        // dropdown's cumulative step model (dropdownStepSize pt per item)
+        // so a long flick through a result list steps once per item
+        // instead of overshooting.
+        if viewModel.subtitleSearchVisible {
+            switch gesture.state {
+            case .began:
+                panAxis = .undetermined
+                lastDropdownStep = 0
+            case .changed:
+                let t = gesture.translation(in: view)
+                if panAxis == .undetermined {
+                    let absX = abs(t.x)
+                    let absY = abs(t.y)
+                    if max(absX, absY) >= Self.panAxisCommitThreshold {
+                        panAxis = absX > absY ? .horizontal : .vertical
+                    }
+                }
+                guard panAxis != .undetermined else { break }
+                let delta = panAxis == .horizontal ? t.x : t.y
+                let currentStep = (delta / Self.dropdownStepSize).rounded(.towardZero)
+                if currentStep != lastDropdownStep {
+                    let steps = Int(currentStep - lastDropdownStep)
+                    let forward = steps > 0
+                    for _ in 0..<abs(steps) {
+                        if panAxis == .horizontal {
+                            forward ? rightPressed() : leftPressed()
+                        } else {
+                            forward ? downPressed() : upPressed()
+                        }
+                    }
+                    lastDropdownStep = currentStep
+                }
+            case .ended, .cancelled:
+                panAxis = .undetermined
+                lastDropdownStep = 0
+            default:
+                break
+            }
+            return
+        }
         // Stats overlay open: route vertical swipes to the section
         // cursor, swallow horizontal swipes so they don't scrub the
         // timeline behind the panel. Same gating as the @objc up /

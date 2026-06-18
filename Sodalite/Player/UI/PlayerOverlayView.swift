@@ -420,6 +420,7 @@ struct PlayerOverlayView: View {
                     activeSubtitleIndex: viewModel.activeSubtitleIndex,
                     activeSecondarySubtitleIndex: viewModel.activeSecondarySubtitleIndex,
                     secondarySubtitleCandidates: viewModel.secondarySubtitleCandidates,
+                    supportsSubtitleSearch: viewModel.supportsSubtitleSearch,
                     activeSpeedIndex: viewModel.activeSpeedIndex,
                     controlsFocus: viewModel.controlsFocus,
                     trackDropdown: viewModel.trackDropdown,
