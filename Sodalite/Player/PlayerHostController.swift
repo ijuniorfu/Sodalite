@@ -696,13 +696,17 @@ final class PlayerHostController: AVPlayerViewController {
         // deliberately, auto-resuming after a sleep / Home /
         // screensaver gap is startling.
         //
-        // No artificial settle delay needed any more, AetherEngine's
-        // load() now blocks until audio is genuinely flowing through
-        // the pipeline (or 2s timeout) before resuming the caller,
-        // so pause() right after has a fully wired-up synchronizer
-        // to operate on.
+        // On the native path load() issues play() and returns once the
+        // panel handshake settles (it does NOT block on audio actually
+        // flowing), so the pause() below can land while the rebuilt
+        // AVPlayer is still waitingToPlayAtSpecifiedRate re-buffering the
+        // post-suspend AVIO reconnect. Diagnostics bracket the sequence so
+        // a device log shows whether the user's later Play press hits a
+        // still-stalled player (the "play does nothing" symptom).
+        LogTap.shared.note("[Foreground] reload start: state=\(viewModel.player.state) t=\(String(format: "%.2f", viewModel.player.currentTime))")
         Task { @MainActor in
             try? await viewModel.player.reloadAtCurrentPosition()
+            LogTap.shared.note("[Foreground] reload returned: state=\(viewModel.player.state) audio=\(viewModel.player.activeAudioDecoder ?? "-"); issuing pause()")
             viewModel.player.pause()
             viewModel.showControlsTemporarily()
         }
