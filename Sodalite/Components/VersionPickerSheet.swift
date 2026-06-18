@@ -107,12 +107,15 @@ struct VersionPickerSheet: View {
                 .font(.title2)
                 .fontWeight(.semibold)
 
-            VStack(spacing: 16) {
-                ForEach(sorted) { source in
-                    row(source)
+            ScrollView {
+                VStack(spacing: 16) {
+                    ForEach(sorted) { source in
+                        row(source)
+                    }
                 }
+                .frame(maxWidth: 760)
+                .padding(.vertical, 8)
             }
-            .frame(maxWidth: 760)
         }
         .padding(80)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -126,7 +129,10 @@ struct VersionPickerSheet: View {
             Text(source.versionLabel)
                 .font(.title3)
                 .fontWeight(.medium)
-            Spacer()
+                .multilineTextAlignment(.leading)
+                .lineLimit(nil)
+                .fixedSize(horizontal: false, vertical: true)
+            Spacer(minLength: 0)
         }
         .padding(.horizontal, 32)
         .padding(.vertical, 22)
