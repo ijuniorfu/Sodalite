@@ -829,7 +829,7 @@ private struct TransportLabelWidthKey: PreferenceKey {
 
 private enum DropdownImage {
     case url(URL)                 // episode picker: Jellyfin image
-    case chapterThumbnail(Int)    // chapter picker: decoded via FrameExtractor at the chapter index
+    case chapterThumbnail(Int)    // chapter picker: server chapter image, else FrameExtractor still
 }
 
 private struct DropdownItem {
@@ -859,9 +859,11 @@ private struct DropdownItem {
 
 // MARK: - Chapter Thumbnail View
 
-/// Loads a chapter thumbnail (decoded via the session FrameExtractor) when
-/// the row appears. Shows the gray placeholder until ready. Lazy rendering
-/// means only visible rows decode; the extractor LRU caches repeats.
+/// Loads a chapter thumbnail (the Jellyfin-rendered chapter image when the
+/// server has one, otherwise a FrameExtractor still) when the row appears.
+/// Shows the gray placeholder until ready. Lazy rendering means only visible
+/// rows load; server images hit the shared ImageCache, extractor stills the
+/// extractor's LRU, so repeats are cheap.
 private struct ChapterThumbnailView: View {
     let index: Int
     let load: @Sendable (Int) async -> CGImage?
