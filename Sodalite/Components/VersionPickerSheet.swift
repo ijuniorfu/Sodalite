@@ -127,7 +127,7 @@ struct VersionPickerSheet: View {
         let isFocused = focusedID == source.id
         return HStack {
             Text(source.versionLabel)
-                .font(.title3)
+                .font(.body)
                 .fontWeight(.medium)
                 .multilineTextAlignment(.leading)
                 .lineLimit(nil)
