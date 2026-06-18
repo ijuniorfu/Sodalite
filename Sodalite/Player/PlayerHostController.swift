@@ -698,12 +698,10 @@ final class PlayerHostController: AVPlayerViewController {
         //
         // On the native path load() issues play() and returns once the
         // panel handshake settles (it does NOT block on audio actually
-        // flowing), so the pause() below can land while the rebuilt
+        // flowing), so the trailing pause below can land while the rebuilt
         // AVPlayer is still waitingToPlayAtSpecifiedRate re-buffering the
-        // post-suspend AVIO reconnect. Diagnostics bracket the sequence so
-        // a device log shows whether the user's later Play press hits a
-        // still-stalled player (the "play does nothing" symptom).
-        LogTap.shared.note("[Foreground] reload start: state=\(viewModel.player.state) t=\(String(format: "%.2f", viewModel.player.currentTime))")
+        // post-suspend AVIO reconnect.
+        //
         // The reload is slow (teardown + reopen). The trailing pause holds
         // the player on the resumed frame so the user resumes deliberately,
         // but if they press Play during the reload that intent must win, or
@@ -712,7 +710,6 @@ final class PlayerHostController: AVPlayerViewController {
         viewModel.beginBackgroundReload()
         Task { @MainActor in
             try? await viewModel.player.reloadAtCurrentPosition()
-            LogTap.shared.note("[Foreground] reload returned: state=\(viewModel.player.state) audio=\(viewModel.player.activeAudioDecoder ?? "-") awaiting=\(viewModel.isAwaitingBackgroundReload)")
             viewModel.finishBackgroundReload()
         }
     }
