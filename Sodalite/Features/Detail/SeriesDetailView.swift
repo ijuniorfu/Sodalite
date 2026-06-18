@@ -33,6 +33,7 @@ struct SeriesDetailView: View {
     /// but pressing Down jumped past the seasons row straight to the
     /// cast row below the episodes.
     @State private var playOriginatedFromPlayButton = false
+    @State private var isShuffleLoading = false
     /// Captured ScrollViewProxy for the outer vertical ScrollView in
     /// DetailContentOverlay. The player-dismiss handler uses it to
     /// scroll back to the episode row when restoring focus to the
@@ -692,9 +693,16 @@ struct SeriesDetailView: View {
                 GlassActionButton(
                     title: "action.shuffle",
                     systemImage: "shuffle",
+                    // Drop straight onto a spinner the moment the
+                    // button is tapped, mirroring the play button.
+                    // VideoShuffleQueue.build fetches the episode list
+                    // a few hundred ms later, so without this the row
+                    // sits inert until showPlayer flips.
+                    isLoading: isShuffleLoading,
                     action: {
                         guard let userID = appState.activeUser?.id else { return }
                         let seriesID = vm.item.id
+                        isShuffleLoading = true
                         Task {
                             let queue = await VideoShuffleQueue.build(
                                 parentID: seriesID,
@@ -702,6 +710,7 @@ struct SeriesDetailView: View {
                                 service: dependencies.jellyfinLibraryService,
                                 userID: userID
                             )
+                            isShuffleLoading = false
                             guard let first = queue.first else { return }
                             playItem = first
                             playQueue = queue
