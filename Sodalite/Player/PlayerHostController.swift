@@ -801,7 +801,7 @@ final class PlayerHostController: AVPlayerViewController {
             viewModel.showStatsOverlay = false
             return
         }
-        // Skip Intro takes priority over any transient scrub state.
+        // Skip Intro takes priority over a transient scrub state.
         // The Siri Remote touchpad reports a tiny pan in the milliseconds
         // before its click registers, easily past the 40pt scrub
         // threshold, which flips both showControls and isScrubbing
@@ -811,8 +811,14 @@ final class PlayerHostController: AVPlayerViewController {
         // controls are hidden + the dropdown is closed, so we use the
         // same gate to detect "user clearly intends Skip Intro" and
         // discard the bogus partial scrub before acting.
+        //
+        // But a DELIBERATE scrub out of the intro must commit to its
+        // target, not get hijacked into Skip Intro. `scrubMovedMeaningfully`
+        // separates a real drag (tens of seconds across the scrubber) from
+        // the pre-click jitter, so only the jitter case skips here.
         if viewModel.isInsideIntro && !viewModel.isDropdownOpen
-           && (!viewModel.showControls || viewModel.controlsFocus == .progressBar) {
+           && (!viewModel.showControls || viewModel.controlsFocus == .progressBar)
+           && !viewModel.scrubMovedMeaningfully {
             if viewModel.isScrubbing { viewModel.cancelScrub() }
             viewModel.skipIntro()
             return

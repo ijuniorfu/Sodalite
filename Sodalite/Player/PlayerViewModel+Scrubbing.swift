@@ -24,6 +24,26 @@ extension PlayerViewModel {
         return effectiveDuration
     }
 
+    /// Minimum scrubbed distance, in seconds away from the live playhead,
+    /// that marks a scrub as a deliberate seek rather than the sub-second
+    /// touchpad jitter the Siri Remote emits in the moments before a click.
+    /// The velocity-gated commit (`scrubCommitMinVelocity` + a translation
+    /// reset) keeps that pre-click pan tiny, well under this; a real drag
+    /// across the scrubber moves tens of seconds.
+    static let deliberateScrubThresholdSeconds: Double = 5
+
+    /// True when the active scrub has moved a deliberate distance from the
+    /// live playhead, as opposed to the pre-click touchpad jitter. Used so a
+    /// real scrub out of an intro commits to its target instead of being
+    /// hijacked into Skip Intro. VOD-only (`effectiveDuration > 0`); live has
+    /// no intro segments.
+    var scrubMovedMeaningfully: Bool {
+        guard isScrubbing else { return false }
+        let dur = effectiveDuration
+        guard dur > 0 else { return false }
+        return abs(Double(scrubProgress - progress)) * dur >= Self.deliberateScrubThresholdSeconds
+    }
+
     func scrub(delta: CGFloat) {
         let dur = scrubReferenceDuration
         guard dur > 0 else { return }
