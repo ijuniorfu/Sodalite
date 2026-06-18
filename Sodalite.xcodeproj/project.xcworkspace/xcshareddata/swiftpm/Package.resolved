@@ -7,7 +7,7 @@
       "location" : "https://github.com/superuser404notfound/AetherEngine",
       "state" : {
         "branch" : "main",
-        "revision" : "48dffbfa2d73ebfea2133a5b4b873ce7376ee56c"
+        "revision" : "f2f16ff24f440d3d775370c9f252593d143f9569"
       }
     },
     {
@@ -42,8 +42,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/superuser404notfound/LibDovi",
       "state" : {
-        "revision" : "3681a5a88adb9faa07e7dd745c0cdbddf465ac3a",
-        "version" : "1.0.1"
+        "revision" : "bebab0af0e3633b0002fcc7106ea6fc7ceea8277",
+        "version" : "1.0.2"
       }
     },
     {
