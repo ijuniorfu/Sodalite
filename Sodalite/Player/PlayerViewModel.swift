@@ -4,6 +4,7 @@ import Observation
 import AetherEngine
 import SwiftAssRenderer
 import AVKit
+import UIKit
 import os
 
 /// ViewModel that bridges AetherEngine with Jellyfin session reporting
@@ -267,6 +268,13 @@ final class PlayerViewModel {
     /// button when count <= 1.
     var chapters: [ChapterInfo] = []
 
+    /// Original `item.chapters` index for each entry in the sorted
+    /// `chapters` array (parallel, same count). The server's chapter
+    /// image endpoint is keyed by the chapter's position in the
+    /// unsorted container order, so the defensive start-position sort
+    /// above would point at the wrong image without this remap.
+    @ObservationIgnored private var chapterImageIndices: [Int] = []
+
     /// Picture-fill mode for the currently active session. Initialised
     /// at `startPlayback` from the user's `PlaybackPreferences.pictureMode`,
     /// then mutable on the fly via `selectPictureMode`. Doesn't write
@@ -376,11 +384,52 @@ final class PlayerViewModel {
     /// by `scrubPreview` and `chapterThumbnail(forIndex:)`.
     @ObservationIgnored private var frameExtractor: FrameExtractor?
 
-    /// A still for a chapter, decoded from the session extractor at the
-    /// chapter's start time. Nil if no extractor or index out of range.
+    /// A still for a chapter. Prefers the Jellyfin-rendered chapter image
+    /// when the server has one (the `imageTag` is set once the "Chapter
+    /// image extraction" scheduled task has run): it's pre-rendered, cheap,
+    /// and cached, so it loads reliably for every chapter. Only when the
+    /// server has no image do we fall back to decoding the still ourselves
+    /// from the stream, which needs a deep random-access seek that grows
+    /// slower and flakier the further into the file the chapter sits, the
+    /// root of issue #21 where only the first couple of extractor seeks
+    /// landed. Nil if neither source yields an image or index is invalid.
     func chapterThumbnail(forIndex index: Int) async -> CGImage? {
-        guard let frameExtractor, chapters.indices.contains(index) else { return nil }
-        return await frameExtractor.thumbnail(at: chapters[index].startSeconds, maxWidth: 320)
+        guard chapters.indices.contains(index) else { return nil }
+        let chapter = chapters[index]
+        if let tag = chapter.imageTag, !tag.isEmpty,
+           let url = playbackService.buildChapterImageURL(
+               itemID: item.id,
+               chapterIndex: chapterImageIndices[index],
+               imageTag: tag,
+               maxWidth: 320
+           ),
+           let image = await Self.loadServerChapterImage(from: url) {
+            return image
+        }
+        guard let frameExtractor else { return nil }
+        return await frameExtractor.thumbnail(at: chapter.startSeconds, maxWidth: 320)
+    }
+
+    /// Fetches + decodes a server chapter image, reusing the shared
+    /// `ImageCache` (memory-only, cost-evicted) so re-opening the chapter
+    /// picker doesn't re-hit the network. Auth rides in the URL's `api_key`
+    /// query, like the other playback URLs, so no header is needed.
+    /// `nonisolated` + `static` lets the fetch/decode run off the MainActor.
+    nonisolated private static func loadServerChapterImage(from url: URL) async -> CGImage? {
+        if let cached = ImageCache.shared.image(for: url) { return cached.cgImage }
+        var request = URLRequest(url: url)
+        request.timeoutInterval = 15
+        do {
+            let (data, response) = try await URLSession.shared.data(for: request)
+            guard let http = response as? HTTPURLResponse,
+                  (200...299).contains(http.statusCode),
+                  let image = UIImage(data: data) else { return nil }
+            let prepared = image.preparingForDisplay() ?? image
+            ImageCache.shared.store(prepared, for: url)
+            return prepared.cgImage
+        } catch {
+            return nil
+        }
     }
 
     // MARK: - Internal State
@@ -536,8 +585,11 @@ final class PlayerViewModel {
         // detail fetch requested the Chapters field. Sort defensively
         //, the API documents start-position order but a few legacy
         // taggers emit them out of sequence.
-        chapters = (item.chapters ?? [])
-            .sorted { $0.startPositionTicks < $1.startPositionTicks }
+        let orderedChapters = (item.chapters ?? [])
+            .enumerated()
+            .sorted { $0.element.startPositionTicks < $1.element.startPositionTicks }
+        chapters = orderedChapters.map(\.element)
+        chapterImageIndices = orderedChapters.map(\.offset)
         // Reset the picture mode to the user's global default for
         // each new playback session, in-player overrides shouldn't
         // bleed across episodes / movies.
