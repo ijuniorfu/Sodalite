@@ -32,6 +32,10 @@ struct TransportBar: View {
     /// Streams eligible as the secondary line (text codecs, excluding the
     /// primary). Mirrors `viewModel.secondarySubtitleCandidates`.
     let secondarySubtitleCandidates: [MediaStream]
+    /// When true, the subtitle button is shown even with zero subtitle
+    /// streams so the "Search online..." download entry stays reachable.
+    /// Mirrors `viewModel.supportsSubtitleSearch`.
+    let supportsSubtitleSearch: Bool
     let activeSpeedIndex: Int
     let controlsFocus: PlayerViewModel.ControlsFocus
     let trackDropdown: PlayerViewModel.TrackDropdown
@@ -146,7 +150,7 @@ struct TransportBar: View {
                     )
                 }
 
-                if !subtitleStreams.isEmpty {
+                if !subtitleStreams.isEmpty || supportsSubtitleSearch {
                     let activeStream = activeSubtitleIndex.flatMap { idx in
                         subtitleStreams.first(where: { $0.index == idx })
                     }
