@@ -1368,7 +1368,38 @@ final class PlayerViewModel {
 
     // MARK: - Controls
 
+    /// True while a post-background pipeline reload is in flight. The
+    /// reload auto-plays, then the host pauses by policy ("don't auto-resume
+    /// after a Home / sleep / screensaver gap"). The reload is async and
+    /// slow (teardown + reopen), so the user can press Play during it; that
+    /// intent is authoritative and the trailing pause must be skipped, or it
+    /// clobbers the resume they just triggered (the "play does nothing,
+    /// press again" symptom).
+    private(set) var isAwaitingBackgroundReload = false
+    private var userToggledDuringBackgroundReload = false
+
+    /// Mark the start of the post-background reload window. Call before
+    /// awaiting `reloadAtCurrentPosition()`.
+    func beginBackgroundReload() {
+        isAwaitingBackgroundReload = true
+        userToggledDuringBackgroundReload = false
+    }
+
+    /// Apply the post-reload pause policy once the reload returns: hold the
+    /// player paused on the resumed frame so the user resumes deliberately,
+    /// UNLESS they already pressed play/pause during the reload (then their
+    /// intent wins and we leave the engine's state alone). Surfaces the
+    /// controls either way.
+    func finishBackgroundReload() {
+        let userIntervened = userToggledDuringBackgroundReload
+        isAwaitingBackgroundReload = false
+        userToggledDuringBackgroundReload = false
+        if !userIntervened { player.pause() }
+        showControlsTemporarily()
+    }
+
     func togglePlayPause() {
+        if isAwaitingBackgroundReload { userToggledDuringBackgroundReload = true }
         player.togglePlayPause()
         reportProgressIfNeeded()
         showControls = true

@@ -704,11 +704,16 @@ final class PlayerHostController: AVPlayerViewController {
         // a device log shows whether the user's later Play press hits a
         // still-stalled player (the "play does nothing" symptom).
         LogTap.shared.note("[Foreground] reload start: state=\(viewModel.player.state) t=\(String(format: "%.2f", viewModel.player.currentTime))")
+        // The reload is slow (teardown + reopen). The trailing pause holds
+        // the player on the resumed frame so the user resumes deliberately,
+        // but if they press Play during the reload that intent must win, or
+        // it clobbers their resume (the "play does nothing, press again"
+        // symptom). beginBackgroundReload/finishBackgroundReload arbitrate.
+        viewModel.beginBackgroundReload()
         Task { @MainActor in
             try? await viewModel.player.reloadAtCurrentPosition()
-            LogTap.shared.note("[Foreground] reload returned: state=\(viewModel.player.state) audio=\(viewModel.player.activeAudioDecoder ?? "-"); issuing pause()")
-            viewModel.player.pause()
-            viewModel.showControlsTemporarily()
+            LogTap.shared.note("[Foreground] reload returned: state=\(viewModel.player.state) audio=\(viewModel.player.activeAudioDecoder ?? "-") awaiting=\(viewModel.isAwaitingBackgroundReload)")
+            viewModel.finishBackgroundReload()
         }
     }
 
