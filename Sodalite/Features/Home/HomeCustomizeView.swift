@@ -91,9 +91,9 @@ struct HomeCustomizeView: View {
 
     /// Plex-style combined row: folds Next Up into Continue Watching.
     /// Lives here rather than in Appearance because it changes which
-    /// rows exist, same as the enable/disable controls below it. App
-    /// toggle convention: a ValuePickerRow whose value flips with
-    /// left/right, like every other On/Off setting, NOT a tap-toggle.
+    /// rows exist, same as the show/hide controls below it. App toggle
+    /// convention: a ValuePickerRow whose value flips with left/right,
+    /// like every other On/Off setting, NOT a tap-toggle.
     private var mergeRowToggle: some View {
         ValuePickerRow(
             icon: "arrow.triangle.merge",
@@ -153,9 +153,13 @@ struct HomeCustomizeView: View {
     // MARK: - Row list
 
     /// One unified, ordered list. Enabled rows sit on top in their Home
-    /// order; disabled rows sink below a thin divider, greyed. No separate
-    /// section headers and no floating +/- circles: each row carries the
-    /// move affordance on its body and an inline eye control on the right.
+    /// order; disabled rows sink below a thin divider, greyed. Each row has
+    /// two focus targets: the body (click reorders an enabled row, or
+    /// re-enables a disabled one) and a trailing On/Off switch (click shows
+    /// or hides the row). Splitting the two gestures across two elements
+    /// keeps each one a plain clickpad press, which the Siri Remote delivers
+    /// reliably; overloading one element with a directional toggle made the
+    /// reorder click ambiguous with a directional press and swallowed it.
     private var rowList: some View {
         VStack(spacing: 6) {
             ForEach(Array(enabledRows.enumerated()), id: \.element.id) { index, config in
@@ -195,45 +199,10 @@ struct HomeCustomizeView: View {
                 isHighlighted: movingID == config.id,
                 action: { handleRowTap(config.id, at: index) }
             ) { isFocused in
-                HStack(spacing: 20) {
-                    Image(systemName: config.systemImage)
-                        .font(.title3)
-                        .frame(width: 44)
-                        .foregroundStyle(.tint)
-
-                    rowLabel(config)
-                        .font(.body)
-
-                    Spacer()
-
-                    if movingID == config.id {
-                        Text("home.customize.moving")
-                            .font(.caption)
-                            .foregroundStyle(.tint)
-                    }
-                }
-                .padding(.vertical, 14)
-                .padding(.horizontal, 20)
-                .background(
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(tileBackground(isFocused: isFocused, isMoving: movingID == config.id))
-                )
-                .overlay(
-                    RoundedRectangle(cornerRadius: 12)
-                        .stroke(movingID == config.id ? AnyShapeStyle(.tint.opacity(0.6)) : AnyShapeStyle(Color.clear), lineWidth: 2)
-                )
-                .overlay(
-                    // Accent focus stroke, same 3pt treatment as the rest
-                    // of the app's focusable cards. Layered on top of the
-                    // "moving" indicator above; when both apply the focus
-                    // stroke dominates (fully opaque, thicker).
-                    RoundedRectangle(cornerRadius: 12)
-                        .strokeBorder(.tint, lineWidth: 3)
-                        .opacity(isFocused ? 1 : 0)
-                )
+                rowBody(config, isFocused: isFocused, isEnabled: true)
             }
 
-            InlineEyeToggle(isOn: true) {
+            RowToggleButton(isOn: true) {
                 movingID = nil
                 toggle(id: config.id)
             }
@@ -244,51 +213,68 @@ struct HomeCustomizeView: View {
     // MARK: - Disabled row
 
     /// Disabled rows have no Home position, so the body itself re-activates
-    /// the row on tap (a big, forgiving target). The trailing eye.slash is a
-    /// static state indicator, kept the same width as the enabled toggle so
-    /// both lists align.
+    /// the row on click (a big, forgiving target), and the trailing switch
+    /// shows "Off" and re-enables it too.
     private func disabledRow(_ config: HomeRowConfig) -> some View {
         HStack(spacing: 16) {
             FocusableTile(action: { toggle(id: config.id) }) { isFocused in
-                HStack(spacing: 20) {
-                    Image(systemName: config.systemImage)
-                        .font(.title3)
-                        .frame(width: 44)
-                        .foregroundStyle(.tertiary)
-
-                    rowLabel(config)
-                        .font(.body)
-                        .foregroundStyle(.secondary)
-
-                    Spacer()
-                }
-                .padding(.vertical, 14)
-                .padding(.horizontal, 20)
-                .background(
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(isFocused ? Color.white.opacity(0.10) : Color.white.opacity(0.02))
-                )
-                .overlay(
-                    RoundedRectangle(cornerRadius: 12)
-                        .strokeBorder(.tint, lineWidth: 3)
-                        .opacity(isFocused ? 1 : 0)
-                )
+                rowBody(config, isFocused: isFocused, isEnabled: false)
             }
 
-            Image(systemName: "eye.slash")
-                .font(.title3)
-                .foregroundStyle(.tertiary)
-                .frame(width: 60, height: 60)
+            RowToggleButton(isOn: false) {
+                toggle(id: config.id)
+            }
         }
         .padding(.horizontal, 50)
     }
 
+    /// Shared left side of a row: icon, label and the "moving" indicator.
+    @ViewBuilder
+    private func rowBody(_ config: HomeRowConfig, isFocused: Bool, isEnabled: Bool) -> some View {
+        HStack(spacing: 20) {
+            Image(systemName: config.systemImage)
+                .font(.title3)
+                .frame(width: 44)
+                .foregroundStyle(isEnabled ? AnyShapeStyle(.tint) : AnyShapeStyle(.tertiary))
+
+            rowLabel(config)
+                .font(.body)
+                .foregroundStyle(isEnabled ? AnyShapeStyle(.primary) : AnyShapeStyle(.secondary))
+
+            Spacer()
+
+            if movingID == config.id {
+                Text("home.customize.moving")
+                    .font(.caption)
+                    .foregroundStyle(.tint)
+            }
+        }
+        .padding(.vertical, 14)
+        .padding(.horizontal, 20)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(tileBackground(isFocused: isFocused, isMoving: movingID == config.id, isEnabled: isEnabled))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(movingID == config.id ? AnyShapeStyle(.tint.opacity(0.6)) : AnyShapeStyle(Color.clear), lineWidth: 2)
+        )
+        .overlay(
+            // Accent focus stroke, same 3pt treatment as the rest of the
+            // app's focusable cards. When a row is both focused and picked
+            // up, this fully opaque stroke dominates the thinner move ring.
+            RoundedRectangle(cornerRadius: 12)
+                .strokeBorder(.tint, lineWidth: 3)
+                .opacity(isFocused ? 1 : 0)
+        )
+    }
+
     // MARK: - Helpers
 
-    private func tileBackground(isFocused: Bool, isMoving: Bool) -> AnyShapeStyle {
+    private func tileBackground(isFocused: Bool, isMoving: Bool, isEnabled: Bool) -> AnyShapeStyle {
         if isMoving { return AnyShapeStyle(TintShapeStyle.tint.opacity(0.12)) }
         if isFocused { return AnyShapeStyle(Color.white.opacity(0.12)) }
-        return AnyShapeStyle(Color.white.opacity(0.05))
+        return AnyShapeStyle(isEnabled ? Color.white.opacity(0.05) : Color.white.opacity(0.02))
     }
 
     /// Up Next disappears from both lists while the merge toggle is
@@ -388,31 +374,58 @@ struct FocusableTile<Content: View>: View {
     }
 }
 
-// MARK: - Inline eye toggle (add/remove a row from Home)
+// MARK: - Row On/Off switch (show / hide a row on Home)
 
-/// Compact trailing control that flips a row's membership in Home. This is
-/// an action button (add/remove), not an On/Off settings switch, so it taps
-/// rather than flipping with left/right like a ValuePickerRow. Replaces the
-/// old floating red-minus / green-plus circles with one quiet eye control.
-struct InlineEyeToggle: View {
+/// Trailing control that flips a row's membership in Home. Its own focus
+/// target with a single gesture, the clickpad press, so it never competes
+/// with the row body's reorder click. The chevron-free pill makes clear it
+/// is a click button (add / remove), not a left/right ValuePickerRow; a
+/// directional toggle here would trap focus against the body beside it.
+struct RowToggleButton: View {
     let isOn: Bool
     let action: () -> Void
 
-    @FocusState private var isFocused: Bool
+    @FocusState private var focused: Bool
 
     var body: some View {
-        Image(systemName: isOn ? "eye.fill" : "eye.slash")
-            .font(.title3)
-            .foregroundStyle(isOn ? AnyShapeStyle(.tint) : AnyShapeStyle(.secondary))
-            .frame(width: 60, height: 60)
-            .background(
-                Circle().fill(isFocused ? .white.opacity(0.15) : .clear)
-            )
-            .scaleEffect(isFocused ? 1.2 : 1.0)
-            .animation(.easeInOut(duration: 0.15), value: isFocused)
-            .focusable()
-            .focused($isFocused)
-            .stableTap(isFocused: isFocused) { action() }
+        HStack(spacing: 8) {
+            Image(systemName: isOn ? "eye.fill" : "eye.slash")
+                .font(.body)
+            Text(isOn
+                ? String(localized: "common.on", defaultValue: "On")
+                : String(localized: "common.off", defaultValue: "Off"))
+                .font(.body)
+                .fontWeight(.semibold)
+                .contentTransition(.opacity)
+        }
+        .foregroundStyle(foreground)
+        .frame(minWidth: 104)
+        .padding(.horizontal, 18)
+        .padding(.vertical, 12)
+        .background(
+            Capsule().fill(background)
+        )
+        .overlay(
+            Capsule()
+                .strokeBorder(.tint, lineWidth: 3)
+                .opacity(focused ? 1 : 0)
+        )
+        .scaleEffect(focused ? 1.06 : 1.0)
+        .animation(.easeInOut(duration: 0.15), value: focused)
+        .animation(.easeInOut(duration: 0.15), value: isOn)
+        .focusable()
+        .focused($focused)
+        .stableTap(isFocused: focused) { action() }
+    }
+
+    private var foreground: AnyShapeStyle {
+        if isOn { return AnyShapeStyle(focused ? AnyShapeStyle(.white) : AnyShapeStyle(.tint)) }
+        return AnyShapeStyle(focused ? AnyShapeStyle(.white) : AnyShapeStyle(.secondary))
+    }
+
+    private var background: AnyShapeStyle {
+        if isOn { return AnyShapeStyle(TintShapeStyle.tint.opacity(focused ? 0.4 : 0.2)) }
+        return AnyShapeStyle(Color.white.opacity(focused ? 0.18 : 0.06))
     }
 }
 
