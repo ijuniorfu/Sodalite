@@ -113,7 +113,12 @@ struct VersionPickerSheet: View {
                         row(source)
                     }
                 }
-                .frame(maxWidth: 760)
+                .frame(
+                    maxWidth: 760,
+                    minHeight: sorted.count > 1
+                        ? min(CGFloat(sorted.count) * 140, 720)
+                        : nil
+                )
                 .padding(.vertical, 8)
             }
         }
