@@ -134,9 +134,23 @@ struct MovieDetailView: View {
         // The player posts this once Jellyfin confirms the stop
         // position, so the Play button's resume timestamp (and the spot
         // a re-launch resumes from) reflect where the user actually
-        // stopped, not where they started (issue #24).
-        .onReceive(NotificationCenter.default.publisher(for: .playbackProgressDidChange)) { _ in
-            Task { await viewModel?.refreshResumePosition() }
+        // stopped, not where they started (issue #24). The payload's
+        // position is patched in place (authoritative, race-free); the
+        // re-fetch only reconciles played / favorite state, and the
+        // patch is re-applied after it so a stale cached re-fetch can't
+        // regress the just-played position.
+        .onReceive(NotificationCenter.default.publisher(for: .playbackProgressDidChange)) { note in
+            let itemID = note.userInfo?[PlaybackProgressKey.itemID] as? String
+            let ticks = note.userInfo?[PlaybackProgressKey.positionTicks] as? Int64
+            Task { @MainActor in
+                if let itemID, let ticks {
+                    viewModel?.applyPlaybackPosition(itemID: itemID, ticks: ticks)
+                }
+                await viewModel?.refreshResumePosition()
+                if let itemID, let ticks {
+                    viewModel?.applyPlaybackPosition(itemID: itemID, ticks: ticks)
+                }
+            }
         }
         // AppRouter bumps this counter on every deep-link arrival so
         // a TopShelf tap on a different item can tear down the active

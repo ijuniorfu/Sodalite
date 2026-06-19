@@ -419,20 +419,26 @@ struct SeriesDetailView: View {
             if showPlayer { showPlayer = false }
         }
         // The player posts this once Jellyfin confirms the stop
-        // position. Refresh next-up / the episode list so the Play
-        // button resumes from where the user actually stopped (issue
-        // #24), and re-enrich the open episode panel by hand: its id is
-        // unchanged, so the selectedEpisode onChange enrich path won't
-        // fire on its own.
-        .onReceive(NotificationCenter.default.publisher(for: .playbackProgressDidChange)) { _ in
-            Task {
-                await viewModel?.refreshResumePosition()
-                if let ep = selectedEpisode, let vm = viewModel {
-                    let refreshed = await vm.enrichedEpisode(for: ep)
-                    if selectedEpisode?.id == refreshed.id {
-                        selectedEpisode = refreshed
-                    }
+        // position. Patch the played episode's resume position in place
+        // from the payload (authoritative, race-free) across every
+        // in-memory holder, including selectedEpisode, which playTarget
+        // prioritises and which lives on the view, not the VM (issue
+        // #24). The re-fetch only reconciles played state / next-up
+        // advancing; the patch is re-applied after it so a stale cached
+        // re-fetch can't regress the just-played position.
+        .onReceive(NotificationCenter.default.publisher(for: .playbackProgressDidChange)) { note in
+            let itemID = note.userInfo?[PlaybackProgressKey.itemID] as? String
+            let ticks = note.userInfo?[PlaybackProgressKey.positionTicks] as? Int64
+            Task { @MainActor in
+                if let itemID, let ticks {
+                    viewModel?.applyPlaybackPosition(itemID: itemID, ticks: ticks)
                 }
+                patchSelectedEpisodePosition(itemID: itemID, ticks: ticks)
+                await viewModel?.refreshResumePosition()
+                if let itemID, let ticks {
+                    viewModel?.applyPlaybackPosition(itemID: itemID, ticks: ticks)
+                }
+                patchSelectedEpisodePosition(itemID: itemID, ticks: ticks)
             }
         }
         .navigationDestination(item: $navigateToItem) { item in
@@ -852,6 +858,21 @@ struct SeriesDetailView: View {
     ///      that response lands, so the button has data to render
     ///      before the full season episode list is fetched
     ///   4. First episode of the loaded list (fresh series start)
+    /// Patch the open episode panel's resume position in place when the
+    /// played item is the selected episode (issue #24). selectedEpisode
+    /// lives on the view, not the VM, and playTarget prioritises it, so
+    /// the VM-side applyPlaybackPosition can't reach it. No-op unless the
+    /// payload's id matches the selected episode.
+    private func patchSelectedEpisodePosition(itemID: String?, ticks: Int64?) {
+        guard let itemID, let ticks,
+              let ep = selectedEpisode, ep.id == itemID else { return }
+        selectedEpisode?.userData = (ep.userData ?? UserItemData(
+            playbackPositionTicks: nil, playCount: nil, isFavorite: nil,
+            played: nil, unplayedItemCount: nil, playedPercentage: nil,
+            lastPlayedDate: nil
+        )).withPlaybackPositionTicks(ticks)
+    }
+
     private func playTarget(vm: DetailViewModel) -> JellyfinItem? {
         if let selectedEpisode { return selectedEpisode }
         if let id = vm.currentEpisodeID,

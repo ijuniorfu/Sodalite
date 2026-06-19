@@ -27,7 +27,10 @@ struct JellyfinItem: Codable, Sendable, Identifiable, Equatable, Hashable {
     let imageTags: ImageTags?
     let backdropImageTags: [String]?
     let parentBackdropImageTags: [String]?
-    let userData: UserItemData?
+    // `var` so detail views can patch the in-memory resume position
+    // directly from the playback-stop payload (issue #24), without
+    // rebuilding the whole item or re-fetching from the server.
+    var userData: UserItemData?
     let mediaStreams: [MediaStream]?
     let mediaSources: [MediaSource]?
     let people: [PersonInfo]?
@@ -326,6 +329,24 @@ struct UserItemData: Codable, Sendable, Equatable {
         case unplayedItemCount = "UnplayedItemCount"
         case playedPercentage = "PlayedPercentage"
         case lastPlayedDate = "LastPlayedDate"
+    }
+
+    /// Returns a copy with the resume position replaced. Used to patch
+    /// the in-memory item after playback stops (issue #24) so the detail
+    /// Play button's timestamp + progress overlay reflect where the user
+    /// actually stopped, without a server round-trip. playedPercentage is
+    /// left untouched: the detail button derives its fraction from
+    /// ticks / runTimeTicks, not this field.
+    func withPlaybackPositionTicks(_ ticks: Int64) -> UserItemData {
+        UserItemData(
+            playbackPositionTicks: ticks,
+            playCount: playCount,
+            isFavorite: isFavorite,
+            played: played,
+            unplayedItemCount: unplayedItemCount,
+            playedPercentage: playedPercentage,
+            lastPlayedDate: lastPlayedDate
+        )
     }
 }
 
