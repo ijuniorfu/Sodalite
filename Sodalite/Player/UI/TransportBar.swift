@@ -209,6 +209,17 @@ struct TransportBar: View {
                 }
             }
             .padding(.bottom, 4)
+            // Force every focus-driven change in the track-button row onto
+            // one shared smooth curve, mirroring the detail-view
+            // CollapsingActionRowModifier. Riding the same transaction as
+            // the controlsFocus mutation makes the icon-only label reveal,
+            // the pill scale, and the sibling reflow all interpolate
+            // together. An .animation(value:) here lagged a frame in the
+            // detail views (only the immediate neighbor glided), which is
+            // why we use a transaction instead.
+            .transaction { txn in
+                txn.animation = .smooth(duration: 0.32)
+            }
 
             // Progress bar
             progressBar
@@ -233,8 +244,10 @@ struct TransportBar: View {
         .padding(.horizontal, 80)
         .padding(.bottom, 60)
         .animation(.easeInOut(duration: 0.2), value: isScrubbing)
-        .animation(.easeInOut(duration: 0.15), value: controlsFocus)
-        .animation(.easeInOut(duration: 0.15), value: trackDropdown)
+        // Match the track-button row's smooth curve so focus moving onto or
+        // off the progress bar interpolates with the same feel as the pills.
+        .animation(.smooth(duration: 0.32), value: controlsFocus)
+        .animation(.smooth(duration: 0.32), value: trackDropdown)
     }
 
     // MARK: - Scrub Preview
@@ -814,7 +827,17 @@ private struct TransportTrackLabel: View {
                 .strokeBorder(.tint, lineWidth: 3)
                 .opacity(isFocused ? 1 : 0)
         )
-        .scaleEffect(isFocused ? 1.05 : 1.0)
+        .scaleEffect(isFocused ? 1.08 : 1.0)
+        // Lift the focused pill off the video with the same depth cue the
+        // detail-view GlassActionButton uses, so the highlight reads as
+        // "raised" rather than just tinted.
+        .shadow(color: .black.opacity(isFocused ? 0.3 : 0), radius: 10, y: 5)
+        // Per-button focus animation, matching the detail-view button
+        // style. The enclosing row also forces this curve via a
+        // transaction (see the track-button HStack) so the focused pill
+        // and every sibling interpolate together instead of the neighbor
+        // gliding while distant pills snap.
+        .animation(.smooth(duration: 0.32), value: isFocused)
     }
 }
 
@@ -932,6 +955,9 @@ private extension TransportBar {
         .frame(height: rowHeight)
         .background(item.isHighlighted ? Color.white.opacity(0.25) : Color.clear)
         .foregroundStyle(item.isHighlighted ? .white : .white.opacity(0.8))
+        // Glide the highlight as it steps between rows instead of snapping,
+        // matching the track-button row's smooth focus feel.
+        .animation(.smooth(duration: 0.32), value: item.isHighlighted)
     }
 }
 
