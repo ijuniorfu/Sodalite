@@ -418,6 +418,23 @@ struct SeriesDetailView: View {
         .onChange(of: appState.requestPlayerDismissal) { _, _ in
             if showPlayer { showPlayer = false }
         }
+        // The player posts this once Jellyfin confirms the stop
+        // position. Refresh next-up / the episode list so the Play
+        // button resumes from where the user actually stopped (issue
+        // #24), and re-enrich the open episode panel by hand: its id is
+        // unchanged, so the selectedEpisode onChange enrich path won't
+        // fire on its own.
+        .onReceive(NotificationCenter.default.publisher(for: .playbackProgressDidChange)) { _ in
+            Task {
+                await viewModel?.refreshResumePosition()
+                if let ep = selectedEpisode, let vm = viewModel {
+                    let refreshed = await vm.enrichedEpisode(for: ep)
+                    if selectedEpisode?.id == refreshed.id {
+                        selectedEpisode = refreshed
+                    }
+                }
+            }
+        }
         .navigationDestination(item: $navigateToItem) { item in
             DetailRouterView(item: item)
         }

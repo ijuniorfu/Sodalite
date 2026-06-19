@@ -336,6 +336,47 @@ final class DetailViewModel {
         }
     }
 
+    /// Re-fetch the resume position after playback ends so the Play
+    /// button shows where the user actually stopped, not the spot they
+    /// resumed from at launch (issue #24). Driven by
+    /// `.playbackProgressDidChange`, which the player posts once Jellyfin
+    /// has confirmed the PlaybackStopped position, so this always reads
+    /// the updated value rather than racing the fire-and-forget report.
+    ///
+    /// Deliberately lighter than loadFullDetail(): it refreshes only the
+    /// userData that feeds the resume label + relaunch position and never
+    /// touches `isLoading`, so returning from the player doesn't reflash
+    /// the detail spinner.
+    func refreshResumePosition() async {
+        switch item.type {
+        case .series:
+            // The series play button resumes the next-up / current
+            // episode, so the position lives on the EPISODE's userData,
+            // not the series'. Refresh next-up, the on-screen season's
+            // episode list, and drop the per-episode detail cache so an
+            // open episode panel re-enriches from fresh data.
+            episodeDetailCache.removeAll()
+            if let libraryService,
+               let response = try? await libraryService.getNextUp(userID: userID, seriesID: item.id, limit: 1) {
+                nextUpEpisode = response.items.first
+                if let next = nextUpEpisode {
+                    currentEpisodeID = next.id
+                }
+            }
+            if let seasonID = selectedSeasonID,
+               let response = try? await itemService.getEpisodes(seriesID: item.id, seasonID: seasonID, userID: userID) {
+                episodesCache[seasonID] = response.items
+                episodes = response.items
+            }
+        default:
+            if let detail = try? await itemService.getItemDetail(userID: userID, itemID: item.id) {
+                item = detail
+                isFavorite = detail.userData?.isFavorite ?? false
+                isPlayed = detail.userData?.played ?? false
+            }
+        }
+    }
+
     func loadEpisodes(seasonID: String) async {
         selectedSeasonID = seasonID
 
