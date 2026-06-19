@@ -157,10 +157,10 @@ struct MediaCard: View {
                     ZStack(alignment: .leading) {
                         Rectangle()
                             .fill(.ultraThinMaterial)
-                            .frame(height: 6)
+                            .frame(height: 10)
                         Rectangle()
                             .fill(Color.white.opacity(0.9))
-                            .frame(width: geo.size.width * playedPercentage / 100, height: 6)
+                            .frame(width: geo.size.width * playedPercentage / 100, height: 10)
                     }
                 }
             }
