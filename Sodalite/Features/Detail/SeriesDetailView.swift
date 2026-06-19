@@ -865,12 +865,8 @@ struct SeriesDetailView: View {
     /// payload's id matches the selected episode.
     private func patchSelectedEpisodePosition(itemID: String?, ticks: Int64?) {
         guard let itemID, let ticks,
-              let ep = selectedEpisode, ep.id == itemID else { return }
-        selectedEpisode?.userData = (ep.userData ?? UserItemData(
-            playbackPositionTicks: nil, playCount: nil, isFavorite: nil,
-            played: nil, unplayedItemCount: nil, playedPercentage: nil,
-            lastPlayedDate: nil
-        )).withPlaybackPositionTicks(ticks)
+              selectedEpisode?.id == itemID else { return }
+        selectedEpisode?.setResumePosition(ticks)
     }
 
     private func playTarget(vm: DetailViewModel) -> JellyfinItem? {

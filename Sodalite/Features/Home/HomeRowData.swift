@@ -18,7 +18,10 @@ enum HomeSection: Identifiable {
 
 struct HomeRowData: Identifiable, Sendable {
     let type: HomeRowType
-    let items: [JellyfinItem]
+    // `var` so HomeViewModel can patch a just-watched item's resume
+    // progress in place from the playback-stop payload (issue #24),
+    // without waiting on a full row re-fetch to land fresh data.
+    var items: [JellyfinItem]
     var libraryID: String? = nil
     var libraryName: String? = nil
 

@@ -96,6 +96,24 @@ final class HomeViewModel {
         genreCachesTask?.cancel()
     }
 
+    /// Patch a just-watched item's resume progress in place across every
+    /// row that holds it (issue #24). Mirrors the detail-side fix: the
+    /// player's playback-stop payload is authoritative, so the Continue
+    /// Watching tile's progress bar (playedPercentage) is correct
+    /// immediately, without racing a full loadContent() re-fetch against
+    /// the server commit / the ETag cache. loadContent() still runs for
+    /// the structural changes a patch can't make (the item moving to the
+    /// front of Continue Watching, or dropping out once finished).
+    @MainActor
+    func applyPlaybackPosition(itemID: String, ticks: Int64) {
+        for rowIndex in rows.indices {
+            for itemIndex in rows[rowIndex].items.indices
+            where rows[rowIndex].items[itemIndex].id == itemID {
+                rows[rowIndex].items[itemIndex].setResumePosition(ticks)
+            }
+        }
+    }
+
     func loadContent() async {
         loadGeneration += 1
         let myGen = loadGeneration

@@ -418,11 +418,7 @@ final class DetailViewModel {
     func applyPlaybackPosition(itemID: String, ticks: Int64) {
         func patch(_ candidate: inout JellyfinItem) {
             guard candidate.id == itemID else { return }
-            candidate.userData = (candidate.userData ?? UserItemData(
-                playbackPositionTicks: nil, playCount: nil, isFavorite: nil,
-                played: nil, unplayedItemCount: nil, playedPercentage: nil,
-                lastPlayedDate: nil
-            )).withPlaybackPositionTicks(ticks)
+            candidate.setResumePosition(ticks)
         }
         patch(&item)
         if var next = nextUpEpisode { patch(&next); nextUpEpisode = next }

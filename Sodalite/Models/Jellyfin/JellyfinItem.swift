@@ -241,6 +241,27 @@ struct JellyfinItem: Codable, Sendable, Identifiable, Equatable, Hashable {
         self.albumPrimaryImageTag = nil
     }
 
+    /// Patch the resume position in place after playback stops (issue
+    /// #24). Updates userData.playbackPositionTicks and recomputes
+    /// playedPercentage from runTimeTicks so both the detail Play button
+    /// (ticks / runtime) and the Home tile progress bar (playedPercentage)
+    /// reflect the new spot without a server round-trip. Creates a
+    /// userData record if the item had none (a never-played item).
+    mutating func setResumePosition(_ ticks: Int64) {
+        let pct: Double?
+        if let total = runTimeTicks, total > 0 {
+            pct = min(100, max(0, Double(ticks) / Double(total) * 100))
+        } else {
+            pct = userData?.playedPercentage
+        }
+        let base = userData ?? UserItemData(
+            playbackPositionTicks: nil, playCount: nil, isFavorite: nil,
+            played: nil, unplayedItemCount: nil, playedPercentage: nil,
+            lastPlayedDate: nil
+        )
+        userData = base.with(playbackPositionTicks: ticks, playedPercentage: pct)
+    }
+
     static func == (lhs: JellyfinItem, rhs: JellyfinItem) -> Bool {
         lhs.id == rhs.id
     }
@@ -331,20 +352,17 @@ struct UserItemData: Codable, Sendable, Equatable {
         case lastPlayedDate = "LastPlayedDate"
     }
 
-    /// Returns a copy with the resume position replaced. Used to patch
-    /// the in-memory item after playback stops (issue #24) so the detail
-    /// Play button's timestamp + progress overlay reflect where the user
-    /// actually stopped, without a server round-trip. playedPercentage is
-    /// left untouched: the detail button derives its fraction from
-    /// ticks / runTimeTicks, not this field.
-    func withPlaybackPositionTicks(_ ticks: Int64) -> UserItemData {
+    /// Returns a copy with the resume position (and, when known, the
+    /// played percentage) replaced. Used to patch the in-memory item
+    /// after playback stops (issue #24) without a server round-trip.
+    func with(playbackPositionTicks ticks: Int64, playedPercentage pct: Double?) -> UserItemData {
         UserItemData(
             playbackPositionTicks: ticks,
             playCount: playCount,
             isFavorite: isFavorite,
             played: played,
             unplayedItemCount: unplayedItemCount,
-            playedPercentage: playedPercentage,
+            playedPercentage: pct,
             lastPlayedDate: lastPlayedDate
         )
     }
