@@ -113,11 +113,25 @@ struct HomeView: View {
         .onReceive(NotificationCenter.default.publisher(for: .homePlayedDidChange)) { _ in
             Task { await viewModel?.loadContent() }
         }
-        .onReceive(NotificationCenter.default.publisher(for: .playbackProgressDidChange)) { _ in
-            // The Jellyfin server has fresh progress for whatever
-            // the user just watched. Reload so Continue Watching and
-            // Next Up reflect it as soon as the user is back here.
-            Task { await viewModel?.loadContent() }
+        .onReceive(NotificationCenter.default.publisher(for: .playbackProgressDidChange)) { note in
+            // The Jellyfin server has fresh progress for whatever the
+            // user just watched. Patch that item's tile progress in
+            // place from the payload (authoritative, race-free), then
+            // reload so Continue Watching / Next Up reflect the
+            // structural changes (reorder, finished items dropping out).
+            // Re-apply the patch after the reload so a stale cached
+            // re-fetch can't regress the bar (issue #24).
+            let itemID = note.userInfo?[PlaybackProgressKey.itemID] as? String
+            let ticks = note.userInfo?[PlaybackProgressKey.positionTicks] as? Int64
+            Task { @MainActor in
+                if let itemID, let ticks {
+                    viewModel?.applyPlaybackPosition(itemID: itemID, ticks: ticks)
+                }
+                await viewModel?.loadContent()
+                if let itemID, let ticks {
+                    viewModel?.applyPlaybackPosition(itemID: itemID, ticks: ticks)
+                }
+            }
         }
         .onReceive(NotificationCenter.default.publisher(for: .homeItemDidDelete)) { _ in
             // The user just deleted an item. Reload so it drops out of
