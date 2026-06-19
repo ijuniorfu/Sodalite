@@ -1059,7 +1059,14 @@ final class PlayerViewModel {
             do {
                 try await svc.reportPlaybackStopped(stopReport)
                 await MainActor.run {
-                    NotificationCenter.default.post(name: .playbackProgressDidChange, object: nil)
+                    NotificationCenter.default.post(
+                        name: .playbackProgressDidChange,
+                        object: nil,
+                        userInfo: [
+                            PlaybackProgressKey.itemID: stopReport.itemId,
+                            PlaybackProgressKey.positionTicks: stopReport.positionTicks
+                        ]
+                    )
                 }
             } catch {
                 #if DEBUG

@@ -12,6 +12,14 @@ extension Notification.Name {
     /// report. Lets HomeView (and any other view that cares) refresh
     /// Continue Watching / Next Up so the user sees their new
     /// progress as soon as they're back.
+    ///
+    /// Carries a `userInfo` with `PlaybackProgressKey.itemID` (the item
+    /// whose position changed, the EPISODE for series playback) and
+    /// `PlaybackProgressKey.positionTicks` (the position the player
+    /// stopped at). Detail views patch that exact item's in-memory
+    /// userData directly from this payload, which is authoritative and
+    /// race-free, rather than re-fetching and hoping the server has
+    /// committed / the ETag cache is fresh (issue #24).
     static let playbackProgressDidChange = Notification.Name("playbackProgressDidChange")
     /// Posted by the detail views after a successful deletion. Lets
     /// HomeView reload so the deleted item disappears from the rows
@@ -29,4 +37,12 @@ extension Notification.Name {
     /// only reloaded when empty, so a new request didn't appear until
     /// app restart.
     static let seerrRequestDidSubmit = Notification.Name("seerrRequestDidSubmit")
+}
+
+/// userInfo keys for `.playbackProgressDidChange`.
+enum PlaybackProgressKey {
+    /// `String` item id whose playback position changed.
+    static let itemID = "itemID"
+    /// `Int64` position (in Jellyfin ticks) the player stopped at.
+    static let positionTicks = "positionTicks"
 }

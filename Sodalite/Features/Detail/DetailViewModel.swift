@@ -399,6 +399,45 @@ final class DetailViewModel {
         }
     }
 
+    /// Authoritatively patch the in-memory resume position for `itemID`
+    /// straight from the playback-stop payload (issue #24).
+    ///
+    /// This is the deterministic counterpart to refreshResumePosition():
+    /// the player already knows exactly which item stopped and where, so
+    /// we patch userData.playbackPositionTicks on every in-memory copy of
+    /// that item rather than re-fetching and racing the server's commit /
+    /// the ETag cache (the re-fetch path left the movie button stale ~10%
+    /// of the time and the episode button stale every time). The id may
+    /// match the movie itself, the series' next-up / current episode, an
+    /// episode in the loaded list, or a cached episode, so patch them all.
+    ///
+    /// Must run on the MainActor (callers are SwiftUI .onReceive
+    /// closures): synchronous and main-isolated so the @Observable
+    /// mutation reliably re-renders the Play button.
+    @MainActor
+    func applyPlaybackPosition(itemID: String, ticks: Int64) {
+        func patch(_ candidate: inout JellyfinItem) {
+            guard candidate.id == itemID else { return }
+            candidate.userData = (candidate.userData ?? UserItemData(
+                playbackPositionTicks: nil, playCount: nil, isFavorite: nil,
+                played: nil, unplayedItemCount: nil, playedPercentage: nil,
+                lastPlayedDate: nil
+            )).withPlaybackPositionTicks(ticks)
+        }
+        patch(&item)
+        if var next = nextUpEpisode { patch(&next); nextUpEpisode = next }
+        for index in episodes.indices { patch(&episodes[index]) }
+        for index in collectionItems.indices { patch(&collectionItems[index]) }
+        for (key, var list) in episodesCache {
+            for index in list.indices { patch(&list[index]) }
+            episodesCache[key] = list
+        }
+        if var cached = episodeDetailCache[itemID] {
+            patch(&cached)
+            episodeDetailCache[itemID] = cached
+        }
+    }
+
     func loadEpisodes(seasonID: String) async {
         selectedSeasonID = seasonID
 

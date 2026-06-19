@@ -84,8 +84,17 @@ extension PlayerViewModel {
             // Tell HomeView (and anyone else listening) that the
             // server now has updated progress for this item, so
             // Continue Watching / Next Up should be refreshed the
-            // next time those views appear.
-            NotificationCenter.default.post(name: .playbackProgressDidChange, object: nil)
+            // next time those views appear. The payload lets detail
+            // views patch this exact item's resume position in place,
+            // race-free, instead of re-fetching (issue #24).
+            NotificationCenter.default.post(
+                name: .playbackProgressDidChange,
+                object: nil,
+                userInfo: [
+                    PlaybackProgressKey.itemID: item.id,
+                    PlaybackProgressKey.positionTicks: ticks
+                ]
+            )
         } catch {
             #if DEBUG
             print("[SessionReport] Stop FAILED: \(error)")

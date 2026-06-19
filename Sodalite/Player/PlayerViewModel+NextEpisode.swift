@@ -194,7 +194,14 @@ extension PlayerViewModel {
         Task {
             do {
                 try await svc.reportPlaybackStopped(stopReport)
-                NotificationCenter.default.post(name: .playbackProgressDidChange, object: nil)
+                NotificationCenter.default.post(
+                    name: .playbackProgressDidChange,
+                    object: nil,
+                    userInfo: [
+                        PlaybackProgressKey.itemID: stopReport.itemId,
+                        PlaybackProgressKey.positionTicks: stopReport.positionTicks
+                    ]
+                )
                 LogTap.shared.note("[NextEp] report_stop_done (background)")
             } catch {
                 LogTap.shared.note("[NextEp] report_stop_failed (background): \(error.localizedDescription)")
@@ -352,7 +359,14 @@ extension PlayerViewModel {
         Task {
             do {
                 try await svc.reportPlaybackStopped(stopReport)
-                NotificationCenter.default.post(name: .playbackProgressDidChange, object: nil)
+                NotificationCenter.default.post(
+                    name: .playbackProgressDidChange,
+                    object: nil,
+                    userInfo: [
+                        PlaybackProgressKey.itemID: stopReport.itemId,
+                        PlaybackProgressKey.positionTicks: stopReport.positionTicks
+                    ]
+                )
                 LogTap.shared.note("[SeasonPicker] report_stop_done (background)")
             } catch {
                 LogTap.shared.note("[SeasonPicker] report_stop_failed (background): \(error.localizedDescription)")
