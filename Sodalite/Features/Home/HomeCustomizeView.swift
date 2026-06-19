@@ -18,8 +18,7 @@ struct HomeCustomizeView: View {
                 header
                 mergeRowToggle
                 rewatchRowToggle
-                activeSection
-                if !disabledRows.isEmpty { inactiveSection }
+                rowList
             }
             .padding(.vertical, 40)
         }
@@ -92,7 +91,7 @@ struct HomeCustomizeView: View {
 
     /// Plex-style combined row: folds Next Up into Continue Watching.
     /// Lives here rather than in Appearance because it changes which
-    /// rows exist, same as the enable/disable tiles below it. App
+    /// rows exist, same as the enable/disable controls below it. App
     /// toggle convention: a ValuePickerRow whose value flips with
     /// left/right, like every other On/Off setting, NOT a tap-toggle.
     private var mergeRowToggle: some View {
@@ -151,127 +150,138 @@ struct HomeCustomizeView: View {
         .padding(.horizontal, 50)
     }
 
-    // MARK: - Active
+    // MARK: - Row list
 
-    private var activeSection: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Label("home.customize.active", systemImage: "checkmark.circle.fill")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .padding(.horizontal, 50)
-
-            VStack(spacing: 6) {
-                ForEach(Array(enabledRows.enumerated()), id: \.element.id) { index, config in
-                    HStack(spacing: 16) {
-                        FocusableTile(
-                            isHighlighted: movingID == config.id,
-                            action: { handleRowTap(config.id, at: index) }
-                        ) { isFocused in
-                            HStack(spacing: 20) {
-                                Text("\(index + 1)")
-                                    .font(.caption)
-                                    .monospacedDigit()
-                                    .foregroundStyle(.tertiary)
-                                    .frame(width: 24)
-
-                                Image(systemName: config.systemImage)
-                                    .font(.title3)
-                                    .frame(width: 44)
-                                    .foregroundStyle(.tint)
-
-                                rowLabel(config)
-                                    .font(.body)
-
-                                Spacer()
-
-                                if movingID == config.id {
-                                    Text("home.customize.moving")
-                                        .font(.caption)
-                                        .foregroundStyle(.tint)
-                                }
-                            }
-                            .padding(.vertical, 14)
-                            .padding(.horizontal, 20)
-                            .background(
-                                RoundedRectangle(cornerRadius: 12)
-                                    .fill(tileBackground(isFocused: isFocused, isMoving: movingID == config.id))
-                            )
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 12)
-                                    .stroke(movingID == config.id ? AnyShapeStyle(.tint.opacity(0.6)) : AnyShapeStyle(Color.clear), lineWidth: 2)
-                            )
-                            .overlay(
-                                // Accent focus stroke, same 3pt treatment
-                                // as the rest of the app's focusable cards.
-                                // Layered on top of the "moving" indicator
-                                // above; when both apply the focus stroke
-                                // dominates (fully opaque, thicker).
-                                RoundedRectangle(cornerRadius: 12)
-                                    .strokeBorder(.tint, lineWidth: 3)
-                                    .opacity(isFocused ? 1 : 0)
-                            )
-                        }
-
-                        FocusableIcon(
-                            systemName: "minus.circle.fill",
-                            color: .red,
-                            action: {
-                                movingID = nil
-                                toggle(id: config.id)
-                            }
-                        )
-                    }
-                    .padding(.horizontal, 50)
-                }
+    /// One unified, ordered list. Enabled rows sit on top in their Home
+    /// order; disabled rows sink below a thin divider, greyed. No separate
+    /// section headers and no floating +/- circles: each row carries the
+    /// move affordance on its body and an inline eye control on the right.
+    private var rowList: some View {
+        VStack(spacing: 6) {
+            ForEach(Array(enabledRows.enumerated()), id: \.element.id) { index, config in
+                enabledRow(config, at: index)
             }
-        }
-    }
 
-    // MARK: - Inactive
-
-    private var inactiveSection: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Label("home.customize.inactive", systemImage: "circle")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .padding(.horizontal, 50)
-
-            VStack(spacing: 6) {
+            if !disabledRows.isEmpty {
+                inactiveDivider
                 ForEach(disabledRows) { config in
-                    HStack(spacing: 16) {
-                        HStack(spacing: 20) {
-                            Spacer().frame(width: 24) // align with position number
-
-                            Image(systemName: config.systemImage)
-                                .font(.title3)
-                                .frame(width: 44)
-                                .foregroundStyle(.tertiary)
-
-                            rowLabel(config)
-                                .font(.body)
-                                .foregroundStyle(.secondary)
-
-                            Spacer()
-                        }
-                        .padding(.vertical, 14)
-                        .padding(.horizontal, 20)
-                        .background(
-                            RoundedRectangle(cornerRadius: 12)
-                                .fill(.white.opacity(0.02))
-                        )
-
-                        FocusableIcon(
-                            systemName: "plus.circle.fill",
-                            color: .green,
-                            action: { toggle(id: config.id) }
-                        )
-                    }
-                    .padding(.horizontal, 50)
+                    disabledRow(config)
                 }
             }
         }
     }
 
+    /// Thin separator with a small "Inactive" caption, replacing the old
+    /// full-weight section header so the two groups read as one list.
+    private var inactiveDivider: some View {
+        HStack(spacing: 12) {
+            Text("home.customize.inactive")
+                .font(.caption)
+                .foregroundStyle(.tertiary)
+            Rectangle()
+                .fill(.white.opacity(0.1))
+                .frame(height: 1)
+        }
+        .padding(.horizontal, 50)
+        .padding(.top, 18)
+        .padding(.bottom, 2)
+    }
+
+    // MARK: - Enabled row
+
+    private func enabledRow(_ config: HomeRowConfig, at index: Int) -> some View {
+        HStack(spacing: 16) {
+            FocusableTile(
+                isHighlighted: movingID == config.id,
+                action: { handleRowTap(config.id, at: index) }
+            ) { isFocused in
+                HStack(spacing: 20) {
+                    Image(systemName: config.systemImage)
+                        .font(.title3)
+                        .frame(width: 44)
+                        .foregroundStyle(.tint)
+
+                    rowLabel(config)
+                        .font(.body)
+
+                    Spacer()
+
+                    if movingID == config.id {
+                        Text("home.customize.moving")
+                            .font(.caption)
+                            .foregroundStyle(.tint)
+                    }
+                }
+                .padding(.vertical, 14)
+                .padding(.horizontal, 20)
+                .background(
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(tileBackground(isFocused: isFocused, isMoving: movingID == config.id))
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(movingID == config.id ? AnyShapeStyle(.tint.opacity(0.6)) : AnyShapeStyle(Color.clear), lineWidth: 2)
+                )
+                .overlay(
+                    // Accent focus stroke, same 3pt treatment as the rest
+                    // of the app's focusable cards. Layered on top of the
+                    // "moving" indicator above; when both apply the focus
+                    // stroke dominates (fully opaque, thicker).
+                    RoundedRectangle(cornerRadius: 12)
+                        .strokeBorder(.tint, lineWidth: 3)
+                        .opacity(isFocused ? 1 : 0)
+                )
+            }
+
+            InlineEyeToggle(isOn: true) {
+                movingID = nil
+                toggle(id: config.id)
+            }
+        }
+        .padding(.horizontal, 50)
+    }
+
+    // MARK: - Disabled row
+
+    /// Disabled rows have no Home position, so the body itself re-activates
+    /// the row on tap (a big, forgiving target). The trailing eye.slash is a
+    /// static state indicator, kept the same width as the enabled toggle so
+    /// both lists align.
+    private func disabledRow(_ config: HomeRowConfig) -> some View {
+        HStack(spacing: 16) {
+            FocusableTile(action: { toggle(id: config.id) }) { isFocused in
+                HStack(spacing: 20) {
+                    Image(systemName: config.systemImage)
+                        .font(.title3)
+                        .frame(width: 44)
+                        .foregroundStyle(.tertiary)
+
+                    rowLabel(config)
+                        .font(.body)
+                        .foregroundStyle(.secondary)
+
+                    Spacer()
+                }
+                .padding(.vertical, 14)
+                .padding(.horizontal, 20)
+                .background(
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(isFocused ? Color.white.opacity(0.10) : Color.white.opacity(0.02))
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .strokeBorder(.tint, lineWidth: 3)
+                        .opacity(isFocused ? 1 : 0)
+                )
+            }
+
+            Image(systemName: "eye.slash")
+                .font(.title3)
+                .foregroundStyle(.tertiary)
+                .frame(width: 60, height: 60)
+        }
+        .padding(.horizontal, 50)
+    }
 
     // MARK: - Helpers
 
@@ -378,24 +388,27 @@ struct FocusableTile<Content: View>: View {
     }
 }
 
-// MARK: - Focusable Icon Button (plus/minus)
+// MARK: - Inline eye toggle (add/remove a row from Home)
 
-struct FocusableIcon: View {
-    let systemName: String
-    let color: Color
+/// Compact trailing control that flips a row's membership in Home. This is
+/// an action button (add/remove), not an On/Off settings switch, so it taps
+/// rather than flipping with left/right like a ValuePickerRow. Replaces the
+/// old floating red-minus / green-plus circles with one quiet eye control.
+struct InlineEyeToggle: View {
+    let isOn: Bool
     let action: () -> Void
 
     @FocusState private var isFocused: Bool
 
     var body: some View {
-        Image(systemName: systemName)
-            .font(.title2)
-            .foregroundStyle(color)
+        Image(systemName: isOn ? "eye.fill" : "eye.slash")
+            .font(.title3)
+            .foregroundStyle(isOn ? AnyShapeStyle(.tint) : AnyShapeStyle(.secondary))
             .frame(width: 60, height: 60)
             .background(
                 Circle().fill(isFocused ? .white.opacity(0.15) : .clear)
             )
-            .scaleEffect(isFocused ? 1.25 : 1.0)
+            .scaleEffect(isFocused ? 1.2 : 1.0)
             .animation(.easeInOut(duration: 0.15), value: isFocused)
             .focusable()
             .focused($isFocused)
