@@ -348,6 +348,20 @@ final class DetailViewModel {
     /// touches `isLoading`, so returning from the player doesn't reflash
     /// the detail spinner.
     func refreshResumePosition() async {
+        // Every observed-state assignment below is hopped onto the
+        // MainActor explicitly. This method runs without isLoading (by
+        // design, so returning from the player doesn't reflash the detail
+        // spinner), which means the @Observable mutation is the ONLY
+        // re-render trigger. DetailViewModel is a non-isolated @Observable
+        // class, so the continuation after a @MainActor service await
+        // resumes on the cooperative executor, not main; an off-main
+        // @Observable mutation does not reliably invalidate the SwiftUI
+        // view. loadFullDetail() gets away with the same off-main `item =`
+        // only because it also flips isLoading on settle, forcing a render.
+        // Here there is no such flip, so without MainActor.run the model
+        // updated (relaunch resumed from the right spot) but the Play
+        // button's timestamp + progress overlay stayed stale (issue #24
+        // follow-up). Mirrors the similarItems MainActor.run in loadFullDetail.
         switch item.type {
         case .series:
             // The series play button resumes the next-up / current
@@ -355,24 +369,32 @@ final class DetailViewModel {
             // not the series'. Refresh next-up, the on-screen season's
             // episode list, and drop the per-episode detail cache so an
             // open episode panel re-enriches from fresh data.
-            episodeDetailCache.removeAll()
-            if let libraryService,
-               let response = try? await libraryService.getNextUp(userID: userID, seriesID: item.id, limit: 1) {
-                nextUpEpisode = response.items.first
-                if let next = nextUpEpisode {
-                    currentEpisodeID = next.id
-                }
-            }
+            let nextUp = try? await libraryService?.getNextUp(userID: userID, seriesID: item.id, limit: 1)
+            let seasonEpisodes: (seasonID: String, items: [JellyfinItem])?
             if let seasonID = selectedSeasonID,
                let response = try? await itemService.getEpisodes(seriesID: item.id, seasonID: seasonID, userID: userID) {
-                episodesCache[seasonID] = response.items
-                episodes = response.items
+                seasonEpisodes = (seasonID, response.items)
+            } else {
+                seasonEpisodes = nil
+            }
+            await MainActor.run {
+                episodeDetailCache.removeAll()
+                if let next = nextUp?.items.first {
+                    nextUpEpisode = next
+                    currentEpisodeID = next.id
+                }
+                if let seasonEpisodes {
+                    episodesCache[seasonEpisodes.seasonID] = seasonEpisodes.items
+                    episodes = seasonEpisodes.items
+                }
             }
         default:
             if let detail = try? await itemService.getItemDetail(userID: userID, itemID: item.id) {
-                item = detail
-                isFavorite = detail.userData?.isFavorite ?? false
-                isPlayed = detail.userData?.played ?? false
+                await MainActor.run {
+                    item = detail
+                    isFavorite = detail.userData?.isFavorite ?? false
+                    isPlayed = detail.userData?.played ?? false
+                }
             }
         }
     }
