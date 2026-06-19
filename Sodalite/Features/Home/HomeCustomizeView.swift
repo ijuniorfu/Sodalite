@@ -91,9 +91,9 @@ struct HomeCustomizeView: View {
 
     /// Plex-style combined row: folds Next Up into Continue Watching.
     /// Lives here rather than in Appearance because it changes which
-    /// rows exist, same as the enable/disable switches below it. App
-    /// toggle convention: a ValuePickerRow whose value flips with
-    /// left/right, like every other On/Off setting, NOT a tap-toggle.
+    /// rows exist, same as the show/hide controls below it. App toggle
+    /// convention: a ValuePickerRow whose value flips with left/right,
+    /// like every other On/Off setting, NOT a tap-toggle.
     private var mergeRowToggle: some View {
         ValuePickerRow(
             icon: "arrow.triangle.merge",
@@ -153,46 +153,23 @@ struct HomeCustomizeView: View {
     // MARK: - Row list
 
     /// One unified, ordered list. Enabled rows sit on top in their Home
-    /// order; disabled rows sink below a thin divider, greyed. Each row is a
-    /// single focusable control: left/right flips its On/Off membership (the
-    /// app's toggle convention), while click picks it up to reorder, the
-    /// primary task of this screen.
+    /// order; disabled rows sink below a thin divider, greyed. Each row has
+    /// two focus targets: the body (click reorders an enabled row, or
+    /// re-enables a disabled one) and a trailing On/Off switch (click shows
+    /// or hides the row). Splitting the two gestures across two elements
+    /// keeps each one a plain clickpad press, which the Siri Remote delivers
+    /// reliably; overloading one element with a directional toggle made the
+    /// reorder click ambiguous with a directional press and swallowed it.
     private var rowList: some View {
         VStack(spacing: 6) {
             ForEach(Array(enabledRows.enumerated()), id: \.element.id) { index, config in
-                CustomizeRow(
-                    config: config,
-                    isEnabled: true,
-                    isMoving: movingID == config.id,
-                    // Suppress the left/right toggle while any row is picked
-                    // up, so a stray horizontal swipe during placement can't
-                    // flip an unrelated row off.
-                    suppressToggle: movingID != nil,
-                    label: { rowLabel(config) },
-                    onClick: { handleRowTap(config.id, at: index) },
-                    onToggle: {
-                        movingID = nil
-                        toggle(id: config.id)
-                    }
-                )
-                .padding(.horizontal, 50)
+                enabledRow(config, at: index)
             }
 
             if !disabledRows.isEmpty {
                 inactiveDivider
                 ForEach(disabledRows) { config in
-                    CustomizeRow(
-                        config: config,
-                        isEnabled: false,
-                        isMoving: false,
-                        suppressToggle: movingID != nil,
-                        label: { rowLabel(config) },
-                        // Disabled rows have no Home position to reorder, so
-                        // both click and a right swipe just re-enable them.
-                        onClick: { toggle(id: config.id) },
-                        onToggle: { toggle(id: config.id) }
-                    )
-                    .padding(.horizontal, 50)
+                    disabledRow(config)
                 }
             }
         }
@@ -214,7 +191,91 @@ struct HomeCustomizeView: View {
         .padding(.bottom, 2)
     }
 
-    // MARK: - Computed rows
+    // MARK: - Enabled row
+
+    private func enabledRow(_ config: HomeRowConfig, at index: Int) -> some View {
+        HStack(spacing: 16) {
+            FocusableTile(
+                isHighlighted: movingID == config.id,
+                action: { handleRowTap(config.id, at: index) }
+            ) { isFocused in
+                rowBody(config, isFocused: isFocused, isEnabled: true)
+            }
+
+            RowToggleButton(isOn: true) {
+                movingID = nil
+                toggle(id: config.id)
+            }
+        }
+        .padding(.horizontal, 50)
+    }
+
+    // MARK: - Disabled row
+
+    /// Disabled rows have no Home position, so the body itself re-activates
+    /// the row on click (a big, forgiving target), and the trailing switch
+    /// shows "Off" and re-enables it too.
+    private func disabledRow(_ config: HomeRowConfig) -> some View {
+        HStack(spacing: 16) {
+            FocusableTile(action: { toggle(id: config.id) }) { isFocused in
+                rowBody(config, isFocused: isFocused, isEnabled: false)
+            }
+
+            RowToggleButton(isOn: false) {
+                toggle(id: config.id)
+            }
+        }
+        .padding(.horizontal, 50)
+    }
+
+    /// Shared left side of a row: icon, label and the "moving" indicator.
+    @ViewBuilder
+    private func rowBody(_ config: HomeRowConfig, isFocused: Bool, isEnabled: Bool) -> some View {
+        HStack(spacing: 20) {
+            Image(systemName: config.systemImage)
+                .font(.title3)
+                .frame(width: 44)
+                .foregroundStyle(isEnabled ? AnyShapeStyle(.tint) : AnyShapeStyle(.tertiary))
+
+            rowLabel(config)
+                .font(.body)
+                .foregroundStyle(isEnabled ? AnyShapeStyle(.primary) : AnyShapeStyle(.secondary))
+
+            Spacer()
+
+            if movingID == config.id {
+                Text("home.customize.moving")
+                    .font(.caption)
+                    .foregroundStyle(.tint)
+            }
+        }
+        .padding(.vertical, 14)
+        .padding(.horizontal, 20)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(tileBackground(isFocused: isFocused, isMoving: movingID == config.id, isEnabled: isEnabled))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(movingID == config.id ? AnyShapeStyle(.tint.opacity(0.6)) : AnyShapeStyle(Color.clear), lineWidth: 2)
+        )
+        .overlay(
+            // Accent focus stroke, same 3pt treatment as the rest of the
+            // app's focusable cards. When a row is both focused and picked
+            // up, this fully opaque stroke dominates the thinner move ring.
+            RoundedRectangle(cornerRadius: 12)
+                .strokeBorder(.tint, lineWidth: 3)
+                .opacity(isFocused ? 1 : 0)
+        )
+    }
+
+    // MARK: - Helpers
+
+    private func tileBackground(isFocused: Bool, isMoving: Bool, isEnabled: Bool) -> AnyShapeStyle {
+        if isMoving { return AnyShapeStyle(TintShapeStyle.tint.opacity(0.12)) }
+        if isFocused { return AnyShapeStyle(Color.white.opacity(0.12)) }
+        return AnyShapeStyle(isEnabled ? Color.white.opacity(0.05) : Color.white.opacity(0.02))
+    }
 
     /// Up Next disappears from both lists while the merge toggle is
     /// on; its content rides inside Continue Watching then, and an
@@ -313,108 +374,58 @@ struct FocusableTile<Content: View>: View {
     }
 }
 
-// MARK: - Customize Row
+// MARK: - Row On/Off switch (show / hide a row on Home)
 
-/// A single Home-row entry in the customize list. One focus target with two
-/// gestures, mirroring the app's ValuePickerRow feel: the Siri Remote's
-/// left/right flips the row's On/Off membership, while a clickpad press is
-/// reserved for reordering (pick up / drop), which is this screen's primary
-/// task. Disabled rows can't be reordered, so for them the click re-enables
-/// instead. The trailing chevron+label is the same switch affordance used by
-/// every other On/Off setting; it is a visual cue, not a separate focus stop.
-private struct CustomizeRow<Label: View>: View {
-    let config: HomeRowConfig
-    let isEnabled: Bool
-    let isMoving: Bool
-    let suppressToggle: Bool
-    @ViewBuilder let label: () -> Label
-    let onClick: () -> Void
-    let onToggle: () -> Void
+/// Trailing control that flips a row's membership in Home. Its own focus
+/// target with a single gesture, the clickpad press, so it never competes
+/// with the row body's reorder click. The chevron-free pill makes clear it
+/// is a click button (add / remove), not a left/right ValuePickerRow; a
+/// directional toggle here would trap focus against the body beside it.
+struct RowToggleButton: View {
+    let isOn: Bool
+    let action: () -> Void
 
     @FocusState private var focused: Bool
 
     var body: some View {
-        HStack(spacing: 20) {
-            Image(systemName: config.systemImage)
-                .font(.title3)
-                .frame(width: 44)
-                .foregroundStyle(isEnabled ? AnyShapeStyle(.tint) : AnyShapeStyle(.tertiary))
-
-            label()
+        HStack(spacing: 8) {
+            Image(systemName: isOn ? "eye.fill" : "eye.slash")
                 .font(.body)
-                .foregroundStyle(isEnabled ? AnyShapeStyle(.primary) : AnyShapeStyle(.secondary))
-
-            Spacer()
-
-            if isMoving {
-                Text("home.customize.moving")
-                    .font(.caption)
-                    .foregroundStyle(.tint)
-            } else {
-                toggleSwitch
-            }
-        }
-        .padding(.vertical, 14)
-        .padding(.horizontal, 20)
-        .background(
-            RoundedRectangle(cornerRadius: 12).fill(fillStyle)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 12)
-                .stroke(isMoving ? AnyShapeStyle(.tint.opacity(0.6)) : AnyShapeStyle(Color.clear), lineWidth: 2)
-        )
-        .overlay(
-            // Accent focus stroke, same 3pt treatment as the rest of the
-            // app's focusable cards. When a row is both focused and picked
-            // up, this fully opaque stroke dominates the thinner move ring.
-            RoundedRectangle(cornerRadius: 12)
-                .strokeBorder(.tint, lineWidth: 3)
-                .opacity(focused ? 1 : 0)
-        )
-        .scaleEffect(focused ? 1.02 : 1.0)
-        .animation(.easeInOut(duration: 0.15), value: focused)
-        .animation(.easeInOut(duration: 0.15), value: isEnabled)
-        .focusable()
-        .focused($focused)
-        .onMoveCommand { direction in
-            guard !suppressToggle else { return }
-            switch direction {
-            // left moves toward Off, right toward On; each is a no-op if the
-            // row is already in that state, matching ValuePickerRow's clamp.
-            case .left:  if isEnabled { onToggle() }
-            case .right: if !isEnabled { onToggle() }
-            default: break
-            }
-        }
-        .stableTap(isFocused: focused) { onClick() }
-    }
-
-    @ViewBuilder
-    private var toggleSwitch: some View {
-        HStack(spacing: 12) {
-            Image(systemName: "chevron.left")
-                .font(.body)
-                .foregroundStyle(focused ? .white : Color.secondary)
-                .opacity(isEnabled ? 1 : 0.25)
-            Text(isEnabled
+            Text(isOn
                 ? String(localized: "common.on", defaultValue: "On")
                 : String(localized: "common.off", defaultValue: "Off"))
                 .font(.body)
                 .fontWeight(.semibold)
-                .foregroundStyle(focused ? .white : Color.white.opacity(0.85))
-                .frame(minWidth: 70, alignment: .center)
                 .contentTransition(.opacity)
-            Image(systemName: "chevron.right")
-                .font(.body)
-                .foregroundStyle(focused ? .white : Color.secondary)
-                .opacity(isEnabled ? 0.25 : 1)
         }
+        .foregroundStyle(foreground)
+        .frame(minWidth: 104)
+        .padding(.horizontal, 18)
+        .padding(.vertical, 12)
+        .background(
+            Capsule().fill(background)
+        )
+        .overlay(
+            Capsule()
+                .strokeBorder(.tint, lineWidth: 3)
+                .opacity(focused ? 1 : 0)
+        )
+        .scaleEffect(focused ? 1.06 : 1.0)
+        .animation(.easeInOut(duration: 0.15), value: focused)
+        .animation(.easeInOut(duration: 0.15), value: isOn)
+        .focusable()
+        .focused($focused)
+        .stableTap(isFocused: focused) { action() }
     }
 
-    private var fillStyle: AnyShapeStyle {
-        if isMoving { return AnyShapeStyle(TintShapeStyle.tint.opacity(0.12)) }
-        if focused { return AnyShapeStyle(Color.white.opacity(0.12)) }
-        return AnyShapeStyle(isEnabled ? Color.white.opacity(0.05) : Color.white.opacity(0.02))
+    private var foreground: AnyShapeStyle {
+        if isOn { return AnyShapeStyle(focused ? AnyShapeStyle(.white) : AnyShapeStyle(.tint)) }
+        return AnyShapeStyle(focused ? AnyShapeStyle(.white) : AnyShapeStyle(.secondary))
+    }
+
+    private var background: AnyShapeStyle {
+        if isOn { return AnyShapeStyle(TintShapeStyle.tint.opacity(focused ? 0.4 : 0.2)) }
+        return AnyShapeStyle(Color.white.opacity(focused ? 0.18 : 0.06))
     }
 }
 
