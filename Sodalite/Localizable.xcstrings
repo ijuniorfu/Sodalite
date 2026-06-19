@@ -67681,157 +67681,157 @@
         "cs" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Vyberte, které řádky se zobrazí na domovské obrazovce."
+            "value": "Kliknutím řádek přesunete, tažením vlevo nebo vpravo jej zobrazíte či skryjete."
           }
         },
         "da" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Vælg hvilke rækker der vises på din startskærm."
+            "value": "Klik for at flytte en række, swip til venstre eller højre for at vise eller skjule den."
           }
         },
         "de" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Wähle aus, welche Reihen auf deiner Startseite angezeigt werden."
+            "value": "Klick verschiebt eine Reihe, Links/Rechts blendet sie ein oder aus."
           }
         },
         "el" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Επιλέξτε ποιες σειρές θα εμφανίζονται στην αρχική οθόνη."
+            "value": "Κάντε κλικ για να μετακινήσετε μια σειρά, σύρετε αριστερά ή δεξιά για εμφάνιση ή απόκρυψη."
           }
         },
         "en" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Choose which rows appear on your home screen."
+            "value": "Click to move a row, swipe left or right to show or hide it."
           }
         },
         "es" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Elige qué filas aparecen en tu pantalla de inicio."
+            "value": "Haz clic para mover una fila; desliza a la izquierda o derecha para mostrarla u ocultarla."
           }
         },
         "fi" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Valitse, mitkä rivit näkyvät aloitusnäytössä."
+            "value": "Siirrä riviä napsauttamalla; näytä tai piilota se pyyhkäisemällä vasemmalle tai oikealle."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Choisissez les lignes à afficher sur votre écran d'accueil."
+            "value": "Cliquez pour déplacer une ligne, balayez vers la gauche ou la droite pour l'afficher ou la masquer."
           }
         },
         "hr" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Odaberite koji retci će se pojaviti na početnom zaslonu."
+            "value": "Kliknite za premještanje retka, povucite lijevo ili desno za prikaz ili skrivanje."
           }
         },
         "hu" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Válaszd ki, mely sorok jelenjenek meg a kezdőképernyőn."
+            "value": "Kattints egy sor áthelyezéséhez, húzd balra vagy jobbra a megjelenítéséhez vagy elrejtéséhez."
           }
         },
         "it" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Scegli quali righe mostrare nella schermata iniziale."
+            "value": "Clicca per spostare una riga, scorri a sinistra o destra per mostrarla o nasconderla."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "ホーム画面に表示する行を選択します。"
+            "value": "クリックで行を移動、左右スワイプで表示・非表示を切り替えます。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "홈 화면에 표시할 행을 선택하세요."
+            "value": "클릭하여 행을 이동하고, 좌우로 밀어 표시하거나 숨깁니다."
           }
         },
         "nb" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Velg hvilke rader som vises på hjemskjermen."
+            "value": "Klikk for å flytte en rad, sveip til venstre eller høyre for å vise eller skjule den."
           }
         },
         "nl" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Kies welke rijen op je startscherm verschijnen."
+            "value": "Klik om een rij te verplaatsen, veeg naar links of rechts om hem te tonen of verbergen."
           }
         },
         "pl" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Wybierz, które wiersze mają się pojawiać na ekranie głównym."
+            "value": "Kliknij, aby przenieść wiersz; przesuń w lewo lub w prawo, aby go pokazać lub ukryć."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Escolha quais linhas aparecem na tela inicial."
+            "value": "Clique para mover uma linha, deslize para a esquerda ou direita para mostrá-la ou ocultá-la."
           }
         },
         "pt-PT" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Escolha que linhas aparecem no ecrã inicial."
+            "value": "Clique para mover uma linha, deslize para a esquerda ou direita para a mostrar ou ocultar."
           }
         },
         "ro" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Alege ce rânduri apar pe ecranul principal."
+            "value": "Apasă pentru a muta un rând, glisează la stânga sau la dreapta pentru a-l afișa sau ascunde."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Выберите строки для главного экрана."
+            "value": "Нажмите, чтобы переместить строку; смахните влево или вправо, чтобы показать или скрыть её."
           }
         },
         "sk" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Vyberte, ktoré riadky sa zobrazia na domovskej obrazovke."
+            "value": "Kliknutím presuniete riadok, potiahnutím doľava alebo doprava ho zobrazíte alebo skryjete."
           }
         },
         "sv" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Välj vilka rader som visas på hemskärmen."
+            "value": "Klicka för att flytta en rad, svep åt vänster eller höger för att visa eller dölja den."
           }
         },
         "tr" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Ana ekranınızda hangi satırların görüneceğini seçin."
+            "value": "Bir satırı taşımak için tıklayın; göstermek ya da gizlemek için sola veya sağa kaydırın."
           }
         },
         "uk" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Виберіть, які рядки з'являться на головному екрані."
+            "value": "Натисніть, щоб перемістити рядок; проведіть ліворуч або праворуч, щоб показати чи приховати його."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "选择主屏幕显示的行。"
+            "value": "点按移动行，左右轻扫显示或隐藏。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "選擇要在主畫面顯示哪些列。"
+            "value": "按一下移動列，左右滑動顯示或隱藏。"
           }
         }
       }
