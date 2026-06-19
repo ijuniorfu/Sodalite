@@ -131,6 +131,13 @@ struct MovieDetailView: View {
                 }
             }
         }
+        // The player posts this once Jellyfin confirms the stop
+        // position, so the Play button's resume timestamp (and the spot
+        // a re-launch resumes from) reflect where the user actually
+        // stopped, not where they started (issue #24).
+        .onReceive(NotificationCenter.default.publisher(for: .playbackProgressDidChange)) { _ in
+            Task { await viewModel?.refreshResumePosition() }
+        }
         // AppRouter bumps this counter on every deep-link arrival so
         // a TopShelf tap on a different item can tear down the active
         // player session and let the new detail sheet surface cleanly.
