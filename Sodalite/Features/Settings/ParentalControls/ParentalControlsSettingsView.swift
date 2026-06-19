@@ -17,7 +17,7 @@ struct ParentalControlsSettingsView: View {
         ScrollView {
             VStack(spacing: 32) {
                 Text("parental.title").font(.largeTitle).fontWeight(.bold)
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .frame(maxWidth: .infinity)
 
                 pinSection
                 if pinIsSet { profilesSection }

@@ -20,6 +20,7 @@ struct ServerManagementView: View {
             VStack(alignment: .leading, spacing: 16) {
                 Text("multiServer.settings.title", bundle: .main)
                     .font(.largeTitle.bold())
+                    .frame(maxWidth: .infinity)
                     .padding(.bottom, 8)
 
                 ForEach(servers) { server in

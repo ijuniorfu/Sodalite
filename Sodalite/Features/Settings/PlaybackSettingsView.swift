@@ -315,7 +315,7 @@ struct PlaybackSettingsView: View {
         Text("settings.playback.title")
             .font(.largeTitle)
             .fontWeight(.bold)
-            .frame(maxWidth: .infinity, alignment: .leading)
+            .frame(maxWidth: .infinity)
     }
 
     private func sectionHeader(_ key: LocalizedStringKey) -> some View {

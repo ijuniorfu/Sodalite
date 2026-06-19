@@ -13,7 +13,7 @@ struct WatchStatsView: View {
                 Text("stats.title")
                     .font(.title2)
                     .fontWeight(.bold)
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .frame(maxWidth: .infinity)
                 content
             }
             .padding(.vertical, 60)
