@@ -548,20 +548,6 @@ struct TransportBar: View {
                 separatorAbove: true
             )
         )
-        // Manual companion to the automatic refresh-on-open: re-reads the
-        // server's track list in place so a subtitle that finished
-        // downloading late (slow CDN) can be pulled in without leaving the
-        // menu. Same availability gate as the online search.
-        if supportsSubtitleSearch {
-            items.append(
-                DropdownItem(
-                    title: String(localized: "player.subtitle.refresh", defaultValue: "Refresh subtitles"),
-                    isActive: false,
-                    isHighlighted: highlighted == subtitleStreams.count + 3,
-                    isPinnedFooter: true
-                )
-            )
-        }
         return items
     }
 

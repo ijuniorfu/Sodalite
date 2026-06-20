@@ -1140,12 +1140,6 @@ final class PlayerHostController: AVPlayerViewController {
             currentIdx = 0
         }
         viewModel.trackDropdown = .subtitle(highlighted: currentIdx)
-        // Open instantly from the cached list, then refresh in the background
-        // so a subtitle the server attached since we last looked (e.g. a
-        // download that finished late on a slow CDN) shows up without having
-        // to leave and reopen the player. Non-blocking, so the menu never
-        // stalls on the network round-trip.
-        Task { [weak viewModel] in await viewModel?.refreshSubtitleStreams() }
     }
 
     private func openSpeedDropdown() {
@@ -1178,9 +1172,8 @@ final class PlayerHostController: AVPlayerViewController {
             let newIdx = max(0, min(count - 1, idx + offset))
             viewModel.trackDropdown = .audio(highlighted: newIdx)
         case .subtitle(let idx):
-            // header(Secondary) + Off + streams + Search online (+ Refresh)
+            // header(Secondary) + Off + streams + Search online
             let count = viewModel.displaySubtitleStreams.count + 3
-                + (viewModel.supportsSubtitleSearch ? 1 : 0)
             guard count > 0 else { return }
             let newIdx = max(0, min(count - 1, idx + offset))
             viewModel.trackDropdown = .subtitle(highlighted: newIdx)
@@ -1236,11 +1229,6 @@ final class PlayerHostController: AVPlayerViewController {
                 // "Search online..." row.
                 viewModel.trackDropdown = .none
                 viewModel.presentSubtitleSearch()
-            } else if viewModel.supportsSubtitleSearch && idx == streams.count + 3 {
-                // "Refresh subtitles" row. Keep the dropdown open and pull
-                // the list in place so a late-downloaded track appears right
-                // here without having to reopen the menu.
-                Task { await viewModel.refreshSubtitleStreams() }
             } else {
                 let streamIdx = idx - 2
                 if streamIdx < streams.count {

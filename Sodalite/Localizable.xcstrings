@@ -90219,166 +90219,6 @@
         }
       }
     },
-    "player.subtitle.refresh" : {
-      "localizations" : {
-        "cs" : {
-          "stringUnit" : {
-            "state": "translated",
-            "value": "Obnovit titulky"
-          }
-        },
-        "da" : {
-          "stringUnit" : {
-            "state": "translated",
-            "value": "Opdater undertekster"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state": "translated",
-            "value": "Untertitel aktualisieren"
-          }
-        },
-        "el" : {
-          "stringUnit" : {
-            "state": "translated",
-            "value": "Ανανέωση υποτίτλων"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state": "translated",
-            "value": "Refresh subtitles"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state": "translated",
-            "value": "Actualizar subtítulos"
-          }
-        },
-        "fi" : {
-          "stringUnit" : {
-            "state": "translated",
-            "value": "Päivitä tekstitykset"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state": "translated",
-            "value": "Actualiser les sous-titres"
-          }
-        },
-        "hr" : {
-          "stringUnit" : {
-            "state": "translated",
-            "value": "Osvježi titlove"
-          }
-        },
-        "hu" : {
-          "stringUnit" : {
-            "state": "translated",
-            "value": "Feliratok frissítése"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state": "translated",
-            "value": "Aggiorna sottotitoli"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state": "translated",
-            "value": "字幕を更新"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state": "translated",
-            "value": "자막 새로 고침"
-          }
-        },
-        "nb" : {
-          "stringUnit" : {
-            "state": "translated",
-            "value": "Oppdater undertekster"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state": "translated",
-            "value": "Ondertitels vernieuwen"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state": "translated",
-            "value": "Odśwież napisy"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state": "translated",
-            "value": "Atualizar legendas"
-          }
-        },
-        "pt-PT" : {
-          "stringUnit" : {
-            "state": "translated",
-            "value": "Atualizar legendas"
-          }
-        },
-        "ro" : {
-          "stringUnit" : {
-            "state": "translated",
-            "value": "Reîmprospătează subtitrările"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state": "translated",
-            "value": "Обновить субтитры"
-          }
-        },
-        "sk" : {
-          "stringUnit" : {
-            "state": "translated",
-            "value": "Obnoviť titulky"
-          }
-        },
-        "sv" : {
-          "stringUnit" : {
-            "state": "translated",
-            "value": "Uppdatera undertexter"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state": "translated",
-            "value": "Altyazıları yenile"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state": "translated",
-            "value": "Оновити субтитри"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state": "translated",
-            "value": "刷新字幕"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state": "translated",
-            "value": "重新整理字幕"
-          }
-        }
-      }
-    },
     "player.subtitle.search.downloadFailed" : {
       "localizations" : {
         "cs" : {
@@ -90544,157 +90384,157 @@
         "cs" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Stahování trvá déle, než se očekávalo. Server jej možná stále načítá přes pomalé připojení. Za chvíli znovu otevřete nabídku titulků a měl by se objevit."
+            "value": "Stahování trvá déle, než se očekávalo. Server jej možná stále načítá přes pomalé připojení. Chvíli počkejte a klepněte na Zkusit znovu."
           }
         },
         "da" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Hentningen tager længere tid end forventet. Serveren henter den måske stadig over en langsom forbindelse. Åbn undertekstmenuen igen om lidt, så bør den dukke op."
+            "value": "Hentningen tager længere tid end forventet. Serveren henter den måske stadig over en langsom forbindelse. Vent et øjeblik, og tryk derefter på Prøv igen."
           }
         },
         "de" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Der Download dauert länger als erwartet. Der Server lädt ihn über eine langsame Verbindung möglicherweise noch. Öffne das Untertitelmenü gleich erneut, dann sollte er erscheinen."
+            "value": "Der Download dauert länger als erwartet. Der Server lädt ihn über eine langsame Verbindung möglicherweise noch. Warte einen Moment und tippe dann auf Erneut versuchen."
           }
         },
         "el" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Η λήψη διαρκεί περισσότερο από το αναμενόμενο. Ο διακομιστής ίσως ακόμη τον ανακτά μέσω αργής σύνδεσης. Ανοίξτε ξανά το μενού υποτίτλων σε λίγο και θα εμφανιστεί."
+            "value": "Η λήψη διαρκεί περισσότερο από το αναμενόμενο. Ο διακομιστής ίσως ακόμη τον ανακτά μέσω αργής σύνδεσης. Περιμένετε λίγο και πατήστε Δοκιμή ξανά."
           }
         },
         "en" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "The download is taking longer than expected. The server may still be fetching it on a slow connection. Reopen the subtitle menu in a moment and it should appear."
+            "value": "The download is taking longer than expected. The server may still be fetching it on a slow connection. Wait a moment, then tap Try again."
           }
         },
         "es" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "La descarga está tardando más de lo esperado. Puede que el servidor aún la esté obteniendo con una conexión lenta. Vuelve a abrir el menú de subtítulos en un momento y debería aparecer."
+            "value": "La descarga está tardando más de lo esperado. Puede que el servidor aún la esté obteniendo con una conexión lenta. Espera un momento y pulsa Intentar de nuevo."
           }
         },
         "fi" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Lataus kestää odotettua kauemmin. Palvelin saattaa yhä hakea sitä hitaalla yhteydellä. Avaa tekstitysvalikko hetken kuluttua uudelleen, niin sen pitäisi näkyä."
+            "value": "Lataus kestää odotettua kauemmin. Palvelin saattaa yhä hakea sitä hitaalla yhteydellä. Odota hetki ja napauta sitten Yritä uudelleen."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Le téléchargement prend plus de temps que prévu. Le serveur est peut-être encore en train de le récupérer sur une connexion lente. Rouvrez le menu des sous-titres dans un instant et il devrait apparaître."
+            "value": "Le téléchargement prend plus de temps que prévu. Le serveur est peut-être encore en train de le récupérer sur une connexion lente. Patientez un instant, puis touchez Réessayer."
           }
         },
         "hr" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Preuzimanje traje dulje od očekivanog. Poslužitelj ga možda još dohvaća putem spore veze. Za trenutak ponovno otvorite izbornik titlova i trebao bi se pojaviti."
+            "value": "Preuzimanje traje dulje od očekivanog. Poslužitelj ga možda još dohvaća putem spore veze. Pričekajte trenutak pa dodirnite Pokušaj ponovno."
           }
         },
         "hu" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "A letöltés a vártnál tovább tart. Lehet, hogy a kiszolgáló még letölti egy lassú kapcsolaton. Nyisd meg újra a feliratmenüt egy pillanat múlva, és meg kell jelennie."
+            "value": "A letöltés a vártnál tovább tart. Lehet, hogy a kiszolgáló még letölti egy lassú kapcsolaton. Várj egy pillanatot, majd koppints a Próbáld újra gombra."
           }
         },
         "it" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Il download sta richiedendo più tempo del previsto. Il server potrebbe ancora recuperarlo su una connessione lenta. Riapri il menu dei sottotitoli tra un momento e dovrebbe comparire."
+            "value": "Il download sta richiedendo più tempo del previsto. Il server potrebbe ancora recuperarlo su una connessione lenta. Attendi un momento, poi tocca Riprova."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "ダウンロードに予想以上の時間がかかっています。回線が遅いため、サーバーがまだ取得中の可能性があります。しばらくしてから字幕メニューを開き直すと表示されるはずです。"
+            "value": "ダウンロードに予想以上の時間がかかっています。回線が遅いため、サーバーがまだ取得中の可能性があります。少し待ってから「再試行」をタップしてください。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "다운로드가 예상보다 오래 걸리고 있습니다. 연결이 느려 서버가 아직 가져오는 중일 수 있습니다. 잠시 후 자막 메뉴를 다시 열면 나타날 것입니다."
+            "value": "다운로드가 예상보다 오래 걸리고 있습니다. 연결이 느려 서버가 아직 가져오는 중일 수 있습니다. 잠시 기다린 후 다시 시도를 누르세요."
           }
         },
         "nb" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Nedlastingen tar lengre tid enn forventet. Serveren henter den kanskje fortsatt over en treg tilkobling. Åpne undertekstmenyen på nytt om litt, så skal den dukke opp."
+            "value": "Nedlastingen tar lengre tid enn forventet. Serveren henter den kanskje fortsatt over en treg tilkobling. Vent et øyeblikk, og trykk deretter på Prøv igjen."
           }
         },
         "nl" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Het downloaden duurt langer dan verwacht. De server haalt hem mogelijk nog op via een trage verbinding. Open het ondertitelmenu zo meteen opnieuw, dan zou hij moeten verschijnen."
+            "value": "Het downloaden duurt langer dan verwacht. De server haalt hem mogelijk nog op via een trage verbinding. Wacht even en tik dan op Opnieuw proberen."
           }
         },
         "pl" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Pobieranie trwa dłużej niż oczekiwano. Serwer może wciąż pobierać je przez wolne łącze. Otwórz ponownie menu napisów za chwilę, a powinny się pojawić."
+            "value": "Pobieranie trwa dłużej niż oczekiwano. Serwer może wciąż pobierać je przez wolne łącze. Poczekaj chwilę, a następnie dotknij Spróbuj ponownie."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "O download está demorando mais que o esperado. O servidor pode ainda estar buscando em uma conexão lenta. Reabra o menu de legendas em instantes e ela deverá aparecer."
+            "value": "O download está demorando mais que o esperado. O servidor pode ainda estar buscando em uma conexão lenta. Aguarde um momento e toque em Tentar novamente."
           }
         },
         "pt-PT" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "A transferência está a demorar mais do que o esperado. O servidor pode ainda estar a obtê-la numa ligação lenta. Reabra o menu de legendas dentro de momentos e deverá aparecer."
+            "value": "A transferência está a demorar mais do que o esperado. O servidor pode ainda estar a obtê-la numa ligação lenta. Aguarde um momento e toque em Tentar novamente."
           }
         },
         "ro" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Descărcarea durează mai mult decât era de așteptat. Serverul ar putea încă să o descarce printr-o conexiune lentă. Redeschideți meniul de subtitrări în scurt timp și ar trebui să apară."
+            "value": "Descărcarea durează mai mult decât era de așteptat. Serverul ar putea încă să o descarce printr-o conexiune lentă. Așteaptă un moment, apoi apasă pe Încearcă din nou."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Загрузка занимает больше времени, чем ожидалось. Возможно, сервер всё ещё получает их по медленному соединению. Через мгновение снова откройте меню субтитров, и они должны появиться."
+            "value": "Загрузка занимает больше времени, чем ожидалось. Возможно, сервер всё ещё получает их по медленному соединению. Подождите немного и нажмите «Повторить»."
           }
         },
         "sk" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Sťahovanie trvá dlhšie, než sa očakávalo. Server ich možno stále načítava cez pomalé pripojenie. O chvíľu znova otvorte ponuku titulkov a mali by sa zobraziť."
+            "value": "Sťahovanie trvá dlhšie, než sa očakávalo. Server ich možno stále načítava cez pomalé pripojenie. Chvíľu počkajte a klepnite na Skúsiť znova."
           }
         },
         "sv" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Nedladdningen tar längre tid än väntat. Servern kanske fortfarande hämtar den över en långsam anslutning. Öppna undertextmenyn igen om en stund så bör den dyka upp."
+            "value": "Nedladdningen tar längre tid än väntat. Servern kanske fortfarande hämtar den över en långsam anslutning. Vänta en stund och tryck sedan på Försök igen."
           }
         },
         "tr" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "İndirme beklenenden uzun sürüyor. Sunucu yavaş bir bağlantı üzerinden hâlâ getiriyor olabilir. Birazdan altyazı menüsünü yeniden açın, görünmesi gerekir."
+            "value": "İndirme beklenenden uzun sürüyor. Sunucu yavaş bir bağlantı üzerinden hâlâ getiriyor olabilir. Bir an bekleyin, ardından Tekrar dene'ye dokunun."
           }
         },
         "uk" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Завантаження триває довше, ніж очікувалося. Можливо, сервер усе ще отримує їх через повільне з’єднання. За мить знову відкрийте меню субтитрів, і вони мають з’явитися."
+            "value": "Завантаження триває довше, ніж очікувалося. Можливо, сервер усе ще отримує їх через повільне з’єднання. Зачекайте мить, потім натисніть «Спробувати ще раз»."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "下载时间比预期长。服务器可能仍在通过缓慢的连接获取它。稍后重新打开字幕菜单，它应该会出现。"
+            "value": "下载时间比预期长。服务器可能仍在通过缓慢的连接获取它。请稍候，然后点按“重试”。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "下載時間比預期長。伺服器可能仍透過緩慢的連線取得中。稍後重新開啟字幕選單，它應該會出現。"
+            "value": "下載時間比預期長。伺服器可能仍透過緩慢的連線取得中。請稍候，然後點一下「重試」。"
           }
         }
       }
@@ -91495,6 +91335,166 @@
           "stringUnit" : {
             "state": "translated",
             "value": "搜尋字幕"
+          }
+        }
+      }
+    },
+    "player.subtitle.search.tryAgain" : {
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Zkusit znovu"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Prøv igen"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Erneut versuchen"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Δοκιμή ξανά"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Try again"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Intentar de nuevo"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Yritä uudelleen"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Réessayer"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Pokušaj ponovno"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Próbáld újra"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Riprova"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "再試行"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "다시 시도"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Prøv igjen"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Opnieuw proberen"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Spróbuj ponownie"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Tentar novamente"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Tentar novamente"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Încearcă din nou"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Повторить"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Skúsiť znova"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Försök igen"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Tekrar dene"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Спробувати ще раз"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "重试"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "重試"
           }
         }
       }
