@@ -41,6 +41,27 @@ extension PlayerViewModel {
         subtitleSearchState = .idle
     }
 
+    /// Re-fetches the active media source's streams and refreshes the
+    /// listed subtitle tracks. Used to surface subtitles that the server
+    /// attached after we last looked, e.g. a download that finished late on
+    /// a slow CDN. Best-effort and silent: any error leaves the current
+    /// list untouched so opening the menu never blocks or shows an error.
+    /// Skipped for live sessions, which have no library item to query.
+    func refreshSubtitleStreams() async {
+        guard supportsSubtitleSearch else { return }
+        guard let response = try? await playbackService.getPlaybackInfo(
+            itemID: item.id, userID: userID, profile: nil
+        ) else { return }
+        guard let source = response.mediaSources.first(where: { $0.id == mediaSourceID })
+            ?? response.mediaSources.first else { return }
+        let refreshed = Self.dedupedSubtitleStreams(from: source.mediaStreams)
+        // Only reassign when something actually changed, to avoid needless
+        // view churn while the dropdown is open.
+        if refreshed.map(\.index) != subtitleStreams.map(\.index) {
+            subtitleStreams = refreshed
+        }
+    }
+
     /// Switches the search language and re-runs the search.
     func setSubtitleSearchLanguage(_ code: String) {
         guard code != subtitleSearchLanguage else { return }
@@ -121,9 +142,15 @@ extension PlayerViewModel {
             }
 
             guard let applied = newStream else {
+                // The download request was accepted, but the server had not
+                // attached the track by the time we stopped polling. On a slow
+                // server/CDN the fetch often finishes seconds later, so this is
+                // a "still working" state, not an outright failure: tell the
+                // user it may still arrive and that reopening the menu will pick
+                // it up (the menu now refreshes itself on open).
                 subtitleSearchState = .error(
-                    String(localized: "player.subtitle.search.downloadFailed",
-                           defaultValue: "Could not download this subtitle. Please try another one.")
+                    String(localized: "player.subtitle.search.downloadPending",
+                           defaultValue: "The download is taking longer than expected. The server may still be fetching it on a slow connection. Reopen the subtitle menu in a moment and it should appear.")
                 )
                 return
             }

@@ -1140,6 +1140,12 @@ final class PlayerHostController: AVPlayerViewController {
             currentIdx = 0
         }
         viewModel.trackDropdown = .subtitle(highlighted: currentIdx)
+        // Open instantly from the cached list, then refresh in the background
+        // so a subtitle the server attached since we last looked (e.g. a
+        // download that finished late on a slow CDN) shows up without having
+        // to leave and reopen the player. Non-blocking, so the menu never
+        // stalls on the network round-trip.
+        Task { [weak viewModel] in await viewModel?.refreshSubtitleStreams() }
     }
 
     private func openSpeedDropdown() {
