@@ -1178,8 +1178,9 @@ final class PlayerHostController: AVPlayerViewController {
             let newIdx = max(0, min(count - 1, idx + offset))
             viewModel.trackDropdown = .audio(highlighted: newIdx)
         case .subtitle(let idx):
-            // header(Secondary) + Off + streams + Search online
+            // header(Secondary) + Off + streams + Search online (+ Refresh)
             let count = viewModel.displaySubtitleStreams.count + 3
+                + (viewModel.supportsSubtitleSearch ? 1 : 0)
             guard count > 0 else { return }
             let newIdx = max(0, min(count - 1, idx + offset))
             viewModel.trackDropdown = .subtitle(highlighted: newIdx)
@@ -1235,6 +1236,11 @@ final class PlayerHostController: AVPlayerViewController {
                 // "Search online..." row.
                 viewModel.trackDropdown = .none
                 viewModel.presentSubtitleSearch()
+            } else if viewModel.supportsSubtitleSearch && idx == streams.count + 3 {
+                // "Refresh subtitles" row. Keep the dropdown open and pull
+                // the list in place so a late-downloaded track appears right
+                // here without having to reopen the menu.
+                Task { await viewModel.refreshSubtitleStreams() }
             } else {
                 let streamIdx = idx - 2
                 if streamIdx < streams.count {
