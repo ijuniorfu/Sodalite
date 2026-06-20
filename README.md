@@ -37,6 +37,14 @@
     <td align="center"><b>Catalog</b> (Seerr browse &amp; request)</td>
   </tr>
   <tr>
+    <td width="50%"><a href=".github/media/screenshot-tv.jpg"><img src=".github/media/screenshot-tv.jpg" alt="Live TV: On Now and Series rows in the overview tab"></a></td>
+    <td width="50%"><a href=".github/media/screenshot-music.jpg"><img src=".github/media/screenshot-music.jpg" alt="Music: album track list with play and shuffle"></a></td>
+  </tr>
+  <tr>
+    <td align="center"><b>Live TV</b> (overview)</td>
+    <td align="center"><b>Music</b></td>
+  </tr>
+  <tr>
     <td width="50%"><a href=".github/media/screenshot-search.jpg"><img src=".github/media/screenshot-search.jpg" alt="Search: library results and matching catalog titles"></a></td>
     <td width="50%"><a href=".github/media/screenshot-settings.jpg"><img src=".github/media/screenshot-settings.jpg" alt="Settings: profile, rows, playback and appearance"></a></td>
   </tr>
