@@ -72,6 +72,12 @@ final class PlayerViewModel {
         case empty
         case downloading(id: String)
         case error(String)
+        /// The download POST was accepted but the server had not attached the
+        /// track by the time polling stopped (typical on a slow CDN). Carries
+        /// the originally requested subtitle and the pre-download stream index
+        /// snapshot so the overlay's "Try again" button can re-check without
+        /// re-issuing the download. `message` is the localized pending copy.
+        case downloadTimedOut(info: RemoteSubtitleInfo, before: Set<Int>, message: String)
     }
 
     /// Drives the SubtitleSearchView overlay.
@@ -88,6 +94,7 @@ final class PlayerViewModel {
     enum SubtitleSearchFocus: Equatable {
         case language(Int)   // index into subtitleSearchLanguageOptions
         case result(Int)     // index into the current results
+        case retry           // the "Try again" button in the timed-out state
     }
     var subtitleSearchFocus: SubtitleSearchFocus = .language(0)
 

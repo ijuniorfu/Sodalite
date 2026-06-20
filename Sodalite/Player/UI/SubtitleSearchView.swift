@@ -75,6 +75,25 @@ struct SubtitleSearchView: View {
             }
         case .error(let message):
             centered { Text(message).foregroundStyle(.secondary).multilineTextAlignment(.center) }
+        case .downloadTimedOut(_, _, let message):
+            centered {
+                VStack(spacing: 24) {
+                    Text(message)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
+                    let isFocused = viewModel.subtitleSearchFocus == .retry
+                    Text("player.subtitle.search.tryAgain")
+                        .fontWeight(.semibold)
+                        .padding(.horizontal, 28)
+                        .padding(.vertical, 14)
+                        .background(
+                            RoundedRectangle(cornerRadius: 12)
+                                .fill(isFocused ? tint : Color.white.opacity(0.12))
+                        )
+                        .foregroundStyle(isFocused ? .black : .primary)
+                }
+                .padding(.horizontal, 24)
+            }
         case .downloading:
             centered {
                 VStack(spacing: 16) {

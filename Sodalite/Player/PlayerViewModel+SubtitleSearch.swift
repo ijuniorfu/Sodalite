@@ -88,56 +88,85 @@ extension PlayerViewModel {
 
     /// Downloads `info` server-side, refetches the active media source's
     /// streams to find the newly attached external subtitle, lists it,
-    /// applies it live, and dismisses the overlay.
+    /// applies it live, and dismisses the overlay. If the server has not
+    /// attached the track by the time polling stops (typical on a slow CDN),
+    /// drops into `.downloadTimedOut` so the overlay can offer "Try again".
     func downloadAndApplySubtitle(_ info: RemoteSubtitleInfo) async {
         subtitleSearchState = .downloading(id: info.id)
+        // External subtitles are never collapsed by the dedupe, so the
+        // current `subtitleStreams` already lists every external track; its
+        // index set is a sound "before" snapshot for spotting the newly
+        // attached one.
+        let before = Set(subtitleStreams.map(\.index))
         do {
-            // External subtitles are never collapsed by the dedupe, so the
-            // current `subtitleStreams` already lists every external track;
-            // its index set is a sound "before" snapshot for spotting the
-            // newly attached one.
-            let before = Set(subtitleStreams.map(\.index))
             try await playbackService.downloadRemoteSubtitle(itemID: item.id, subtitleID: info.id)
-
-            // The server attaches the subtitle asynchronously; poll
-            // PlaybackInfo a few times until the new external stream
-            // surfaces on the active media source.
-            var newStream: MediaStream?
-            for attempt in 0..<5 {
-                if attempt > 0 { try? await Task.sleep(for: .milliseconds(600)) }
-                let response = try await playbackService.getPlaybackInfo(
-                    itemID: item.id, userID: userID, profile: nil
-                )
-                guard let source = response.mediaSources.first(where: { $0.id == mediaSourceID })
-                    ?? response.mediaSources.first else { continue }
-                let refreshed = Self.dedupedSubtitleStreams(from: source.mediaStreams)
-                if let added = refreshed.first(where: {
-                    $0.isExternal == true && !before.contains($0.index)
-                }) {
-                    subtitleStreams = refreshed
-                    newStream = added
-                    break
-                }
-            }
-
-            guard let applied = newStream else {
-                subtitleSearchState = .error(
-                    String(localized: "player.subtitle.search.downloadFailed",
-                           defaultValue: "Could not download this subtitle. Please try another one.")
-                )
-                return
-            }
-            selectSubtitleTrack(id: applied.index)
-            dismissSubtitleSearch()
-            // Resume the controls auto-hide timer that opening the dropdown
-            // cancelled, so the transport UI fades out as after any picker.
-            scheduleControlsHide()
         } catch {
+            // The download request itself failed (network/server error). That
+            // is a genuine failure, not the slow-CDN "still fetching" case.
             subtitleSearchState = .error(
                 String(localized: "player.subtitle.search.downloadFailed",
                        defaultValue: "Could not download this subtitle. Please try another one.")
             )
+            subtitleSearchFocus = .language(subtitleSearchCurrentLanguageIndex)
+            return
         }
+        await applyNewlyAttachedSubtitle(info: info, before: before)
+    }
+
+    /// Re-checks whether the timed-out download has since been attached by
+    /// the server, without re-issuing the download. Backs the overlay's
+    /// "Try again" button.
+    func retryTimedOutDownload() async {
+        guard case .downloadTimedOut(let info, let before, _) = subtitleSearchState else { return }
+        subtitleSearchState = .downloading(id: info.id)
+        await applyNewlyAttachedSubtitle(info: info, before: before)
+    }
+
+    /// Polls PlaybackInfo for a new external subtitle not present in
+    /// `before`. On success applies it live and dismisses the overlay; on
+    /// timeout parks in `.downloadTimedOut` with the pending message and
+    /// focuses the retry button. Per-attempt PlaybackInfo errors are
+    /// swallowed so a transient hiccup on a slow CDN reads as "still
+    /// fetching", not a hard failure.
+    private func applyNewlyAttachedSubtitle(info: RemoteSubtitleInfo, before: Set<Int>) async {
+        var newStream: MediaStream?
+        for attempt in 0..<5 {
+            if attempt > 0 { try? await Task.sleep(for: .milliseconds(600)) }
+            guard let response = try? await playbackService.getPlaybackInfo(
+                itemID: item.id, userID: userID, profile: nil
+            ) else { continue }
+            guard let source = response.mediaSources.first(where: { $0.id == mediaSourceID })
+                ?? response.mediaSources.first else { continue }
+            let refreshed = Self.dedupedSubtitleStreams(from: source.mediaStreams)
+            if let added = refreshed.first(where: {
+                $0.isExternal == true && !before.contains($0.index)
+            }) {
+                subtitleStreams = refreshed
+                newStream = added
+                break
+            }
+        }
+
+        guard let applied = newStream else {
+            // The download was accepted but the server had not attached the
+            // track yet. On a slow server/CDN the fetch often finishes
+            // seconds later, so this is a "still working" state, not an
+            // outright failure: show the pending copy and let the user
+            // re-check with "Try again" once it has had a moment.
+            subtitleSearchState = .downloadTimedOut(
+                info: info,
+                before: before,
+                message: String(localized: "player.subtitle.search.downloadPending",
+                                defaultValue: "The download is taking longer than expected. The server may still be fetching it on a slow connection. Wait a moment, then tap Try again.")
+            )
+            subtitleSearchFocus = .retry
+            return
+        }
+        selectSubtitleTrack(id: applied.index)
+        dismissSubtitleSearch()
+        // Resume the controls auto-hide timer that opening the dropdown
+        // cancelled, so the transport UI fades out as after any picker.
+        scheduleControlsHide()
     }
 
     // MARK: - Host-driven focus navigation
@@ -169,9 +198,15 @@ extension PlayerViewModel {
     func subtitleSearchMoveDown() {
         switch subtitleSearchFocus {
         case .language:
-            if !currentSubtitleResults.isEmpty { subtitleSearchFocus = .result(0) }
+            if !currentSubtitleResults.isEmpty {
+                subtitleSearchFocus = .result(0)
+            } else if isSubtitleDownloadTimedOut {
+                subtitleSearchFocus = .retry
+            }
         case .result(let i):
             if i + 1 < currentSubtitleResults.count { subtitleSearchFocus = .result(i + 1) }
+        case .retry:
+            break
         }
     }
 
@@ -181,10 +216,15 @@ extension PlayerViewModel {
             break
         case .result(let i):
             subtitleSearchFocus = i > 0 ? .result(i - 1) : .language(subtitleSearchCurrentLanguageIndex)
+        case .retry:
+            // Back up to the language row so the user can change language and
+            // run a fresh search instead of waiting on the stuck download.
+            subtitleSearchFocus = .language(subtitleSearchCurrentLanguageIndex)
         }
     }
 
-    /// Activates the highlighted element: switch language, or download a result.
+    /// Activates the highlighted element: switch language, download a result,
+    /// or re-check a timed-out download.
     func subtitleSearchConfirm() {
         switch subtitleSearchFocus {
         case .language(let i):
@@ -195,7 +235,15 @@ extension PlayerViewModel {
             let results = currentSubtitleResults
             guard results.indices.contains(i) else { return }
             Task { [weak self] in await self?.downloadAndApplySubtitle(results[i]) }
+        case .retry:
+            Task { [weak self] in await self?.retryTimedOutDownload() }
         }
+    }
+
+    /// True while the overlay is parked on a timed-out download.
+    private var isSubtitleDownloadTimedOut: Bool {
+        if case .downloadTimedOut = subtitleSearchState { return true }
+        return false
     }
 
     // MARK: - Delete external subtitle (hold-to-delete)
