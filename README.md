@@ -30,26 +30,26 @@
 <table>
   <tr>
     <td width="50%"><a href=".github/media/screenshot-home.jpg"><img src=".github/media/screenshot-home.jpg" alt="Home: Continue Watching, Next Up and Favorites rows"></a></td>
-    <td width="50%"><a href=".github/media/screenshot-catalog.jpg"><img src=".github/media/screenshot-catalog.jpg" alt="Catalog: Seerr Discover with Trending and Upcoming Movies"></a></td>
+    <td width="50%"><a href=".github/media/screenshot-tv.jpg"><img src=".github/media/screenshot-tv.jpg" alt="Live TV: On Now and Series rows in the overview tab"></a></td>
   </tr>
   <tr>
     <td align="center"><b>Home</b></td>
-    <td align="center"><b>Catalog</b> (Seerr browse &amp; request)</td>
-  </tr>
-  <tr>
-    <td width="50%"><a href=".github/media/screenshot-tv.jpg"><img src=".github/media/screenshot-tv.jpg" alt="Live TV: On Now and Series rows in the overview tab"></a></td>
-    <td width="50%"><a href=".github/media/screenshot-music.jpg"><img src=".github/media/screenshot-music.jpg" alt="Music: album track list with play and shuffle"></a></td>
-  </tr>
-  <tr>
     <td align="center"><b>Live TV</b> (overview)</td>
-    <td align="center"><b>Music</b></td>
   </tr>
   <tr>
+    <td width="50%"><a href=".github/media/screenshot-catalog.jpg"><img src=".github/media/screenshot-catalog.jpg" alt="Catalog: Seerr Discover with Trending and Upcoming Movies"></a></td>
     <td width="50%"><a href=".github/media/screenshot-search.jpg"><img src=".github/media/screenshot-search.jpg" alt="Search: library results and matching catalog titles"></a></td>
+  </tr>
+  <tr>
+    <td align="center"><b>Catalog</b> (Seerr browse &amp; request)</td>
+    <td align="center"><b>Search</b></td>
+  </tr>
+  <tr>
+    <td width="50%"><a href=".github/media/screenshot-music.jpg"><img src=".github/media/screenshot-music.jpg" alt="Music: album track list with play and shuffle"></a></td>
     <td width="50%"><a href=".github/media/screenshot-settings.jpg"><img src=".github/media/screenshot-settings.jpg" alt="Settings: profile, rows, playback and appearance"></a></td>
   </tr>
   <tr>
-    <td align="center"><b>Search</b></td>
+    <td align="center"><b>Music</b></td>
     <td align="center"><b>Settings</b></td>
   </tr>
 </table>
