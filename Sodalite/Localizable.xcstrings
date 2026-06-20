@@ -90859,6 +90859,166 @@
         }
       }
     },
+    "player.subtitle.search.noResultsHint" : {
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Váš server Jellyfin možná potřebuje nakonfigurovaného poskytovatele titulků."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Din Jellyfin-server mangler muligvis en konfigureret undertekstudbyder."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Auf deinem Jellyfin-Server ist möglicherweise kein Untertitel-Anbieter konfiguriert."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Ο διακομιστής Jellyfin σας ίσως χρειάζεται ρυθμισμένο πάροχο υπότιτλων."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Your Jellyfin server may need a subtitle provider configured."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Puede que tu servidor Jellyfin necesite un proveedor de subtítulos configurado."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Jellyfin-palvelimellesi ei ehkä ole määritetty tekstitysten tarjoajaa."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Votre serveur Jellyfin n'a peut-être aucun fournisseur de sous-titres configuré."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Vaš Jellyfin poslužitelj možda treba konfiguriran pružatelj titlova."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Lehet, hogy a Jellyfin-kiszolgálódon nincs feliratszolgáltató beállítva."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Il tuo server Jellyfin potrebbe non avere un provider di sottotitoli configurato."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Jellyfin サーバーに字幕プロバイダーが設定されていない可能性があります。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Jellyfin 서버에 자막 공급자가 구성되어 있지 않을 수 있습니다."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Jellyfin-serveren din mangler kanskje en konfigurert undertekstleverandør."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Mogelijk is op je Jellyfin-server geen ondertitelprovider geconfigureerd."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Twój serwer Jellyfin może wymagać skonfigurowanego dostawcy napisów."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Talvez seu servidor Jellyfin precise de um provedor de legendas configurado."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Talvez o seu servidor Jellyfin precise de um fornecedor de legendas configurado."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Este posibil ca serverul tău Jellyfin să aibă nevoie de un furnizor de subtitrări configurat."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Возможно, на вашем сервере Jellyfin не настроен поставщик субтитров."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Váš server Jellyfin možno potrebuje nakonfigurovaného poskytovateľa titulkov."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Din Jellyfin-server kanske saknar en konfigurerad undertextleverantör."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Jellyfin sunucunuzda yapılandırılmış bir altyazı sağlayıcısı olmayabilir."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Можливо, на вашому сервері Jellyfin не налаштовано постачальника субтитрів."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "您的 Jellyfin 服务器可能尚未配置字幕提供程序。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "您的 Jellyfin 伺服器可能尚未設定字幕提供者。"
+          }
+        }
+      }
+    },
     "player.subtitle.search.title" : {
       "localizations" : {
         "cs" : {

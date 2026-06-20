@@ -63,7 +63,16 @@ struct SubtitleSearchView: View {
         case .idle, .loading:
             centered { ProgressView() }
         case .empty:
-            centered { Text("player.subtitle.search.noResults").foregroundStyle(.secondary) }
+            centered {
+                VStack(spacing: 8) {
+                    Text("player.subtitle.search.noResults").foregroundStyle(.secondary)
+                    Text("player.subtitle.search.noResultsHint")
+                        .font(.caption)
+                        .foregroundStyle(.tertiary)
+                        .multilineTextAlignment(.center)
+                }
+                .padding(.horizontal, 24)
+            }
         case .error(let message):
             centered { Text(message).foregroundStyle(.secondary).multilineTextAlignment(.center) }
         case .downloading:
