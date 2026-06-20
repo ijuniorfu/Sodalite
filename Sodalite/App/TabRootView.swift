@@ -71,6 +71,13 @@ struct TabRootView: View {
             }
         }
         .tint(iconColor)
+        // Display-only active-profile badge in the top-trailing corner.
+        // Non-focusable, so it never intercepts focus from the nav bar;
+        // sits below the player fullScreenCover, so it's absent during
+        // playback. Hidden unless the server has multiple profiles.
+        .overlay(alignment: .topTrailing) {
+            ActiveUserBadge()
+        }
         // Siri Remote play/pause button while browsing (foreground): it is
         // delivered to the responder chain, not MPRemoteCommandCenter, so
         // toggle music here when a track is active.
