@@ -90,29 +90,30 @@ struct LiveTransportBar: View {
     // MARK: - Scrub Preview
 
     private static let scrubCardWidth: CGFloat = 320
-    private var scrubCardHeight: CGFloat { Self.scrubCardWidth * 9 / 16 }
 
     /// Frame card tracking the scrub knob, mirroring TransportBar's
-    /// scrubPreviewArea (clamped so the card never leaves the bar).
+    /// scrubPreviewArea (clamped so the card never leaves the bar). Sizes to
+    /// the frame's own aspect (SD 4:3 channels stay 4:3) instead of forcing
+    /// 16:9.
     private func liveScrubPreviewArea(image: CGImage) -> some View {
-        GeometryReader { geo in
+        let cardHeight = TransportBar.previewImageHeight(for: image)
+        return GeometryReader { geo in
             let width = geo.size.width
             let half = Self.scrubCardWidth / 2
             let knobX = max(0, min(width, width * CGFloat(viewModel.scrubProgress)))
             let clampedX = max(half, min(width - half, knobX))
             Image(decorative: image, scale: 1.0)
                 .resizable()
-                .aspectRatio(16.0 / 9.0, contentMode: .fill)
-                .frame(width: Self.scrubCardWidth, height: scrubCardHeight)
+                .frame(width: Self.scrubCardWidth, height: cardHeight)
                 .clipShape(RoundedRectangle(cornerRadius: 10))
                 .overlay(
                     RoundedRectangle(cornerRadius: 10)
                         .strokeBorder(.white.opacity(0.18), lineWidth: 1)
                 )
                 .shadow(color: .black.opacity(0.5), radius: 12, y: 4)
-                .position(x: clampedX, y: scrubCardHeight / 2)
+                .position(x: clampedX, y: cardHeight / 2)
         }
-        .frame(height: scrubCardHeight)
+        .frame(height: cardHeight)
         .padding(.bottom, 4)
         .transition(.opacity)
     }

@@ -257,15 +257,17 @@ struct TransportBar: View {
     @ViewBuilder
     private var scrubPreviewArea: some View {
         if let previewImage {
+            let imageHeight = Self.previewImageHeight(for: previewImage)
+            let cardHeight = imageHeight + 34
             GeometryReader { geo in
                 let width = geo.size.width
                 let half = Self.scrubCardWidth / 2
                 let knobX = max(0, min(width, width * CGFloat(progress)))
                 let clampedX = max(half, min(width - half, knobX))
-                scrubPreviewCard(image: previewImage)
-                    .position(x: clampedX, y: scrubCardHeight / 2)
+                scrubPreviewCard(image: previewImage, imageHeight: imageHeight)
+                    .position(x: clampedX, y: cardHeight / 2)
             }
-            .frame(height: scrubCardHeight)
+            .frame(height: cardHeight)
             .padding(.bottom, 12)
             .transition(.opacity)
         } else {
@@ -278,15 +280,23 @@ struct TransportBar: View {
         }
     }
 
-    /// 16:9 image (180 pt tall at 320 pt wide) plus the time label below.
-    private var scrubCardHeight: CGFloat { Self.scrubCardWidth * 9 / 16 + 34 }
+    /// Display height of the preview image at the fixed card width, derived
+    /// from the frame's own pixel aspect. The engine delivers SAR-corrected
+    /// thumbnails, so a 4:3 DVD stays 4:3 (240 pt) instead of being forced
+    /// to 16:9 (180 pt) and stretched. Clamped to a sane band so a malformed
+    /// frame can't blow up the layout; falls back to 16:9 for a degenerate
+    /// image.
+    static func previewImageHeight(for image: CGImage) -> CGFloat {
+        guard image.width > 0, image.height > 0 else { return scrubCardWidth * 9 / 16 }
+        let h = scrubCardWidth * CGFloat(image.height) / CGFloat(image.width)
+        return min(max(h, scrubCardWidth * 9 / 21), scrubCardWidth)
+    }
 
-    private func scrubPreviewCard(image: CGImage) -> some View {
+    private func scrubPreviewCard(image: CGImage, imageHeight: CGFloat) -> some View {
         VStack(spacing: 6) {
             Image(decorative: image, scale: 1.0)
                 .resizable()
-                .aspectRatio(16.0 / 9.0, contentMode: .fill)
-                .frame(width: Self.scrubCardWidth, height: Self.scrubCardWidth * 9 / 16)
+                .frame(width: Self.scrubCardWidth, height: imageHeight)
                 .clipShape(RoundedRectangle(cornerRadius: 10))
                 .overlay(
                     RoundedRectangle(cornerRadius: 10)
