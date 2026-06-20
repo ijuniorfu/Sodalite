@@ -19,40 +19,29 @@ struct LaunchProfilePickerView: View {
     @State private var showServerSwitchSheet = false
     @State private var showAddServerFlow = false
 
+    /// Namespace anchoring the focus scope so cold-launch focus lands
+    /// on a profile card rather than the server-switch button. Picking
+    /// a profile is the frequent action, switching servers is rare, so
+    /// the picker should open with a profile pre-focused (issue #25).
+    @Namespace private var focusNamespace
+
     var body: some View {
         NavigationStack {
             VStack(spacing: 40) {
                 header
 
-                Button(action: { gateThenServerSwitch() }) {
-                    HStack(spacing: 12) {
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text("multiServer.picker.header.label", bundle: .main)
-                                .font(.caption2)
-                                .foregroundStyle(.secondary)
-                            Text(server.name)
-                                .font(.headline)
-                            Text(server.url.host() ?? server.url.absoluteString)
-                                .font(.caption2)
-                                .foregroundStyle(.tertiary)
-                        }
-                        Spacer(minLength: 12)
-                        Image(systemName: "arrow.left.arrow.right")
-                            .font(.callout)
-                            .foregroundStyle(.tint)
-                    }
-                    .padding(.horizontal, 20)
-                    .padding(.vertical, 12)
-                }
-                .buttonStyle(.card)
-                .frame(maxWidth: 560)
-                .padding(.bottom, 24)
-
                 profileGrid
+
+                // Server switch + add profile sit below the grid as
+                // secondary actions. The grid is the primary target
+                // both visually and for default focus, switching the
+                // active server is the lower-priority path.
+                serverSwitchButton
 
                 addProfileButton
                     .focusSection()
             }
+            .focusScope(focusNamespace)
             .padding(.horizontal, 80)
             .padding(.vertical, 60)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -118,6 +107,33 @@ struct LaunchProfilePickerView: View {
         }
     }
 
+    // MARK: - Server switch
+
+    private var serverSwitchButton: some View {
+        Button(action: { gateThenServerSwitch() }) {
+            HStack(spacing: 12) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("multiServer.picker.header.label", bundle: .main)
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                    Text(server.name)
+                        .font(.headline)
+                    Text(server.url.host() ?? server.url.absoluteString)
+                        .font(.caption2)
+                        .foregroundStyle(.tertiary)
+                }
+                Spacer(minLength: 12)
+                Image(systemName: "arrow.left.arrow.right")
+                    .font(.callout)
+                    .foregroundStyle(.tint)
+            }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 12)
+        }
+        .buttonStyle(.card)
+        .frame(maxWidth: 560)
+    }
+
     // MARK: - Grid
 
     private var profileGrid: some View {
@@ -138,11 +154,24 @@ struct LaunchProfilePickerView: View {
                         onSelect: { select(user) },
                         onLongPress: { forget(user) }
                     )
+                    // Pre-focus the remembered default profile (or the
+                    // first card when no default is set) so a cold
+                    // launch opens with a profile highlighted instead
+                    // of the server-switch button (issue #25).
+                    .prefersDefaultFocus(isPreferredDefault(user), in: focusNamespace)
                 }
             }
             Spacer(minLength: 0)
         }
         .focusSection()
+    }
+
+    private func isPreferredDefault(_ user: RememberedUser) -> Bool {
+        if let defaultID = dependencies.authPreferences.defaultUserID,
+           rememberedUsers.contains(where: { $0.id == defaultID }) {
+            return user.id == defaultID
+        }
+        return user.id == rememberedUsers.first?.id
     }
 
     // MARK: - Add Profile
