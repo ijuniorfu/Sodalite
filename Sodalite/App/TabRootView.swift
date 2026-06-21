@@ -61,11 +61,18 @@ struct TabRootView: View {
                     Label {
                         Text(tab.labelKey)
                     } icon: {
-                        // tvOS re-tints SF Symbols inside Tab labels,
-                        // ignoring SwiftUI's .foregroundStyle. Baking the
-                        // color into a UIImage with .alwaysOriginal is
-                        // the only rendering mode the tab bar respects.
-                        tabIcon(name: tab.systemImage, color: iconColor)
+                        // Force monochrome rendering. The accent is applied
+                        // via UITabBarItemAppearance.iconColor (see
+                        // configureTabBarItemAppearance), which tints a
+                        // template symbol. Most SF Symbols render monochrome
+                        // by default, but a few (notably "tv", the Live TV
+                        // tab) default to HIERARCHICAL rendering with a baked
+                        // white color that overrides the tab-bar tint, the
+                        // icon stays gray while its siblings tint. .monochrome
+                        // strips that baked color so the tint applies
+                        // uniformly across every tab.
+                        Image(systemName: tab.systemImage)
+                            .symbolRenderingMode(.monochrome)
                     }
                 }
             }
@@ -120,32 +127,37 @@ struct TabRootView: View {
 
             guard let userID = dependencies.activeUserID else { return }
 
-            // Live TV probe never throws; run it outside the music do/catch
-            // so a music failure cannot prevent the Live TV tab from appearing.
+            // Probe both optional tabs, then publish the whole tab set in a
+            // SINGLE assignment. Inserting Live TV and Music as two separate
+            // mutations rebuilt the tab bar twice; the item created in the
+            // earlier rebuild (Live TV) got stranded on tvOS's gray icon
+            // template while the one created in the later rebuild (Music)
+            // picked up the accent. One atomic rebuild means every item is
+            // born in the same appearance pass and tints uniformly.
             let hasLive = await dependencies.serverHasLiveTV(userID: userID)
             guard !Task.isCancelled, signal == lastProbedServerSwitch else { return }
-            if hasLive, !availableTabs.contains(.liveTV) {
-                if let homeIndex = availableTabs.firstIndex(of: .home) {
-                    availableTabs.insert(.liveTV, at: homeIndex + 1)
-                } else {
-                    availableTabs.insert(.liveTV, at: 0)
-                }
-            }
 
+            // A music probe failure must not keep the Live TV tab hidden, so
+            // swallow its error into a plain false rather than letting it
+            // skip the assignment below.
+            var hasMusic = false
             do {
-                let hasMusic = try await dependencies.jellyfinMusicService.hasMusicLibrary(userID: userID)
-                guard !Task.isCancelled, signal == lastProbedServerSwitch else { return }
-                if hasMusic, !availableTabs.contains(.music) {
-                    // Insert Music before Settings so the order is:
-                    // Home, [Live TV,] Catalog, Search, Music, Settings.
-                    if let settingsIndex = availableTabs.firstIndex(of: .settings) {
-                        availableTabs.insert(.music, at: settingsIndex)
-                    } else {
-                        availableTabs.append(.music)
-                    }
-                }
+                hasMusic = try await dependencies.jellyfinMusicService.hasMusicLibrary(userID: userID)
             } catch {
                 // No music library confirmed; tab stays hidden.
+            }
+            guard !Task.isCancelled, signal == lastProbedServerSwitch else { return }
+
+            // Order: Home, [Live TV,] Catalog, Search, [Music,] Settings.
+            var tabs = AppTab.allCases.filter { $0 != .music && $0 != .liveTV }
+            if hasLive, let homeIndex = tabs.firstIndex(of: .home) {
+                tabs.insert(.liveTV, at: homeIndex + 1)
+            }
+            if hasMusic, let settingsIndex = tabs.firstIndex(of: .settings) {
+                tabs.insert(.music, at: settingsIndex)
+            }
+            if tabs != availableTabs {
+                availableTabs = tabs
             }
         }
         .onAppear {
@@ -160,118 +172,88 @@ struct TabRootView: View {
         .onChange(of: availableTabs) { _, _ in
             // The Live TV / Music tabs are inserted asynchronously after
             // the server probe completes (see the .task above), which
-            // rebuilds the TabView's UITabBarItems. tvOS drops the baked
-            // `.alwaysOriginal` icon on that rebuild and falls back to its
-            // gray template rendering, the icons go gray until the user
-            // re-selects a tab. The new items don't exist yet at this
-            // point in the runloop, so re-apply on the next tick once the
-            // tab bar has reconstructed.
+            // rebuilds the TabView's UITabBar. The standardAppearance
+            // proxy covers the freshly allocated tab bar, but re-apply on
+            // the next tick as a belt-and-braces measure in case the new
+            // bar exists before the proxy is consulted.
             DispatchQueue.main.async {
                 configureTabBarItemAppearance()
             }
         }
     }
 
-    /// Drives the tab bar's per-state text color via UIKit's appearance
-    /// proxy AND walks the active window's existing UITabBar instances
-    /// to update them in place. The proxy alone only affects future
-    /// `UITabBarItem` constructions; existing items (the live tab bar
-    /// the user is looking at) keep whatever attributes they had at
-    /// construction time. That's the "tab text shows the previous
-    /// accent color until app restart" symptom — accent flips in
-    /// Settings → effectiveTint changes → onChange fires → proxy
-    /// updates but the visible tab bar doesn't repaint because its
-    /// items were created with the old proxy values.
+    /// Tints the tab bar's icons and titles through `UITabBarAppearance`.
     ///
-    /// Live update: walk every UIWindow's view hierarchy, find any
-    /// UITabBar, and set the title attributes on each of its items
-    /// for all relevant states. Cheap (one TabRootView in the app, ~4
-    /// items each, runs only on accent change and initial appear).
+    /// Why the appearance API and not per-item images: tvOS always
+    /// renders tab-bar SF Symbols as templates. Baking an
+    /// `.alwaysOriginal` accent image onto each `UITabBarItem` looked
+    /// right until the Live TV / Music tabs were inserted mid-session,
+    /// which rebuilds the underlying `UITabBar`; tvOS re-templated the
+    /// new items gray and discarded the baked image. Titles never had
+    /// this problem because they flow through `titleTextAttributes`,
+    /// which the framework honors. `iconColor` is the equivalent lever
+    /// for symbols: it tells tvOS which color to template TO, so the
+    /// accent survives any rebuild.
+    ///
+    /// Applied two ways: the `UITabBar.appearance()` proxy so a freshly
+    /// allocated tab bar (the mid-session rebuild) inherits it, and a
+    /// walk of the live window hierarchy so the tab bar currently on
+    /// screen repaints immediately (e.g. when the user flips their
+    /// accent in Appearance settings).
     private func configureTabBarItemAppearance() {
         let tintUIColor = UIColor(iconColor)
-        let normalAttrs: [NSAttributedString.Key: Any] = [
-            .foregroundColor: UIColor.white
-        ]
-        let selectedAttrs: [NSAttributedString.Key: Any] = [
-            .foregroundColor: tintUIColor
-        ]
 
-        // Future instances pick up new values from the proxy.
-        let proxy = UITabBarItem.appearance()
-        proxy.setTitleTextAttributes(normalAttrs, for: .normal)
-        proxy.setTitleTextAttributes(selectedAttrs, for: .selected)
-        proxy.setTitleTextAttributes(selectedAttrs, for: .focused)
-        proxy.setTitleTextAttributes(selectedAttrs, for: [.selected, .focused])
+        let itemAppearance = UITabBarItemAppearance()
+        // Icons: accent color in every state.
+        itemAppearance.normal.iconColor = tintUIColor
+        itemAppearance.selected.iconColor = tintUIColor
+        itemAppearance.focused.iconColor = tintUIColor
+        // Titles: white at rest, accent when selected or focused.
+        itemAppearance.normal.titleTextAttributes = [.foregroundColor: UIColor.white]
+        itemAppearance.selected.titleTextAttributes = [.foregroundColor: tintUIColor]
+        itemAppearance.focused.titleTextAttributes = [.foregroundColor: tintUIColor]
 
-        // Baked icon images in availableTabs order. The tab bar's item
-        // order mirrors availableTabs, so we can apply them positionally
-        // in the hierarchy walk below. Same reasoning as the title
-        // attributes: SwiftUI's Tab label sets the image at construction,
-        // but a mid-session rebuild (Live TV / Music tabs appearing) lets
-        // tvOS re-template the icon gray. Forcing the `.alwaysOriginal`
-        // image back onto each live item restores the accent color.
-        let icons = availableTabs.map { tintedSymbolImage(name: $0.systemImage, color: iconColor) }
+        let appearance = UITabBarAppearance()
+        appearance.configureWithDefaultBackground()
+        // tvOS may lay items out stacked or inline depending on width;
+        // set all three so the tint holds regardless.
+        appearance.stackedLayoutAppearance = itemAppearance
+        appearance.inlineLayoutAppearance = itemAppearance
+        appearance.compactInlineLayoutAppearance = itemAppearance
 
-        // Existing items need explicit per-instance updates because
-        // the proxy doesn't retroactively rewrite already-allocated
-        // UITabBarItem attribute dictionaries.
+        // Future tab bars (a rebuild allocates a new one) inherit this.
+        UITabBar.appearance().standardAppearance = appearance
+
+        // Repaint the tab bar that's already on screen.
         for scene in UIApplication.shared.connectedScenes {
             guard let windowScene = scene as? UIWindowScene else { continue }
             for window in windowScene.windows {
-                Self.applyTabBarItemAttributes(
-                    in: window,
-                    normal: normalAttrs,
-                    selected: selectedAttrs,
-                    icons: icons
-                )
+                Self.applyTabBarAppearance(appearance, in: window)
             }
         }
     }
 
-    private static func applyTabBarItemAttributes(
-        in view: UIView,
-        normal: [NSAttributedString.Key: Any],
-        selected: [NSAttributedString.Key: Any],
-        icons: [UIImage?]
-    ) {
+    private static func applyTabBarAppearance(_ appearance: UITabBarAppearance, in view: UIView) {
         if let tabBar = view as? UITabBar {
-            for (index, item) in (tabBar.items ?? []).enumerated() {
-                item.setTitleTextAttributes(normal, for: .normal)
-                item.setTitleTextAttributes(selected, for: .selected)
-                item.setTitleTextAttributes(selected, for: .focused)
-                item.setTitleTextAttributes(selected, for: [.selected, .focused])
-                if index < icons.count, let icon = icons[index] {
-                    item.image = icon
-                    item.selectedImage = icon
-                }
+            tabBar.standardAppearance = appearance
+            // View-level tint as well. unselectedItemTintColor cascades and
+            // re-tints every unselected template icon on the spot, including
+            // an item that the per-item appearance left stranded on tvOS's
+            // gray template. tintColor covers the selected/focused icon.
+            tabBar.tintColor = appearance.stackedLayoutAppearance.selected.iconColor
+            tabBar.unselectedItemTintColor = appearance.stackedLayoutAppearance.normal.iconColor
+            // Per-item override too. The bar-level appearance alone does
+            // not re-color an item that was already rendered gray before
+            // the appearance was applied. Forcing each item's own
+            // standardAppearance makes every item re-adopt the tint
+            // regardless of when it was created.
+            for item in tabBar.items ?? [] {
+                item.standardAppearance = appearance
             }
         }
         for subview in view.subviews {
-            applyTabBarItemAttributes(in: subview, normal: normal, selected: selected, icons: icons)
+            applyTabBarAppearance(appearance, in: subview)
         }
-    }
-
-    /// Builds the accent-tinted tab-bar symbol as a UIImage with
-    /// `.alwaysOriginal` rendering, the only mode the tvOS tab bar
-    /// respects (it otherwise re-tints SF Symbols to its gray template).
-    /// Shared by the SwiftUI Tab label and the live UIKit item walk.
-    private func tintedSymbolImage(name: String, color: Color) -> UIImage? {
-        // Match the native tvOS tab-bar symbol weight/size. Without an
-        // explicit configuration, UIImage(systemName:) falls back to a
-        // smaller default than the tab bar would request for a raw
-        // SwiftUI Image, the icons end up visibly shrunken.
-        let config = UIImage.SymbolConfiguration(pointSize: 32, weight: .regular)
-        let base = UIImage(systemName: name, withConfiguration: config)
-            ?? UIImage(systemName: name)
-        guard let symbol = base else { return nil }
-        return symbol.withTintColor(UIColor(color), renderingMode: .alwaysOriginal)
-    }
-
-    private func tabIcon(name: String, color: Color) -> Image {
-        guard let tinted = tintedSymbolImage(name: name, color: color) else {
-            return Image(systemName: name)
-        }
-        return Image(uiImage: tinted)
     }
 
     @ViewBuilder
