@@ -60,6 +60,10 @@ struct PlayerOverlayView: View {
                 ZStack {
                     Color.black
                     ProgressView()
+                        // The host applies `.tint(...)` to the overlay, but
+                        // the activity indicator does not inherit it reliably
+                        // on tvOS, it falls back to white. Set it explicitly.
+                        .tint(tintColor ?? .accentColor)
                 }
                 .ignoresSafeArea()
                 .transition(.opacity)
