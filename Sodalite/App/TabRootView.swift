@@ -61,13 +61,18 @@ struct TabRootView: View {
                     Label {
                         Text(tab.labelKey)
                     } icon: {
-                        // Plain template symbol. tvOS templates tab-bar
-                        // SF Symbols regardless, so the accent is applied
+                        // Force monochrome rendering. The accent is applied
                         // via UITabBarItemAppearance.iconColor (see
-                        // configureTabBarItemAppearance), not by baking a
-                        // fixed .alwaysOriginal image that the tab bar
-                        // discards on a mid-session rebuild.
+                        // configureTabBarItemAppearance), which tints a
+                        // template symbol. Most SF Symbols render monochrome
+                        // by default, but a few (notably "tv", the Live TV
+                        // tab) default to HIERARCHICAL rendering with a baked
+                        // white color that overrides the tab-bar tint, the
+                        // icon stays gray while its siblings tint. .monochrome
+                        // strips that baked color so the tint applies
+                        // uniformly across every tab.
                         Image(systemName: tab.systemImage)
+                            .symbolRenderingMode(.monochrome)
                     }
                 }
             }
@@ -174,13 +179,6 @@ struct TabRootView: View {
             DispatchQueue.main.async {
                 configureTabBarItemAppearance()
             }
-            // DIAGNOSTIC: dump the settled tab-bar item state so we can see
-            // exactly what is different about the Live TV item (image mode,
-            // enabled, applied icon color). Remove once the gray-icon bug
-            // is confirmed fixed.
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-                dumpTabBarState(reason: "1.5s after availableTabs change")
-            }
         }
     }
 
@@ -256,58 +254,6 @@ struct TabRootView: View {
         for subview in view.subviews {
             applyTabBarAppearance(appearance, in: subview)
         }
-    }
-
-    // MARK: - Diagnostics (temporary)
-
-    /// Dumps every live UITabBar item's render-relevant state into the
-    /// in-app log (Support screen) and the console, so we can pinpoint why
-    /// the Live TV icon renders gray while its siblings tint correctly.
-    private func dumpTabBarState(reason: String) {
-        var lines = ["[TabBarDiag] \(reason); availableTabs=\(availableTabs.map(\.rawValue))"]
-        for scene in UIApplication.shared.connectedScenes {
-            guard let windowScene = scene as? UIWindowScene else { continue }
-            for window in windowScene.windows {
-                Self.collectTabBarState(in: window, into: &lines)
-            }
-        }
-        let dump = lines.joined(separator: "\n")
-        LogTap.shared.note(dump)
-        print(dump)
-    }
-
-    private static func collectTabBarState(in view: UIView, into lines: inout [String]) {
-        if let tabBar = view as? UITabBar {
-            lines.append(
-                "[TabBarDiag] UITabBar items=\(tabBar.items?.count ?? 0) "
-                + "tint=\(describe(tabBar.tintColor)) "
-                + "unselectedTint=\(tabBar.unselectedItemTintColor.map(describe) ?? "nil") "
-                + "barStandardAppearance=\(tabBar.standardAppearance != nil ? "set" : "nil")"
-            )
-            for (index, item) in (tabBar.items ?? []).enumerated() {
-                let image = item.image
-                let mode = image.map { "\($0.renderingMode.rawValue)" } ?? "nilImage"
-                let itemIconColor = item.standardAppearance?
-                    .stackedLayoutAppearance.normal.iconColor
-                    .map(describe) ?? "noItemAppearance"
-                lines.append(
-                    "[TabBarDiag]  [\(index)] title=\(item.title ?? "nil") "
-                    + "enabled=\(item.isEnabled) imgRenderMode=\(mode) "
-                    + "itemNormalIconColor=\(itemIconColor) "
-                    + "img=\(image?.description ?? "nil")"
-                )
-            }
-        }
-        for subview in view.subviews {
-            collectTabBarState(in: subview, into: &lines)
-        }
-    }
-
-    private static func describe(_ color: UIColor?) -> String {
-        guard let color else { return "nil" }
-        var r: CGFloat = 0, g: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
-        color.getRed(&r, green: &g, blue: &b, alpha: &a)
-        return String(format: "rgba(%.2f,%.2f,%.2f,%.2f)", r, g, b, a)
     }
 
     @ViewBuilder
