@@ -122,32 +122,37 @@ struct TabRootView: View {
 
             guard let userID = dependencies.activeUserID else { return }
 
-            // Live TV probe never throws; run it outside the music do/catch
-            // so a music failure cannot prevent the Live TV tab from appearing.
+            // Probe both optional tabs, then publish the whole tab set in a
+            // SINGLE assignment. Inserting Live TV and Music as two separate
+            // mutations rebuilt the tab bar twice; the item created in the
+            // earlier rebuild (Live TV) got stranded on tvOS's gray icon
+            // template while the one created in the later rebuild (Music)
+            // picked up the accent. One atomic rebuild means every item is
+            // born in the same appearance pass and tints uniformly.
             let hasLive = await dependencies.serverHasLiveTV(userID: userID)
             guard !Task.isCancelled, signal == lastProbedServerSwitch else { return }
-            if hasLive, !availableTabs.contains(.liveTV) {
-                if let homeIndex = availableTabs.firstIndex(of: .home) {
-                    availableTabs.insert(.liveTV, at: homeIndex + 1)
-                } else {
-                    availableTabs.insert(.liveTV, at: 0)
-                }
-            }
 
+            // A music probe failure must not keep the Live TV tab hidden, so
+            // swallow its error into a plain false rather than letting it
+            // skip the assignment below.
+            var hasMusic = false
             do {
-                let hasMusic = try await dependencies.jellyfinMusicService.hasMusicLibrary(userID: userID)
-                guard !Task.isCancelled, signal == lastProbedServerSwitch else { return }
-                if hasMusic, !availableTabs.contains(.music) {
-                    // Insert Music before Settings so the order is:
-                    // Home, [Live TV,] Catalog, Search, Music, Settings.
-                    if let settingsIndex = availableTabs.firstIndex(of: .settings) {
-                        availableTabs.insert(.music, at: settingsIndex)
-                    } else {
-                        availableTabs.append(.music)
-                    }
-                }
+                hasMusic = try await dependencies.jellyfinMusicService.hasMusicLibrary(userID: userID)
             } catch {
                 // No music library confirmed; tab stays hidden.
+            }
+            guard !Task.isCancelled, signal == lastProbedServerSwitch else { return }
+
+            // Order: Home, [Live TV,] Catalog, Search, [Music,] Settings.
+            var tabs = AppTab.allCases.filter { $0 != .music && $0 != .liveTV }
+            if hasLive, let homeIndex = tabs.firstIndex(of: .home) {
+                tabs.insert(.liveTV, at: homeIndex + 1)
+            }
+            if hasMusic, let settingsIndex = tabs.firstIndex(of: .settings) {
+                tabs.insert(.music, at: settingsIndex)
+            }
+            if tabs != availableTabs {
+                availableTabs = tabs
             }
         }
         .onAppear {
