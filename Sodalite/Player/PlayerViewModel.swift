@@ -1286,10 +1286,17 @@ final class PlayerViewModel {
                         }
                     }
                 }
-                guard !self.isScrubbing else { return }
+                // Elapsed/remaining track the live playhead even while
+                // scrubbing: playback keeps running during a scrub, so the
+                // bottom time labels must keep advancing. The scrub target is
+                // previewed separately in the scrub bubble (`scrubTime`).
                 self.currentTime = self.formatSeconds(time)
                 let rem = dur - time
                 self.remainingTime = rem > 0 ? "-\(self.formatSeconds(rem))" : "-00:00"
+                // The progress bar and the warmed scrub frame, on the other
+                // hand, must NOT follow the live clock during a scrub or they
+                // would fight the user's scrubProgress. Gate just those.
+                guard !self.isScrubbing else { return }
                 // Live owns `progress` via the DVR baseline subscription in
                 // observeLiveEdge (live duration is 0, so the VOD math below
                 // would pin it to 0). Leave VOD untouched.
