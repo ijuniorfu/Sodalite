@@ -269,20 +269,15 @@ struct FilteredGridView: View {
         }
         .task(id: watchFilter) {
             await loadItems()
-            // Nudge focus to the first item only on the very first
-            // appearance, if the user has already navigated by the
-            // time loadItems returns (cache hit + Phase 2 augment
-            // can take a couple of seconds during which they're
-            // free to scroll), forcing focus back to position 0
-            // would yank them out of where they are.
-            guard focusedItemID == nil, let firstID = items.first?.id else { return }
-            deferOnMain(by: 0.1) {
-                // Recheck at fire time, the user could have moved
-                // focus during the 100 ms gap.
-                if focusedItemID == nil {
-                    focusedItemID = firstID
-                }
-            }
+            // No forced first-item focus: the watch-status Picker is
+            // rendered unconditionally at the top of the ScrollView (and
+            // every loading/empty/error state carries its own focusable
+            // element), so there is always a focus anchor, the old
+            // "pressing back closes the app because nothing is focused"
+            // case can no longer happen. Nudging focus to item 0 here was
+            // actively harmful: switching the Picker clears `items`, which
+            // drops focusedItemID to nil, and this keyed task would then
+            // yank focus off the Picker down to the first card mid-browse.
         }
     }
 
