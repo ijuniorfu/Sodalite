@@ -25,12 +25,12 @@ struct PersonDetailView: View {
     private let columns = Array(repeating: GridItem(.fixed(220), spacing: 32), count: 5)
 
     var body: some View {
-        ZStack {
-            Color.black.ignoresSafeArea()
-            content
-        }
-        .ignoresSafeArea()
-        .toolbar(.hidden, for: .tabBar)
+        content
+            // Filmography has no hero backdrop, so it carries the shared grey
+            // glass page background instead of flat black.
+            .glassBackground()
+            .ignoresSafeArea()
+            .toolbar(.hidden, for: .tabBar)
         .navigationDestination(item: $navigateToJellyfinItem) { item in
             DetailRouterView(item: item)
         }

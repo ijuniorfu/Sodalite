@@ -49,7 +49,7 @@ struct UserPickerView: View {
         .padding(.horizontal, 80)
         .padding(.vertical, 60)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(.background)
+        .glassBackground()
         .task {
             await loadUsers()
         }

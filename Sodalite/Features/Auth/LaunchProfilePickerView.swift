@@ -45,6 +45,7 @@ struct LaunchProfilePickerView: View {
             .padding(.horizontal, 80)
             .padding(.vertical, 60)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .glassBackground()
             .navigationDestination(isPresented: $navigateToAddProfile) {
                 // UserPickerView shows the server's public users with
                 // avatars, mirrors the normal login entry point so a
