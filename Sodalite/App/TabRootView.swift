@@ -236,20 +236,6 @@ struct TabRootView: View {
     private static func applyTabBarAppearance(_ appearance: UITabBarAppearance, in view: UIView) {
         if let tabBar = view as? UITabBar {
             tabBar.standardAppearance = appearance
-            // View-level tint as well. unselectedItemTintColor cascades and
-            // re-tints every unselected template icon on the spot, including
-            // an item that the per-item appearance left stranded on tvOS's
-            // gray template. tintColor covers the selected/focused icon.
-            tabBar.tintColor = appearance.stackedLayoutAppearance.selected.iconColor
-            tabBar.unselectedItemTintColor = appearance.stackedLayoutAppearance.normal.iconColor
-            // Per-item override too. The bar-level appearance alone does
-            // not re-color an item that was already rendered gray before
-            // the appearance was applied. Forcing each item's own
-            // standardAppearance makes every item re-adopt the tint
-            // regardless of when it was created.
-            for item in tabBar.items ?? [] {
-                item.standardAppearance = appearance
-            }
         }
         for subview in view.subviews {
             applyTabBarAppearance(appearance, in: subview)
