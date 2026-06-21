@@ -31,6 +31,9 @@ struct CatalogDetailView: View {
     /// Recommended titles (recommendations, falling back to similar),
     /// loaded in parallel with the detail so the screen paints first.
     @State private var recommendations: [SeerrMedia] = []
+    /// Rotten Tomatoes critics score, fetched best-effort from Seerr's
+    /// ratings endpoint; nil when unavailable (older server, no RT data).
+    @State private var rtCriticsScore: Int?
     /// Navigation target when the user taps a recommendation.
     @State private var navigateToMedia: SeerrMedia?
     /// Selected cast member, drives navigation to the person page.
@@ -186,24 +189,20 @@ struct CatalogDetailView: View {
             Spacer(minLength: 0)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.horizontal, 50)
+        .padding(.horizontal, 80)
     }
 
     private var primaryBlock: some View {
-        VStack(alignment: .leading, spacing: 24) {
-            glassPanel
-            requestActionRow
-        }
-        .padding(.horizontal, 50)
-    }
-
-    private var glassPanel: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: 20) {
+            // Metadata sits flush (no inset card) so it lines up on the same
+            // left edge as the title, request button and the scrolling
+            // content below.
             SeerrMetadataRow(
                 rating: metadataRating,
                 runtimeMinutes: metadataRuntime,
                 year: nil,
-                certification: metadataCertification
+                certification: metadataCertification,
+                rtCriticsScore: rtCriticsScore
             )
             if !genres.isEmpty {
                 Text(genres.map(\.name).joined(separator: " · "))
@@ -211,13 +210,10 @@ struct CatalogDetailView: View {
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
             }
+            requestActionRow
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(30)
-        .background(
-            RoundedRectangle(cornerRadius: 20)
-                .fill(.ultraThinMaterial)
-        )
+        .padding(.horizontal, 80)
     }
 
     @ViewBuilder
@@ -352,15 +348,16 @@ struct CatalogDetailView: View {
     @ViewBuilder
     private var advancedOptionsSection: some View {
         if let details = serviceDetails, !didRequest {
-            VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: 16) {
                 Text("catalog.request.advanced")
                     .font(.title3)
                     .fontWeight(.semibold)
 
-                HStack(spacing: 16) {
-                    profilePicker(details: details)
-                    rootFolderPicker(details: details)
-                }
+                // Stacked, full-width: quality-profile names can be long
+                // ("[German] HD Bluray + WEB") and wrapped when squeezed into
+                // a half-width column.
+                profilePicker(details: details)
+                rootFolderPicker(details: details)
 
                 if let tags = details.tags, !tags.isEmpty {
                     tagPicker(tags: tags)
@@ -922,6 +919,7 @@ struct CatalogDetailView: View {
         // effort anyway and only feeds the optional dropdowns.
         Task { await loadServiceConfig() }
         Task { await loadRecommendations() }
+        Task { await loadRatings() }
 
         do {
             switch media.mediaType {
@@ -976,6 +974,15 @@ struct CatalogDetailView: View {
         } catch {
             // Best-effort: leave the row absent, no banner.
         }
+    }
+
+    private func loadRatings() async {
+        // Best-effort: the ratings endpoint 404s on older servers or when no
+        // RT data exists, leave the badge absent in that case.
+        guard let rt = try? await dependencies.seerrMediaService.ratings(
+            mediaType: media.mediaType, tmdbID: media.id
+        ) else { return }
+        if let score = rt.criticsScore { rtCriticsScore = score }
     }
 
     private func loadServiceConfig() async {
