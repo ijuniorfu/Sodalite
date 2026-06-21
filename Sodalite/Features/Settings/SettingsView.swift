@@ -17,6 +17,12 @@ struct SettingsView: View {
                 .padding(.vertical, 60)
                 .padding(.horizontal, 80)
             }
+            // Settings rows push detail destinations that hide the tab
+            // bar; popping one before its push transition settles can
+            // leave SwiftUI's hidden state stuck. An explicit `.visible`
+            // on the stack root makes the restore deterministic. See
+            // CatalogView for the full writeup.
+            .toolbar(.visible, for: .tabBar)
         }
         // Settings is the only surface that shows the server version, so
         // refreshing on appear is the natural "live" trigger: a server

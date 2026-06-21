@@ -157,6 +157,19 @@ struct TabRootView: View {
             // the values at configure time, not live.
             configureTabBarItemAppearance()
         }
+        .onChange(of: availableTabs) { _, _ in
+            // The Live TV / Music tabs are inserted asynchronously after
+            // the server probe completes (see the .task above), which
+            // rebuilds the TabView's UITabBarItems. tvOS drops the baked
+            // `.alwaysOriginal` icon on that rebuild and falls back to its
+            // gray template rendering, the icons go gray until the user
+            // re-selects a tab. The new items don't exist yet at this
+            // point in the runloop, so re-apply on the next tick once the
+            // tab bar has reconstructed.
+            DispatchQueue.main.async {
+                configureTabBarItemAppearance()
+            }
+        }
     }
 
     /// Drives the tab bar's per-state text color via UIKit's appearance
@@ -190,6 +203,15 @@ struct TabRootView: View {
         proxy.setTitleTextAttributes(selectedAttrs, for: .focused)
         proxy.setTitleTextAttributes(selectedAttrs, for: [.selected, .focused])
 
+        // Baked icon images in availableTabs order. The tab bar's item
+        // order mirrors availableTabs, so we can apply them positionally
+        // in the hierarchy walk below. Same reasoning as the title
+        // attributes: SwiftUI's Tab label sets the image at construction,
+        // but a mid-session rebuild (Live TV / Music tabs appearing) lets
+        // tvOS re-template the icon gray. Forcing the `.alwaysOriginal`
+        // image back onto each live item restores the accent color.
+        let icons = availableTabs.map { tintedSymbolImage(name: $0.systemImage, color: iconColor) }
+
         // Existing items need explicit per-instance updates because
         // the proxy doesn't retroactively rewrite already-allocated
         // UITabBarItem attribute dictionaries.
@@ -199,7 +221,8 @@ struct TabRootView: View {
                 Self.applyTabBarItemAttributes(
                     in: window,
                     normal: normalAttrs,
-                    selected: selectedAttrs
+                    selected: selectedAttrs,
+                    icons: icons
                 )
             }
         }
@@ -208,22 +231,31 @@ struct TabRootView: View {
     private static func applyTabBarItemAttributes(
         in view: UIView,
         normal: [NSAttributedString.Key: Any],
-        selected: [NSAttributedString.Key: Any]
+        selected: [NSAttributedString.Key: Any],
+        icons: [UIImage?]
     ) {
         if let tabBar = view as? UITabBar {
-            for item in tabBar.items ?? [] {
+            for (index, item) in (tabBar.items ?? []).enumerated() {
                 item.setTitleTextAttributes(normal, for: .normal)
                 item.setTitleTextAttributes(selected, for: .selected)
                 item.setTitleTextAttributes(selected, for: .focused)
                 item.setTitleTextAttributes(selected, for: [.selected, .focused])
+                if index < icons.count, let icon = icons[index] {
+                    item.image = icon
+                    item.selectedImage = icon
+                }
             }
         }
         for subview in view.subviews {
-            applyTabBarItemAttributes(in: subview, normal: normal, selected: selected)
+            applyTabBarItemAttributes(in: subview, normal: normal, selected: selected, icons: icons)
         }
     }
 
-    private func tabIcon(name: String, color: Color) -> Image {
+    /// Builds the accent-tinted tab-bar symbol as a UIImage with
+    /// `.alwaysOriginal` rendering, the only mode the tvOS tab bar
+    /// respects (it otherwise re-tints SF Symbols to its gray template).
+    /// Shared by the SwiftUI Tab label and the live UIKit item walk.
+    private func tintedSymbolImage(name: String, color: Color) -> UIImage? {
         // Match the native tvOS tab-bar symbol weight/size. Without an
         // explicit configuration, UIImage(systemName:) falls back to a
         // smaller default than the tab bar would request for a raw
@@ -231,13 +263,14 @@ struct TabRootView: View {
         let config = UIImage.SymbolConfiguration(pointSize: 32, weight: .regular)
         let base = UIImage(systemName: name, withConfiguration: config)
             ?? UIImage(systemName: name)
-        guard let symbol = base else {
+        guard let symbol = base else { return nil }
+        return symbol.withTintColor(UIColor(color), renderingMode: .alwaysOriginal)
+    }
+
+    private func tabIcon(name: String, color: Color) -> Image {
+        guard let tinted = tintedSymbolImage(name: name, color: color) else {
             return Image(systemName: name)
         }
-        let tinted = symbol.withTintColor(
-            UIColor(color),
-            renderingMode: .alwaysOriginal
-        )
         return Image(uiImage: tinted)
     }
 
