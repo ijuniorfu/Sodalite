@@ -189,14 +189,24 @@ struct CatalogDetailView: View {
             Spacer(minLength: 0)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.horizontal, 80)
+        // No extra horizontal padding: the hero slot in DetailContentOverlay
+        // already insets by 50, so the title lines up with the bubble edge
+        // and the request button below.
     }
 
     private var primaryBlock: some View {
-        VStack(alignment: .leading, spacing: 20) {
-            // Metadata sits flush (no inset card) so it lines up on the same
-            // left edge as the title, request button and the scrolling
-            // content below.
+        VStack(alignment: .leading, spacing: 24) {
+            metadataBubble
+            requestActionRow
+        }
+        .padding(.horizontal, 50)
+    }
+
+    /// Metadata in a frosted bubble, matching the Home detail views. The
+    /// bubble's left edge sits at the primary padding (50), in line with the
+    /// hero title and the request button; the content is inset by the card.
+    private var metadataBubble: some View {
+        VStack(alignment: .leading, spacing: 12) {
             SeerrMetadataRow(
                 rating: metadataRating,
                 runtimeMinutes: metadataRuntime,
@@ -210,10 +220,13 @@ struct CatalogDetailView: View {
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
             }
-            requestActionRow
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.horizontal, 80)
+        .padding(30)
+        .background(
+            RoundedRectangle(cornerRadius: 20)
+                .fill(.ultraThinMaterial)
+        )
     }
 
     @ViewBuilder
@@ -342,7 +355,7 @@ struct CatalogDetailView: View {
                 .padding(.horizontal, -50)
             }
         }
-        .padding(.horizontal, 80)
+        .padding(.horizontal, 50)
     }
 
     @ViewBuilder
