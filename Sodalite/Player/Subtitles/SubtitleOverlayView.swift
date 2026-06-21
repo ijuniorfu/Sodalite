@@ -385,22 +385,6 @@ struct SubtitleOverlayView: View {
             .interpolation(.high)
             .frame(width: frameW, height: frameH)
             .offset(x: originX, y: originY)
-            .onAppear {
-                // DIAG (PGS audio-switch first-cue mispositioning): capture
-                // the engine-provided normalized position and the host render
-                // size at the moment a bitmap cue appears. A wrong (too-small)
-                // position.width/height localizes the bug to the engine canvas;
-                // a wrong size localizes it to host layout.
-                guard LogTap.isDiagnosticBuild else { return }
-                let p = image.position
-                LogTap.shared.note(String(
-                    format: "[SubDIAG] bitmap cue size=%.0fx%.0f pos=(x%.4f y%.4f w%.4f h%.4f) frame=%.0fx%.0f origin=(%.0f,%.0f) controls=%@",
-                    size.width, size.height,
-                    p.minX, p.minY, p.width, p.height,
-                    frameW, frameH, originX, originY,
-                    controlsVisible ? "Y" : "N"
-                ))
-            }
     }
 
     /// Vertical shift applied to a bitmap cue's source-baked Y so the
