@@ -226,6 +226,16 @@ struct TabRootView: View {
     private static func applyTabBarAppearance(_ appearance: UITabBarAppearance, in view: UIView) {
         if let tabBar = view as? UITabBar {
             tabBar.standardAppearance = appearance
+            // Per-item override too. The bar-level appearance alone does
+            // not re-color an item that was already rendered gray before
+            // the appearance was applied, the Live TV tab (inserted first,
+            // mid-session) stayed on its cached template while later
+            // inserts picked the color up. Forcing each item's own
+            // standardAppearance makes every item re-adopt the tint
+            // regardless of when it was created.
+            for item in tabBar.items ?? [] {
+                item.standardAppearance = appearance
+            }
         }
         for subview in view.subviews {
             applyTabBarAppearance(appearance, in: subview)
