@@ -83,7 +83,7 @@ struct ServerDiscoveryView: View {
             }
             .padding()
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(.background)
+            .glassBackground()
             .onAppear {
                 if viewModel == nil {
                     viewModel = ServerDiscoveryViewModel(

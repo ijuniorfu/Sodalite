@@ -136,6 +136,17 @@ struct SeerrReleases: Codable, Sendable, Equatable {
     let results: [RegionReleases]?
 }
 
+/// Rotten Tomatoes rating from Seerr's `/movie/{id}/ratings` (and
+/// `/tv/{id}/ratings`) endpoint. `criticsScore` is the Tomatometer (0-100);
+/// fresh/rotten splits at 60, matching the Jellyfin detail badge.
+struct SeerrRTRating: Codable, Sendable, Equatable {
+    let criticsScore: Int?
+    let criticsRating: String?
+    let audienceScore: Int?
+    let audienceRating: String?
+    let url: String?
+}
+
 struct SeerrContentRatings: Codable, Sendable, Equatable {
     struct RegionRating: Codable, Sendable, Equatable {
         let iso31661: String

@@ -8,6 +8,9 @@ struct SeerrMetadataRow: View {
     let runtimeMinutes: Int?
     let year: String?
     let certification: String?
+    /// Rotten Tomatoes critics score (0-100). Shown with the fresh/rotten
+    /// badge, split at 60, matching the Jellyfin detail row.
+    var rtCriticsScore: Int? = nil
 
     var body: some View {
         HStack(spacing: 12) {
@@ -33,6 +36,18 @@ struct SeerrMetadataRow: View {
                         .foregroundStyle(.yellow)
                         .font(.caption)
                     Text(String(format: "%.1f", rating))
+                }
+            )))
+        }
+        if let rtCriticsScore {
+            out.append(Segment(view: AnyView(
+                HStack(spacing: 5) {
+                    Image(rtCriticsScore >= 60 ? "RTFresh" : "RTRotten")
+                        .resizable()
+                        .renderingMode(.original)
+                        .aspectRatio(contentMode: .fit)
+                        .frame(height: 18)
+                    Text(verbatim: "\(rtCriticsScore) %")
                 }
             )))
         }

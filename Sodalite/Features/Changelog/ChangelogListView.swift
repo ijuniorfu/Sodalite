@@ -52,7 +52,7 @@ struct ChangelogListView: View {
             )
         )
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color.black.ignoresSafeArea())
+        .glassBackground()
         .toolbar(.hidden, for: .navigationBar)
         // Belt and braces: explicitly catch the Menu button and pop
         // back to Settings even if the focus state ever drifts away

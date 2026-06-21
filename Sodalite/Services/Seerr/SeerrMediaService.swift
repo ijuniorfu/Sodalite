@@ -6,6 +6,7 @@ protocol SeerrMediaServiceProtocol: Sendable {
     func tvSeasonDetail(tmdbID: Int, seasonNumber: Int) async throws -> SeerrSeasonDetail
     func recommendations(mediaType: SeerrMediaType, tmdbID: Int) async throws -> [SeerrMedia]
     func similar(mediaType: SeerrMediaType, tmdbID: Int) async throws -> [SeerrMedia]
+    func ratings(mediaType: SeerrMediaType, tmdbID: Int) async throws -> SeerrRTRating
     func personDetail(tmdbID: Int) async throws -> SeerrPersonDetail
     func personCredits(tmdbID: Int) async throws -> SeerrPersonCredits
 
@@ -74,6 +75,20 @@ final class SeerrMediaService: SeerrMediaServiceProtocol {
             responseType: SeerrDiscoverResult.self
         )
         return result.results.filter { $0.mediaType == .movie || $0.mediaType == .tv }
+    }
+
+    func ratings(mediaType: SeerrMediaType, tmdbID: Int) async throws -> SeerrRTRating {
+        let endpoint: SeerrEndpoint
+        switch mediaType {
+        case .movie: endpoint = .movieRatings(tmdbID: tmdbID)
+        case .tv: endpoint = .tvRatings(tmdbID: tmdbID)
+        case .person, .unknown:
+            return SeerrRTRating(criticsScore: nil, criticsRating: nil, audienceScore: nil, audienceRating: nil, url: nil)
+        }
+        return try await client.request(
+            endpoint: endpoint,
+            responseType: SeerrRTRating.self
+        )
     }
 
     func personDetail(tmdbID: Int) async throws -> SeerrPersonDetail {

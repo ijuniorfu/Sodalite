@@ -31,6 +31,9 @@ struct CatalogDetailView: View {
     /// Recommended titles (recommendations, falling back to similar),
     /// loaded in parallel with the detail so the screen paints first.
     @State private var recommendations: [SeerrMedia] = []
+    /// Rotten Tomatoes critics score, fetched best-effort from Seerr's
+    /// ratings endpoint; nil when unavailable (older server, no RT data).
+    @State private var rtCriticsScore: Int?
     /// Navigation target when the user taps a recommendation.
     @State private var navigateToMedia: SeerrMedia?
     /// Selected cast member, drives navigation to the person page.
@@ -58,6 +61,20 @@ struct CatalogDetailView: View {
     @State private var isRootFolderPickerPresented = false
     @State private var isTagPickerPresented = false
 
+    /// Drives the mandatory request-options sheet (quality profile, root
+    /// folder, tags + the final "request" confirm) presented when the user
+    /// commits to a request.
+    @State private var showRequestOptions = false
+
+    /// First-screen focus. Seeded to `.request` once loaded so the action
+    /// button is focused in the visible primary block, no focus lands below
+    /// the fold and triggers an on-open auto-scroll (the old tab-bar
+    /// stuck-hidden bug). Pressing request on a series with no seasons picked
+    /// moves focus to `.seasons`, which lets the focus engine scroll the
+    /// season picker into view.
+    @FocusState private var focusedField: DetailFocus?
+    private enum DetailFocus: Hashable { case request, seasons }
+
     var body: some View {
         ZStack {
             DetailBackdrop(
@@ -76,6 +93,17 @@ struct CatalogDetailView: View {
         .navigationDestination(item: $selectedCastMember) { member in
             PersonDetailView(personID: member.personID ?? 0, personName: member.name)
         }
+        .sheet(isPresented: $showRequestOptions) {
+            requestOptionsSheet
+        }
+        .onChange(of: isLoading) { _, loading in
+            // Once loaded, focus the action button in the visible primary
+            // block so nothing below the fold grabs focus and auto-scrolls.
+            // Small defer dodges the focus-commit race (same as MovieDetailView).
+            if loading == false {
+                deferOnMain(by: 0.1) { focusedField = .request }
+            }
+        }
         .task { await load() }
     }
 
@@ -87,8 +115,19 @@ struct CatalogDetailView: View {
         } else if let errorMessage {
             errorState(message: errorMessage)
         } else {
-            DetailContentOverlay {
-                detailBody
+            // Same layout shape as the Home detail views (MovieDetailView):
+            // hero title + a bottom-aligned primary block (metadata glass
+            // panel + the request action) fill the first screen, everything
+            // else scrolls in below the fold. The action sits in the visible
+            // primary block and takes default focus, so opening the page never
+            // auto-scrolls (which is what left the tab bar stuck hidden when
+            // the user backed out mid-scroll).
+            DetailContentOverlay(hero: {
+                heroTitle
+            }, primary: {
+                primaryBlock
+            }) {
+                trailingBody
             }
         }
     }
@@ -132,52 +171,166 @@ struct CatalogDetailView: View {
         .padding(.vertical, 60)
     }
 
-    private var detailBody: some View {
-        VStack(alignment: .leading, spacing: 24) {
-            HStack(alignment: .firstTextBaseline, spacing: 16) {
-                Text(displayTitle)
-                    .font(.largeTitle)
-                    .fontWeight(.bold)
-                if let year = displayYear {
-                    Text(year)
-                        .font(.title3)
-                        .foregroundStyle(.secondary)
-                }
-                if let status = mediaStatus, status != .unknown {
-                    SeerrStatusBadge(status: status)
-                }
-            }
+    // MARK: - Hero + primary block (first screen)
 
+    private var heroTitle: some View {
+        HStack(alignment: .firstTextBaseline, spacing: 16) {
+            Text(displayTitle)
+                .font(.largeTitle)
+                .fontWeight(.bold)
+            if let year = displayYear {
+                Text(year)
+                    .font(.title3)
+                    .foregroundStyle(.secondary)
+            }
+            if let status = mediaStatus, status != .unknown {
+                SeerrStatusBadge(status: status)
+            }
+            Spacer(minLength: 0)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        // No extra horizontal padding: the hero slot in DetailContentOverlay
+        // already insets by 50, so the title lines up with the bubble edge
+        // and the request button below.
+    }
+
+    private var primaryBlock: some View {
+        VStack(alignment: .leading, spacing: 24) {
+            metadataBubble
+            requestActionRow
+        }
+        .padding(.horizontal, 50)
+    }
+
+    /// Metadata in a frosted bubble, matching the Home detail views. The
+    /// bubble's left edge sits at the primary padding (50), in line with the
+    /// hero title and the request button; the content is inset by the card.
+    private var metadataBubble: some View {
+        VStack(alignment: .leading, spacing: 12) {
             SeerrMetadataRow(
                 rating: metadataRating,
                 runtimeMinutes: metadataRuntime,
                 year: nil,
-                certification: metadataCertification
+                certification: metadataCertification,
+                rtCriticsScore: rtCriticsScore
             )
-
-            if let overview, !overview.isEmpty {
-                ExpandableTextBox(text: overview)
-            }
-
             if !genres.isEmpty {
-                HStack(spacing: 8) {
-                    ForEach(genres) { genre in
-                        Text(genre.name)
-                            .font(.caption)
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 4)
-                            .background(.white.opacity(0.1), in: Capsule())
+                Text(genres.map(\.name).joined(separator: " · "))
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(30)
+        .background(
+            RoundedRectangle(cornerRadius: 20)
+                .fill(.ultraThinMaterial)
+        )
+    }
+
+    @ViewBuilder
+    private var requestActionRow: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            if didRequest {
+                // Post-request CTA: nothing else here is focusable, and tvOS
+                // routes Menu to "exit app" with no focus to pop, so give the
+                // user a clear way back to the catalog.
+                GlassActionButton(
+                    title: "catalog.request.sent",
+                    systemImage: "checkmark.circle.fill",
+                    action: { dismiss() }
+                )
+                .focused($focusedField, equals: .request)
+            } else if media.mediaType == .movie || media.mediaType == .tv {
+                GlassActionButton(
+                    title: requestButtonTitle,
+                    systemImage: "tray.and.arrow.down",
+                    isProminent: true,
+                    isLoading: isSubmitting,
+                    action: { requestButtonTapped() }
+                )
+                .focused($focusedField, equals: .request)
+                .disabled(isSubmitting)
+
+                if let requestError {
+                    Text(requestError)
+                        .font(.caption)
+                        .foregroundStyle(.red)
+                }
+            }
+        }
+    }
+
+    /// Series with no seasons picked yet: drop focus into the season picker
+    /// below the fold so the focus engine scrolls it into view. Otherwise
+    /// commit by presenting the mandatory options sheet.
+    private func requestButtonTapped() {
+        if media.mediaType == .tv, selectedSeasons.isEmpty {
+            focusedField = .seasons
+        } else {
+            showRequestOptions = true
+        }
+    }
+
+    // MARK: - Request options sheet
+
+    private var requestOptionsSheet: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 28) {
+                Text(displayTitle)
+                    .font(.title2)
+                    .fontWeight(.bold)
+
+                // Quality profile / root folder / tags. Empty for users
+                // without service options; the confirm below still submits
+                // with the server defaults.
+                advancedOptionsSection
+
+                Button {
+                    Task {
+                        await submitRequest()
+                        if didRequest { showRequestOptions = false }
+                    }
+                } label: {
+                    if isSubmitting {
+                        ProgressView()
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 14)
+                    } else {
+                        Label(requestButtonTitle, systemImage: "tray.and.arrow.down")
+                            .font(.body)
+                            .fontWeight(.semibold)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 14)
                     }
                 }
+                .buttonStyle(SettingsTileButtonStyle())
+                .disabled(isSubmitting || !canSubmit)
+
+                if let requestError {
+                    Text(requestError)
+                        .font(.caption)
+                        .foregroundStyle(.red)
+                }
+            }
+            .padding(48)
+            .frame(maxWidth: 900, alignment: .leading)
+            .frame(maxWidth: .infinity)
+        }
+    }
+
+    // MARK: - Trailing (scrolls below the fold)
+
+    private var trailingBody: some View {
+        VStack(alignment: .leading, spacing: 24) {
+            if let overview, !overview.isEmpty {
+                ExpandableTextBox(text: overview)
             }
 
             if media.mediaType == .tv, let seasons = availableSeasons, !seasons.isEmpty {
                 seasonSelection(seasons: seasons)
             }
-
-            advancedOptionsSection
-
-            requestSection
 
             if !castMembers.isEmpty {
                 MediaCastRow(members: castMembers) { member in
@@ -202,21 +355,22 @@ struct CatalogDetailView: View {
                 .padding(.horizontal, -50)
             }
         }
-        .padding(.horizontal, 80)
+        .padding(.horizontal, 50)
     }
 
     @ViewBuilder
     private var advancedOptionsSection: some View {
         if let details = serviceDetails, !didRequest {
-            VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: 16) {
                 Text("catalog.request.advanced")
                     .font(.title3)
                     .fontWeight(.semibold)
 
-                HStack(spacing: 16) {
-                    profilePicker(details: details)
-                    rootFolderPicker(details: details)
-                }
+                // Stacked, full-width: quality-profile names can be long
+                // ("[German] HD Bluray + WEB") and wrapped when squeezed into
+                // a half-width column.
+                profilePicker(details: details)
+                rootFolderPicker(details: details)
 
                 if let tags = details.tags, !tags.isEmpty {
                     tagPicker(tags: tags)
@@ -383,6 +537,12 @@ struct CatalogDetailView: View {
                                 action: { selectSeasonForViewing(season) }
                             )
                             .id(season.seasonNumber)
+                            // Focus anchor: pressing "request" with no seasons
+                            // picked moves focus here, scrolling the picker
+                            // into view (see requestButtonTapped).
+                            .applyIf(season.seasonNumber == seasons.first?.seasonNumber) {
+                                $0.focused($focusedField, equals: .seasons)
+                            }
                         }
                     }
                     .padding(.horizontal, 20)
@@ -583,63 +743,6 @@ struct CatalogDetailView: View {
         }
     }
 
-    private var requestSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            if didRequest {
-                // Replaces the request button with a back-to-catalog
-                // CTA after the request lands. The screen has nothing
-                // else focusable at this point, and tvOS routes the
-                // Menu button to "exit the app" when the current view
-                // has no focus to pop, the user would otherwise drop
-                // out to the Home screen instead of returning to the
-                // catalog row they came from.
-                Button {
-                    dismiss()
-                } label: {
-                    HStack(spacing: 12) {
-                        Image(systemName: "checkmark.circle.fill")
-                            .foregroundStyle(.green)
-                        Text("catalog.request.sent")
-                            .font(.body)
-                            .fontWeight(.medium)
-                    }
-                    .padding(.horizontal, 24)
-                    .padding(.vertical, 12)
-                }
-                .buttonStyle(SettingsTileButtonStyle())
-            } else {
-                Button {
-                    Task { await submitRequest() }
-                } label: {
-                    if isSubmitting {
-                        ProgressView()
-                            .padding(.horizontal, 24)
-                            .padding(.vertical, 12)
-                    } else {
-                        Label(requestButtonTitle, systemImage: "tray.and.arrow.down")
-                            .font(.body)
-                            .fontWeight(.semibold)
-                            .padding(.horizontal, 24)
-                            .padding(.vertical, 12)
-                    }
-                }
-                // foregroundStyle alone is unreliable, the default
-                // tvOS bordered style still propagates tint into the
-                // icon channel under some focus states. SettingsTile
-                // replaces the system rendering completely, so the
-                // label stays legible across every accent the user
-                // can pick.
-                .buttonStyle(SettingsTileButtonStyle())
-                .disabled(isSubmitting || !canSubmit)
-            }
-
-            if let requestError {
-                Text(requestError)
-                    .font(.caption)
-                    .foregroundStyle(.red)
-            }
-        }
-    }
 
     private var requestButtonTitle: LocalizedStringKey {
         switch media.mediaType {
@@ -829,6 +932,7 @@ struct CatalogDetailView: View {
         // effort anyway and only feeds the optional dropdowns.
         Task { await loadServiceConfig() }
         Task { await loadRecommendations() }
+        Task { await loadRatings() }
 
         do {
             switch media.mediaType {
@@ -883,6 +987,15 @@ struct CatalogDetailView: View {
         } catch {
             // Best-effort: leave the row absent, no banner.
         }
+    }
+
+    private func loadRatings() async {
+        // Best-effort: the ratings endpoint 404s on older servers or when no
+        // RT data exists, leave the badge absent in that case.
+        guard let rt = try? await dependencies.seerrMediaService.ratings(
+            mediaType: media.mediaType, tmdbID: media.id
+        ) else { return }
+        if let score = rt.criticsScore { rtCriticsScore = score }
     }
 
     private func loadServiceConfig() async {
