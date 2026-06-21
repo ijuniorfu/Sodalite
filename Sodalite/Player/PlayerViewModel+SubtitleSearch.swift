@@ -51,11 +51,12 @@ extension PlayerViewModel {
     /// Runs a RemoteSearch for the current language and fills state.
     func searchSubtitles() async {
         subtitleSearchState = .loading
+        let language = subtitleSearchLanguage
         do {
-            let raw = try await playbackService.searchRemoteSubtitles(
-                itemID: item.id,
-                language: subtitleSearchLanguage
-            )
+            let raw = try await searchRemoteSubtitlesWithRetry(language: language)
+            // A late-returning search whose language the user has since
+            // switched away from must not overwrite the newer query's state.
+            guard language == subtitleSearchLanguage else { return }
             // Hash matches are timed against this exact file (perfect
             // sync); surface them first, then order by popularity.
             let results = raw.sorted { lhs, rhs in
@@ -78,11 +79,28 @@ extension PlayerViewModel {
                 subtitleSearchFocus = .result(0)
             }
         } catch {
+            guard language == subtitleSearchLanguage else { return }
             subtitleSearchState = .error(
                 String(localized: "player.subtitle.search.error",
                        defaultValue: "Subtitle search failed. The server may not have a subtitle provider installed.")
             )
             subtitleSearchFocus = .language(subtitleSearchCurrentLanguageIndex)
+        }
+    }
+
+    /// Runs the RemoteSearch, retrying once on failure. The server's
+    /// OpenSubtitles provider frequently cold-starts on the first query of a
+    /// session and that initial request times out, while an immediate retry
+    /// succeeds, the same "just search again" that worked manually. Retrying
+    /// once here keeps that hiccup from surfacing the scary (and wrong) "no
+    /// provider installed" message.
+    private func searchRemoteSubtitlesWithRetry(language: String) async throws -> [RemoteSubtitleInfo] {
+        do {
+            return try await playbackService.searchRemoteSubtitles(itemID: item.id, language: language)
+        } catch {
+            LogTap.shared.note("[SubSearch] first attempt failed (\(error)); retrying once")
+            try await Task.sleep(for: .milliseconds(400))
+            return try await playbackService.searchRemoteSubtitles(itemID: item.id, language: language)
         }
     }
 
