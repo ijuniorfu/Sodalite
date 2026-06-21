@@ -120,40 +120,61 @@ struct SubtitleOverlayView: View {
     }
 
     private var cueOverlay: some View {
-        GeometryReader { geo in
-            Color.clear
-                .overlay(alignment: .topLeading) {
-                    // Bitmap cues keep their absolute, source-positioned
-                    // layout (PGS / DVB place signs / songs at authored
-                    // coordinates).
-                    ForEach(activeCues, id: \.id) { cue in
-                        if case .image(let image) = cue.body {
-                            imageOverlay(image, in: geo.size)
+        ZStack {
+            // Bitmap cues (PGS / DVB / DVD) keep their absolute, source-
+            // positioned layout. They MUST be laid out against a stable
+            // full-screen rect, not the safe-area-inset rect: during an
+            // audio-track switch AVKit reloads its player and transiently
+            // grows the safe-area insets, which collapsed the shared
+            // GeometryReader's height (1760x960 -> 1760x562 was observed in
+            // [SubDIAG] logs). A cue rendered in that window was scaled
+            // against the shrunken height, so it appeared squished and
+            // pulled toward screen center until layout settled. A manual
+            // subtitle (re)selection does not reload AVKit, which is why it
+            // never showed the glitch. `.ignoresSafeArea()` pins this layer
+            // to the full screen so the safe-area churn can't reach it; the
+            // engine's normalized positions are plane-relative (full frame)
+            // and map onto the full screen correctly.
+            GeometryReader { geo in
+                Color.clear
+                    .overlay(alignment: .topLeading) {
+                        ForEach(activeCues, id: \.id) { cue in
+                            if case .image(let image) = cue.body {
+                                imageOverlay(image, in: geo.size)
+                            }
                         }
                     }
-                    // Text cues (primary + secondary) share ONE bottom-
-                    // anchored stack so the secondary line sits above the
-                    // primary block with no overlap, regardless of how many
-                    // lines each wraps to (a fixed offset cannot do this:
-                    // a 2-line primary already exceeds it).
-                    let primaryLines: [String] = activeCues.compactMap { cue in
-                        guard case .text(let raw) = cue.body else { return nil }
-                        let display = isASSTrackActive ? strippedASSText(raw) : raw
-                        return display.isEmpty ? nil : display
+            }
+            .ignoresSafeArea()
+
+            // Text cues (primary + secondary) share ONE bottom-anchored
+            // stack so the secondary line sits above the primary block with
+            // no overlap, regardless of how many lines each wraps to (a
+            // fixed offset cannot do this: a 2-line primary already exceeds
+            // it). Text stays safe-area-aware so it never collides with the
+            // screen edge or the transport bar.
+            GeometryReader { geo in
+                Color.clear
+                    .overlay(alignment: .topLeading) {
+                        let primaryLines: [String] = activeCues.compactMap { cue in
+                            guard case .text(let raw) = cue.body else { return nil }
+                            let display = isASSTrackActive ? strippedASSText(raw) : raw
+                            return display.isEmpty ? nil : display
+                        }
+                        let secondaryLines: [String] = activeSecondaryCues.compactMap { cue in
+                            guard case .text(let raw) = cue.body, !raw.isEmpty else { return nil }
+                            return raw
+                        }
+                        if !primaryLines.isEmpty || !secondaryLines.isEmpty {
+                            stackedText(
+                                primary: primaryLines,
+                                secondary: secondaryLines,
+                                in: geo.size,
+                                safeAreaInsets: geo.safeAreaInsets
+                            )
+                        }
                     }
-                    let secondaryLines: [String] = activeSecondaryCues.compactMap { cue in
-                        guard case .text(let raw) = cue.body, !raw.isEmpty else { return nil }
-                        return raw
-                    }
-                    if !primaryLines.isEmpty || !secondaryLines.isEmpty {
-                        stackedText(
-                            primary: primaryLines,
-                            secondary: secondaryLines,
-                            in: geo.size,
-                            safeAreaInsets: geo.safeAreaInsets
-                        )
-                    }
-                }
+            }
         }
         .allowsHitTesting(false)
     }
