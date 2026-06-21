@@ -370,7 +370,17 @@ struct PlayerOverlayView: View {
     }
 
     private var controlsOverlay: some View {
-        ZStack {
+        // Pin the whole controls layer to the scene's screen bounds, the same
+        // fix the next-episode card uses. An audio-track switch reloads AVKit
+        // and its container frame transiently collapses; a Spacer/alignment-
+        // anchored overlay reflows against the shrunken parent, so the entire
+        // controls block jumps up while it is fading out. An absolute
+        // screen-sized frame + center position removes the dependency on the
+        // churning AVKit parent, the layer stays put through the reload.
+        let screen = UIApplication.shared.connectedScenes
+            .lazy.compactMap { $0 as? UIWindowScene }
+            .first?.screen.bounds.size ?? CGSize(width: 1920, height: 1080)
+        return ZStack {
             VStack {
                 Spacer()
                 LinearGradient(
@@ -440,6 +450,9 @@ struct PlayerOverlayView: View {
             }
             .ignoresSafeArea()
         }
+        .frame(width: screen.width, height: screen.height)
+        .position(x: screen.width / 2, y: screen.height / 2)
+        .ignoresSafeArea()
         .transition(.opacity)
     }
 }
