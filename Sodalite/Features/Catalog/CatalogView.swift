@@ -54,14 +54,6 @@ struct CatalogView: View {
             .navigationDestination(item: $selectedFilter) { filter in
                 CatalogFilteredGridView(filter: filter)
             }
-            // Detail/grid leaves set `.toolbar(.hidden, for: .tabBar)`.
-            // Popping a leaf before its push transition settles leaves
-            // SwiftUI's hidden state stuck, the tab bar never reappears
-            // ("go into a film, quickly back, tab bar gone"). Declaring an
-            // explicit `.visible` on the stack root makes the restore
-            // deterministic on pop instead of relying on SwiftUI's racy
-            // implicit default.
-            .toolbar(.visible, for: .tabBar)
         }
         .onAppear(perform: bootstrap)
         .onChange(of: selectedSection) { _, newValue in

@@ -29,11 +29,6 @@ struct SearchView: View {
             .navigationDestination(item: $selectedSeerrMedia) { media in
                 CatalogDetailView(media: media)
             }
-            // Detail leaves hide the tab bar; popping one before its push
-            // transition settles can leave SwiftUI's hidden state stuck.
-            // An explicit `.visible` on the stack root makes the restore
-            // deterministic. See CatalogView for the full writeup.
-            .toolbar(.visible, for: .tabBar)
         }
         .onAppear(perform: bootstrap)
         // Reactive Seerr-service hookup. The bootstrap path captures
