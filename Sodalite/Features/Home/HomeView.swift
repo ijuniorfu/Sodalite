@@ -7,6 +7,17 @@ struct HomeView: View {
     @State private var selectedItem: JellyfinItem?
     @State private var selectedFilter: FilterDestination?
 
+    /// Resolved accent for the loading spinner. The TabView tint is set on
+    /// the tab shell, but HomeView's NavigationStack resets the inherited
+    /// tint, so the activity indicator falls back to white. Re-applying the
+    /// effective tint keeps it consistent with the Live TV spinner (which
+    /// has no NavigationStack and inherits the tab tint directly).
+    private var spinnerTint: Color {
+        dependencies.appearancePreferences.effectiveTint(
+            isSupporter: dependencies.storeKitService.isSupporter
+        ) ?? Color.accentColor
+    }
+
     /// Tracks which content row currently holds focus. Goes `nil`
     /// when focus moves out of the rows (typically: user pressed Up
     /// at the top row and the focus engine jumped to the tab bar).
@@ -40,6 +51,7 @@ struct HomeView: View {
                 if let vm = viewModel {
                     if vm.isLoading {
                         ProgressView()
+                            .tint(spinnerTint)
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
                     } else if let error = vm.errorMessage {
                         VStack(spacing: 12) {
@@ -64,6 +76,7 @@ struct HomeView: View {
                     }
                 } else {
                     ProgressView()
+                        .tint(spinnerTint)
                 }
             }
             .navigationDestination(item: $selectedItem) { item in
