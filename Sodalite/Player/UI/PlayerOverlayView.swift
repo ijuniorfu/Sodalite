@@ -148,7 +148,6 @@ struct PlayerOverlayView: View {
                 introSkipOverlay
             }
 
-            // Next episode overlay
             if viewModel.showNextEpisodeOverlay,
                let next = viewModel.nextEpisode {
                 nextEpisodeOverlay(next)

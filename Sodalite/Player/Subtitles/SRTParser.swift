@@ -72,7 +72,6 @@ enum SRTParser {
         // Remove any position metadata after the timestamp (WebVTT)
         let clean = ts.components(separatedBy: " ").first ?? ts
 
-        // Normalize comma to dot
         let normalized = clean.replacingOccurrences(of: ",", with: ".")
 
         let parts = normalized.components(separatedBy: ":")

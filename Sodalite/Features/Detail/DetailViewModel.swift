@@ -563,7 +563,6 @@ final class DetailViewModel {
             let response = try await itemService.getCollectionItems(userID: userID, query: query)
             collectionItems = response.items
         } catch {
-            // Handle error
         }
     }
 

@@ -42,7 +42,6 @@ struct GenreCard: View {
             action()
         } content: { isFocused in
             ZStack(alignment: .bottomLeading) {
-                // Background image
                 AsyncCachedImage(url: data.backdropURL) { image in
                     image
                         .resizable()
@@ -60,7 +59,6 @@ struct GenreCard: View {
                 .frame(width: 320, height: 180)
                 .clipped()
 
-                // Dark overlay
                 Rectangle()
                     .fill(.black.opacity(0.55))
 

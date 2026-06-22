@@ -192,7 +192,6 @@ struct CollectionItemRow: View {
     var body: some View {
         Button { onSelect() } label: {
             HStack(spacing: 20) {
-                // Poster
                 AsyncCachedImage(url: imageURL) { image in
                     image
                         .resizable()
@@ -204,7 +203,6 @@ struct CollectionItemRow: View {
                 .frame(width: 80, height: 120)
                 .clipShape(RoundedRectangle(cornerRadius: 8))
 
-                // Info
                 VStack(alignment: .leading, spacing: 6) {
                     Text(item.name)
                         .font(.body)
@@ -259,7 +257,6 @@ struct CollectionItemRow: View {
 
                 Spacer()
 
-                // Play state
                 if item.userData?.played == true {
                     Image(systemName: "checkmark.circle.fill")
                         .foregroundStyle(.green)

@@ -109,9 +109,7 @@ final class ServerDiscoveryService: ServerDiscoveryServiceProtocol {
                 // "192.168.1.5/jellyfin" glues the port onto the path
                 // (same guard as the domain branch below).
                 if !cleaned.contains("/") {
-                    // HTTPS with Jellyfin HTTPS port
                     if let url = URL(string: "https://\(cleaned):8920") { candidates.append(url) }
-                    // HTTP with Jellyfin HTTP port
                     if let url = URL(string: "http://\(cleaned):8096") { candidates.append(url) }
                 }
                 // Also try standard ports (reverse proxy setup)

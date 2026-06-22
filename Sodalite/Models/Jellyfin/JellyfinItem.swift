@@ -10,8 +10,8 @@ struct JellyfinItem: Codable, Sendable, Identifiable, Equatable, Hashable {
     let seriesName: String?
     let seriesId: String?
     let seasonId: String?
-    let parentIndexNumber: Int?  // Season number
-    let indexNumber: Int?        // Episode number
+    let parentIndexNumber: Int?
+    let indexNumber: Int?
     let productionYear: Int?
     let communityRating: Double?
     /// Rotten Tomatoes critic score (0-100), filled by metadata

@@ -221,10 +221,8 @@ struct TransportBar: View {
                 txn.animation = .smooth(duration: 0.32)
             }
 
-            // Progress bar
             progressBar
 
-            // Time labels
             HStack {
                 Text(currentTime)
                     .font(.callout)

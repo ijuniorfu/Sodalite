@@ -172,7 +172,6 @@ struct StatsOverlayView: View {
     private var liveSection: some View {
         section("player.stats.section.live") {
             let telemetry = diagnostics.liveTelemetry
-            // Bitrate (instant + average)
             row(
                 "player.stats.bitrate",
                 value: Self.formatBitratePair(
@@ -180,7 +179,6 @@ struct StatsOverlayView: View {
                     average: telemetry?.averageBitrateMbps
                 )
             )
-            // Buffer (seconds + cached MB)
             row(
                 "player.stats.buffer",
                 value: Self.formatBufferPair(
@@ -188,7 +186,6 @@ struct StatsOverlayView: View {
                     cachedBytes: telemetry?.cachedBytes
                 )
             )
-            // Network (throughput + transferred bytes)
             row(
                 "player.stats.network",
                 value: Self.formatNetworkPair(

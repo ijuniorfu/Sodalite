@@ -55,7 +55,6 @@ enum TrackDisplayFormatter {
     static func subtitleStreamDisplayName(for stream: MediaStream) -> String {
         let lang = streamLanguageName(for: stream)
 
-        // Build descriptor from flags
         var descriptors: [String] = []
         if stream.isForced == true { descriptors.append("Forced") }
         if let title = stream.title, !title.isEmpty {
@@ -154,7 +153,6 @@ enum TrackDisplayFormatter {
                 return nil
             }
         }
-        // Check for known useful descriptors
         let useful = ["forced", "sdh", "commentary", "cc", "signs", "songs", "full", "hearing"]
         let lower = title.lowercased()
         if useful.contains(where: { lower.contains($0) }) {

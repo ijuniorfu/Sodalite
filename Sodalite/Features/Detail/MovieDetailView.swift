@@ -301,7 +301,6 @@ struct MovieDetailView: View {
             // panel (see DetailContentOverlay). The panel opens straight
             // into the metadata + secondary-info row.
 
-            // Episode subtitle
             if vm.item.type == .episode, let series = vm.item.seriesName {
                 Text(episodeSubtitle(vm: vm, seriesName: series))
                     .font(.headline)

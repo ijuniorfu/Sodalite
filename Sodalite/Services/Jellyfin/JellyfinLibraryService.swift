@@ -32,7 +32,6 @@ final class JellyfinLibraryService: JellyfinLibraryServiceProtocol {
             endpoint: JellyfinEndpoint.userViews(userID: userID),
             responseType: JellyfinItemsResponse.self
         )
-        // Map items to libraries
         return response.items.map { item in
             JellyfinLibrary(
                 id: item.id,

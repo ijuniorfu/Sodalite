@@ -8,21 +8,18 @@ struct CheckmarkAnimation: View {
 
     var body: some View {
         ZStack {
-            // Background circle
             Circle()
                 .fill(.green.opacity(0.15))
                 .frame(width: 120, height: 120)
                 .scaleEffect(circleScale)
                 .opacity(circleOpacity)
 
-            // Circle stroke
             Circle()
                 .trim(from: 0, to: trimEnd)
                 .stroke(.green, style: StrokeStyle(lineWidth: 4, lineCap: .round))
                 .frame(width: 120, height: 120)
                 .rotationEffect(.degrees(-90))
 
-            // Checkmark
             Path { path in
                 path.move(to: CGPoint(x: 35, y: 62))
                 path.addLine(to: CGPoint(x: 52, y: 78))
