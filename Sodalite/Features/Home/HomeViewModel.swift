@@ -8,64 +8,36 @@ final class HomeViewModel {
     var errorMessage: String?
     var rowConfigs: [HomeRowConfig] = []
     var needsReload = false
-    /// Sample backdrop URL per streaming-provider TMDB id, populated
-    /// from a one-shot Jellyfin Studios query so each provider tile
-    /// can show a hero image of an actual library item rather than a
-    /// flat dark plate. Empty values are kept as `nil` so the tile
-    /// gracefully falls back to the logo-only style.
+    /// Sample backdrop per provider TMDB id from a one-shot Studios query so each provider tile shows a real library hero; nil falls back to logo-only.
     var providerBackdrops: [Int: URL] = [:]
 
-    /// Resolved-item count per streaming provider, keyed by
-    /// `provider.id`. Populated by the background precompute pass,
-    /// the empty-tile-hide filter on the home view reads from here
-    /// to drop providers whose library matches resolve to zero
-    /// without waiting for the user to tap each one.
+    /// Resolved-item count per provider id from the background precompute; the home view's empty-tile-hide filter reads it to drop zero-match providers without the user tapping each one.
     var providerItemCounts: [Int: Int] = [:]
 
-    /// Guards against concurrent / repeated precompute runs within
-    /// the same session, re-resolving every provider on every Home
-    /// re-appearance would hammer Seerr for ~100 calls and add
-    /// nothing the user can perceive. Internal (not private) so the
-    /// +Precompute extension can read and latch it.
+    /// Throttle against repeated precompute runs per session (re-resolving every provider on each Home re-appearance is ~100 Seerr calls for no perceptible gain). Internal so +Precompute can latch it.
     var providerCountsComputedAt: Date?
 
-    /// Same throttle as `providerCountsComputedAt`, but for the
-    /// genre-tile pre-warm pass. The grids themselves still revalidate
-    /// against the server when opened, this just means the *first*
-    /// frame after a tap is already painted from the file cache.
+    /// Same throttle for the genre-tile pre-warm; grids still revalidate on open, this just paints the first post-tap frame from the file cache.
     var genreCachesComputedAt: Date?
 
-    /// Handles for the background side-effects `loadContent` kicks
-    /// off. Held so we can cancel them when the view model is torn
-    /// down (profile switch, tab destruction) or when `loadContent`
-    /// is re-entered before the previous fan-out finished, without
-    /// that, an orphaned VM keeps fetching against the server and
-    /// writing into FilterCache long after the UI it backed is gone.
+    /// Handles for loadContent's background fan-outs, cancelled on teardown or re-entry, else an orphaned VM keeps fetching and writing FilterCache after its UI is gone.
     private var backdropTask: Task<Void, Never>?
     private var providerCountsTask: Task<Void, Never>?
     private var genreCachesTask: Task<Void, Never>?
 
-    /// Timestamp of the last successful loadContent(). Used by the
-    /// view's onAppear to decide whether enough time has passed to
-    /// refresh, otherwise new server-side content (Latest Movies,
-    /// Latest Series, etc.) never shows up until the app restarts.
+    /// Last successful loadContent(); the view's onAppear uses it to decide whether to refresh, else new server-side content never shows until app restart.
     var lastLoadedAt: Date?
 
-    /// Bumped on every loadContent entry; the for-await loop checks
-    /// this before publishing each row so a re-entrant loadContent
-    /// (profile switch, refresh-while-loading) supersedes the older
-    /// run instead of letting both write into rows/tagRows.
+    /// Bumped on every loadContent entry; the for-await loop checks it before publishing so a re-entrant run (profile switch, refresh-while-loading) supersedes the older one instead of both writing rows/tagRows.
     private var loadGeneration: Int = 0
 
-    // Internal (not private) so the +Rows / +Precompute extensions
-    // can reach the services + identity the moved fetch logic uses.
+    // Internal (not private) so +Rows / +Precompute can reach the services + identity.
     let libraryService: JellyfinLibraryServiceProtocol
     let imageService: JellyfinImageService
     let discoverService: SeerrDiscoverServiceProtocol?
     let userID: String
     let serverID: String
-    /// Video libraries (movies / tvshows / homevideos / mixed) used to
-    /// render the My Media row. Populated by loadContent().
+    /// Video libraries (movies/tvshows/homevideos/mixed) for the My Media row; populated by loadContent().
     var videoLibraries: [JellyfinLibrary] = []
 
     init(
@@ -84,26 +56,13 @@ final class HomeViewModel {
     }
 
     isolated deinit {
-        // The background fan-outs hold self weakly so they can't keep
-        // a discarded VM alive, but a task still in its deferred-sleep
-        // phase would otherwise linger for up to 13 s after the VM is
-        // gone (profile switch tears the VM down via HomeView). A pass
-        // that is mid-query holds self strongly for its duration; the
-        // cancel also flips Task.isCancelled so its next checkpoint
-        // stops the work early.
+        // Fan-outs hold self weakly, but a deferred-sleep task would linger up to 13 s after the VM is gone (profile switch); cancel flips Task.isCancelled so the next checkpoint stops early.
         backdropTask?.cancel()
         providerCountsTask?.cancel()
         genreCachesTask?.cancel()
     }
 
-    /// Patch a just-watched item's resume progress in place across every
-    /// row that holds it (issue #24). Mirrors the detail-side fix: the
-    /// player's playback-stop payload is authoritative, so the Continue
-    /// Watching tile's progress bar (playedPercentage) is correct
-    /// immediately, without racing a full loadContent() re-fetch against
-    /// the server commit / the ETag cache. loadContent() still runs for
-    /// the structural changes a patch can't make (the item moving to the
-    /// front of Continue Watching, or dropping out once finished).
+    /// Patch a just-watched item's resume progress in place across every row holding it (issue #24). Mirrors the detail-side fix off the authoritative playback-stop payload so the Continue Watching progress bar is right immediately without racing a loadContent() re-fetch. loadContent() still runs for structural changes a patch can't make (re-ordering, dropping out once finished).
     @MainActor
     func applyPlaybackPosition(itemID: String, ticks: Int64) {
         for rowIndex in rows.indices {
@@ -118,11 +77,7 @@ final class HomeViewModel {
         loadGeneration += 1
         let myGen = loadGeneration
 
-        // Cancel the previous run's background fan-outs up front, NOT
-        // just before scheduling new ones: the total-failure return
-        // below used to skip the late cancel block, leaving the old
-        // tasks fetching and writing FilterCache for a config this
-        // reload was about to replace.
+        // Cancel previous fan-outs up front, not before scheduling new ones: the total-failure return below used to skip a late cancel, leaving old tasks fetching/writing FilterCache for a config being replaced.
         backdropTask?.cancel()
         providerCountsTask?.cancel()
         genreCachesTask?.cancel()
@@ -136,11 +91,7 @@ final class HomeViewModel {
         }
         errorMessage = nil
 
-        // Pull the server's libraries so per-library Latest rows and
-        // the My Media row reflect what's actually on this server.
-        // Reconciliation is additive and preserves the user's toggles
-        // and order; we only persist when the fetch succeeds so a
-        // transient failure can't wipe the dynamic rows.
+        // Pull the server's libraries for per-library Latest + My Media. Reconciliation is additive (keeps user toggles/order); persist only on success so a transient failure can't wipe the dynamic rows.
         if let libraries = try? await libraryService.getLibraries(userID: userID) {
             let videoTypes: Set<String> = ["movies", "tvshows", "homevideos", "mixed"]
             videoLibraries = libraries.filter { videoTypes.contains($0.collectionType ?? "") }
@@ -157,39 +108,19 @@ final class HomeViewModel {
             .filter(\.isEnabled)
             .sorted { $0.sortOrder < $1.sortOrder }
 
-        // Fan out every row's network call in parallel. The
-        // sequential `for await` walk used to mean each row started
-        // only after the previous one returned, so a 7-row config
-        // took roughly 7× the slowest call. Tasks come back in
-        // completion order; orderedSections() drives display order
-        // from the config sortOrder, so arrival order doesn't affect
-        // layout, only paint timing.
+        // Fan out every row's call in parallel (a sequential for-await made a 7-row config take ~7× the slowest call). orderedSections() drives display order from sortOrder, so arrival order only affects paint timing.
         enum RowResult: Sendable {
             case media(HomeRowData)
             case tag(HomeTagRowData)
             case empty
         }
 
-        // Capture row-type predicates on MainActor before crossing
-        // into the task group, HomeRowType is MainActor-isolated
-        // under the project's default-isolation rule, so reading
-        // .isTagRow from a non-isolated closure would otherwise be
-        // rejected.
-        // Carry the full config (not just the type) so per-library
-        // rows keep their libraryID/name/collectionType into loadRow,
-        // and so identity stays unique per library. isTagRow is
-        // precomputed here on MainActor (alongside the config) so the
-        // task-group closures below never have to read the
-        // MainActor-isolated HomeRowType predicate themselves.
+        // Precompute isTagRow + carry the full config on MainActor: HomeRowType is MainActor-isolated under default-isolation, so the task-group closures can't read .isTagRow themselves; the full config keeps per-library libraryID/name and unique identity.
         let plan: [(config: HomeRowConfig, isTag: Bool)] = enabledRows.compactMap { config in
             if config.type.isDiscoverProviderRow { return nil }
-            // My Media renders from videoLibraries directly; nothing to
-            // fetch in the row fan-out.
+            // My Media renders from videoLibraries directly; nothing to fetch.
             if config.type == .myMedia { return nil }
-            // Merged-row mode: Next Up rides inside Continue Watching
-            // (see loadRow), so its standalone row drops out even
-            // while its config stays enabled, flipping the toggle
-            // back restores it without re-enabling anything.
+            // Merged mode: Next Up rides inside Continue Watching (see loadRow), so its standalone row drops out while its config stays enabled; flipping the toggle restores it.
             if config.type == .nextUp,
                HomeRowConfig.mergeContinueWatchingNextUp(serverID: serverID) {
                 return nil
@@ -200,25 +131,13 @@ final class HomeViewModel {
         let plannedMediaIDs = Set(plan.filter { !$0.isTag }.map(\.config.id))
         let plannedTagIDs = Set(plan.filter { $0.isTag }.map(\.config.id))
 
-        // Drop any rows whose config was disabled since the previous
-        // load so the disappearance is instant rather than waiting on
-        // the new fan-out to finish. Stale rows for still-enabled
-        // types stay on screen and get replaced in-place as their
-        // fresh result lands.
+        // Drop rows disabled since the previous load instantly; still-enabled rows stay and get replaced in place as fresh results land.
         rows.removeAll { !plannedMediaIDs.contains($0.id) }
         tagRows.removeAll { !plannedTagIDs.contains($0.id) }
 
         var sawAnyResult = false
 
-        // Progressive publish: upsert each row as its fetch completes
-        // instead of awaiting the full TaskGroup before swapping.
-        // On a slow CDN-backed Jellyfin, fast rows (Continue Watching,
-        // a few hundred ms) paint immediately while the slowest call
-        // (Latest Movies/Series on a 1 PB library, 10+ s) keeps
-        // streaming. ForEach diffs by HomeRowData.id (type rawValue),
-        // so replacing a row in place preserves AsyncImage state for
-        // subviews that were already mounted; new rows insert at the
-        // position orderedSections() places them.
+        // Progressive publish: upsert each row as it completes so fast rows paint while the slowest (Latest on a huge library, 10+ s) streams. ForEach diffs by HomeRowData.id, so in-place replace preserves mounted AsyncImage state.
         await withTaskGroup(of: RowResult.self) { group in
             for entry in plan {
                 let config = entry.config
@@ -239,9 +158,7 @@ final class HomeViewModel {
                 }
             }
             for await result in group {
-                // Stale guard: a newer loadContent has superseded
-                // this one; drop the rest of its results on the floor
-                // so we don't fight the newer run for the rows array.
+                // Stale guard: a newer loadContent superseded this; drop the rest so we don't fight it for the rows array.
                 guard loadGeneration == myGen else { return }
                 switch result {
                 case .media(let row):
@@ -270,12 +187,7 @@ final class HomeViewModel {
 
         guard loadGeneration == myGen else { return }
 
-        // Total-failure path: every fan-out came back empty or threw.
-        // loadRow/loadTagRow swallow errors and return nil, so "all
-        // nils" looks the same as "server unreachable". Surface the
-        // retry overlay only on a first load; on refresh we keep
-        // whatever rows are already on screen so a transient CDN
-        // hiccup doesn't wipe the home page.
+        // Total-failure path: loadRow/loadTagRow swallow errors and return nil, so "all nils" looks like "server unreachable". Surface the retry overlay only on first load; on refresh keep on-screen rows so a transient CDN hiccup doesn't wipe Home.
         let hadConfiguredFetchableRows = !plan.isEmpty
         if hadConfiguredFetchableRows && !sawAnyResult && isFirstLoad {
             errorMessage = String(
@@ -289,34 +201,13 @@ final class HomeViewModel {
         isLoading = false
         lastLoadedAt = .now
 
-        // Gate each background pass on its consuming row being enabled.
-        // The provider precompute is the heaviest query the app makes
-        // (one 10 000-item all-library scan plus 33 per-provider
-        // resolves), and the Discover row is the *only* thing that
-        // reads its output, so firing it when the user has hidden that
-        // row is pure waste, on a slow CDN-backed Jellyfin (Sodalite#12)
-        // it's waste the user pays for in backend contention. Hiding the
-        // Discover / Genres row in Customize now genuinely stops the
-        // scan rather than just hiding tiles that were resolved anyway.
+        // Gate each background pass on its consuming row being enabled: the provider precompute is the heaviest query (one 10 000-item all-library scan + 33 per-provider resolves) and only the Discover row reads it, so hiding that row in Customize genuinely stops the scan (Sodalite#12 backend contention), not just the tiles.
         let providersEnabled = enabledRows.contains { $0.type.isDiscoverProviderRow }
         let genresEnabled = enabledRows.contains { $0.type == .genres }
 
-        // All three background passes deferred so the server isn't
-        // hammered with secondary queries right as the user is
-        // tapping into their first detail page. On a fast homelab
-        // Jellyfin this delay is imperceptible (the user is still
-        // looking at the rows); on a slow CDN-backed Jellyfin
-        // (Sodalite#12) it keeps the backend free for whatever the
-        // user does next instead of forcing the heavy precompute
-        // queries to compete with their navigation. .utility
-        // priority drops these below user-initiated work in the
-        // Swift cooperative scheduler too.
+        // All three deferred + .utility so secondary queries don't compete with the user's first detail navigation; staggered (3s/8s/13s) so the two heaviest don't land on the HTTPClient limiter at once and starve each other on a slow CDN (Sodalite#12).
 
-        // Best-effort: fan out one Studios query per provider so
-        // the streaming-provider row can render a sample backdrop
-        // from the local library. Failures and gaps in metadata
-        // are tolerated, the tile falls back to the logo-only
-        // style for any provider that doesn't resolve.
+        // One Studios query per provider for a sample backdrop; gaps tolerated (tile falls back to logo-only).
         if providersEnabled {
             backdropTask = Task(priority: .utility) { [weak self] in
                 try? await Task.sleep(for: .seconds(3))
@@ -324,12 +215,7 @@ final class HomeViewModel {
                 await self?.loadProviderBackdrops()
             }
         }
-        // Pre-resolve every provider tile in the background so the
-        // empty-tile-hide pass on the home view has data to act on
-        // *before* the user has tapped each one. Throttled to one
-        // run per session. Heaviest of the three (one 10 000-item
-        // all-library query plus per-provider studio + TMDB matches),
-        // deferred longest.
+        // Pre-resolve provider tiles so the empty-tile-hide pass has data before the user taps each one. One run per session, heaviest of the three (10 000-item query + per-provider studio/TMDB matches), deferred longest.
         if providersEnabled {
             providerCountsTask = Task(priority: .utility) { [weak self] in
                 try? await Task.sleep(for: .seconds(8))
@@ -337,14 +223,7 @@ final class HomeViewModel {
                 await self?.precomputeProviderCounts()
             }
         }
-        // Pre-warm the genre tile grids the same way: one Studios
-        // query per genre so the first tap renders straight from the
-        // cache instead of paying a network roundtrip. Staggered well
-        // behind the provider-counts pass (which itself fires a single
-        // 10 000-item query plus per-provider resolves) so the two
-        // heaviest background passes don't land on the HTTPClient
-        // limiter at the same instant and starve each other on a slow
-        // CDN origin (Sodalite#12).
+        // Pre-warm genre grids so the first tap renders from cache.
         if genresEnabled {
             genreCachesTask = Task(priority: .utility) { [weak self] in
                 try? await Task.sleep(for: .seconds(13))
@@ -362,7 +241,6 @@ final class HomeViewModel {
         guard rowType.usesBackdrop else {
             return imageService.posterURL(for: item)
         }
-        // Continue Watching / Up Next image, per the user's choice.
         switch cwImage {
         case .still:
             if item.type == .episode {
@@ -374,17 +252,13 @@ final class HomeViewModel {
                 ?? imageService.episodeThumbnailURL(for: item)
                 ?? imageService.posterURL(for: item)
         case .thumb:
-            // Series Thumb addressed by series id (tagless). Paired with
-            // fallbackImageURL so a Thumb-less show degrades gracefully.
+            // Series Thumb by series id (tagless); paired with fallbackImageURL so a Thumb-less show degrades.
             let id = (item.type == .episode ? item.seriesId : nil) ?? item.id
             return imageService.imageURL(itemID: id, imageType: .thumb, maxWidth: 720)
         }
     }
 
-    /// Fallback image for Continue Watching / Up Next, used under the
-    /// Thumb option so a show without a Thumb degrades to its backdrop or
-    /// the episode still. Nil for the other options (their primary URL
-    /// already chains to a present image).
+    /// Fallback under the Thumb option so a Thumb-less show degrades to backdrop/still. Nil for the other options (their primary URL already chains).
     func fallbackImageURL(
         for item: JellyfinItem,
         cwImage: AppearancePreferences.ContinueWatchingImage
@@ -399,17 +273,10 @@ final class HomeViewModel {
         rowConfigs = HomeRowConfig.loadFromStorage(serverID: serverID)
     }
 
-    /// Called by HomeView when the active server changes. Clears
-    /// in-memory carousels so a partial render from the previous
-    /// server's posters doesn't show while the new server's rows
-    /// are loading, then runs a full content reload. The throttle
-    /// guards (providerCountsComputedAt, genreCachesComputedAt) are
-    /// also reset so the background precompute reruns for the new
-    /// server's library.
+    /// On active-server change: clear in-memory carousels (so the old server's posters don't linger) and reset the throttle guards so precompute reruns for the new library, then reload.
     @MainActor
     func reloadAfterServerSwitch() async {
-        // Flip into loading state before clearing rows so HomeView
-        // lands in the spinner branch, not the empty no-content branch.
+        // Flip to loading before clearing rows so HomeView lands in the spinner branch, not the empty no-content branch.
         isLoading = true
         rows = []
         tagRows = []

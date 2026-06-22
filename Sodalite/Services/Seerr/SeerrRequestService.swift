@@ -14,11 +14,7 @@ protocol SeerrRequestServiceProtocol: Sendable {
 
     func myRequests(userID: Int, take: Int, skip: Int) async throws -> SeerrRequestsResult
 
-    /// Admin queue: every request across every user, filtered by
-    /// status. Requires the caller to have MANAGE_REQUESTS or ADMIN
-    /// in their `SeerrUser.permissions` bitfield. 403 surfaces as
-    /// `APIError.unauthorized` if the server-side permission was
-    /// revoked between login and the call.
+    /// Admin queue (all users, status-filtered); needs MANAGE_REQUESTS/ADMIN in `SeerrUser.permissions`. A revoked permission surfaces 403 as `APIError.unauthorized`.
     func allRequests(
         filter: SeerrRequestFilter,
         take: Int,

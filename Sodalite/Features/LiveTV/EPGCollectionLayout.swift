@@ -1,20 +1,16 @@
 import UIKit
 
-/// Supplies the program layout with the per-program time geometry. The view
-/// controller implements it from `EPGGuideViewModel`.
+/// Per-program time geometry, implemented by the view controller from `EPGGuideViewModel`.
 protocol EPGCollectionLayoutDelegate: AnyObject {
     func epgChannelCount() -> Int
     func epgProgramCount(section: Int) -> Int
-    /// Content-space x and width, in points, for a program block (the program
-    /// area's own coordinate space, where x 0 is the axis start).
+    /// Content-space x and width (points) in the program area's own space (x 0 = axis start).
     func epgProgramXWidth(section: Int, item: Int) -> (x: CGFloat, width: CGFloat)
 }
 
-/// Layout for the program grid only: program cells positioned by time (x) and
-/// channel (row), plus a "now" line decoration. The channel column and time
-/// header are SEPARATE sibling views in the view controller (a hard split, so
-/// programs never scroll under the column); this layout has no pinned
-/// supplementary views and therefore does not relayout on scroll.
+/// Program grid only: cells by time (x) and channel (row) plus a "now" line. Channel column and
+/// time header are SEPARATE sibling views (hard split, so programs never scroll under the column);
+/// no pinned supplementaries, so this does not relayout on scroll.
 final class EPGCollectionLayout: UICollectionViewLayout {
 
     static let nowLineKind = "EPGNowLine"
@@ -25,10 +21,8 @@ final class EPGCollectionLayout: UICollectionViewLayout {
     var rowHeight: CGFloat = 110
     /// Total width of the program timeline (axis span * points-per-minute).
     var totalWidth: CGFloat = 0
-    /// Content-space x of the "now" line.
     var nowX: CGFloat = 0
-    /// Content-space x positions of the vertical time gridlines (one per
-    /// half-hour tick, matching the time header's labels).
+    /// Content-space x of each half-hour gridline, matching the time header's labels.
     var gridlineXs: [CGFloat] = []
 
     private var cellAttributesBySection: [[UICollectionViewLayoutAttributes]] = []
@@ -50,8 +44,7 @@ final class EPGCollectionLayout: UICollectionViewLayout {
                 return attr
             }
         }
-        // Vertical gridlines span the full content height behind the cells
-        // (zIndex -1) so programs and the now line draw on top.
+        // Gridlines span full content height at zIndex -1 so programs and the now line draw on top.
         gridlineAttributes = gridlineXs.enumerated().map { idx, x in
             let attr = UICollectionViewLayoutAttributes(
                 forDecorationViewOfKind: Self.gridLineKind, with: IndexPath(item: idx, section: 0))
@@ -75,7 +68,6 @@ final class EPGCollectionLayout: UICollectionViewLayout {
         let sectionCount = cellAttributesBySection.count
         guard sectionCount > 0, rowHeight > 0 else { return [] }
         var result: [UICollectionViewLayoutAttributes] = []
-        // Gridlines first (behind, zIndex -1).
         for attr in gridlineAttributes where attr.frame.intersects(rect) {
             result.append(attr)
         }

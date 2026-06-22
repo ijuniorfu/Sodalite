@@ -5,8 +5,7 @@ protocol JellyfinMusicServiceProtocol: Sendable {
     func getAlbums(userID: String) async throws -> [JellyfinItem]
     /// Tracks in an album, sorted by disc then track number.
     func getSongs(userID: String, albumID: String) async throws -> [JellyfinItem]
-    /// True when the server has at least one library whose
-    /// collectionType is "music".
+    /// True when at least one library has collectionType "music".
     func hasMusicLibrary(userID: String) async throws -> Bool
 }
 
@@ -43,12 +42,7 @@ final class JellyfinMusicService: JellyfinMusicServiceProtocol {
             endpoint: JellyfinEndpoint.items(userID: userID, query: query),
             responseType: JellyfinItemsResponse.self
         )
-        // The server SortBy above is not reliably honored for album tracks
-        // (single-disc albums commonly carry a null ParentIndexNumber, which
-        // makes the multi-key server sort fall back to an arbitrary order).
-        // Sort client-side by disc, then track number, then title so the
-        // queue and tracklist are always in album order. Untagged tracks
-        // (nil index) sort last, ordered by name.
+        // Re-sort client-side: server SortBy is unreliable for tracks (single-disc albums often have null ParentIndexNumber → arbitrary order). Disc → track → title; untagged (nil index) last.
         return response.items.sorted { a, b in
             let discA = a.parentIndexNumber ?? 0
             let discB = b.parentIndexNumber ?? 0

@@ -56,10 +56,7 @@ struct CollectionDetailView: View {
                     playbackService: dependencies.jellyfinPlaybackService
                 )
                 Task {
-                    // loadFullDetail already loads the collection's
-                    // items internally for .boxSet; a second explicit
-                    // loadCollectionItems was a redundant round trip
-                    // with a duplicate collectionItems write.
+                    // loadFullDetail loads collection items internally for .boxSet; a separate loadCollectionItems would be a redundant round trip.
                     await viewModel?.loadFullDetail()
                 }
             }
@@ -74,11 +71,7 @@ struct CollectionDetailView: View {
             )
 
             DetailContentOverlay(primary: {
-                // Glass panel + action buttons form the first page's
-                // bottom-aligned block, matching the movie and series
-                // detail views (Sodalite#15 round 6): the button row
-                // closes off the fold, overview and the title list
-                // start off-screen.
+                // Glass panel + action buttons as the bottom-aligned first-page block, matching movie/series detail (Sodalite#15 round 6).
                 VStack(alignment: .leading, spacing: 24) {
                     glassPanel(vm: vm)
                     actionButtonRow(vm: vm)
@@ -137,9 +130,7 @@ struct CollectionDetailView: View {
                 title: "action.shuffle",
                 systemImage: "shuffle",
                 action: {
-                    // Collection members are already loaded; shuffle them
-                    // client-side. Filter to playable leaf types so a stray
-                    // nested series can't seed an unplayable queue entry.
+                    // Members already loaded; shuffle client-side, filtered to playable leaf types so a nested series can't seed an unplayable queue entry.
                     let queue = vm.collectionItems
                         .filter { $0.type == .movie || $0.type == .episode }
                         .shuffled()
@@ -230,9 +221,7 @@ struct CollectionItemRow: View {
                                     .foregroundStyle(.secondary)
                             }
                         }
-                        // Rotten Tomatoes critic score, mirrors the
-                        // movie detail badge (fresh/rotten split at 60),
-                        // only shown when the server delivers CriticRating.
+                        // RT critic score, fresh/rotten split at 60; only when the server delivers CriticRating.
                         if let critic = item.criticRating {
                             HStack(spacing: 3) {
                                 Image(critic >= 60 ? "RTFresh" : "RTRotten")

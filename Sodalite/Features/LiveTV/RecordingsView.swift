@@ -1,8 +1,7 @@
 import SwiftUI
 
-/// Recordings + scheduled timers, the "Aufnahmen" side of the Live TV
-/// tab's segment toggle. Recordings are plain JellyfinItems and launch
-/// the normal VOD player.
+/// Recordings + scheduled timers (the "Aufnahmen" segment). Recordings are plain JellyfinItems and
+/// launch the normal VOD player.
 struct RecordingsView: View {
     @Environment(\.dependencies) private var dependencies
     let model: RecordingsViewModel
@@ -143,15 +142,12 @@ struct RecordingsView: View {
     }
 }
 
-/// 16:9 recording card: backdrop image, title, runtime line, an
-/// in-progress badge while the recording is still running. Select plays;
-/// delete goes through a dedicated focusable trash chip.
+/// 16:9 recording card: backdrop, title, runtime line, in-progress badge. Select plays; delete goes
+/// through a dedicated focusable trash chip.
 private struct RecordingCard: View {
     let item: JellyfinItem
     let imageURL: URL?
-    /// Server-confirmed via the IsInProgress filter (see
-    /// RecordingsViewModel.inProgressIDs); item.status stays empty on
-    /// recording items in modern Jellyfin.
+    /// Server-confirmed via IsInProgress (see RecordingsViewModel.inProgressIDs); item.status stays empty on modern Jellyfin recordings.
     let isInProgress: Bool
     let tint: Color
     let onPlay: () -> Void
@@ -160,8 +156,7 @@ private struct RecordingCard: View {
     @FocusState private var focused: Bool
     @FocusState private var deleteFocused: Bool
 
-    /// "92 min" style runtime; JellyfinItem has no display-ready date
-    /// field (premiereDate is a raw string), so the runtime stands in.
+    /// "92 min" runtime; JellyfinItem has no display-ready date (premiereDate is a raw string), so runtime stands in.
     private var runtimeLabel: String? {
         guard let ticks = item.runTimeTicks, ticks > 0 else { return nil }
         let minutes = Int(ticks / 600_000_000)
@@ -220,7 +215,6 @@ private struct RecordingCard: View {
     }
 }
 
-/// Scheduled-timer row: name, channel/time line, series badge, cancel chip.
 private struct TimerRow: View {
     let title: String
     let subtitle: String?

@@ -4,39 +4,17 @@ struct GlassActionButton: View {
     let title: LocalizedStringKey
     let systemImage: String
     var isProminent: Bool = false
-    /// When `true`, the prominent variant wears the system destructive
-    /// red instead of the accent colour. Used by the delete-confirmation
-    /// sheet's Delete button so the destructive intent is unambiguous;
-    /// non-prominent destructive buttons fall back to the neutral grey
-    /// fill (with destructive role still applied for VoiceOver). Keeps
-    /// the visual language consistent with the rest of the action-row
-    /// buttons that never use a non-accent prominent fill.
+    /// Prominent variant wears destructive red instead of accent; non-prominent destructive stays neutral grey (role still applied for VoiceOver).
     var isDestructive: Bool = false
-    /// Optional inline secondary label, used by the detail-view
-    /// resume button to surface "S1E5 · 12:34" without breaking row
-    /// height. Renders in caption + 0.75 opacity so it reads as
-    /// supporting metadata, not a competing title.
+    /// Inline secondary label (e.g. resume "S1E5 · 12:34"); caption + 0.75 opacity so it reads as metadata, not a competing title.
     var subtitle: String? = nil
-    /// Optional 0…1 progress overlay drawn behind the button label.
-    /// Used by the resume button to mirror Apple TV+'s convention of
-    /// painting the user's progress through the title across the
-    /// resume tile in the active accent. nil suppresses the overlay
-    /// entirely (fresh content, no progress to show).
+    /// 0…1 progress overlay behind the label (resume tile, accent fill); nil suppresses it.
     var progressFraction: Double? = nil
-    /// When true, the label is replaced with a spinner and the
-    /// button is disabled. Used while the host view is still
-    /// resolving which content the action will play, e.g. the
-    /// series detail's play button waits for getNextUp before it
-    /// can decide between "Abspielen" and "Fortsetzen + S1E5".
-    /// Showing a placeholder is visually quieter than letting the
-    /// title flip mid-render.
+    /// Replaces the label with a spinner and disables the button while the host resolves the play target (e.g. series play waits on getNextUp); quieter than flipping the title mid-render.
     var isLoading: Bool = false
     let action: () -> Void
 
-    /// Set by an action row via `.collapsesActionButtonLabel(true)`.
-    /// When on, secondary (non-prominent) buttons collapse to an
-    /// icon-only pill and reveal their title only on focus, so a
-    /// crowded detail-view row (Bluey: 8 actions) fits on screen.
+    /// When set via `.collapsesActionButtonLabel(true)`, secondary buttons collapse to an icon-only pill revealing the title on focus, so a crowded row (Bluey: 8 actions) fits.
     @Environment(\.collapsesActionButtonLabel) private var collapsesLabel
 
     var body: some View {
@@ -58,15 +36,12 @@ struct GlassActionButton: View {
             progressFraction: progressFraction
         ))
         .disabled(isLoading)
-        // Preserve the title for VoiceOver even when the visible label
-        // collapses to an icon-only pill (unfocused secondary buttons).
+        // Keep the title for VoiceOver even when the visible label collapses to an icon-only pill.
         .accessibilityLabel(Text(title))
     }
 }
 
-/// The button's label content. Lives in its own view so it can read
-/// `@Environment(\.isFocused)` from inside the focused button's subtree
-/// (the value the GlassButtonStyle already keys its focus ring off).
+/// Own view so it can read `@Environment(\.isFocused)` from inside the button's subtree (same value GlassButtonStyle keys its ring off).
 private struct GlassActionButtonLabel: View {
     let title: LocalizedStringKey
     let systemImage: String
@@ -76,30 +51,21 @@ private struct GlassActionButtonLabel: View {
     let collapsesLabel: Bool
 
     @Environment(\.isFocused) private var isFocused
-    /// Measured intrinsic width of the trailing title/subtitle content
-    /// (its leading gap baked in). The visible copy animates its frame
-    /// between 0 and this, so the reveal interpolates the real layout
-    /// footprint: the text fades in step with the growing width.
+    /// Measured intrinsic width of the trailing title/subtitle (leading gap baked in); the visible copy animates its frame 0→this so text fades in step with the growing width.
     @State private var labelWidth: CGFloat = 0
 
-    /// Prominent buttons (the primary Play/Resume action) always show
-    /// their title. Secondary buttons reveal it only when the row hasn't
-    /// opted into collapsing, or while focused.
+    /// Prominent buttons always show the title; secondary ones only when the row hasn't opted into collapsing, or while focused.
     private var showsLabel: Bool {
         !collapsesLabel || isProminent || isFocused
     }
 
-    /// Animated frame width for the collapsible label. Falls back to
-    /// `nil` (intrinsic) on the very first frame before measurement so
-    /// the auto-focused Play button never flashes open from zero width.
+    /// Falls back to `nil` (intrinsic) before measurement so the auto-focused Play button doesn't flash open from zero width.
     private var labelFrameWidth: CGFloat? {
         guard showsLabel else { return 0 }
         return labelWidth > 0 ? labelWidth : nil
     }
 
-    /// The collapsible trailing content: title plus the optional resume
-    /// subtitle, with the gap to the leading glyph baked in so the
-    /// measured width already accounts for it.
+    /// Collapsible trailing content (title + optional subtitle); leading-glyph gap baked in so the measured width accounts for it.
     private var labelInner: some View {
         HStack(spacing: 8) {
             Text(title)
@@ -121,8 +87,6 @@ private struct GlassActionButtonLabel: View {
     var body: some View {
         HStack(spacing: 0) {
             if isLoading {
-                // Spinner instead of the icon while the host resolves the
-                // play target; the label still reveals on focus as usual.
                 ProgressView()
                     .controlSize(.small)
             } else {
@@ -135,16 +99,11 @@ private struct GlassActionButtonLabel: View {
                 .opacity(showsLabel ? 1 : 0)
                 .clipped()
         }
-        // Icon-only pills get tighter horizontal padding so they read as
-        // compact circles rather than wide empty capsules.
+        // Tighter padding for icon-only pills so they read as compact circles, not wide capsules.
         .padding(.horizontal, showsLabel ? 24 : 18)
         .padding(.vertical, 12)
         .fixedSize(horizontal: true, vertical: false)
-        // Hidden full-size copy measures the label's intrinsic width
-        // without contributing to layout (a background never stretches
-        // its primary). The GeometryReader sits in the fixed-size copy's
-        // own background, so it reports the true intrinsic width even
-        // while the visible copy is clipped to zero.
+        // Hidden full-size copy in a background (never stretches its primary) measures the true intrinsic width even while the visible copy is clipped to zero.
         .background(alignment: .leading) {
             labelInner
                 .hidden()
@@ -155,11 +114,7 @@ private struct GlassActionButtonLabel: View {
                 })
         }
         .onPreferenceChange(ActionLabelWidthKey.self) { labelWidth = $0 }
-        // The width reveal + padding shift are animated by the enclosing
-        // row's shared transaction (CollapsingActionRowModifier), so the
-        // focused button and every sibling interpolate together. In
-        // non-collapsing contexts (sheets) the label never changes width,
-        // so no per-button animation is needed here.
+        // Width reveal + padding shift are animated by the row's shared transaction (CollapsingActionRowModifier) so all siblings interpolate together; no per-button animation here.
     }
 }
 
@@ -177,9 +132,7 @@ private struct CollapsesActionButtonLabelKey: EnvironmentKey {
 }
 
 extension EnvironmentValues {
-    /// Whether secondary GlassActionButtons in this subtree collapse to
-    /// icon-only and reveal their title on focus. Default false keeps
-    /// the always-labelled behaviour (sheets, one-off buttons).
+    /// Whether secondary buttons in this subtree collapse to icon-only, revealing the title on focus; default false keeps always-labelled (sheets, one-offs).
     var collapsesActionButtonLabel: Bool {
         get { self[CollapsesActionButtonLabelKey.self] }
         set { self[CollapsesActionButtonLabelKey.self] = newValue }
@@ -187,22 +140,13 @@ extension EnvironmentValues {
 }
 
 extension View {
-    /// Opt this action row into icon-only secondary buttons (see
-    /// `EnvironmentValues.collapsesActionButtonLabel`) and animate the
-    /// row's reflow when focus moves between buttons.
+    /// Opt this row into icon-only secondary buttons and animate its reflow on focus change.
     func collapsesActionButtonLabel(_ collapses: Bool = true) -> some View {
         modifier(CollapsingActionRowModifier(collapses: collapses))
     }
 }
 
-/// Sets the collapse environment and forces a shared spring onto every
-/// transaction in the row. The focus change, the focused button's label
-/// reveal and ALL sibling offset shifts then interpolate together in the
-/// one focus-driven pass. A preference-keyed `.animation(value:)` lagged
-/// a frame (it ran after layout had already committed), so only the
-/// immediate neighbour glided while buttons further down the row snapped;
-/// `.transaction` rides the same transaction as the focus change, so the
-/// whole row reflows as a unit.
+/// Forces a shared spring onto every transaction in the row so focus change + label reveal + all sibling shifts interpolate in one pass. `.transaction` (not preference-keyed `.animation(value:)`, which lagged a frame and let distant buttons snap) rides the focus change so the row reflows as a unit.
 private struct CollapsingActionRowModifier: ViewModifier {
     let collapses: Bool
 
@@ -217,23 +161,13 @@ private struct CollapsingActionRowModifier: ViewModifier {
 
 struct GlassButtonStyle: ButtonStyle {
     var isProminent: Bool = false
-    /// Pairs with `isProminent`. When true, the prominent fill becomes
-    /// the system destructive red instead of the accent colour. Non-
-    /// prominent destructive buttons stay on the neutral grey fill;
-    /// the destructive role on the parent Button handles VoiceOver.
+    /// With `isProminent`, makes the fill destructive red; non-prominent destructive stays grey (parent Button's role handles VoiceOver).
     var isDestructive: Bool = false
-    /// 0…1, ignored when nil. Drives the resume-progress fill rendered
-    /// behind the label. The bar wears the accent tint so it picks up
-    /// whatever colour the user has selected for the rest of the UI.
+    /// 0…1 resume-progress fill behind the label, accent-tinted; ignored when nil.
     var progressFraction: Double? = nil
     @Environment(\.isFocused) private var isFocused
 
-    /// A tile that wears a progress overlay drops its prominent fill
-    ///, the accent-coloured backdrop drowned out the accent-coloured
-    /// progress capsule and the bar read as a barely-visible shade
-    /// difference. Falling back to the neutral grey fill the other
-    /// detail-row buttons use lets the progress capsule pop in full
-    /// tint colour against the muted base.
+    /// A progress-overlay tile drops its prominent fill: the accent backdrop drowned out the accent progress capsule, so it falls back to neutral grey to let the capsule pop.
     private var effectivelyProminent: Bool {
         isProminent && (progressFraction ?? 0) <= 0
     }
@@ -251,9 +185,7 @@ struct GlassButtonStyle: ButtonStyle {
                                 .fill(.tint.opacity(isFocused ? 0.95 : 0.85))
                                 .frame(width: geo.size.width * CGFloat(min(1.0, fraction)))
                         }
-                        // Shape the inner fill to the outer capsule so
-                        // a fraction near 1.0 doesn't bleed past the
-                        // pill's rounded edge on either side.
+                        // Clip the inner fill to the outer capsule so a fraction near 1.0 doesn't bleed past the rounded edge.
                         .clipShape(Capsule())
                     }
                 }
@@ -265,8 +197,7 @@ struct GlassButtonStyle: ButtonStyle {
             )
             .scaleEffect(isFocused ? 1.08 : (configuration.isPressed ? 0.95 : 1.0))
             .shadow(color: .black.opacity(isFocused ? 0.3 : 0), radius: 10, y: 5)
-            // Matches the label-reveal spring in GlassActionButtonLabel so
-            // scale, border and the icon->label expansion move together.
+            // Matches the label-reveal spring so scale, border and icon→label expansion move together.
             .animation(.smooth(duration: 0.32), value: isFocused)
     }
 

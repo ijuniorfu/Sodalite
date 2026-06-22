@@ -1,12 +1,7 @@
 import SwiftUI
 import UIKit
 
-/// SwiftUI wrapper around UIKit's UITextField. On tvOS, UITextField is
-/// a first-class citizen of the UIKit focus engine, up/down routing
-/// between the tab bar, the search bar, and the result rows is handled
-/// cleanly, and activating the field reliably triggers the system
-/// keyboard overlay. SwiftUI's own TextField on tvOS has subtle focus
-/// quirks the UIKit equivalent doesn't share.
+/// UIKit UITextField wrapper: on tvOS it's a first-class focus-engine citizen (clean tab-bar/results routing, reliable keyboard overlay) where SwiftUI's TextField has focus quirks.
 struct SearchTextField: UIViewRepresentable {
     @Binding var text: String
     var placeholder: String
@@ -17,9 +12,7 @@ struct SearchTextField: UIViewRepresentable {
         field.placeholder = placeholder
         field.autocorrectionType = .no
         field.autocapitalizationType = .none
-        // tvOS UITextField defaults to a large system font; the
-        // inline search bar looks chunky with it. Match .body-ish
-        // sizing so the bar stays slim.
+        // tvOS UITextField defaults to a large font; 26pt keeps the inline bar slim.
         field.font = UIFont.systemFont(ofSize: 26, weight: .regular)
         field.delegate = context.coordinator
         field.addTarget(

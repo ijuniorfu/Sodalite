@@ -1,18 +1,13 @@
 import SwiftUI
 
-/// Navigation target for the person page, set after the async TMDB-id
-/// resolution from a Jellyfin cast member (the id isn't known until the
-/// person item is fetched, so the route can't be a plain Int binding).
+/// Person-page navigation target, set after async TMDB-id resolution (the id isn't known until the person item is fetched).
 struct PersonRoute: Identifiable, Hashable {
     let tmdbID: Int
     let name: String
     var id: Int { tmdbID }
 }
 
-/// Resolve a Jellyfin cast member to a TMDB person id, then hand the
-/// person route to the caller for navigation. Inert when the server
-/// has no TMDB id for them. Shared by MovieDetailView and
-/// SeriesDetailView's cast-row tap handlers.
+/// Resolve a cast member to a TMDB person id and hand the route to the caller; inert when the server has no TMDB id. Shared by Movie/SeriesDetailView cast-row taps.
 func resolvePersonRoute(
     for member: CastMember,
     userID: String?,
@@ -31,9 +26,7 @@ func resolvePersonRoute(
     }
 }
 
-/// Maps Jellyfin cast people to the shared `CastMember` model. Stores
-/// the Jellyfin person id (resolved to a TMDB id on tap); `personID`
-/// (TMDB) stays nil for Jellyfin-sourced members. Capped at 15.
+/// Map Jellyfin cast people to CastMember (Jellyfin person id stored, TMDB personID nil until tap-resolved). Capped at 15.
 func jellyfinCastMembers(
     from people: [PersonInfo],
     imageService: JellyfinImageService
@@ -53,25 +46,11 @@ func jellyfinCastMembers(
     }
 }
 
-/// Two full-width, baseline-aligned info rows for the detail glass
-/// panels: the caller's metadata line pairs with the tagline in row
-/// one, the genres line with the studios line in row two, so the
-/// left and right columns sit level instead of drifting apart as two
-/// independently-spaced stacks (Sodalite#15 round 6 follow-up). The
-/// left cells take layout priority and never truncate in favor of the
-/// right; the right cells get the leftover width, trailing-anchored,
-/// and truncate first. While the full-detail fetch is in flight the
-/// right cells hold skeleton bars so the panel doesn't grow when
-/// tagline / studios land. Director and writer are deliberately
-/// absent: they already appear in the cast row below, and they
-/// squeezed the studios line out of its width.
+/// Two full-width baseline-aligned rows for the detail glass panels: metadata + tagline (row one), genres + studios (row two), so left/right columns sit level instead of drifting as two independent stacks (Sodalite#15 round 6 follow-up). Left cells take layout priority and never truncate; right cells get leftover width, trailing-anchored, truncate first. While detail is in flight the right cells hold skeleton bars so the panel doesn't grow when tagline/studios land. Director/writer deliberately absent (already in the cast row, and they squeezed studios out of its width).
 struct DetailInfoRows<LeftPrimary: View, LeftSecondary: View>: View {
     let item: JellyfinItem
     let hasFullDetail: Bool
-    /// Whether the leftSecondary builder produces anything (the views
-    /// know: it's the genres line). Gates the second row so a panel
-    /// with neither genres nor a second right-side line doesn't carry
-    /// an invisible row's worth of spacing (episode panel).
+    /// Whether leftSecondary (the genres line) produces anything; gates the second row so an episode panel with no genres carries no invisible row spacing.
     var hasLeftSecondary: Bool = true
     @ViewBuilder let leftPrimary: () -> LeftPrimary
     @ViewBuilder let leftSecondary: () -> LeftSecondary

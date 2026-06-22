@@ -1,9 +1,6 @@
 import Foundation
 
-/// One release worth of user-visible changes. Versions are listed
-/// newest-first in `Changelog.entries`; the WhatsNewView modal
-/// shows the first one after a successful upgrade, the
-/// ChangelogListView in Settings shows them all.
+/// One release worth of user-visible changes; newest-first in `Changelog.entries`.
 struct ChangelogEntry: Identifiable, Sendable {
     let version: String
     let highlights: [ChangelogHighlight]
@@ -11,17 +8,13 @@ struct ChangelogEntry: Identifiable, Sendable {
     var id: String { version }
 }
 
-/// One bullet point in a changelog entry. Each highlight has a
-/// kind (new / improve / fix) which selects the colour + icon
-/// treatment, plus a localized title and optional description.
+/// One bullet point in a changelog entry; kind (new / improve / fix) selects colour + icon.
 struct ChangelogHighlight: Identifiable, Sendable {
     let id = UUID()
     let kind: Kind
     let title: LocalizedStringResource
     let description: LocalizedStringResource?
-    /// Override the kind's default SF Symbol, used when a specific
-    /// feature has a more recognizable icon than the generic
-    /// "sparkles" / "wrench" fallback.
+    /// Override the kind's default SF Symbol.
     let symbolOverride: String?
 
     var systemImage: String {

@@ -39,22 +39,16 @@ struct MusicHomeView: View {
         }
         .task {
             await viewModel.load(using: dependencies)
-            // Do NOT force focus into the grid here. On tvOS, entering a
-            // tab should leave focus on the tab bar so the user can keep
-            // navigating tabs; focus descends into the grid only when they
-            // press down. Auto-setting focusedAlbumID yanked focus into the
-            // content and also disrupted the focus engine when an album was
-            // open. focusedAlbumID still tracks the focused card for its
-            // styling, it is just driven by the system, not forced here.
+            // Do NOT force focus into the grid: entering a tab should leave focus on the tab bar
+            // (descends only on press-down). Auto-setting focusedAlbumID yanked focus into content and
+            // disrupted the engine when an album was open; it still tracks the focused card for styling, system-driven.
         }
     }
 
     @ViewBuilder
     private var gridContent: some View {
         if viewModel.isLoading {
-            // .focusable so the tab always has a focus target while
-            // albums load. Without a focusable element tvOS bounces
-            // focus out of the tab and reverts to the previous one.
+            // .focusable so the tab keeps a focus target while loading; without one tvOS bounces focus to the previous tab.
             ProgressView()
                 .frame(maxWidth: .infinity, minHeight: 400)
                 .focusable()

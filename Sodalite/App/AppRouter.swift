@@ -8,48 +8,24 @@ struct AppRouter: View {
     @Environment(\.dependencies) private var dependencies
     @Environment(\.scenePhase) private var scenePhase
 
-    /// Tracks whether the initial session restore + splash has already
-    /// run for this process. SwiftUI re-fires `.task` when the AppRouter
-    /// view temporarily disappears (e.g. while the UIKit-presented
-    /// player modal is on screen), without this guard, returning from
-    /// the player would show the launch splash again.
+    /// Guards the initial restore + splash against SwiftUI re-firing `.task` on AppRouter disappear (e.g. player modal on screen), which would otherwise re-show the splash.
     @State private var hasRestored = false
-    /// Same re-fire problem as `hasRestored`, for the server-switch
-    /// handler: once serverDidSwitch > 0, every player dismissal would
-    /// otherwise re-run the full probe + Seerr restore. Records the
-    /// last signal value this view actually handled.
+    /// Same `.task` re-fire guard for the server-switch handler: records the last serverDidSwitch value handled so a player dismissal doesn't re-run the probe + Seerr restore.
     @State private var lastHandledServerSwitch = 0
-    /// tvOS user identifier as of the last performRestore. Nil before
-    /// the first restore completes. Dormant under the current tvOS
-    /// SDK (TVUserManager.currentUserIdentifier is deprecated and
-    /// always returns nil), kept in place so the multi-user code path
-    /// reactivates automatically if Apple restores the API in a future
-    /// tvOS release.
+    /// tvOS user id as of the last performRestore. Dormant on the current SDK (currentUserIdentifier always nil); kept so multi-user reactivates if Apple revives the API.
     @State private var lastResolvedTVUserID: String?
     @State private var lastResolvedTVUserIDSet = false
 
-    /// Non-nil while the launch-time profile picker is armed: the
-    /// restore found a valid session + at least one remembered
-    /// profile, and the user either set launchBehavior=.showPicker
-    /// or has no default profile pinned. Picking a profile flips
-    /// isAuthenticated=true which hides the picker automatically.
+    /// Non-nil while the launch-time profile picker is armed. Picking a profile flips isAuthenticated=true which hides it.
     @State private var launchPickerServer: JellyfinServer?
 
-    /// Holds the JellyfinItem fetched for an incoming deep link
-    /// (TopShelf cell tap, custom URL invocation). The fullScreenCover
-    /// drives off this, non-nil = sheet shown.
+    /// JellyfinItem fetched for an incoming deep link; drives the fullScreenCover (non-nil = sheet shown).
     @State private var deepLinkItem: JellyfinItem?
 
-    /// Set true once after the splash hides on a launch where
-    /// `ChangelogPreferences.shouldShowOnLaunch()` returned true,
-    /// drives the WhatsNew fullScreenCover. Cleared by the modal's
-    /// dismiss callback, which also stamps the version as seen so
-    /// it stays out of the way until the next upgrade.
+    /// Drives the WhatsNew fullScreenCover after the splash on a release-boundary launch; dismiss callback stamps the version seen.
     @State private var showWhatsNew = false
 
-    /// Drives the NowPlaying fullScreenCover. Set to true when the
-    /// coordinator's `nowPlayingPresentationRequest` bumps (track tap or the
-    /// Now-Playing card); cleared on dismiss.
+    /// Drives the NowPlaying fullScreenCover off the coordinator's nowPlayingPresentationRequest bump.
     @State private var showNowPlaying = false
 
     var body: some View {
@@ -62,27 +38,15 @@ struct AppRouter: View {
                 ServerDiscoveryView()
             }
 
-            // Now-Playing access is surfaced inside the Music tab (a card at
-            // the top) and via a track tap, not a global floating bar (which
-            // covered the action buttons in detail views). Both bump the
-            // coordinator's presentation request, observed below.
+            // Now-Playing is surfaced in the Music tab + track tap (not a global bar, which covered detail action buttons); both bump the coordinator's presentation request, observed below.
 
-            // Splash overlays everything until both the session restore
-            // has finished AND the minimum display time has elapsed,
-            // then it fades out to reveal whichever root view is now
-            // appropriate. Cross-fade looks nicer than the old spinner-
-            // then-content swap and prevents a jarring snap when restore
-            // completes in <100 ms.
+            // Splash overlays until restore finishes AND the minimum display time elapses, then cross-fades out (avoids a jarring snap on a <100ms restore).
             if appState.isLoading {
                 SplashView()
                     .transition(.opacity)
             }
 
-            // Covers the previous detail view between the
-            // deep-link-driven player dismiss and the new fullScreenCover
-            // sliding in. Without this, the user sees the stale detail
-            // for ~1-2 s (TopShelf URL → player teardown → item fetch
-            // round-trip → cover present).
+            // Masks the stale detail view (~1-2s) between deep-link player dismiss and the new fullScreenCover sliding in.
             if appState.isResolvingDeepLink {
                 Color.black
                     .ignoresSafeArea()
@@ -108,8 +72,7 @@ struct AppRouter: View {
         }
         .task(id: scenePhase) {
             tvUserLogger.notice("scenePhase task fired: phase=\(String(describing: scenePhase), privacy: .public) tvUserID=\(TVUserContext.currentUserID ?? "nil", privacy: .public) last=\(lastResolvedTVUserID ?? "nil", privacy: .public) lastSet=\(lastResolvedTVUserIDSet, privacy: .public) isAuth=\(appState.isAuthenticated, privacy: .public) pickerServer=\(launchPickerServer?.id ?? "nil", privacy: .public)")
-            // Only react to becoming active. Inactive and background
-            // transitions don't need a tvOS-user re-resolve.
+            // Only react to .active; inactive/background need no tvOS-user re-resolve.
             guard scenePhase == .active else {
                 tvUserLogger.notice("scenePhase: skip (not active)")
                 return
@@ -126,15 +89,7 @@ struct AppRouter: View {
                 appState.isAuthenticated = false
                 appState.activeServer = nil
                 appState.activeUser = nil
-                // Also drop the previous tvOS user's Seerr identity:
-                // performRestore only touches Seerr state when the new
-                // user restores a session of their own, so without this
-                // wipe the old cookie stays live in seerrClient and the
-                // new user would browse/request as the previous one.
-                // Client-only detach, NOT clearSeerrSession(): the
-                // keychain entries belong to the previous user's
-                // profile and must survive so their session restores
-                // when they switch back.
+                // Drop the previous tvOS user's live Seerr identity (else the new user browses as them, since performRestore only touches Seerr on a fresh restore). Client-only detach, NOT clearSeerrSession(): the keychain entries must survive for switch-back.
                 appState.disconnectSeerr()
                 dependencies.detachSeerrClient()
                 launchPickerServer = nil
@@ -142,8 +97,7 @@ struct AppRouter: View {
                 await performRestore()
             } else {
                 tvUserLogger.notice("scenePhase: same tvUser. Cheap resolveTVUserContext.")
-                // Same tvOS user. Cheap re-resolve in case the mapping
-                // was edited from Settings on another scene.
+                // Same tvOS user: cheap re-resolve in case the mapping was edited in Settings on another scene.
                 guard appState.isAuthenticated || launchPickerServer != nil else {
                     tvUserLogger.notice("scenePhase: skip cheap resolve (no auth, no picker)")
                     return
@@ -156,30 +110,21 @@ struct AppRouter: View {
             guard appState.serverDidSwitch != lastHandledServerSwitch else { return }
             let handledSignal = appState.serverDidSwitch
             lastHandledServerSwitch = handledSignal
-            // Latch rollback on cancellation: a player modal / cover
-            // presenting mid-probe cancels this task AFTER the latch was
-            // recorded; without the rollback the re-fire on reappear
-            // would be guarded away and the switch left half-applied
-            // (pointer moved, AppState stale) for the session.
+            // Latch rollback on cancellation (player cover presenting mid-probe cancels AFTER the latch); else the reappear re-fire is guarded away and the switch is left half-applied.
             defer {
                 if Task.isCancelled, lastHandledServerSwitch == handledSignal {
                     lastHandledServerSwitch = handledSignal - 1
                 }
             }
-            // Capture the probe's target ONCE: re-reading
-            // dependencies.activeServer after the await could observe a
-            // NEWER switch's pointer and authenticate a mixed identity.
+            // Capture the probe target ONCE: re-reading activeServer after the await could observe a NEWER switch's pointer and authenticate a mixed identity.
             let probedServer = dependencies.activeServer
             do {
                 let user = try await dependencies.probeActiveUser()
-                // Superseded mid-probe (newer switch re-keyed the task):
-                // the stale result must not touch AppState or Seerr.
+                // Superseded mid-probe (newer switch re-keyed the task): stale result must not touch AppState/Seerr.
                 guard !Task.isCancelled else { return }
                 if let user, let server = probedServer {
                     appState.setAuthenticated(server: server, user: user)
-                    // Restore the per-(server, user) Seerr session so the
-                    // Catalog tab reflects the newly active identity, not
-                    // the previous server's session.
+                    // Restore the per-(server,user) Seerr session so Catalog reflects the new identity.
                     let outcome = await dependencies.syncSeerrSession(
                         forJellyfinUserID: user.id,
                         jellyfinServerID: server.id
@@ -199,16 +144,9 @@ struct AppRouter: View {
                     appState.isAuthenticated = false
                 }
             } catch {
-                // A superseded switch (user picked another server while
-                // this probe was in flight) cancels this task; URLSession
-                // then throws and we'd misread our own cancellation as a
-                // transport failure and roll back the user's NEWER pick.
-                // Cancellation is never a verdict on the target server.
+                // Cancellation is never a verdict on the target server: a superseded switch cancels this task and URLSession throws, which we must not misread as a transport failure and roll back the user's NEWER pick.
                 guard !Task.isCancelled else { return }
-                // Avoid rollback loops: if appState already holds the
-                // currently-active server (because we just rolled back
-                // and the probe is still failing), let the failure
-                // stand. The next user-driven action will surface it.
+                // Avoid rollback loops: if appState already holds the active server (just rolled back, probe still failing), let the failure stand for the next user action to surface.
                 if let previous = appState.activeServer,
                    previous.id != dependencies.activeServer?.id {
                     try? dependencies.rollbackSwitch(to: previous.id)
@@ -224,8 +162,6 @@ struct AppRouter: View {
             NowPlayingView()
         }
         .onChange(of: dependencies.musicPlaybackCoordinator.nowPlayingPresentationRequest) { _, _ in
-            // A track tap or the Now-Playing card asked to surface the
-            // fullscreen player. The cover state lives here, so drive it.
             showNowPlaying = true
         }
         .fullScreenCover(isPresented: $showWhatsNew) {
@@ -245,13 +181,7 @@ struct AppRouter: View {
             }
         }
         .onChange(of: appState.isLoading) { _, isLoading in
-            // Splash just finished. Fire the What's-New modal if the
-            // version stamp says we crossed a release boundary.
-            // Pass isAuthenticated so the preference layer can tell
-            // a fresh install (don't pester) apart from an upgrade
-            // from a pre-Changelog version (0.3.2 and earlier never
-            // wrote lastSeenVersion → without this, those users
-            // would silently miss the modal forever).
+            // Splash finished: fire What's-New on a release-boundary crossing. isAuthenticated lets the prefs layer tell a fresh install (don't pester) from a pre-Changelog upgrade (0.3.2 and earlier never wrote lastSeenVersion).
             guard !isLoading else { return }
             if ChangelogPreferences.shouldShowOnLaunch(isExistingUser: appState.isAuthenticated) {
                 showWhatsNew = true
@@ -261,11 +191,7 @@ struct AppRouter: View {
         }
     }
 
-    /// Promote the (server, profile) tuple pinned to the current
-    /// tvOS user, if any. Runs at the top of performRestore and on
-    /// every scene-foreground. The tvOS mapping wins over the user's
-    /// defaultServerID; the system identity is the more specific
-    /// signal. On Apple TVs without multi-user this is a no-op.
+    /// Promotes the (server, profile) tuple pinned to the current tvOS user (mapping wins over defaultServerID, the more specific signal). Runs atop performRestore + on scene-foreground. No-op without multi-user.
     private func resolveTVUserContext() async {
         let allMappings = dependencies.tvProfileMappings.allMappings
         tvUserLogger.notice("resolveTVUserContext enter: tvUserID=\(TVUserContext.currentUserID ?? "nil", privacy: .public) totalMappings=\(allMappings.count, privacy: .public) mappingKeys=\(allMappings.keys.joined(separator: ","), privacy: .public)")
@@ -291,14 +217,7 @@ struct AppRouter: View {
         tvUserLogger.notice("resolveTVUserContext: keychain state currentServer=\(currentServerID ?? "nil", privacy: .public) currentUser=\(currentUserID ?? "nil", privacy: .public) matches=\(keychainAlreadyMatches, privacy: .public)")
 
         if !keychainAlreadyMatches {
-            // SECURITY (parental controls): this is the ONLY profile-activation
-            // path not behind the Guardian-PIN gate. It is dormant on the
-            // current tvOS SDK (TVUserManager.currentUserIdentifier always
-            // returns nil, so TVUserContext.currentUserID is nil and the guard
-            // above already returned). If Apple revives tvOS multi-user, gate
-            // this switch with dependencies.parentalGate before switchToUser,
-            // or a tvOS-user change could swap into an unprotected profile and
-            // bypass the lock.
+            // SECURITY (parental controls): ONLY profile-activation path not behind the Guardian-PIN gate. Dormant now (currentUserID always nil, guard above returned). If Apple revives multi-user, gate this switch with dependencies.parentalGate before switchToUser or it bypasses the lock.
             tvUserLogger.notice("resolveTVUserContext: SWITCH path. Calling switchServer + switchToUser")
             try? dependencies.switchServer(to: mapping.serverID)
             if let server = dependencies.activeServer,
@@ -309,19 +228,11 @@ struct AppRouter: View {
             } else {
                 tvUserLogger.notice("resolveTVUserContext: SWITCH path - server or remembered user missing after switchServer")
             }
-            // switchServer bumps serverDidSwitch which triggers the
-            // probe + setAuthenticated path; nothing else to do here.
+            // switchServer's serverDidSwitch bump drives the probe + setAuthenticated path.
             return
         }
 
-        // Keychain already matches the mapping. This happens when the
-        // app is resumed for a tvOS user whose state was never wiped
-        // (e.g. brief switch away and back). switchServer wouldn't
-        // fire, so the serverDidSwitch handler doesn't run, and the
-        // AppRouter body can be left showing whatever view the prior
-        // tvOS user's session put up (commonly ServerDiscoveryView).
-        // Force-flip AppState into authenticated so the body re-renders
-        // TabRoot.
+        // Keychain already matches (resume for a tvOS user whose state was never wiped, e.g. brief switch away and back). switchServer won't fire, so force-flip AppState authenticated, else the body lingers on the prior session's view (often ServerDiscoveryView).
         guard !appState.isAuthenticated else {
             tvUserLogger.notice("resolveTVUserContext: RESUME path. Already authenticated, no-op.")
             return
@@ -346,26 +257,16 @@ struct AppRouter: View {
         tvUserLogger.notice("resolveTVUserContext: RESUME path - setAuthenticated done. user=\(remembered.id, privacy: .public) server=\(server.id, privacy: .public)")
     }
 
-    /// Fetches the active user's first Resume-queue item and feeds
-    /// it through the normal deep-link channel. Triggered by
-    /// `ContinueWatchingIntent` (Siri / Shortcuts), the intent
-    /// itself stays trivial so tvOS-Siri's "no async work" policy
-    /// for voice invocation is respected.
+    /// Feeds the active user's first Resume item through the deep-link channel. Triggered by ContinueWatchingIntent; the intent stays trivial to respect tvOS-Siri's "no async work" voice-invocation policy.
     private func resolveContinueWatchingRequest() async {
         guard appState.requestContinueWatching else { return }
 
-        // Same cold-launch wait as the deep-link path: Siri may hand
-        // us control before restoreSession finishes. Same 8 s cap as
-        // the deep-link path: on a fresh install / picker screen an
-        // unbounded loop would poll for the process lifetime and pop a
-        // detail sheet minutes later when the user finally signs in.
+        // Cold-launch wait (Siri may hand control before restoreSession finishes), 8s cap so a fresh install / picker doesn't poll for the process lifetime and pop a sheet minutes later.
         let waitDeadline = Date().addingTimeInterval(8)
         while !appState.isAuthenticated, !Task.isCancelled, Date() < waitDeadline {
             try? await Task.sleep(for: .milliseconds(150))
         }
-        // Cancelled (view re-keyed / disappeared): leave the signal
-        // armed so the restarted task can still act on it instead of
-        // silently dropping the Siri request.
+        // Cancelled (re-keyed/disappeared): leave the signal armed so the restarted task still acts on it.
         guard !Task.isCancelled else { return }
         guard appState.isAuthenticated, let user = appState.activeUser else {
             appState.requestContinueWatching = false
@@ -384,57 +285,29 @@ struct AppRouter: View {
         }
     }
 
-    /// Wait until the user is authenticated, fetch the item from
-    /// Jellyfin, then trigger the fullScreenCover. Cleared on the way
-    /// out so a second tap on the same TopShelf cell re-fires.
+    /// Waits for auth, fetches the item, triggers the fullScreenCover. Clears the pending id last so a repeat tap on the same TopShelf cell re-fires.
     private func resolvePendingDeepLink() async {
         guard let id = appState.pendingDeepLinkItemID else {
             appState.isResolvingDeepLink = false
             return
         }
-        // Cold-launch race: the URL arrives before restoreSession
-        // finishes. Wait it out, capped at 8 seconds. Pre-multi-server
-        // restoreSession either authenticated quickly or short-circuited;
-        // in the multi-server world a missing-token state can leave
-        // isAuthenticated false while the LaunchProfilePicker is shown,
-        // and an unbounded wait here would lock the user out behind
-        // our own loading overlay.
+        // Cold-launch race: URL arrives before restoreSession finishes. Wait, 8s cap, since a missing-token state can leave isAuthenticated false at the picker and an unbounded wait would lock the user behind our overlay.
         let waitDeadline = Date().addingTimeInterval(8)
         while !appState.isAuthenticated, !Task.isCancelled, Date() < waitDeadline {
             try? await Task.sleep(for: .milliseconds(150))
         }
-        // Cancelled (re-keyed / view disappeared): don't consume the
-        // pending id; the restarted task picks it up with full time.
+        // Cancelled (re-keyed/disappeared): don't consume the pending id; the restarted task picks it up with full time.
         guard !Task.isCancelled else { return }
         guard appState.isAuthenticated, let user = appState.activeUser else {
-            // Couldn't restore in time. Drop the pending link and the
-            // overlay so the user can interact with whatever AppRouter
-            // actually wants to show (picker / discovery).
+            // Couldn't restore in time: drop the pending link + overlay so the user can interact with picker/discovery.
             appState.pendingDeepLinkItemID = nil
             appState.isResolvingDeepLink = false
             return
         }
-        // Ask any active player to dismiss before the new detail
-        // sheet is presented. The TopShelf path commonly fires while
-        // the app is backgrounded with a paused player on screen;
-        // without this signal, the UIKit player modal stays on top
-        // of the new SwiftUI fullScreenCover and the user sees the
-        // stale session above the freshly routed item.
-        //
-        // Two-step dismissal: (1) increment the dismissal counter so
-        // detail views observing it flip their local showPlayer state
-        // (keeps the binding path consistent for when the user returns
-        // to the prior detail view); (2) walk the window's modal chain
-        // and dismiss any PlayerHostController directly, since the
-        // binding-driven dismiss alone proved unreliable across the
-        // scene-foreground transition.
+        // Dismiss any active player before the new sheet (TopShelf often fires over a backgrounded paused player, else its modal stays on top of the new cover). Two-step: (1) bump requestPlayerDismissal so detail views flip showPlayer (keeps the binding path consistent on return); (2) walk the modal chain to dismiss PlayerHostController directly, since binding-driven dismiss proved unreliable across scene-foreground.
         appState.requestPlayerDismissal &+= 1
         PlayerModalDismisser.dismissActive(logPrefix: "[AppRouter]")
-        // Give UIKit a frame to finish the dismiss before we trigger
-        // the new fullScreenCover. Without this, the new presentation
-        // can race the dismissal and SwiftUI logs the "presenting from
-        // a VC that is being dismissed" warning, or the new modal
-        // never lands.
+        // Let UIKit finish the dismiss before the new fullScreenCover, else it races and SwiftUI warns "presenting from a VC that is being dismissed" or the modal never lands.
         try? await Task.sleep(for: .milliseconds(250))
 
         let item = try? await dependencies.jellyfinItemService.getItemDetail(
@@ -443,21 +316,13 @@ struct AppRouter: View {
         )
         guard !Task.isCancelled else { return }
         deepLinkItem = item
-        // Hold the overlay a beat past the fullScreenCover binding
-        // flip so the cover's slide-in fully obscures the underlying
-        // view before we fade our black overlay out. The pending id is
-        // cleared LAST: this task is keyed on it, so nilling it earlier
-        // cancelled ourselves at the next suspension point and the
-        // 300 ms hold never actually happened (the stale-view flash
-        // this overlay exists to mask was back).
+        // Hold the overlay past the cover binding flip so the slide-in fully obscures the view before we fade out. Pending id cleared LAST: this task is keyed on it, so nilling earlier self-cancels at the next suspension and the 300ms hold never happens (stale-view flash returns).
         try? await Task.sleep(for: .milliseconds(300))
         appState.isResolvingDeepLink = false
         appState.pendingDeepLinkItemID = nil
     }
 
-    /// Records the current tvOS user identifier so the scenePhase
-    /// observer can detect a subsequent user change. Called from
-    /// every entry point that does a full performRestore.
+    /// Records the current tvOS user id so the scenePhase observer can detect a later change. Called from every full-performRestore entry point.
     private func markTVUserResolved() {
         let id = TVUserContext.currentUserID
         tvUserLogger.notice("markTVUserResolved: tvUserID=\(id ?? "nil", privacy: .public)")
@@ -487,24 +352,16 @@ struct AppRouter: View {
         defer {
             tvUserLogger.notice("performRestore EXIT. isAuth=\(appState.isAuthenticated, privacy: .public) activeUser=\(appState.activeUser?.id ?? "nil", privacy: .public) activeServer=\(appState.activeServer?.id ?? "nil", privacy: .public) pickerServer=\(launchPickerServer?.id ?? "nil", privacy: .public)")
         }
-        // Fire-and-forget: StoreKit lookups are independent of the
-        // Jellyfin restore and shouldn't block the splash. The observable
-        // isSupporter flag starts from the cached value and flips live
-        // once the async refresh completes.
+        // Fire-and-forget: StoreKit is independent of the Jellyfin restore and shouldn't block the splash; isSupporter starts cached and flips live.
         Task { @MainActor in
             await dependencies.storeKitService.refreshSupporterStatus()
             await dependencies.storeKitService.loadProducts()
         }
 
-        // If the current tvOS user has a (server, Jellyfin profile)
-        // mapping recorded, promote it now. The tvOS identity is the
-        // more specific signal and wins over any user-pinned default.
+        // Promote the current tvOS user's (server, profile) mapping (wins over any user-pinned default).
         await resolveTVUserContext()
 
-        // The restore policy itself (keychain pointer repair,
-        // default-server promotion, migrations, multi-profile launch
-        // routing) lives in SessionRestorer; this view only maps its
-        // outcome onto AppState + the picker state it owns.
+        // Restore policy (pointer repair, default-server promotion, migrations, launch routing) lives in SessionRestorer; this view only maps the outcome onto AppState + picker state.
         let outcome = SessionRestorer(dependencies: dependencies).restore()
         let syncSeerr: Bool
         switch outcome {
@@ -520,14 +377,7 @@ struct AppRouter: View {
         }
         guard syncSeerr else { return }
 
-        // Seerr restore, prefer the profile-scoped session when the
-        // active user has one saved, fall back to the global
-        // last-used entry so legacy (pre-0.3.0) Seerr logins still
-        // come back on first upgrade. The restore → probe → keep-or-
-        // drop policy (including the legacy bridge persist) lives in
-        // syncSeerrSession. Runs AFTER the AppState flip above so
-        // TabRootView mounts under the splash and starts its loads
-        // concurrently with the Seerr probe.
+        // Seerr restore (policy in syncSeerrSession), with legacy fallback for pre-0.3.0 logins. Runs AFTER the AppState flip so TabRootView mounts under the splash and loads concurrently with the probe.
         let seerrOutcome = await dependencies.syncSeerrSession(
             forJellyfinUserID: appState.activeUser?.id,
             jellyfinServerID: appState.activeServer?.id,
@@ -538,17 +388,7 @@ struct AppRouter: View {
         }
     }
 
-    /// Calls `/Users/Me` to refresh the active user's Policy block.
-    /// `expectedUserID` guards against a profile switch that races
-    /// the fetch: if the active profile changed between dispatch and
-    /// response, we discard the result instead of applying another
-    /// user's policy to the now-current user.
-    ///
-    /// Existed since the File Management feature added a permission
-    /// gate driven by `JellyfinUser.canDeleteContent`. The keychain-
-    /// bootstrapped restore + profile-switch paths construct the
-    /// active user with `policy: nil`; without this refresh, the
-    /// permission-gated UI stays hidden until a full logout/login.
+    /// Refreshes the active user's Policy block via /Users/Me for the canDeleteContent permission gate (keychain-bootstrapped users have policy: nil, else the gated UI stays hidden until logout/login). `expectedUserID` discards the result if a racing profile switch changed the active user.
     private func refreshActiveUserPolicy(expectedUserID: String) async {
         guard let me = try? await dependencies.jellyfinAuthService.getCurrentUser(),
               me.id == expectedUserID,

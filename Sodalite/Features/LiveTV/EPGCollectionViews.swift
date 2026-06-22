@@ -6,8 +6,7 @@ let epgPinnedBackground = UIColor(white: 0.12, alpha: 1.0)
 
 // MARK: - Program cell (focusable)
 
-/// One program block in the program grid. Focusable; fills with the tint while
-/// focused (matching the SwiftUI convention of tinted-not-white focus).
+/// One program block. Focusable; fills tinted (not white) while focused, per the app convention.
 final class EPGProgramCollectionCell: UICollectionViewCell {
     static let reuseID = "EPGProgramCollectionCell"
 
@@ -38,12 +37,10 @@ final class EPGProgramCollectionCell: UICollectionViewCell {
         recordDot.widthAnchor.constraint(equalToConstant: 10).isActive = true
         recordDot.heightAnchor.constraint(equalToConstant: 10).isActive = true
         recordDot.isHidden = true
-        // Prevent the dot from being stretched vertically by the outer stack.
+        // Keep the outer stack from stretching the dot vertically.
         recordDot.setContentHuggingPriority(.required, for: .vertical)
         recordDot.setContentCompressionResistancePriority(.required, for: .vertical)
 
-        // Wrap the dot and the title in a horizontal row so the dot sits flush
-        // to the left of the title without affecting row height.
         let titleRow = UIStackView(arrangedSubviews: [recordDot, titleLabel])
         titleRow.axis = .horizontal
         titleRow.spacing = 6
@@ -56,13 +53,10 @@ final class EPGProgramCollectionCell: UICollectionViewCell {
         stack.translatesAutoresizingMaskIntoConstraints = false
         container.addSubview(stack)
 
-        // A very short program (a few minutes) becomes a cell only a few
-        // points wide, where the fixed horizontal insets (container 2+2,
-        // stack 12+12) can't fit inside the layout-imposed cell width. Drop
-        // the horizontal insets just below required so they yield silently on
-        // those narrow cells instead of spamming "unable to satisfy
-        // constraints"; the container clips the overflowing label. Vertical
-        // insets stay required (row height is fixed and always fits).
+        // A very short program is a cell a few points wide where the horizontal insets (container
+        // 2+2, stack 12+12) can't fit. Drop them just below required so they yield silently (no
+        // "unable to satisfy constraints" spam; container clips the label). Vertical insets stay
+        // required (fixed row height always fits).
         let containerLeading = container.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 2)
         let containerTrailing = container.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -2)
         let stackLeading = stack.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 12)
@@ -94,13 +88,12 @@ final class EPGProgramCollectionCell: UICollectionViewCell {
         applyFocusStyle(focused: isFocused)
     }
 
-    /// Update only the record-timer dot without re-running the full configure.
+    /// Update only the record-timer dot, without re-running configure.
     func setTimer(_ hasTimer: Bool) {
         recordDot.isHidden = !hasTimer
     }
 
-    /// Update only the "currently airing" state (driven by the now-line timer)
-    /// without re-running the full configure.
+    /// Update only the "currently airing" state (now-line timer driven), without re-running configure.
     func setOnNow(_ value: Bool) {
         guard value != isOnNow else { return }
         isOnNow = value
@@ -118,9 +111,7 @@ final class EPGProgramCollectionCell: UICollectionViewCell {
     private func applyFocusStyle(focused: Bool) {
         container.backgroundColor = focused ? tint : UIColor.white.withAlphaComponent(0.08)
         titleLabel.textColor = .white
-        // A currently-airing program keeps a tinted outline even when not
-        // focused, so the live row reads at a glance. Focused cells fill
-        // tinted regardless (the border just blends in).
+        // An airing program keeps a tinted outline even unfocused so the live row reads at a glance.
         if isOnNow {
             container.layer.borderColor = tint.cgColor
             container.layer.borderWidth = 2
@@ -199,16 +190,13 @@ final class EPGChannelCell: UICollectionViewCell {
         loadLogo(logoURL)
     }
 
-    /// Update only the favorite star (driven by an optimistic toggle) without
-    /// re-running configure / reloading the logo.
+    /// Update only the favorite star (optimistic toggle), without re-running configure / reloading the logo.
     func setFavorite(_ value: Bool) {
         favoriteIcon.isHidden = !value
     }
 
-    /// Decoded-logo cache shared by every channel cell. Cell reuse on
-    /// a long channel list used to re-fetch + re-decode each logo from
-    /// URLSession.shared on every scroll pass; everywhere else images
-    /// route through AsyncCachedImage's cache.
+    /// Shared decoded-logo cache: cell reuse on a long channel list used to re-fetch + re-decode
+    /// each logo from URLSession.shared every scroll pass (elsewhere images use AsyncCachedImage).
     private static let logoCache = NSCache<NSURL, UIImage>()
 
     private func loadLogo(_ url: URL?) {
@@ -241,9 +229,7 @@ final class EPGChannelCell: UICollectionViewCell {
 
 // MARK: - Time header content (placed inside a sync scroll view)
 
-/// Tick labels across the timeline. The view controller hosts this inside a
-/// horizontally-scrolling, non-focusable container whose offset is synced to
-/// the program grid.
+/// Tick labels across the timeline, hosted in a non-focusable scroll container synced to the grid.
 final class EPGTimeHeaderContentView: UIView {
     private var tickLabels: [UILabel] = []
     private var ticks: [(x: CGFloat, text: String)] = []
@@ -284,9 +270,7 @@ final class EPGNowLineView: UICollectionReusableView {
 
 // MARK: - Time gridline (decoration)
 
-/// Subtle vertical line marking a half-hour tick across the program grid, so
-/// the time alignment of program blocks is visible. Drawn behind the cells
-/// (layout zIndex -1).
+/// Half-hour vertical tick line, drawn behind the cells (layout zIndex -1).
 final class EPGGridLineView: UICollectionReusableView {
     override init(frame: CGRect) {
         super.init(frame: frame)

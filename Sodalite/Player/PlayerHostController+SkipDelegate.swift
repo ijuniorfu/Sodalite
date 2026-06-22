@@ -5,22 +5,11 @@ import CoreMedia
 // MARK: - AVPlayerViewControllerDelegate (skip routing)
 
 /// Skip-navigation delegate plumbing for PlayerHostController.
-///
-/// Lives in its own file so PlayerHostController.swift stays focused
-/// on the AVPlayerViewController host class. None of these callbacks
-/// touch private state on the host — only `viewModel`, which is
-/// promoted to file-internal access for this purpose.
 extension PlayerHostController: AVPlayerViewControllerDelegate {
-    /// `skippingBehavior = .skipItem` was the last documented Apple-
-    /// API attempt to route iPhone Control Center's 10s skip buttons
-    /// into our code. Verified on device: CC press does NOT dispatch
-    /// here. AVKit's internal Now Playing session enables the
-    /// skipForwardCommand on its own per-session command center
-    /// (which is why CC shows the buttons) but binds them to an
-    /// internal no-op handler we have no documented way to override.
-    /// Kept as the safe fallback in case other AVKit pathways (Siri
-    /// Remote skipItem chord, future tvOS evolution) actually fire
-    /// here — we'd rather seek than no-op.
+    /// Device-verified: iPhone Control Center's 10s skip does NOT dispatch here
+    /// (AVKit binds CC's skipForwardCommand to an internal no-op we can't
+    /// override). Kept as a fallback for other AVKit skip pathways (Siri Remote
+    /// chord, future tvOS); we'd rather seek than no-op.
     func skipToNextItem(for playerViewController: AVPlayerViewController) {
         LogTap.shared.note("[NowPlaying] delegate skipToNextItem fired (+10s)")
         Task { @MainActor [weak self] in
@@ -39,14 +28,9 @@ extension PlayerHostController: AVPlayerViewControllerDelegate {
         }
     }
 
-    /// The Apple-documented "skip-style navigation" delegate hook.
-    /// Forum thread 651497 (Apple Media Engineer answering): this is
-    /// "the API that controls skip +/- 10". Description suggests it
-    /// fires for any user-initiated skip navigation — possibly
-    /// including iPhone Control Center. Return value modifies WHERE
-    /// the seek lands (return targetTime unmodified to let AVKit's
-    /// default seek go through; return oldTime to block).
-    /// Logging both args so we can verify CC dispatches here.
+    /// Apple-documented skip-style navigation hook (forum thread 651497: "the
+    /// API that controls skip +/- 10"). Return targetTime to allow the seek,
+    /// oldTime to block. Logged to verify whether CC dispatches here.
     nonisolated func playerViewController(
         _ playerViewController: AVPlayerViewController,
         timeToSeekAfterUserNavigatedFrom oldTime: CMTime,
@@ -56,9 +40,7 @@ extension PlayerHostController: AVPlayerViewControllerDelegate {
         return targetTime
     }
 
-    /// Companion notification hook: fires when the user-initiated
-    /// navigation resumes playback. Combined with timeToSeek above
-    /// they document AVKit's skip-navigation pipeline.
+    /// Companion hook: fires when user-initiated navigation resumes playback.
     nonisolated func playerViewController(
         _ playerViewController: AVPlayerViewController,
         willResumePlaybackAfterUserNavigatedFrom oldTime: CMTime,

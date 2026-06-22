@@ -1,10 +1,7 @@
 import StoreKit
 import SwiftUI
 
-/// Settings screen where users can leave an optional tip or unlock the
-/// Supporter Pack. Nothing in the app is gated behind either purchase,
-/// this screen exists purely so users who want to say thanks have a
-/// clean, non-pushy way to do it.
+/// Optional tip / Supporter Pack; nothing is gated behind purchase.
 struct SupportDevelopmentView: View {
 
     @Environment(\.dependencies) private var dependencies
@@ -34,8 +31,7 @@ struct SupportDevelopmentView: View {
             .padding(.vertical, 60)
             .padding(.horizontal, 80)
         }
-        // Inline largeTitle only; the floating nav-title otherwise
-        // sits behind the scroll content. Matches PlaybackSettingsView.
+        // Inline largeTitle only; floating nav-title otherwise sits behind scroll content. Matches PlaybackSettingsView.
         .toolbar(.hidden, for: .navigationBar)
         .task {
             if !service.hasLoadedProducts {
@@ -179,8 +175,7 @@ struct SupportDevelopmentView: View {
             .padding(.horizontal, 24)
             .padding(.vertical, 12)
         }
-        // Tile style keeps the label readable across every accent
-        // tint and matches the tip / supporter cards above.
+        // Tile style keeps label readable across every accent tint, matches tip / supporter cards above.
         .buttonStyle(SettingsTileButtonStyle())
         .disabled(isRestoring)
         .opacity(isRestoring ? 0.5 : 1)
@@ -221,9 +216,7 @@ struct SupportDevelopmentView: View {
                 localized: "support.unavailable.title",
                 defaultValue: "Products not available"
             )
-            // Sandbox-testing hint is the one users will actually need,
-            // on tvOS this is almost always the cause when a dev build
-            // sees an empty product list.
+            // On tvOS, empty product list is almost always a missing sandbox tester.
             detail = String(
                 localized: "support.unavailable.subtitle",
                 defaultValue: "Sign in with a Sandbox Tester account or wait for Apple to approve the in-app purchases. Tap to retry."

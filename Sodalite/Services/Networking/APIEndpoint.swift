@@ -6,17 +6,9 @@ protocol APIEndpoint: Sendable {
     var queryItems: [URLQueryItem]? { get }
     var body: (any Encodable & Sendable)? { get }
     var requiresAuth: Bool { get }
-    /// When non-nil, this path is treated as ALREADY percent-encoded and
-    /// used verbatim (via URLComponents.percentEncodedPath), bypassing
-    /// `appendingPathComponent` which would double-encode `%`. Use only
-    /// when a path segment contains characters that must be single-encoded
-    /// (e.g. a provider-scoped subtitle id containing `/`). Must start with
-    /// "/" and NOT include the base URL's own path prefix.
+    /// Non-nil = already-percent-encoded path used verbatim, bypassing `appendingPathComponent` which double-encodes `%` (e.g. subtitle id containing `/`). Must start with "/" and exclude the base URL path prefix.
     var percentEncodedPath: String? { get }
-    /// Per-endpoint URLRequest timeout override. `nil` falls back to
-    /// the HTTPClient default (30 s). Set explicitly on endpoints
-    /// where a 30 s ceiling is too aggressive, e.g. fire-and-forget
-    /// session-progress writes that must survive a slow CDN hiccup.
+    /// Per-endpoint timeout override; nil = HTTPClient default (30s). Raise for fire-and-forget writes surviving a slow CDN hiccup.
     var timeoutInterval: TimeInterval? { get }
 }
 

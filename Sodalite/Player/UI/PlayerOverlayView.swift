@@ -3,27 +3,16 @@ import AetherEngine
 
 // MARK: - Overlay View (display-only SwiftUI)
 
-/// SwiftUI overlay mounted on top of the AVPlayerViewController by
-/// `PlayerHostController`. Pure display: every piece of state the
-/// view reads comes from `PlayerViewModel`. Input (presses, scrubs)
-/// is handled by the UIKit host and never by this view, which is
-/// why everything sits behind `.allowsHitTesting(false)` where it
-/// would otherwise capture focus.
+/// Display-only overlay mounted over the AVPlayerViewController by `PlayerHostController`; all state reads from `PlayerViewModel`, input handled by the UIKit host (hence `.allowsHitTesting(false)` where it would otherwise capture focus).
 struct PlayerOverlayView: View {
     let viewModel: PlayerViewModel
     let onDismiss: () -> Void
-    /// Concrete player tint, threaded from `PlayerHostController` (the same
-    /// `tintColor` the host applies to the overlay via `.tint(...)`). The
-    /// display-only overlay leans on the environment tint for its shape-style
-    /// fills, but the subtitle-search overlay needs the literal `Color` for
-    /// focused-row fills, so the value is passed in explicitly.
+    /// Literal player tint (the host's `.tint(...)` value) passed explicitly because the subtitle-search overlay needs a concrete `Color` for focused-row fills, not just the environment tint.
     var tintColor: Color? = nil
 
     var body: some View {
         ZStack {
-            // The styled ASS layer must stay mounted even while the
-            // engine's cue array is momentarily empty (seek resets),
-            // libass already holds the assembled script.
+            // Keep the styled ASS layer mounted even while the cue array is momentarily empty (seek resets); libass already holds the assembled script.
             if viewModel.assRenderer != nil || !viewModel.subtitleCues.isEmpty || !viewModel.secondarySubtitleCues.isEmpty {
                 SubtitleOverlayView(
                     cues: viewModel.subtitleCues,
@@ -47,22 +36,11 @@ struct PlayerOverlayView: View {
             }
 
             if viewModel.isLoading {
-                // Inner ZStack so the spinner lives in the same coord
-                // space as the full-screen black backdrop, then the
-                // whole stack ignoresSafeArea together. Earlier form
-                // (`Color.black.ignoresSafeArea().overlay(ProgressView())`)
-                // centered the spinner on Color.black's *layout*
-                // bounds, which still respect safe-area insets, so when
-                // an outgoing overlay (next-episode card transitioning
-                // out) shifted the parent's effective insets the
-                // spinner landed in the top half of the screen instead
-                // of the visible centre.
+                // Inner ZStack + whole-stack ignoresSafeArea so the spinner shares the backdrop's coord space; centering on Color.black's layout bounds (which respect safe-area) drifted the spinner top-half when an outgoing next-episode card shifted the parent's insets.
                 ZStack {
                     Color.black
                     ProgressView()
-                        // The host applies `.tint(...)` to the overlay, but
-                        // the activity indicator does not inherit it reliably
-                        // on tvOS, it falls back to white. Set it explicitly.
+                        // ProgressView doesn't reliably inherit the overlay's `.tint(...)` on tvOS (falls back to white); set it explicitly.
                         .tint(tintColor ?? .accentColor)
                 }
                 .ignoresSafeArea()
@@ -107,10 +85,7 @@ struct PlayerOverlayView: View {
                 controlsOverlay
             }
 
-            // Stats-for-nerds side panel (right-anchored). Mounted on
-            // top of the controls overlay so it stays readable when the
-            // transport bar's auto-hide timer fires; press the info
-            // chip or Menu to dismiss.
+            // Stats-for-nerds panel mounted above the controls overlay so it stays readable when the transport's auto-hide fires.
             if viewModel.showStatsOverlay && viewModel.errorMessage == nil {
                 StatsOverlayView(
                     player: viewModel.player,
@@ -122,25 +97,14 @@ struct PlayerOverlayView: View {
                 )
             }
 
-            // Top-right info column, HDR badge (only with controls,
-            // matches Apple TV's own player) and Speed badge (always
-            // when rate ≠ 1.0× so the user remembers they sped things
-            // up after the transport hides). Stacks vertically when
-            // both are visible.
             topRightInfoColumn
 
-            // Diagnostic log overlay (top-left). Two-gate: the build
-            // has to be DEBUG or TestFlight (App Store users can't
-            // even toggle this on), AND the user has to have flipped
-            // showDiagnosticOverlay in Settings, which defaults off
-            // so the overlay isn't on top of every TestFlight session.
+            // Two-gate: diagnostic build (DEBUG/TestFlight) AND showDiagnosticOverlay (defaults off so it isn't over every TestFlight session).
             if LogTap.isDiagnosticBuild && viewModel.preferences.showDiagnosticOverlay {
                 DiagnosticLogOverlay(focusOnDV: viewModel.preferences.focusDiagnosticOverlayOnDV)
             }
 
-            // Floating Skip Intro hint, only while the full controls
-            // are hidden. When they open, the skip action becomes a
-            // proper focusable button inside TransportBar instead.
+            // Floating Skip Intro hint, only while controls are hidden; once they open, the skip action is a focusable button inside TransportBar instead.
             if viewModel.isInsideIntro
                 && !viewModel.showControls
                 && viewModel.errorMessage == nil
@@ -153,9 +117,7 @@ struct PlayerOverlayView: View {
                 nextEpisodeOverlay(next)
             }
 
-            // Subtitle search overlay (Feature #4). Reaches for the
-            // literal player tint so its focused rows fill with the
-            // server-configured accent rather than white.
+            // Subtitle search overlay (Feature #4); uses literal player tint so focused rows fill with the server accent, not white.
             if viewModel.subtitleSearchVisible {
                 SubtitleSearchView(
                     viewModel: viewModel,
@@ -212,49 +174,14 @@ struct PlayerOverlayView: View {
                 .padding(.bottom, 80)
             }
         }
-        // ignoresSafeArea so the hint stays pinned to the actual screen
-        // bottom-right corner. `suppressAVKitChrome` sets AVKit's
-        // chrome views to alpha=0 (so the iPhone Control Center +10s
-        // handler still wires up via `playbackControlsIncludeTransportBar`
-        // without showing duplicate transport bars), but the chrome
-        // views still exist in the view tree and AVKit still widens
-        // contentOverlayView's bottom safe-area inset to "make room"
-        // for them. With the widened inset our `VStack { Spacer() }`
-        // layout shifts the hint up by the chrome's nominal height,
-        // parking it in the middle of the screen at session start.
-        // Ignoring safe-area at the overlay level pins the hint to
-        // the true screen bottom regardless of the phantom inset.
-        // The chrome is alpha=0 so nothing visual gets occluded.
+        // ignoresSafeArea pins the hint to the true screen bottom: alpha=0 AVKit chrome (kept for the CC +10s handler via playbackControlsIncludeTransportBar) still widens contentOverlayView's bottom safe-area inset, which would shift a Spacer-anchored hint mid-screen at session start.
         .ignoresSafeArea()
         .transition(.move(edge: .bottom).combined(with: .opacity))
         .allowsHitTesting(false)
     }
 
     private func nextEpisodeOverlay(_ episode: JellyfinItem) -> some View {
-        // Absolute screen-relative positioning instead of any
-        // parent-geometry-dependent layout. `UIScreen.main.bounds`
-        // is fixed for the playback session on tvOS (1920x1080 or
-        // 3840x2160 depending on Apple TV gen); the card sits at a
-        // computed (x, y) center point that doesn't recompute when
-        // the SwiftUI parent reflows.
-        //
-        // Vincent report 2026-05-26 follow-up: the prior
-        // `.frame(maxWidth: .infinity, maxHeight: .infinity,
-        // alignment: .bottomTrailing)` fix improved things but the
-        // card still jumped toward the middle for the last few
-        // frames before `playNextEpisode` swaps the player item.
-        // Root cause: at end-of-playback `playNextEpisode` calls
-        // `player.stop()` + tears down the AVKit chrome before the
-        // new session starts, and during that ~100 ms window the
-        // SwiftUI parent's frame collapses around AVKit's shrinking
-        // contentOverlayView. Any frame-based or alignment-based
-        // anchor recomputes against the smaller frame and the card
-        // ends up at "bottom-trailing of a near-empty parent" =
-        // mid-screen. Absolute `.position(x:, y:)` against the
-        // scene's screen bounds removes the dependency entirely.
-        // (Scene-derived screen instead of the tvOS-26-deprecated
-        // `UIScreen.main`; tvOS has exactly one scene and screen,
-        // the 1080p fallback is for the impossible no-scene case.)
+        // Absolute scene-screen `.position(x:,y:)` instead of frame/alignment anchors: at end-of-playback playNextEpisode tears down AVKit chrome, collapsing the SwiftUI parent's frame for ~100 ms, so any alignment-based anchor recomputes against the shrunken parent and drifts the card mid-screen. Scene-derived screen (not deprecated UIScreen.main); 1080p fallback is the impossible no-scene case.
         let screen = UIApplication.shared.connectedScenes
             .lazy.compactMap { $0 as? UIWindowScene }
             .first?.screen.bounds.size ?? CGSize(width: 1920, height: 1080)
@@ -268,13 +195,7 @@ struct PlayerOverlayView: View {
                 y: screen.height - cardH / 2 - marginY
             )
             .ignoresSafeArea()
-            // Asymmetric transition: slide in from the right on
-            // appear (nice "here's the next episode" entry), only
-            // fade out on disappear. The original symmetric
-            // `.move(edge: .trailing)` removal composed with the
-            // parent reflow at end-of-playback and made the
-            // "drifting to middle" symptom visible. Fade-only
-            // removal has no spatial component to disrupt.
+            // Asymmetric: slide in from trailing, fade-only on removal. Symmetric `.move(edge: .trailing)` removal composed with the end-of-playback parent reflow and exposed the drift-to-middle symptom; fade has no spatial component to disrupt.
             .transition(.asymmetric(
                 insertion: .move(edge: .trailing).combined(with: .opacity),
                 removal: .opacity
@@ -283,17 +204,9 @@ struct PlayerOverlayView: View {
 
     private func cardBody(for episode: JellyfinItem) -> some View {
         ZStack(alignment: .topLeading) {
-            // Backdrop: episode thumbnail, dimmed so text stays
-            // legible. Without an explicit frame + clipped() the
-            // AsyncImage's intrinsic size leaks into ZStack sizing
-            // and a portrait thumbnail (e.g. when only a series
-            // poster is available as fallback) blows the card up
-            // into a tall portrait.
+            // Explicit frame + clipped() required: otherwise the image's intrinsic size leaks into ZStack sizing and a portrait fallback (series poster) blows the card into a tall portrait.
             if let imageURL = episodeThumbnailURL(for: episode) {
-                // AsyncCachedImage, not AsyncImage: the card mounts and
-                // unmounts with the overlay, and a raw AsyncImage
-                // re-fetched the thumbnail each time, at the worst
-                // moment (end of episode, next item prefetching).
+                // AsyncCachedImage, not AsyncImage: the card mounts/unmounts with the overlay, and raw AsyncImage re-fetched the thumbnail each time at the worst moment (end of episode, next-item prefetch).
                 AsyncCachedImage(url: imageURL) { image in
                     image.resizable().aspectRatio(contentMode: .fill)
                 } placeholder: {
@@ -304,14 +217,8 @@ struct PlayerOverlayView: View {
                 .opacity(0.4)
             }
 
-            // Foreground text content. .topLeading alignment + Spacer
-            // distribute header / title / countdown across the card
-            // height instead of bunching them in the centre.
             VStack(alignment: .leading, spacing: 0) {
-                // Episodes (series autoplay or an episode shuffle queue)
-                // keep "Next Episode"; a movie reached via a shuffle queue
-                // shows "Up Next" instead. The S/E label below is naturally
-                // hidden for movies (no parent/index numbers).
+                // Episodes show "Next Episode"; a movie reached via a shuffle queue shows "Up Next" (the S/E label below is naturally hidden for movies).
                 Text(episode.type == .episode
                      ? String(localized: "player.nextEpisode", defaultValue: "Next Episode")
                      : String(localized: "player.upNext", defaultValue: "Up Next"))
@@ -347,10 +254,7 @@ struct PlayerOverlayView: View {
             .padding(20)
             .frame(width: 380, height: 214, alignment: .topLeading)
         }
-        // Fixed 16:9 card. Both the image and the content above use
-        // the same explicit 380x214 frame, so the ZStack itself is
-        // exactly that size, nothing intrinsic-leaking can stretch
-        // it into a portrait.
+        // Fixed 16:9: image and content share the explicit 380x214 frame so nothing intrinsic-leaking can stretch the ZStack into a portrait.
         .frame(width: 380, height: 214)
         .background(.thinMaterial)
         .clipShape(RoundedRectangle(cornerRadius: 20))
@@ -373,13 +277,7 @@ struct PlayerOverlayView: View {
     }
 
     private var controlsOverlay: some View {
-        // Pin the whole controls layer to the scene's screen bounds, the same
-        // fix the next-episode card uses. An audio-track switch reloads AVKit
-        // and its container frame transiently collapses; a Spacer/alignment-
-        // anchored overlay reflows against the shrunken parent, so the entire
-        // controls block jumps up while it is fading out. An absolute
-        // screen-sized frame + center position removes the dependency on the
-        // churning AVKit parent, the layer stays put through the reload.
+        // Pin to scene-screen bounds (same fix as the next-episode card): an audio-track switch reloads AVKit and transiently collapses its container frame, so a Spacer/alignment-anchored controls block jumps up while fading. Absolute screen-sized frame + center position removes the dependency on the churning AVKit parent.
         let screen = UIApplication.shared.connectedScenes
             .lazy.compactMap { $0 as? UIWindowScene }
             .first?.screen.bounds.size ?? CGSize(width: 1920, height: 1080)
@@ -404,9 +302,7 @@ struct PlayerOverlayView: View {
             }
             .ignoresSafeArea()
 
-            // Title (top left). HDR + Speed indicators live in a
-            // separate always-visible column so the speed badge can
-            // persist after the transport hides.
+            // Title (top left); HDR + Speed badges live in topRightInfoColumn so the speed badge can persist after the transport hides.
             VStack {
                 HStack(alignment: .top) {
                     PlayerTitleOverlay(item: viewModel.item)
@@ -463,12 +359,7 @@ struct PlayerOverlayView: View {
 // MARK: - Top-Right Info Column
 
 private extension PlayerOverlayView {
-    /// Stack of informational badges in the top-right corner. The
-    /// HDR badge follows the transport's visibility (Apple TV's own
-    /// player does the same, informational, not action-required),
-    /// while the speed badge is persistent whenever the rate isn't
-    /// 1.0× so a user who set 1.5× and then hid the transport doesn't
-    /// silently keep watching at the wrong speed.
+    /// Top-right informational badges: HDR follows transport visibility (matches Apple TV's player); speed badge persists whenever rate != 1.0x so a user who set 1.5x then hid the transport isn't silently at the wrong speed.
     var topRightInfoColumn: some View {
         VStack {
             HStack(alignment: .top) {
@@ -477,9 +368,6 @@ private extension PlayerOverlayView {
                     if viewModel.showControls && viewModel.videoFormat != .sdr {
                         VideoFormatBadge(format: viewModel.videoFormat)
                     }
-                    // Badge whenever the applied rate isn't 1.0x;
-                    // keyed on the rate so edits to speedOptions can't
-                    // silently break it.
                     if PlayerViewModel.speedOptions.indices.contains(viewModel.activeSpeedIndex),
                        PlayerViewModel.speedOptions[viewModel.activeSpeedIndex] != 1.0 {
                         SpeedBadge(index: viewModel.activeSpeedIndex)
@@ -548,37 +436,15 @@ private struct VideoFormatBadge: View {
 
 // MARK: - Diagnostic Log Overlay
 
-/// Top-left diagnostic HUD that mirrors the engine's recent
-/// `print(...)` lines into the player UI. Only mounted in DEBUG /
-/// TestFlight builds (gated by `LogTap.isDiagnosticBuild`). Lets a
-/// beta tester screenshot what the engine reported (DV detection,
-/// HDR10+ extraction, format upgrades, etc.) without pairing the
-/// Apple TV to a Mac for Console.app.
+/// Top-left diagnostic HUD mirroring the engine's recent `print(...)` lines (DV detection, HDR10+ extraction, format upgrades) into the player UI so a beta tester can screenshot them without Console.app. Only mounted in DEBUG/TestFlight builds (`LogTap.isDiagnosticBuild`).
 private struct DiagnosticLogOverlay: View {
     @ObservedObject private var tap = LogTap.shared
     let focusOnDV: Bool
 
-    /// Number of overlay rows rendered at once. 50 lines at the
-    /// current 16 pt monospaced row height fills roughly the top
-    /// 2/3 of a 1080p screen, which is what we want during
-    /// diagnostic-build investigation sessions: enough vertical
-    /// real estate to keep the full session preamble (engine
-    /// init.mp4 box summary, HLS server setup, asset.load probes)
-    /// AND the eventual AVPlayer failure landing on screen
-    /// simultaneously. The overlay only renders in
-    /// LogTap.isDiagnosticBuild (DEBUG + TestFlight), so the
-    /// occlusion never hits an App Store user.
+    /// 50 rows at 16pt monospaced fills ~top 2/3 of 1080p, keeping the full session preamble AND the eventual AVPlayer failure on screen at once. Diagnostic-build only, so the occlusion never hits an App Store user.
     private let visibleCount = 50
 
-    /// Substring matchers for the DV / HDR focus mode. A line is
-    /// retained when it contains ANY of these. Picked so the diagnostic
-    /// chain a remote tester would photograph for a support thread
-    /// (engine dispatch, HLS routing state, item tracks, audio route,
-    /// display criteria, panel mode signaling) stays in frame while
-    /// per-segment cache / muxer chatter falls off. The cost of an
-    /// over-narrow filter is a missing data point in a screenshot;
-    /// the cost of an over-wide filter is the focus being defeated.
-    /// This is the conservative middle.
+    /// DV/HDR focus matchers: a line is kept if it contains ANY of these. Tuned so the support-thread diagnostic chain (dispatch, HLS routing, tracks, audio route, display criteria, panel signaling) stays in frame while per-segment cache/muxer chatter falls off.
     private static let focusSubstrings: [String] = [
         "[HLSVideoEngine]",
         "[NativeAVPlayerHost]",
@@ -603,15 +469,7 @@ private struct DiagnosticLogOverlay: View {
 
     var body: some View {
         VStack {
-            // Full-width container so long diagnostic lines
-            // (per-packet failure dumps, init.mp4 box summaries,
-            // FFmpeg packet rescale traces) don't get truncated by
-            // the row's lineLimit(1). The previous bounded box
-            // truncated DrHurt's seg4 failure right before tb_out,
-            // hiding the field we actually needed to read. Side
-            // padding (60 left, 80 right) matches the player's
-            // safe-area gutters; nothing else uses the top-left
-            // quadrant when the overlay is visible.
+            // Full-width container so long diagnostic lines aren't truncated by lineLimit(1) (a bounded box once cut DrHurt's seg4 failure right before tb_out). Side padding (60/80) matches the player's safe-area gutters.
             VStack(alignment: .leading, spacing: 2) {
                 let visible = renderedLines
                 ForEach(Array(visible.enumerated()), id: \.offset) { _, line in

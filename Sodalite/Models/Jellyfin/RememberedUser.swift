@@ -1,13 +1,6 @@
 import Foundation
 
-/// A Jellyfin profile whose access token has been persisted so the
-/// user can switch between it and other profiles without re-entering
-/// credentials. One entry per (server, user) pair.
-///
-/// The token itself is a long-lived Jellyfin access token, tokens
-/// only go invalid if the server admin revokes them. A 401 on switch
-/// is therefore the signal to drop the entry and ask the user for
-/// their password again for that specific profile.
+/// A Jellyfin profile with persisted access token for credential-free switching; one per (server, user). Token is long-lived (invalid only on admin revoke), so a 401 on switch is the signal to drop the entry and re-prompt for password.
 struct RememberedUser: Codable, Sendable, Identifiable, Equatable {
     let id: String
     let serverID: String

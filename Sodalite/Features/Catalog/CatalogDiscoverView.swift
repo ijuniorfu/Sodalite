@@ -86,12 +86,7 @@ struct CatalogDiscoverView: View {
                                 onSelect: onSelectFilter
                             )
                         }
-                        // Networks row, drop tiles whose first page is
-                        // known-empty so the user isn't teased with a
-                        // card that opens to nothing. The hide sets are
-                        // computed once per load in the view model;
-                        // reading FilterCache here meant ~41 synchronous
-                        // disk reads + JSON decodes per body render.
+                        // Networks row drops tiles whose first page is known-empty. hidden*IDs are computed once per load in the VM; reading FilterCache here was ~41 sync disk reads + JSON decodes per body render.
                         let region = Locale.current.region?.identifier ?? "US"
                         let visibleNetworks = CatalogProviders.networks.filter {
                             !viewModel.hiddenNetworkIDs.contains($0.id)
@@ -101,13 +96,7 @@ struct CatalogDiscoverView: View {
                                 titleKey: "catalog.section.networks",
                                 providers: visibleNetworks,
                                 onSelect: { provider in
-                                    // Prefer the live watch-providers
-                                    // filter (movies + tv together)
-                                    // when we know the streamer's
-                                    // TMDB id; fall back to the
-                                    // TV-only network endpoint for
-                                    // broadcast networks (ABC, NBC,
-                                    // CBS) without one.
+                                    // Prefer the watch-providers filter (movies + tv) when the streamer has a TMDB id; fall back to TV-only network endpoint for broadcast networks (ABC, NBC, CBS) without one.
                                     if let providerID = provider.tmdbWatchProviderID {
                                         onSelectFilter(.streamingService(
                                             tmdbWatchProviderID: providerID,

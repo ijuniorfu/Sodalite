@@ -1,21 +1,14 @@
 import SwiftUI
 
-/// Modal sheet for picking among `knownServers` or adding a new one.
-/// Presented from `LaunchProfilePickerView` (server header card)
-/// and from `ServerManagementView` (Settings) for the same purpose.
+/// Modal sheet to pick among `knownServers` or add one. Presented from `LaunchProfilePickerView` and `ServerManagementView`.
 struct ServerSwitchSheet: View {
     @Environment(\.dependencies) private var dependencies
     @Environment(\.dismiss) private var dismiss
 
-    /// Called after the user picks "Neuer Server". The host view
-    /// is expected to push or fullScreenCover a ServerDiscoveryView
-    /// configured in add-mode.
+    /// Host is expected to push/fullScreenCover a ServerDiscoveryView in add-mode.
     let onAddServer: () -> Void
 
-    /// Called after the user has picked a different server and the
-    /// switch has been attempted. The bool indicates whether the
-    /// switch succeeded. The host uses this to react (e.g. dismiss
-    /// the picker for a successful switch, show a toast on failure).
+    /// Bool indicates whether the switch succeeded; host reacts (dismiss on success, toast on failure).
     let onSwitched: (Bool) -> Void
 
     @State private var servers: [JellyfinServer] = []
@@ -67,9 +60,7 @@ struct ServerSwitchSheet: View {
             onSwitched(true)
             dismiss()
         } catch {
-            // Switch failed at the container layer (missing token /
-            // unknown id). Roll back if we had a previous active
-            // server, so the user isn't stranded.
+            // Switch failed in the container (missing token / unknown id); roll back so the user isn't stranded.
             if let previous {
                 try? dependencies.rollbackSwitch(to: previous)
             }

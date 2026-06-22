@@ -11,22 +11,17 @@ import SwiftAssRenderer
 ///   `engine.clock.$sourceTime` -> `setTimeOffset`
 ///   `engine.fontAttachments` -> font directory -> `FontConfig`
 ///
-/// One instance per playback session, owned by `PlayerViewModel`.
-/// Inactive (nil renderer) until an ASS/SSA track is selected.
+/// One instance per session, owned by `PlayerViewModel`; inactive until an ASS/SSA track selected.
 @MainActor
 final class ASSRenderCoordinator {
 
-    /// The renderer the overlay's frame view binds to. Non-nil exactly
-    /// while an ASS track is active AND the renderer initialized; the
-    /// overlay falls back to the text path otherwise.
+    /// Non-nil exactly while an ASS track is active AND the renderer initialized; else the
+    /// overlay falls back to the text path.
     private(set) var renderer: AssSubtitlesRenderer?
 
-    /// Fires immediately BEFORE every `reloadTrack`. The overlay's
-    /// frame view uses this to suppress the transient nil frame the
-    /// renderer publishes while it frees and re-parses the track
-    /// (deterministic, unlike a pure time-based grace window, which
-    /// loses the race when the re-parse plus font matching runs long
-    /// and the visible subtitle blinks out mid-line).
+    /// Fires immediately BEFORE every `reloadTrack` so the overlay can suppress the renderer's
+    /// transient re-parse nil deterministically (a pure time-based window loses the race when
+    /// re-parse + font matching runs long and the sub blinks mid-line).
     let reloadSignal = PassthroughSubject<Void, Never>()
 
     private let player: AetherEngine
@@ -34,62 +29,36 @@ final class ASSRenderCoordinator {
     private var cancellables = Set<AnyCancellable>()
     private var lastReloadAt = Date.distantPast
     private var pendingEvents = false
-    /// Earliest start time among events added since the last reload.
-    /// Drives the imminent-flush bypass below.
+    /// Earliest start among events added since the last reload; drives the imminent-flush bypass.
     private var earliestPendingStart = Double.infinity
-    /// Last playback offset seen by the clock sink, in source-PTS
-    /// seconds. Compared against `earliestPendingStart`.
+    /// Last clock-sink offset (source-PTS seconds), compared against `earliestPendingStart`.
     private var lastOffset: Double = 0
-    /// Batch window: collect newly arrived events for up to this long
-    /// before reparsing the whole script. libass parses a full movie
-    /// script in milliseconds, but reloading per cue (1-2/s) is
-    /// pointless churn. Correct for steady-state streaming, where the
-    /// side demuxer runs ~90 s ahead and new events are far in the
-    /// future.
+    /// Batch window before reparsing the whole script. Per-cue reload (1-2/s) is pointless churn;
+    /// in steady-state streaming the side demuxer runs ~90 s ahead so new events are far off.
     private let reloadInterval: TimeInterval = 5
-    /// Imminent-flush bypass: right after a seek (or activation
-    /// mid-dialogue) the catch-up burst delivers events that start
-    /// within seconds of the playhead. Holding those for the full
-    /// batch window leaves libass without the continuation lines of a
-    /// running dialogue, so the visible subtitle ends and its
-    /// follow-up never appears until the next reload (field repro:
-    /// subtitles "ending too early" right after scrubs, with the
-    /// first post-scrub reload arriving 5 s late carrying 15 events).
-    /// A pending event starting inside this lead always flushes
-    /// immediately.
+    /// Imminent-flush bypass: after a seek/mid-dialogue activation the catch-up burst delivers
+    /// events within seconds of the playhead; holding them the full window drops a running
+    /// dialogue's continuation lines (field repro: subs "ending too early" right after scrubs).
+    /// A pending event starting inside this lead flushes immediately.
     private let imminentLeadSeconds: Double = 10
-    /// Even imminent flushes keep a small spacing so the post-seek
-    /// catch-up burst (events arriving per emission over ~1-2 s)
-    /// coalesces into a handful of reloads instead of one per cue.
-    /// Each reload makes the renderer republish its frame; the
-    /// overlay's grace window hides that, but there is no reason to
-    /// churn libass parses per cue either.
+    /// Spacing even for imminent flushes so the post-seek catch-up burst (~1-2 s) coalesces into
+    /// a few reloads instead of one libass parse per cue.
     private let minImminentSpacing: TimeInterval = 0.25
 
     init(player: AetherEngine) {
         self.player = player
     }
 
-    /// Fired when the renderer becomes available asynchronously (first
-    /// activation on a file with unwritten font attachments) or is
-    /// torn down. PlayerViewModel mirrors the renderer onto its
-    /// observable surface through this.
+    /// Fired when the renderer becomes available asynchronously (first activation with unwritten
+    /// fonts) or is torn down; PlayerViewModel mirrors it onto its observable surface.
     var onRendererChanged: ((AssSubtitlesRenderer?) -> Void)?
-    /// Guards the async font-write completion against a deactivate /
-    /// re-activate that happened while the writes ran.
+    /// Guards async font-write completion against a deactivate/re-activate during the writes.
     private var activationGeneration = 0
 
-    /// Activate for the selected embedded track. `header` is the
-    /// track's `assHeader`; bails (renderer stays nil) when the header
-    /// is missing or renderer setup fails, in which case the caller
-    /// keeps the plain-text overlay path.
-    ///
-    /// Font attachments are written off the main actor: anime MKVs
-    /// routinely embed dozens of CJK faces at 5-20 MB each, and the
-    /// first activation used to block the main thread for the full
-    /// write. When all files already exist (every re-activation), the
-    /// renderer is still installed synchronously so the existing
-    /// `activate(...); renderer` call pattern keeps working.
+    /// Activate for the selected embedded track (`header` = track's `assHeader`). Bails (renderer
+    /// stays nil, caller keeps the text path) when the header is missing or setup fails.
+    /// Fonts are written off-main (anime MKVs embed dozens of 5-20 MB CJK faces); when all files
+    /// already exist the renderer installs synchronously so `activate(...); renderer` still works.
     func activate(header: String?, itemID: String) {
         deactivate()
         guard let header, !header.isEmpty else { return }
@@ -111,20 +80,16 @@ final class ASSRenderCoordinator {
         let builder = ASSScriptBuilder(header: header)
         self.builder = builder
 
-        // Cue sink: accumulate raw event lines, reload batched. The
-        // engine re-emits cues after seeks (cue array resets), which
-        // the builder's ReadOrder dedupe absorbs.
+        // Cue sink: accumulate raw event lines, reload batched. Post-seek re-emits (cue array
+        // resets) are absorbed by the builder's ReadOrder dedupe.
         player.$subtitleCues
             .receive(on: DispatchQueue.main)
             .sink { [weak self] cues in self?.consume(cues: cues) }
             .store(in: &cancellables)
 
-        // Clock sink: cue times and sourceTime share the source-PTS
-        // coordinate, no conversion. Doubles as the trailing-batch
-        // flush: the cue sink only runs on cue-array emissions, so a
-        // batch that lands inside the reload window with no later
-        // emission (movie tail at EOF) would otherwise never reach
-        // the renderer.
+        // Clock sink: cue times and sourceTime share the source-PTS coordinate (no conversion).
+        // Doubles as trailing-batch flush, since the cue sink only runs on cue-array emissions
+        // and a batch landing in the window with no later emission (EOF tail) would never flush.
         player.clock.$sourceTime
             .receive(on: DispatchQueue.main)
             .sink { [weak self] t in
@@ -152,8 +117,7 @@ final class ASSRenderCoordinator {
         let renderer = AssSubtitlesRenderer(fontConfig: config)
         self.renderer = renderer
         onRendererChanged?(renderer)
-        // Events that arrived while the fonts were being written are
-        // sitting in the builder; surface them now.
+        // Surface events that arrived in the builder while fonts were being written.
         flushPendingEventsIfDue()
     }
 
@@ -171,16 +135,9 @@ final class ASSRenderCoordinator {
         flushPendingEventsIfDue()
     }
 
-    /// Reload the renderer's track when new events are waiting and
-    /// either the batch window has elapsed or a pending event is
-    /// imminent (starts within `imminentLeadSeconds` of the playhead;
-    /// see that constant for the post-scrub failure this prevents).
-    /// Called from both the cue sink (new events) and the clock sink
-    /// (trailing-batch flush).
-    ///
-    /// `lastReloadAt` starts at `.distantPast`, so the first batch
-    /// always passes the interval check immediately (the elapsed
-    /// interval from distantPast is astronomically large).
+    /// Reload the track when events are waiting and either the batch window elapsed or a pending
+    /// event is imminent (within `imminentLeadSeconds`). Called from the cue sink and clock sink.
+    /// `lastReloadAt` starts `.distantPast` so the first batch always passes the interval check.
     private func flushPendingEventsIfDue() {
         guard pendingEvents, let builder, let renderer else { return }
         let now = Date()
@@ -198,12 +155,9 @@ final class ASSRenderCoordinator {
     // MARK: - Fonts
 
     private static func fontsDirectory(itemID: String) -> URL {
-        // Use only the last path component of the server-supplied itemID
-        // so a hostile value can't escape the cache directory, mirroring
-        // the same treatment applied to font filenames in writeFontAttachments.
+        // lastPathComponent so a hostile server itemID can't escape the cache dir; it passes
+        // ".." through (resolves one level up when appended) so treat that like empty too.
         let safeID = (itemID as NSString).lastPathComponent
-        // lastPathComponent passes ".." through; that would resolve one
-        // level above the cache root when appended. Treat it like empty.
         let dirName = (safeID.isEmpty || safeID == "..") ? "item" : safeID
         let base = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)[0]
             .appendingPathComponent("ass-fonts", isDirectory: true)
@@ -222,16 +176,13 @@ final class ASSRenderCoordinator {
 
     private nonisolated static func writeFontAttachments(_ fonts: [FontAttachment], to dir: URL) {
         for font in fonts {
-            // Attachment filenames come from the container; keep only
-            // the last path component so a hostile name can't escape
-            // the cache directory.
+            // lastPathComponent so a hostile container filename can't escape the cache dir.
             let safeName = (font.filename as NSString).lastPathComponent
             guard !safeName.isEmpty else { continue }
             let url = dir.appendingPathComponent(safeName)
             if !FileManager.default.fileExists(atPath: url.path) {
-                // Atomic so a crash mid-write can't leave a truncated
-                // font that the exists-check above would then treat as
-                // complete on every later session.
+                // Atomic so a crash mid-write can't leave a truncated font the exists-check
+                // above would then treat as complete forever.
                 try? font.data.write(to: url, options: .atomic)
             }
         }

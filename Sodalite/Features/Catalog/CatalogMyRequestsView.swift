@@ -37,12 +37,7 @@ struct CatalogMyRequestsView: View {
         }
     }
 
-    /// Tap on a request row navigates back to its catalog detail view,
-    /// the same surface the user originally requested from. Builds a
-    /// minimal SeerrMedia stub from the request (CatalogDetailView
-    /// re-fetches the full record on appear). Skips when there's no
-    /// media id (e.g. requests that were never linked) so we never
-    /// push an empty detail view.
+    /// Navigates back to the catalog detail via a minimal SeerrMedia stub (CatalogDetailView re-fetches on appear); skips when there's no media id so we never push an empty detail.
     private func handleSelect(_ request: SeerrRequest) {
         guard let tmdbID = request.media?.tmdbId else { return }
         let mediaType: SeerrMediaType = (request.type == .tv) ? .tv : .movie
@@ -95,10 +90,7 @@ private struct SeerrRequestRow: View {
     let onSelect: () -> Void
 
     var body: some View {
-        // FocusableCard so tvOS' focus engine can land here, without
-        // a focusable child the surrounding ScrollView refuses to
-        // scroll on the remote. Tap navigates back to the catalog
-        // detail view for the same media.
+        // FocusableCard so the focus engine can land here; without a focusable child the ScrollView won't scroll on the remote.
         FocusableCard(action: onSelect) { isFocused in
             HStack(spacing: 20) {
                 poster
@@ -130,10 +122,7 @@ private struct SeerrRequestRow: View {
                             .monospacedDigit()
                     }
 
-                    // Single effective badge, collapses request.status
-                    // and media.status into one readable case (incl.
-                    // "Removed" for completed requests whose media was
-                    // later deleted from the server).
+                    // Collapses request.status + media.status into one badge (incl. "Removed" when completed-request media was later deleted server-side).
                     SeerrEffectiveRequestBadge(request: request)
                 }
 
@@ -197,10 +186,7 @@ private struct SeerrRequestRow: View {
         }
     }
 
-    /// Show the real title once the detail fetch returns; fall back
-    /// to a neutral placeholder that doesn't pretend to be final
-    /// content (the old "Movie Request · #42" pretended to be a
-    /// title row and looked like a bug).
+    /// Real title once the detail fetch returns, else a neutral "Loading…" placeholder (the old "Movie Request · #42" read like a bug).
     private var resolvedTitle: String {
         if let title, !title.isEmpty { return title }
         return String(

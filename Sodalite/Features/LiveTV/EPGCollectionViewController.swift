@@ -2,13 +2,10 @@ import UIKit
 import SwiftUI
 import Observation
 
-/// Hosts the EPG as a hard split: a non-focusable channel column on the left,
-/// a focusable program grid on the right, and a time header on top, each
-/// clipped to its own region. The grid is the scroll source of truth; the
-/// column's vertical offset and the header's horizontal offset are synced to
-/// it in `scrollViewDidScroll` (cheap UIKit, no SwiftUI re-render). Because
-/// the grid never overlaps the column, programs cannot scroll behind the
-/// channels and focus cannot land under the column.
+/// EPG as a hard split: non-focusable channel column (left), focusable program grid (right),
+/// time header (top), each clipped to its region. Grid is the scroll source of truth; column-y and
+/// header-x sync to it in `scrollViewDidScroll` (cheap UIKit, no SwiftUI re-render). No overlap, so
+/// programs can't scroll behind channels and focus can't land under the column.
 @MainActor
 final class EPGCollectionViewController: UIViewController,
     UICollectionViewDataSource, UICollectionViewDelegate, EPGCollectionLayoutDelegate {
@@ -34,8 +31,7 @@ final class EPGCollectionViewController: UIViewController,
     private let timeHeaderContent = EPGTimeHeaderContentView()
     private let cornerView = UIView()
     private var rows: [Row] = []
-    /// Advances the now line (and current-program highlight) as wall-clock
-    /// time passes, so the guide stays accurate without a reload.
+    /// Advances the now line + current-program highlight as wall-clock passes, without a reload.
     private var nowLineTimer: Timer?
     /// One-shot: scroll the grid so "now" is near the left edge on first layout.
     private var didInitialScroll = false
@@ -55,7 +51,6 @@ final class EPGCollectionViewController: UIViewController,
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        // Program grid (right).
         gridLayout.delegate = self
         gridLayout.rowHeight = rowHeight
         gridLayout.totalWidth = model.totalWidth
@@ -74,7 +69,7 @@ final class EPGCollectionViewController: UIViewController,
                           forCellWithReuseIdentifier: EPGProgramCollectionCell.reuseID)
         view.addSubview(gridView)
 
-        // Channel column (left), passive, scroll synced to the grid.
+        // Channel column: passive, scroll synced to the grid.
         let columnLayout = UICollectionViewFlowLayout()
         columnLayout.scrollDirection = .vertical
         columnLayout.minimumLineSpacing = 0
@@ -89,7 +84,7 @@ final class EPGCollectionViewController: UIViewController,
         columnView.register(EPGChannelCell.self, forCellWithReuseIdentifier: EPGChannelCell.reuseID)
         view.addSubview(columnView)
 
-        // Time header (top), passive, scroll synced to the grid.
+        // Time header: passive, scroll synced to the grid.
         timeHeaderScroll.backgroundColor = epgPinnedBackground
         timeHeaderScroll.clipsToBounds = true
         timeHeaderScroll.isScrollEnabled = false
@@ -98,7 +93,6 @@ final class EPGCollectionViewController: UIViewController,
         timeHeaderScroll.addSubview(timeHeaderContent)
         view.addSubview(timeHeaderScroll)
 
-        // Corner (top-left).
         cornerView.backgroundColor = epgPinnedBackground
         view.addSubview(cornerView)
 
@@ -125,9 +119,8 @@ final class EPGCollectionViewController: UIViewController,
 
     // MARK: - Now line + current-program highlight
 
-    /// Tick once a minute (6 pt/min scale, so one minute is the smallest
-    /// visible move). Recompute the now line's x, nudge the layout, and
-    /// refresh the visible cells so the live-program highlight tracks.
+    /// Tick once a minute (one minute is the smallest visible move): recompute now-line x, nudge the
+    /// layout, refresh visible cells so the live-program highlight tracks.
     private func startNowLineTimer() {
         nowLineTimer?.invalidate()
         let timer = Timer(timeInterval: 60, repeats: true) { [weak self] _ in
@@ -144,12 +137,10 @@ final class EPGCollectionViewController: UIViewController,
         ctx.invalidateDecorationElements(
             ofKind: EPGCollectionLayout.nowLineKind, at: [IndexPath(item: 0, section: 0)])
         gridLayout.invalidateLayout(with: ctx)
-        // Refresh visible cells so the "on now" border follows the clock as
-        // programs end and the next one starts.
+        // Refresh visible cells so the "on now" border follows the clock across program boundaries.
         for indexPath in gridView.indexPathsForVisibleItems {
             guard let cell = gridView.cellForItem(at: indexPath) as? EPGProgramCollectionCell else { continue }
-            // Same bounds guards as refreshTimerDots/refreshFavoriteStars:
-            // visible index paths can briefly outlive a model mutation.
+            // Bounds-guard (as refreshTimerDots/refreshFavoriteStars): visible paths can outlive a model mutation.
             guard indexPath.section < rows.count else { continue }
             let row = rows[indexPath.section]
             guard indexPath.item < row.programs.count else { continue }
@@ -173,9 +164,8 @@ final class EPGCollectionViewController: UIViewController,
         columnView.frame = CGRect(x: 0, y: headerHeight, width: columnWidth, height: h - headerHeight)
         gridView.frame = CGRect(x: columnWidth, y: headerHeight, width: w - columnWidth, height: h - headerHeight)
 
-        // One-shot: open with "now" near the left edge, leaving a little
-        // context to its left so the just-ended part of the current program
-        // is visible. Clamped to the scrollable range.
+        // One-shot: open with "now" near the left edge, with a little context to its left (the
+        // just-ended part of the current program), clamped to the scrollable range.
         if !didInitialScroll, gridView.bounds.width > 0, model.totalWidth > 0 {
             didInitialScroll = true
             let leading = gridView.bounds.width * 0.08
@@ -196,24 +186,16 @@ final class EPGCollectionViewController: UIViewController,
 
     // MARK: - Focus column anchoring (vertical moves keep the time column)
 
-    /// The horizontal (timeline) position the user is navigating at,
-    /// updated on horizontal focus moves and kept across vertical ones.
-    /// Without it the focus engine picks the next row's cell nearest to
-    /// the CURRENT cell's center, and a wide cell (a 3h program, or the
-    /// full-width "no program info" placeholder spanning 24h) teleports
-    /// focus hours to the right, dragging the grid's scroll along.
+    /// Timeline position the user is navigating at; set on horizontal moves, kept across vertical
+    /// ones. Without it the engine picks the next row's cell nearest the CURRENT cell's center, so a
+    /// wide cell (3h program, or full-width 24h "no program info" placeholder) teleports focus hours
+    /// right and drags scroll along.
     private var focusAnchorX: CGFloat?
-    /// One-shot redirect target served via
-    /// `indexPathForPreferredFocusedView` after a vertical move was
-    /// vetoed in `shouldUpdateFocusIn`.
+    /// One-shot redirect served via `indexPathForPreferredFocusedView` after `shouldUpdateFocusIn` vetoes a vertical move.
     private var pendingFocusRedirect: IndexPath?
-    /// The exact (prev, next) proposal we last vetoed. If the engine
-    /// proposes the SAME move again, our redirect never took (the
-    /// anchor-column cell wasn't focusable/materialized, typical at
-    /// the seam between "no program info" placeholder rows and real
-    /// program rows after deep scrolling) and vetoing again would
-    /// strand focus there for good. Letting the engine's unanchored
-    /// pick through beats being stuck.
+    /// Last vetoed (prev, next). Same proposal again = redirect never took (anchor-column cell not
+    /// focusable/materialized, typical at the placeholder/real-program seam after deep scrolling);
+    /// re-vetoing strands focus, so accept the engine's unanchored pick instead.
     private var lastVetoedMove: (prev: IndexPath, next: IndexPath)?
 
     func collectionView(_ collectionView: UICollectionView,
@@ -222,15 +204,10 @@ final class EPGCollectionViewController: UIViewController,
               let next = context.nextFocusedIndexPath
         else { return true }
         if let redirect = pendingFocusRedirect {
-            // Our own redirect arriving: let it through (didUpdateFocus
-            // clears the marker). Anything ELSE while a redirect is
-            // pending is a move that raced ahead of the async
-            // setNeedsFocusUpdate during fast scrolling; the old
-            // "pass everything while pending" guard waved exactly
-            // those through unanchored, which is how focus still
-            // teleported onto a wide cell far right sometimes. Fall
-            // through and re-veto it against the anchor, replacing
-            // the stale redirect target.
+            // Our own redirect: let it through (didUpdateFocus clears the marker). Anything ELSE
+            // pending is a move that raced ahead of the async setNeedsFocusUpdate during fast scroll;
+            // re-veto it against the anchor rather than waving it through unanchored (which let focus
+            // teleport onto a far-right wide cell).
             if next == redirect { return true }
         }
         guard let prev = context.previouslyFocusedIndexPath,
@@ -240,22 +217,19 @@ final class EPGCollectionViewController: UIViewController,
         else { return true }
         let desired = itemIndex(nearestToX: anchorX, inSection: next.section)
         guard desired != next.item else {
-            // The engine's pick already sits in the anchor column; a
-            // still-pending redirect is obsolete, drop it so the
-            // async re-run doesn't yank focus back to an older row.
+            // Engine's pick already in the anchor column; drop the obsolete redirect so the async
+            // re-run doesn't yank focus back to an older row.
             pendingFocusRedirect = nil
             return true
         }
         if let last = lastVetoedMove, last.prev == prev, last.next == next {
-            // Same proposal again after a veto: the redirect didn't
-            // take. Stop fighting the engine, accept its pick.
+            // Same proposal after a veto: redirect didn't take, accept the engine's pick.
             lastVetoedMove = nil
             pendingFocusRedirect = nil
             return true
         }
         lastVetoedMove = (prev, next)
-        // Veto the engine's pick and re-run the update; the preferred-
-        // focus hook below serves the column-anchored target instead.
+        // Veto and re-run; indexPathForPreferredFocusedView serves the column-anchored target.
         pendingFocusRedirect = IndexPath(item: desired, section: next.section)
         DispatchQueue.main.async { [weak self] in
             guard let self, self.pendingFocusRedirect != nil else { return }
@@ -275,17 +249,14 @@ final class EPGCollectionViewController: UIViewController,
         guard collectionView === gridView else { return }
         let wasRedirect = pendingFocusRedirect != nil
         pendingFocusRedirect = nil
-        // Focus actually moved, so the redirect mechanism is healthy;
-        // forget the last veto so the escape hatch only fires on a
-        // genuinely repeated (failed) proposal.
+        // Focus moved, so redirect is healthy; clear lastVetoedMove so the escape hatch only fires
+        // on a genuinely repeated (failed) proposal.
         lastVetoedMove = nil
         guard let indexPath = context.nextFocusedIndexPath else { return }
         let vertical = context.focusHeading.contains(.up) || context.focusHeading.contains(.down)
-        // Keep the anchor across vertical moves (including the redirected
-        // ones, whose programmatic heading is not directional); re-anchor
-        // on horizontal moves and on first focus, using the midpoint of
-        // the cell's VISIBLE span so a wide cell anchors where the user
-        // is actually looking, not at its possibly far-offscreen center.
+        // Keep the anchor across vertical moves (incl. redirects, whose heading isn't directional);
+        // re-anchor on horizontal/first focus using the cell's VISIBLE-span midpoint so a wide cell
+        // anchors where the user is looking, not at its possibly far-offscreen center.
         guard focusAnchorX == nil || (!vertical && !wasRedirect) else { return }
         let (x, w) = epgProgramXWidth(section: indexPath.section, item: indexPath.item)
         let visMin = max(x, gridView.contentOffset.x)
@@ -327,9 +298,8 @@ final class EPGCollectionViewController: UIViewController,
         }
     }
 
-    /// Track favorite changes separately: a toggle doesn't change the rows, so
-    /// it must not run the row-diffing path. Just refresh the visible channel
-    /// column stars in place.
+    /// Track favorites separately: a toggle doesn't change rows, so skip row-diffing and just
+    /// refresh the visible channel-column stars in place.
     private func observeFavorites() {
         withObservationTracking {
             _ = model.favoriteChannelIDs
@@ -350,8 +320,7 @@ final class EPGCollectionViewController: UIViewController,
         }
     }
 
-    /// Track timer-state changes separately: a record toggle doesn't change
-    /// rows, so only the red dot on each program cell needs refreshing.
+    /// Track timer-state separately: a record toggle doesn't change rows, only each cell's red dot.
     private func observeTimerState() {
         withObservationTracking {
             _ = model.timerStateVersion
@@ -539,9 +508,8 @@ struct EPGCollectionContainer: UIViewControllerRepresentable {
 
     func updateUIViewController(_ controller: EPGCollectionViewController, context: Context) {
         controller.tintColor = UIColor(tint)
-        // allowsHitTesting/opacity do not remove a UIKit subtree from the
-        // tvOS focus engine; isUserInteractionEnabled does. Without this
-        // the invisible guide stays focusable behind the recordings view.
+        // isUserInteractionEnabled (not allowsHitTesting/opacity) removes a UIKit subtree from the
+        // tvOS focus engine; without it the hidden guide stays focusable behind the recordings view.
         controller.view.isUserInteractionEnabled = isActive
     }
 }

@@ -14,8 +14,7 @@ struct JellyfinItem: Codable, Sendable, Identifiable, Equatable, Hashable {
     let indexNumber: Int?
     let productionYear: Int?
     let communityRating: Double?
-    /// Rotten Tomatoes critic score (0-100), filled by metadata
-    /// providers that deliver it (OMDb). nil on servers without one.
+    /// Rotten Tomatoes critic score (0-100); nil unless a metadata provider (OMDb) delivers it.
     let criticRating: Double?
     let officialRating: String?  // e.g. "PG-13"
     let runTimeTicks: Int64?
@@ -27,9 +26,7 @@ struct JellyfinItem: Codable, Sendable, Identifiable, Equatable, Hashable {
     let imageTags: ImageTags?
     let backdropImageTags: [String]?
     let parentBackdropImageTags: [String]?
-    // `var` so detail views can patch the in-memory resume position
-    // directly from the playback-stop payload (issue #24), without
-    // rebuilding the whole item or re-fetching from the server.
+    // `var` so detail views patch the in-memory resume position from the playback-stop payload (issue #24), no re-fetch.
     var userData: UserItemData?
     let mediaStreams: [MediaStream]?
     let mediaSources: [MediaSource]?
@@ -37,11 +34,7 @@ struct JellyfinItem: Codable, Sendable, Identifiable, Equatable, Hashable {
     let studios: [StudioInfo]?
     let collectionType: String?
     let childCount: Int?
-    /// Number of local trailer files Jellyfin has for this item, when
-    /// the request asked for LocalTrailerCount in Fields. Gates the
-    /// detail-view Trailer button without a second round-trip; the
-    /// actual trailer items are fetched lazily on tap. nil when the
-    /// field was not requested.
+    /// Local trailer count (requires LocalTrailerCount in Fields); gates the detail Trailer button. nil if unrequested.
     let localTrailerCount: Int?
     let seriesPrimaryImageTag: String?
     let providerIds: [String: String]?
@@ -58,10 +51,7 @@ struct JellyfinItem: Codable, Sendable, Identifiable, Equatable, Hashable {
         return albumArtist
     }
 
-    /// TMDB identifier if Jellyfin has it (used to correlate with Seerr
-    /// catalog entries, dedup in search, route from detail-view
-    /// "request" button). Jellyfin stores the keys case-sensitively
-    /// ("Tmdb") but some older scanner versions wrote "tmdb", check both.
+    /// TMDB id (correlates with Seerr). Key is case-sensitive ("Tmdb"); older scanners wrote "tmdb", so check both.
     var tmdbID: Int? {
         guard let ids = providerIds else { return nil }
         let raw = ids["Tmdb"] ?? ids["tmdb"] ?? ids["TMDB"]
@@ -110,7 +100,6 @@ struct JellyfinItem: Codable, Sendable, Identifiable, Equatable, Hashable {
         case albumPrimaryImageTag = "AlbumPrimaryImageTag"
     }
 
-    /// Create a copy with updated userData
     init(item: JellyfinItem, userData: UserItemData?) {
         self.id = item.id
         self.name = item.name
@@ -153,7 +142,6 @@ struct JellyfinItem: Codable, Sendable, Identifiable, Equatable, Hashable {
         self.albumPrimaryImageTag = item.albumPrimaryImageTag
     }
 
-    /// Create a minimal series stub for navigation
     init(seriesStub id: String, name: String) {
         self.id = id
         self.name = name
@@ -196,9 +184,7 @@ struct JellyfinItem: Codable, Sendable, Identifiable, Equatable, Hashable {
         self.albumPrimaryImageTag = nil
     }
 
-    /// Minimal item representing a live channel, so PlayerViewModel
-    /// (metadata staging, session reporting) works unchanged for live
-    /// playback. The display name prefers the current program's title.
+    /// Live-channel item so PlayerViewModel works unchanged for live playback; display name prefers the current program's title.
     init(liveChannel channel: JellyfinChannel, program: JellyfinProgram?) {
         self.id = channel.id
         self.name = program?.name ?? channel.name
@@ -241,12 +227,7 @@ struct JellyfinItem: Codable, Sendable, Identifiable, Equatable, Hashable {
         self.albumPrimaryImageTag = nil
     }
 
-    /// Patch the resume position in place after playback stops (issue
-    /// #24). Updates userData.playbackPositionTicks and recomputes
-    /// playedPercentage from runTimeTicks so both the detail Play button
-    /// (ticks / runtime) and the Home tile progress bar (playedPercentage)
-    /// reflect the new spot without a server round-trip. Creates a
-    /// userData record if the item had none (a never-played item).
+    /// Patch resume position in place after playback stops (issue #24): sets ticks + recomputes playedPercentage, no server round-trip. Creates userData if none.
     mutating func setResumePosition(_ ticks: Int64) {
         let pct: Double?
         if let total = runTimeTicks, total > 0 {
@@ -292,10 +273,7 @@ enum ItemType: String, Codable, Sendable {
     }
 }
 
-/// A named chapter marker on a movie or episode. Jellyfin populates
-/// these from the source container (MKV / MP4 chapters) or via a
-/// post-processing tagger. `imageTag` is set when the server has
-/// generated a chapter thumbnail.
+/// Chapter marker (from MKV/MP4 container or a tagger). `imageTag` is set only when the server generated a chapter thumbnail.
 struct ChapterInfo: Codable, Sendable, Equatable, Hashable {
     let startPositionTicks: Int64
     let name: String?
@@ -307,7 +285,7 @@ struct ChapterInfo: Codable, Sendable, Equatable, Hashable {
         case imageTag = "ImageTag"
     }
 
-    /// Start position in seconds (ticks divided by AV_TIME_BASE-style 10⁷).
+    /// Start in seconds (10⁷ ticks/sec).
     var startSeconds: Double {
         Double(startPositionTicks) / 10_000_000
     }
@@ -336,10 +314,7 @@ struct UserItemData: Codable, Sendable, Equatable {
     let played: Bool?
     let unplayedItemCount: Int?
     let playedPercentage: Double?
-    /// ISO-8601 timestamp of the user's last play, as delivered by
-    /// Jellyfin's UserData. Kept as a raw String to match the model's
-    /// date convention (premiereDate / endDate). Not parsed today;
-    /// recency ordering is done server-side via SortBy=DatePlayed.
+    /// ISO-8601 last-play timestamp; kept raw (model convention) and unparsed (recency ordering is server-side via SortBy=DatePlayed).
     let lastPlayedDate: String?
 
     enum CodingKeys: String, CodingKey {
@@ -352,9 +327,7 @@ struct UserItemData: Codable, Sendable, Equatable {
         case lastPlayedDate = "LastPlayedDate"
     }
 
-    /// Returns a copy with the resume position (and, when known, the
-    /// played percentage) replaced. Used to patch the in-memory item
-    /// after playback stops (issue #24) without a server round-trip.
+    /// Copy with resume position (and, if known, played percentage) replaced; in-memory patch after playback stops (issue #24).
     func with(playbackPositionTicks ticks: Int64, playedPercentage pct: Double?) -> UserItemData {
         UserItemData(
             playbackPositionTicks: ticks,

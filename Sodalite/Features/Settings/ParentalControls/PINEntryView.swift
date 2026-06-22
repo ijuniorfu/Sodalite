@@ -9,13 +9,7 @@ enum PINEntryMode: Equatable {
     case unlock(reason: PINReason)
 }
 
-/// 4-digit PIN pad. Self-contained: drives its own digit buffer.
-/// `.unlock` verifies via `dependencies.verifyGuardianPIN` and reports
-/// the outcome through `onComplete`. `.setup` collects + confirms a new
-/// PIN and persists it via `dependencies.saveGuardianPIN`, then
-/// `onComplete(true)`. From `.unlock`, "Forgot PIN?" opens recovery; a
-/// successful recovery flips this pad into new-PIN collection (which
-/// also saves), so the originally gated action proceeds afterwards.
+/// 4-digit PIN pad. .unlock verifies via dependencies.verifyGuardianPIN; .setup collects+confirms and persists via dependencies.saveGuardianPIN. "Forgot PIN?" opens recovery; a successful recovery flips this pad into new-PIN collection.
 struct PINEntryView: View {
     @Environment(\.dependencies) private var dependencies
 
@@ -25,8 +19,7 @@ struct PINEntryView: View {
 
     private static let pinLength = 4
 
-    /// True when this pad is COLLECTING a new PIN (setup mode, or after a
-    /// successful recovery). False = verifying an existing PIN (unlock).
+    /// True = collecting a new PIN (setup, or post-recovery); false = verifying existing (unlock).
     @State private var collectingNewPIN: Bool
     @State private var entered = ""
     @State private var firstEntry: String?      // collection: holds the first pass
@@ -234,8 +227,7 @@ struct PINEntryView: View {
     }
 }
 
-/// Single digit / delete key. Focusable tile honoring the app's focus
-/// look (tinted fill on focus), activated via stableTap.
+/// Digit / delete tile: tinted fill on focus, activated via stableTap.
 private struct DigitKey: View {
     var label: String? = nil
     var systemImage: String? = nil

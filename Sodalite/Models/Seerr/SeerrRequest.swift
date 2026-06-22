@@ -35,10 +35,7 @@ struct SeerrCreateRequestBody: Encodable, Sendable {
     let profileId: Int?
     let rootFolder: String?
     let languageProfileId: Int?
-    /// Sonarr/Radarr tag ids attached to the resulting download.
-    /// Empty array and nil both encode as "no tags", we send nil to
-    /// stay forwards-compatible with older Jellyseerr builds that
-    /// might not recognise the field.
+    /// Sonarr/Radarr tag ids for the download; send nil (not []) for "no tags" to stay compatible with older Jellyseerr that lacks the field.
     let tags: [Int]?
 
     init(

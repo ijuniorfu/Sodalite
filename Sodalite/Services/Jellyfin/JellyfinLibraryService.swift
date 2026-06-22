@@ -11,10 +11,7 @@ protocol JellyfinLibraryServiceProtocol: Sendable {
 }
 
 extension JellyfinLibraryServiceProtocol {
-    /// Convenience for the common "ordinary Next Up" callers (series
-    /// detail, anything that isn't the Home Next Up row). Rewatching is a
-    /// Home-row-only opt-in, so default it off and let those callers omit
-    /// the argument entirely.
+    /// Ordinary Next Up (non-Home callers); rewatching is a Home-row-only opt-in, defaulted off here.
     func getNextUp(userID: String, seriesID: String?, limit: Int) async throws -> JellyfinItemsResponse {
         try await getNextUp(userID: userID, seriesID: seriesID, limit: limit, rewatching: false)
     }

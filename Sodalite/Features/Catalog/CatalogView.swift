@@ -74,11 +74,7 @@ struct CatalogView: View {
             }
         }
         .onReceive(NotificationCenter.default.publisher(for: .seerrRequestDidSubmit)) { _ in
-            // A request was just created from a detail view. The
-            // section-switch handlers above only load when a list is
-            // EMPTY, so already-loaded lists would show stale content
-            // until app restart. Refresh whichever lists are loaded;
-            // empty ones get their load on next section switch anyway.
+            // Section-switch handlers only load EMPTY lists, so refresh already-loaded ones here; empty lists load on next switch.
             guard let vm = viewModel else { return }
             if !vm.myRequests.isEmpty, let userID = appState.activeSeerrUser?.id {
                 Task { await vm.loadMyRequests(userID: userID) }
@@ -91,24 +87,14 @@ struct CatalogView: View {
             }
         }
         .onChange(of: appState.activeUser?.id) { _, _ in
-            // Profile switch, the Jellyfin user changed, so any
-            // cached Seerr state (discover sections tied to the old
-            // account's permissions, My Requests cached for the
-            // previous Seerr user) is stale. Reset the view model so
-            // bootstrap() rebuilds it once Seerr is reconnected for
-            // the new profile.
+            // Profile switch: cached Seerr state (permission-scoped discover, prior-user My Requests) is stale; reset so bootstrap() rebuilds once Seerr reconnects.
             viewModel = nil
             selectedMedia = nil
             selectedFilter = nil
             selectedSection = .discover
         }
         .onChange(of: appState.isSeerrConnected) { _, connected in
-            // Seerr just came online (initial setup or post-switch
-            // re-auth). .onAppear already ran when the tab first
-            // mounted and bailed out of bootstrap because there was
-            // no connection yet, so nothing else would kick the load
-            // without this trigger, the user saw an endless spinner
-            // until they tab-hopped away and back.
+            // Seerr came online after .onAppear already bailed bootstrap (no connection then); without this trigger the user saw an endless spinner until tab-hopping away and back.
             if connected {
                 bootstrap()
             } else {
@@ -146,10 +132,7 @@ struct CatalogView: View {
                 .multilineTextAlignment(.center)
                 .frame(maxWidth: 600)
 
-            // Quick-jump into the Seerr setup flow so first-time
-            // users aren't left staring at an empty state with no
-            // obvious path forward. Pushed inside the Catalog's own
-            // NavigationStack, tapping back returns to the tab.
+            // Quick-jump into Seerr setup so first-time users have a path forward; pushed inside Catalog's own NavigationStack so back returns to the tab.
             NavigationLink {
                 SeerrSettingsView()
                     .toolbar(.hidden, for: .tabBar)

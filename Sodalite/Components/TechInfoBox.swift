@@ -1,9 +1,6 @@
 import SwiftUI
 
-/// Collects per-card heights via PreferenceKey so every TechCard in a
-/// horizontal strip can size itself to the tallest sibling, no clip,
-/// no ragged heights. Reduce picks the max so the preference bubbles
-/// up the tallest intrinsic size from the children.
+/// Collects per-card heights so every TechCard sizes to the tallest sibling; reduce picks the max.
 private struct TechCardMaxHeightKey: PreferenceKey {
     static let defaultValue: CGFloat = 0
     static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
@@ -51,9 +48,7 @@ struct TechInfoBox: View {
             }
         }
         .onPreferenceChange(TechCardMaxHeightKey.self) { newValue in
-            // Grow-only: once we've seen the tallest card, stick with
-            // that height so cards that repopulate with fewer rows
-            // don't cause the whole strip to shrink mid-scroll.
+            // Grow-only so repopulating cards don't shrink the strip mid-scroll.
             if newValue > maxCardHeight { maxCardHeight = newValue }
         }
     }
@@ -78,11 +73,7 @@ struct TechInfoBox: View {
         }
     }
 
-    /// Human-readable dynamic-range format for the video stream.
-    /// Matches the player stats overlay notation: "Dolby Vision P<profile>",
-    /// then the precise VideoRangeType ("HDR10", "HDR10+", "HLG"), and
-    /// finally falls back to the raw VideoRange string ("HDR" / "SDR") so
-    /// something always shows.
+    /// Dynamic-range label matching the player stats overlay: DV P<profile>, then VideoRangeType, falling back to the raw VideoRange string.
     private func dynamicRangeLabel(_ video: MediaStream) -> String? {
         if let dv = video.dvProfile {
             return "Dolby Vision P\(dv)"
@@ -192,10 +183,7 @@ struct TechInfoBox: View {
 struct TechCard<Content: View>: View {
     let icon: String
     let title: LocalizedStringKey
-    /// Shared height pulled from the parent's PreferenceKey. 0 on the
-    /// first layout pass, the inner `.frame(height: nil)` lets the
-    /// card size to its natural content so the preference can report
-    /// back. Second pass uses the measured maximum.
+    /// Shared height from the parent's PreferenceKey; 0 on the first pass (card sizes naturally so the preference can report), measured max on the second.
     let height: CGFloat
     @ViewBuilder let content: () -> Content
 
@@ -213,10 +201,7 @@ struct TechCard<Content: View>: View {
         .frame(width: 380, alignment: .topLeading)
         .background(
             GeometryReader { geo in
-                // Report this card's natural laid-out height upward,
-                // the parent collects the max and feeds it back via
-                // the `height` parameter so every card renders at the
-                // tallest sibling's size.
+                // Report natural height upward; parent feeds the max back via `height`.
                 Color.clear.preference(
                     key: TechCardMaxHeightKey.self,
                     value: geo.size.height
@@ -225,8 +210,7 @@ struct TechCard<Content: View>: View {
         )
         .frame(height: height > 0 ? height : nil, alignment: .topLeading)
         .background(
-            // Material base for the full-bleed backdrop redesign,
-            // same rationale as ExpandableTextBox.
+            // Material base for full-bleed backdrop contrast (see ExpandableTextBox).
             ZStack {
                 RoundedRectangle(cornerRadius: 16)
                     .fill(.ultraThinMaterial)

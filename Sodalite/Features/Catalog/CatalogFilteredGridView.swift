@@ -1,9 +1,6 @@
 import SwiftUI
 
-/// Paged grid of SeerrMedia for a single CatalogFilter
-/// (genre, network, studio). Mirrors the discover-row pagination
-/// pattern but in a vertical grid so the user can browse the full
-/// catalogue for that filter, not just the first row's worth.
+/// Paged vertical grid of SeerrMedia for a single CatalogFilter (genre, network, studio); same pagination pattern as the discover rows.
 struct CatalogFilteredGridView: View {
     let filter: CatalogFilter
 
@@ -14,12 +11,7 @@ struct CatalogFilteredGridView: View {
     @State private var page: Int
     @State private var totalPages: Int
     @State private var isLoadingMore = false
-    /// Background revalidation flag, true while we're re-fetching
-    /// page 1 to refresh the cached grid. Deliberately separate from
-    /// `isLoadingMore` so we *don't* paint a spinner during silent
-    /// stale-while-revalidate. The user already sees the cached grid;
-    /// surfacing a "loading" hint for a refresh they didn't trigger
-    /// reads as a real network roundtrip even when it isn't.
+    /// Background page-1 revalidation flag, separate from `isLoadingMore` so silent stale-while-revalidate paints no spinner over the already-visible cached grid.
     @State private var isRefreshing = false
     @State private var errorMessage: String?
     @State private var selectedMedia: SeerrMedia?
@@ -31,12 +23,7 @@ struct CatalogFilteredGridView: View {
 
     init(filter: CatalogFilter) {
         self.filter = filter
-        // Hydrate from FilterCache *during init* so the very first
-        // body render already paints the cached grid. Doing it inside
-        // `.task(id:)` later would mean one frame of empty state
-        // before the cache snaps in, visible as a tiny "loading"
-        // flash on every tap that the user perceives as a network
-        // round-trip even when the answer is already on disk.
+        // Hydrate from FilterCache during init so the first body render paints the cached grid; doing it in `.task(id:)` shows one empty frame, read as a loading flash on every tap.
         if let cached = FilterCache.shared.catalogPage(filterKey: filter.cacheKey) {
             _items = State(initialValue: cached.items)
             _page = State(initialValue: 1)
@@ -65,9 +52,7 @@ struct CatalogFilteredGridView: View {
                     emptyState
                 } else {
                     LazyVGrid(columns: columns, spacing: 40) {
-                        // stableKey, not Identifiable's id: TMDB ids collide
-                        // across movie/tv and the streaming-service grids
-                        // concatenate both result sets.
+                        // stableKey not id: TMDB ids collide across movie/tv and streaming-service grids concatenate both result sets.
                         ForEach(items, id: \.stableKey) { media in
                             FocusableCard(
                                 action: { selectedMedia = media }
@@ -102,11 +87,7 @@ struct CatalogFilteredGridView: View {
         }
         .task(id: filter) {
             errorMessage = nil
-            // Initial hydration happened in init(filter:) so the grid
-            // is already on screen by the time we get here. All this
-            // task has to do is fire the background refresh that
-            // replaces the cached items with the freshest page 1 from
-            // Jellyseerr.
+            // Grid already on screen (hydrated in init); just fire the background page-1 refresh.
             await refreshFirstPage()
         }
     }
@@ -115,9 +96,7 @@ struct CatalogFilteredGridView: View {
 
     private func shouldPaginate(after media: SeerrMedia) -> Bool {
         guard !isLoadingMore, page < totalPages else { return false }
-        // Trigger when the user scrolls within ~12 items of the end,
-        // gives the network call time to land before they hit the
-        // bottom of the visible grid.
+        // Trigger within ~12 items of the end so the fetch lands before the user hits bottom.
         let key = media.stableKey
         guard let index = items.firstIndex(where: { $0.stableKey == key }) else {
             return false
@@ -125,11 +104,7 @@ struct CatalogFilteredGridView: View {
         return index >= items.count - 12
     }
 
-    /// Always re-fetches page 1 and replaces the displayed items
-    /// wholesale, used on view appearance to pick up any rotation
-    /// in the provider's lineup since last visit. Updates the cache
-    /// so the next appearance hydrates instantly. Subsequent pages
-    /// (2+) still go through `loadMore` on demand.
+    /// Re-fetches page 1 on appearance to pick up lineup rotation and updates the cache; pages 2+ still go through `loadMore`.
     private func refreshFirstPage() async {
         guard !isRefreshing else { return }
         isRefreshing = true
@@ -137,21 +112,11 @@ struct CatalogFilteredGridView: View {
 
         do {
             let result = try await fetchPage(1)
-            // Only replace items if the result actually changed,
-            // wholesale `items = result.results` even with identical
-            // IDs forces SwiftUI to re-evaluate every cell, which the
-            // user reads as a "reload flash" right after the cached
-            // grid first paints. Comparing stableKeys keeps the view
-            // tree untouched on the common case where nothing rotated
-            // since last visit.
+            // Replace only on actual change: wholesale assignment re-evaluates every cell even with identical ids, read as a reload flash. Compare stableKeys to leave the view tree untouched when nothing rotated.
             let oldKeys = items.map(\.stableKey)
             let newKeys = result.results.map(\.stableKey)
             if page > 1 {
-                // The user already paginated past page 1 while this
-                // refresh was in flight (cache hydration + fast scroll
-                // on a slow network). A wholesale replace would yank
-                // pages 2+ out from under their focus; only do it when
-                // page 1 itself rotated.
+                // User already paginated past page 1 during this in-flight refresh; a wholesale replace would yank pages 2+ from under their focus, so only replace when page 1 itself rotated.
                 if oldKeys.prefix(newKeys.count) != ArraySlice(newKeys) {
                     items = result.results
                     page = 1
@@ -171,8 +136,7 @@ struct CatalogFilteredGridView: View {
                 filterKey: filter.cacheKey
             )
         } catch {
-            // Keep whatever the cache hydrated us with rather than
-            // wiping the screen on a transient network blip.
+            // Keep the cache-hydrated grid rather than wiping on a transient network blip.
             if items.isEmpty {
                 errorMessage = error.localizedDescription
             }
@@ -197,10 +161,7 @@ struct CatalogFilteredGridView: View {
         }
     }
 
-    /// Dispatches to the right discover endpoint(s) for the active
-    /// filter, returning a single `SeerrDiscoverResult`. The
-    /// streaming-service case fans out movies + tv in parallel and
-    /// merges; everything else is a single endpoint.
+    /// Dispatches to the filter's discover endpoint(s). Streaming-service fans out movies + tv in parallel and merges; others are single-endpoint.
     private func fetchPage(_ page: Int) async throws -> SeerrDiscoverResult {
         switch filter {
         case .movieGenre(let id, _):
@@ -239,10 +200,7 @@ struct CatalogFilteredGridView: View {
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
                 .frame(maxWidth: 600)
-            // Without this Button the empty/error state has no
-            // focusable element, so the Menu button on the Siri
-            // Remote escapes the navigation stack and quits the app
-            // instead of popping back to the catalog.
+            // Focusable Button so Menu pops back instead of quitting (a text-only state has nothing to land on).
             Button { dismiss() } label: {
                 Text("common.back")
                     .font(.body)
@@ -254,10 +212,7 @@ struct CatalogFilteredGridView: View {
         .frame(maxWidth: .infinity, minHeight: 400)
     }
 
-    /// Shown when the filter genuinely has zero matches (e.g. a
-    /// streaming-service tile whose region currently has no titles
-    /// in the local discover endpoints). Same focusable back-button
-    /// pattern as `errorState` so Menu pops back instead of quitting.
+    /// Zero-match state (e.g. a streaming-service tile with no titles in the region). Same focusable back-button as `errorState` so Menu pops back.
     private var emptyState: some View {
         VStack(spacing: 16) {
             Image(systemName: "film")
@@ -276,9 +231,7 @@ struct CatalogFilteredGridView: View {
         .frame(maxWidth: .infinity, minHeight: 400)
     }
 
-    /// Loading state with an invisible focusable button so the Menu
-    /// remote button still has somewhere to land, without it, a tap
-    /// during the initial network roundtrip would quit the app.
+    /// Loading state with an invisible focusable button so a Menu press during the initial fetch pops back instead of quitting the app.
     private var loadingState: some View {
         VStack(spacing: 16) {
             ProgressView()

@@ -34,9 +34,8 @@ struct AlbumDetailView: View {
             .padding(.horizontal, 60)
             .padding(.vertical, 40)
         }
-        // Hide the top tab bar while inside an album (music tab), matching
-        // movie/series/catalog detail. Playlists reached via DetailRouterView
-        // already hide it; this covers the music tab's album destination.
+        // Hide the top tab bar inside an album, matching movie/series/catalog detail (playlists via
+        // DetailRouterView already hide it; this covers the music tab's album destination).
         .toolbar(.hidden, for: .tabBar)
         .task {
             await viewModel.load(album: album, using: dependencies)
@@ -138,8 +137,7 @@ struct AlbumDetailView: View {
                         isCurrent: coordinator.currentItem?.id == song.id,
                         isPlaying: coordinator.isPlaying,
                         onSelect: {
-                            // Tapping the track that is already playing just
-                            // opens the player; don't restart it from the top.
+                            // Tapping the already-playing track just opens the player; don't restart it.
                             if coordinator.currentItem?.id == song.id {
                                 coordinator.requestNowPlayingPresentation()
                             } else {
@@ -165,8 +163,6 @@ private struct TrackRow: View {
 
     var body: some View {
         HStack(alignment: .center, spacing: 24) {
-            // Leading: an animated now-playing indicator for the current
-            // track, otherwise the track number.
             Group {
                 if isCurrent {
                     NowPlayingWaveIcon(isPlaying: isPlaying, font: .body)
@@ -215,8 +211,7 @@ private struct TrackRow: View {
         }
     }
 
-    /// `.tint` and `Color` are different shape-style types, so erase to
-    /// AnyShapeStyle to pick between them in one expression.
+    /// `.tint` and `Color` are different shape-style types; erase to AnyShapeStyle to pick in one expression.
     private var titleColor: AnyShapeStyle {
         if isCurrent { return AnyShapeStyle(.tint) }
         return AnyShapeStyle(focused ? Color.white : Color.primary)

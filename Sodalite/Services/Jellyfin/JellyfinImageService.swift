@@ -38,13 +38,7 @@ final class JellyfinImageService {
         )
     }
 
-    /// Single place that assembles a Jellyfin image URL. Uses
-    /// absoluteString + manual concatenation (instead of just
-    /// "\(base)") so a baseURL with a trailing slash doesn't
-    /// produce a double-slashed path that some proxies reject, and
-    /// threads every auth token through two query-param casings
-    /// (`api_key` classic + `ApiKey` 10.9+) to satisfy every
-    /// Jellyfin version.
+    /// Manual concat (not "\(base)") so a trailing-slash baseURL doesn't double-slash (some proxies reject it); threads the token through both `api_key` (classic) and `ApiKey` (10.9+) for version coverage.
     private static func buildURL(
         base: URL,
         path: String,
@@ -84,25 +78,20 @@ final class JellyfinImageService {
         return nil
     }
 
-    /// Episode thumbnail: episode's own image first, then series backdrop as fallback
+    /// Episode thumbnail fallback chain: own primary → own thumb → own backdrop → series backdrop → series poster.
     func episodeThumbnailURL(for item: JellyfinItem, maxWidth: Int = 640) -> URL? {
-        // 1. Episode's own primary image (the episode still/screenshot)
         if let tag = item.imageTags?.primary {
             return imageURL(itemID: item.id, imageType: .primary, tag: tag, maxWidth: maxWidth)
         }
-        // 2. Episode's own thumb
         if let tag = item.imageTags?.thumb {
             return imageURL(itemID: item.id, imageType: .thumb, tag: tag, maxWidth: maxWidth)
         }
-        // 3. Episode's own backdrop
         if let tags = item.backdropImageTags, let tag = tags.first {
             return imageURL(itemID: item.id, imageType: .backdrop, tag: tag, maxWidth: maxWidth)
         }
-        // 4. Fallback: series backdrop
         if let tags = item.parentBackdropImageTags, let tag = tags.first, let seriesId = item.seriesId {
             return imageURL(itemID: seriesId, imageType: .backdrop, tag: tag, maxWidth: maxWidth)
         }
-        // 5. Last fallback: series poster
         if item.type == .episode, let seriesId = item.seriesId, let tag = item.seriesPrimaryImageTag {
             return imageURL(itemID: seriesId, imageType: .primary, tag: tag, maxWidth: maxWidth)
         }
@@ -113,15 +102,13 @@ final class JellyfinImageService {
         if let tag = item.imageTags?.primary {
             return imageURL(itemID: item.id, imageType: .primary, tag: tag, maxWidth: maxWidth)
         }
-        // For episodes, fall back to series poster
         if item.type == .episode, let seriesId = item.seriesId, let tag = item.seriesPrimaryImageTag {
             return imageURL(itemID: seriesId, imageType: .primary, tag: tag, maxWidth: maxWidth)
         }
         return nil
     }
 
-    /// Cover art for a music item: the album's primary image when available,
-    /// else the item's own poster. Shared by the music views + now-playing.
+    /// Music cover: album primary image else the item's own poster.
     func musicCoverURL(for item: JellyfinItem, maxWidth: Int = 400) -> URL? {
         if let albumID = item.albumId, let albumTag = item.albumPrimaryImageTag {
             return imageURL(itemID: albumID, imageType: .primary, tag: albumTag, maxWidth: maxWidth)
@@ -141,10 +128,7 @@ final class JellyfinImageService {
         )
     }
 
-    /// User avatar (`/Users/{id}/Images/Primary`). Differs from
-    /// `imageURL(itemID:…)` in the URL prefix, items live under
-    /// `/Items`, users under `/Users`. Returns nil when the user has
-    /// no profile picture set so the UI can fall back to initials.
+    /// User avatar under `/Users/{id}/Images/Primary` (vs items' `/Items` prefix). Nil when no avatar so the UI falls back to initials.
     func userProfileImageURL(userID: String, tag: String?, maxWidth: Int = 240) -> URL? {
         guard let base = baseURL(), let tag else { return nil }
         return Self.buildURL(

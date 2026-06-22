@@ -1,42 +1,6 @@
 import Foundation
 
-/// Persistent cache for the result sets behind the home + catalog
-/// filter tiles (streaming providers, genres, studios). Three slices:
-///
-/// - **homeFilterItems**: the resolved JellyfinItem list for a Home
-///   smart-filter tile (e.g. tap on Disney+). Cached as full
-///   `JellyfinItem` blobs so a re-tap can render the grid the moment
-///   the view appears, before any network roundtrip.
-///
-/// - **smartFilterIDs**: TMDB id list for a Home provider tile,
-///   kept around even when the items themselves are cached, so a
-///   downstream module that wants just the ids (e.g. for counting)
-///   doesn't have to walk the full item array.
-///
-/// - **catalogPage**: the first page of items for a Catalog filter
-///   tile. Pagination beyond page 1 still hits the network on
-///   demand.
-///
-/// Stale-while-revalidate is intentional. Each refresh fully replaces
-/// the cached value, so anything that left the provider's lineup
-/// since last visit drops out automatically.
-///
-/// Backed by per-key JSON files in `Library/Caches/FilterCache/`.
-/// Originally lived in `UserDefaults`, but tvOS enforces a 1 MB hard
-/// cap per app domain on `CFPreferences` writes, and a fully
-/// populated provider tile (50+ JellyfinItem blobs with overview,
-/// image tags, media streams, …) routinely exceeds that, which
-/// crashes the app with SIGABRT inside `defaults.set` on the very
-/// first cache write. Files have no such cap and live in the same
-/// directory iOS/tvOS uses for app caches, so the system can evict
-/// them under disk pressure without us doing anything.
-///
-/// Thread safety: filesystem reads + writes are atomic at the OS
-/// level, and we only read/write whole files. `@unchecked Sendable`
-/// is therefore safe, there's no shared mutable state in the type
-/// itself, just the directory pointer. Synchronous API throughout
-/// so SwiftUI views can hit the cache from inside `init()` and have
-/// the cached value populate `@State` in the same render pass.
+/// Persistent stale-while-revalidate cache for home + catalog filter-tile result sets (three slices: homeFilterItems, smartFilterIDs, catalogPage). Backed by per-key JSON in `Library/Caches/FilterCache/`, NOT UserDefaults: tvOS caps CFPreferences at 1MB/domain and a populated provider tile (50+ JellyfinItem blobs) overflows it, SIGABRT inside `defaults.set` on first write. `@unchecked Sendable` safe (whole-file atomic IO, only the directory pointer is shared); synchronous so views can hydrate `@State` from `init()` in one render pass.
 final class FilterCache: @unchecked Sendable {
     static let shared = FilterCache()
 
@@ -45,10 +9,7 @@ final class FilterCache: @unchecked Sendable {
     private static let smartIDPrefix = "smart."
     private static let catalogPrefix = "catalog."
 
-    // No timestamps: a `lastFetched` used to be stored but nothing
-    // ever read it (there is no expiry policy; stale-while-revalidate
-    // replaces entries wholesale). Decoding tolerates old files that
-    // still carry the field.
+    // No timestamps (no expiry policy; refresh replaces wholesale); decode tolerates old files carrying a dropped `lastFetched`.
     private struct HomeItemsEntry: Codable {
         let items: [JellyfinItem]
     }
@@ -73,16 +34,7 @@ final class FilterCache: @unchecked Sendable {
     }
 
     private func fileURL(for key: String) -> URL {
-        // Keys embed server-provided strings (genre / tag names); a
-        // "/" in one ("Action/Adventure") would otherwise become a
-        // path separator pointing into a directory that doesn't
-        // exist, every write fails inside try? and the entry is a
-        // permanent silent cache miss. Percent-encode everything
-        // outside a conservative set. Purely alphanumeric keys keep
-        // their filenames; keys embedding names with spaces or
-        // punctuation ("Science Fiction") change filename once, a
-        // one-time cache miss whose orphaned old file is removed by
-        // the next clearAll() (profile/server switch).
+        // Keys embed server strings; a "/" ("Action/Adventure") becomes a path separator → write fails inside try? → permanent silent cache miss. Percent-encode outside a conservative set.
         let allowed = CharacterSet.alphanumerics.union(CharacterSet(charactersIn: ".-_"))
         let safeKey = key.addingPercentEncoding(withAllowedCharacters: allowed) ?? key
         return directory.appendingPathComponent(safeKey).appendingPathExtension("json")
@@ -97,9 +49,7 @@ final class FilterCache: @unchecked Sendable {
     private func write<T: Encodable>(_ value: T, key: String) {
         let url = fileURL(for: key)
         guard let data = try? JSONEncoder().encode(value) else { return }
-        // Atomic write so a crash mid-flush leaves the previous file
-        // intact rather than producing a half-written truncated blob
-        // that would make the next decode fail.
+        // Atomic so a crash mid-flush keeps the prior file instead of a truncated blob that fails the next decode.
         try? data.write(to: url, options: .atomic)
     }
 

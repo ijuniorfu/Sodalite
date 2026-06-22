@@ -1,13 +1,6 @@
 import Foundation
 
-/// Central registry of in-app purchase product identifiers.
-///
-/// These IDs must match the products configured in App Store Connect
-/// for the Sodalite app (`de.superuser404.Sodalite`).
-///
-/// Tip jar items are **consumables**, the user can buy them repeatedly,
-/// each purchase is independent. The Supporter Pack is **non-consumable**
-///, a one-time unlock restored across devices through the App Store.
+/// IAP product identifiers; must match App Store Connect for `de.superuser404.Sodalite`. Tips are consumables (buy repeatedly); Supporter Pack is non-consumable (one-time, restored across devices).
 enum StoreProducts {
 
     // MARK: - Tip Jar (consumables)

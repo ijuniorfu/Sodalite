@@ -25,72 +25,43 @@ struct TransportBar: View {
     let subtitleStreams: [MediaStream]
     let activeAudioIndex: Int?
     let activeSubtitleIndex: Int?
-    /// Index of the currently-applied SECONDARY subtitle stream, or nil
-    /// when no companion line is shown. Drives the pinned-header row and
-    /// the active mark in the secondary-mode list.
+    /// Currently-applied SECONDARY subtitle stream index, or nil when no companion line shows.
     let activeSecondarySubtitleIndex: Int?
-    /// Streams eligible as the secondary line (text codecs, excluding the
-    /// primary). Mirrors `viewModel.secondarySubtitleCandidates`.
+    /// Streams eligible as the secondary line (text codecs, excluding the primary).
     let secondarySubtitleCandidates: [MediaStream]
-    /// When true, the subtitle button is shown even with zero subtitle
-    /// streams so the "Search online..." download entry stays reachable.
-    /// Mirrors `viewModel.supportsSubtitleSearch`.
+    /// Show the subtitle button even with zero streams so "Search online..." stays reachable.
     let supportsSubtitleSearch: Bool
     let activeSpeedIndex: Int
     let controlsFocus: PlayerViewModel.ControlsFocus
     let trackDropdown: PlayerViewModel.TrackDropdown
-    /// When true, a Skip Intro button sits at the leftmost slot of the
-    /// transport button row. The floating glass version is suppressed
-    /// in that case (see PlayerOverlayView).
+    /// Skip Intro button at the leftmost slot; the floating glass version is suppressed then.
     let showSkipIntroButton: Bool
-    /// Episodes from the current item's season. Empty for movies and
-    /// single-episode series; the episode-picker button is suppressed
-    /// whenever count <= 1.
+    /// Current season's episodes; button suppressed when count <= 1.
     let seasonEpisodes: [JellyfinItem]
-    /// ID of the episode currently playing, used to mark the active
-    /// row in the dropdown and to compose the button label.
     let activeEpisodeID: String?
-    /// Resolves the thumbnail URL for an episode row. Closure rather
-    /// than a hard dependency on JellyfinImageService so the SwiftUI
-    /// view stays unaware of the service layer.
+    /// Resolves an episode row thumbnail URL; a closure so the view stays unaware of the service layer.
     let episodeImageURL: (JellyfinItem) -> URL?
-    /// Source-container chapters (already sorted by start). Empty
-    /// when the file ships no chapters; the button is suppressed
-    /// whenever count <= 1.
+    /// Source-container chapters (sorted by start); button suppressed when count <= 1.
     let chapters: [ChapterInfo]
-    /// Total runtime in seconds, used to position the chapter ticks
-    /// along the progress bar.
+    /// Total runtime in seconds, used to position chapter ticks on the progress bar.
     let durationSeconds: Double
-    /// Resolves a chapter's thumbnail as a decoded image (via the session
-    /// FrameExtractor). Async + nil-returning. Closure rather than a hard
-    /// dependency so the SwiftUI view stays unaware of the engine/extractor.
+    /// Resolves a chapter thumbnail via the session FrameExtractor; closure keeps the view
+    /// unaware of the engine/extractor.
     let chapterThumbnail: @Sendable (Int) async -> CGImage?
-    /// Currently-applied picture-fill mode. Mirrors
-    /// `viewModel.pictureMode` and drives the picture button's label.
     let pictureMode: PlaybackPreferences.PictureMode
-    /// Whether to surface the "Stats for Nerds" info chip after the
-    /// picture button. Off by default in `PlaybackPreferences`; the
-    /// chip toggles a side-panel overlay rather than opening a
-    /// dropdown, so it's a no-dropdown trackButton.
+    /// "Stats for Nerds" info chip (off by default); toggles a side-panel overlay, no dropdown.
     let showsInfoButton: Bool
-    /// Whether the stats side-panel is currently shown. Used to give
-    /// the info chip a "pressed" look so the user can tell at a glance
-    /// that the overlay is mounted (toggling it off is just pressing
-    /// the chip again).
+    /// Whether the stats panel is open; gives the chip a "pressed" look so the state reads visually.
     let isStatsOverlayOpen: Bool
-    /// Frame-extractor preview image for the current scrub position.
-    /// Nil falls the scrub display back to the time-only label.
+    /// Scrub-position preview frame; nil falls back to the time-only label.
     let previewImage: CGImage?
 
     var body: some View {
         VStack(spacing: 10) {
-            // Scrub preview: frame-extractor card tracking the playhead
-            // when an image is available, time-only otherwise.
             if isScrubbing {
                 scrubPreviewArea
             }
 
-            // Track buttons with dropdown
             HStack(alignment: .bottom, spacing: 16) {
                 Spacer()
 
@@ -116,16 +87,8 @@ struct TransportBar: View {
                     )
                 }
 
-                // Chapter button: hidden on series episodes because the
-                // chapter data on episodic content is usually auto-
-                // generated noise (intro / credits markers, sometimes
-                // a "Scene 1" stub) without real navigation value. The
-                // episode picker is the primary affordance for series;
-                // the chapter picker is reserved for movies and one-
-                // shots where chapter metadata is typically meaningful.
-                // We use `seasonEpisodes.count > 1` as the proxy for
-                // "this is a series episode" since that's already wired
-                // through to the transport bar.
+                // Chapter button hidden on series episodes (chapter data there is usually
+                // auto-generated noise); `seasonEpisodes.count > 1` is the "is an episode" proxy.
                 if chapters.count > 1, seasonEpisodes.count <= 1 {
                     trackButton(
                         label: chapterButtonLabel,
@@ -172,9 +135,7 @@ struct TransportBar: View {
                     label: TransportBar.speedLabel(for: activeSpeedIndex),
                     icon: "gauge.with.needle",
                     isFocused: controlsFocus == .speedButton,
-                    // Speed keeps its label only while it deviates from
-                    // 1x; at normal speed it collapses to the gauge icon
-                    // like the other transient buttons.
+                    // Label persists only off 1x; at normal speed it collapses to the gauge icon.
                     persistsLabel: !TransportBar.isDefaultSpeed(activeSpeedIndex),
                     dropdown: speedDropdownItems,
                     isOpen: isSpeedDropdownOpen
@@ -184,20 +145,14 @@ struct TransportBar: View {
                     label: pictureButtonLabel,
                     icon: pictureButtonIcon,
                     isFocused: controlsFocus == .pictureButton,
-                    // The picture icon already swaps between the 16:9 and
-                    // fill glyphs, so the mode reads from the icon alone;
-                    // no need to keep the label pinned.
+                    // Icon already swaps 16:9 vs fill glyph, so the mode reads without a pinned label.
                     persistsLabel: false,
                     dropdown: pictureDropdownItems,
                     isOpen: isPictureDropdownOpen
                 )
 
                 if showsInfoButton {
-                    // Info chip — toggles the stats-for-nerds side
-                    // panel rather than opening a dropdown. The chip
-                    // looks "pressed" while the overlay is mounted so
-                    // the user can read the state visually instead of
-                    // remembering which click did what.
+                    // Info chip toggles the stats side panel (no dropdown); looks pressed while open.
                     trackButton(
                         label: String(localized: "player.stats", defaultValue: "Stats"),
                         icon: "info.circle",
@@ -209,14 +164,8 @@ struct TransportBar: View {
                 }
             }
             .padding(.bottom, 4)
-            // Force every focus-driven change in the track-button row onto
-            // one shared smooth curve, mirroring the detail-view
-            // CollapsingActionRowModifier. Riding the same transaction as
-            // the controlsFocus mutation makes the icon-only label reveal,
-            // the pill scale, and the sibling reflow all interpolate
-            // together. An .animation(value:) here lagged a frame in the
-            // detail views (only the immediate neighbor glided), which is
-            // why we use a transaction instead.
+            // Transaction (not .animation(value:), which lagged a frame so only the immediate
+            // neighbor glided) puts label reveal, pill scale, and sibling reflow on one curve.
             .transaction { txn in
                 txn.animation = .smooth(duration: 0.32)
             }
@@ -242,8 +191,6 @@ struct TransportBar: View {
         .padding(.horizontal, 80)
         .padding(.bottom, 60)
         .animation(.easeInOut(duration: 0.2), value: isScrubbing)
-        // Match the track-button row's smooth curve so focus moving onto or
-        // off the progress bar interpolates with the same feel as the pills.
         .animation(.smooth(duration: 0.32), value: controlsFocus)
         .animation(.smooth(duration: 0.32), value: trackDropdown)
     }
@@ -278,12 +225,8 @@ struct TransportBar: View {
         }
     }
 
-    /// Display height of the preview image at the fixed card width, derived
-    /// from the frame's own pixel aspect. The engine delivers SAR-corrected
-    /// thumbnails, so a 4:3 DVD stays 4:3 (240 pt) instead of being forced
-    /// to 16:9 (180 pt) and stretched. Clamped to a sane band so a malformed
-    /// frame can't blow up the layout; falls back to 16:9 for a degenerate
-    /// image.
+    /// Preview height at the fixed card width from the frame's own (SAR-corrected) aspect, so a
+    /// 4:3 DVD stays 4:3 instead of being stretched to 16:9. Clamped; degenerate frames use 16:9.
     static func previewImageHeight(for image: CGImage) -> CGFloat {
         guard image.width > 0, image.height > 0 else { return scrubCardWidth * 9 / 16 }
         let h = scrubCardWidth * CGFloat(image.height) / CGFloat(image.width)
@@ -368,10 +311,7 @@ struct TransportBar: View {
         }
     }
 
-    /// Currently-active chapter index, the last chapter whose start
-    /// is at or before the current playback progress. Nil only when
-    /// the chapter list is empty (the button is hidden in that case
-    /// anyway).
+    /// Active chapter: last chapter starting at or before current progress; nil only when empty.
     private var activeChapterIndex: Int? {
         guard !chapters.isEmpty else { return nil }
         let nowSeconds = Double(progress) * max(durationSeconds, 0)
@@ -386,8 +326,7 @@ struct TransportBar: View {
         return idx
     }
 
-    /// Button label = current chapter name, falling back to "Chapter
-    /// N / Total" when the chapter has no name set.
+    /// Current chapter name, falling back to "N / Total" when unnamed.
     private var chapterButtonLabel: String {
         guard let i = activeChapterIndex else {
             return String(localized: "player.chapters", defaultValue: "Chapters")
@@ -398,9 +337,7 @@ struct TransportBar: View {
         return "\(i + 1) / \(chapters.count)"
     }
 
-    /// "S1E5" / "S2E12" if the current episode has both numbers, falls
-    /// back to just the index, then to a generic label so the button
-    /// always has something to render.
+    /// "S1E5" when both numbers exist, else a generic label.
     private var episodeButtonLabel: String {
         let active = seasonEpisodes.first(where: { $0.id == activeEpisodeID })
         if let active {
@@ -437,9 +374,7 @@ struct TransportBar: View {
         }
     }
 
-    /// "12:34  Opening" / "12:34  Chapter 3" depending on whether the
-    /// chapter has a name. Timestamp first so all rows stay vertically
-    /// aligned in the dropdown.
+    /// "12:34  Name" (timestamp first so dropdown rows stay aligned), falling back to "Chapter N".
     private func chapterRowTitle(for chapter: ChapterInfo, index: Int) -> String {
         let stamp = TransportBar.formatChapterTime(chapter.startSeconds)
         let name = chapter.name.flatMap { $0.isEmpty ? nil : $0 }
@@ -466,8 +401,7 @@ struct TransportBar: View {
         return prefix + episode.name
     }
 
-    /// "1×" / "1.5×" / "0.75×", fixed-style, not localized (the × glyph
-    /// and arabic digits are universal in the native tvOS player too).
+    /// "1×" / "1.5×", deliberately not localized (× glyph + arabic digits are universal).
     static func speedLabel(for index: Int) -> String {
         let rate = PlayerViewModel.speedOptions[
             max(0, min(PlayerViewModel.speedOptions.count - 1, index))
@@ -482,9 +416,6 @@ struct TransportBar: View {
         return "\(s)×"
     }
 
-    /// Whether the active speed index is the default 1x rate. The speed
-    /// button only pins its label when the rate deviates from this, so
-    /// at normal speed it collapses to the gauge icon.
     static func isDefaultSpeed(_ index: Int) -> Bool {
         let rate = PlayerViewModel.speedOptions[
             max(0, min(PlayerViewModel.speedOptions.count - 1, index))
@@ -590,24 +521,17 @@ struct TransportBar: View {
     // MARK: - Track Button + Dropdown
 
     private static let dropdownItemHeight: CGFloat = 56
-    /// Episode rows carry a 16:9 thumbnail and the episode title, so
-    /// they need a taller row to read at TV viewing distance. The
-    /// image renders at 120×68 with 8pt vertical breathing room → 84pt
-    /// total. Audio/subtitle/speed dropdowns stay on the compact 56pt
-    /// row.
+    /// Taller row for thumbnail dropdowns (120×68 image + 8pt breathing room); text-only stays 56.
     private static let episodeRowHeight: CGFloat = 84
     private static let dropdownMaxVisible: Int = 6
 
     private func trackButton(label: String, icon: String, isFocused: Bool, persistsLabel: Bool, dropdown: [DropdownItem], isOpen: Bool) -> some View {
         VStack(spacing: 6) {
-            // Dropdown menu (opens upward, scrollable if many items)
             if isOpen {
                 let hasImages = dropdown.contains(where: { $0.image != nil })
                 let rowHeight = hasImages ? Self.episodeRowHeight : Self.dropdownItemHeight
-                // Pinned footer rows (the subtitle "Search online..." row)
-                // render below the scroll area so they stay visible no
-                // matter how long the list is. Indices are preserved so the
-                // host-driven highlight math is unaffected.
+                // Pinned header/footer rows render outside the scroll area so they stay visible;
+                // original indices are preserved so the host-driven highlight math is unaffected.
                 let indexed = Array(dropdown.enumerated())
                 let headerIndexed = indexed.filter { $0.element.isPinnedHeader }
                 let scrollIndexed = indexed.filter { !$0.element.isPinnedFooter && !$0.element.isPinnedHeader }
@@ -616,7 +540,6 @@ struct TransportBar: View {
                 let height = CGFloat(visibleCount) * rowHeight
 
                 VStack(spacing: 0) {
-                    // Fixed header (e.g. "Secondary: ..."), always visible.
                     ForEach(headerIndexed, id: \.offset) { idx, item in
                         dropdownRow(item: item, hasImages: hasImages, rowHeight: rowHeight)
                             .id(idx)
@@ -637,13 +560,9 @@ struct TransportBar: View {
                             }
                         }
                         .onAppear {
-                            // The first render needs an explicit scroll,
-                            // .onChange only fires when the highlighted
-                            // index *changes*, not for the value the
-                            // dropdown was opened at. Without this the
-                            // scrollview anchors at index 0 and the
-                            // active row is offscreen until the user
-                            // moves the highlight one step.
+                            // Explicit first-render scroll; .onChange only fires on a CHANGE, not
+                            // for the value the dropdown opened at, so without this the active row
+                            // is offscreen (anchored at 0) until the user moves one step.
                             if let highlighted = scrollIndexed.first(where: { $0.element.isHighlighted })?.offset {
                                 proxy.scrollTo(highlighted, anchor: .center)
                             }
@@ -656,7 +575,6 @@ struct TransportBar: View {
                     }
                     .frame(height: height)
 
-                    // Fixed footer (e.g. "Search online..."), always visible.
                     ForEach(pinnedIndexed, id: \.offset) { idx, item in
                         if item.separatorAbove {
                             Rectangle()
@@ -668,14 +586,9 @@ struct TransportBar: View {
                             .id(idx)
                     }
                 }
-                // Image dropdowns (episodes / chapters w/ thumbnails)
-                // get a tight cap so long titles wrap inside the row
-                // instead of stretching the column wide enough to
-                // squeeze the rest of the transport buttons. Text-only
-                // dropdowns (audio / subs / speed / picture) have
-                // shorter content by nature, give them generous
-                // headroom so names like "Deutsch · Dolby TrueHD 7.1"
-                // don't truncate to "Deutsch · Dol…".
+                // Image dropdowns get a tight width cap so long titles wrap instead of stretching
+                // the column over the transport row; text-only ones get headroom so names like
+                // "Deutsch · Dolby TrueHD 7.1" don't truncate.
                 .frame(
                     minWidth: hasImages ? 480 : 0,
                     maxWidth: hasImages ? 720 : 800
@@ -686,10 +599,6 @@ struct TransportBar: View {
                 .transition(.opacity.combined(with: .move(edge: .bottom)))
             }
 
-            // Button: icon always visible, label collapses unless the
-            // button is focused or `persistsLabel` keeps it pinned
-            // (active audio / subtitle / episode, non-1x speed). Mirrors
-            // the detail-view GlassActionButton icon-only collapse.
             TransportTrackLabel(
                 label: label,
                 icon: icon,
@@ -710,20 +619,13 @@ struct TransportBar: View {
             let knobSize: CGFloat = active ? 22 : 14
 
             ZStack(alignment: .leading) {
-                // Unplayed track, stays white so the contrast against
-                // the played portion reads clearly regardless of which
-                // accent color the user picked.
+                // Unplayed track stays white for contrast regardless of the user's accent color.
                 Capsule()
                     .fill(.white.opacity(0.2))
                     .frame(height: trackHeight)
 
-                // Chapter markers, narrow vertical ticks at each
-                // chapter's start position. Drawn on top of the
-                // unplayed track and below the played portion so they
-                // appear muted-white in the unplayed section and
-                // melt into the tint behind the playhead. Skip the
-                // very first chapter (always at 0:00, would visually
-                // collide with the left edge).
+                // Chapter ticks, drawn above the unplayed track and below the played portion so
+                // they melt into the tint behind the playhead. Skip the first (at 0:00, edge collision).
                 if chapters.count > 1, durationSeconds > 0 {
                     ForEach(chapters.dropFirst().indices, id: \.self) { i in
                         let frac = chapters[i].startSeconds / durationSeconds
@@ -736,9 +638,7 @@ struct TransportBar: View {
                     }
                 }
 
-                // Played portion + scrub knob both follow the active
-                // tint so the progress bar visually agrees with the
-                // accent color the rest of the focused UI uses.
+                // Played portion + knob follow the active tint to match the focused UI accent.
                 Capsule()
                     .fill(.tint)
                     .frame(width: knobX, height: trackHeight)
@@ -757,25 +657,16 @@ struct TransportBar: View {
 
 // MARK: - Transport Track Button Label
 
-/// A transport-bar track button's icon + collapsible text label.
-///
-/// The SF Symbol stays visible at all times; the text reveals with a
-/// width animation when `showsLabel` is true (the button is focused, or
-/// the caller pinned the label for active-state buttons like audio /
-/// subtitle / episode and non-1x speed). This mirrors the detail-view
-/// `GlassActionButton` icon-only collapse, but is driven by an explicit
-/// `isFocused` flag instead of `@Environment(\.isFocused)` because the
-/// transport bar's focus lives in `PlayerViewModel.controlsFocus`, not
-/// the SwiftUI focus system.
+/// A track button's always-visible icon + width-animated text label (revealed when `showsLabel`).
+/// Driven by an explicit `isFocused` flag, not `@Environment(\.isFocused)`, because transport-bar
+/// focus lives in `PlayerViewModel.controlsFocus`, not the SwiftUI focus system.
 private struct TransportTrackLabel: View {
     let label: String
     let icon: String
     let showsLabel: Bool
     let isFocused: Bool
 
-    /// Measured intrinsic width of the trailing text (its leading gap
-    /// baked in). The visible copy animates its frame between 0 and this
-    /// so the reveal interpolates the real layout footprint.
+    /// Measured intrinsic text width (leading gap baked in); the visible copy animates 0→this.
     @State private var labelWidth: CGFloat = 0
 
     private var labelFrameWidth: CGFloat? {
@@ -783,14 +674,11 @@ private struct TransportTrackLabel: View {
         return labelWidth > 0 ? labelWidth : nil
     }
 
-    /// The collapsible trailing text, with the gap to the leading glyph
-    /// baked into the measured width.
+    /// Collapsible trailing text, with the gap to the leading glyph baked into the measured width.
     private var labelInner: some View {
         Text(label)
             .font(.callout)
-            // Single-line guarantee: when an open dropdown column pushes
-            // layout pressure across the row, this keeps labels like
-            // "Original" / "Deutsch" from breaking mid-word.
+            // Single-line guarantee so an open dropdown's layout pressure can't break labels mid-word.
             .lineLimit(1)
             .padding(.leading, 8)
             .fixedSize()
@@ -807,15 +695,12 @@ private struct TransportTrackLabel: View {
                 .clipped()
         }
         .foregroundStyle(isFocused ? .white : .white.opacity(0.6))
-        // Icon-only pills get tighter padding so they read as compact
-        // squares rather than wide empty capsules.
+        // Tighter padding for icon-only pills so they read as compact squares, not empty capsules.
         .padding(.horizontal, showsLabel ? 16 : 12)
         .padding(.vertical, 8)
         .fixedSize(horizontal: true, vertical: false)
-        // Hidden full-size copy measures the label's intrinsic width
-        // without contributing to layout (a background never stretches
-        // its primary), so it reports the true width even while the
-        // visible copy is clipped to zero.
+        // Hidden full-size copy in a background (never stretches its primary) measures the true
+        // intrinsic width even while the visible copy is clipped to zero.
         .background(alignment: .leading) {
             labelInner
                 .hidden()
@@ -836,15 +721,10 @@ private struct TransportTrackLabel: View {
                 .opacity(isFocused ? 1 : 0)
         )
         .scaleEffect(isFocused ? 1.08 : 1.0)
-        // Lift the focused pill off the video with the same depth cue the
-        // detail-view GlassActionButton uses, so the highlight reads as
-        // "raised" rather than just tinted.
+        // Depth cue so the focused pill reads as raised, not just tinted.
         .shadow(color: .black.opacity(isFocused ? 0.3 : 0), radius: 10, y: 5)
-        // Per-button focus animation, matching the detail-view button
-        // style. The enclosing row also forces this curve via a
-        // transaction (see the track-button HStack) so the focused pill
-        // and every sibling interpolate together instead of the neighbor
-        // gliding while distant pills snap.
+        // Per-button focus animation; the enclosing row also forces this curve via a transaction
+        // so every sibling interpolates together instead of distant pills snapping.
         .animation(.smooth(duration: 0.32), value: isFocused)
     }
 }
@@ -867,34 +747,22 @@ private struct DropdownItem {
     let title: String
     let isActive: Bool
     let isHighlighted: Bool
-    /// Optional thumbnail source. Episode picker uses `.url`; chapter
-    /// picker uses `.chapterThumbnail`. Other dropdowns leave it nil.
+    /// Thumbnail source: `.url` (episodes), `.chapterThumbnail` (chapters), else nil.
     var image: DropdownImage? = nil
-    /// Optional trailing affordance caption (e.g. "Hold to delete" on
-    /// external subtitle rows). nil for rows without a secondary action.
+    /// Trailing affordance caption (e.g. "Hold to delete" on external subtitle rows).
     var hint: String? = nil
-    /// Pins this row as a fixed footer below the scrollable list, so it
-    /// stays visible no matter how long the list is (the subtitle
-    /// dropdown's "Search online..." row).
+    /// Pins this row as a fixed footer below the scroll list (subtitle "Search online...").
     var isPinnedFooter: Bool = false
-    /// Draws a thin separator above this row, to set it apart from the
-    /// rows above (used with `isPinnedFooter`).
     var separatorAbove: Bool = false
-    /// Pins this row as a fixed HEADER above the scrollable list, so it
-    /// stays visible no matter how long the list is (the subtitle
-    /// dropdown's "Secondary: ..." row). Mirror of `isPinnedFooter`.
+    /// Pins this row as a fixed header above the scroll list (subtitle "Secondary: ...").
     var isPinnedHeader: Bool = false
-    /// Draws a thin separator below this row (used with `isPinnedHeader`).
     var separatorBelow: Bool = false
 }
 
 // MARK: - Chapter Thumbnail View
 
-/// Loads a chapter thumbnail (the Jellyfin-rendered chapter image when the
-/// server has one, otherwise a FrameExtractor still) when the row appears.
-/// Shows the gray placeholder until ready. Lazy rendering means only visible
-/// rows load; server images hit the shared ImageCache, extractor stills the
-/// extractor's LRU, so repeats are cheap.
+/// Loads a chapter thumbnail on appear (server chapter image, else FrameExtractor still),
+/// gray placeholder until ready. Lazy, so only visible rows load; both caches make repeats cheap.
 private struct ChapterThumbnailView: View {
     let index: Int
     let load: @Sendable (Int) async -> CGImage?
@@ -963,8 +831,7 @@ private extension TransportBar {
         .frame(height: rowHeight)
         .background(item.isHighlighted ? Color.white.opacity(0.25) : Color.clear)
         .foregroundStyle(item.isHighlighted ? .white : .white.opacity(0.8))
-        // Glide the highlight as it steps between rows instead of snapping,
-        // matching the track-button row's smooth focus feel.
+        // Glide the highlight between rows instead of snapping.
         .animation(.smooth(duration: 0.32), value: item.isHighlighted)
     }
 }

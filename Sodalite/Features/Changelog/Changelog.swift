@@ -1,16 +1,7 @@
 import Foundation
 
-/// User-facing release notes. Newest first.
-///
-/// When you ship a new version: add a new entry at the top of
-/// `entries`. The WhatsNewView modal will fire on the first launch
-/// after the user updates, and the same entries are listed in
-/// Settings → "What's New" for browsing later.
-///
-/// Keep highlights short and concrete, bullet items, not paragraphs.
-/// Group by kind: `.new` for fresh features, `.improve` for noticeable
-/// quality-of-life upgrades, `.fix` for user-visible bug fixes that
-/// previously affected behaviour.
+/// User-facing release notes, newest-first; add each new entry at the top of `entries`.
+/// WhatsNewView fires once on first launch after update; group highlights by kind (.new / .improve / .fix).
 enum Changelog {
     static let entries: [ChangelogEntry] = [
         // MARK: 0.12.0
@@ -585,9 +576,7 @@ enum Changelog {
         ),
     ]
 
-    /// The newest release. Used by WhatsNewView for the post-update
-    /// modal and by the version-tracking preference to decide
-    /// whether to show it.
+    /// Newest release, used by WhatsNewView and the version-tracking preference.
     static var latest: ChangelogEntry? {
         entries.first
     }

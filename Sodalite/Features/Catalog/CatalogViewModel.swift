@@ -19,43 +19,26 @@ final class CatalogViewModel {
     var popularTV = PagedSection()
     var upcomingMovies = PagedSection()
     var upcomingTV = PagedSection()
-    /// Curated, populated genre lists from
-    /// `/discover/genreslider/movie` and `/discover/genreslider/tv`.
-    /// Each entry has a few backdrop paths so the genre tile can
-    /// show a hero image instead of a flat capsule.
+    /// Genre slider lists from `/discover/genreslider/{movie,tv}`; each entry carries backdrop paths for a hero-image tile.
     var movieGenres: [SeerrGenreSlide] = []
     var tvGenres: [SeerrGenreSlide] = []
-    /// Sample backdrop paths per network/studio TMDB id, populated
-    /// in the background after the first discover load by hitting
-    /// `/discover/tv/network/{id}` (or `…/movies/studio/{id}`) with
-    /// page 1 and grabbing the first result's backdrop. Lets the
-    /// provider tiles show a hero image of an actual show on that
-    /// service instead of a flat dark plate.
+    /// Sample backdrop path per network/studio TMDB id, resolved in the background after first discover load (page-1 first-result backdrop).
     var networkBackdrops: [Int: String] = [:]
     var studioBackdrops: [Int: String] = [:]
-    /// Provider tiles whose page-1 result is known-empty (nothing to
-    /// stream in the user's region). Computed once per load from the
-    /// cache + the live resolve pass; CatalogDiscoverView used to read
-    /// FilterCache (disk + JSON decode per provider) inside its body
-    /// for this, ~41 synchronous disk reads per render.
+    /// Provider tiles whose page-1 is known-empty (nothing in the region). Computed once per load (cache + live resolve) to avoid ~41 sync FilterCache disk reads per body render.
     private(set) var hiddenNetworkIDs: Set<Int> = []
     private(set) var hiddenStudioIDs: Set<Int> = []
     var myRequests: [SeerrRequest] = []
 
     // MARK: - Admin requests (Phase B)
-    /// Loaded via `SeerrRequestService.allRequests(filter:)`. Visible
-    /// only when the active SeerrUser has MANAGE_REQUESTS or ADMIN.
+    /// Via `allRequests(filter:)`; visible only when the SeerrUser has MANAGE_REQUESTS or ADMIN.
     var allRequests: [SeerrRequest] = []
     var allRequestsFilter: SeerrRequestFilter = .pending
-    /// Per-filter total count for the chip badges. Fetched in parallel
-    /// on initial load + after each successful mutation so the badges
-    /// stay accurate without a full reload of the visible page.
+    /// Per-filter total for chip badges; fetched in parallel on load + after each mutation, no full reload.
     var allRequestsCounts: [SeerrRequestFilter: Int] = [:]
     var isLoadingAllRequests: Bool = false
     var isLoadingMoreAllRequests: Bool = false
-    /// Surface for the toast layer in `CatalogAllRequestsView`. Mutated
-    /// by the four admin actions below; consumed via `.onChange` and
-    /// cleared by the view after a short display window.
+    /// Toast surface for `CatalogAllRequestsView`; set by the admin actions, consumed via `.onChange`, cleared after a display window.
     enum AdminRequestOutcome: Equatable {
         case approved
         case declined
@@ -67,16 +50,11 @@ final class CatalogViewModel {
     var lastAdminRequestOutcome: AdminRequestOutcome?
     private var allRequestsTotal: Int = 0
     private var allRequestsSkip: Int = 0
-    /// Bumped by every loadAllRequests; stale responses (superseded by
-    /// a newer reload, e.g. a filter-chip tap mid-flight) check it and
-    /// discard themselves instead of landing in the new filter's list.
+    /// Bumped by every loadAllRequests; stale responses (e.g. filter-chip tap mid-flight) check it and discard instead of landing in the new filter's list.
     private var allRequestsGeneration = 0
     private let allRequestsPageSize: Int = 50
 
-    /// Per-request enrichment keyed by tmdbID. Populated in the
-    /// background after loadMyRequests returns so the list can
-    /// switch from "#42" placeholders to "Dune · 2021" with a
-    /// poster as soon as the detail calls come back.
+    /// Per-request enrichment by tmdbID, populated in the background after loadMyRequests so rows swap "#42" placeholders for title/year/poster as detail fetches return.
     var requestMovieDetails: [Int: SeerrMovieDetail] = [:]
     var requestTVDetails: [Int: SeerrTVDetail] = [:]
 
@@ -130,8 +108,7 @@ final class CatalogViewModel {
     }
 
     func loadDiscover() async {
-        // First-page bulk load of every row in parallel. Subsequent
-        // pages use loadMore(row:) on demand from the UI.
+        // First-page bulk load of every row in parallel; later pages via loadMore(row:) on demand.
         isLoadingDiscover = true
         errorMessage = nil
         defer { isLoadingDiscover = false }
@@ -162,9 +139,7 @@ final class CatalogViewModel {
             errorMessage = error.localizedDescription
         }
 
-        // Genre sliders + provider backdrops load best-effort in the
-        // background, failures here just leave the rows looking
-        // plain, they don't poison the whole discover screen.
+        // Best-effort background loads; failures just leave rows plain, don't poison the discover screen.
         Task { await loadGenres() }
         Task { await loadProviderBackdrops() }
     }
@@ -178,34 +153,11 @@ final class CatalogViewModel {
     }
 
     private func loadProviderBackdrops() async {
-        // Fans out one fetch per provider/studio. Two jobs in one pass:
-        //
-        //  1. Pull a sample backdrop for the tile background, page 1
-        //     with default sort gives "popular on this service first",
-        //     good enough as a hero image.
-        //
-        //  2. Persist that first page to FilterCache under exactly
-        //     the same key CatalogDiscoverView's empty-tile-hide
-        //     filter checks (`streamingService-{id}-{region}`,
-        //     `tvNetwork-{id}`, `movieStudio-{id}`). Without this the
-        //     filter only kicks in *after* the user has tapped each
-        //     tile once, so providers with no content in the user's
-        //     region (Hulu / Peacock outside US, Hotstar outside
-        //     India, …) keep showing as full tiles that tap into
-        //     emptiness. Caching here means the very first render of
-        //     the catalog already drops them.
-        //
-        // For streamers with a TMDB watch-provider id, we fetch movies
-        // + tv in parallel and merge them, same shape the user gets
-        // when tapping the tile, so the cache hit is exact and the
-        // count is honest. Falls back to the TV-network endpoint for
-        // broadcast-only entries (ABC, NBC, CBS).
+        // One fetch per provider/studio, doing two jobs: (1) pull a sample backdrop (page 1, default sort) for the tile hero image; (2) persist page 1 to FilterCache under the exact key CatalogDiscoverView's empty-tile-hide filter checks, so region-empty providers (Hulu/Peacock outside US, Hotstar outside India) drop on first render instead of after one tap.
+        // Watch-provider streamers fetch movies + tv in parallel and merge (same shape as a tile tap, so the cache hit is exact); broadcast-only entries (ABC, NBC, CBS) fall back to the TV-network endpoint.
         let region = Locale.current.region?.identifier ?? "US"
 
-        // Seed the hide sets from the cache so tiles known-empty from
-        // a previous session disappear on first render, before the
-        // live resolve below lands. One read per provider, once per
-        // load, instead of per body render in the view.
+        // Seed hide sets from cache so tiles known-empty from a prior session disappear on first render before the live resolve lands.
         var hiddenNetworks: Set<Int> = []
         for provider in CatalogProviders.networks {
             let key: String
@@ -246,8 +198,7 @@ final class CatalogViewModel {
                         let totalPages = max(movies?.totalPages ?? 0, tv?.totalPages ?? 0)
                         var backdrop = merged.first(where: { $0.backdropPath != nil })?.backdropPath
                         if backdrop == nil {
-                            // Backdrop fallback: TV network endpoint
-                            // sometimes carries different items.
+                            // Fallback: TV-network endpoint sometimes carries different items.
                             let fallback = try? await discoverService.tvByNetwork(
                                 networkID: provider.id, page: 1
                             )
@@ -301,14 +252,9 @@ final class CatalogViewModel {
             return collected
         }
 
-        // MainActor pass, write the cache + backdrop once everything's
-        // resolved. Keeping the FilterCache writes off the detached
-        // closures avoids the async-isolation error and centralises
-        // the side effects in one easy-to-read sweep.
+        // MainActor sweep: write cache + backdrop once resolved (keeping FilterCache writes off the detached closures dodges async-isolation).
         for result in results {
-            // A failed fetch must not be persisted as a valid empty
-            // page (that would hide the tile until a successful
-            // revisit) and must not flip the hide sets.
+            // A failed fetch must not persist as a valid empty page (would hide the tile until a successful revisit) nor flip the hide sets.
             guard !result.fetchFailed else { continue }
             FilterCache.shared.setCatalogPage(
                 result.items,
@@ -354,10 +300,7 @@ final class CatalogViewModel {
         case trending, movies, tv, upcomingMovies, upcomingTV
     }
 
-    /// Load the next page for a single row. Called by the horizontal row
-    /// when the user scrolls close to the end. Dedupes against the current
-    /// items, Seerr occasionally returns the same entry on adjacent pages
-    /// when the trending list shifts.
+    /// Load the next page for one row (on scroll-near-end). Dedupes against current items: Seerr repeats entries across adjacent pages when the list shifts.
     func loadMore(row: DiscoverRow) async {
         var section = section(for: row)
         guard !section.isLoading, section.hasMore else { return }
@@ -392,8 +335,7 @@ final class CatalogViewModel {
         } catch {
             section.isLoading = false
             updateSection(row, to: section)
-            // Swallow pagination errors, the user still has page 1 visible,
-            // surfacing a banner mid-scroll would be jarring.
+            // Swallow pagination errors; page 1 stays visible, a mid-scroll banner would jar.
         }
     }
 
@@ -409,9 +351,7 @@ final class CatalogViewModel {
                 skip: 0
             )
             myRequests = result.results
-            // Kick off the enrichment in the background, the list
-            // renders immediately with placeholder titles and swaps
-            // to real metadata as each detail fetch returns.
+            // Background enrichment; list renders immediately with placeholders, swaps to real metadata as fetches return.
             Task { await enrichRequestMetadata(for: result.results) }
         } catch {
             errorMessage = error.localizedDescription
@@ -419,10 +359,7 @@ final class CatalogViewModel {
     }
 
     private func enrichRequestMetadata(for requests: [SeerrRequest]) async {
-        // Deduplicate the tmdbIDs we haven't already enriched, then
-        // fire all the detail fetches in parallel. Each row's view
-        // body reads through requestMovieDetails / requestTVDetails
-        // and updates when the corresponding entry lands.
+        // Dedupe not-yet-enriched tmdbIDs, then fetch details in parallel; row bodies read through the dicts and update as entries land.
         var movieIDs = Set<Int>()
         var tvIDs = Set<Int>()
         for request in requests {
@@ -482,11 +419,7 @@ final class CatalogViewModel {
     // MARK: - Admin requests
 
     func loadAllRequests() async {
-        // Supersede instead of guard: the old `!isLoadingAllRequests`
-        // early-return made a chip tap during the initial load a no-op
-        // for the NEW filter, while the in-flight response then dropped
-        // itself on the filter check, leaving the list empty until the
-        // user tapped the chip again.
+        // Supersede via generation, not an `!isLoadingAllRequests` guard: a chip tap during the initial load otherwise no-op'd the new filter and the in-flight response self-dropped, leaving an empty list.
         allRequestsGeneration &+= 1
         let generation = allRequestsGeneration
         allRequestsSkip = 0
@@ -522,10 +455,7 @@ final class CatalogViewModel {
         isLoadingMoreAllRequests = true
         defer { isLoadingMoreAllRequests = false }
 
-        // Generation snapshot: isLoadingAllRequests and
-        // isLoadingMoreAllRequests are separate flags, so a reload
-        // (filter switch OR same-filter refresh) can reset the list
-        // while this page is in flight; its response must not append.
+        // Generation snapshot: a reload (filter switch or refresh) can reset the list mid-flight (separate loading flags), so this page's response must not append.
         let generation = allRequestsGeneration
         let filter = allRequestsFilter
         do {
@@ -535,9 +465,7 @@ final class CatalogViewModel {
                 skip: allRequestsSkip
             )
             guard generation == allRequestsGeneration else { return }
-            // Dedupe against the visible list. Seerr occasionally
-            // returns the same record on adjacent pages when the
-            // status counts shift between fetches.
+            // Dedupe against the visible list: Seerr repeats records across adjacent pages when status counts shift between fetches.
             let existing = Set(allRequests.map(\.id))
             let additions = result.results.filter { !existing.contains($0.id) }
             allRequests.append(contentsOf: additions)
@@ -545,8 +473,7 @@ final class CatalogViewModel {
             allRequestsSkip += result.results.count
             Task { await enrichRequestMetadata(for: additions) }
         } catch {
-            // Mid-scroll error stays silent; the user still has the
-            // visible page and can pull-to-retry by switching filters.
+            // Mid-scroll error stays silent; visible page remains, retry by switching filters.
         }
     }
 
@@ -556,10 +483,7 @@ final class CatalogViewModel {
         await loadAllRequests()
     }
 
-    /// Fetch the `pageInfo.results` count for each filter in parallel
-    /// using `take=0`. Cheap (no `results` array transferred) and
-    /// drives the filter-chip badges. Failures leave the existing
-    /// badge values in place. Better stale than blanked out.
+    /// Per-filter `pageInfo.results` counts via `take=0` (no array transferred) for the chip badges; failures keep existing values (stale over blanked).
     func refreshAllRequestsCounts() async {
         async let pending  = try? requestService.allRequests(filter: .pending,  take: 0, skip: 0)
         async let approved = try? requestService.allRequests(filter: .approved, take: 0, skip: 0)
@@ -597,12 +521,9 @@ final class CatalogViewModel {
         } catch let error as APIError where error.isUnauthorized {
             allRequests = snapshot
             lastAdminRequestOutcome = .permissionDenied
-            // No local permission refresh here: the 403 toast is the
-            // user signal, and the next session restore reloads
-            // activeSeerrUser (AppRouter hides the tab if the revoke
-            // is sticky).
+            // No local permission refresh: the 403 toast is the signal; next session restore reloads activeSeerrUser (AppRouter hides the tab if the revoke sticks).
         } catch let error as APIError where error.isNotFound {
-            // Already gone server-side — keep the optimistic remove.
+            // Already gone server-side, keep the optimistic remove.
             lastAdminRequestOutcome = .deleted
             await refreshAllRequestsCounts()
         } catch {
@@ -622,10 +543,7 @@ final class CatalogViewModel {
             return updated
         } catch let error as APIError where error.isUnauthorized {
             lastAdminRequestOutcome = .permissionDenied
-            // No local permission refresh here: the 403 toast is the
-            // user signal, and the next session restore reloads
-            // activeSeerrUser (AppRouter hides the tab if the revoke
-            // is sticky).
+            // No local permission refresh: the 403 toast is the signal; next session restore reloads activeSeerrUser (AppRouter hides the tab if the revoke sticks).
             return nil
         } catch let error as APIError where error.isNotFound {
             await loadAllRequests()
@@ -636,10 +554,7 @@ final class CatalogViewModel {
         }
     }
 
-    /// Shared body for approve/decline. Optimistically replaces the
-    /// row with the server's response. If the new status no longer
-    /// matches the active filter, drops the row from the local list.
-    /// Restores on failure so the row stays visible for retry.
+    /// Shared approve/decline body: optimistically replaces the row with the server response, drops it if the new status no longer matches the active filter, restores on failure for retry.
     private func runAdminMutation(
         originalRequest: SeerrRequest,
         outcome: AdminRequestOutcome,
@@ -657,13 +572,9 @@ final class CatalogViewModel {
         } catch let error as APIError where error.isUnauthorized {
             allRequests = snapshot
             lastAdminRequestOutcome = .permissionDenied
-            // No local permission refresh here: the 403 toast is the
-            // user signal, and the next session restore reloads
-            // activeSeerrUser (AppRouter hides the tab if the revoke
-            // is sticky).
+            // No local permission refresh: the 403 toast is the signal; next session restore reloads activeSeerrUser (AppRouter hides the tab if the revoke sticks).
         } catch let error as APIError where error.isNotFound {
-            // Stale row, another admin already deleted/changed it.
-            // Reload the current filter silently; the row will disappear.
+            // Stale row (another admin already changed it); silent reload of the current filter drops it.
             allRequests = snapshot
             await loadAllRequests()
         } catch {

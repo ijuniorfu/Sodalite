@@ -2,14 +2,11 @@ import SwiftUI
 
 struct HorizontalMediaRow: View {
     let title: LocalizedStringKey
-    /// When set, rendered verbatim instead of `title`. Used for
-    /// per-library rows whose heading is a runtime string ("Latest in
-    /// 4K Movies") rather than a localization key.
+    /// Rendered verbatim instead of `title` for per-library rows whose heading is a runtime string, not a localization key.
     var verbatimTitle: String? = nil
     let items: [JellyfinItem]
     let imageURLProvider: (JellyfinItem) -> URL?
-    /// Optional per-item fallback image, tried when the primary fails
-    /// (e.g. a series Thumb that falls back to the backdrop / still).
+    /// Per-item fallback image tried when the primary fails (e.g. series Thumb to backdrop/still).
     var fallbackURLProvider: ((JellyfinItem) -> URL?)? = nil
     var onItemSelected: ((JellyfinItem) -> Void)?
     var cardStyle: MediaCardStyle = .poster

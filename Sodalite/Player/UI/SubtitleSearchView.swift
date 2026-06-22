@@ -1,10 +1,8 @@
 import SwiftUI
 
-/// Feature #4 overlay: search + pick a subtitle to download for the
-/// current item. DISPLAY-ONLY: it renders highlight from
-/// `viewModel.subtitleSearchFocus`. All remote input is routed by
-/// PlayerHostController's press handlers, because the player host has
-/// user interaction disabled (like every other player overlay).
+/// Feature #4 overlay: search + pick a subtitle to download. DISPLAY-ONLY:
+/// renders highlight from `subtitleSearchFocus`; PlayerHostController routes
+/// all remote input (host has user interaction disabled like every overlay).
 struct SubtitleSearchView: View {
     @Bindable var viewModel: PlayerViewModel
     var tint: Color

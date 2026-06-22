@@ -2,13 +2,7 @@ import Foundation
 import Observation
 import SwiftUI
 
-/// Cosmetic choices unlocked by the Supporter Pack. Non-supporters are
-/// pinned to `.system` defaults at read time, the stored value stays
-/// intact so we don't wipe a selection after a refund-then-repurchase
-/// cycle.
-///
-/// Backed by `UserDefaults`, not the Keychain, none of this is sensitive
-/// and losing the preference on wipe is fine.
+/// Supporter-gated cosmetics; non-supporters pinned to `.system` at read time but stored value preserved across refund/repurchase. UserDefaults, not Keychain.
 @Observable
 @MainActor
 final class AppearancePreferences {
@@ -32,10 +26,7 @@ final class AppearancePreferences {
 
         var id: String { rawValue }
 
-        /// Localized display name. Resolved inside the enum so both
-        /// arguments to `String(localized:defaultValue:)` stay as
-        /// compile-time string literals, the initializer can't accept
-        /// runtime `String.LocalizationValue` values.
+        /// Literal keys/defaults so `String(localized:defaultValue:)` compile-time-literal requirement holds.
         var title: String {
             switch self {
             case .system:
@@ -61,16 +52,7 @@ final class AppearancePreferences {
             }
         }
 
-        /// Hex chosen to work against the dark Liquid-Glass backdrop,
-        /// punchy but not neon, all sitting around L≈0.65–0.75 so text
-        /// drawn on top in `.tint` stays legible. Swatches render
-        /// straight from these.
-        ///
-        /// `.system` hard-codes the asset-catalog accent RGB rather
-        /// than `Color.accentColor`, because the semantic value
-        /// follows the current `.tint(...)` in the environment,
-        /// otherwise the swatch would shift with whatever custom
-        /// color is active and stop reading as "System Blue".
+        /// Hex tuned for dark Liquid-Glass backdrop, L≈0.65–0.75 so `.tint` text stays legible; `.system` hardcodes asset RGB not `Color.accentColor` (which would follow environment tint).
         var color: Color {
             switch self {
             case .system:   Color(red: 0.00, green: 0.478, blue: 1.00)
@@ -89,16 +71,14 @@ final class AppearancePreferences {
 
     // MARK: - Continue Watching image
 
-    /// Which image the Continue Watching / Up Next cards use.
     enum ContinueWatchingImage: String, CaseIterable, Identifiable, Sendable {
-        case still     // the episode's own image (a frame from the show)
-        case backdrop  // the show's cinematic landscape backdrop
+        case still     // the episode's own frame
+        case backdrop  // the show's landscape backdrop
         case thumb     // the show's landscape Thumb promo art
 
         var id: String { rawValue }
 
-        /// Localized chip label. Literal keys + defaults so the
-        /// initializer's compile-time-literal requirement holds.
+        /// Literal keys/defaults so `String(localized:defaultValue:)` compile-time-literal requirement holds.
         var title: String {
             switch self {
             case .still:
@@ -121,9 +101,7 @@ final class AppearancePreferences {
         static let nowPlayingUsesSeriesPoster = "appearance.nowPlayingUsesSeriesPoster"
     }
 
-    /// Multiplier applied to media-card dimensions when `largeCards` is on.
-    /// 1.3 gives a noticeably bigger Apple TV-style card without dropping
-    /// so many cards per row that the rows feel empty.
+    /// 1.3: noticeably bigger Apple TV-style card without dropping so many cards per row that rows feel empty.
     static let largeCardScale: CGFloat = 1.3
 
     // MARK: - State
@@ -132,34 +110,24 @@ final class AppearancePreferences {
         didSet { store.set(accentChoice.rawValue, forKey: Keys.accentChoice) }
     }
 
-    /// Show the title-card logo image (when the item has one) in place of
-    /// the plain text title on the Movie / Series / Episode detail
-    /// screens. Free for everyone, unlike the accent picker; the detail
-    /// views fall back to the text title when the item has no logo or
-    /// this is off. Default on.
+    /// Logo image instead of text title on detail screens; free for everyone, falls back to text when no logo or off. Default on.
     var showContentLogos: Bool {
         didSet { store.set(showContentLogos, forKey: Keys.showContentLogos) }
     }
 
-    /// Which image the Continue Watching / Up Next cards use: the episode
-    /// still (default), the show's backdrop, or its landscape Thumb.
     var continueWatchingImage: ContinueWatchingImage {
         didSet { store.set(continueWatchingImage.rawValue, forKey: Keys.continueWatchingImage) }
     }
 
-    /// Render the Home media cards larger (Apple TV-style). Default off.
     var largeCards: Bool {
         didSet { store.set(largeCards, forKey: Keys.largeCards) }
     }
 
-    /// System Now-Playing artwork uses the series poster (Primary) rather
-    /// than the episode still, which fills the square Control Center slot
-    /// better. Default off. Movies are unaffected (no series).
+    /// Now-Playing artwork uses series poster (Primary), fills square Control Center slot better. Default off. Movies unaffected (no series).
     var nowPlayingUsesSeriesPoster: Bool {
         didSet { store.set(nowPlayingUsesSeriesPoster, forKey: Keys.nowPlayingUsesSeriesPoster) }
     }
 
-    /// Scale factor for media-card dimensions, driven by `largeCards`.
     var cardScale: CGFloat {
         largeCards ? Self.largeCardScale : 1.0
     }
@@ -179,18 +147,12 @@ final class AppearancePreferences {
         self.nowPlayingUsesSeriesPoster = store.object(forKey: Keys.nowPlayingUsesSeriesPoster) as? Bool ?? false
     }
 
-    /// Effective tint to apply to the UI. Non-supporters always get
-    /// `.system` regardless of a previously stored choice, so downgrade
-    /// paths are graceful.
+    /// Non-supporters always get `.system` regardless of stored choice, so downgrade paths are graceful.
     func effectiveAccent(isSupporter: Bool) -> AccentChoice {
         isSupporter ? accentChoice : .system
     }
 
-    /// The Color to pass into SwiftUI's `.tint(_:)`. Returns `nil` for
-    /// the `.system` case so we don't override SwiftUI's default tint
-    /// with a self-referential `Color.accentColor`, which, if the
-    /// `AccentColor.colorset` ever ends up empty or stale, resolves to
-    /// white and makes every tinted button unreadable.
+    /// `nil` for `.system` so we don't self-reference `Color.accentColor`, which resolves to white if `AccentColor.colorset` empty/stale -> unreadable buttons.
     func effectiveTint(isSupporter: Bool) -> Color? {
         let choice = effectiveAccent(isSupporter: isSupporter)
         return choice == .system ? nil : choice.color

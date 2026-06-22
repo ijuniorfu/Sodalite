@@ -1,16 +1,6 @@
 import SwiftUI
 
-/// Server-side user picker that sits between server discovery and
-/// the password/Quick-Connect screen. Fetches `/Users/Public` and
-/// shows one avatar-card per user. Tapping a card carries the
-/// selected user forward into `LoginView`, so the user never has to
-/// type their name.
-///
-/// Falls back to a manual username field when the server either
-/// rejects `/Users/Public` or returns an empty list (admin disabled
-/// the "Show users on login screen" option). A "Sign in manually"
-/// button below the grid lets advanced users bypass the picker
-/// even when users are visible.
+/// Avatar-card picker over `/Users/Public`; carries the selected user into `LoginView`. Falls back to a manual username field when the list is rejected/empty ("Show users on login screen" off).
 struct UserPickerView: View {
     @Environment(\.dependencies) private var dependencies
 
@@ -23,9 +13,7 @@ struct UserPickerView: View {
     @State private var errorMessage: String?
     @State private var selectedUser: JellyfinUser?
     @State private var manualLogin = false
-    /// True when /Users/Public returned profiles but every one is
-    /// already remembered for this server: the empty state then says
-    /// so instead of the misleading "no users visible from server".
+    /// True when /Users/Public returned profiles but all are already remembered: empty state says so instead of "no users visible".
     @State private var allProfilesAlreadyAdded = false
 
     var body: some View {
@@ -38,9 +26,6 @@ struct UserPickerView: View {
             } else if let errorMessage {
                 errorState(message: errorMessage)
             } else if users.isEmpty {
-                // Server-side list empty, either "show users" is off,
-                // or the server is older than 10.x. Same UX as the
-                // manual path.
                 emptyState
             } else {
                 userGrid
@@ -91,16 +76,8 @@ struct UserPickerView: View {
     // MARK: - User Grid
 
     private var userGrid: some View {
-        // Fixed-width columns + Spacer sandwich centers the grid
-        // horizontally, .adaptive stretched to full width and pinned
-        // a single demo-server user to the left edge.
-        //
-        // Both the grid and the manual-login button sit in their own
-        // .focusSection() blocks. That gives the tvOS focus engine two
-        // peer regions: it picks the upper one (grid) for initial
-        // focus and lets ↓ walk into the button. Without the grid's
-        // section the button stole initial focus because it was the
-        // only explicit section on screen.
+        // Fixed-width columns + Spacer sandwich centers the grid (.adaptive pinned a single user to the left edge).
+        // Grid and manual-login button each get their own .focusSection() so the focus engine picks the grid for initial focus; without the grid's section the button stole it.
         let columnCount = max(1, min(users.count, 5))
         return ScrollView {
             VStack(spacing: 120) {
@@ -222,20 +199,11 @@ struct UserPickerView: View {
     private func loadUsers() async {
         isLoading = true
         errorMessage = nil
-        // Scope the JellyfinClient to the server we're about to pick
-        // users from, the server discovery step leaves baseURL at
-        // whatever was last used, and /Users/Public needs the correct
-        // host.
+        // Scope JellyfinClient to this server: discovery leaves baseURL stale, and /Users/Public needs the right host.
         dependencies.jellyfinClient.baseURL = server.url
         do {
             let fetched = try await dependencies.jellyfinAuthService.getPublicUsers()
-            // Hide profiles that are already remembered for this
-            // server, re-adding them would just overwrite the same
-            // entry, which is confusing when the user explicitly
-            // came here to *add another* profile. On first-time
-            // login the remembered list is empty so this is a
-            // no-op. A user who wants to re-authenticate a stale
-            // token can forget the profile first (long-press).
+            // Hide already-remembered profiles (re-adding overwrites the same entry). No-op on first login; re-auth a stale token by forgetting first (long-press).
             let remembered = Set(
                 dependencies.listRememberedUsers(serverID: server.id).map(\.id)
             )
@@ -270,9 +238,7 @@ private struct UserPickerCard: View {
                     .lineLimit(1)
             }
         }
-        // BareButtonStyle suppresses tvOS' default thick white focus
-        // halo. The avatar's own tint ring takes over the focus
-        // affordance (matches the LaunchProfilePicker / settings grid).
+        // BareButtonStyle suppresses tvOS' default thick white focus halo; the avatar's tint ring is the focus affordance (matches LaunchProfilePicker / settings grid).
         .buttonStyle(BareButtonStyle())
         .focused($isFocused)
     }

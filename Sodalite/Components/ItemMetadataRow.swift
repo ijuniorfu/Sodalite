@@ -39,10 +39,7 @@ struct ItemMetadataRow: View {
                 }
             }
 
-            // Rotten Tomatoes critic score, shown whenever the server
-            // delivers one (needs a metadata provider that fills
-            // CriticRating, e.g. OMDb). Badge artwork is the original
-            // jellyfin-web vector pair, same fresh/rotten split at 60.
+            // RT critic score (needs a provider filling CriticRating, e.g. OMDb); fresh/rotten split at 60, jellyfin-web badge artwork.
             if let critic = item.criticRating {
                 separator
                 HStack(spacing: 5) {

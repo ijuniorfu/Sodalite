@@ -1,9 +1,6 @@
 import SwiftUI
 
-/// Manages the profile-switching state for the active Jellyfin
-/// server: who's currently signed in, which other remembered
-/// profiles are available to swap to, whether the picker runs on
-/// every cold launch, and which profile is the default.
+/// Profile-switching for the active Jellyfin server: signed-in user, remembered profiles, launch-picker behavior, default profile.
 struct ProfileSettingsView: View {
     @Environment(\.appState) private var appState
     @Environment(\.dependencies) private var dependencies
@@ -11,11 +8,7 @@ struct ProfileSettingsView: View {
     @State private var rememberedUsers: [RememberedUser] = []
     @State private var navigateToAddProfile = false
     @State private var actionError: String?
-    /// Pushed `true` when the add-profile flow lands back on this
-    /// view via `loginDidComplete`. Without an explicit focus push
-    /// the popped stack leaves the focus engine with nothing to
-    /// land on, Menu then escapes the navigation hierarchy and
-    /// quits the app.
+    /// tvOS doesn't auto-restore focus after nav pop; without this push, Menu escapes the nav stack and quits the app.
     @FocusState private var addProfileButtonFocused: Bool
 
     private var authPreferences: AuthPreferences {
@@ -45,11 +38,7 @@ struct ProfileSettingsView: View {
         .toolbar(.hidden, for: .navigationBar)
         .navigationDestination(isPresented: $navigateToAddProfile) {
             if let server = appState.activeServer {
-                // Route through UserPickerView so the user sees the
-                // server's public profiles with avatars instead of an
-                // empty username field. If the server has the public
-                // user list disabled, UserPickerView falls back to the
-                // manual sign-in field by itself.
+                // UserPickerView shows public profiles with avatars, or falls back to manual sign-in if the list is disabled.
                 UserPickerView(server: server)
             }
         }
@@ -70,19 +59,10 @@ struct ProfileSettingsView: View {
         }
         .onAppear(perform: refresh)
         .onReceive(NotificationCenter.default.publisher(for: .loginDidComplete)) { _ in
-            // LoginView just flipped activeUser to the brand-new
-            // profile. Pop the add-profile stack (LoginView +
-            // UserPickerView) back to ProfileSettings so the
-            // "Currently signed in" card updates visibly and the
-            // user isn't stranded on a stale success checkmark.
+            // LoginView flipped activeUser; pop the add-profile stack back so the active card updates.
             navigateToAddProfile = false
             refresh()
-            // Drop focus on the add-profile button after the pop
-            // animation settles. tvOS doesn't auto-restore focus
-            // when a navigation pop completes; without this the
-            // engine has nothing to land on, the user presses
-            // Menu thinking they're stepping back, and the press
-            // escapes the navigation stack and quits the app.
+            // tvOS doesn't auto-restore focus after nav pop; without this push, Menu escapes the nav stack and quits the app.
             deferOnMain(by: 0.3) {
                 addProfileButtonFocused = true
             }
@@ -91,12 +71,7 @@ struct ProfileSettingsView: View {
 
     // MARK: - Profiles grid
 
-    /// All remembered profiles laid out side-by-side, with a green
-    /// check-badge on the one that's currently signed in. Replaces
-    /// the older "Currently signed in" + separate "Switch profile"
-    /// section split, single grid reads as the same picker the
-    /// app shows on cold launch, just with the active session
-    /// pre-marked.
+    /// All remembered profiles side-by-side with a check-badge on the active one.
     @ViewBuilder
     private var profilesGrid: some View {
         if !rememberedUsers.isEmpty, let server = appState.activeServer {
@@ -127,22 +102,12 @@ struct ProfileSettingsView: View {
                                 server: server,
                                 isCurrent: isCurrent,
                                 onSelect: {
-                                    // Tap on the active session is a
-                                    // no-op, staying signed in as the
-                                    // current user is the default state
-                                    // already.
                                     guard !isCurrent else { return }
 
                                     switchTo(user, server: server)
                                 },
                                 onLongPress: {
-                                    // Removing the active profile here
-                                    // would leave us authenticated as
-                                    // someone whose token was just
-                                    // forgotten. The Logout button
-                                    // covers that path; long-press
-                                    // remove only applies to the
-                                    // others.
+                                    // Removing the active profile would leave us authed with a forgotten token; Logout covers that path.
                                     guard !isCurrent else { return }
                                     forget(user)
                                 }
@@ -176,13 +141,7 @@ struct ProfileSettingsView: View {
                 .padding(.horizontal, 28)
                 .padding(.vertical, 14)
             }
-            // The default tvOS bordered style fills with the active
-            // tint and propagates that same tint into the Label's
-            // text + icon, pink-on-pink (or whichever accent is
-            // chosen) leaves the text invisible. SettingsTileButtonStyle
-            // uses white-opacity for fill and lets the label render in
-            // the primary foreground, so contrast holds across every
-            // tint the user can pick. Same style the radios below use.
+            // Default tvOS bordered style tints the label invisible; SettingsTileButtonStyle uses white-opacity fill.
             .buttonStyle(SettingsTileButtonStyle())
             .focused($addProfileButtonFocused)
         }
@@ -278,15 +237,9 @@ struct ProfileSettingsView: View {
     private func switchTo(_ user: RememberedUser, server: JellyfinServer) {
         do {
             try dependencies.switchToUser(user, server: server)
-            // Cached images were fetched with the previous profile's
-            // token, which might not resolve against the server under
-            // the new user's permissions. Force-refresh by clearing.
+            // Cached images carry the previous profile's token; clear so they re-fetch under new permissions.
             ImageCache.shared.clear()
-            // Same cross-profile reason for the filter grids: cached
-            // item lists carry the previous user's library permissions
-            // and watched/favorite flags. switchToUser doesn't bump
-            // serverDidSwitch (same server), so HomeView's clearing
-            // task never fires for this path.
+            // switchToUser doesn't bump serverDidSwitch (same server), so HomeView's clear-task never fires; clear here.
             FilterCache.shared.clearAll()
             let jf = JellyfinUser(
                 id: user.id,
@@ -299,19 +252,9 @@ struct ProfileSettingsView: View {
             appState.setAuthenticated(server: server, user: jf)
             refresh()
 
-            // Carry the Seerr session for this profile across the
-            // switch, each Jellyfin user has their own Seerr login
-            // saved separately in the keychain. If the stored cookie
-            // turns out to be invalid we drop it and fall back to a
-            // disconnected state; the user re-auths once and it
-            // sticks from then on.
+            // Restore this profile's Seerr session (each Jellyfin user has a separate per-profile cookie in the keychain).
             Task { await restoreSeerrForSwitchedProfile(userID: user.id, serverID: server.id) }
-            // Refresh the user's details from the server so a nil or
-            // stale PrimaryImageTag in the RememberedUser gets
-            // backfilled. Older entries (pre backfill-from-picker
-            // fix) and legacy migrations sometimes landed with
-            // imageTag=nil even though the user has a Jellyfin
-            // avatar.
+            // Backfill a nil/stale PrimaryImageTag on older RememberedUser entries.
             Task { await refreshUserDetails(userID: user.id, serverID: server.id) }
         } catch {
             actionError = error.localizedDescription
@@ -319,9 +262,7 @@ struct ProfileSettingsView: View {
     }
 
     private func refreshUserDetails(userID: String, serverID: String) async {
-        // Fetch + keychain/remembered-user persistence live in the
-        // container; this view only applies the refreshed user to
-        // AppState.
+        // Fetch + keychain persistence live in the container; this view only applies the result to AppState.
         if let fresh = await dependencies.refreshActiveUserDetails(
             expectedUserID: userID,
             serverID: serverID

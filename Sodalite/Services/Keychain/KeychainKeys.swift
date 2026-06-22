@@ -15,62 +15,40 @@ enum KeychainKeys {
         "jellyfinPassword_\(serverID)"
     }
 
-    /// JSON-encoded `[RememberedUser]` array for one server. All
-    /// profile-switching state lives under this single blob so
-    /// adds/removes are atomic writes.
+    /// JSON `[RememberedUser]` for one server, single blob so profile add/remove is an atomic write.
     static func rememberedUsers(serverID: String) -> String {
         "rememberedUsers_\(serverID)"
     }
 
     static let seerrServer = "seerrServer"
 
-    /// JSON-encoded `[JellyfinServer]` list. Order is significant:
-    /// the front of the list is the most recently added or upserted
-    /// server. The picker and settings list render in this order.
+    /// JSON `[JellyfinServer]`. Order is significant: front = most-recently added/upserted; picker and settings render in this order.
     static let knownServers = "knownServers"
 
-    /// The `JellyfinServer.id` of the currently active server. Must
-    /// always resolve into an entry of `knownServers` when present.
-    /// Cleared only when the user removes the last known server.
+    /// `JellyfinServer.id` of the active server. Must resolve into a `knownServers` entry when present; cleared only when the last server is removed.
     static let activeServerID = "activeServerID"
 
-    /// Display name of the active user, written next to every session
-    /// save so restore paths can render the profile header before the
-    /// first /Users/Me lands. These used to be raw string literals
-    /// scattered across five files; a typo in any one silently split
-    /// the active-user identity.
+    /// Active user's display name, written beside every session save so restore can render the profile header before /Users/Me lands. Centralized key: scattered literals once let a typo split the active-user identity.
     static let activeUserName = "activeUserName"
-    /// PrimaryImageTag of the active user (avatar), same lifecycle as
-    /// `activeUserName`.
+    /// Active user's avatar PrimaryImageTag, same lifecycle as `activeUserName`.
     static let activeUserImageTag = "activeUserImageTag"
 
-    /// JSON-encoded `GuardianPINCrypto.Blob`. Device-global (NOT
-    /// per-server): one household PIN guards every profile. Absent =
-    /// no PIN set. Survives app-data clears (keychain), so the lock and
-    /// its throttle cannot be reset by wiping UserDefaults.
+    /// JSON `GuardianPINCrypto.Blob`. Device-global (one household PIN, not per-server); absent = no PIN. Keychain so wiping UserDefaults can't reset the lock or its throttle.
     static let guardianPINBlob = "guardianPINBlob"
 
-    /// JSON-encoded `GuardianPINThrottle`. Tracks consecutive failed
-    /// unlock attempts + a lockout deadline. Device-global, keychain so
-    /// it resists tampering.
+    /// JSON `GuardianPINThrottle` (failed-attempt count + lockout deadline). Device-global, keychain to resist tampering.
     static let guardianPINThrottle = "guardianPINThrottle"
 
     static func seerrSession(serverID: String) -> String {
         "seerrSession_\(serverID)"
     }
 
-    /// JSON-encoded `RememberedSeerrSession` for a specific Jellyfin
-    /// profile. Lets profile switching restore each user's own Seerr
-    /// login instead of forcing them to re-auth on every swap.
+    /// JSON `RememberedSeerrSession` per Jellyfin profile, so a profile switch restores each user's own Seerr login instead of re-auth.
     static func rememberedSeerr(jellyfinServerID: String, jellyfinUserID: String) -> String {
         "rememberedSeerr_\(jellyfinServerID)_\(jellyfinUserID)"
     }
 
-    /// Shared-session blob slot keyed by tvOS system user. Nil
-    /// (single-user Apple TV) lands in the `default` slot so the
-    /// no-multi-user path keeps using one blob, same as today.
-    /// Multi-user writes land in a per-identifier slot, which the
-    /// TopShelf extension reads via TVUserManager.
+    /// Shared-session blob slot keyed by tvOS user; nil (single-user) → `default` slot, multi-user → per-id slot the TopShelf extension reads via TVUserManager.
     static func sharedSession(tvUserID: String?) -> String {
         "tvOSSession_\(tvUserID ?? "default")"
     }

@@ -1,8 +1,6 @@
 import Foundation
 
-/// A configured Radarr or Sonarr instance inside Seerr. `/service/radarr`
-/// and `/service/sonarr` return a list of these; the `isDefault` flag
-/// marks the one Seerr uses when the request body omits `serverId`.
+/// A Radarr/Sonarr instance from `/service/radarr|sonarr`; `isDefault` marks the one used when the request body omits `serverId`.
 struct SeerrServiceServer: Codable, Sendable, Identifiable, Equatable {
     let id: Int
     let name: String
@@ -18,9 +16,7 @@ struct SeerrServiceDetails: Codable, Sendable {
     let profiles: [SeerrQualityProfile]
     let rootFolders: [SeerrRootFolder]
     let languageProfiles: [SeerrLanguageProfile]?
-    /// Sonarr/Radarr tag list. Jellyseerr forwards Radarr/Sonarr's
-    /// `/api/v3/tag` response here so the request body can attach
-    /// one or more tag ids to the resulting download.
+    /// Sonarr/Radarr tag list (forwarded from `/api/v3/tag`) for attaching tag ids to the download.
     let tags: [SeerrTag]?
 }
 

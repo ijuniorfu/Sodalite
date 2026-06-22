@@ -1,12 +1,7 @@
 import Foundation
 import Observation
 
-/// Per-remembered-profile "protected" flags for parental controls.
-/// A profile is keyed by the composite "serverID:userID" so the same
-/// Jellyfin user on two servers is tracked independently. The Guardian
-/// PIN hash itself lives in the keychain (see DependencyContainer), not
-/// here: this store holds only the non-sensitive which-profiles-are-kids
-/// set. The auth-critical RememberedUser keychain blob is never touched.
+/// Per-profile protected flags keyed by composite serverID:userID; PIN hash lives in keychain (DependencyContainer) not here; RememberedUser blob untouched.
 @Observable
 @MainActor
 final class ParentalControlsPreferences {
@@ -15,7 +10,6 @@ final class ParentalControlsPreferences {
         static let protectedProfileIDs = "parental.protectedProfileIDs"
     }
 
-    /// Composite "serverID:userID" keys of profiles marked protected.
     var protectedProfileIDs: Set<String> {
         didSet {
             store.set(protectedProfileIDs.sorted(), forKey: Keys.protectedProfileIDs)

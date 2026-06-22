@@ -1,18 +1,11 @@
 import Foundation
 import AetherEngine
 
-/// Formats TrackInfo into localized display strings for the player UI.
-///
-/// Uses `Locale.current.localizedString(forLanguageCode:)` for language
-/// names, automatically localized by Apple's frameworks (e.g. "en" →
-/// "Englisch" on a German device, "英語" on Japanese).
-///
-/// Audio format: "Deutsch · Dolby Digital 5.1"
-/// Subtitle format: "Englisch"
+/// Formats TrackInfo into localized player-UI strings (language names via
+/// `Locale.current.localizedString(forLanguageCode:)`).
+/// Audio: "Deutsch · Dolby Digital 5.1", subtitle: "Englisch".
 enum TrackDisplayFormatter {
 
-    /// Full display name for an audio track.
-    /// Example: "Deutsch · Dolby Digital 5.1" or "Englisch · Dolby Atmos"
     static func audioDisplayName(for track: TrackInfo) -> String {
         var parts: [String] = []
 
@@ -20,10 +13,8 @@ enum TrackDisplayFormatter {
             parts.append(lang)
         }
 
-        // Atmos overrides the bed-channel description: a track that's
-        // 5.1 + JOC objects is universally branded as "Dolby Atmos",
-        // not "Dolby Digital+ 5.1", which is what the user sees on
-        // every other Atmos-aware UI.
+        // Atmos overrides the bed-channel description (5.1 + JOC = "Dolby
+        // Atmos", not "Dolby Digital+ 5.1"), matching other Atmos UIs.
         if track.isAtmos {
             parts.append("Dolby Atmos")
         } else {
@@ -39,8 +30,6 @@ enum TrackDisplayFormatter {
         return parts.joined(separator: " · ")
     }
 
-    /// Display name for a subtitle track.
-    /// Example: "Deutsch" or "English (Forced)"
     static func subtitleDisplayName(for track: TrackInfo) -> String {
         if let title = titleIfUseful(track), let lang = languageName(for: track) {
             return "\(lang) (\(title))"
@@ -49,9 +38,8 @@ enum TrackDisplayFormatter {
             ?? String(localized: "player.track.unknown", defaultValue: "Unknown")
     }
 
-    /// Display name for a Jellyfin subtitle MediaStream.
-    /// Uses displayTitle from Jellyfin if available (e.g. "German - Forced"),
-    /// otherwise builds from language + flags.
+    /// Subtitle MediaStream name: Jellyfin displayTitle if useful, else built
+    /// from language + flags.
     static func subtitleStreamDisplayName(for stream: MediaStream) -> String {
         let lang = streamLanguageName(for: stream)
 
@@ -61,7 +49,6 @@ enum TrackDisplayFormatter {
             let lower = title.lowercased()
             let useful = ["sdh", "commentary", "cc", "signs", "songs", "full", "hearing", "forced", "musik", "music"]
             if useful.contains(where: { lower.contains($0) }) {
-                // Use original title if it has useful descriptor
                 if let lang { return "\(lang) (\(title))" }
                 return title
             }
@@ -73,13 +60,11 @@ enum TrackDisplayFormatter {
             ?? String(localized: "player.track.unknown", defaultValue: "Unknown")
     }
 
-    /// Short name for subtitle button label.
     static func subtitleShortName(for stream: MediaStream) -> String {
         streamLanguageName(for: stream) ?? stream.displayTitle ?? "Sub"
     }
 
-    /// Short name for the transport bar button label.
-    /// Shows language only, no codec info.
+    /// Transport-bar label: language only, no codec.
     static func shortName(for track: TrackInfo) -> String {
         languageName(for: track) ?? track.name
     }
@@ -96,7 +81,6 @@ enum TrackDisplayFormatter {
 
     private static func languageName(for track: TrackInfo) -> String? {
         guard let code = track.language, !code.isEmpty else { return nil }
-        // Apple's Locale API: returns full language name in the current locale
         if let name = Locale.current.localizedString(forLanguageCode: code) {
             return name.prefix(1).uppercased() + name.dropFirst()
         }
@@ -141,11 +125,10 @@ enum TrackDisplayFormatter {
         }
     }
 
-    /// Returns the track title only if it contains useful metadata
-    /// beyond just the language name (e.g. "Forced", "SDH", "Commentary").
+    /// Track title only if it carries metadata beyond the language name
+    /// (e.g. "Forced", "SDH", "Commentary").
     private static func titleIfUseful(_ track: TrackInfo) -> String? {
         guard let title = track.name.nilIfEmpty else { return nil }
-        // If the title is just the language code/name, it's not useful
         if let lang = track.language {
             let langName = Locale.current.localizedString(forLanguageCode: lang) ?? ""
             if title.caseInsensitiveCompare(lang) == .orderedSame

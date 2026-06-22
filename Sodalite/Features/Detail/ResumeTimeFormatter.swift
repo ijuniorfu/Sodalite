@@ -1,15 +1,8 @@
 import Foundation
 
-/// Formats a Jellyfin `playbackPositionTicks` value (100-ns ticks) into
-/// a compact resume-position label for the detail-view play buttons:
-/// `12:34` for sub-hour positions, `1:02:45` once the run-time crosses
-/// an hour. Sprachneutral so we can use the same string across all 26
-/// shipped locales without going through the catalog.
+/// Formats Jellyfin playbackPositionTicks (100-ns ticks) into a compact resume label: "12:34" sub-hour, "1:02:45" past an hour. Language-neutral, so it's reused across all 26 locales without the catalog.
 enum ResumeTimeFormatter {
-    /// Jellyfin's `playbackPositionTicks` is `Int64?`, Swift refuses
-    /// to widen `Int → Int64` implicitly in either direction, so the
-    /// formatter mirrors the source type rather than forcing every
-    /// call site to wrap in `Int(...)`.
+    /// Takes Int64 (mirrors playbackPositionTicks) so call sites don't wrap in Int(...); Swift won't widen Int→Int64 implicitly.
     static func format(ticks: Int64) -> String? {
         guard ticks > 0 else { return nil }
         let totalSeconds = Int(ticks / 10_000_000)

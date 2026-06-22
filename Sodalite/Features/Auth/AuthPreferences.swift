@@ -1,21 +1,14 @@
 import Foundation
 import Observation
 
-/// User-facing preferences that control what happens on app launch
-/// when multiple profiles have been remembered for the active
-/// server. UserDefaults-backed, none of this is sensitive (just
-/// which profile ID to auto-pick and whether to show the picker).
+/// Launch behavior for multi-profile servers. UserDefaults-backed (no secrets, just IDs + picker toggle).
 @Observable
 @MainActor
 final class AuthPreferences {
 
     enum LaunchBehavior: String, CaseIterable, Sendable {
-        /// Show the remembered-profiles picker on every cold launch.
-        /// Matches the Netflix-style "Who's watching?" feel.
         case showPicker
-        /// Skip the picker and restore `defaultUserID` directly.
-        /// If the default ID is no longer remembered (user was
-        /// forgotten), we silently fall back to the picker.
+        /// Restore `defaultUserID` directly; silently falls back to the picker if that ID is no longer remembered.
         case useDefault
     }
 
@@ -33,9 +26,7 @@ final class AuthPreferences {
         didSet { store.set(launchBehavior.rawValue, forKey: Keys.launchBehavior) }
     }
 
-    /// Jellyfin user ID to restore when `launchBehavior == .useDefault`.
-    /// Nil means "no default set yet", the picker shows regardless
-    /// of launch behavior in that case.
+    /// Nil means no default set yet: the picker shows regardless of launch behavior.
     var defaultUserID: String? {
         didSet {
             if let defaultUserID, !defaultUserID.isEmpty {
@@ -46,10 +37,7 @@ final class AuthPreferences {
         }
     }
 
-    /// Jellyfin server ID to auto-promote to active on cold launch.
-    /// Nil means "no default set", the most recently used server is
-    /// kept active. Cleared automatically when the referenced server
-    /// is removed.
+    /// Server auto-promoted to active on cold launch. Nil keeps the most-recently-used; cleared when the server is removed.
     var defaultServerID: String? {
         didSet {
             if let defaultServerID, !defaultServerID.isEmpty {

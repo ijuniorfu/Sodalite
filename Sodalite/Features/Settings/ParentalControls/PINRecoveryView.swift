@@ -1,8 +1,6 @@
 import SwiftUI
 
-/// PIN recovery: prove control of an unprotected account by entering its
-/// Jellyfin password. No new secret is introduced; recovery is bound to
-/// existing server credentials. On success the caller collects a new PIN.
+/// PIN recovery: prove control of an unprotected account via its Jellyfin password; recovery bound to existing server creds.
 struct PINRecoveryView: View {
     @Environment(\.dependencies) private var dependencies
 
@@ -102,13 +100,7 @@ struct PINRecoveryView: View {
         guard let user = selected, let server = selectedServer else { return }
         isValidating = true
         defer { isValidating = false }
-        // Point the client at the candidate's host to validate credentials.
-        // login() is a pure REST call; it does not mutate stored session or
-        // token. Restore the previous baseURL on failure so a wrong-password
-        // attempt against a different server doesn't leave the shared client
-        // pointed away from the active session's host (the active token is
-        // unchanged, so this is tidiness, not a leak). On success we proceed
-        // to set a new PIN and the normal restore path realigns the client.
+        // login() is a pure REST call; does not mutate stored session/token. Restore previous baseURL on failure (tidiness, not a leak; active token unchanged).
         let previousBaseURL = dependencies.jellyfinClient.baseURL
         dependencies.jellyfinClient.baseURL = server.url
         do {

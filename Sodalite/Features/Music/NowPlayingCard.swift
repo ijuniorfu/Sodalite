@@ -1,12 +1,9 @@
 import SwiftUI
 
-/// A compact pill-shaped "now playing" card shown at the top of the Music
-/// tab while a track is active. Replaces the old global floating mini-player
-/// (which covered the action buttons in detail views). The pill fills with a
-/// tinted progress bar (like the Resume button in detail views) and shows the
-/// elapsed / total time, both updating live. Tapping the card opens the
-/// fullscreen Now-Playing screen (where transport lives, so the card itself
-/// carries no buttons).
+/// Pill "now playing" card atop the Music tab while a track is active. Replaced the old global
+/// floating mini-player (it covered detail-view action buttons). Fills with a tinted progress bar
+/// (like the Resume button), shows live elapsed/total; tapping opens the fullscreen player (where
+/// transport lives, so the card has no buttons).
 struct NowPlayingCard: View {
     @Environment(\.dependencies) private var dependencies
 
@@ -68,8 +65,7 @@ struct NowPlayingCard: View {
         }
     }
 
-    /// Capsule material base with a tinted progress fill from the left,
-    /// clipped to the pill (mirrors the Resume button's fill).
+    /// Material capsule with a left-anchored tinted progress fill (mirrors the Resume button).
     private func progressFill(_ progress: Double) -> some View {
         Capsule()
             .fill(.regularMaterial)

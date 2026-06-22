@@ -2,12 +2,7 @@ import SwiftUI
 
 // MARK: - Value Picker Row
 
-/// Full-width settings row shared by Playback and Appearance settings.
-/// The Siri Remote's left/right gesture cycles through the options
-/// directly, no click, no dropdown to open. The chevrons are visual
-/// cues; they're not independent focus targets. Select also advances
-/// forward, because some users press instead of swipe. Up/Down moves
-/// between rows as usual.
+/// Full-width settings row: left/right cycles options directly (no dropdown), Select also advances forward, chevrons are cues not focus targets.
 struct ValuePickerRow<Value: Hashable>: View {
     let icon: String
     let title: LocalizedStringKey
@@ -78,8 +73,7 @@ struct ValuePickerRow<Value: Hashable>: View {
             default: break
             }
         }
-        // Pressing the clickpad also advances forward for users who
-        // prefer clicking over swiping.
+        // Click also advances forward for users who prefer clicking over swiping.
         .stableTap(isFocused: focused) {
             advance(by: 1)
         }
@@ -92,8 +86,7 @@ struct ValuePickerRow<Value: Hashable>: View {
     private var canMoveBackward: Bool { currentIndex > 0 }
     private var canMoveForward: Bool { currentIndex < options.count - 1 }
 
-    /// Advance the selection. Clamps at the ends, no wrap, because
-    /// wrap is disorienting for short lists like "Off / 5s / 10s / 15s".
+    /// Clamps at the ends, no wrap (disorienting for short lists like "Off / 5s / 10s / 15s").
     private func advance(by step: Int) {
         let newIdx = max(0, min(options.count - 1, currentIndex + step))
         if newIdx != currentIndex {

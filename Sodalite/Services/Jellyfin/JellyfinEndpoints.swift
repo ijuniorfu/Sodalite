@@ -20,10 +20,7 @@ enum JellyfinEndpoint: APIEndpoint {
     // Items
     case items(userID: String, query: ItemQuery)
     case itemDetail(userID: String, itemID: String)
-    /// GET /Users/{userID}/Items/{itemID}/LocalTrailers — returns the
-    /// item's local trailer files as a bare array of BaseItemDtos
-    /// (not the {Items:[...]} envelope). Each is a real, playable item
-    /// with its own id.
+    /// GET LocalTrailers: bare BaseItemDto array (not the {Items:[...]} envelope); each is a playable item with its own id.
     case localTrailers(userID: String, itemID: String)
     case resumeItems(userID: String, mediaType: String, limit: Int)
     case nextUp(userID: String, seriesID: String?, limit: Int, rewatching: Bool)
@@ -31,18 +28,14 @@ enum JellyfinEndpoint: APIEndpoint {
     case seasons(seriesID: String, userID: String)
     case episodes(seriesID: String, seasonID: String, userID: String)
     case similarItems(itemID: String, userID: String, limit: Int)
-    /// DELETE /Items/{itemID} — server-side delete. Jellyfin handles
-    /// the cascade (series -> seasons -> episodes) on its own; we call
-    /// this once per item.
+    /// DELETE /Items/{itemID}; Jellyfin cascades series→seasons→episodes server-side, called once per item.
     case deleteItem(itemID: String)
 
     // Genres & Studios
     case genres(userID: String)
     case studios(userID: String)
 
-    // Playback. The PlaybackInfo body is the DeviceProfile dictionary
-    // (built as [String: Any] by DirectPlayProfile), bridged through
-    // JSONValue so the HTTPClient's Encodable body path can carry it.
+    // PlaybackInfo body is the DeviceProfile dict (DirectPlayProfile [String: Any]) bridged through JSONValue for the Encodable body path.
     case playbackInfo(itemID: String, userID: String, payload: JSONValue)
     case livePlaybackInfo(itemID: String, userID: String, maxStreamingBitrate: Int, payload: JSONValue)
     case sessionPlaying(report: PlaybackStartReport)
@@ -60,18 +53,13 @@ enum JellyfinEndpoint: APIEndpoint {
     // Search
     case searchHints(userID: String, query: String, limit: Int)
 
-    // Media Segments (Intro / Outro markers, Jellyfin 10.10+ native,
-    // or intro-skipper plugin on older servers)
+    // Intro/Outro markers (Jellyfin 10.10+ native, or intro-skipper plugin on older servers)
     case mediaSegments(itemID: String)
 
-    // Subtitle RemoteSearch (needs a server-side subtitle provider
-    // plugin, e.g. OpenSubtitles). `subtitleID` is provider-scoped and
-    // can contain slashes, so it is percent-encoded into the path.
+    // Subtitle RemoteSearch needs a server-side provider plugin (e.g. OpenSubtitles). `subtitleID` is provider-scoped, can contain slashes, so percent-encoded into the path.
     case remoteSearchSubtitles(itemID: String, language: String)
     case downloadRemoteSubtitle(itemID: String, subtitleID: String)
-    /// DELETE /Videos/{itemID}/Subtitles/{index} — removes an external
-    /// subtitle file from the item. Needs subtitle-management rights on
-    /// the server.
+    /// DELETE external subtitle; needs subtitle-management rights.
     case deleteSubtitle(itemID: String, index: Int)
 
     // Live TV
@@ -80,12 +68,7 @@ enum JellyfinEndpoint: APIEndpoint {
     case liveTvRecommendedPrograms(userID: String, category: LiveProgramCategory, limit: Int)
     case liveTvGuideInfo
     case closeLiveStream(liveStreamID: String)
-    /// DELETE /Videos/ActiveEncodings: kill the server-side transcode job
-    /// for this (device, play session) and DELETE its output files. The
-    /// canonical cleanup call jellyfin-web fires on every stop. Without
-    /// it, a live transcode whose PlaybackStopped report is lost (app
-    /// kill, network drop, crash) keeps ffmpeg writing an endlessly
-    /// growing stream.ts until the server disk fills.
+    /// DELETE /Videos/ActiveEncodings: kill the transcode for this (device, play session) + its output. Without it a live transcode whose PlaybackStopped is lost (app kill/crash) keeps ffmpeg growing stream.ts until the disk fills.
     case stopActiveEncodings(deviceID: String, playSessionID: String)
     case liveTvRecordings(userID: String, isInProgress: Bool?)
     case liveTvTimers
@@ -219,25 +202,13 @@ enum JellyfinEndpoint: APIEndpoint {
         }
     }
 
-    /// Session-reporting writes run detached / fire-and-forget after
-    /// the user has dismissed the player (stopPlayback) or as a
-    /// background timer (progress). They no longer block any UI, so
-    /// the 30 s default is overly aggressive — if a slow CDN origin
-    /// stalls for 35 s, the position write is dropped and Jellyfin
-    /// keeps the stale resume point. 90 s gives the server enough
-    /// grace to accept the write even on hiccupping origins, per
-    /// DrHurt's caution on Sodalite#12 ("don't timeout on it too
-    /// soon"). Everything else keeps the 30 s default.
+    /// 90s for fire-and-forget session writes: a 30s drop on a slow CDN origin loses the position and strands a stale resume point (Sodalite#12). Everything else keeps 30s.
     var timeoutInterval: TimeInterval? {
         switch self {
         case .sessionPlaying, .sessionProgress, .sessionStopped:
             return 90
         case .playbackInfo, .livePlaybackInfo:
-            // PlaybackInfo ran on URLSession.shared (60 s default)
-            // before it moved onto the HTTPClient stack; keep that
-            // ceiling. The live variant especially needs it:
-            // AutoOpenLiveStream opens + probes the tuner server-side,
-            // and slow IPTV tuners regularly exceed the 30 s default.
+            // 60s (its old URLSession.shared ceiling); live AutoOpenLiveStream probes the tuner server-side and slow IPTV tuners exceed 30s.
             return 60
         default:
             return nil
@@ -253,11 +224,7 @@ enum JellyfinEndpoint: APIEndpoint {
             return [URLQueryItem(name: "UserId", value: userID)]
 
         case .livePlaybackInfo(_, let userID, let maxStreamingBitrate, _):
-            // AutoOpenLiveStream opens + probes the tuner so the source
-            // codecs are known (so Jellyfin can DirectStream/copy instead
-            // of always re-encoding) and a real LiveStreamId comes back.
-            // IsPlayback marks a real play. MaxStreamingBitrate caps any
-            // transcode the server falls to.
+            // AutoOpenLiveStream probes the tuner (known codecs → DirectStream/copy, real LiveStreamId); IsPlayback marks a real play; MaxStreamingBitrate caps a transcode fallback.
             return [
                 URLQueryItem(name: "UserId", value: userID),
                 URLQueryItem(name: "AutoOpenLiveStream", value: "true"),
@@ -270,29 +237,21 @@ enum JellyfinEndpoint: APIEndpoint {
             return query.toQueryItems()
 
         case .localTrailers(let userID, _):
-            // UserId so returned trailers carry user data; defaultFields
-            // so they arrive with MediaSources/Chapters like any other
-            // playable detail item.
+            // UserId for user data; defaultFields so trailers arrive with MediaSources/Chapters like a playable detail item.
             return [
                 URLQueryItem(name: "UserId", value: userID),
                 URLQueryItem(name: "Fields", value: Self.defaultFields),
             ]
 
         case .itemDetail:
-            // /Users/{id}/Items/{id} otherwise omits the extended
-            // `Fields`. defaultFields is our standard "give me enough
-            // to render a rich detail view" set, including
-            // LocalTrailerCount so the Trailer button can gate its
-            // visibility without a second round-trip.
+            // Needs explicit defaultFields (rich detail), incl. LocalTrailerCount so the Trailer button gates without a second round-trip.
             return [URLQueryItem(name: "Fields", value: Self.defaultFields)]
 
         case .resumeItems(_, let mediaType, let limit):
             return [
                 URLQueryItem(name: "MediaTypes", value: mediaType),
                 URLQueryItem(name: "Limit", value: String(limit)),
-                // Continue Watching feeds a Home carousel (and the
-                // resume deep-link, which only reads the item id), so
-                // the slim home field set is all it needs, see homeRowFields.
+                // Continue Watching is a Home carousel + resume deep-link; slim homeRowFields suffices.
                 URLQueryItem(name: "Fields", value: Self.homeRowFields),
             ]
 
@@ -300,24 +259,12 @@ enum JellyfinEndpoint: APIEndpoint {
             var items = [
                 URLQueryItem(name: "UserId", value: userID),
                 URLQueryItem(name: "Limit", value: String(limit)),
-                // Next Up feeds a Home carousel and the series-detail play
-                // button (which renders only name / index / runtime / resume,
-                // all base or UserData fields), so the slim set suffices.
+                // Next Up is a Home carousel + series-detail play button; slim homeRowFields suffices.
                 URLQueryItem(name: "Fields", value: Self.homeRowFields),
-                // Exclude in-progress (resumable) episodes from Next Up so a
-                // partially-watched episode shows only in Continue Watching,
-                // not in both rows. Jellyfin returns the same episode from
-                // /Shows/NextUp and /Users/{id}/Items/Resume otherwise, and
-                // the two Home rows are fetched independently with no
-                // client-side dedup. Ignored by Jellyfin servers predating
-                // the parameter, which simply leaves the prior behaviour.
+                // EnableResumable=false: keep partially-watched episodes out of Next Up (else they double up with Continue Watching, the two rows fetch independently with no client dedup). Ignored by older servers.
                 URLQueryItem(name: "EnableResumable", value: "false"),
             ]
-            // Keep surfacing the next episode after the last one played even
-            // once a series is fully watched, for rewatching. Orthogonal to
-            // EnableResumable (in-progress episodes still land only in
-            // Continue Watching). Only sent when on; omitted otherwise so
-            // servers predating the parameter keep their prior behaviour.
+            // EnableRewatching: surface the next episode even on a fully-watched series. Orthogonal to EnableResumable; only sent when on so older servers keep prior behaviour.
             if rewatching {
                 items.append(URLQueryItem(name: "EnableRewatching", value: "true"))
             }
@@ -329,20 +276,14 @@ enum JellyfinEndpoint: APIEndpoint {
         case .latestMedia(_, let parentID, let includeItemTypes, let limit):
             var items = [
                 URLQueryItem(name: "Limit", value: String(limit)),
-                // Latest Movies / Shows / per-library Latest are all Home
-                // carousels; slim field set, the card renders image + title
-                // + year only (see homeRowFields).
+                // Latest rows are Home carousels; slim homeRowFields.
                 URLQueryItem(name: "Fields", value: Self.homeRowFields),
             ]
             if let parentID {
                 items.append(URLQueryItem(name: "ParentId", value: parentID))
             }
             if let includeItemTypes {
-                // Filter /Items/Latest to one specific item type,
-                // without it, dropping ParentId means the row
-                // aggregates movies + series + music in a random
-                // jumble instead of feeding a typed "Latest Movies"
-                // or "Latest Shows" row.
+                // Without IncludeItemTypes, dropping ParentId makes the row a movie+series+music jumble instead of a typed "Latest Movies"/"Latest Shows".
                 items.append(URLQueryItem(
                     name: "IncludeItemTypes",
                     value: includeItemTypes.map(\.rawValue).joined(separator: ",")
@@ -353,12 +294,7 @@ enum JellyfinEndpoint: APIEndpoint {
         case .seasons(_, let userID):
             return [
                 URLQueryItem(name: "UserId", value: userID),
-                // Slim field set, NOT defaultFields. The season bar only
-                // renders the name (a base field); index, childCount and
-                // watched state (UserData) ride along with UserId. Dropping
-                // the heavy per-season arrays here matters because getSeasons
-                // gates the whole season + episode section from appearing,
-                // it was the slowest of the detail round-trips on slow CDNs.
+                // seasonListFields, NOT defaultFields: getSeasons gates the whole season+episode section and was the slowest detail round-trip on slow CDNs.
                 URLQueryItem(name: "Fields", value: Self.seasonListFields),
             ]
 
@@ -366,16 +302,7 @@ enum JellyfinEndpoint: APIEndpoint {
             return [
                 URLQueryItem(name: "SeasonId", value: seasonID),
                 URLQueryItem(name: "UserId", value: userID),
-                // Slim field set, NOT defaultFields. The episode row only
-                // needs the overview and the primary image tag, name /
-                // index / runtime are base fields and UserData (watched
-                // badge, resume progress) comes back automatically with
-                // UserId. Dropping MediaStreams / MediaSources / People /
-                // Chapters / Studios here is the big win for slow servers:
-                // those per-episode arrays bloat the list response and were
-                // the reason the row took seconds to land. The episode
-                // detail (TechInfoBox) pulls the full field set lazily when
-                // an episode is actually opened.
+                // episodeListFields, NOT defaultFields: dropping the heavy per-episode arrays is the big win on slow servers; episode detail (TechInfoBox) pulls the full set lazily on open.
                 URLQueryItem(name: "Fields", value: Self.episodeListFields),
             ]
 
@@ -407,9 +334,7 @@ enum JellyfinEndpoint: APIEndpoint {
             ]
 
         case .mediaSegments:
-            // Request both Intro (skip-intro button) and Outro (drives the
-            // early next-episode overlay). Repeated same-name items bind to
-            // ASP.NET's list parameter: ?includeSegmentTypes=Intro&includeSegmentTypes=Outro.
+            // Intro (skip button) + Outro (early next-episode overlay). Repeated same-name items bind ASP.NET's list parameter.
             return [
                 URLQueryItem(name: "includeSegmentTypes", value: "Intro"),
                 URLQueryItem(name: "includeSegmentTypes", value: "Outro"),
@@ -422,31 +347,18 @@ enum JellyfinEndpoint: APIEndpoint {
                 URLQueryItem(name: "Limit", value: String(limit)),
                 URLQueryItem(name: "EnableImages", value: "true"),
                 URLQueryItem(name: "AddCurrentProgram", value: "true"),
-                // UserData carries IsFavorite; favorite sorting floats
-                // favorited channels to the top server-side, which keeps the
-                // guide's StartIndex pagination and incremental diffing intact
-                // (a client-side re-sort would break both).
+                // Server-side favorite sorting (via UserData IsFavorite) keeps StartIndex pagination + incremental diffing intact, which a client re-sort would break.
                 URLQueryItem(name: "EnableUserData", value: "true"),
                 URLQueryItem(name: "EnableFavoriteSorting", value: "true"),
             ]
 
         case .liveTvPrograms(let channelIDs, let userID, let minEnd, let maxStart):
-            // Local formatter: ISO8601DateFormatter is not Sendable, so it
-            // cannot be a shared static under Swift 6 strict concurrency.
-            // Guide program-window requests are low-frequency, so the
-            // per-call allocation is negligible.
+            // Local formatter: ISO8601DateFormatter isn't Sendable so can't be a shared static; these requests are low-frequency.
             let iso = ISO8601DateFormatter()
             return [
                 URLQueryItem(name: "ChannelIds", value: channelIDs.joined(separator: ",")),
                 URLQueryItem(name: "UserId", value: userID),
-                // Overlap semantics, NOT containment: a program belongs in
-                // the guide window when it ends after the window starts
-                // (MinEndDate) and starts before the window ends
-                // (MaxStartDate). The earlier MinStartDate filter dropped
-                // every program that began before the axis start, i.e.
-                // exactly the ones airing RIGHT NOW, so the first column
-                // of the EPG was empty and those channels unplayable from
-                // the grid.
+                // Overlap, NOT containment (MinEndDate + MaxStartDate): the old MinStartDate filter dropped programs airing RIGHT NOW, emptying the EPG's first column.
                 URLQueryItem(name: "MinEndDate", value: iso.string(from: minEnd)),
                 URLQueryItem(name: "MaxStartDate", value: iso.string(from: maxStart)),
                 URLQueryItem(name: "SortBy", value: "StartDate"),
@@ -466,9 +378,7 @@ enum JellyfinEndpoint: APIEndpoint {
                 URLQueryItem(name: "UserId", value: userID),
                 flag,
                 URLQueryItem(name: "EnableImages", value: "true"),
-                // ChannelInfo populates ChannelName on each program so the
-                // card subtitle and the synthesized JellyfinChannel (for
-                // playback / favorite) have a name without a channel fetch.
+                // ChannelInfo populates ChannelName so the card subtitle + synthesized JellyfinChannel have a name without a channel fetch.
                 URLQueryItem(name: "Fields", value: "ChannelInfo"),
                 URLQueryItem(name: "SortBy", value: "StartDate"),
                 URLQueryItem(name: "Limit", value: String(limit)),
@@ -488,15 +398,10 @@ enum JellyfinEndpoint: APIEndpoint {
                 URLQueryItem(name: "UserId", value: userID),
                 URLQueryItem(name: "EnableImages", value: "true"),
                 URLQueryItem(name: "Fields", value: "Overview"),
-                // userData.playbackPositionTicks drives resume playback,
-                // matching the same flag on liveTvChannels (~line 347).
+                // userData.playbackPositionTicks drives resume, matching liveTvChannels.
                 URLQueryItem(name: "EnableUserData", value: "true"),
             ]
-            // Active-recording detection: modern Jellyfin does not
-            // populate BaseItemDto.Status on recording items; the
-            // IsInProgress query filter is how jellyfin-web finds the
-            // active ones (verified against the live server: the filter
-            // is accepted and returns the standard envelope).
+            // Modern Jellyfin leaves BaseItemDto.Status empty on recordings; the IsInProgress filter is how jellyfin-web finds active ones (verified against the live server).
             if let isInProgress {
                 items.append(URLQueryItem(name: "IsInProgress", value: isInProgress ? "true" : "false"))
             }
@@ -542,53 +447,22 @@ enum JellyfinEndpoint: APIEndpoint {
 
     static let defaultFields = "Overview,Genres,People,Studios,MediaStreams,MediaSources,CommunityRating,CriticRating,OfficialRating,ImageTags,BackdropImageTags,ParentBackdropImageTags,SeriesPrimaryImageTag,ProviderIds,Chapters,LocalTrailerCount"
 
-    /// Minimal field set for the season bar. ItemCounts keeps childCount
-    /// (used to size the loading skeleton's card count) without dragging in
-    /// the heavy metadata arrays defaultFields would. Name / index / watched
-    /// state come back as base fields / with the UserId query.
+    /// Season bar: ItemCounts keeps childCount (skeleton sizing) without defaultFields' heavy arrays. Name/index/watched are base/UserData fields.
     static let seasonListFields = "ItemCounts"
 
-    /// Minimal field set for the per-season episode list. Only what the
-    /// episode cards render: synopsis + thumbnail. Everything else the card
-    /// shows (name, index number, runtime, watched/resume state) is either a
-    /// base field or rides along with the UserId query, so it costs nothing
-    /// extra. Heavy per-episode arrays (MediaStreams, MediaSources, People,
-    /// Chapters) are deliberately omitted, the episode detail fetch pulls
-    /// those on demand when an episode is opened.
+    /// Episode list: only synopsis + thumbnail; name/index/runtime/watched are base/UserData. Heavy per-episode arrays omitted, episode detail pulls them lazily on open.
     static let episodeListFields = "Overview,ImageTags"
 
-    /// Minimal field set for the Home carousels (Continue Watching, Next Up,
-    /// Latest, All Movies/Series, Favorites, Top Rated, Recently Added,
-    /// Collections, per-library Latest). The home cards only render a poster
-    /// or backdrop, the title, a year/series subtitle and the watched/resume
-    /// badge, so all we need are the image tags. Name / index / runtime /
-    /// productionYear / seriesName are base fields and UserData (watched +
-    /// resume %) rides along with the UserId query. Everything the old
-    /// defaultFields pulled per item (Overview, Genres, People, Studios,
-    /// MediaStreams, MediaSources, Chapters, ProviderIds, ratings) is dead
-    /// weight on a row of 16-30 items, exactly the kind of payload bloat that
-    /// was slowing the episode list before it was slimmed (Sodalite#12,
-    /// DrHurt's Fields= audit). Tapping a card opens Detail, which re-fetches
-    /// the full field set, so nothing downstream loses data.
-    ///
-    /// `nonisolated` because the Home background precompute reads it from
-    /// inside detached task-group closures (provider / genre resolves) that
-    /// don't inherit the type's MainActor isolation. It's an immutable
-    /// String constant, so sharing it across actors is safe.
+    /// Home carousels: image tags only; title/year/series/watched ride as base/UserData fields. defaultFields per item is dead weight on 16-30-item rows (Sodalite#12 Fields= audit); tapping a card re-fetches full fields in Detail. `nonisolated` so detached precompute closures read it without a MainActor hop (immutable, so cross-actor safe).
     nonisolated static let homeRowFields = "ImageTags,BackdropImageTags,ParentBackdropImageTags,SeriesPrimaryImageTag"
 
-    /// Slim Fields= set for music browse rows (albums grid, track
-    /// lists). Image tags + the album/artist linkage the cards render;
-    /// IndexNumber / ParentIndexNumber / RunTimeTicks / ProductionYear
-    /// come back without an explicit Fields request.
+    /// Music browse rows: image tags + album/artist linkage; IndexNumber/ParentIndexNumber/RunTimeTicks/ProductionYear come back without an explicit Fields request.
     nonisolated static let musicListFields = "ImageTags,Artists,AlbumArtist,AlbumId,AlbumPrimaryImageTag"
 }
 
 struct ItemQuery: Sendable {
     var parentID: String?
-    /// Exact item-id lookup (`Ids=` on /Items). Used to batch-resolve
-    /// parent series for episode entries that /Items/Latest returns
-    /// ungrouped (series with exactly one fresh episode).
+    /// `Ids=` lookup; batch-resolves parent series for episodes /Items/Latest returns ungrouped (series with one fresh episode).
     var ids: [String]?
     var includeItemTypes: [ItemType]?
     var sortBy: String?
@@ -599,15 +473,9 @@ struct ItemQuery: Sendable {
     var genres: [String]?
     var studioNames: [String]?
     var isFavorite: Bool?
-    /// Jellyfin `Filters` values (`IsPlayed`, `IsUnplayed`,
-    /// `IsResumable`, ...). Drives the watch-status filter on the
-    /// library grids (Sodalite#17).
+    /// Jellyfin `Filters` (IsPlayed/IsUnplayed/IsResumable); drives the library-grid watch-status filter (Sodalite#17).
     var filters: [String]?
-    /// Single-value provider-id match like "tmdb.123", used by the
-    /// home-page smart provider filter to look up library items by
-    /// TMDB id one at a time. Jellyfin's `AnyProviderIdEquals`
-    /// accepts only a single value, so multi-id lookups have to be
-    /// fanned out as parallel queries with this field.
+    /// Single provider-id match ("tmdb.123"). `AnyProviderIdEquals` takes one value only, so the home smart-provider filter fans out multi-id lookups as parallel queries.
     var anyProviderIdEquals: String?
     var fields: String?
 
@@ -643,12 +511,7 @@ struct ItemQuery: Sendable {
         let fields = fields ?? JellyfinEndpoint.defaultFields
         items.append(URLQueryItem(name: "Fields", value: fields))
         items.append(URLQueryItem(name: "Recursive", value: "true"))
-        // Default is true for Movie queries: Jellyfin folds BoxSet
-        // members into a single representative row, even when the
-        // collection isn't visible in the UI (it may have been created
-        // silently from TMDB metadata). Always send false so each movie
-        // appears on its own. Our "Collections" row uses a dedicated
-        // IncludeItemTypes=BoxSet query and isn't affected.
+        // CollapseBoxSetItems defaults true for Movie queries (folds BoxSet members into one row, even for silent TMDB-created collections); force false so each movie stands alone. The Collections row uses a dedicated BoxSet query, unaffected.
         items.append(URLQueryItem(name: "CollapseBoxSetItems", value: "false"))
 
         return items

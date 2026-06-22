@@ -1,14 +1,9 @@
 import Foundation
 import CommonCrypto
 
-/// PBKDF2-HMAC-SHA256 hashing for the Guardian-PIN. A 4-digit PIN has
-/// only 10_000 combinations, so the keychain throttle (see
-/// `DependencyContainer`) is the primary defense; PBKDF2 with a high
-/// iteration count and a random per-PIN salt slows offline brute force
-/// of a stolen keychain blob. Never stores or returns plaintext.
+/// PBKDF2-HMAC-SHA256; 4-digit PIN = 10_000 combos so keychain throttle (DependencyContainer) is primary defense; high iteration count + random per-PIN salt slows offline brute force of a stolen blob; never stores plaintext.
 enum GuardianPINCrypto {
-    /// Cost factor. High enough to be ~tens of ms on Apple TV hardware,
-    /// low enough not to stall the unlock UI.
+    /// Cost factor: ~tens of ms on Apple TV, low enough not to stall the unlock UI.
     static let iterations: Int = 120_000
     private static let keyByteCount = 32 // SHA-256 output
     private static let saltByteCount = 16
@@ -50,8 +45,7 @@ enum GuardianPINCrypto {
                 )
             }
         }
-        // kCCSuccess == 0. A failure here means the OS rejected the
-        // params; return empty so verify never matches (fail closed).
+        // kCCSuccess == 0; fail closed (empty) so verify never matches.
         return status == kCCSuccess ? derived : Data()
     }
 

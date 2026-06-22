@@ -1,7 +1,6 @@
 import Foundation
 
-/// A Live TV channel. Server-side this is a `BaseItemDto` of type
-/// `TvChannel`; we decode only the fields the guide needs.
+/// A Live TV channel (server-side a `BaseItemDto` of type `TvChannel`); decodes only the guide's fields.
 struct JellyfinChannel: Codable, Sendable, Identifiable, Equatable {
     let id: String
     let name: String
@@ -28,9 +27,7 @@ struct JellyfinChannel: Codable, Sendable, Identifiable, Equatable {
     var isFavorite: Bool { userData?.isFavorite ?? false }
 }
 
-/// The slice of a channel's `UserData` the guide reads. Channels are
-/// `BaseItemDto`, so favorites flow through the same UserData.IsFavorite the
-/// regular media items use.
+/// Channel `UserData` slice the guide reads; favorites use the same UserData.IsFavorite as regular items.
 struct ChannelUserData: Codable, Sendable, Equatable {
     let isFavorite: Bool?
 
@@ -83,9 +80,7 @@ struct JellyfinProgram: Codable, Sendable, Identifiable, Equatable {
 
     var primaryImageTag: String? { imageTags?["Primary"] }
 
-    /// True for the placeholder the guide synthesizes for channels
-    /// without program data ("live-<channelID>"). Such ids do not exist
-    /// server-side; record affordances must not be offered.
+    /// Guide placeholder for channels without EPG data ("live-<channelID>"); id doesn't exist server-side, so don't offer record affordances.
     var isSynthesized: Bool { id.hasPrefix("live-") }
 
     /// True when `now` falls inside [startDate, endDate).
@@ -187,17 +182,13 @@ struct LiveTvSeriesTimersResponse: Codable, Sendable {
 }
 
 extension JSONDecoder {
-    /// Jellyfin timestamps carry up to 7 fractional-second digits with a
-    /// trailing `Z`. `.iso8601` rejects >3 digits, so parse leniently.
+    /// Lenient ISO parse: Jellyfin timestamps carry up to 7 fractional digits + `Z`, which `.iso8601` (max 3) rejects.
     static let jellyfinLiveTv: JSONDecoder = {
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .custom { dec in
             let container = try dec.singleValueContainer()
             let raw = try container.decode(String.self)
-            // Allocate the formatter per call: `DateFormatter` is a mutable
-            // reference type and this closure can run concurrently across
-            // overlapping Live TV requests. A captured shared formatter
-            // would race on `dateFormat`.
+            // Per-call DateFormatter: shared instance would race on `dateFormat` across overlapping Live TV requests.
             let formatter = DateFormatter()
             formatter.locale = Locale(identifier: "en_US_POSIX")
             formatter.timeZone = TimeZone(identifier: "UTC")

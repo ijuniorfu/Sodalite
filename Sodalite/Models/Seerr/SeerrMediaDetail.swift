@@ -68,11 +68,7 @@ struct SeerrGenre: Codable, Sendable, Identifiable, Equatable, Hashable {
     let name: String
 }
 
-/// Per-season detail returned from `/tv/{id}/season/{n}`, used to
-/// render the read-only episode list inside CatalogDetailView. Note
-/// that the request endpoint still only accepts whole seasons; this
-/// payload is informational so the user can preview what they're
-/// asking for before they hit Submit.
+/// Per-season detail from `/tv/{id}/season/{n}` for the read-only episode list; informational only (requests still take whole seasons).
 struct SeerrSeasonDetail: Codable, Sendable, Equatable {
     let id: Int
     let seasonNumber: Int
@@ -136,9 +132,7 @@ struct SeerrReleases: Codable, Sendable, Equatable {
     let results: [RegionReleases]?
 }
 
-/// Rotten Tomatoes rating from Seerr's `/movie/{id}/ratings` (and
-/// `/tv/{id}/ratings`) endpoint. `criticsScore` is the Tomatometer (0-100);
-/// fresh/rotten splits at 60, matching the Jellyfin detail badge.
+/// Rotten Tomatoes rating from `/movie/{id}/ratings` (or `/tv/...`); `criticsScore` is the Tomatometer (0-100), fresh/rotten splits at 60 (matches Jellyfin badge).
 struct SeerrRTRating: Codable, Sendable, Equatable {
     let criticsScore: Int?
     let criticsRating: String?

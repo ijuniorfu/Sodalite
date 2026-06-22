@@ -3,12 +3,9 @@ import UIKit
 
 // MARK: - Player Launcher (UIKit modal presentation)
 
-/// Presents PlayerHostController as a UIKit modal (NOT SwiftUI fullScreenCover).
-///
-/// On tvOS, SwiftUI's fullScreenCover intercepts the Menu button at the
-/// presentation level, pressesBegan, .onExitCommand, and gesture recognizers
-/// on child VCs never receive it. UIKit modals don't have this problem:
-/// UITapGestureRecognizer for .menu on the presented VC's view works.
+/// Presents PlayerHostController as a UIKit modal (NOT SwiftUI
+/// fullScreenCover, which on tvOS intercepts Menu at the presentation level so
+/// child-VC press handlers / .onExitCommand never fire).
 struct PlayerLauncher: UIViewControllerRepresentable {
     @Binding var isPresented: Bool
     let item: JellyfinItem?
@@ -17,15 +14,12 @@ struct PlayerLauncher: UIViewControllerRepresentable {
     let userID: String
     let preferences: PlaybackPreferences
     var cachedPlaybackInfo: PlaybackInfoResponse?
-    /// Forwarded to PlayerViewModel so the version picker's choice wins over
-    /// the default-first source. Nil keeps the previous behavior.
+    /// Version picker's choice; nil = default-first source.
     var preferredMediaSourceID: String?
-    /// Forwarded to PlayerViewModel to start a shuffle / play queue.
-    /// Empty (the default) keeps ordinary single-item playback.
+    /// Shuffle / play queue; empty = single-item playback.
     var playQueue: [JellyfinItem] = []
-    /// Accent color the overlay should tint with. Nil falls back to the
-    /// asset-catalog default. Threaded through by callers because the
-    /// WindowGroup `.tint(...)` does not cross into the UIKit modal.
+    /// Overlay tint, threaded through because WindowGroup `.tint(...)` doesn't
+    /// cross into the UIKit modal; nil = asset-catalog default.
     var tintColor: Color?
 
     func makeUIViewController(context: Context) -> PlayerLauncherHostVC {
@@ -61,12 +55,9 @@ struct PlayerLauncher: UIViewControllerRepresentable {
     }
 }
 
-/// Invisible host VC for PlayerLauncher. Only purpose: be in the
-/// window hierarchy so UIKit present() works. Focus restoration is
-/// handled by SwiftUI's @FocusState in the detail views.
+/// Invisible host VC: sits in the window hierarchy so UIKit present() works.
 final class PlayerLauncherHostVC: UIViewController {
-    /// Guards the live-player present retry loop against duplicate launches
-    /// while it polls for the info sheet to finish dismissing.
+    /// Guards the live-player present retry loop against duplicate launches.
     var pendingLivePresent = false
 
     override func viewDidLoad() {

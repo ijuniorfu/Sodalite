@@ -38,13 +38,7 @@ struct SeerrStatusBadge: View {
     }
 }
 
-/// Single, "effective" status badge for a Seerr request, collapses
-/// `request.status` × `request.media?.status` into one readable case.
-/// Earlier we rendered both badges side by side, which produced
-/// confusing pairs like "Completed · Downloading" and never surfaced
-/// the case where a previously-completed item was later deleted from
-/// the server (the request stayed at completed but media flipped to
-/// unknown / nil, looked like an in-flight download forever).
+/// Collapses `request.status` × `request.media?.status` into one badge. Two side-by-side badges produced confusing pairs ("Completed · Downloading") and never surfaced a completed-then-deleted item (looked like an endless download).
 struct SeerrEffectiveRequestBadge: View {
     let request: SeerrRequest
 
@@ -76,33 +70,14 @@ struct SeerrEffectiveRequestBadge: View {
         case .failed: return .failed
         case .pendingApproval: return .pending
         case .completed:
-            // `completed` is Seerr's "Sonarr/Radarr signed off"
-            // flag. Anything other than available / partially-
-            // available means the file was on the server and has
-            // since been removed, show .removed regardless of
-            // whatever stale processing flag Seerr is carrying.
-            // This is the only state where we can detect a removal
-            // from the API alone with confidence.
+            // `completed` = Sonarr/Radarr signed off; anything but available/partial means the file was removed (.removed). Only state where the API alone confidently detects a removal.
             switch request.media?.status {
             case .available: return .available
             case .partiallyAvailable: return .partiallyAvailable
             default: return .removed
             }
         case .approved:
-            // For an in-flight request we trust Seerr's status as-
-            // is. We tried inferring "cancelled mid-download" from
-            // an empty Sonarr download queue, but that signal is
-            // shared with several legitimate states, a TV show
-            // monitored for episodes that haven't aired yet, a
-            // movie waiting for a release date, anything Sonarr is
-            // searching for but hasn't started downloading. We
-            // can't tell those apart from a genuine cancellation
-            // without polling history we don't keep, so the
-            // tradeoff is: show "Wird heruntergeladen" for the
-            // ambiguous cases (matches Seerr's own UI) and accept
-            // that an abandoned request stays on that label until
-            // Seerr's reconciliation picks it up or the user
-            // clears it manually.
+            // Trust Seerr's status as-is. An empty Sonarr queue can't be told apart from legit waiting states (unaired episodes, unreleased movie, pending search) without history we don't keep, so ambiguous cases show "downloading" (matches Seerr's UI) until reconciliation or a manual clear.
             switch request.media?.status {
             case .available: return .available
             case .partiallyAvailable: return .partiallyAvailable

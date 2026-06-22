@@ -3,42 +3,25 @@ import AetherEngine
 
 @main
 struct SodaliteApp: App {
-    // Resolve to the shared singletons (NOT fresh instances). SwiftUI can
-    // construct the App value and the @Environment default value separately,
-    // and any fresh DependencyContainer builds a second MusicPlaybackCoordinator
-    // that subscribes to the singleton engine and clears system Now-Playing on
-    // every state change, fighting the real one (the Home badge + remote
-    // pause/resume bug). DependencyContainer.shared / AppState.shared are the
-    // single source, also used by EnvironmentKeys' defaultValue.
+    // Shared singletons, NOT fresh instances: SwiftUI may build the App value and the @Environment default separately, and a fresh DependencyContainer spawns a zombie MusicPlaybackCoordinator that clears system Now-Playing on every engine state change.
     @State private var appState = AppState.shared
     @State private var dependencies = DependencyContainer.shared
 
     init() {
-        // Back-wire AppState into DependencyContainer so switchServer
-        // and removeServer can bump the serverDidSwitch signal without
-        // threading AppState through every call site. Must run before
-        // any server switch can fire.
+        // Back-wire so switchServer/removeServer can bump serverDidSwitch; must run before any switch fires.
         dependencies.appState = appState
 
-        // Hand the live AppState/DependencyContainer to the intent
-        // layer so AppIntent.perform() can drive navigation and
-        // hit Jellyfin without rebuilding its own DI graph.
+        // Hand the live AppState/DependencyContainer to the intent layer so AppIntent.perform() drives navigation without rebuilding its own DI graph.
         IntentBridge.bind(appState: appState, dependencies: dependencies)
 
-        // Wire AetherEngine's diagnostic broadcaster to the in-app
-        // log overlay. Only in diagnostic builds (DEBUG / TestFlight);
-        // App Store builds leave the handler nil so the engine logs
-        // through OSLog only (Console.app on a paired Mac picks them
-        // up, but no in-app overlay surfaces them to end users).
+        // Wire AetherEngine diagnostics into the in-app log overlay; diagnostic builds (DEBUG/TestFlight) only, App Store leaves it nil (OSLog only).
         if LogTap.isDiagnosticBuild {
             EngineLog.handler = { line in
                 LogTap.shared.note(line)
             }
         }
 
-        // Re-derive the cached TestFlight/sandbox flag from StoreKit 2
-        // in the background; takes effect on the next launch (see
-        // LogTap.isDiagnosticBuild).
+        // Re-derive the cached TestFlight/sandbox flag from StoreKit 2; takes effect next launch (see LogTap.isDiagnosticBuild).
         Task {
             await LogTap.refreshDiagnosticBuildFlag()
         }
@@ -59,28 +42,14 @@ struct SodaliteApp: App {
         }
     }
 
-    /// `sodalite://item/{id}` is the only scheme we honor today,
-    /// emitted by the TopShelf extension's cell `displayAction`.
-    /// Stash the id in AppState; AppRouter watches that field, fetches
-    /// the full item, and presents the detail sheet once the session
-    /// has finished restoring on cold launches.
-    ///
-    /// Synchronously tears down any active player modal before the
-    /// AppRouter task runs. Without this, a TopShelf tap that wakes
-    /// the app from a paused player loses ~10s to the player's own
-    /// `appDidBecomeActive` reload pipeline before AppRouter's
-    /// `.task(id:)` gets cycled in, and the user stares at the stale
-    /// session restarting before anything happens.
+    /// Handles `sodalite://item/{id}` (only scheme, from TopShelf's displayAction): stashes the id in AppState for AppRouter to resolve. Synchronously tears down any active player modal first, else a TopShelf tap waking the app from a paused player loses ~10s to the player's own appDidBecomeActive reload before AppRouter's .task(id:) cycles in.
     private func handleDeepLink(_ url: URL) {
         guard url.scheme == "sodalite", url.host == "item" else { return }
         let id = url.pathComponents.dropFirst().first ?? ""
         guard !id.isEmpty else { return }
         PlayerModalDismisser.dismissActive(logPrefix: "[SodaliteApp]")
         appState.requestPlayerDismissal &+= 1
-        // Cover whatever's behind the dismissed player so the user
-        // doesn't see the prior detail view flash for the duration of
-        // the deep-link fetch + fullScreenCover slide-in. AppRouter
-        // clears this once the new sheet has taken over.
+        // Mask the prior detail view during the fetch + cover slide-in; AppRouter clears this once the new sheet takes over.
         appState.isResolvingDeepLink = true
         appState.pendingDeepLinkItemID = id
     }

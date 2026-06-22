@@ -1,19 +1,6 @@
 import Foundation
 
-/// Surface for failures during a media-deletion flow. The `stage`
-/// distinguishes Jellyfin failures (the item was never deleted) from
-/// Seerr-cascade failures after Jellyfin already succeeded (the file
-/// is gone from the library but the *arr-stack entry still exists).
-/// The UI uses this distinction to tell the user whether to retry or
-/// to expect orphan state.
-///
-/// `reason` further qualifies the failure so the UI can surface a
-/// specific toast. Today the only special case is "not signed into
-/// Seerr": the user enabled the *arr cascade without an active Seerr
-/// session, which is otherwise indistinguishable from a generic API
-/// error in the message stream. Pre-flight detection keeps the toast
-/// honest ("you're not signed in") instead of vague ("could not be
-/// removed").
+/// Media-deletion failure. `stage` distinguishes Jellyfin failure (item never deleted) from Seerr-cascade failure after Jellyfin succeeded (file gone, *arr-stack entry orphaned) so the UI can say retry vs expect-orphan. `reason` adds the "not signed into Seerr" case (cascade enabled with no Seerr session) for an honest toast instead of generic API error.
 struct MediaDeletionError: Error, Sendable {
     enum Stage: Sendable { case jellyfin, seerr }
     enum Reason: Sendable {

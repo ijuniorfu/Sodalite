@@ -15,10 +15,7 @@ struct ExpandableTextBox: View {
             .frame(height: 110)
             .padding(20)
             .background(
-                // Material base instead of a faint white tint: with
-                // the full-bleed backdrop redesign the box can sit on
-                // bright artwork, and body text needs guaranteed
-                // contrast (Sodalite#15).
+                // Material base (not a faint white tint) so body text keeps contrast over bright full-bleed artwork (Sodalite#15).
                 ZStack {
                     RoundedRectangle(cornerRadius: 16)
                         .fill(.ultraThinMaterial)
@@ -44,9 +41,7 @@ struct ExpandableTextBox: View {
     }
 }
 
-/// Same footprint as ExpandableTextBox (110 pt text frame + 20 pt
-/// padding), shown while a detail fetch is still in flight so the
-/// overview box doesn't pop in and shift the layout below it.
+/// Matches ExpandableTextBox's footprint so the overview box doesn't pop in and shift layout while the detail fetch is in flight.
 struct ExpandableTextBoxPlaceholder: View {
     var body: some View {
         RoundedRectangle(cornerRadius: 16)

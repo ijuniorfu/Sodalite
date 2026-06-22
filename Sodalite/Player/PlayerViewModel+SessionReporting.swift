@@ -3,16 +3,10 @@ import AetherEngine
 
 extension PlayerViewModel {
 
-    /// Stable position in Jellyfin ticks, derived from playbackTime (updated
-    /// by Combine every 250ms). Survives player.stop(), unlike player.currentTime
-    /// which resets to 0 immediately.
-    ///
-    /// Falls back to resumePositionTicks ONLY if the player hasn't
-    /// reported a real time yet (playbackTime == 0). The earlier
-    /// `max(ticks, resumePositionTicks)` was wrong: after the user
-    /// rewound past the resume position, max() kept clamping the
-    /// reported position back up to where they originally resumed
-    /// from, so Jellyfin never recorded the rewind.
+    /// Position in Jellyfin ticks from playbackTime (survives player.stop(),
+    /// unlike player.currentTime). Falls back to resumePositionTicks only when
+    /// playbackTime == 0; NOT max(ticks, resumePositionTicks), which clamped a
+    /// rewind past the resume point back up so Jellyfin never recorded it.
     var currentPositionTicks: Int64 {
         let ticks = Int64(playbackTime * 10_000_000)
         return ticks > 0 ? ticks : resumePositionTicks
@@ -65,12 +59,10 @@ extension PlayerViewModel {
     }
 
     func reportStop(positionTicks: Int64? = nil, liveStreamID: String? = nil) async {
-        // Optional override lets stopPlayback() capture the position
-        // BEFORE killing the engine, so we can stop audio first (no
-        // trailing buffer on dismiss) without losing the right position.
-        // `liveStreamID` lets the live retune path close its dead tuner
-        // through the stop report as well (belt and braces with the
-        // explicit closeLiveStream).
+        // positionTicks override lets stopPlayback() capture position BEFORE
+        // killing the engine (stop audio first, no trailing buffer on dismiss).
+        // liveStreamID closes a dead tuner on retune (belt-and-braces with
+        // the explicit closeLiveStream).
         let ticks = positionTicks ?? currentPositionTicks
         let report = PlaybackStopReport(
             itemId: item.id,
@@ -81,12 +73,8 @@ extension PlayerViewModel {
         )
         do {
             try await playbackService.reportPlaybackStopped(report)
-            // Tell HomeView (and anyone else listening) that the
-            // server now has updated progress for this item, so
-            // Continue Watching / Next Up should be refreshed the
-            // next time those views appear. The payload lets detail
-            // views patch this exact item's resume position in place,
-            // race-free, instead of re-fetching (issue #24).
+            // Payload lets detail/Home patch this item's resume position in
+            // place, race-free, instead of re-fetching (issue #24).
             NotificationCenter.default.post(
                 name: .playbackProgressDidChange,
                 object: nil,
@@ -105,8 +93,7 @@ extension PlayerViewModel {
     func startProgressReporting() {
         progressTimer?.cancel()
         progressTimer = Task {
-            // Wait briefly for the first time update to arrive,
-            // then report immediately so short views are tracked.
+            // Wait for the first time update, then report so short views track.
             try? await Task.sleep(for: .seconds(2))
             guard !Task.isCancelled else { return }
             await reportProgress()
@@ -118,10 +105,8 @@ extension PlayerViewModel {
         }
     }
 
-    /// Report progress on pause/seek so Jellyfin always has the latest position.
-    /// Tracks the Task handle so it can be cancelled in stopPlayback(), preventing
-    /// an orphaned report from running to completion (or timeout) after the player
-    /// has already dismissed on a slow CDN.
+    /// Report progress on pause/seek. Task handle is tracked so stopPlayback()
+    /// can cancel an orphaned report after dismiss on a slow CDN.
     func reportProgressIfNeeded() {
         progressReportOnDemandTask?.cancel()
         progressReportOnDemandTask = Task { @MainActor [weak self] in

@@ -13,10 +13,7 @@ final class LoginViewModel {
     var isPollingQuickConnect = false
     var quickConnectAuthorized = false
 
-    // Auth result stored for finalization after animation.
-    // savedPassword is set only for regular (non-Quick-Connect) logins,
-    // we cache it in the keychain so Seerr can reuse it without asking
-    // the user to retype.
+    // savedPassword set only for regular (non-Quick-Connect) logins; cached in keychain so Seerr can reuse it.
     var authResult: (server: JellyfinServer, user: JellyfinUser, token: String, savedPassword: String?)?
 
     let server: JellyfinServer
@@ -24,11 +21,7 @@ final class LoginViewModel {
     private let authService: JellyfinAuthServiceProtocol
     private let keychainService: KeychainServiceProtocol
     private let dependencies: DependencyContainer
-    /// Whatever `/Users/Public` sent for this user in the picker. Kept
-    /// so we can backfill `primaryImageTag` on the post-login user
-    /// object, some Jellyfin versions omit the tag on the auth
-    /// response but include it on /Users/Public, and without this
-    /// fallback the avatar would disappear after every fresh login.
+    /// Kept to backfill `primaryImageTag` from `/Users/Public`: some Jellyfin omit the tag on the auth response, else the avatar disappears after login.
     private let preSelectedUser: JellyfinUser?
     private var quickConnectSecret: String?
     private var quickConnectTask: Task<Void, Never>?
@@ -43,9 +36,7 @@ final class LoginViewModel {
         self.keychainService = dependencies.keychainService
         self.dependencies = dependencies
         self.preSelectedUser = preSelectedUser
-        // Pre-fill the username when the caller already picked a user
-        // from the `/Users/Public` list, avoids re-typing and leaves
-        // the password field as the only thing left to touch.
+        // Pre-fill username when picked from `/Users/Public`, leaving only the password to enter.
         if let preSelectedUser {
             self.username = preSelectedUser.name
         }
@@ -69,10 +60,7 @@ final class LoginViewModel {
         }
     }
 
-    /// If the auth response didn't carry `primaryImageTag`, copy it
-    /// across from the picker's JellyfinUser. Only fills in the tag
-    /// when the two refer to the same user ID so we never mislabel
-    /// an avatar.
+    /// Backfills `primaryImageTag` from the picker's user, but only when the IDs match so we never mislabel an avatar.
     private func enriched(_ user: JellyfinUser) -> JellyfinUser {
         guard user.primaryImageTag == nil,
               let preSelectedUser,
@@ -117,11 +105,7 @@ final class LoginViewModel {
         quickConnectTask = Task { [weak self] in
             guard let self, let secret = self.quickConnectSecret else { return }
 
-            // Jellyfin expires Quick Connect codes server-side after a
-            // few minutes; this hard cap is the fallback for servers
-            // that keep answering "not authorized" without ever
-            // invalidating the secret, so the UI can't show a dead
-            // code forever.
+            // Hard cap for servers that keep answering "not authorized" without ever invalidating the secret, so the UI can't show a dead code forever.
             let deadline = Date().addingTimeInterval(6 * 60)
 
             while !Task.isCancelled && self.isPollingQuickConnect {
@@ -141,10 +125,7 @@ final class LoginViewModel {
                         return
                     }
                 } catch let error as APIError where error.isNotFound || error.isUnauthorized {
-                    // The server no longer knows the secret: the code
-                    // expired (or was consumed elsewhere). Polling it
-                    // further can never succeed; surface it so the
-                    // user requests a fresh code.
+                    // Server no longer knows the secret (expired/consumed); polling can't succeed, so surface it.
                     self.expireQuickConnect()
                     return
                 } catch {

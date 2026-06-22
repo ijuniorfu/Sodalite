@@ -1,15 +1,12 @@
 import Foundation
 import AetherEngine
 
-// `SubtitleCue` is now defined in AetherEngine, the engine's own
-// in-process subtitle decoder produces it during embedded-stream
-// playback. The HTTP/sidecar fallback below feeds the same type
-// so both paths land on the same overlay renderer.
+// `SubtitleCue` lives in AetherEngine; this HTTP/sidecar fallback feeds the same type as the
+// engine's embedded-stream decoder so both paths land on one overlay renderer.
 
 /// Parses SRT (SubRip) and WebVTT subtitle files into timed cues.
 enum SRTParser {
 
-    /// Parse an SRT/WebVTT string into an array of subtitle cues.
     static func parse(_ content: String) -> [SubtitleCue] {
         var cues: [SubtitleCue] = []
         let blocks = content
@@ -20,7 +17,6 @@ enum SRTParser {
             let lines = block.trimmingCharacters(in: .whitespacesAndNewlines)
                 .components(separatedBy: "\n")
 
-            // Skip WebVTT header
             if lines.first?.hasPrefix("WEBVTT") == true { continue }
 
             guard let timingIdx = lines.firstIndex(where: { $0.contains("-->") }) else {
@@ -36,7 +32,6 @@ enum SRTParser {
 
             guard !text.isEmpty else { continue }
 
-            // Strip basic HTML tags (<i>, <b>, <u>, etc.)
             let cleanText = text.replacingOccurrences(
 
                 of: "<[^>]+>",
@@ -69,7 +64,7 @@ enum SRTParser {
 
     /// Parse a timestamp like "00:01:23,456" or "00:01:23.456" to seconds.
     private static func parseTimestamp(_ ts: String) -> Double? {
-        // Remove any position metadata after the timestamp (WebVTT)
+        // Drop WebVTT position metadata trailing the timestamp.
         let clean = ts.components(separatedBy: " ").first ?? ts
 
         let normalized = clean.replacingOccurrences(of: ",", with: ".")

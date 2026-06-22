@@ -3,43 +3,14 @@ import AVFoundation
 import UIKit
 import AetherEngine
 
-/// System Now Playing wiring via `AVPlayerItem.externalMetadata`.
+/// System Now Playing wiring via `AVPlayerItem.externalMetadata`. AVKit's internal Now Playing session (from `showsPlaybackControls = true`) reads title/description/artwork from externalMetadata and publishes to MPNowPlayingInfoCenter; the host VC suppresses visible chrome (`playbackControlsIncludeTransportBar/InfoViews = false`) but keeps AVKit's backend for privileged features (AirPods auto-detect, Enhance Dialogue, Reduce Loud Sounds, synchronized Atmos).
 ///
-/// AVKit's internal Now Playing session (activated by
-/// `AVPlayerViewController.showsPlaybackControls = true`) reads
-/// title / description / artwork from `AVPlayerItem.externalMetadata`
-/// and publishes them to MPNowPlayingInfoCenter, plus drives rate /
-/// elapsed time / remote-command targets directly off the AVPlayer.
-/// The host VC suppresses every visible AVKit chrome element via
-/// `playbackControlsIncludeTransportBar = false` /
-/// `playbackControlsIncludeInfoViews = false`, so the user only sees
-/// our custom UI; AVKit's backend stays active for the privileged
-/// features (AirPods auto-detection, Enhance Dialogue, Reduce Loud
-/// Sounds, synchronized Atmos).
-///
-/// Flow:
-///   1. `stageInitialNowPlayingMetadata` (BEFORE engine.load):
-///      builds title + description as AVMetadataItems and hands them
-///      to the engine via `setExternalMetadata`. Engine applies them
-///      to the AVPlayerItem before AVPlayer.replaceCurrentItem so
-///      AVKit's first asset-metadata read catches them.
-///   2. `refreshExternalMetadataWithArtwork` (AFTER engine.load):
-///      async-fetches the cover and re-stages externalMetadata with
-///      artwork attached. Engine writes directly to the live
-///      AVPlayerItem.externalMetadata; AVKit re-reads automatically.
-///
-/// Across audio-track-switch reloads the engine builds a fresh
-/// NativeAVPlayerHost and replays pendingExternalMetadata onto the
-/// new AVPlayerItem, so title/cover stay across the switch without
-/// any extra host-side wiring.
+/// Flow: `stageInitialNowPlayingMetadata` (BEFORE engine.load) hands title/description to `setExternalMetadata`, which the engine applies before replaceCurrentItem so AVKit's first asset-metadata read catches them; `refreshExternalMetadataWithArtwork` (AFTER load) fetches the cover and re-stages, written to the live item. Across audio-switch reloads the engine replays pendingExternalMetadata onto the fresh NativeAVPlayerHost, so title/cover survive without host wiring.
 extension PlayerViewModel {
 
     // MARK: - Pre-load externalMetadata stage
 
-    /// Build static externalMetadata items (title, description) and
-    /// stash them on the engine BEFORE `engine.load`. Engine applies
-    /// them to the AVPlayerItem prior to replaceCurrentItem so the
-    /// asset-metadata read window catches them on the first try.
+    /// Build static externalMetadata (title, description) and stash on the engine BEFORE `engine.load`, so it's applied before replaceCurrentItem and the first asset-metadata read catches it.
     func stageInitialNowPlayingMetadata() {
         let items = buildExternalMetadataItems(artworkData: nil)
         LogTap.shared.note("[NowPlaying] stage id=\(item.id) items=\(items.count)")
@@ -48,47 +19,20 @@ extension PlayerViewModel {
 
     // MARK: - Remote commands (documented-API dead end)
 
-    /// CC 10s skip-forward / skip-backward buttons are visible in the
-    /// iPhone Control Center widget for our setup but pressing them
-    /// dispatches nowhere we can hook from user code:
-    ///   - `MPRemoteCommandCenter.shared().skipForwardCommand` targets
-    ///     are dormant — CC routes to AVKit's per-session command
-    ///     center, not shared (verified c54fcb7).
-    ///   - `AVPlayerViewControllerDelegate.skipToNextItem` /
-    ///     `skipToPreviousItem` with `skippingBehavior = .skipItem`
-    ///     never fire from CC (verified 8d8e154).
-    ///   - `AVPlayerViewControllerDelegate.timeToSeekAfterUserNavigatedFrom`
-    ///     DOES fire for in-player and CC scrub events but NOT for
-    ///     skip-by-interval button presses (verified 7ed793d / cd890d5).
-    ///   - An explicit `MPNowPlayingSession(players: [dummyPlayer])`
-    ///     activated successfully alongside AVKit's session (so the
-    ///     two CAN coexist) — but the system still didn't route CC
-    ///     skip presses to its `remoteCommandCenter` targets
-    ///     (verified cd890d5).
-    ///   - Manual `MPNowPlayingInfoCenter.nowPlayingInfo` writes
-    ///     crash with `_dispatch_assert_queue_fail` regardless of
-    ///     socket framework backing the HLS loopback (NWConnection
-    ///     and BSD sockets both verified, the latter via engine
-    ///     refactor 962292d).
-    ///   - `AVAssetResourceLoaderDelegate` for HLS segments is
-    ///     rejected by AVPlayer per Apple Forum 113063.
-    ///
-    /// Only remaining path: private API (KVC-reach
-    /// `AVPlayerViewController._nowPlayingSession`). Not worth the
-    /// App Store reject risk for a single decorative CC button.
-    /// Everything else of the Apple feature stack — title / cover /
-    /// scrubbing / play/pause / AirPods auto-detection / Enhance
-    /// Dialogue / Reduce Loud Sounds / synchronized Atmos — works.
+    /// CC 10s skip buttons appear in the widget but dispatch nowhere hookable from user code. Verified-dead paths (do not reattempt):
+    ///   - `MPRemoteCommandCenter.shared().skipForwardCommand` dormant; CC routes to AVKit's per-session command center, not shared (c54fcb7).
+    ///   - `AVPlayerViewControllerDelegate.skipToNextItem/skipToPreviousItem` with `.skipItem` never fire from CC (8d8e154).
+    ///   - `timeToSeekAfterUserNavigatedFrom` fires for scrubs but NOT skip-by-interval presses (7ed793d / cd890d5).
+    ///   - Explicit `MPNowPlayingSession(players:)` coexists with AVKit's but still isn't routed CC skip presses (cd890d5).
+    ///   - Manual `MPNowPlayingInfoCenter.nowPlayingInfo` writes crash with `_dispatch_assert_queue_fail` on both NWConnection and BSD-socket HLS loopback (962292d).
+    ///   - `AVAssetResourceLoaderDelegate` for HLS segments rejected by AVPlayer (Apple Forum 113063).
+    /// Only path left is private API (`_nowPlayingSession` via KVC), not worth the reject risk. Everything else (title/cover/scrub/play-pause/AirPods/Enhance Dialogue/Reduce Loud Sounds/Atmos) works.
     func bindRemoteSkipCommands() {}
     func unbindRemoteSkipCommands() {}
 
     // MARK: - Post-load artwork refresh
 
-    /// Fetch the primary image asynchronously and re-stage
-    /// externalMetadata with the artwork attached. Engine writes to
-    /// the live AVPlayerItem; AVKit's internal Now Playing session
-    /// re-reads on the next publish tick. Failures leave the
-    /// title-only metadata in place.
+    /// Async-fetch the primary image and re-stage externalMetadata with artwork; engine writes to the live item, AVKit re-reads on the next publish tick. Failures leave title-only metadata in place.
     func refreshExternalMetadataWithArtwork() async {
         guard let url = primaryImageURL() else {
             LogTap.shared.note("[NowPlaying] artwork: no URL for item id=\(item.id)")
@@ -120,12 +64,7 @@ extension PlayerViewModel {
         var items: [AVMetadataItem] = []
         items.append(makeStringItem(.commonIdentifierTitle, nowPlayingTitle))
         if let series = nowPlayingSeriesLine {
-            // Both identifiers carry the series: the iTunes subtitle
-            // feeds the tvOS info panel's second line, the artist item
-            // is what AVKit forwards into MediaRemote's artist slot,
-            // which is the iPhone remote widget's second content line
-            // (device-verified that the subtitle item alone does NOT
-            // surface there, the widget showed only the title).
+            // Both identifiers carry the series: iTunes subtitle feeds the tvOS info panel's second line; the artist item is what AVKit forwards to MediaRemote's artist slot = the iPhone widget's second line (device-verified the subtitle item alone does NOT surface there).
             items.append(makeStringItem(.iTunesMetadataTrackSubTitle, series))
             items.append(makeStringItem(.commonIdentifierArtist, series))
         }
@@ -138,12 +77,7 @@ extension PlayerViewModel {
         return items
     }
 
-    /// System Now-Playing title line. For episodes: "S2E5 · Schnuffis
-    /// guter Riecher", with the series name on the second line via the
-    /// artist/subtitle items, matching the music convention (title =
-    /// piece, artist = who it belongs to) that other video apps use in
-    /// Control Center (issue #15 follow-up). Movies keep their plain
-    /// title.
+    /// Now-Playing title line. Episodes: "S2E5 · Title", with series on the second line via artist/subtitle items (music convention: title = piece, artist = owner; issue #15 follow-up). Movies keep their plain title.
     private var nowPlayingTitle: String {
         guard item.type == .episode else { return item.name }
         var parts: [String] = []
@@ -174,9 +108,7 @@ extension PlayerViewModel {
 
     private var displayDescriptionLine: String? {
         if item.type == .episode {
-            // Title + subtitle already carry series and SxEy; use the
-            // description slot (tvOS info panel) for the synopsis
-            // instead of repeating them a third time.
+            // Title + subtitle already carry series and SxEy; use the description slot for the synopsis instead of repeating them.
             if let overview = item.overview, !overview.isEmpty {
                 return overview
             }
@@ -206,11 +138,7 @@ extension PlayerViewModel {
 
     private func primaryImageURL() -> URL? {
         guard let base = playbackService.baseURL?.absoluteString else { return nil }
-        // Series poster (Primary) for episodes when the user prefers it
-        // (Appearance setting): a portrait poster fills the square Control
-        // Center artwork slot better than the episode's landscape still.
-        // The episode carries the series' Primary tag. Movies fall through
-        // to their own Primary below.
+        // Series poster (Primary) for episodes when the Appearance setting prefers it: a portrait poster fills the square CC artwork slot better than the episode's landscape still.
         if DependencyContainer.shared.appearancePreferences.nowPlayingUsesSeriesPoster,
            item.type == .episode, let seriesId = item.seriesId {
             let tagParam = item.seriesPrimaryImageTag.map { "&tag=\($0)" } ?? ""

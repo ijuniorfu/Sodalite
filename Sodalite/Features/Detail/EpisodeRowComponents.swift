@@ -1,10 +1,6 @@
 import SwiftUI
 
-/// Sub-components extracted from SeriesDetailView so the main file
-/// stays focused on the series load/render flow and its focus
-/// machinery. Lives in the same target, all of these were already
-/// internal; SeasonTab receives the season-bar FocusState binding as
-/// a parameter, so nothing here reaches into the view's focus state.
+/// Sub-components extracted from SeriesDetailView. SeasonTab receives the season-bar FocusState as a parameter, so nothing here reaches into the view's focus state.
 
 // MARK: - Season Tab
 
@@ -47,8 +43,7 @@ struct EpisodeCardButtonStyle: ButtonStyle {
     @Environment(\.isFocused) private var isFocused
 
     func makeBody(configuration: Configuration) -> some View {
-        // Stroke is drawn inside EpisodeLandscapeCard so it hugs the
-        // thumbnail only, not the title/runtime row below.
+        // Stroke drawn inside EpisodeLandscapeCard so it hugs the thumbnail only, not the caption below.
         configuration.label
             .scaleEffect(isFocused ? 1.05 : 1.0)
             .shadow(color: .black.opacity(isFocused ? 0.4 : 0), radius: 20, y: 10)
@@ -60,14 +55,7 @@ struct SeasonTabButtonStyle: ButtonStyle {
     @Environment(\.isFocused) private var isFocused
 
     func makeBody(configuration: Configuration) -> some View {
-        // Asymmetric animation on the stroke: 50 ms delay on fade-in,
-        // zero delay on fade-out. If any residual wrong-tab-first
-        // transition slips past the onMoveCommand prime (first entry
-        // into the view, an edge-case direction), the stroke simply
-        // never becomes visible on the wrong tab, the 50 ms window
-        // is enough for the DispatchQueue fallback to land focus on
-        // the right tab first. Between-tab navigation still feels
-        // instant because 50 ms is sub-perceptual.
+        // Asymmetric stroke: 50ms fade-in delay, 0 fade-out. A residual wrong-tab transition slipping past the onMoveCommand prime never shows the stroke, the 50ms window lets the DispatchQueue fallback land focus on the right tab first. 50ms is sub-perceptual.
         configuration.label
             .overlay(
                 RoundedRectangle(cornerRadius: 12)
@@ -87,11 +75,7 @@ struct SeasonTabButtonStyle: ButtonStyle {
 
 // MARK: - Episode Landscape Card
 
-/// Loading placeholder mirroring EpisodeLandscapeCard's 360x202 thumbnail
-/// plus the two caption lines. A single horizontally sweeping highlight
-/// reads as "loading" without the cost of per-card animation state, the
-/// phase is driven from one `@State` that all cards in the row share via
-/// the same `.onAppear` animation.
+/// Loading placeholder mirroring EpisodeLandscapeCard's 360x202 thumbnail + caption lines, with one sweeping highlight.
 struct EpisodeSkeletonCard: View {
     @State private var shimmer = false
 
@@ -112,9 +96,7 @@ struct EpisodeSkeletonCard: View {
             }
             .frame(width: 360, alignment: .leading)
 
-            // Synopsis-box placeholder mirroring EpisodeSynopsisBox's padded
-            // three-line height, so the row keeps its height when the real
-            // episodes (card + synopsis box) replace the skeleton.
+            // Synopsis placeholder at EpisodeSynopsisBox's three-line height so the row keeps its height on swap.
             Text(" ")
                 .font(.caption)
                 .lineLimit(3, reservesSpace: true)
@@ -148,15 +130,10 @@ struct EpisodeLandscapeCard: View {
     var isSelected: Bool = false
     var isCurrent: Bool = false
 
-    /// Set by the caller based on the surrounding `@FocusState`
-    /// (`focusedEpisodeID == episode.id`). Drives the accent-colored
-    /// focus stroke on the thumbnail, `@Environment(\.isFocused)` in
-    /// a Button label is unreliable on tvOS, so we pass it explicitly.
+    /// Passed explicitly (focusedEpisodeID == episode.id): @Environment(\.isFocused) in a Button label is unreliable on tvOS.
     var isFocused: Bool = false
 
-    /// Played state passed explicitly by the caller so the badge can
-    /// live-update from the view model's override map (the immutable
-    /// `episode.userData` snapshot would never change in-session).
+    /// Passed explicitly so the badge live-updates from the VM override map (the immutable episode.userData wouldn't change in-session).
     var isPlayed: Bool = false
 
     var body: some View {
@@ -178,9 +155,7 @@ struct EpisodeLandscapeCard: View {
                 .frame(width: 360, height: 202)
                 .clipShape(RoundedRectangle(cornerRadius: 12))
                 .overlay(
-                    // Outer stroke, same pattern as MediaCard. Keeps
-                    // the thumbnail itself clean (no inner bite) and
-                    // leaves the 4pt progress bar fully visible.
+                    // Outer stroke (MediaCard pattern): no inner bite, leaves the progress bar fully visible.
                     RoundedRectangle(cornerRadius: 12 + strokeWidth)
                         .strokeBorder(strokeStyle, lineWidth: strokeWidth)
                         .padding(-strokeWidth)
@@ -234,10 +209,7 @@ struct EpisodeLandscapeCard: View {
         }
     }
 
-    /// Focus stroke beats selected and current, when the user is
-    /// interacting with the card, that trumps whatever state it's in.
-    /// AnyShapeStyle lets us mix the tint ShapeStyle (focus) with plain
-    /// Color values (selected/current) behind the same .strokeBorder.
+    /// Focus stroke beats selected/current. AnyShapeStyle mixes the tint ShapeStyle (focus) with Color values (selected/current) behind one .strokeBorder.
     private var strokeStyle: AnyShapeStyle {
         if isFocused { return AnyShapeStyle(TintShapeStyle.tint) }
         if isSelected { return AnyShapeStyle(TintShapeStyle.tint.opacity(0.8)) }
@@ -253,13 +225,7 @@ struct EpisodeLandscapeCard: View {
 
 // MARK: - Episode Synopsis Box
 
-/// Navigable synopsis box that sits under an episode card. Mirrors the
-/// series-level `ExpandableTextBox`: focus it and tap to open the full
-/// episode overview as a `TextOverlay`. It always reserves a three-line
-/// height (via `reservesSpace: true`) so every column in the episode row
-/// stays the same height. When an episode has no overview the box renders
-/// as transparent, non-focusable, reserved space, so cards stay uniform
-/// without leaving a focusable-but-empty dead end.
+/// Navigable per-card synopsis box (mirrors ExpandableTextBox). Always reserves three lines so columns stay equal height; an overview-less episode renders non-focusable reserved space, no focusable-but-empty dead end.
 struct EpisodeSynopsisBox: View {
     let text: String
     @State private var showFullText = false
@@ -272,10 +238,7 @@ struct EpisodeSynopsisBox: View {
             if hasText {
                 Text(text)
             } else {
-                // Visible placeholder instead of an invisible spacer:
-                // columns whose episode has no overview otherwise look
-                // broken next to filled ones (Sodalite#15). Stays
-                // non-focusable, there is nothing to expand.
+                // Visible placeholder, not an invisible spacer: an overview-less column looks broken next to filled ones (Sodalite#15). Non-focusable, nothing to expand.
                 Text("detail.noDescription")
                     .italic()
             }
@@ -288,8 +251,7 @@ struct EpisodeSynopsisBox: View {
             .padding(.horizontal, 14)
             .padding(.vertical, 12)
             .background(
-                // Material base for the full-bleed backdrop redesign,
-                // same rationale as ExpandableTextBox.
+                // Material base for the full-bleed backdrop redesign (ExpandableTextBox rationale).
                 ZStack {
                     RoundedRectangle(cornerRadius: 12)
                         .fill(.ultraThinMaterial)

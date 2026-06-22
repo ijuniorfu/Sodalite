@@ -1,23 +1,11 @@
 import SwiftUI
 
-/// Display-only badge showing the active profile in the top-trailing
-/// corner of the tab shell. Non-focusable by construction
-/// (`allowsHitTesting(false)`, no `.focusable`) so it can never steal
-/// focus from the nav bar, an up-press from the leftmost Continue
-/// Watching tile still lands on the Home tab (issue #25).
-///
-/// Only renders when the active server has more than one remembered
-/// profile. Single-user setups never see it, knowing "who am I" is
-/// trivial there and the badge would be pure clutter. Switching
-/// profiles stays in Settings -> Profil; this is purely a "who's
-/// signed in" indicator.
+/// Display-only badge: non-focusable (`allowsHitTesting(false)`, no `.focusable`) so an up-press lands on the Home tab (issue #25). Only renders when the active server has >1 remembered profile.
 struct ActiveUserBadge: View {
     @Environment(\.appState) private var appState
     @Environment(\.dependencies) private var dependencies
 
-    /// Remembered-profile count for the active server. Recomputed only
-    /// on identity changes (below), not per frame, so the keychain read
-    /// stays cheap.
+    /// Recomputed only on identity changes (below), not per frame, to keep the keychain read cheap.
     @State private var rememberedCount = 0
 
     private let diameter: CGFloat = 36
@@ -31,9 +19,7 @@ struct ActiveUserBadge: View {
         }
         .animation(.easeInOut(duration: 0.2), value: rememberedCount)
         .animation(.easeInOut(duration: 0.2), value: appState.activeUser?.id)
-        // Recompute when the profile or server changes (switch in
-        // Settings, or a full server switch). serverDidSwitch is folded
-        // into the identity so a same-user server change still re-reads.
+        // serverDidSwitch folded into the identity so a same-user server change still re-reads.
         .task(id: badgeIdentity) {
             recomputeCount()
         }
@@ -64,29 +50,19 @@ struct ActiveUserBadge: View {
                 .lineLimit(1)
             avatar(for: user)
         }
-        // Tight insets so the avatar nearly defines the pill height,
-        // reading as a compact account chip rather than a heavy bar.
+        // Tight insets so the avatar nearly defines the pill height (compact account chip).
         .padding(.leading, 18)
         .padding(.trailing, 6)
         .padding(.vertical, 6)
-        // Match the frosted "text bubble" panels on the detail views
-        // (.ultraThinMaterial): more presence than a plain white
-        // translucency so it doesn't wash out, but lighter than the
-        // .regularMaterial that read too dark.
+        // .ultraThinMaterial matches the detail-view frosted bubbles: more presence than plain white, lighter than .regularMaterial (read too dark).
         .background(Capsule().fill(.ultraThinMaterial))
         .overlay(
             Capsule().strokeBorder(.white.opacity(0.12), lineWidth: 1)
         )
         .shadow(color: .black.opacity(0.15), radius: 6, y: 3)
-        // Cap the pill width and right-anchor it. Short names stay tight
-        // (the pill hugs its content, no hollow); a long display name
-        // truncates instead of growing left into the tab-bar pills. The
-        // cap is generous, normal names never hit it.
+        // Width-cap + right-anchor: long names truncate instead of growing left into the tab-bar pills.
         .frame(maxWidth: 360, alignment: .trailing)
-        // The pill rides at the title-safe top; the small negative
-        // offset lifts its center level with the centered tab-bar pills,
-        // which sit a touch above the title-safe inset. Trailing inset
-        // sits it close to the safe edge, well clear of the tab bar.
+        // Title-safe top; negative offset lifts center level with the tab-bar pills (sit above the title-safe inset).
         .padding(.trailing, 6)
         .offset(y: -4)
         .allowsHitTesting(false)

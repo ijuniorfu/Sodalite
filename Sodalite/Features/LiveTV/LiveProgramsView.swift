@@ -8,9 +8,8 @@ private struct ProgramSelection: Identifiable {
     var id: String { "\(channel.id)-\(program.id)" }
 }
 
-/// Live TV "Übersicht": recommended programs in native-Jellyfin category rows.
-/// Reuses the shared `EPGGuideViewModel` for record/favorite/timer state so the
-/// optimistic overlay stays consistent with the Guide and Recordings segments.
+/// Live TV "Übersicht": recommended programs in category rows. Reuses the shared `EPGGuideViewModel`
+/// for record/favorite/timer state so the optimistic overlay stays consistent across segments.
 struct LiveProgramsView: View {
     @State private var model: LiveProgramsViewModel
     let guideModel: EPGGuideViewModel
@@ -93,8 +92,7 @@ struct LiveProgramsView: View {
     }
 }
 
-/// One category row: title header above a horizontally scrolling row of
-/// `ProgramCard`s. Mirrors `HorizontalMediaRow`.
+/// One category row: title above a horizontal scroll of `ProgramCard`s. Mirrors `HorizontalMediaRow`.
 private struct ProgramCategoryRow: View {
     let titleKey: LocalizedStringKey
     let programs: [JellyfinProgram]
@@ -129,10 +127,8 @@ private struct ProgramCategoryRow: View {
     }
 }
 
-/// A 16:9 program card, mirroring `MediaCard.landscape` (360x202) for a
-/// `JellyfinProgram`: primary image with a TV-icon placeholder, concentric
-/// tinted focus stroke, title + channel/time subtitle (always rendered so
-/// cards in a row stay equal height).
+/// 16:9 program card (mirrors `MediaCard.landscape`, 360x202): image + TV placeholder, tinted focus
+/// stroke, title + channel/time subtitle (always rendered so cards in a row stay equal height).
 private struct ProgramCard: View {
     let program: JellyfinProgram
     let imageURL: URL?

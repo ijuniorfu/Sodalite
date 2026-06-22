@@ -1,8 +1,6 @@
 import SwiftUI
 
-/// Accent-color picker, gated behind the Supporter Pack. Locked state
-/// shows the swatches grayed-out with a CTA that jumps to the Support
-/// Development screen instead of letting the user tap a row.
+/// Accent picker gated behind Supporter Pack; locked state grays swatches + CTA to Support screen.
 struct AppearanceSettingsView: View {
 
     @Environment(\.dependencies) private var dependencies
@@ -33,8 +31,7 @@ struct AppearanceSettingsView: View {
             .padding(.vertical, 60)
             .padding(.horizontal, 80)
         }
-        // Inline largeTitle only; the floating nav-title otherwise
-        // sits behind the scroll content. Matches PlaybackSettingsView.
+        // Inline largeTitle only; floating nav-title otherwise sits behind scroll content. Matches PlaybackSettingsView.
         .toolbar(.hidden, for: .navigationBar)
     }
 
@@ -60,9 +57,7 @@ struct AppearanceSettingsView: View {
 
     // MARK: - Options (free for everyone)
 
-    /// Free customization rows, above the supporter-gated accent picker.
-    /// Uses the same ValuePickerRow as the Playback settings so the two
-    /// screens look consistent (left/right cycles, click advances).
+    /// Free rows above the supporter-gated accent picker; same ValuePickerRow as Playback for consistency.
     private var togglesSection: some View {
         VStack(spacing: 4) {
             boolRow(

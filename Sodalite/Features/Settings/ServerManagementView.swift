@@ -1,9 +1,6 @@
 import SwiftUI
 
-/// Settings sub-screen for managing knownServers. Lists every
-/// server with switch (stableTap) + remove (contextMenu) actions.
-/// "Server hinzufügen" at the bottom routes through the same
-/// ServerDiscoveryView add-flow used by the Launch Profile Picker.
+/// Manages knownServers: switch (stableTap) + remove (contextMenu); add routes through ServerDiscoveryView.
 struct ServerManagementView: View {
     @Environment(\.dependencies) private var dependencies
     @Environment(\.appState) private var appState
@@ -92,12 +89,7 @@ struct ServerManagementView: View {
         do {
             try dependencies.switchServer(to: server.id)
         } catch {
-            // switchServer writes the active-server pointer BEFORE it can
-            // throw (.missingToken), so a swallowed error leaves the
-            // keychain pointing at the new server while the client has no
-            // token and no serverDidSwitch signal ever fires: a
-            // half-switched, broken session. Roll back like
-            // ServerSwitchSheet does and tell the user.
+            // switchServer writes the active-server pointer BEFORE it can throw (.missingToken) -> half-switched broken session; roll back like ServerSwitchSheet.
             if let previous {
                 try? dependencies.rollbackSwitch(to: previous)
             }

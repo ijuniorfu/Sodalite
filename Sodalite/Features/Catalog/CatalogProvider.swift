@@ -1,34 +1,14 @@
 import Foundation
 
-/// A curated streaming network or movie studio the catalogue can filter
-/// by. The list mirrors Jellyseerr web's NetworkSlider / StudioSlider so
-/// the discover surface looks the same on both clients without us having
-/// to discover networks dynamically (TMDB does not expose a "popular
-/// networks" endpoint).
+/// Curated streaming network / movie studio filter; mirrors Jellyseerr web's NetworkSlider/StudioSlider (TMDB has no "popular networks" endpoint to discover them dynamically).
 struct CatalogProvider: Identifiable, Hashable, Sendable {
     let id: Int
     let name: String
-    /// TMDB logo path (e.g. "/wwemzKWzjKYJFfCeiB57q3r4Bcm.png").
-    /// Rendered through `SeerrImageURL.duotoneLogo` to match Jellyseerr's
-    /// monochrome treatment.
+    /// TMDB logo path; rendered via `SeerrImageURL.duotoneLogo` for Jellyseerr's monochrome treatment.
     let logoPath: String
-    /// Studio names to match against on the Jellyfin side when the
-    /// row is used to filter the local library (e.g. on the home
-    /// page). Multiple aliases handle the metadata variants TMDB +
-    /// Jellyfin libraries collected over the years, Disney+ might
-    /// be tagged "Disney+", "Disney Plus", "Walt Disney Pictures",
-    /// or simply "Walt Disney Studios" depending on which scraper
-    /// stamped the item. Joined with `|` they OR together inside
-    /// Jellyfin's Studios query parameter.
+    /// Jellyfin-side studio aliases for local-library filtering; cover the metadata variants different scrapers stamped (Disney+ as "Disney+"/"Walt Disney Pictures"/…). OR'd via `|` in Jellyfin's Studios query param.
     let jellyfinStudioNames: [String]
-    /// TMDB watch-provider id for the streaming service this entry
-    /// represents. Different from `id` (which is the network/studio
-    /// id), TMDB tracks "this title is on Netflix" with provider
-    /// id 8, "on Disney+" with 337, etc. Used to ask Jellyseerr's
-    /// `/discover/{movies|tv}?watchProviders=…&watchRegion=…` for
-    /// the live list of titles streaming on this service in the
-    /// user's region. nil → no smart-filter augmentation, fall back
-    /// to studio-name match alone.
+    /// TMDB watch-provider id (distinct from `id`: Netflix=8, Disney+=337) for Jellyseerr's `/discover/{movies|tv}?watchProviders=&watchRegion=`. nil → studio-name match only, no smart-filter augmentation.
     let tmdbWatchProviderID: Int?
 
     init(
@@ -47,14 +27,7 @@ struct CatalogProvider: Identifiable, Hashable, Sendable {
 }
 
 enum CatalogProviders {
-    /// Ordered roughly by global subscriber base, top tiers first.
-    /// The user almost always wants Netflix / Prime / Disney+ within
-    /// the first horizontal swipe, so they sit at the front; broadcast
-    /// channels and kids networks sit at the bottom because they're
-    /// rarely what someone reaches for when browsing a streaming row.
-    /// Within each tier the order is purely curatorial, close enough
-    /// to global popularity that the front of the row stays useful
-    /// regardless of region.
+    /// Ordered roughly by global subscriber base (top SVOD first, broadcast/kids networks last); within-tier order is curatorial.
     static let networks: [CatalogProvider] = [
         // MARK: - Tier 1, top global SVOD
 
@@ -65,9 +38,9 @@ enum CatalogProviders {
               tmdbWatchProviderID: 119),
         .init(id: 2739, name: "Disney+",          logoPath: "/gJ8VX6JSu3ciXHuC2dDGAo2lvwM.png",
               jellyfinStudioNames: [
-                  // Direct Disney+ tags (rare, but some scrapers stamp them)
+                  // Direct Disney+ tags (rare; some scrapers stamp them)
                   "Disney+", "Disney Plus",
-                  // Disney's film studios
+                  // Film studios
                   "Walt Disney Pictures", "Walt Disney Studios",
                   "Walt Disney Animation Studios",
                   "Pixar", "Pixar Animation Studios",
@@ -75,12 +48,10 @@ enum CatalogProviders {
                   "Lucasfilm", "Lucasfilm Ltd.",
                   "Touchstone Pictures",
                   "Searchlight Pictures", "Fox Searchlight",
-                  // 20th Century properties (acquired 2019, mostly Disney+ now)
+                  // 20th Century (acquired 2019, mostly Disney+ now)
                   "20th Century Studios", "20th Century Fox", "Twentieth Century Fox",
                   "20th Century Fox Television", "20th Television",
-                  // Disney's TV networks + studios, covers most kids /
-                  // family TV content (Bluey via "Ludo Studio", Modern
-                  // Family via "20th Century Fox Television", etc.)
+                  // TV networks + studios; covers most kids/family TV (Bluey via "Ludo Studio", Modern Family via "20th Century Fox Television")
                   "Disney Channel", "Disney Junior", "Disney XD",
                   "Disney Television Animation", "Walt Disney Television",
                   "ABC Studios", "ABC Signature", "Touchstone Television",
@@ -111,15 +82,11 @@ enum CatalogProviders {
 
         // MARK: - Tier 3, international / regional SVOD
 
-        // Sky, DACH + UK premium. Studio aliases cover the various
-        // Sky entities libraries actually tag (Sky Studios, Sky
-        // Atlantic for the in-house drama label, etc.)
+        // Sky, DACH + UK premium; aliases cover the Sky entities libraries tag (Sky Studios, Sky Atlantic, etc.)
         .init(id: 5136, name: "Sky",              logoPath: "/1CN2IC17eLZZWV13X2rO4304dGG.png",
               jellyfinStudioNames: ["Sky", "Sky Studios", "Sky UK", "Sky Deutschland", "Sky Atlantic"],
               tmdbWatchProviderID: 29),
-        // BBC iPlayer, the streaming app, distinct from the BBC One
-        // broadcaster tile below. Catches UK shows whose Studios tag
-        // is just "BBC" rather than the specific channel.
+        // BBC iPlayer (streaming app), distinct from the BBC One broadcaster tile below; catches UK shows tagged just "BBC".
         .init(id: 1155, name: "BBC iPlayer",      logoPath: "/an0NpVNUK445AWDQTaLIFuL3isE.png",
               jellyfinStudioNames: ["BBC iPlayer", "BBC", "BBC Studios"],
               tmdbWatchProviderID: 38),

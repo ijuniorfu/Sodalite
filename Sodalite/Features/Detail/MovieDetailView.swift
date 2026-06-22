@@ -12,9 +12,7 @@ struct MovieDetailView: View {
     @State private var playFromBeginning = false
     @State private var versionChoice: VersionPickerChoice?
     @State private var pendingSourceID: String?
-    /// Latched true only when the user actually picked a version, so the
-    /// version sheet's onDismiss launches the player on a pick but not on
-    /// a cancel.
+    /// Latched on an actual version pick so the sheet's onDismiss launches the player on a pick but not a cancel.
     @State private var didPickVersion = false
     @State private var showTrailer = false
     @State private var trailerItem: JellyfinItem?
@@ -23,37 +21,24 @@ struct MovieDetailView: View {
 
     let item: JellyfinItem
 
-    /// True when the active user has Jellyfin's EnableContentDeletion
-    /// flag (or is an administrator). Read reactively from
-    /// AppState.activeUser, so a profile switch updates the visibility
-    /// without a manual refresh.
+    /// EnableContentDeletion (or admin) on the active user; read reactively from AppState.activeUser so a profile switch updates visibility without a manual refresh.
     private var canDelete: Bool {
         appState.activeUser?.canDeleteContent == true
     }
 
     var body: some View {
         ZStack {
-            // Solid black underneath the loading state, see
-            // SeriesDetailView. The contentView already paints its
-            // own backdrop, so this only shows through during load.
+            // Solid black under the loading state (contentView paints its own backdrop), see SeriesDetailView.
             Color.black.ignoresSafeArea()
 
             if let vm = viewModel, !vm.isLoading {
                 contentView(vm: vm)
                     .transition(.opacity)
             } else {
-                // Centred spinner while detail + similar are still
-                // in flight. See SeriesDetailView for the same
-                // rationale: progressively-filling fields produce a
-                // visible repaint when the play button's resume
-                // metadata + progress overlay land mid-render. One
-                // finished frame reads quieter than three.
+                // Centred spinner; gating on isLoading lands one finished frame instead of a field-fill repaint (SeriesDetailView rationale).
                 ZStack {
                     ProgressView()
-                    // Invisible focus anchor so a Menu press during
-                    // load pops back to the previous screen instead
-                    // of escaping the navigation stack and quitting
-                    // the app.
+                    // Invisible focus anchor so a Menu press during load pops back instead of quitting the app.
                     Button("") { dismiss() }
                         .opacity(0)
                 }
@@ -131,14 +116,7 @@ struct MovieDetailView: View {
                 }
             }
         }
-        // The player posts this once Jellyfin confirms the stop
-        // position, so the Play button's resume timestamp (and the spot
-        // a re-launch resumes from) reflect where the user actually
-        // stopped, not where they started (issue #24). The payload's
-        // position is patched in place (authoritative, race-free); the
-        // re-fetch only reconciles played / favorite state, and the
-        // patch is re-applied after it so a stale cached re-fetch can't
-        // regress the just-played position.
+        // Posted once Jellyfin confirms the stop position. Patch in place from the payload (race-free); refreshResumePosition only reconciles played/favorite, then the patch is re-applied so a stale cached re-fetch can't regress the just-played position (issue #24).
         .onReceive(NotificationCenter.default.publisher(for: .playbackProgressDidChange)) { note in
             let itemID = note.userInfo?[PlaybackProgressKey.itemID] as? String
             let ticks = note.userInfo?[PlaybackProgressKey.positionTicks] as? Int64
@@ -152,18 +130,11 @@ struct MovieDetailView: View {
                 }
             }
         }
-        // AppRouter bumps this counter on every deep-link arrival so
-        // a TopShelf tap on a different item can tear down the active
-        // player session and let the new detail sheet surface cleanly.
+        // AppRouter bumps this on every deep-link arrival so a TopShelf tap on a different item tears down the active player session and surfaces the new detail sheet cleanly.
         .onChange(of: appState.requestPlayerDismissal) { _, _ in
             if showPlayer { showPlayer = false }
         }
-        // Loading-gate now blocks the play button from existing in
-        // the view hierarchy at first paint, so the focus engine has
-        // nothing to land on when the modal appears. Push the focus
-        // explicitly once isLoading flips false and the button is in
-        // the tree. Tiny defer dodges the same focus-commit race the
-        // post-player return path already works around.
+        // Play button is out of the tree at first paint; push focus once isLoading flips false. Tiny defer dodges the focus-commit race.
         .onChange(of: viewModel?.isLoading) { _, loading in
             if loading == false {
                 deferOnMain(by: 0.1) {
@@ -210,16 +181,10 @@ struct MovieDetailView: View {
                                 tmdbID: vm.item.tmdbID,
                                 cascadeToArrStack: request.cascadeToArrStack
                             )
-                            // Drop the on-disk filter cache so the
-                            // Library + Home rows don't keep showing
-                            // the deleted movie until natural eviction.
-                            // Active rows re-fetch on next focus.
+                            // Drop the on-disk filter cache so Library/Home rows don't keep showing the deleted movie until natural eviction.
                             FilterCache.shared.clearAll()
-                            // Tell Home to reload so the deleted movie
-                            // drops out of its rows right away.
                             NotificationCenter.default.post(name: .homeItemDidDelete, object: nil)
-                            // Pop the detail view after the sheet's
-                            // success-toast hold completes.
+                            // Pop after the sheet's success-toast hold.
                             Task { @MainActor in
                                 try? await Task.sleep(for: .milliseconds(1100))
                                 popDetail()
@@ -245,10 +210,7 @@ struct MovieDetailView: View {
             DetailContentOverlay(hero: {
                 DetailHeroLogo(viewModel: vm)
             }, primary: {
-                // Glass panel + action buttons form the first page's
-                // bottom-aligned block (Sodalite#15 round 6), mirroring
-                // SeriesDetailView: the button row closes off the fold,
-                // synopsis and rows start off-screen.
+                // Glass panel + action buttons as the bottom-aligned first-page block (Sodalite#15 round 6), mirroring SeriesDetailView.
                 VStack(alignment: .leading, spacing: 24) {
                     glassPanel(vm: vm)
                     actionButtonRow(vm: vm)
@@ -260,8 +222,7 @@ struct MovieDetailView: View {
                     ExpandableTextBox(text: overview)
                         .padding(.horizontal, 50)
                 } else if !vm.hasFullDetail {
-                    // Overview still in flight after a snapshot paint:
-                    // reserve the box's footprint (Sodalite#15).
+                    // Overview in flight after a snapshot paint: reserve the footprint (Sodalite#15).
                     ExpandableTextBoxPlaceholder()
                         .padding(.horizontal, 50)
                 }
@@ -297,19 +258,14 @@ struct MovieDetailView: View {
 
     private func glassPanel(vm: DetailViewModel) -> some View {
         VStack(alignment: .leading, spacing: 16) {
-            // Title/logo now lives in the backdrop hero slot above the
-            // panel (see DetailContentOverlay). The panel opens straight
-            // into the metadata + secondary-info row.
-
+            // Title/logo lives in the hero slot (see DetailContentOverlay); panel opens into the metadata row.
             if vm.item.type == .episode, let series = vm.item.seriesName {
                 Text(episodeSubtitle(vm: vm, seriesName: series))
                     .font(.headline)
                     .foregroundStyle(.secondary)
             }
 
-            // Metadata + tagline form row one, genres + credits row
-            // two, baseline-aligned per row so the left and right
-            // columns sit level.
+            // Metadata+tagline row one, genres+credits row two, baseline-aligned so columns sit level.
             DetailInfoRows(
                 item: vm.item,
                 hasFullDetail: vm.hasFullDetail,
@@ -333,9 +289,7 @@ struct MovieDetailView: View {
         )
     }
 
-    /// Decides whether to show the version picker or start directly.
-    /// Movies carry their media sources from the detail fetch, so the
-    /// count check is reliable here.
+    /// Version picker vs direct start; movies carry their media sources from the detail fetch, so the count check is reliable.
     private func requestPlay(fromBeginning: Bool, vm: DetailViewModel) {
         if let sources = vm.item.mediaSources, sources.count > 1 {
             versionChoice = VersionPickerChoice(
@@ -353,10 +307,7 @@ struct MovieDetailView: View {
 
     // MARK: - Action Buttons
 
-    /// Button row directly below the glass panel. Lives outside the
-    /// panel (Sodalite#15 round 6) so the plate stays a compact metadata
-    /// card; each GlassActionButton carries its own material background,
-    /// so the row needs no plate of its own.
+    /// Button row below the glass panel, outside it (Sodalite#15 round 6); each GlassActionButton carries its own material so the row needs no plate.
     private func actionButtonRow(vm: DetailViewModel) -> some View {
         HStack(spacing: 16) {
             GlassActionButton(
@@ -417,11 +368,7 @@ struct MovieDetailView: View {
                 )
             }
 
-            // No "Request in Seerr" button on movie detail: if we're
-            // showing this view the movie is already in Jellyfin, so
-            // the request flow has nothing meaningful to offer. The
-            // button stays on the series detail for continuing shows
-            // where new seasons may still land.
+            // No "Request in Seerr" on movie detail: the movie is already in Jellyfin. The button stays on series detail for continuing shows.
 
             GlassActionButton(
                 title: vm.isPlayed ? "detail.markUnwatched" : "detail.markWatched",
@@ -429,13 +376,7 @@ struct MovieDetailView: View {
                 action: { Task { await vm.togglePlayed() } }
             )
 
-            // Episodes only reach MovieDetailView via the
-            // no-parent-series fallback in DetailRouterView
-            // (episodes with a seriesId open in SeriesDetailView).
-            // Per-episode deletion is not a supported flow either
-            // way: the delete entry point lives on the parent
-            // series detail, matching SeriesDetailView's own
-            // !isShowingEpisode guard.
+            // Episodes only reach here via DetailRouterView's no-parent-series fallback; per-episode deletion isn't supported (delete lives on series detail, matching SeriesDetailView's !isShowingEpisode guard).
             if canDelete && item.type != .episode {
                 GlassActionButton(
                     title: "detail.delete.button",
@@ -460,9 +401,7 @@ struct MovieDetailView: View {
         return "detail.play"
     }
 
-    /// Returns the formatted resume timestamp for the play-button
-    /// subtitle slot, or nil when there's nothing to resume from
-    /// (a fresh item, or an item that's already been finished).
+    /// Formatted resume timestamp for the play-button subtitle, or nil when there's nothing to resume (fresh or finished).
     private func resumeTimestamp(vm: DetailViewModel) -> String? {
         guard let ticks = vm.item.userData?.playbackPositionTicks, ticks > 0 else {
             return nil
@@ -470,9 +409,7 @@ struct MovieDetailView: View {
         return ResumeTimeFormatter.format(ticks: ticks)
     }
 
-    /// 0…1 progress fraction surfaced as the resume-progress overlay
-    /// inside the play button. nil when the movie is fresh or has no
-    /// run-time metadata.
+    /// 0…1 progress for the play button's overlay; nil when fresh or no run-time metadata.
     private func playProgressFraction(vm: DetailViewModel) -> Double? {
         guard let ticks = vm.item.userData?.playbackPositionTicks, ticks > 0,
               let total = vm.item.runTimeTicks, total > 0 else {
@@ -488,8 +425,7 @@ struct MovieDetailView: View {
         return parts.joined(separator: " · ")
     }
 
-    /// Resolve a Jellyfin cast member to a TMDB person id, then open the
-    /// person page. Inert when the server has no TMDB id for them.
+    /// Resolve a cast member to a TMDB person id and open the person page; inert when the server has no TMDB id.
     private func handlePersonTap(_ member: CastMember) {
         resolvePersonRoute(
             for: member,

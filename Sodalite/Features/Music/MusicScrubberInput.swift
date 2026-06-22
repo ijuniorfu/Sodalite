@@ -1,13 +1,10 @@
 import SwiftUI
 import UIKit
 
-/// A focusable UIKit input layer for the music scrubber, giving the SwiftUI
-/// player the same feel as the video player (which is UIKit). When focused it
-/// captures: touchpad pan to scrub, left/right click to skip, left/right hold
-/// to spool (accelerating; playback keeps running, Select commits), and Select to commit a scrub or
-/// toggle play/pause. The visible bar is drawn in SwiftUI from the
-/// coordinator's scrub state; this transparent view owns the input and
-/// reports its focus state up so the bar can show a focus look.
+/// Focusable UIKit input layer for the music scrubber, giving the SwiftUI player the same feel as the
+/// (UIKit) video player. When focused: pan to scrub, left/right click to skip, hold to spool, Select
+/// to commit / toggle play. The bar is drawn in SwiftUI; this transparent view owns the input and
+/// reports focus up so the bar can show a focus look.
 struct MusicScrubberInput: UIViewRepresentable {
     let coordinator: MusicPlaybackCoordinator
     @Binding var isFocused: Bool
@@ -60,10 +57,8 @@ struct MusicScrubberInput: UIViewRepresentable {
             }
         }
 
-        /// Touchpad travel (points) for a full-track scrub. The Siri Remote
-        /// over-reports translation for indirect touches, so this is large
-        /// and deliberate, matching the video player's effective sensitivity
-        /// (it scrubs t.x / fullScreenWidth * 0.3 ~= t.x / 6400).
+        /// Touchpad travel (points) for a full-track scrub. Large/deliberate because the Siri Remote
+        /// over-reports indirect-touch translation; matches the video player's t.x/fullScreenWidth*0.3 ~= t.x/6400.
         private static let scrubTravelForFullTrack: CGFloat = 6400
 
         @objc func handlePan(_ g: UIPanGestureRecognizer) {

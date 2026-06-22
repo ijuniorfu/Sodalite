@@ -6,47 +6,26 @@ final class DetailViewModel {
     var item: JellyfinItem
     var isFavorite: Bool
     var isPlayed: Bool
-    /// Per-item played overrides keyed by item / episode / season ID.
-    /// Lets the cards live-update their watched badge without mutating
-    /// the immutable JellyfinItem structs (same "pass state explicitly
-    /// to the card" pattern as isFocused / isCurrent).
+    /// Played overrides keyed by item/episode/season ID; live-updates the watched badge without mutating the immutable JellyfinItem (same "pass state to the card" pattern as isFocused/isCurrent).
     var playedOverrides: [String: Bool] = [:]
     var seasons: [JellyfinItem] = []
     var episodes: [JellyfinItem] = []
-    /// True while a cache-miss episode fetch for the selected season is
-    /// in flight. Drives the skeleton placeholder row so the section
-    /// paints instantly instead of staying blank until the round-trip
-    /// lands (the "grey then everything at once" slow-CDN symptom).
+    /// Cache-miss episode fetch for the selected season in flight; drives the skeleton row instead of a blank ("grey then everything at once" slow-CDN symptom).
     var isLoadingEpisodes = false
-    /// True while the season list itself is still loading (before any season
-    /// tab exists). Drives a skeleton season bar + episode row so the whole
-    /// section's structure paints at the snapshot deadline instead of being
-    /// a blank gap until getSeasons lands on a slow CDN.
+    /// Season list still loading (no tabs yet); drives the skeleton season bar + episode row so the structure paints at the snapshot deadline instead of a blank gap on a slow CDN.
     var isLoadingSeasons = false
     var collectionItems: [JellyfinItem] = []
     var currentEpisodeID: String?
-    /// The full next-up episode item, populated as soon as the
-    /// `getNextUp` response lands. Used by the play button to render
-    /// "S1E5 · 12:34" + the resume-progress bar before the season's
-    /// full episode list has finished loading. Without this the
-    /// button stays on its initial "Play" / no-subtitle state for the
-    /// few hundred ms it takes loadEpisodes to fill `episodes`, which
-    /// reads as a layout flicker on the user's first focused tile.
+    /// Full next-up episode, populated when getNextUp lands; lets the play button render "S1E5 · 12:34" + resume bar before loadEpisodes fills `episodes` (else a flicker on the first focused tile).
     var nextUpEpisode: JellyfinItem?
     var similarItems: [JellyfinItem] = []
     var selectedSeasonID: String?
     var isLoading = false
-    /// Flips true once the full-detail fetch has settled (success or
-    /// failure). The snapshot-paint deadline can flip `isLoading`
-    /// false while the detail roundtrip is still in flight on slow
-    /// servers; the views key placeholder boxes for overview /
-    /// secondary info on this so those sections reserve their space
-    /// instead of popping in and shifting the layout (Sodalite#15).
+    /// True once full-detail settles (success or failure). isLoading can flip false at the snapshot deadline while the detail roundtrip is still in flight, so views key overview/secondary placeholders on this to reserve space (Sodalite#15).
     var hasFullDetail = false
     var cachedPlaybackInfo: PlaybackInfoResponse?
 
-    /// True when the server reported at least one local trailer for
-    /// this item. Drives the detail-view Trailer button's visibility.
+    /// Server reported at least one local trailer; drives the Trailer button's visibility.
     var hasLocalTrailer: Bool {
         (item.localTrailerCount ?? 0) > 0
     }
@@ -56,33 +35,17 @@ final class DetailViewModel {
     private let playbackService: JellyfinPlaybackServiceProtocol?
     private let imageService: JellyfinImageService
     private let userID: String
-    /// When the detail was opened from a specific episode (vs. the
-    /// series tile), this is that episode. `loadSeasons` lands on its
-    /// season and selects it instead of running the next-up logic.
+    /// Episode the detail was opened from (vs the series tile); loadSeasons lands on its season instead of running next-up logic.
     private let initialEpisode: JellyfinItem?
-    /// In-flight prefetch task, cancelled on deinit so a disappearing
-    /// view doesn't keep self alive waiting on network. Plain stored
-    /// property: the `isolated deinit` below runs on MainActor, so no
-    /// isolation escape hatch is needed for the cancel anymore.
+    /// In-flight season-prefetch task, cancelled on deinit so a disappearing view doesn't keep self alive.
     private var prefetchTask: Task<Void, Never>?
-    /// Separate slot for the PlaybackInfo prefetch. It used to share
-    /// `prefetchTask` with the season warming, and since loadSeasons
-    /// schedules startSeasonPrefetch right after prefetchPlaybackInfo
-    /// on every multi-season series, the season pass cancelled the
-    /// PlaybackInfo fetch ~immediately: cachedPlaybackInfo stayed nil
-    /// and the play button paid the full round trip it was meant to
-    /// hide.
+    /// Separate slot from prefetchTask: when shared, loadSeasons scheduling startSeasonPrefetch right after prefetchPlaybackInfo cancelled the PlaybackInfo fetch immediately, leaving cachedPlaybackInfo nil and the play button paying the full round trip.
     private var playbackInfoPrefetchTask: Task<Void, Never>?
 
-    /// Per-season episode cache. Hit on `loadEpisodes(seasonID:)` so a
-    /// season tab the user has already (or pre-emptively) visited
-    /// switches in instantly instead of doing another round trip.
+    /// Per-season episode cache; an already-visited (or prefetched) season tab switches in instantly instead of a round trip.
     private var episodesCache: [String: [JellyfinItem]] = [:]
 
-    /// Per-episode full-detail cache. The episode list is fetched with a
-    /// slim field set (no MediaStreams / MediaSources), so when an episode
-    /// is opened into episode mode we fetch its full detail once and cache
-    /// it here for the TechInfoBox.
+    /// Per-episode full-detail cache. The list is slim (no MediaStreams/MediaSources), so an episode opened into episode mode fetches full detail once for the TechInfoBox.
     private var episodeDetailCache: [String: JellyfinItem] = [:]
 
     isolated deinit {
@@ -110,48 +73,23 @@ final class DetailViewModel {
         self.initialEpisode = initialEpisode
     }
 
-    /// Fetches the item's local trailers and returns the first one to
-    /// play, or nil if there are none or the request fails. Called on
-    /// Trailer-button tap so we only hit the endpoint on demand.
+    /// First local trailer to play, or nil; fetched on Trailer-button tap so the endpoint is hit on demand.
     func loadTrailer() async -> JellyfinItem? {
         let trailers = try? await itemService.getLocalTrailers(userID: userID, itemID: item.id)
         return trailers?.first
     }
 
     func loadFullDetail() async {
-        // Episode deep-links arrive with the full episode already in hand
-        // (the deep-link resolver fetched it) plus the series name in the
-        // stub, which is enough to paint the hero panel, play button,
-        // overview and tech box on the first frame. Skip the loading gate
-        // in that case so they paint immediately and seasons / cast /
-        // similar fade in as they land, instead of holding everything
-        // behind the spinner until the series detail + seasons round-trips
-        // finish (the "grey for a few seconds then everything at once" the
-        // episode path showed on slow CDNs). Safe from the play-button
-        // repaint storm the series path guards against: the target episode
-        // is already known, so no next-up resolution runs here.
+        // Episode deep-links arrive with the full episode in hand, enough to paint the first frame, so skip the loading gate and let seasons/cast/similar fade in (the episode path's "grey then everything at once" on slow CDNs). No next-up resolution runs here, so it's safe from the series-path repaint storm.
         isLoading = (initialEpisode == nil)
 
         let itemID = item.id
         let itemType = item.type
 
-        // Fetch detail. We avoid `async let` here because it
-        // interacts badly with @MainActor-isolated service calls crossing
-        // back into a non-isolated @Observable class, the task-local
-        // allocator ends up deallocating a pointer that is no longer the
-        // top of its stack and we crash with
-        // swift_task_dealloc_specific SIGABRT "freed pointer was not the
-        // last allocation" in asyncLet_finish_after_task_completion.
-        // A detached-ish Task{}.value pair stays parallel but keeps each
-        // call on its own independent allocator.
+        // Avoid `async let`: @MainActor service calls crossing back into this non-isolated @Observable crash the task-local allocator with swift_task_dealloc_specific SIGABRT "freed pointer was not the last allocation". Task{}.value keeps each call on its own allocator while staying parallel.
         let detailTask = Task { try? await itemService.getItemDetail(userID: userID, itemID: itemID) }
 
-        // Series content (seasons + next-up + episodes) only depends
-        // on the item ID, which we already have from the passed-in
-        // item, start the chain in parallel with the detail fetch
-        // so the play button's "Fortsetzen + S1E5 · 12:34" subtitle
-        // and progress overlay arrive on the screen at the same
-        // moment as the rest of the detail panel.
+        // Series content depends only on the item ID (already in hand), so run it parallel with the detail fetch and the play button's "Fortsetzen + S1E5 · 12:34" subtitle arrives with the rest of the panel.
         let seriesContentTask: Task<Void, Never>? = (itemType == .series) ? Task {
             await loadSeasons()
         } : nil
@@ -162,12 +100,7 @@ final class DetailViewModel {
             await loadPlaylistItems()
         } : nil
 
-        // Similar items power a row near the bottom of the detail
-        // screen, well below the fold on every reasonable viewport,
-        // so the user wouldn't see it within the first paint anyway.
-        // Fire it without awaiting so it doesn't gate isLoading
-        // flipping false; the similar-row appears progressively when
-        // the response lands.
+        // Similar items sit below the fold; fire without awaiting so they don't gate isLoading flipping false. Row appears progressively when the response lands.
         Task { [weak self] in
             guard let self else { return }
             if let similar = try? await itemService.getSimilarItems(itemID: itemID, userID: userID, limit: 12) {
@@ -175,19 +108,7 @@ final class DetailViewModel {
             }
         }
 
-        // Snapshot-paint deadline. If the detail / seasons / collection
-        // fetches haven't all settled within this budget, flip
-        // isLoading=false and paint from the JellyfinItem snapshot
-        // we already have in hand from the navigating row. Fast
-        // servers (homelab Jellyfin, sub-300 ms detail) still hit
-        // the original quiet single-render path because they complete
-        // before the deadline fires. Slow servers (CDN-backed libraries
-        // that take 10+ s for a detail roundtrip, per Sodalite#12)
-        // stop showing the 30 s spinner; the hero region paints from
-        // the snapshot immediately and overview / cast / seasons /
-        // episodes fade in as their fetches settle. Accepted tradeoff:
-        // a brief field-fill repaint on slow servers, vs. the
-        // 30-second hard wall before.
+        // Snapshot-paint deadline (500ms): if the fetches haven't settled, flip isLoading=false and paint from the navigating-row JellyfinItem snapshot. Fast servers complete first and keep the quiet single-render path; slow CDN libraries (10+ s, Sodalite#12) stop showing the 30 s spinner and fade content in as fetches settle. Tradeoff: a brief field-fill repaint vs the hard wall (Sodalite#15).
         Task { [weak self] in
             try? await Task.sleep(for: .milliseconds(500))
             guard let self, self.isLoading else { return }
@@ -199,19 +120,14 @@ final class DetailViewModel {
             isFavorite = detail.userData?.isFavorite ?? false
             isPlayed = detail.userData?.played ?? false
         }
-        // Settled either way: on failure nothing more will arrive, so
-        // the placeholder boxes must stop reserving space.
+        // Settled either way: on failure nothing more arrives, so placeholders must stop reserving space.
         hasFullDetail = true
 
         if itemType != .series && itemType != .boxSet && itemType != .playlist {
             prefetchPlaybackInfo(for: itemID)
         }
 
-        // Wait for the parallel chains to finish so isLoading flips
-        // false at the latest once every section has its data. On
-        // fast servers this fires before the deadline above; on slow
-        // servers the deadline already flipped it false and this is
-        // a no-op.
+        // Wait on the parallel chains so isLoading flips false once every section has data (no-op if the deadline above already flipped it).
         await seriesContentTask?.value
         await collectionContentTask?.value
         await playlistContentTask?.value
@@ -222,26 +138,14 @@ final class DetailViewModel {
     func loadSeasons() async {
         guard item.type == .series else { return }
 
-        // Skeleton the season bar while getSeasons is in flight. Cleared on
-        // exit, by which point `seasons` is populated and the real bar takes
-        // over (the view shows the real section whenever seasons is
-        // non-empty, so the exact flip moment can't leave a skeleton over
-        // real content).
+        // Skeleton the season bar while getSeasons is in flight (the view shows the real section whenever seasons is non-empty, so the flip can't leave a skeleton over real content).
         isLoadingSeasons = true
         defer { isLoadingSeasons = false }
 
-        // Three independent fetches all keyed off the series ID:
-        //   - getSeasons:  the season-tabs list
-        //   - getNextUp:   the resume target (if any)
-        //   - loadEpisodes: needs a season ID, but next-up gives us
-        //                  one as soon as it lands, so we wait
-        //                  ONLY on next-up before kicking that off,
-        //                  not on the seasons response.
+        // Three fetches keyed off the series ID: getSeasons (tabs), getNextUp (resume target), loadEpisodes (needs a season ID, which next-up supplies, so wait only on next-up, not on getSeasons).
         let seasonsTask = Task { try? await itemService.getSeasons(seriesID: item.id, userID: userID) }
 
-        // Opened from a specific episode: land on that episode's season
-        // and select it, skipping the next-up-driven selection entirely.
-        // The view sets selectedEpisode = initialEpisode for the panel.
+        // Opened from a specific episode: land on its season and select it, skipping next-up selection. The view sets selectedEpisode = initialEpisode.
         if let initialEpisode, let seasonID = initialEpisode.seasonId {
             selectedSeasonID = seasonID
             await loadEpisodes(seasonID: seasonID)
@@ -258,12 +162,7 @@ final class DetailViewModel {
             Task { try? await libService.getNextUp(userID: userID, seriesID: item.id, limit: 1) }
         }
 
-        // As soon as next-up resolves: publish nextUpEpisode + fire
-        // loadEpisodes for that episode's season in parallel with
-        // the still-pending getSeasons. Without this, loadEpisodes
-        // would only start AFTER seasons had returned and we'd
-        // serialise three round-trips into the critical path
-        // instead of overlapping them.
+        // On next-up resolve: publish nextUpEpisode + fire loadEpisodes for its season parallel to the still-pending getSeasons, else the three round-trips serialise into the critical path.
         let earlyEpisodesTask: Task<Void, Never>? = nextUpTask.map { task in
             Task { @MainActor [weak self] in
                 guard let self,
@@ -278,21 +177,16 @@ final class DetailViewModel {
             }
         }
 
-        // Wait on the seasons response, fast network races aside
-        // this is the slowest of the three calls because Jellyfin
-        // returns full metadata for every season image tag.
+        // getSeasons is the slowest of the three (full metadata per season image tag).
         let seasonsResponse = await seasonsTask.value
         if let seasonsResponse {
             seasons = seasonsResponse.items
         }
 
-        // Let the early-episodes task settle (probably already done)
-        // before falling back to the no-next-up path.
+        // Let the early-episodes task settle before the no-next-up fallback.
         await earlyEpisodesTask?.value
 
-        // Fallback path: no next-up means no watch history. Land on
-        // season 1 with its episode list loaded so the user has
-        // something to focus into.
+        // Fallback: no next-up means no watch history. Land on season 1 with episodes loaded so there's something to focus into.
         if nextUpEpisode == nil, episodes.isEmpty,
            let firstSeasonID = seasons.first?.id {
             selectedSeasonID = firstSeasonID
@@ -305,13 +199,7 @@ final class DetailViewModel {
         startSeasonPrefetch()
     }
 
-    /// Re-fetch the season list after a mutation (the user deleted one or
-    /// more seasons from the deletion sheet). Unlike `loadSeasons()`, this
-    /// doesn't re-run next-up / initial-episode selection, it keeps the user
-    /// where they are: if the currently selected season survived the deletion
-    /// it stays selected with a fresh episode list, otherwise we fall back to
-    /// the first remaining season. The per-season episode cache is dropped
-    /// wholesale because deleted seasons leave stale entries behind.
+    /// Re-fetch seasons after a deletion. Unlike loadSeasons(), skips next-up/initial-episode selection: keeps the surviving selected season (else first remaining). Drops the whole episode cache (deleted seasons leave stale entries).
     func refreshSeasons() async {
         guard item.type == .series else { return }
 
@@ -322,8 +210,7 @@ final class DetailViewModel {
         }
         seasons = response.items
 
-        // The selected season may have just been deleted. Keep it if it
-        // survived, otherwise land on the first remaining season.
+        // Keep the selected season if it survived, else the first remaining.
         let survivingSelection = selectedSeasonID.flatMap { id in
             seasons.first(where: { $0.id == id })?.id
         }
@@ -336,39 +223,12 @@ final class DetailViewModel {
         }
     }
 
-    /// Re-fetch the resume position after playback ends so the Play
-    /// button shows where the user actually stopped, not the spot they
-    /// resumed from at launch (issue #24). Driven by
-    /// `.playbackProgressDidChange`, which the player posts once Jellyfin
-    /// has confirmed the PlaybackStopped position, so this always reads
-    /// the updated value rather than racing the fire-and-forget report.
-    ///
-    /// Deliberately lighter than loadFullDetail(): it refreshes only the
-    /// userData that feeds the resume label + relaunch position and never
-    /// touches `isLoading`, so returning from the player doesn't reflash
-    /// the detail spinner.
+    /// Re-fetch the resume position after playback so the Play button shows where the user stopped, not the launch spot (issue #24). Driven by .playbackProgressDidChange (posted once Jellyfin confirms PlaybackStopped). Lighter than loadFullDetail(): never touches isLoading so returning from the player doesn't reflash the spinner.
     func refreshResumePosition() async {
-        // Every observed-state assignment below is hopped onto the
-        // MainActor explicitly. This method runs without isLoading (by
-        // design, so returning from the player doesn't reflash the detail
-        // spinner), which means the @Observable mutation is the ONLY
-        // re-render trigger. DetailViewModel is a non-isolated @Observable
-        // class, so the continuation after a @MainActor service await
-        // resumes on the cooperative executor, not main; an off-main
-        // @Observable mutation does not reliably invalidate the SwiftUI
-        // view. loadFullDetail() gets away with the same off-main `item =`
-        // only because it also flips isLoading on settle, forcing a render.
-        // Here there is no such flip, so without MainActor.run the model
-        // updated (relaunch resumed from the right spot) but the Play
-        // button's timestamp + progress overlay stayed stale (issue #24
-        // follow-up). Mirrors the similarItems MainActor.run in loadFullDetail.
+        // All observed-state assignments hop onto MainActor explicitly: with isLoading untouched (by design) the @Observable mutation is the only re-render trigger, and a continuation after a @MainActor service await resumes off-main on this non-isolated class, where an @Observable mutation doesn't reliably invalidate the view (issue #24 follow-up: model updated but Play-button timestamp stayed stale). loadFullDetail() escapes this only because it also flips isLoading.
         switch item.type {
         case .series:
-            // The series play button resumes the next-up / current
-            // episode, so the position lives on the EPISODE's userData,
-            // not the series'. Refresh next-up, the on-screen season's
-            // episode list, and drop the per-episode detail cache so an
-            // open episode panel re-enriches from fresh data.
+            // Series Play resumes the next-up/current EPISODE, so position lives on the episode's userData. Refresh next-up + the on-screen season + drop the episode detail cache so an open panel re-enriches fresh.
             let nextUp = try? await libraryService?.getNextUp(userID: userID, seriesID: item.id, limit: 1)
             let seasonEpisodes: (seasonID: String, items: [JellyfinItem])?
             if let seasonID = selectedSeasonID,
@@ -399,21 +259,7 @@ final class DetailViewModel {
         }
     }
 
-    /// Authoritatively patch the in-memory resume position for `itemID`
-    /// straight from the playback-stop payload (issue #24).
-    ///
-    /// This is the deterministic counterpart to refreshResumePosition():
-    /// the player already knows exactly which item stopped and where, so
-    /// we patch userData.playbackPositionTicks on every in-memory copy of
-    /// that item rather than re-fetching and racing the server's commit /
-    /// the ETag cache (the re-fetch path left the movie button stale ~10%
-    /// of the time and the episode button stale every time). The id may
-    /// match the movie itself, the series' next-up / current episode, an
-    /// episode in the loaded list, or a cached episode, so patch them all.
-    ///
-    /// Must run on the MainActor (callers are SwiftUI .onReceive
-    /// closures): synchronous and main-isolated so the @Observable
-    /// mutation reliably re-renders the Play button.
+    /// Patch in-memory resume position for `itemID` straight from the playback-stop payload (issue #24). Deterministic counterpart to refreshResumePosition(): patches playbackPositionTicks on every in-memory copy rather than racing the server commit / ETag cache (re-fetch left the movie button stale ~10% and the episode button stale every time). Patches all holders (movie, next-up/current episode, loaded list, cached). @MainActor + synchronous so the @Observable mutation reliably re-renders.
     @MainActor
     func applyPlaybackPosition(itemID: String, ticks: Int64) {
         func patch(_ candidate: inout JellyfinItem) {
@@ -440,32 +286,22 @@ final class DetailViewModel {
         if let cached = episodesCache[seasonID] {
             episodes = cached
             isLoadingEpisodes = false
-            // Keep warming the rest, re-anchored on the season now on
-            // screen so the next-likely tabs come first.
+            // Keep warming, re-anchored on the season now on screen.
             startSeasonPrefetch()
             return
         }
 
-        // Cache miss: this is a season the user is waiting on right now.
-        // Cancel the background season prefetch first so it isn't holding
-        // HTTPClient request slots this foreground fetch needs. Prefetch
-        // hogging the request budget was the "switching to season 2 takes
-        // forever while it prefetches every other season" regression.
+        // Cache miss the user is waiting on: cancel the background prefetch first so it isn't holding HTTPClient slots this foreground fetch needs (the "switching to season 2 takes forever" regression).
         prefetchTask?.cancel()
 
-        // Drop the prior season's list and show skeletons for the target
-        // season rather than the wrong season's episodes under the newly
-        // selected tab.
+        // Drop the prior season's list and show skeletons so the wrong season's episodes don't sit under the newly selected tab.
         episodes = []
         isLoadingEpisodes = true
 
         do {
             let response = try await itemService.getEpisodes(seriesID: item.id, seasonID: seasonID, userID: userID)
             episodesCache[seasonID] = response.items
-            // A newer season selection may have superseded this fetch
-            // while it was in flight (fast tab-mashing). Keep the result
-            // in the cache but don't clobber the season now on screen, and
-            // let the superseding call own the prefetch restart.
+            // A newer selection may have superseded this in-flight fetch (fast tab-mashing): keep the cache entry but don't clobber the on-screen season, and let the superseding call own the prefetch restart.
             guard selectedSeasonID == seasonID else { return }
             episodes = response.items
             isLoadingEpisodes = false
@@ -474,39 +310,24 @@ final class DetailViewModel {
             isLoadingEpisodes = false
         }
 
-        // Foreground fetch is done, resume warming the remaining seasons in
-        // the background, nearest to the one now on screen first.
+        // Foreground done: resume warming the remaining seasons, nearest first.
         startSeasonPrefetch()
     }
 
-    /// (Re)start the background season prefetch, cancelling any prior run.
-    /// Called after the foreground season settles so prefetch always trails
-    /// the user (warming the seasons nearest the one on screen) instead of
-    /// racing ahead and hogging the request budget.
+    /// (Re)start the background season prefetch, cancelling any prior run; called after the foreground season settles so prefetch trails the user instead of hogging the request budget.
     private func startSeasonPrefetch() {
         guard item.type == .series, seasons.count > 1 else { return }
         prefetchTask?.cancel()
         prefetchTask = Task { [weak self] in await self?.prefetchRemainingSeasons() }
     }
 
-    /// Warm the per-season episode cache for the seasons the user has not
-    /// opened yet, so later season switches are instant cache hits.
-    ///
-    /// Two deliberate properties, both learned from the regression where
-    /// blanket prefetch starved the user-driven season switch on slow CDNs:
-    ///
-    /// 1. Nearest-first. Seasons are warmed in order of distance from the
-    ///    one on screen, so an adjacent tab (the likely next pick) is ready
-    ///    before season 10 is.
-    /// 2. Sequential and cancellable. One in-flight prefetch request at a
-    ///    time leaves the rest of the HTTPClient budget free for whatever
-    ///    the user does next, and a cancel (they switched seasons) lands
-    ///    after at most one request instead of after a whole fan-out batch.
+    /// Warm the per-season episode cache for unopened seasons. Two properties learned from the regression where blanket prefetch starved the user-driven switch on slow CDNs:
+    /// 1. Nearest-first: warm by distance from the on-screen season so the likely next pick is ready first.
+    /// 2. Sequential + cancellable: one in-flight request leaves the HTTPClient budget free, and a cancel lands after at most one request, not a whole fan-out.
     func prefetchRemainingSeasons() async {
         guard item.type == .series else { return }
 
-        // Yield the network to the foreground first-paint fetch before
-        // warming anything.
+        // Yield the network to the foreground first-paint fetch first.
         try? await Task.sleep(for: .milliseconds(300))
         if Task.isCancelled { return }
 
@@ -531,10 +352,7 @@ final class DetailViewModel {
         }
     }
 
-    /// Full episode detail (MediaStreams / MediaSources) for an episode the
-    /// user opened into episode mode. The list itself is fetched slim, so
-    /// the TechInfoBox needs this on-demand fetch. Cached per episode and
-    /// falls back to the slim list item if the detail fetch fails.
+    /// Full episode detail (MediaStreams/MediaSources) for an episode opened into episode mode; the slim list lacks it. Cached per episode, falls back to the slim item on fetch failure.
     func enrichedEpisode(for episode: JellyfinItem) async -> JellyfinItem {
         if let cached = episodeDetailCache[episode.id] { return cached }
         guard let detail = try? await itemService.getItemDetail(userID: userID, itemID: episode.id) else {
@@ -548,12 +366,7 @@ final class DetailViewModel {
         guard item.type == .boxSet else { return }
 
         do {
-            // Chronological: oldest first. Franchise box-sets (Iron
-            // Man → Avengers, Harry Potter 1 → 8) read naturally
-            // left-to-right in release order, SortName would give
-            // "Avengers" before "Iron Man" and defeat the point of a
-            // collection. PremiereDate is the original theatrical /
-            // first-air date Jellyfin stamps on each item.
+            // Chronological oldest-first: franchise box-sets read in release order; SortName would put "Avengers" before "Iron Man". PremiereDate is Jellyfin's original theatrical/first-air date.
             let query = ItemQuery(
                 parentID: item.id,
                 sortBy: "PremiereDate,ProductionYear,SortName",
@@ -570,9 +383,7 @@ final class DetailViewModel {
         guard item.type == .playlist else { return }
 
         do {
-            // No sortBy: the server returns playlist members in the
-            // user's manual playlist order. Sorting (as collections do by
-            // PremiereDate) would defeat the purpose of a playlist.
+            // No sortBy: keep the user's manual playlist order (sorting would defeat the purpose).
             let query = ItemQuery(parentID: item.id, limit: 200)
             let response = try await itemService.getCollectionItems(userID: userID, query: query)
             collectionItems = response.items
@@ -593,8 +404,7 @@ final class DetailViewModel {
         }
     }
 
-    /// Effective played state for a card: an in-session override wins,
-    /// otherwise the server snapshot on the item.
+    /// Effective played state: in-session override wins over the server snapshot.
     func isPlayed(_ item: JellyfinItem) -> Bool {
         playedOverrides[item.id] ?? (item.userData?.played ?? false)
     }
@@ -627,9 +437,7 @@ final class DetailViewModel {
         }
     }
 
-    /// Toggle a whole season. The server cascades to child episodes; we
-    /// additionally flip the override for every episode we have loaded
-    /// for that season so the per-episode badges update live.
+    /// Toggle a whole season. The server cascades to children; we also flip the override for every loaded episode of that season so badges update live.
     func setSeasonPlayed(seasonID: String, isPlayed: Bool) async {
         var affected = Set((episodesCache[seasonID] ?? []).map(\.id))
         if selectedSeasonID == seasonID {

@@ -54,9 +54,7 @@ struct SeerrSettingsView: View {
         }
         .animation(.easeInOut(duration: 0.3), value: showSuccess)
         .toolbar(.hidden, for: .tabBar)
-        // Inline header only, the floating tvOS nav-title sits behind
-        // the scrolling content and looks like a ghost when the user
-        // scrolls past it. Matches PlaybackSettingsView.
+        // Inline header only; floating tvOS nav-title sits behind scrolling content. Matches PlaybackSettingsView.
         .toolbar(.hidden, for: .navigationBar)
         .onAppear(perform: bootstrap)
     }
@@ -100,10 +98,7 @@ struct SeerrSettingsView: View {
                         .padding(.horizontal, 16)
                         .padding(.vertical, 8)
                 }
-                // foregroundStyle alone doesn't reliably override the
-                // tvOS bordered style's tint propagation into the
-                // icon channel, only a custom buttonStyle that
-                // replaces the system rendering is robust.
+                // foregroundStyle doesn't override the bordered style's tint into the icon; a custom buttonStyle is needed.
                 .buttonStyle(SettingsTileButtonStyle())
             }
 
@@ -279,11 +274,7 @@ struct SeerrSettingsView: View {
                     .fill(.white.opacity(0.05))
             )
         }
-        // GhostTileButtonStyle only adds the accent-tint focus stroke
-        // + lift; the button's existing background tile is preserved.
-        // .plain would tint the entire label and draw tvOS' default
-        // thick white halo, both of which fight the rest of the
-        // settings UI.
+        // GhostTileButtonStyle adds only the focus stroke+lift, preserving the tile; .plain would tint the label + draw the white halo.
         .buttonStyle(GhostTileButtonStyle())
     }
 
@@ -447,9 +438,7 @@ struct SeerrSettingsView: View {
                 username: username,
                 password: password
             )
-            // Tie the Seerr session to the currently active Jellyfin
-            // profile so a future switchToUser can restore it without
-            // the user re-authenticating.
+            // Tie the Seerr session to the active Jellyfin profile (per-profile cookie) so switchToUser can restore it.
             try dependencies.saveSeerrSession(
                 server: server,
                 forJellyfinUserID: appState.activeUser?.id,
@@ -462,11 +451,7 @@ struct SeerrSettingsView: View {
             appState.setSeerrConnected(server: server, user: user)
             showSuccess = false
         } catch {
-            // Drop the session cookie only, keep the discovered baseURL so
-            // the user can retry without re-entering the server address.
-            // Full clearSeerrSession() would wipe baseURL and the next
-            // attempt would fail with "invalid URL" before even reaching
-            // the server.
+            // Drop the cookie only, keep baseURL: full clearSeerrSession wipes baseURL -> next attempt fails on invalid URL.
             dependencies.seerrClient.sessionCookie = nil
             loginError = error.localizedDescription
         }
@@ -480,10 +465,7 @@ struct SeerrSettingsView: View {
             print("[SeerrSettings] remote logout failed (clearing local session anyway): \(error)")
             #endif
         }
-        // Also drop the per-profile remembered cookie. Without this an
-        // explicit logout only cleared the global session: the next
-        // launch/profile switch restored the remembered entry and
-        // silently reconnected the account the user just logged out of.
+        // Also drop the per-profile remembered cookie, else next launch restores the remembered entry and silently reconnects the logged-out account.
         if let userID = appState.activeUser?.id,
            let serverID = appState.activeServer?.id {
             dependencies.forgetRememberedSeerr(

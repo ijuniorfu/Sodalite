@@ -11,10 +11,9 @@ extension PlayerViewModel {
         return 0
     }
 
-    /// The span the scrubber maps `scrubProgress` (0...1) across. For VOD
-    /// that is the content duration; for live it is the buffered DVR window
-    /// (`liveSeekableRange`). Returns 0 when there is nothing to scrub yet
-    /// (live window not accrued), which keeps the scrub entry points gated.
+    /// Span `scrubProgress` (0...1) maps across: VOD content duration, or the
+    /// buffered DVR window (`liveSeekableRange`) for live. 0 = nothing to scrub
+    /// (gates the entry points).
     var scrubReferenceDuration: Double {
         if isLiveSession {
             guard let range = liveSeekableRange,
@@ -24,19 +23,13 @@ extension PlayerViewModel {
         return effectiveDuration
     }
 
-    /// Minimum scrubbed distance, in seconds away from the live playhead,
-    /// that marks a scrub as a deliberate seek rather than the sub-second
-    /// touchpad jitter the Siri Remote emits in the moments before a click.
-    /// The velocity-gated commit (`scrubCommitMinVelocity` + a translation
-    /// reset) keeps that pre-click pan tiny, well under this; a real drag
-    /// across the scrubber moves tens of seconds.
+    /// Min scrubbed seconds that mark a deliberate seek vs the sub-second Siri
+    /// Remote touchpad jitter emitted just before a click.
     static let deliberateScrubThresholdSeconds: Double = 5
 
-    /// True when the active scrub has moved a deliberate distance from the
-    /// live playhead, as opposed to the pre-click touchpad jitter. Used so a
-    /// real scrub out of an intro commits to its target instead of being
-    /// hijacked into Skip Intro. VOD-only (`effectiveDuration > 0`); live has
-    /// no intro segments.
+    /// True when a scrub moved a deliberate distance (not pre-click jitter), so
+    /// scrubbing out of an intro commits instead of being hijacked into Skip
+    /// Intro. VOD-only; live has no intro segments.
     var scrubMovedMeaningfully: Bool {
         guard isScrubbing else { return false }
         let dur = effectiveDuration
@@ -52,31 +45,23 @@ extension PlayerViewModel {
             isScrubbing = true
             scrubStartProgress = progress
             showControls = true
-            // Seed the preview at scrub start so the card has a frame before
-            // the first movement. VOD warms the FrameExtractor; live fetches
-            // the first DVR-cache thumbnail via updateLiveScrubPreview.
+            // Seed the preview so the card has a frame before first movement:
+            // VOD prewarms FrameExtractor, live fetches via updateLiveScrubPreview.
             if !isLiveSession {
                 scrubPreview.prewarm()
             } else {
                 updateLiveScrubPreview()
             }
         }
-        // Always cancel any pending hide / auto-cancel timer, not just
-        // on the first scrub() call. Slow touchpad swipes occasionally
-        // make UIPanGestureRecognizer flip to `.ended` momentarily even
-        // while the user is still touching, which fires scrubPanEnded
-        // and schedules the 5 s auto-hide. When the user keeps panning
-        // (a fresh gesture that scrub(delta:) sees) the original guard
-        // skipped the cancel because isScrubbing was still true from
-        // the previous gesture, so the timer kept running and tore the
-        // UI down mid-scrub. Cancelling on every call closes that gap
-        // and matches the seekJump path's behaviour.
+        // Cancel the timer on EVERY call, not just the first: slow swipes can
+        // momentarily flip UIPanGestureRecognizer to .ended (firing
+        // scrubPanEnded's 5s auto-hide) while still touching; the old
+        // isScrubbing guard let that timer tear the UI down mid-scrub.
         controlsTimer?.cancel()
 
         scrubProgress = max(0, min(1, scrubStartProgress + Float(delta) * 0.3))
-        // scrubTime stays VOD-only: the live bar draws its own position label
-        // from behindLiveSeconds. The preview IS fed for live via
-        // updateLiveScrubPreview (DVR-cache thumbnails from the engine).
+        // scrubTime VOD-only (live bar draws from behindLiveSeconds); preview
+        // is still fed for live via updateLiveScrubPreview.
         if !isLiveSession {
             scrubTime = formatSeconds(Double(scrubProgress) * dur)
             scrubPreview.update(fraction: scrubProgress, durationSeconds: dur)
@@ -86,18 +71,9 @@ extension PlayerViewModel {
     func scrubPanEnded() {
         guard isScrubbing else { return }
         scrubStartProgress = scrubProgress
-        // Auto-cancel on idle. If the user stops scrubbing without
-        // pressing Select (commit) or Menu (cancel), treat a few
-        // seconds of inactivity as an implicit cancel: the scrub
-        // is discarded, playback continues from the position the
-        // user was at *before* they started scrubbing, and the
-        // controls fade out the same way they do after any other
-        // idle. Without this the player UI sits on top of the
-        // picture indefinitely after a partial scrub.
-        //
-        // `scrub(delta:)` cancels controlsTimer the instant the
-        // user resumes panning, so the timer only fires on real
-        // idle.
+        // Idle auto-cancel: 5s without Select/Menu discards the scrub and fades
+        // controls. scrub(delta:) cancels this the instant panning resumes, so
+        // it only fires on real idle.
         controlsTimer?.cancel()
         controlsTimer = Task {
             try? await Task.sleep(for: .seconds(5))
@@ -109,9 +85,8 @@ extension PlayerViewModel {
     }
 
     func commitScrub() {
-        // Live takes a dedicated commit: live duration is 0, so the VOD
-        // body below would early-return and never seek. commitLiveScrub
-        // maps scrubProgress across the moving seekable window instead.
+        // Live duration is 0, so the VOD body below would early-return without
+        // seeking; commitLiveScrub maps across the moving seekable window.
         if isLiveSession { commitLiveScrub(); return }
         let dur = effectiveDuration
         guard isScrubbing, dur > 0 else {
@@ -119,10 +94,8 @@ extension PlayerViewModel {
             return
         }
         let targetTime = Double(scrubProgress) * dur
-        // Set progress to scrub position BEFORE clearing isScrubbing.
-        // Without this, displayedProgress snaps from scrubProgress back
-        // to the old progress value for a brief moment before the seek
-        // completes and Combine updates it.
+        // Set progress BEFORE clearing isScrubbing, else displayedProgress
+        // snaps back to the old value until the seek's Combine update lands.
         progress = scrubProgress
         isScrubbing = false
         scrubPreview.clear()
@@ -140,10 +113,8 @@ extension PlayerViewModel {
     }
 
     /// Begin a continuous (hold-to-seek) scrub in `direction` (-1 left, +1
-    /// right). Enters scrub mode and advances `scrubProgress` with
-    /// acceleration (slow at first, ramping up) until `endContinuousSeek`
-    /// is called on release. Like the tap-skip path, the position is a
-    /// preview committed only on release.
+    /// right), advancing `scrubProgress` with acceleration until
+    /// `endContinuousSeek`. Position is a preview committed only on release.
     func beginContinuousSeek(direction: Int) {
         let dur = scrubReferenceDuration
         guard dur > 0 else { return }
@@ -153,7 +124,6 @@ extension PlayerViewModel {
             scrubStartProgress = progress
             scrubProgress = progress
             showControls = true
-            // Seed the preview at scrub start (mirrors scrub(delta:)).
             if !isLiveSession {
                 scrubPreview.prewarm()
             } else {
@@ -169,18 +139,14 @@ extension PlayerViewModel {
             var held = 0.0
             while !Task.isCancelled {
                 guard let self else { return }
-                // For live this re-reads the DVR window span each tick (it
-                // grows as history accrues); for VOD it is the fixed duration.
+                // Live re-reads the growing DVR window each tick; VOD is fixed.
                 let dur = self.scrubReferenceDuration
                 guard dur > 0 else { return }
-                // Media-seconds per real second: ramps from 15x, keeping the
-                // same acceleration curve, up to a fast 240x ceiling (~8.6s
-                // held) so long films can be spooled through quickly.
+                // Media-seconds per real second: ramps 15x -> 240x ceiling
+                // (~8.6s held) so long films spool quickly.
                 let rate = min(15 + held * 26, 240)
                 let deltaProgress = dir * Float(rate * tick / dur)
                 self.scrubProgress = max(0, min(1, self.scrubProgress + deltaProgress))
-                // scrubTime stays VOD-only; the preview IS fed for live
-                // via updateLiveScrubPreview (DVR-cache thumbnails).
                 if !self.isLiveSession {
                     self.scrubTime = self.formatSeconds(Double(self.scrubProgress) * dur)
                     self.scrubPreview.update(fraction: self.scrubProgress, durationSeconds: dur)
@@ -191,9 +157,8 @@ extension PlayerViewModel {
         }
     }
 
-    /// End a continuous spool (press released): stop spooling but KEEP the
-    /// scrub preview, exactly like a pan scrub. Playback keeps running; the
-    /// user commits the seek with Select (or it auto-cancels on idle).
+    /// End a continuous spool (release): stop spooling but KEEP the preview,
+    /// like a pan scrub; user commits with Select or it auto-cancels on idle.
     func endContinuousSeek() {
         guard continuousSeekTask != nil else { return }
         continuousSeekTask?.cancel()

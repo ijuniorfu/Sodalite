@@ -66,10 +66,7 @@ final class SeerrRequestEditModel {
         if rootFolder == nil { rootFolder = details.rootFolders.first?.path }
     }
 
-    /// Build a partial body containing only fields that differ from
-    /// the original request. Avoids sending unchanged values back to
-    /// Jellyseerr (defensive against server-side validation that
-    /// might reject a no-op edit).
+    /// Partial body of only changed fields; avoids sending no-op values back to Jellyseerr (defensive against server-side validation rejecting a no-op edit).
     func buildUpdateBody() -> SeerrRequestUpdateBody {
         let originalSeasons = Set((request.seasons ?? []).map(\.seasonNumber))
         let newSeasons: [Int]? = (request.type == .tv && selectedSeasons != originalSeasons)
@@ -103,11 +100,7 @@ struct SeerrRequestEditSheet: View {
                     .frame(minWidth: 600, minHeight: 400)
             }
         }
-        // .task must live on the outer Group, not on the ProgressView branch.
-        // Assigning self.model triggers a re-render that unmounts the ProgressView,
-        // which would cancel the still-running bootstrap() URLSession call if the
-        // task were attached to it. The Group stays mounted across the conditional
-        // swap, so bootstrap() always runs to completion.
+        // .task on the outer Group, not the ProgressView branch: assigning self.model unmounts ProgressView, which would cancel a task attached to it mid-bootstrap. The Group stays mounted across the swap.
         .task {
             guard model == nil else { return }
             let m = SeerrRequestEditModel(
@@ -242,11 +235,7 @@ struct SeerrRequestEditSheet: View {
         }
     }
 
-    /// TV requests must have at least one season selected; otherwise
-    /// Jellyseerr's update endpoint accepts `seasons: []` and clears
-    /// the request to zero requested seasons, which is a destructive
-    /// foot-gun the spec does not intend. Movie requests are always
-    /// valid (selectedSeasons is empty by design).
+    /// TV requests need >=1 season: Jellyseerr's update endpoint accepts `seasons: []` and destructively clears the request to zero seasons. Movies are always valid (selectedSeasons empty by design).
     private func isSeasonSelectionInvalid(model: SeerrRequestEditModel) -> Bool {
         guard request.type == .tv else { return false }
         guard request.seasons?.isEmpty == false else { return false }
@@ -287,9 +276,7 @@ struct SeerrRequestEditSheet: View {
 
 // MARK: - SeasonCheckboxRow
 
-/// Focusable checkbox row for one season. Follows the
-/// feedback_sodalite_ui_focus_and_tint rules: `.focusable(true)`
-/// not Button, `.tint` stroke, `.tint`-tinted fill when focused.
+/// Focusable per-season checkbox row; sodalite-ui-focus-and-tint rules: `.focusable(true)` not Button, `.tint` stroke, tinted focused fill.
 private struct SeasonCheckboxRow: View {
     let seasonNumber: Int
     let isOn: Bool
@@ -334,9 +321,7 @@ private struct SeasonCheckboxRow: View {
 
 // MARK: - EditPickerRow
 
-/// Generic single-select picker row for the Edit sheet. Same focus
-/// conventions as ValuePickerRow: left/right cycles, .tint stroke,
-/// .tint-tinted fill when focused.
+/// Generic single-select Edit-sheet picker row; ValuePickerRow conventions: left/right cycles, .tint stroke, tinted focused fill.
 private struct EditPickerRow<Option: Identifiable & Equatable>: View {
     let title: LocalizedStringKey
     let options: [Option]

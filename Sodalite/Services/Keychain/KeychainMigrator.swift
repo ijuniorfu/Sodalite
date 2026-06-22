@@ -2,23 +2,8 @@ import Foundation
 import os.log
 import Security
 
-/// One-shot keychain hygiene at app startup, before any other
-/// keychain reader.
-///
-/// Historical note (Phase F executed): this type used to carry the
-/// JellySeeTV -> Sodalite rename bridge (cross-service item copies,
-/// app-group device-id migration) plus two schema migrations
-/// (single-server -> multi-server layout, three-account shared
-/// session -> tvOS-user JSON slot). All of those were dead weight
-/// since 0.8.0: the pre-entitlement wipe below runs in the same
-/// launch and deleted everything the bridge had just copied, so the
-/// migrations could never restore anything. The bridge code and the
-/// JellySeeTV entitlement claims have been removed; only the wipe
-/// remains. The historical UserDefaults flags
-/// (`Sodalite.didMigrateFromJellySeeTV.v1`,
-/// `Sodalite.didMigrateActiveServerToMulti.v1`,
-/// `Sodalite.didMigrateSharedSessionToTVUser.v1`) are simply no
-/// longer read.
+/// One-shot keychain hygiene at startup, before any keychain reader.
+/// Only the pre-entitlement wipe remains. The old JellySeeTV→Sodalite bridge + schema migrations were dead since 0.8.0 (the wipe ran the same launch and deleted everything the bridge copied) and were removed; the flags `Sodalite.didMigrateFromJellySeeTV.v1`, `…ActiveServerToMulti.v1`, `…SharedSessionToTVUser.v1` are no longer read.
 enum KeychainMigrator {
     private static let log = Logger(
         subsystem: "de.superuser404.Sodalite",
@@ -38,24 +23,7 @@ enum KeychainMigrator {
         wipePreEntitlementKeychainIfNeeded()
     }
 
-    /// One-shot wipe of every keychain item across the four service
-    /// strings Sodalite has ever used (main + shared + JellySeeTV
-    /// main + shared). Gated by a per-user UserDefaults flag.
-    ///
-    /// Items written before `com.apple.developer.user-management =
-    /// runs-as-current-user` landed in a pre-multi-user regime, where
-    /// they're visible across every tvOS user on the device. Once the
-    /// entitlement is in place, items written under it land in the
-    /// running user's isolated bucket, but `SecItemCopyMatching` still
-    /// returns the pre-regime items first when present, masking the
-    /// per-user writes and producing the "session swaps when I switch
-    /// tvOS user" symptom.
-    ///
-    /// Wiping forces every user to log in once on the next launch.
-    /// Their session then lands in the per-user-isolated bucket
-    /// (enforced by `kSecUseUserIndependentKeychain = false` in
-    /// `KeychainService` and `SharedSessionMirror`), and subsequent
-    /// user switches stop bleeding sessions.
+    /// One-shot wipe across the four service strings (Sodalite + JellySeeTV, each main + shared), gated by a per-user UserDefaults flag. Pre-`runs-as-current-user` items are device-wide and `SecItemCopyMatching` returns them ahead of per-user writes, masking them ("session swaps when I switch tvOS user"). Wiping forces a one-time re-login into the per-user-isolated bucket.
     static func wipePreEntitlementKeychainIfNeeded() {
         let defaults = UserDefaults.standard
         guard !defaults.bool(forKey: preEntitlementWipeFlagKey) else { return }

@@ -16,62 +16,36 @@ struct CatalogDetailView: View {
     @State private var didRequest = false
     @State private var requestError: String?
 
-    /// Currently-viewed season inside the season detail block, tab
-    /// selection is independent of the request set so the user can
-    /// browse a season's episodes without committing to request it.
+    /// Currently-viewed season; independent of the request set so the user can browse episodes without requesting.
     @State private var viewedSeasonNumber: Int?
-    /// Per-season episode cache. Populated lazily as the user moves
-    /// between tabs; once a season is fetched we keep it for the
-    /// lifetime of the detail view.
+    /// Per-season episode cache, lazily populated and kept for the view's lifetime.
     @State private var seasonEpisodes: [Int: [SeerrEpisode]] = [:]
-    /// Per-season "loading episodes" markers, drives the spinner
-    /// shown inside the episode strip while a fetch is in flight.
+    /// Per-season in-flight markers driving the episode-strip spinner.
     @State private var loadingSeasons: Set<Int> = []
 
-    /// Recommended titles (recommendations, falling back to similar),
-    /// loaded in parallel with the detail so the screen paints first.
+    /// Recommendations (falling back to similar), loaded in parallel with the detail so the screen paints first.
     @State private var recommendations: [SeerrMedia] = []
-    /// Rotten Tomatoes critics score, fetched best-effort from Seerr's
-    /// ratings endpoint; nil when unavailable (older server, no RT data).
+    /// Rotten Tomatoes critics score, best-effort from Seerr's ratings endpoint; nil on older server / no RT data.
     @State private var rtCriticsScore: Int?
-    /// Navigation target when the user taps a recommendation.
     @State private var navigateToMedia: SeerrMedia?
-    /// Selected cast member, drives navigation to the person page.
     @State private var selectedCastMember: CastMember?
 
-    // Advanced request options, populated from /service/radarr or
-    // /service/sonarr. `nil` means "fall back to Seerr's server default"
-    // (which is what happens when the request body omits the field).
+    // Advanced request options from /service/radarr|sonarr; nil = omit field, falls back to Seerr's server default.
     @State private var serviceDetails: SeerrServiceDetails?
     @State private var selectedProfileID: Int?
     @State private var selectedRootFolder: String?
-    /// Sonarr/Radarr tag ids to attach to the download. Empty until
-    /// the user picks one; sent as nil when empty so older Jellyseerr
-    /// builds that don't recognise the field still accept the body.
+    /// Sonarr/Radarr tag ids; sent as nil when empty so older Jellyseerr builds that don't know the field still accept the body.
     @State private var selectedTagIDs: Set<Int> = []
 
-    /// Presentation state for the picker sheets. SwiftUI's `Menu`
-    /// hands focus off to a system-controlled overlay that the focus
-    /// engine unwinds oddly on tvOS, during the ~1s close animation
-    /// a Menu-button press escaped up the navigation stack and
-    /// exited the app. `.fullScreenCover` is self-contained: the
-    /// cover owns its focus environment, the Menu-button dismisses
-    /// only the cover, and nothing leaks into the parent.
+    /// Picker sheets use `.fullScreenCover` not SwiftUI `Menu`: Menu leaked the Menu-button press up the nav stack during its ~1s close animation and exited the app; the cover owns its own focus environment.
     @State private var isProfilePickerPresented = false
     @State private var isRootFolderPickerPresented = false
     @State private var isTagPickerPresented = false
 
-    /// Drives the mandatory request-options sheet (quality profile, root
-    /// folder, tags + the final "request" confirm) presented when the user
-    /// commits to a request.
+    /// Mandatory request-options sheet (quality profile, root folder, tags + final confirm).
     @State private var showRequestOptions = false
 
-    /// First-screen focus. Seeded to `.request` once loaded so the action
-    /// button is focused in the visible primary block, no focus lands below
-    /// the fold and triggers an on-open auto-scroll (the old tab-bar
-    /// stuck-hidden bug). Pressing request on a series with no seasons picked
-    /// moves focus to `.seasons`, which lets the focus engine scroll the
-    /// season picker into view.
+    /// First-screen focus. Seeded to `.request` once loaded so no focus lands below the fold and triggers an on-open auto-scroll (old tab-bar-stuck-hidden bug). Request with no seasons picked moves focus to `.seasons` to scroll the picker into view.
     @FocusState private var focusedField: DetailFocus?
     private enum DetailFocus: Hashable { case request, seasons }
 
@@ -97,9 +71,7 @@ struct CatalogDetailView: View {
             requestOptionsSheet
         }
         .onChange(of: isLoading) { _, loading in
-            // Once loaded, focus the action button in the visible primary
-            // block so nothing below the fold grabs focus and auto-scrolls.
-            // Small defer dodges the focus-commit race (same as MovieDetailView).
+            // Focus the action button so nothing below the fold auto-scrolls; defer dodges the focus-commit race (as MovieDetailView).
             if loading == false {
                 deferOnMain(by: 0.1) { focusedField = .request }
             }
@@ -115,13 +87,7 @@ struct CatalogDetailView: View {
         } else if let errorMessage {
             errorState(message: errorMessage)
         } else {
-            // Same layout shape as the Home detail views (MovieDetailView):
-            // hero title + a bottom-aligned primary block (metadata glass
-            // panel + the request action) fill the first screen, everything
-            // else scrolls in below the fold. The action sits in the visible
-            // primary block and takes default focus, so opening the page never
-            // auto-scrolls (which is what left the tab bar stuck hidden when
-            // the user backed out mid-scroll).
+            // Same shape as MovieDetailView: hero + bottom-aligned primary block fill screen one, rest scrolls below the fold; default focus stays in the visible block so opening never auto-scrolls (left the tab bar stuck hidden on mid-scroll back-out).
             DetailContentOverlay(hero: {
                 heroTitle
             }, primary: {
@@ -133,12 +99,7 @@ struct CatalogDetailView: View {
     }
 
     private func errorState(message: String) -> some View {
-        // tvOS routes the Menu button to dismiss the top navigation level
-        // only when the current view has something focusable. An error
-        // screen with just text has no focus → Menu exits the app instead
-        // of popping back to the catalog. Retry and Back buttons fix both:
-        // they claim focus and give the user a way to recover without
-        // reaching for the remote.
+        // tvOS Menu pops the nav level only with something focusable; a text-only error screen would exit the app instead. Retry/Back buttons claim focus and give a recovery path.
         VStack(spacing: 20) {
             Image(systemName: "exclamationmark.triangle")
                 .font(.system(size: 40))
@@ -189,9 +150,7 @@ struct CatalogDetailView: View {
             Spacer(minLength: 0)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        // No extra horizontal padding: the hero slot in DetailContentOverlay
-        // already insets by 50, so the title lines up with the bubble edge
-        // and the request button below.
+        // No extra horizontal padding: DetailContentOverlay's hero slot already insets by 50, lining up with the bubble and request button.
     }
 
     private var primaryBlock: some View {
@@ -202,9 +161,7 @@ struct CatalogDetailView: View {
         .padding(.horizontal, 50)
     }
 
-    /// Metadata in a frosted bubble, matching the Home detail views. The
-    /// bubble's left edge sits at the primary padding (50), in line with the
-    /// hero title and the request button; the content is inset by the card.
+    /// Metadata in a frosted bubble (matching Home detail views); left edge at the primary padding (50), aligned with hero title and request button.
     private var metadataBubble: some View {
         VStack(alignment: .leading, spacing: 12) {
             SeerrMetadataRow(
@@ -233,9 +190,7 @@ struct CatalogDetailView: View {
     private var requestActionRow: some View {
         VStack(alignment: .leading, spacing: 12) {
             if didRequest {
-                // Post-request CTA: nothing else here is focusable, and tvOS
-                // routes Menu to "exit app" with no focus to pop, so give the
-                // user a clear way back to the catalog.
+                // Post-request CTA: nothing else focusable, so give a back-to-catalog action (else tvOS Menu exits the app).
                 GlassActionButton(
                     title: "catalog.request.sent",
                     systemImage: "checkmark.circle.fill",
@@ -262,9 +217,7 @@ struct CatalogDetailView: View {
         }
     }
 
-    /// Series with no seasons picked yet: drop focus into the season picker
-    /// below the fold so the focus engine scrolls it into view. Otherwise
-    /// commit by presenting the mandatory options sheet.
+    /// Series with no seasons picked: drop focus into the season picker so the focus engine scrolls it into view; else present the options sheet.
     private func requestButtonTapped() {
         if media.mediaType == .tv, selectedSeasons.isEmpty {
             focusedField = .seasons
@@ -282,9 +235,7 @@ struct CatalogDetailView: View {
                     .font(.title2)
                     .fontWeight(.bold)
 
-                // Quality profile / root folder / tags. Empty for users
-                // without service options; the confirm below still submits
-                // with the server defaults.
+                // Empty for users without service options; confirm still submits with server defaults.
                 advancedOptionsSection
 
                 Button {
@@ -366,9 +317,7 @@ struct CatalogDetailView: View {
                     .font(.title3)
                     .fontWeight(.semibold)
 
-                // Stacked, full-width: quality-profile names can be long
-                // ("[German] HD Bluray + WEB") and wrapped when squeezed into
-                // a half-width column.
+                // Stacked full-width: quality-profile names get long ("[German] HD Bluray + WEB") and wrap in a half-width column.
                 profilePicker(details: details)
                 rootFolderPicker(details: details)
 
@@ -537,9 +486,7 @@ struct CatalogDetailView: View {
                                 action: { selectSeasonForViewing(season) }
                             )
                             .id(season.seasonNumber)
-                            // Focus anchor: pressing "request" with no seasons
-                            // picked moves focus here, scrolling the picker
-                            // into view (see requestButtonTapped).
+                            // Focus anchor for requestButtonTapped's no-seasons-picked path.
                             .applyIf(season.seasonNumber == seasons.first?.seasonNumber) {
                                 $0.focused($focusedField, equals: .seasons)
                             }
@@ -554,10 +501,7 @@ struct CatalogDetailView: View {
                 }
             }
 
-            // Per-season + select-all actions live below the tab row,
-            // left-aligned. Keeping them out of the tab-row header
-            // means the user can scan tabs without two competing
-            // focus targets in the same horizontal slice.
+            // Per-season + select-all actions below the tab row so tabs aren't sharing a horizontal focus slice with competing targets.
             seasonActionsRow(seasons: seasons)
 
             if let viewed = viewedSeasonNumber,
@@ -575,10 +519,7 @@ struct CatalogDetailView: View {
         HStack(spacing: 12) {
             if let season = viewedSeason {
                 if let status = seasonStatus(season) {
-                    // Already in the pipeline, show what state it's in
-                    // rather than a generic "available". The user wants
-                    // to tell "ready to play" apart from "still
-                    // downloading" or "waiting for approval".
+                    // Show the pipeline state, not a generic "available", to distinguish ready-to-play from downloading/awaiting-approval.
                     Label(
                         seasonStatusLabel(status),
                         systemImage: status.systemImage
@@ -634,9 +575,7 @@ struct CatalogDetailView: View {
         let episodes = seasonEpisodes[n]
 
         VStack(alignment: .leading, spacing: 12) {
-            // Season heading only, the per-season Add / Already
-            // Available action moved up next to the tab row so it
-            // sits in the same focus column as Select All.
+            // Heading only; the per-season Add / Already-Available action moved up by the tab row to share a focus column with Select All.
             Text(seasonHeading(season: season))
                 .font(.title3)
                 .fontWeight(.semibold)
@@ -668,9 +607,7 @@ struct CatalogDetailView: View {
                         }
                     }
                     .padding(.horizontal, 20)
-                    // Room for the focused card's scale (1.04) plus its
-                    // drop shadow (radius 14, y 6), which the ScrollView
-                    // would otherwise clip at the top and bottom edges.
+                    // Room for the focused card's scale (1.04) + drop shadow (radius 14, y 6) the ScrollView would otherwise clip.
                     .padding(.top, 16)
                     .padding(.bottom, 24)
                 }
@@ -710,9 +647,7 @@ struct CatalogDetailView: View {
             )
             seasonEpisodes[seasonNumber] = detail.episodes ?? []
         } catch {
-            // Best-effort, leave the cache empty so the "no episodes"
-            // copy renders. Surfacing a banner here would compete with
-            // the request-error label for screen real estate.
+            // Best-effort: leave the cache empty so "no episodes" renders; a banner would compete with the request-error label.
         }
     }
 
@@ -822,8 +757,7 @@ struct CatalogDetailView: View {
         }
     }
 
-    /// Flatrate (streaming) providers for the device region, falling
-    /// back to US, then the first available region. Empty when none.
+    /// Flatrate providers for the device region, falling back to US then the first region; empty when none.
     private var regionWatchProviders: [SeerrWatchProvider] {
         let regions = movieDetail?.watchProviders ?? tvDetail?.watchProviders ?? []
         guard !regions.isEmpty else { return [] }
@@ -833,19 +767,8 @@ struct CatalogDetailView: View {
         return pick?.flatrate ?? []
     }
 
-    /// Returns the most-advanced known status for the given season,
-    /// or `nil` if it isn't tracked anywhere yet.
-    ///
-    /// Priority:
-    ///   1. `mediaInfo.seasons`, the authoritative Sonarr-scan-
-    ///      derived status. Picks up seasons the user added by hand
-    ///      (manual download outside Seerr) which don't show up
-    ///      under any request entry but are nonetheless "available"
-    ///      on the server, so their tab still needs the green tick.
-    ///   2. `mediaInfo.requests[].seasons[]`, falls back here for
-    ///      pipeline states that haven't materialised on the server
-    ///      yet (Sonarr is processing, request is pending admin
-    ///      approval). Same most-advanced-wins logic as before.
+    /// Most-advanced known status for the season, or nil if untracked.
+    /// Priority: (1) `mediaInfo.seasons`, authoritative Sonarr-scan status (catches manual downloads outside Seerr that have no request entry but are server-available). (2) `mediaInfo.requests[].seasons[]` for pipeline states not yet materialised on the server (processing, pending approval). Most-advanced wins.
     private func seasonStatus(_ season: SeerrSeason) -> SeerrMediaStatus? {
         let n = season.seasonNumber
 
@@ -884,8 +807,7 @@ struct CatalogDetailView: View {
         return nil
     }
 
-    /// Convenience wrapper, a season is "occupied" (not selectable
-    /// for a new request) whenever any pipeline status applies.
+    /// A season is "occupied" (not selectable for a new request) whenever any pipeline status applies.
     private func isSeasonAvailable(_ season: SeerrSeason) -> Bool {
         seasonStatus(season) != nil
     }
@@ -926,10 +848,7 @@ struct CatalogDetailView: View {
         errorMessage = nil
         defer { isLoading = false }
 
-        // Service config runs in parallel with the detail fetch.
-        // fire-and-forget Task (not async let), detail rendering
-        // shouldn't block on the Radarr/Sonarr config which is best-
-        // effort anyway and only feeds the optional dropdowns.
+        // Fire-and-forget (not async let): detail render must not block on best-effort Radarr/Sonarr config that only feeds optional dropdowns.
         Task { await loadServiceConfig() }
         Task { await loadRecommendations() }
         Task { await loadRatings() }
@@ -942,28 +861,14 @@ struct CatalogDetailView: View {
             case .tv:
                 let detail = try await dependencies.seerrMediaService.tvDetail(tmdbID: media.id)
                 tvDetail = detail
-                // Default the tab focus to the lowest-numbered real
-                // season (skip specials/season 0). The episode block
-                // below the tabs needs *some* season selected to have
-                // anything to render, picking one synchronously here
-                // means the user sees content the moment loading ends
-                // instead of an empty space until they tap a tab.
+                // Default to the lowest real season (skip specials/season 0) synchronously so the episode block has content the instant loading ends.
                 let realSeasons = (detail.seasons ?? [])
                     .filter { $0.seasonNumber > 0 }
                     .map(\.seasonNumber)
                     .sorted()
                 if let first = realSeasons.first {
                     viewedSeasonNumber = first
-                    // Strictly lazy: only the currently-viewed season
-                    // hits the network up front. We tried fanning out
-                    // one tvSeasonDetail per season so tab switches
-                    // would hit the cache, but on shows with 30+
-                    // seasons that fired 30+ parallel HTTP/2 streams
-                    // against a *remote* Jellyseerr, saturating the
-                    // connection pool and starving the still-image
-                    // loads from TMDB so episode artwork wouldn't
-                    // appear after a tab switch. Remote browsing
-                    // wants a different shape than local Jellyfin.
+                    // Strictly lazy (one season up front). Fanning out one tvSeasonDetail per season fired 30+ parallel HTTP/2 streams at remote Jellyseerr, saturating the pool and starving TMDB artwork loads.
                     Task { await loadSeasonEpisodes(seasonNumber: first) }
                 }
                 return
@@ -1018,17 +923,7 @@ struct CatalogDetailView: View {
             }
             serviceDetails = details
 
-            // Pre-select a real profile, never the synthetic "Default"
-            // placeholder. Jellyseerr's stored activeProfileId can be nil,
-            // 0, or a stale id that no longer exists in the live profile
-            // list (e.g. a server configured before its profiles synced).
-            // The old `activeProfileId ?? first` only guarded against nil,
-            // so a stale id slipped through, failed to match any profile,
-            // and the picker fell back to showing "Default" while the
-            // request still shipped the bad id and failed. Validate the
-            // configured default against the profiles the server actually
-            // returned and fall back to the first available one, which
-            // also auto-picks the only profile when there is just one.
+            // Validate the configured default against returned profiles, fall back to first. Jellyseerr's activeProfileId can be nil/0/stale; the old `?? first` only guarded nil, so a stale id shipped in the request and failed.
             let validProfileIDs = Set(details.profiles.map(\.id))
             selectedProfileID = [chosen.activeProfileId, details.server.activeProfileId]
                 .compactMap { $0 }
@@ -1065,24 +960,16 @@ struct CatalogDetailView: View {
                 tags: selectedTagIDs.isEmpty ? nil : Array(selectedTagIDs)
             )
             didRequest = true
-            // Tell the request lists (My Requests / admin queue) to
-            // refresh; they only reload-when-empty on section switch.
+            // Nudge request lists (My Requests / admin queue) to refresh; they only reload-when-empty on section switch.
             NotificationCenter.default.post(name: .seerrRequestDidSubmit, object: nil)
-            // Re-fetch the detail so mediaInfo reflects the new
-            // pending request: season chips and status badges showed
-            // stale "not requested" state until the next cold open.
-            // Deliberately NOT load(): that would flip the full-screen
-            // loading state and re-run config/recommendations.
+            // Refresh mediaInfo so chips/badges drop stale "not requested" state. NOT load(): that flips the full-screen loading state and re-runs config/recommendations.
             await refreshDetailAfterRequest()
         } catch {
             requestError = error.localizedDescription
         }
     }
 
-    /// Light detail refresh after a successful request: only the
-    /// mediaInfo-carrying detail object is replaced so status badges
-    /// and season chips pick up the pending state; season tab
-    /// selection and episode lists stay untouched.
+    /// Light refresh after a successful request: replaces only the mediaInfo-carrying detail (badges/chips pick up pending state); tab selection and episode lists stay untouched.
     private func refreshDetailAfterRequest() async {
         do {
             switch media.mediaType {
@@ -1098,7 +985,3 @@ struct CatalogDetailView: View {
         }
     }
 }
-
-// CatalogSeasonTab, SeasonChipButtonStyle, CatalogPickerButtonStyle,
-// and CatalogPickerSheet now live in CatalogDetailComponents.swift,
-// keeps this file focused on the load + render flow.

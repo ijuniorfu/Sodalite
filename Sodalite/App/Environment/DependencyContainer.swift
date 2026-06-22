@@ -4,12 +4,7 @@ import AetherEngine
 @MainActor
 @Observable
 final class DependencyContainer {
-    /// The one and only container. Both the App's `@State` and the
-    /// `@Environment` default value resolve to this, so exactly one
-    /// container (and one MusicPlaybackCoordinator subscribed to the
-    /// singleton engine) ever exists. Building a second one spawns a
-    /// "zombie" coordinator that clears system Now-Playing on every engine
-    /// state change, fighting the real one.
+    /// Single instance (App `@State` + `@Environment` default both resolve here). A second container spawns a zombie MusicPlaybackCoordinator that clears system Now-Playing on every engine state change.
     static let shared = DependencyContainer()
 
     @MainActor static let playerEngine: AetherEngine = try! AetherEngine()
@@ -42,26 +37,19 @@ final class DependencyContainer {
     let seerrServiceConfigService: SeerrServiceConfigServiceProtocol
     let seerrSearchService: SeerrSearchServiceProtocol
 
-    /// File-deletion service that fronts Jellyfin and Seerr. Used by
-    /// MovieDetailView and SeriesDetailView when the active user has
-    /// content-deletion rights (see JellyfinUser.canDeleteContent).
+    /// File-deletion service fronting Jellyfin + Seerr; gated on JellyfinUser.canDeleteContent.
     let mediaDeletionService: any MediaDeletionServiceProtocol
 
     let musicPlaybackCoordinator: MusicPlaybackCoordinator
 
-    /// Back-reference to AppState so switchServer / removeServer can
-    /// bump the serverDidSwitch signal without threading AppState
-    /// through every call site. Weak to avoid a retain cycle
-    /// (AppState does not own DependencyContainer).
+    /// Back-reference so switchServer / removeServer can bump serverDidSwitch. Weak: AppState does not own the container.
     weak var appState: AppState?
 
     init(
         keychainService: KeychainServiceProtocol = KeychainService(),
         httpClient: HTTPClientProtocol = HTTPClient()
     ) {
-        // One-shot keychain hygiene (pre-entitlement wipe, see
-        // KeychainMigrator). Idempotent; has to run BEFORE
-        // keychainService is touched.
+        // One-shot keychain hygiene (KeychainMigrator); idempotent, must run BEFORE keychainService is touched.
         KeychainMigrator.migrateIfNeeded()
 
         self.keychainService = keychainService
@@ -94,12 +82,7 @@ final class DependencyContainer {
         self.parentalGate = ParentalGate()
         self.tvProfileMappings = TVProfileMappings()
 
-        // The Seerr tree gets its OWN HTTPClient so Catalog browsing
-        // (5 discover rows + genre sliders + per-tile backdrop and
-        // watch-provider fetches) doesn't compete with the Home
-        // fan-out for the same 6 in-flight permits against a possibly
-        // tarpitted Jellyfin CDN; see the inFlightLimiter rationale
-        // in HTTPClient.
+        // Seerr gets its OWN HTTPClient so Catalog browsing doesn't compete with the Home fan-out for the same 6 in-flight permits against a tarpitted Jellyfin CDN (see HTTPClient inFlightLimiter).
         let seerrHTTPClient = HTTPClient()
         self.seerrClient = SeerrClient(httpClient: seerrHTTPClient)
         self.seerrServerDiscoveryService = SeerrServerDiscoveryService(httpClient: seerrHTTPClient)
@@ -114,20 +97,12 @@ final class DependencyContainer {
             jellyfinItems: self.jellyfinItemService,
             seerrMedia: self.seerrMediaService,
             isSeerrAuthenticated: { [weak seerrClient] in
-                // sessionCookie is non-nil after a successful Seerr
-                // login and cleared on logout / session restore failure.
-                // Pre-flight check; the live value is read on every
-                // invocation (no caching).
+                // Live read each invocation (no caching); cookie is set on login, cleared on logout/restore failure.
                 seerrClient?.sessionCookie != nil
             }
         )
 
-        // musicPlaybackCoordinator is assigned last. The userIDProvider
-        // closure captures keychainService directly (strong); this is
-        // safe because the coordinator's lifetime is scoped to the
-        // container that owns keychainService. Replicates activeUserID
-        // without closing over self, which Swift forbids before init
-        // is complete.
+        // userIDProvider captures keychainService strongly (safe: coordinator lifetime is scoped to the container). Replicates activeUserID without closing over self, forbidden pre-init.
         let capturedKeychain = keychainService
         self.musicPlaybackCoordinator = MusicPlaybackCoordinator(
             engine: DependencyContainer.playerEngine,
@@ -141,24 +116,14 @@ final class DependencyContainer {
         )
     }
 
-    /// Probes /Users/Me against the active server. Returns the
-    /// JellyfinUser on success. On 401, drops the remembered entry
-    /// for that (server, user) pair and the access token slot, and
-    /// returns nil so the caller can route to the profile picker.
-    /// Throws on transport errors (caller should keep the previous
-    /// server active and surface a toast / handle the failure).
+    /// Probes /Users/Me against the active server. Returns the user on success; on 401 drops the remembered entry + token slot and returns nil (caller routes to picker); throws on transport errors (caller keeps previous server active).
     @MainActor
     func probeActiveUser() async throws -> JellyfinUser? {
         guard let server = activeServer,
               let userID = try? keychainService.loadString(for: KeychainKeys.userID(serverID: server.id))
         else { return nil }
 
-        // Tokenless short-circuit: switchServer can throw AFTER moving
-        // the pointer when the target's token slot is empty (e.g. the
-        // removeServer fall-through). Probing anyway would issue an
-        // unauthenticated request, or worse, one still carrying the
-        // previous server's client state. No token means picker, no
-        // network roundtrip needed.
+        // Tokenless short-circuit: switchServer can move the pointer then throw on an empty token slot (removeServer fall-through). Probing would issue an unauthenticated request carrying stale client state. No token means picker.
         guard (try? keychainService.loadString(for: KeychainKeys.accessToken(serverID: server.id))) != nil
         else { return nil }
 
@@ -185,8 +150,7 @@ final class DependencyContainer {
         }
     }
 
-    /// Light probe: does the active server expose any Live TV channels?
-    /// Used to gate the Live TV tab. Returns false on any error.
+    /// Gates the Live TV tab: does the active server expose any Live TV channels? False on any error.
     func serverHasLiveTV(userID: String) async -> Bool {
         do {
             let response = try await jellyfinLiveTvService.getChannels(
@@ -197,10 +161,7 @@ final class DependencyContainer {
         }
     }
 
-    /// `try?` is intentional here: a missing or unreadable Keychain entry
-    /// (fresh install, wiped storage, corrupted item) means there's no session
-    /// to restore, the app falls back to the login screen. There's no recovery
-    /// path that would benefit from inspecting the underlying error.
+    /// Silent `try?`: a missing/unreadable keychain entry means no session to restore (app falls back to login); no recovery path benefits from the underlying error.
     func restoreSession() -> Bool {
         guard let server = activeServer,
               let token = try? keychainService.loadString(for: KeychainKeys.accessToken(serverID: server.id))
@@ -211,10 +172,7 @@ final class DependencyContainer {
         jellyfinClient.baseURL = server.url
         jellyfinClient.accessToken = token
 
-        // Re-project into the shared keychain on every cold launch
-        // so the TopShelf extension stays in lockstep even if a
-        // previous app version didn't write the mirror, or the user
-        // wiped just the shelf's bucket somehow.
+        // Re-project SharedSessionMirror every cold launch so TopShelf stays in lockstep even if a prior version never wrote it or the shelf's bucket was wiped.
         if let userID = try? keychainService.loadString(for: KeychainKeys.userID(serverID: server.id)) {
             SharedSessionMirror.write(
                 tvUserID: TVUserContext.currentUserID,
@@ -238,11 +196,7 @@ final class DependencyContainer {
         try keychainService.save(user.id, for: KeychainKeys.userID(serverID: server.id))
         try keychainService.save(user.name, for: KeychainKeys.activeUserName)
 
-        // Persist the avatar image tag so Settings can render the
-        // profile picture across cold launches instead of falling
-        // back to initials. If the user has no custom avatar, clear
-        // any previously-stored tag so a removed image doesn't
-        // linger and 404 on every restore.
+        // Persist avatar tag for cold-launch rendering; clear a stale tag when the user has none so a removed image doesn't linger and 404.
         if let tag = user.primaryImageTag, !tag.isEmpty {
             try keychainService.save(tag, for: KeychainKeys.activeUserImageTag)
         } else {
@@ -263,9 +217,7 @@ final class DependencyContainer {
             accessToken: token
         )
 
-        // Add/update this user in the remembered-profiles list for
-        // the server so the user can later switch to any previous
-        // profile without re-authenticating.
+        // Upsert into remembered-profiles so the user can later switch profiles without re-auth.
         try rememberUser(
             RememberedUser(
                 id: user.id,
@@ -286,20 +238,14 @@ final class DependencyContainer {
 
     // MARK: - Known Servers
 
-    /// All servers the user has ever logged into and not removed.
-    /// Front of the list is the most recently added or upserted
-    /// entry. Empty list on a fresh install or after the user has
-    /// removed every server.
+    /// All servers ever logged into and not removed, most-recently-upserted first. Empty on fresh install / all removed.
     func listKnownServers() -> [JellyfinServer] {
         guard let data = try? keychainService.loadData(for: KeychainKeys.knownServers)
         else { return [] }
         return (try? JSONDecoder().decode([JellyfinServer].self, from: data)) ?? []
     }
 
-    /// Upsert by `JellyfinServer.id`. Existing entries with the same
-    /// id are removed and the new value is prepended, so re-running
-    /// the add flow against a server whose URL has changed updates
-    /// the URL in place and floats the entry to the top of pickers.
+    /// Upsert by id, prepending so a re-added server (e.g. changed URL) updates in place and floats to the top of pickers.
     func addServer(_ server: JellyfinServer) throws {
         var servers = listKnownServers().filter { $0.id != server.id }
         servers.insert(server, at: 0)
@@ -307,10 +253,7 @@ final class DependencyContainer {
         try keychainService.save(data, for: KeychainKeys.knownServers)
     }
 
-    /// In-place update that preserves list order, unlike `addServer`,
-    /// which floats the entry to the front. Used by the version refresh
-    /// below so a background metadata change doesn't reshuffle the
-    /// profile picker. No-op if the id isn't already known.
+    /// In-place update preserving list order (unlike addServer) so a background version refresh doesn't reshuffle the picker. No-op if id unknown.
     private func updateKnownServer(_ server: JellyfinServer) throws {
         var servers = listKnownServers()
         guard let idx = servers.firstIndex(where: { $0.id == server.id }) else { return }
@@ -319,18 +262,7 @@ final class DependencyContainer {
         try keychainService.save(data, for: KeychainKeys.knownServers)
     }
 
-    /// Re-fetches the active server's `/System/Info/Public` and, if the
-    /// reported version differs from the cached one, updates the
-    /// knownServers entry in place. Returns the refreshed server when
-    /// the version changed, nil when it was already current or the
-    /// fetch failed.
-    ///
-    /// The version is captured once at discovery (pre-login) and
-    /// otherwise never refreshed, so a server upgrade left Settings
-    /// showing the stale version until a full logout/login. This is the
-    /// refresh path. Reuses the unauthenticated discovery probe against
-    /// the active server's resolved URL; the id guard rejects a
-    /// different server answering at that address.
+    /// Refreshes the cached server version (captured once at discovery, else stale in Settings until logout/login) via the unauthenticated discovery probe; updates knownServers in place. Returns the refreshed server only if the version changed; nil otherwise. id guard rejects a different server answering at the URL.
     func refreshActiveServerVersion() async -> JellyfinServer? {
         guard let server = activeServer else { return nil }
         guard case .success(_, let info) = await serverDiscoveryService.discoverServer(
@@ -347,10 +279,7 @@ final class DependencyContainer {
         return updated
     }
 
-    /// Resolves the active-server pointer against the known-servers
-    /// list. Returns nil if either is missing (fresh install or a
-    /// pointer that no longer resolves; the latter is repaired in
-    /// SessionRestorer.restore).
+    /// Resolves the active-server pointer against knownServers. nil if missing or unresolved (the latter repaired in SessionRestorer.restore).
     var activeServer: JellyfinServer? {
         guard let id = try? keychainService.loadString(for: KeychainKeys.activeServerID)
         else { return nil }
@@ -373,17 +302,7 @@ final class DependencyContainer {
         case missingToken
     }
 
-    /// Switch the active server to `serverID`. Sets the active-server
-    /// pointer, loads the cached access token, reconfigures the
-    /// Jellyfin HTTP client, rewrites SharedSessionMirror so TopShelf
-    /// follows along, and restores the Seerr session for the most
-    /// recently used remembered user on that server. The caller
-    /// observes the resulting state via the appState.serverDidSwitch
-    /// signal (incrementing token) added in a later task.
-    ///
-    /// Throws `ServerSwitchError.unknown` if the id is not in
-    /// knownServers, `ServerSwitchError.missingToken` if the server
-    /// has no cached access token (caller routes to login).
+    /// Switches the active server: sets the pointer, loads the cached token, reconfigures JellyfinClient, rewrites SharedSessionMirror, bumps serverDidSwitch. Seerr is left to the caller's restore path. Throws .unknown (not in knownServers) or .missingToken (caller routes to login).
     func switchServer(to serverID: String) throws {
         guard let server = listKnownServers().first(where: { $0.id == serverID }) else {
             throw ServerSwitchError.unknown
@@ -421,27 +340,13 @@ final class DependencyContainer {
             SharedSessionMirror.clear(tvUserID: TVUserContext.currentUserID)
         }
 
-        // Seerr session is per (server, user); the caller layer
-        // (AppRouter / restoreSession) handles the post-switch
-        // probe + Seerr restore via the existing restore path. We
-        // intentionally do not touch Seerr here so callers can
-        // route to a profile picker first when userID is nil.
-
+        // Seerr (per server+user) is left to the caller's post-switch restore path so callers can route to a picker first when userID is nil.
         Task { @MainActor in
             self.appState?.serverDidSwitch &+= 1
         }
     }
 
-    /// Remove a server and every piece of state scoped to it. The
-    /// per-server access token, password, remembered users, and all
-    /// remembered Seerr sessions for users on this server are
-    /// deleted. If the removed server was the active one and at
-    /// least one other server remains, the most recently added
-    /// remaining server is promoted to active (with whatever token
-    /// it has cached; the SessionRestorer-driven restore path
-    /// handles expired tokens). If no servers remain, activeServerID is
-    /// cleared and SharedSessionMirror is wiped, the next launch
-    /// lands in ServerDiscoveryView.
+    /// Removes a server and all state scoped to it (token, password, remembered users + Seerr sessions). If it was active and others remain, promotes the most-recent survivor (restore path handles expired tokens); if none remain, clears the pointer + SharedSessionMirror so next launch lands in ServerDiscoveryView.
     func removeServer(id serverID: String) throws {
         let allUsers = listRememberedUsers(serverID: serverID)
         for remembered in allUsers {
@@ -469,17 +374,11 @@ final class DependencyContainer {
         if activeID == serverID {
             if let successor = servers.first {
                 do {
-                    // A successful switchServer schedules the
-                    // serverDidSwitch bump itself; a second bump here
-                    // would cancel the first probe mid-flight via the
-                    // .task(id:) re-key and double the Home reload.
+                    // switchServer bumps serverDidSwitch itself; a second bump would re-key .task(id:), cancel the first probe, and double the Home reload.
                     try switchServer(to: successor.id)
                     signalAlreadyScheduled = true
                 } catch {
-                    // Missing token: the pointer moved but switchServer
-                    // threw before scheduling its bump. Fall through to
-                    // the trailing bump so AppRouter still reacts and
-                    // routes to the successor's profile picker.
+                    // Missing token: pointer moved but no bump scheduled. Fall through to the trailing bump so AppRouter routes to the picker.
                 }
             } else {
                 try? keychainService.delete(for: KeychainKeys.activeServerID)
@@ -491,10 +390,7 @@ final class DependencyContainer {
 
         tvProfileMappings.removeMappings(forServer: serverID)
 
-        // Only signal when the ACTIVE server was removed: removing an
-        // inactive entry changes nothing the serverDidSwitch observers
-        // care about, and the bump would cancel in-flight probes and
-        // force a full Home reload for no reason.
+        // Only signal when the ACTIVE server was removed; an inactive removal's bump would needlessly cancel probes + force a Home reload.
         if activeID == serverID, !signalAlreadyScheduled {
             Task { @MainActor in
                 self.appState?.serverDidSwitch &+= 1
@@ -502,25 +398,14 @@ final class DependencyContainer {
         }
     }
 
-    /// Roll the active-server pointer back to a previous value.
-    /// Used when a post-switch probe fails with a transport error
-    /// (network down, server unreachable). Resets JellyfinClient
-    /// and SharedSessionMirror to the rollback target's cached
-    /// state so the rest of the app sees a consistent snapshot of
-    /// the previous server.
+    /// Rolls the active-server pointer back after a transport-error probe failure. Named alias for switchServer (restores pointer + client + mirror, one bump) so call sites read as rollbacks.
     func rollbackSwitch(to serverID: String) throws {
-        // A plain switchServer: it restores pointer + client +
-        // mirror to the rollback target and issues one
-        // serverDidSwitch bump, which is all observers need. Kept as
-        // a named alias so call sites read as rollbacks.
         try switchServer(to: serverID)
     }
 
     // MARK: - Remembered Profiles
 
-    /// All profiles for a server whose token we have cached. Sorted
-    /// by most-recently-added first so fresh logins float to the top
-    /// of pickers.
+    /// All token-cached profiles for a server, most-recently-added first so fresh logins float to the top of pickers.
     func listRememberedUsers(serverID: String) -> [RememberedUser] {
         guard let data = try? keychainService.loadData(
             for: KeychainKeys.rememberedUsers(serverID: serverID)
@@ -566,12 +451,7 @@ final class DependencyContainer {
         tvProfileMappings.removeMapping(forUser: id, on: serverID)
     }
 
-    /// Swap to an already-remembered profile. Re-uses the cached
-    /// token, updates the active-session keychain entries, and
-    /// reconfigures the HTTP client. Drops the cached Jellyfin
-    /// password (which is keyed per-server, not per-user) so the
-    /// Seerr auto-fill doesn't pre-fill the previous user's
-    /// password onto the new user.
+    /// Swaps to a remembered profile: reuses cached token, updates active-session keychain, reconfigures client. Drops the cached Jellyfin password (per-server, not per-user) so Seerr auto-fill doesn't carry the previous user's password.
     func switchToUser(_ remembered: RememberedUser, server: JellyfinServer) throws {
         try addServer(server)
         try keychainService.save(server.id, for: KeychainKeys.activeServerID)
@@ -603,13 +483,7 @@ final class DependencyContainer {
             accessToken: remembered.token
         )
 
-        // Seerr is handled separately by the caller via
-        // restoreSeerrSession(forJellyfinUserID:jellyfinServerID:).
-        // Keeping it out of switchToUser means a profile that has
-        // its own remembered Seerr session picks it back up on
-        // switch, while a profile with no Seerr history correctly
-        // lands on the "set up Seerr" empty state.
-
+        // Seerr left to the caller's restoreSeerrSession(forJellyfinUserID:jellyfinServerID:) so each profile picks up its own session, or lands on the empty state.
         if let tvUserID = TVUserContext.currentUserID {
             tvProfileMappings.setMapping(
                 TVProfileMapping(serverID: server.id, jellyfinUserID: remembered.id),
@@ -618,49 +492,21 @@ final class DependencyContainer {
         }
     }
 
-    /// Refresh the active user's details from the server after a
-    /// profile switch. /Users/Me returns the full user including the
-    /// Policy block; /Users/Public is the imageTag-only fallback for
-    /// older Jellyfin versions / legacy installs. The Policy refresh
-    /// is what the File Management permission gate (canDeleteContent)
-    /// reads, without it the activeUser stays on the keychain stub
-    /// with policy: nil after every profile switch. The imageTag
-    /// refresh backfills a nil or stale PrimaryImageTag in the
-    /// RememberedUser entry; older entries (pre backfill-from-picker
-    /// fix) and legacy migrations sometimes landed with imageTag=nil
-    /// even though the user has a Jellyfin avatar.
-    ///
-    /// `expectedUserID` guards against another profile switch racing
-    /// the fetch: if the active profile changed between dispatch and
-    /// response, the result is discarded instead of applying another
-    /// user's details to the now-current user. Persists the refreshed
-    /// tag to the keychain + the remembered-profiles entry, then
-    /// returns the refreshed JellyfinUser for the caller to apply to
-    /// AppState. Returns nil when the guard tripped or nothing
-    /// changed.
+    /// Refreshes active-user details after a profile switch. /Users/Me supplies the Policy block (canDeleteContent gate, else stuck on the keychain stub with policy: nil); /Users/Public is the imageTag-only fallback backfilling a nil/stale RememberedUser tag. `expectedUserID` discards the result if a racing switch changed the active profile. Persists tag to keychain + remembered entry, returns the fresh user; nil on guard trip / no change.
     func refreshActiveUserDetails(
         expectedUserID userID: String,
         serverID: String
     ) async -> JellyfinUser? {
         let me: JellyfinUser? = try? await jellyfinAuthService.getCurrentUser()
         let directTag: String? = (me?.id == userID) ? me?.primaryImageTag : nil
-        // /Users/Public fallback when /Users/Me failed, returned a
-        // different user, or came back without a PrimaryImageTag (some
-        // Jellyfin versions only populate the tag on the public
-        // listing, not the authenticated detail endpoint). `me` is
-        // already in hand at this point: whenever directTag is nil,
-        // that result cannot supply a tag either, so the fallback
-        // only consults the public listing.
+        // /Users/Public fallback when directTag is nil (some Jellyfin versions only populate the tag on the public listing, not the authenticated detail endpoint).
         let fallbackTag: String? = directTag == nil ? await fetchPublicImageTag(for: userID) : nil
         let tag = directTag ?? fallbackTag
 
         guard appState?.activeUser?.id == userID,
               let current = appState?.activeUser else { return nil }
 
-        // Always apply the freshly fetched policy when /Users/Me
-        // succeeded; only fall back to the existing value when the
-        // fetch failed (falling back to it preserves a no-op rather
-        // than a regression).
+        // Apply the fetched policy when /Users/Me succeeded; else keep the existing value (no-op, not a regression).
         let freshPolicy = (me?.id == userID) ? me?.policy : current.policy
         let tagChanged = current.primaryImageTag != tag
         let policyChanged = current.policy != freshPolicy
@@ -718,10 +564,7 @@ final class DependencyContainer {
     }
 
     func clearSession() throws {
-        // Full logout: scrub every known server's per-server keychain
-        // entries (tokens, passwords, remembered users, Seerr cookies).
-        // Then clear the multi-server pointers + the global active-user
-        // keys + the JellyfinClient state + SharedSessionMirror.
+        // Full logout: scrub every server's per-server entries, then the multi-server pointers + global active-user keys + client state + SharedSessionMirror.
         for known in listKnownServers() {
             for remembered in listRememberedUsers(serverID: known.id) {
                 forgetRememberedSeerr(
@@ -909,14 +752,7 @@ final class DependencyContainer {
         seerrClient.baseURL = server.url
 
         if let jellyfinUserID, let jellyfinServerID, let cookie = seerrClient.sessionCookie {
-            // Profile-scoped persistence so profile switching can
-            // restore the right Seerr session for each profile. The
-            // global (pre-0.3.0) entry is deliberately NOT refreshed
-            // here anymore: it used to be rewritten on every login,
-            // which kept the legacy fallback perpetually live, and a
-            // profile without a scoped entry could inherit whichever
-            // profile last logged in. The global keys are read-only
-            // legacy now (see syncSeerrSession).
+            // Profile-scoped persistence. The global (pre-0.3.0) entry is NOT refreshed here: rewriting it kept the legacy fallback live and let a scopeless profile inherit whoever last logged in. Global keys are read-only legacy now (see syncSeerrSession).
             let remembered = RememberedSeerrSession(
                 jellyfinUserID: jellyfinUserID,
                 jellyfinServerID: jellyfinServerID,
@@ -932,11 +768,7 @@ final class DependencyContainer {
                 )
             )
         } else if jellyfinUserID == nil || jellyfinServerID == nil {
-            // Login outside any Jellyfin-user context: the global
-            // entry is the only place to persist it. Deliberately NOT
-            // reached when a profile context exists but the cookie is
-            // nil; that would refresh the read-only legacy entry the
-            // scoped branch above just declared deprecated.
+            // Login outside any Jellyfin-user context: the global entry is the only place to persist. Not reached when a profile context exists (that would refresh the deprecated legacy entry).
             let serverData = try JSONEncoder().encode(server)
             try keychainService.save(serverData, for: KeychainKeys.seerrServer)
             if let cookie = seerrClient.sessionCookie {
@@ -945,12 +777,7 @@ final class DependencyContainer {
         }
     }
 
-    /// Restore the Seerr session that belongs to a specific Jellyfin
-    /// profile. Returns the SeerrServer on success so the caller can
-    /// kick off `seerrAuthService.currentUser()` and surface the
-    /// result to AppState. Returns nil when the profile has no
-    /// remembered Seerr session, in which case the caller should
-    /// clear Seerr state.
+    /// Restores a specific profile's Seerr session. Returns the SeerrServer so the caller can probe currentUser(); nil when the profile has none (caller clears Seerr state).
     func restoreSeerrSession(
         forJellyfinUserID jellyfinUserID: String,
         jellyfinServerID: String
@@ -981,11 +808,7 @@ final class DependencyContainer {
         )
     }
 
-    /// Drops the in-memory Seerr identity (cookie + base URL) without
-    /// touching any keychain entry. Used on tvOS-user change: the
-    /// previous user's persisted per-profile session must survive so
-    /// it restores when they switch back, but the live client must
-    /// stop acting as them immediately.
+    /// Drops the in-memory Seerr identity without touching keychain. Used on tvOS-user change: the previous user's persisted session must survive, but the live client must stop acting as them immediately.
     func detachSeerrClient() {
         seerrClient.baseURL = nil
         seerrClient.sessionCookie = nil
@@ -1002,18 +825,7 @@ final class DependencyContainer {
         seerrClient.sessionCookie = nil
     }
 
-    /// Restore-and-validate flow for the Seerr session that belongs to
-    /// a Jellyfin profile. This is the single owner of the
-    /// "restore → probe /auth/me → keep or drop" policy; every restore
-    /// path (launch, profile switch, server switch, add-profile) maps
-    /// the returned outcome onto AppState instead of re-implementing
-    /// the sequence.
-    ///
-    /// The keychain entry is only dropped on an authentication
-    /// rejection (401/403), per the RememberedSeerrSession contract.
-    /// Transport failures (timeout, unreachable, Seerr container
-    /// restarting) keep the entry so the session comes back on the
-    /// next launch instead of forcing a re-login.
+    /// Single owner of the Seerr "restore → probe /auth/me → keep or drop" policy; every restore path maps the outcome onto AppState. Entry dropped only on 401/403 (RememberedSeerrSession contract); transport failures keep it so the session returns next launch.
     func syncSeerrSession(
         forJellyfinUserID jellyfinUserID: String?,
         jellyfinServerID: String?,
@@ -1027,14 +839,11 @@ final class DependencyContainer {
             )
         }()
 
-        // Legacy global fallback (pre-0.3.0 single-session entry) so
-        // old installs still come back on first upgrade. Only consulted
-        // when the profile has no scoped entry of its own.
+        // Legacy global fallback (pre-0.3.0) so old installs return on first upgrade. Only when the profile has no scoped entry.
         let server = scopedServer ?? (allowLegacyFallback ? restoreSeerrSession() : nil)
 
         guard let server else {
-            // No remembered session anywhere: make sure no stale
-            // client/global state lingers from a previous profile.
+            // No remembered session anywhere: clear any stale client/global state from a previous profile.
             try? clearSeerrSession()
             return .notConfigured
         }
@@ -1042,12 +851,7 @@ final class DependencyContainer {
         do {
             let user = try await seerrAuthService.currentUser()
 
-            // Legacy bridge: a session restored via the global entry
-            // gets persisted as a scoped copy so the next profile
-            // switch can bring it back without the fallback. Once the
-            // scoped copy exists, retire the global entry: leaving it
-            // around lets a DIFFERENT profile without a scoped entry
-            // inherit this cookie at a later cold launch.
+            // Legacy bridge: persist a globally-restored session as a scoped copy, then retire the global entry (else a DIFFERENT scopeless profile inherits this cookie at a later cold launch).
             if scopedServer == nil, let jellyfinUserID, let jellyfinServerID {
                 try? saveSeerrSession(
                     server: server,
@@ -1059,9 +863,7 @@ final class DependencyContainer {
             }
             return .connected(server: server, user: user)
         } catch let error as APIError where error.isUnauthorized {
-            // The server rejected the cookie: this entry is dead,
-            // drop it (scoped copy only when that was the one probed,
-            // keeps other profiles' sessions untouched).
+            // Cookie rejected: drop the entry (scoped copy only when that was probed, leaving other profiles untouched).
             if scopedServer != nil, let jellyfinUserID, let jellyfinServerID {
                 forgetRememberedSeerr(
                     forJellyfinUserID: jellyfinUserID,
@@ -1071,9 +873,7 @@ final class DependencyContainer {
             try? clearSeerrSession()
             return .invalidated
         } catch {
-            // Timeout / unreachable / cancellation: NOT a verdict on
-            // the cookie. Keep the keychain entry, leave the client
-            // configured, just don't mark the session connected.
+            // Timeout / unreachable / cancellation: NOT a verdict on the cookie. Keep the entry + client configured, just don't mark connected.
             return .transientFailure
         }
     }

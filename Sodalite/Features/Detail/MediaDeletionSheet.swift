@@ -1,21 +1,6 @@
 import SwiftUI
 
-/// Confirmation sheet for the File Management feature. One view covers
-/// three scopes via the `Mode` enum: a single movie, an entire series,
-/// or one or more individually-selected seasons.
-///
-/// Visibility of the parent Delete button is gated on the active
-/// user's `canDeleteContent` property, which already reacts to profile
-/// switches (AppState.activeUser is @Observable). The server is the
-/// final authority — a 403 from Jellyfin during a stale-policy window
-/// surfaces as the standard partial-failure toast.
-///
-/// Visual language: all interactive rows use `BoolPillRow` (defined
-/// below, focus-friendly capsule with white text + accent stroke).
-/// All footer buttons use `GlassActionButton` so the sheet matches the
-/// detail-view's own action row. Native `Toggle` and `.bordered` /
-/// `.borderedProminent` were tried first and rendered with invisible
-/// labels on tvOS focus state, hence the bespoke rows.
+/// Confirmation sheet for File Management. One view covers three scopes via Mode: movie, entire series, or selected seasons. The server is the final authority; a 403 during a stale-policy window surfaces as the partial-failure toast. Rows use BoolPillRow and footer buttons GlassActionButton because native Toggle/.bordered rendered invisible labels under tvOS focus.
 struct MediaDeletionSheet: View {
     /// Scope of the deletion. The view's body branches on this.
     enum Mode: Equatable {
@@ -23,9 +8,7 @@ struct MediaDeletionSheet: View {
         case series(itemID: String, tmdbID: Int?, title: String, seasons: [SeasonOption])
     }
 
-    /// One row in the series season-picker. `id` is the Jellyfin item id
-    /// of the season; `seasonNumber` is the display number, `title` is
-    /// the localised "Season 1" / "Specials" string Jellyfin returns.
+    /// One season-picker row; `id` is the season's Jellyfin item id, `title` the localised "Season 1"/"Specials" Jellyfin returns.
     struct SeasonOption: Identifiable, Equatable {
         let id: String
         let seasonNumber: Int
@@ -33,24 +16,18 @@ struct MediaDeletionSheet: View {
     }
 
     let mode: Mode
-    /// Invoked when the user confirms. The closure receives the chosen
-    /// cascade flag and (for series) the season selection. The sheet
-    /// stays open until the action's async work completes; the parent
-    /// is responsible for calling `dismiss()` once it finishes.
+    /// Invoked on confirm; the sheet stays open until its async work completes (the sheet self-dismisses on success, see performDelete).
     let onConfirm: (DeletionRequest) async -> DeletionOutcome
     @Environment(\.dismiss) private var dismiss
 
-    /// What the parent receives. For movie + entire-series cases the
-    /// `seasonItemIDs` array is empty.
+    /// seasonItemIDs is empty for movie + entire-series.
     struct DeletionRequest {
         let cascadeToArrStack: Bool
-        /// `true` for the series-wide case, `false` for season-level.
         let deleteEntireSeries: Bool
         let seasonItemIDs: [String]
     }
 
-    /// What the parent reports back. The sheet uses this to decide
-    /// which toast to show (or none, and dismiss).
+    /// Parent's report back; picks the toast (or dismiss on success).
     enum DeletionOutcome: Equatable {
         case success
         case partialSuccess(message: String)
@@ -84,10 +61,7 @@ struct MediaDeletionSheet: View {
             .padding(48)
             .frame(maxWidth: 800)
 
-            // Outcome toast slides up from the bottom once the delete
-            // call returns. The in-flight feedback is on the Delete
-            // button itself (spinner + title via GlassActionButton's
-            // isLoading), no second indicator needed.
+            // Outcome toast; in-flight feedback is on the Delete button itself (GlassActionButton isLoading).
             if let toast = toast {
                 toastView(toast)
                     .padding(.bottom, 24)
@@ -138,17 +112,11 @@ struct MediaDeletionSheet: View {
                 disabled: false
             )
             .onAppear {
-                // Series mode opens with deleteEntireSeries=false, so
-                // the cascade row below starts disabled; its onChange
-                // hook never fires for the INITIAL disabled state and
-                // the row would show a checked-but-disabled toggle
-                // while the parent could receive cascade=true with a
-                // seasons-only selection.
+                // Force cascade off for the INITIAL disabled state: the cascadePillRow onChange never fires for it, else the parent could get cascade=true with a seasons-only selection.
                 if !deleteEntireSeries { cascadeToArrStack = false }
             }
             .onChange(of: deleteEntireSeries) { _, newValue in
-                // Switching to whole-series clears any season selection
-                // so the visual state stays coherent.
+                // Whole-series clears any season selection.
                 if newValue { selectedSeasonIDs.removeAll() }
             }
 
@@ -174,8 +142,7 @@ struct MediaDeletionSheet: View {
             disabled: disabled
         )
         .onChange(of: disabled) { _, isDisabled in
-            // Force off when disabled so the parent never sees a
-            // cascade=true with seasons-only selection.
+            // Force off when disabled so the parent never sees cascade=true with seasons-only.
             if isDisabled { cascadeToArrStack = false }
         }
     }
@@ -186,13 +153,7 @@ struct MediaDeletionSheet: View {
                 .font(.caption)
                 .foregroundStyle(.secondary)
                 .textCase(.uppercase)
-            // Bounded scroll: series with many seasons (e.g. One Piece,
-            // 11+) used to overflow the sheet, clipping the first season
-            // off the top and pushing the footer buttons off-screen with
-            // no way to scroll. Cap the list height and let it scroll;
-            // tvOS auto-scrolls the focused row into view. The cap is the
-            // content height (~64 pt per pill row) up to 420 pt, so a
-            // short series stays compact without a half-empty scroll box.
+            // Bounded scroll: many-season series (One Piece, 11+) overflowed the sheet and pushed the footer off-screen. Cap at content height (~64pt/row) up to 420pt so a short series stays compact.
             ScrollView {
                 VStack(alignment: .leading, spacing: 8) {
                     ForEach(seasons) { season in
@@ -289,9 +250,7 @@ struct MediaDeletionSheet: View {
         let outcome = await onConfirm(request)
         toast = outcome
         if case .success = outcome {
-            // Brief hold so the user sees the success indicator before
-            // the sheet auto-dismisses. Failure / partialSuccess toasts
-            // stay until the user presses Cancel.
+            // Brief success hold before auto-dismiss; failure/partial toasts stay until Cancel.
             try? await Task.sleep(for: .seconds(1))
             dismiss()
         }
@@ -299,13 +258,7 @@ struct MediaDeletionSheet: View {
 }
 
 extension MediaDeletionSheet.DeletionOutcome {
-    /// Maps a thrown deletion error onto the toast outcome the detail
-    /// views report back from their onConfirm closures. Shared by
-    /// MovieDetailView and SeriesDetailView, which previously carried
-    /// verbatim copies of these catch branches: Seerr-not-signed-in
-    /// and partial failures surface as partialSuccess, everything
-    /// else (including non-MediaDeletionError throws) as the generic
-    /// failure toast.
+    /// Maps a thrown deletion error onto a toast outcome, shared by Movie/SeriesDetailView: Seerr-not-signed-in and partial failures become partialSuccess, everything else the generic failure.
     static func from(_ error: Error) -> Self {
         if let error = error as? MediaDeletionError {
             if error.reason == .seerrNotSignedIn {
@@ -327,13 +280,7 @@ extension MediaDeletionSheet.DeletionOutcome {
 
 // MARK: - BoolPillRow
 
-/// Focus-friendly inline toggle. Mirrors `ValuePickerRow` from
-/// `PlaybackSettingsView` so both surfaces feel the same under focus.
-/// Uses `.focusable(true)` rather than a `Button` because tvOS's
-/// `Button` focus chrome (a bright pill outline) bleeds through even
-/// with `.focusEffectDisabled()` on top of `.ultraThinMaterial` — the
-/// raw focusable surface lets our accent stroke be the only focus
-/// indicator. Trailing icon shows the on/off state at a glance.
+/// Focus-friendly inline toggle (mirrors ValuePickerRow). Uses .focusable(true) not Button: tvOS Button focus chrome bleeds through .focusEffectDisabled() over .ultraThinMaterial, so the raw surface lets the accent stroke be the only focus indicator.
 private struct BoolPillRow: View {
     let title: LocalizedStringKey
     @Binding var isOn: Bool
@@ -355,12 +302,7 @@ private struct BoolPillRow: View {
         }
         .padding(.horizontal, 24)
         .padding(.vertical, 16)
-        // Background + stroke read `.tint` from the environment
-        // (`SodaliteApp` sets `.tint(effectiveTint(...))` at WindowGroup
-        // level so the user's chosen accent / supporter color applies).
-        // Don't use `Color.accentColor` here — that reads the static
-        // `AccentColor` asset, which is hard-coded to system blue and
-        // doesn't follow the per-session tint.
+        // Background + stroke read `.tint` from the environment (SodaliteApp's WindowGroup .tint(effectiveTint(...))). Never Color.accentColor: that reads the static AccentColor asset (hard-coded blue), not the per-session tint.
         .background(
             RoundedRectangle(cornerRadius: 16)
                 .fill(focused ? AnyShapeStyle(TintShapeStyle.tint.opacity(0.18)) : AnyShapeStyle(Color.white.opacity(0.08)))

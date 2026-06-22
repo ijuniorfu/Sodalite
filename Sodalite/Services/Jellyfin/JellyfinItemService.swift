@@ -2,9 +2,7 @@ import Foundation
 
 protocol JellyfinItemServiceProtocol: Sendable {
     func getItemDetail(userID: String, itemID: String) async throws -> JellyfinItem
-    /// Local trailer files for an item. Returns a (possibly empty)
-    /// array of playable items; the endpoint responds with a bare
-    /// array, not the {Items:[...]} envelope.
+    /// Local trailers; bare array response (not the {Items:[...]} envelope), possibly empty.
     func getLocalTrailers(userID: String, itemID: String) async throws -> [JellyfinItem]
     func getSeasons(seriesID: String, userID: String) async throws -> JellyfinItemsResponse
     func getEpisodes(seriesID: String, seasonID: String, userID: String) async throws -> JellyfinItemsResponse
@@ -12,9 +10,7 @@ protocol JellyfinItemServiceProtocol: Sendable {
     func setFavorite(userID: String, itemID: String, isFavorite: Bool) async throws
     func setPlayed(userID: String, itemID: String, isPlayed: Bool) async throws
     func getCollectionItems(userID: String, query: ItemQuery) async throws -> JellyfinItemsResponse
-    /// Resolves a library item by its TMDB id via Jellyfin's
-    /// `AnyProviderIdEquals`. Returns the first match or nil if the
-    /// library doesn't own that title.
+    /// Resolves a library item by TMDB id via `AnyProviderIdEquals`; first match or nil.
     func findByTmdbID(userID: String, tmdbID: Int) async throws -> JellyfinItem?
     func deleteItem(itemID: String) async throws
 }

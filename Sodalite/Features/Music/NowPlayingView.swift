@@ -14,32 +14,27 @@ struct NowPlayingView: View {
 
 // MARK: - NowPlayingContent
 
-/// Isolated view so we can read coordinator state directly with `@State`
-/// observation without capturing `dismiss` in closures that outlive the
-/// view tree.
+/// Isolated view to read coordinator state via `@State` without capturing `dismiss` in closures that
+/// outlive the view tree.
 private struct NowPlayingContent: View {
     let coordinator: MusicPlaybackCoordinator
     let dismiss: DismissAction
 
     @Environment(\.dependencies) private var dependencies
 
-    /// Focus state enum for the transport row so we can set default focus
-    /// on the Play/Pause button.
+    /// Transport-row focus, so default focus lands on Play/Pause.
     @FocusState private var transportFocus: TransportButton?
 
     var body: some View {
         ZStack {
-            // Opaque base. The fullScreenCover must never show the tab UI
-            // behind it, and the blurred-art layer alone is not opaque: its
-            // placeholder is nearly transparent while the image loads and
-            // the 0.65 dim overlay plus the heavy blur leave the layer
-            // partly see-through. A solid black base guarantees full cover.
+            // Opaque base: the cover must never show the tab UI, and the blurred-art layer isn't
+            // opaque (transparent placeholder while loading; the 0.65 dim + heavy blur stay
+            // see-through). Solid black guarantees full cover.
             Color.black
                 .ignoresSafeArea()
 
             backgroundArt
 
-            // Player column is vertically centered; the queue scrolls.
             HStack(alignment: .center, spacing: 80) {
                 VStack(spacing: 32) {
                     albumCover
@@ -60,10 +55,8 @@ private struct NowPlayingContent: View {
             .padding(.vertical, 60)
         }
         .ignoresSafeArea()
-        // The Siri Remote play/pause button is delivered to the responder
-        // chain as a UIPress while the app is foreground, NOT through
-        // MPRemoteCommandCenter (that path only fires from Control Center /
-        // background). Handle it here so the in-app remote button toggles.
+        // Foreground, the Siri Remote play/pause arrives as a UIPress on the responder chain, NOT via
+        // MPRemoteCommandCenter (that fires only from Control Center / background). Handle it here.
         .onPlayPauseCommand {
             LogTap.shared.note("[NowPlaying] onPlayPauseCommand (in-app remote button)")
             coordinator.togglePlayPause()
@@ -130,8 +123,6 @@ private struct NowPlayingContent: View {
         VStack(alignment: .leading, spacing: 12) {
             if let item = coordinator.currentItem {
                 if let context = coordinator.contextTitle, !context.isEmpty {
-                    // Album / playlist name as the heading, the current track
-                    // title beneath it.
                     Text(context)
                         .font(.title2)
                         .fontWeight(.bold)
@@ -142,7 +133,6 @@ private struct NowPlayingContent: View {
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
                 } else {
-                    // No context (e.g. a single track): the track is the heading.
                     Text(item.name)
                         .font(.title2)
                         .fontWeight(.bold)
@@ -177,7 +167,7 @@ private struct NowPlayingContent: View {
                 coordinator.previous()
             }
 
-            // Play / Pause (default focus; set via .onAppear in body)
+            // Default focus, set via .onAppear in body.
             TransportIconButton(
                 systemImage: coordinator.isPlaying ? "pause.fill" : "play.fill",
                 focusKey: TransportButton.playPause,
@@ -220,8 +210,7 @@ private struct NowPlayingContent: View {
                             isCurrent: index == coordinator.currentIndex,
                             isPlaying: coordinator.isPlaying,
                             onSelect: {
-                                // Switch to that track within the same queue
-                                // (keeps the album/playlist context).
+                                // Switch within the same queue, keeping the album/playlist context.
                                 coordinator.skip(toQueueIndex: index)
                             }
                         )
@@ -254,17 +243,13 @@ private struct TransportIconButton: View {
     private var isFocused: Bool { transportFocus == focusKey }
 
     var body: some View {
-        // tvOS scales .title / .title2 to huge point sizes (~76 / ~57pt),
-        // so the glyph filled the whole frame and the focus circle cut
-        // across it. Use fixed symbol sizes clearly smaller than the
-        // circle so the tint ring sits comfortably around the icon.
+        // tvOS scales .title/.title2 to ~76/~57pt, so the glyph filled the frame and the focus circle
+        // cut across it; fixed sizes clearly smaller than the circle keep the tint ring around the icon.
         let size: CGFloat = isLarge ? 96 : 74
         let iconFont: Font = .system(size: isLarge ? 38 : 28, weight: .semibold)
 
-        // Use the .focusable + stableTap convention, NOT a Button: a
-        // tvOS Button (even with .buttonStyle(.plain)) paints the system
-        // white focus card behind itself. Our focus look is the tinted
-        // circle fill + tint stroke below.
+        // .focusable + stableTap, NOT a Button: a tvOS Button (even .plain) paints the system white
+        // focus card; our focus look is the tinted circle fill + stroke below.
         Image(systemName: systemImage)
             .font(iconFont)
             .frame(width: size, height: size)
@@ -300,11 +285,8 @@ private struct TransportIconButton: View {
 
 // MARK: - ScrubBar
 
-/// The fullscreen player's progress bar + scrubber. The visible bar is drawn
-/// here from the coordinator's scrub state; a focusable UIKit input overlay
-/// (`MusicScrubberInput`) owns the gestures so it feels exactly like the
-/// video player: touchpad pan to scrub, left/right click to skip, hold to
-/// spool (accelerating, lands paused), Select to commit / toggle play.
+/// The fullscreen player's progress bar; drawn here from coordinator scrub state, with a focusable
+/// UIKit overlay (`MusicScrubberInput`) owning gestures so it matches the video player.
 private struct ScrubBar: View {
     let coordinator: MusicPlaybackCoordinator
 
@@ -385,8 +367,6 @@ private struct QueueRow: View {
                     .frame(width: 24, alignment: .trailing)
             }
 
-            // Track name: current track wears the tint; others follow focus.
-            // Use a computed property to keep the ternary type-safe.
             QueueTrackName(
                 name: track.name,
                 isCurrent: isCurrent,
@@ -427,8 +407,7 @@ private struct QueueRow: View {
 
 // MARK: - QueueTrackName
 
-/// Separate view so we can apply `.foregroundStyle(.tint)` for the current
-/// track without mixing `TintShapeStyle` and `Color` in a ternary expression.
+/// Separate view to apply `.tint` for the current track without mixing TintShapeStyle and Color in a ternary.
 private struct QueueTrackName: View {
     let name: String
     let isCurrent: Bool

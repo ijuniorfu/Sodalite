@@ -31,34 +31,19 @@ struct SearchView: View {
             }
         }
         .onAppear(perform: bootstrap)
-        // Reactive Seerr-service hookup. The bootstrap path captures
-        // isSeerrConnected only once at first appearance, so a user
-        // who hits Search before AppRouter.restoreSession finishes the
-        // Seerr part would be stuck with a nil service forever (only
-        // an app restart would build a new ViewModel). Watching the
-        // flag and re-syncing the service keeps the catalog half live.
+        // Reactive Seerr hookup: bootstrap captures isSeerrConnected once, so hitting Search before restoreSession finishes the Seerr part would pin a nil service for the session. Re-sync on flag change keeps the catalog half live.
         .onChange(of: appState.isSeerrConnected) { _, connected in
             viewModel?.seerrSearchService = connected ? dependencies.seerrSearchService : nil
-            // Re-run any active query so the Seerr half catches up
-            // without the user having to retype.
+            // Re-run the active query so the Seerr half catches up without retyping.
             viewModel?.scheduleSearch()
         }
         .onChange(of: appState.activeUser?.id) { _, newValue in
-            // Profile switch: tear down the old SearchViewModel so the
-            // next .onAppear rebuilds it for the new user (mirrors
-            // HomeView). Keeping the old one would pin the previous
-            // profile's userID into every /Users/{id}/Items search,
-            // 403ing against the new profile's token until app restart.
+            // Profile switch: drop the VM so .onAppear rebuilds for the new user (mirrors HomeView); keeping it pins the old userID into /Users/{id}/Items searches, 403ing the new token.
             viewModel = nil
             guard newValue != nil else { return }
             bootstrap()
         }
-        // Pre-warm the poster cache as soon as either result list
-        // changes so the first focus on a card doesn't pay the
-        // round-trip + decode itself. Posters are tiny (typically
-        // <100 KB at our maxWidth=400 sizing); the prefetch runs
-        // bounded-concurrency so it doesn't starve the foreground
-        // UI of bandwidth.
+        // Pre-warm the poster cache on results-change so first focus doesn't pay round-trip + decode. Bounded-concurrency prefetch so it doesn't starve foreground bandwidth.
         .onChange(of: viewModel?.jellyfinResults) { _, _ in
             prefetchSearchPosters()
         }
@@ -67,11 +52,7 @@ struct SearchView: View {
         }
     }
 
-    /// Collect every poster URL the current results expose and hand
-    /// them to `ImageCache.prefetch`. Skips URLs already cached, so
-    /// running this on every results-change costs nothing for the
-    /// stable items between two queries, only the *new* posters
-    /// pay network.
+    /// Hand current result poster URLs to `ImageCache.prefetch`; cached URLs are skipped, so only new posters pay network on each results-change.
     private func prefetchSearchPosters() {
         guard let vm = viewModel else { return }
         var urls: [URL] = []
@@ -93,13 +74,7 @@ struct SearchView: View {
         }
     }
 
-    /// Inline search bar using a UIKit UITextField wrapper. Reason:
-    /// SwiftUI's TextField on tvOS routes focus unreliably between the
-    /// tab bar and card rows (silently skipped by the focus engine);
-    /// .searchable() works but adds a 1-2s rebuild on every tab-switch.
-    /// UITextField is a first-class UIKit focus citizen, routing is
-    /// reliable and there's no switch-lag, with the inline look the
-    /// user wants.
+    /// Inline UIKit UITextField bar: SwiftUI TextField routes focus unreliably on tvOS (silently skipped); .searchable() adds a 1-2s rebuild per tab-switch. UITextField routes reliably with no switch-lag.
     @ViewBuilder
     private var searchBar: some View {
         if let vm = viewModel {
@@ -185,12 +160,7 @@ struct SearchView: View {
                 .padding(.horizontal, 50)
                 .padding(.vertical, 20)
             }
-            // Mark each row as its own focus section so vertical
-            // navigation crosses row boundaries even when the geometry
-            // doesn't line up, e.g. the user is on a catalog card
-            // way to the right, but the library row above only has
-            // one item on the left. Without this, tvOS finds no
-            // element directly overhead and up-press does nothing.
+            // .focusSection() so vertical nav crosses row boundaries when geometry doesn't line up (right-side catalog card over a one-item library row); else up-press finds nothing overhead and dies.
             .focusSection()
         }
     }

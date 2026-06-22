@@ -1,10 +1,6 @@
 import Foundation
 
-/// Lossless generic JSON for round-trip flows: the Live TV timer create
-/// flow GETs `/LiveTv/Timers/Defaults?programId=` and POSTs the payload
-/// back unchanged. The HTTP client JSON-encodes request bodies via
-/// `AnyEncodable`, so raw `Data` would be base64-encoded; this type
-/// re-encodes the original structure faithfully instead.
+/// Lossless generic JSON for round-trips (Live TV timer Defaults GET then POST unchanged); raw `Data` would be base64-encoded by AnyEncodable, this re-encodes the structure faithfully.
 enum JSONValue: Codable, Sendable, Equatable {
     case string(String)
     case number(Double)
@@ -45,9 +41,7 @@ enum JSONValue: Codable, Sendable, Equatable {
         }
     }
 
-    /// Bridge from a JSONSerialization-style object ([String: Any] /
-    /// [Any]). Used by the PlaybackInfo endpoint, whose DeviceProfile
-    /// body is built as a plain dictionary by DirectPlayProfile.
+    /// Bridge from a JSONSerialization object; used by PlaybackInfo whose DeviceProfile body is a plain dict from DirectPlayProfile.
     init(jsonObject: Any) throws {
         let data = try JSONSerialization.data(withJSONObject: jsonObject)
         self = try JSONDecoder().decode(JSONValue.self, from: data)

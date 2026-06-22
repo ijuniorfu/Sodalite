@@ -1,10 +1,6 @@
 import SwiftUI
 
-/// Admin-queue row. Differs from `SeerrRequestRow` in
-/// `CatalogMyRequestsView` by (1) showing the requester's display
-/// name and (2) carrying action buttons. The row itself is not
-/// focusable as a single tap target. Focus lands on individual
-/// action buttons, mirroring the deletion-sheet pattern.
+/// Admin-queue row: vs `SeerrRequestRow` it adds the requester name + action buttons and the row itself isn't a tap target (focus lands on individual action buttons).
 struct SeerrRequestAdminRow: View {
     let request: SeerrRequest
     let title: String?
@@ -160,9 +156,7 @@ struct SeerrRequestAdminRow: View {
     }
 }
 
-/// Compact action button used in the admin row. Follows the
-/// sodalite-ui-focus-and-tint rules: `.tint` ShapeStyle, focused
-/// fill tinted not white, `.focusable` over material.
+/// Compact admin-row action button; sodalite-ui-focus-and-tint rules: `.tint` ShapeStyle, tinted focused fill, `.focusable` over material.
 private struct AdminActionButton: View {
     let title: LocalizedStringKey
     let systemImage: String

@@ -1,17 +1,6 @@
 import SwiftUI
 
-/// Brand splash shown while AppRouter restores the session.
-/// Replaces the previous bare `ProgressView()` so the user gets a
-/// proper "app is opening" moment instead of a spinner-on-black flash.
-///
-/// Animation: logo fades in and grows slightly from 80% → 100% over
-/// `appearDuration`, holds for `holdDuration`, then fades out. The
-/// minimum on-screen time is `appearDuration + holdDuration` so the
-/// splash never just blinks past on a fast session restore.
-///
-/// Supporters see the crowned "Premium" variant. Everyone else sees
-/// the standard Sodalite gem, both render in their full sodalite-blue
-/// brand colors, no template tint.
+/// Brand splash shown while AppRouter restores the session. Logo fades + grows 80%→100% over appearDuration, holds, fades out; minimum on-screen time appearDuration+holdDuration so it never blinks past on a fast restore. Supporters get the crowned Premium variant.
 struct SplashView: View {
 
     @Environment(\.dependencies) private var dependencies
@@ -50,6 +39,5 @@ struct SplashView: View {
         }
     }
 
-    /// Total minimum time the splash should remain on screen.
     static let minimumDisplayDuration: Double = 1.2
 }

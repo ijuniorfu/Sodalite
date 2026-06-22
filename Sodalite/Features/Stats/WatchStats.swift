@@ -1,16 +1,12 @@
 import Foundation
 
-/// One genre and how many watched items fell under it.
 struct GenreCount: Identifiable, Sendable, Equatable {
     let name: String
     let count: Int
     var id: String { name }
 }
 
-/// Aggregated watch statistics for the active user on the active server.
-/// All figures are client-side aggregates of standard Jellyfin UserData;
-/// `estimatedSeconds` is an estimate (sum of runtime over played items,
-/// multiplied by play count to include rewatches).
+/// Client-side aggregates of Jellyfin UserData; `estimatedSeconds` = sum of runtime over played items × play count (includes rewatches).
 struct WatchStats: Sendable, Equatable {
     var moviesWatched: Int
     var totalMovies: Int

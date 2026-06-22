@@ -2,22 +2,16 @@ import Foundation
 import Observation
 import StoreKit
 
-/// Result of a single purchase attempt, flattened from StoreKit 2's
-/// `Product.PurchaseResult` so the UI layer doesn't have to know about
-/// `VerificationResult` or `@unknown default`.
+/// Purchase result flattened from StoreKit 2's `Product.PurchaseResult` so the UI avoids `VerificationResult` / `@unknown default`.
 enum PurchaseOutcome: Sendable {
-    /// Transaction verified and finished.
     case success
-    /// User backed out of the purchase sheet.
     case userCancelled
-    /// Waiting on a parental approval or SCA challenge, no entitlement yet,
-    /// but a later `Transaction.updates` callback may still grant one.
+    /// Awaiting parental approval / SCA; no entitlement yet, a later `Transaction.updates` may grant one.
     case pending
 }
 
 enum StoreKitServiceError: Error {
-    /// StoreKit returned an unverified JWS, someone forged a transaction
-    /// or the App Store key is stale. Never trust the entitlement.
+    /// Unverified JWS (forged transaction or stale App Store key); never trust the entitlement.
     case verificationFailed
 }
 
@@ -35,14 +29,7 @@ protocol StoreKitServiceProtocol: AnyObject {
     func refreshSupporterStatus() async
 }
 
-/// Owns the StoreKit 2 session for Sodalite: loads products, runs
-/// purchases, verifies transactions, and exposes a single observable
-/// `isSupporter` flag that the UI reacts to.
-///
-/// The service caches `isSupporter` in `UserDefaults` so the first frame
-/// after launch already reflects the last known entitlement state, the
-/// authoritative refresh against `Transaction.currentEntitlements`
-/// happens asynchronously on app start and overwrites the cache.
+/// Owns the StoreKit 2 session: loads products, purchases, verifies, exposes observable `isSupporter`. Caches `isSupporter` in UserDefaults for first-frame correctness; the authoritative `Transaction.currentEntitlements` refresh runs async on launch and overwrites the cache.
 @MainActor
 @Observable
 final class StoreKitService: StoreKitServiceProtocol {
@@ -52,13 +39,9 @@ final class StoreKitService: StoreKitServiceProtocol {
     private(set) var isSupporter: Bool
     private(set) var tipProducts: [Product] = []
     private(set) var supporterPackProduct: Product?
-    /// True once a `Product.products(for:)` call has completed, regardless
-    /// of whether it returned products or failed. The UI uses this to tell
-    /// "still loading" apart from "loaded and the App Store gave us nothing".
+    /// True once a `Product.products(for:)` call finished (success or fail); lets the UI tell "loading" from "loaded with nothing".
     private(set) var hasLoadedProducts: Bool = false
-    /// Short human-readable message for the last load failure, surfaced in
-    /// the UI so the user doesn't stare at a spinner forever when StoreKit
-    /// has a network error or the products aren't approved yet.
+    /// Last load-failure message, surfaced so the user isn't stuck on a spinner when StoreKit errors or products aren't approved.
     private(set) var lastLoadError: String?
 
     // MARK: - Private
@@ -74,10 +57,7 @@ final class StoreKitService: StoreKitServiceProtocol {
     init(store: UserDefaults = .standard) {
         self.store = store
         self.isSupporter = store.bool(forKey: Keys.cachedIsSupporter)
-        // The listener task runs for the lifetime of the app, the
-        // service is held by DependencyContainer, which itself lives
-        // as long as the process. No cancel/deinit bookkeeping needed;
-        // the task captures `self` weakly so it can't keep us alive.
+        // Listener lives for the process lifetime (no cancel/deinit bookkeeping); captures self weakly.
         Self.startTransactionListener { [weak self] transaction in
             await self?.handle(transaction: transaction)
         }
@@ -109,9 +89,7 @@ final class StoreKitService: StoreKitServiceProtocol {
             #endif
             self.lastLoadError = error.localizedDescription
         }
-        // Always flip so the UI can exit the loading state even when the
-        // App Store call failed or returned an empty product list (common
-        // before IAP review or on accounts that can't see the products).
+        // Always flip so the UI exits loading even on failure / empty list (common pre-IAP-review).
         self.hasLoadedProducts = true
     }
 
@@ -135,11 +113,7 @@ final class StoreKitService: StoreKitServiceProtocol {
     }
 
     func restorePurchases() async throws {
-        // Forces a refresh against the App Store. Not needed for the
-        // happy path (Transaction.currentEntitlements already knows
-        // about non-consumables restored by Apple ID) but required by
-        // App Review, and covers the edge case where a device was
-        // offline the last time entitlements changed.
+        // Required by App Review (happy path needs no sync; currentEntitlements already has Apple-ID-restored non-consumables); also covers offline-during-last-change.
         try await AppStore.sync()
         await refreshSupporterStatus()
     }
@@ -164,8 +138,7 @@ final class StoreKitService: StoreKitServiceProtocol {
         if StoreProducts.isSupporterPack(transaction.productID) {
             setSupporter(transaction.revocationDate == nil)
         }
-        // Tip purchases are consumables, nothing to unlock, they exist
-        // purely for their own sake. Just finish them in the caller.
+        // Tips are consumables: nothing to unlock, caller just finishes them.
     }
 
     private func setSupporter(_ value: Bool) {
@@ -180,11 +153,7 @@ final class StoreKitService: StoreKitServiceProtocol {
         }
     }
 
-    /// Background listener for transactions that arrive outside the main
-    /// purchase flow, parental approvals landing after `.pending`, Ask-
-    /// To-Buy completions, or purchases made on another device for the
-    /// same Apple ID. Apple requires every app with IAP to attach a
-    /// listener early in the lifecycle so nothing is missed.
+    /// Listener for transactions outside the main purchase flow (Ask-To-Buy completions, cross-device purchases). Apple requires IAP apps to attach this early so nothing is missed.
     private static func startTransactionListener(
         handler: @escaping @Sendable (Transaction) async -> Void
     ) {

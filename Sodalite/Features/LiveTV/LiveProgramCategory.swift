@@ -1,9 +1,7 @@
 import SwiftUI
 
-/// The category rows of the Live TV "Übersicht" tab, mirroring Jellyfin's
-/// native "Programme" view. Each case maps to a single boolean filter on
-/// `/LiveTv/Programs/Recommended` (see `JellyfinEndpoint`). Order here is the
-/// on-screen row order.
+/// Live TV "Übersicht" category rows (mirrors Jellyfin's "Programme"). Each case is a boolean filter
+/// on `/LiveTv/Programs/Recommended`; declaration order is on-screen row order.
 enum LiveProgramCategory: String, CaseIterable, Identifiable {
     case airing
     case series

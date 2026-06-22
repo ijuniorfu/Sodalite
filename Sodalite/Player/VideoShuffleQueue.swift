@@ -1,21 +1,16 @@
 import Foundation
 
-/// Builds a shuffled play queue from a Jellyfin `SortBy=Random` query.
-/// Used by the video shuffle buttons on series / collection / library
-/// surfaces. `ItemQuery.toQueryItems()` always sends `Recursive=true`,
-/// so a series id returns random episodes across all seasons and a
-/// library folder returns random leaf items across the whole library.
+/// Builds a shuffled play queue from a `SortBy=Random` query for the shuffle
+/// buttons. ItemQuery always sends `Recursive=true`, so a series id returns
+/// random episodes across seasons and a folder returns random leaf items.
 enum VideoShuffleQueue {
 
-    /// Default queue cap. 200 items is hundreds of hours; reaching the
-    /// end in one session isn't a real case, so there's no refill.
+    /// Queue cap; 200 = hundreds of hours, so no refill on reaching the end.
     static let defaultLimit = 200
 
-    /// Fetches up to `limit` random items of `itemTypes` under
-    /// `parentID`. `baseQuery`, when supplied, is used as the starting
-    /// query (preserving e.g. the library grid's parentID) with the
-    /// sort / type / paging / filter fields overridden for shuffle.
-    /// Returns an empty array on any failure (the caller no-ops).
+    /// Fetches up to `limit` random `itemTypes` under `parentID`. `baseQuery`
+    /// (if given) is the starting query with sort/type/paging/filter
+    /// overridden. Empty array on any failure (caller no-ops).
     static func build(
         parentID: String?,
         baseQuery: ItemQuery? = nil,

@@ -24,16 +24,9 @@ struct PlaybackMediaSource: Codable, Sendable, Identifiable {
     let supportsTranscoding: Bool?
     let transcodingUrl: String?
     let mediaStreams: [MediaStream]?
-    /// Set by the server when a live stream (tuner) was opened by
-    /// PlaybackInfo. Echoed back on the stop report and the explicit
-    /// LiveStreams/Close call so the tuner is released. Nil for VOD.
+    /// Set when PlaybackInfo opened a live tuner; echoed on stop + LiveStreams/Close to release it. Nil for VOD.
     let liveStreamId: String?
-    /// Why the server chose to transcode rather than DirectPlay/DirectStream
-    /// (e.g. `ContainerNotSupported`, `VideoCodecNotSupported`,
-    /// `AudioCodecNotSupported`, `VideoBitrateNotSupported`). The decisive
-    /// signal for whether we are paying a full video re-encode (expensive,
-    /// stalls on high-bitrate live) or merely a container remux / audio
-    /// re-encode (cheap). Drives the live-profile copy-vs-encode tuning.
+    /// Transcode reason(s) (e.g. `ContainerNotSupported`, `VideoCodecNotSupported`, `VideoBitrateNotSupported`); decisive signal for full video re-encode vs cheap remux, drives live copy-vs-encode tuning.
     let transcodeReasons: [String]?
 
     enum CodingKeys: String, CodingKey {
@@ -55,9 +48,7 @@ struct PlaybackMediaSource: Codable, Sendable, Identifiable {
 
 // MARK: - Media Segments
 
-/// Response from `/MediaSegments/{itemId}`, intro / outro / preview
-/// markers. Populated natively on Jellyfin 10.10+, and by the
-/// intro-skipper plugin on 10.9.
+/// `/MediaSegments/{itemId}` intro/outro/preview markers; native on Jellyfin 10.10+, intro-skipper plugin on 10.9.
 struct MediaSegmentsResponse: Codable, Sendable {
     let items: [MediaSegment]
     let totalRecordCount: Int?
@@ -69,7 +60,6 @@ struct MediaSegmentsResponse: Codable, Sendable {
 }
 
 struct MediaSegment: Codable, Sendable, Identifiable {
-    /// Unique segment id; used as Identifiable key for lists.
     let id: String
     let itemId: String
     let type: SegmentType

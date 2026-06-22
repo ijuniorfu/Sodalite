@@ -1,31 +1,25 @@
 import Foundation
 
-/// Feature #4: in-player subtitle search/download via Jellyfin
-/// RemoteSearch (server needs the OpenSubtitles plugin). Downloaded
-/// subtitles are attached server-side as external streams, then applied
-/// live through the existing sidecar subtitle path.
+/// Feature #4: in-player subtitle search/download via Jellyfin RemoteSearch
+/// (server needs OpenSubtitles plugin); downloads attach server-side as
+/// external streams, applied live through the sidecar subtitle path.
 @MainActor
 extension PlayerViewModel {
 
-    /// ISO 639-2/T codes (what `Locale` emits) mapped to /B codes (what
-    /// the curated language list and Jellyfin use) for the languages
-    /// where the two variants differ. Only entries that appear in
-    /// `subtitleSearchLanguageOptions` matter here.
+    /// ISO 639-2/T codes (`Locale` output) mapped to /B codes (curated list +
+    /// Jellyfin) for the languages where the two variants differ.
     private static let alpha3TtoB: [String: String] = [
         "deu": "ger", "fra": "fre", "ces": "cze", "nld": "dut",
         "ell": "gre", "ron": "rum", "zho": "chi"
     ]
 
-    /// Curated language options for the in-overlay switcher. Reuses the
-    /// settings language list (3-letter codes), dropping the "Auto" (nil)
-    /// entry which has no concrete code to search.
+    /// Settings language list minus the "Auto" (nil) entry, which has no code.
     var subtitleSearchLanguageOptions: [PlaybackPreferences.LanguageChoice] {
         PlaybackPreferences.subtitleLanguageChoices.filter { $0.code != nil }
     }
 
-    /// Opens the overlay and kicks off the first search. Seeds the
-    /// language from the preferred subtitle language, else the device
-    /// language, else English.
+    /// Opens the overlay and runs the first search. Language seed: preferred
+    /// subtitle language, else device language, else English.
     func presentSubtitleSearch() {
         let deviceCode = Locale.current.language.languageCode?.identifier(.alpha3)
             .map { Self.alpha3TtoB[$0] ?? $0 }
@@ -41,34 +35,26 @@ extension PlayerViewModel {
         subtitleSearchState = .idle
     }
 
-    /// Switches the search language and re-runs the search.
     func setSubtitleSearchLanguage(_ code: String) {
         guard code != subtitleSearchLanguage else { return }
         subtitleSearchLanguage = code
         Task { [weak self] in await self?.searchSubtitles() }
     }
 
-    /// Runs a RemoteSearch for the current language and fills state.
     func searchSubtitles() async {
         subtitleSearchState = .loading
         let language = subtitleSearchLanguage
         do {
             let raw = try await searchRemoteSubtitlesWithRetry(language: language)
-            // A late-returning search whose language the user has since
-            // switched away from must not overwrite the newer query's state.
+            // Drop a late result whose language the user already switched away from.
             guard language == subtitleSearchLanguage else { return }
-            // Hash matches are timed against this exact file (perfect
-            // sync); surface them first, then order by popularity.
+            // Hash matches are timed against this exact file; surface first, then popularity.
             let results = raw.sorted { lhs, rhs in
                 if (lhs.isHashMatch == true) != (rhs.isHashMatch == true) {
                     return lhs.isHashMatch == true
                 }
                 return (lhs.downloadCount ?? 0) > (rhs.downloadCount ?? 0)
             }
-            // Diagnostic: how many of the server's results are hash matches
-            // (exact-file timing). 0 => no "Exact match" badge is expected
-            // for this file, which is normal when OpenSubtitles has no
-            // hash-keyed entry for it.
             let hashMatchCount = results.filter { $0.isHashMatch == true }.count
             LogTap.shared.note("[SubSearch] lang=\(subtitleSearchLanguage) results=\(results.count) hashMatch=\(hashMatchCount)")
             if results.isEmpty {
@@ -88,11 +74,8 @@ extension PlayerViewModel {
         }
     }
 
-    /// Runs the RemoteSearch, retrying once on failure. The server's
-    /// OpenSubtitles provider frequently cold-starts on the first query of a
-    /// session and that initial request times out, while an immediate retry
-    /// succeeds, the same "just search again" that worked manually. Retrying
-    /// once here keeps that hiccup from surfacing the scary (and wrong) "no
+    /// RemoteSearch with one retry: the OpenSubtitles provider cold-starts and
+    /// times out on a session's first query, so a retry avoids a false "no
     /// provider installed" message.
     private func searchRemoteSubtitlesWithRetry(language: String) async throws -> [RemoteSubtitleInfo] {
         do {
@@ -104,23 +87,18 @@ extension PlayerViewModel {
         }
     }
 
-    /// Downloads `info` server-side, refetches the active media source's
-    /// streams to find the newly attached external subtitle, lists it,
-    /// applies it live, and dismisses the overlay. If the server has not
-    /// attached the track by the time polling stops (typical on a slow CDN),
-    /// drops into `.downloadTimedOut` so the overlay can offer "Try again".
+    /// Downloads `info` server-side, finds the newly attached external stream,
+    /// applies it live, and dismisses. If the server hasn't attached it by the
+    /// time polling stops (slow CDN), parks in `.downloadTimedOut` ("Try again").
     func downloadAndApplySubtitle(_ info: RemoteSubtitleInfo) async {
         subtitleSearchState = .downloading(id: info.id)
-        // External subtitles are never collapsed by the dedupe, so the
-        // current `subtitleStreams` already lists every external track; its
-        // index set is a sound "before" snapshot for spotting the newly
-        // attached one.
+        // External subs are never deduped, so subtitleStreams' index set is a
+        // sound "before" snapshot for spotting the newly attached one.
         let before = Set(subtitleStreams.map(\.index))
         do {
             try await playbackService.downloadRemoteSubtitle(itemID: item.id, subtitleID: info.id)
         } catch {
-            // The download request itself failed (network/server error). That
-            // is a genuine failure, not the slow-CDN "still fetching" case.
+            // Download request itself failed (real error, not slow-CDN pending).
             subtitleSearchState = .error(
                 String(localized: "player.subtitle.search.downloadFailed",
                        defaultValue: "Could not download this subtitle. Please try another one.")
@@ -131,21 +109,16 @@ extension PlayerViewModel {
         await applyNewlyAttachedSubtitle(info: info, before: before)
     }
 
-    /// Re-checks whether the timed-out download has since been attached by
-    /// the server, without re-issuing the download. Backs the overlay's
-    /// "Try again" button.
+    /// Re-checks a timed-out download without re-issuing it. Backs "Try again".
     func retryTimedOutDownload() async {
         guard case .downloadTimedOut(let info, let before, _) = subtitleSearchState else { return }
         subtitleSearchState = .downloading(id: info.id)
         await applyNewlyAttachedSubtitle(info: info, before: before)
     }
 
-    /// Polls PlaybackInfo for a new external subtitle not present in
-    /// `before`. On success applies it live and dismisses the overlay; on
-    /// timeout parks in `.downloadTimedOut` with the pending message and
-    /// focuses the retry button. Per-attempt PlaybackInfo errors are
-    /// swallowed so a transient hiccup on a slow CDN reads as "still
-    /// fetching", not a hard failure.
+    /// Polls PlaybackInfo (5 attempts) for an external subtitle not in `before`.
+    /// On success applies + dismisses; on timeout parks in `.downloadTimedOut`.
+    /// Per-attempt errors swallowed so a slow-CDN hiccup reads as pending.
     private func applyNewlyAttachedSubtitle(info: RemoteSubtitleInfo, before: Set<Int>) async {
         var newStream: MediaStream?
         for attempt in 0..<5 {
@@ -166,11 +139,8 @@ extension PlayerViewModel {
         }
 
         guard let applied = newStream else {
-            // The download was accepted but the server had not attached the
-            // track yet. On a slow server/CDN the fetch often finishes
-            // seconds later, so this is a "still working" state, not an
-            // outright failure: show the pending copy and let the user
-            // re-check with "Try again" once it has had a moment.
+            // Accepted but not yet attached; on a slow CDN the fetch finishes
+            // seconds later, so this is "still working", not a failure.
             subtitleSearchState = .downloadTimedOut(
                 info: info,
                 before: before,
@@ -182,19 +152,15 @@ extension PlayerViewModel {
         }
         selectSubtitleTrack(id: applied.index)
         dismissSubtitleSearch()
-        // Resume the controls auto-hide timer that opening the dropdown
-        // cancelled, so the transport UI fades out as after any picker.
         scheduleControlsHide()
     }
 
     // MARK: - Host-driven focus navigation
 
-    /// Index of the currently searched language within the option list.
     var subtitleSearchCurrentLanguageIndex: Int {
         subtitleSearchLanguageOptions.firstIndex { $0.code == subtitleSearchLanguage } ?? 0
     }
 
-    /// The results currently displayed, or empty.
     private var currentSubtitleResults: [RemoteSubtitleInfo] {
         if case .results(let r) = subtitleSearchState { return r }
         return []
@@ -235,14 +201,10 @@ extension PlayerViewModel {
         case .result(let i):
             subtitleSearchFocus = i > 0 ? .result(i - 1) : .language(subtitleSearchCurrentLanguageIndex)
         case .retry:
-            // Back up to the language row so the user can change language and
-            // run a fresh search instead of waiting on the stuck download.
             subtitleSearchFocus = .language(subtitleSearchCurrentLanguageIndex)
         }
     }
 
-    /// Activates the highlighted element: switch language, download a result,
-    /// or re-check a timed-out download.
     func subtitleSearchConfirm() {
         switch subtitleSearchFocus {
         case .language(let i):
@@ -258,7 +220,6 @@ extension PlayerViewModel {
         }
     }
 
-    /// True while the overlay is parked on a timed-out download.
     private var isSubtitleDownloadTimedOut: Bool {
         if case .downloadTimedOut = subtitleSearchState { return true }
         return false
@@ -266,21 +227,17 @@ extension PlayerViewModel {
 
     // MARK: - Delete external subtitle (hold-to-delete)
 
-    /// Opens the delete confirmation for the external subtitle at
-    /// `streamIndex`. Closes the dropdown so the prompt takes over.
     func requestSubtitleDeletion(streamIndex: Int) {
         subtitleDeleteFocus = .cancel
         subtitleDeleteState = .confirm(streamIndex: streamIndex)
         trackDropdown = .none
     }
 
-    /// Toggles the highlighted button in the delete prompt (left/right).
     func subtitleDeletePromptToggleFocus() {
         guard case .confirm = subtitleDeleteState else { return }
         subtitleDeleteFocus = subtitleDeleteFocus == .cancel ? .delete : .cancel
     }
 
-    /// Select press on the delete prompt: confirm (Delete) or dismiss.
     func subtitleDeletePromptConfirm() {
         switch subtitleDeleteState {
         case .confirm(let streamIndex):
@@ -299,7 +256,7 @@ extension PlayerViewModel {
         }
     }
 
-    /// Menu/back on the delete prompt: dismiss (ignored mid-deletion).
+    /// Menu/back: dismiss, ignored mid-deletion.
     func subtitleDeletePromptDismiss() {
         if case .deleting = subtitleDeleteState { return }
         subtitleDeleteState = .hidden
@@ -307,7 +264,6 @@ extension PlayerViewModel {
     }
 
     private func performSubtitleDeletion(streamIndex: Int) async {
-        // If we're deleting the active track, turn subtitles off first.
         if activeSubtitleIndex == streamIndex { selectSubtitleTrack(id: nil) }
         do {
             try await playbackService.deleteSubtitle(itemID: item.id, index: streamIndex)

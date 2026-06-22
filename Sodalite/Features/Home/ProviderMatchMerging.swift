@@ -1,15 +1,6 @@
 import Foundation
 
-/// Shared merge for the two-phase streaming-provider match: phase 1
-/// (Jellyfin studio-name query) keeps its server-side ordering at the
-/// top, phase 2 (TMDB watch-provider augment) is deduped against it,
-/// sorted alphabetically, and appended.
-///
-/// Both FilteredGridView's grid refresh and HomeViewModel's provider
-/// precompute build their lists through this one helper. They feed
-/// the same FilterCache entries (the precompute writes what the grid
-/// hydrates from), so the two call sites drifting apart would make a
-/// tile's cached count/order disagree with the grid a tap opens.
+/// Two-phase provider match merge: phase 1 (Jellyfin studio query) keeps its server order on top, phase 2 (TMDB watch-provider augment) is deduped, sorted alphabetically, appended. Shared by FilteredGridView and the provider precompute (which writes the FilterCache the grid hydrates from) so a tile's cached count/order can't drift from the grid a tap opens.
 enum ProviderMatchMerging {
     nonisolated static func merge(
         phase1: [JellyfinItem],

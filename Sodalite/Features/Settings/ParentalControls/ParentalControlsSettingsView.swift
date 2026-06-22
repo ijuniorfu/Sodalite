@@ -1,9 +1,6 @@
 import SwiftUI
 
-/// Configure parental controls: enable / change the Guardian-PIN and
-/// mark which remembered profiles are protected (kids). Reaching this
-/// screen is itself PIN-gated when a protected profile is active (see
-/// SettingsView), so a kid cannot disable the lock from here.
+/// PIN-gated entry when a protected profile is active (see SettingsView) so a kid can't disable the lock from here.
 struct ParentalControlsSettingsView: View {
     @Environment(\.appState) private var appState
     @Environment(\.dependencies) private var dependencies

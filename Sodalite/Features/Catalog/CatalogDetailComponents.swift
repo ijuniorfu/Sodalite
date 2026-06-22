@@ -1,24 +1,13 @@
 import SwiftUI
 
-/// Sub-components extracted from CatalogDetailView so the main file
-/// stays focused on the load/render flow. Lives in the same target,
-/// so the previously-private types are simply demoted to internal,
-/// nothing outside the catalog feature uses them anyway.
+/// Sub-components extracted from CatalogDetailView; internal, used only within the catalog feature.
 
-/// Season tab used inside the season selection block. The tab is
-/// always selectable for *viewing*, even seasons that are already
-/// available get tabs so the user can preview their episodes, but
-/// the request action is gated separately inside the detail block.
+/// Season tab in the season selector. Always selectable for viewing (preview episodes of already-available seasons); the request action is gated separately in the detail block.
 struct CatalogSeasonTab: View {
     let season: SeerrSeason
     let isViewed: Bool
     let isSelectedForRequest: Bool
-    /// Active pipeline status for this season, or `nil` when no
-    /// request exists yet. `.available` → green check, `.processing`
-    /// → blue spinner-ish icon, `.pending` → orange clock. Earlier
-    /// versions collapsed all three into a single green check, which
-    /// hid the difference between "ready to play" and "waiting for
-    /// the admin to approve", a meaningful distinction for the user.
+    /// Pipeline status, `nil` when no request exists. Kept distinct (available=green check, processing=blue, pending=orange clock) so "ready to play" reads differently from "waiting for admin approval".
     let availabilityStatus: SeerrMediaStatus?
     let action: () -> Void
 
@@ -104,12 +93,7 @@ struct CatalogPickerButtonStyle: ButtonStyle {
 
 // MARK: - Picker Sheet
 
-/// Full-screen picker for the profile / root-folder dropdowns.
-/// `.fullScreenCover` gives the sheet its own focus environment,
-/// the Menu-button dismisses only this modal, no chance of
-/// propagating up to the navigation stack and accidentally
-/// exiting the app (which is what happened with SwiftUI `Menu`
-/// on tvOS during its close animation).
+/// Full-screen picker for profile / root-folder dropdowns. `.fullScreenCover` isolates the focus environment so Menu-button dismisses only this modal; SwiftUI `Menu` on tvOS leaked the press up the nav stack and exited the app during its close animation.
 struct CatalogPickerSheet: View {
     struct Option: Identifiable {
         let id: String
@@ -165,15 +149,11 @@ struct CatalogPickerSheet: View {
                 }
             }
         }
-        // Menu-button dismisses the sheet; tvOS would otherwise
-        // eat the press against an empty focus environment.
         .onExitCommand {
             onCancel()
         }
         .onAppear {
-            // Focus the currently-selected option on appear, or the
-            // first one if nothing's selected, so the back-press gap
-            // never hits an empty focus.
+            // Focus selected (or first) option so the back-press gap never hits an empty focus.
             focusedID = selectedID ?? options.first?.id
         }
     }
@@ -181,11 +161,7 @@ struct CatalogPickerSheet: View {
 
 // MARK: - Multi-Select Sheet
 
-/// Multi-select sibling of `CatalogPickerSheet`. Tapping a row toggles
-/// its membership in the selection set instead of dismissing the sheet,
-/// the Menu-button (back) commits the current selection back to the
-/// caller. Used by the Tags picker, which lets users tag a request
-/// with one or more Sonarr/Radarr labels.
+/// Multi-select sibling of `CatalogPickerSheet`: rows toggle membership instead of dismissing; Menu-button (back) commits the selection. Used by the Tags picker for one-or-more Sonarr/Radarr labels.
 struct CatalogMultiSelectSheet: View {
     struct Option: Identifiable {
         let id: String
@@ -246,9 +222,7 @@ struct CatalogMultiSelectSheet: View {
             }
         }
         .onExitCommand {
-            // Menu-button commits the current selection. Same UX as a
-            // tvOS form sheet, intentional and consistent: there is no
-            // explicit Cancel state for multi-select.
+            // Menu-button commits the selection; multi-select has no explicit Cancel state.
             onCommit(selection)
         }
         .onAppear {

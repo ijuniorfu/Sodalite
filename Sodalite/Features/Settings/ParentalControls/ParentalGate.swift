@@ -9,14 +9,7 @@ enum PINReason: Equatable {
     case openParentalSettings
 }
 
-/// Presentation coordinator for the Guardian-PIN challenge. Owns an
-/// async `challenge(reason:)` that suspends until `PINEntryView` resolves
-/// it. AppRouter observes `activeRequest` and drives the fullScreenCover.
-///
-/// Decision logic ("is a PIN required?") lives on DependencyContainer,
-/// which has the keychain + preference state. This object only manages
-/// presentation, so it carries no reference to the container and creates
-/// no retain cycle.
+/// Presentation coordinator: challenge(reason:) suspends until PINEntryView resolves it; AppRouter drives the fullScreenCover. Decision logic lives on DependencyContainer; this holds no container ref so no retain cycle.
 @Observable
 @MainActor
 final class ParentalGate {
@@ -29,9 +22,7 @@ final class ParentalGate {
     private(set) var activeRequest: Request?
     private var continuation: CheckedContinuation<Bool, Never>?
 
-    /// Present the PIN entry and await the outcome (true = unlocked,
-    /// false = cancelled). Caller must have already decided a PIN is
-    /// required (see DependencyContainer.parentalGateRequired...).
+    /// Awaits outcome (true = unlocked, false = cancelled). Caller must have already decided a PIN is required.
     func challenge(reason: PINReason) async -> Bool {
         // Defensive: if a prior challenge somehow never resolved, fail it.
         continuation?.resume(returning: false)

@@ -62,9 +62,7 @@ struct PlaylistDetailView: View {
         }
     }
 
-    /// Playlist members restricted to playable video leaves. The list,
-    /// the item count, and both play queues all read from this so what
-    /// the user sees is exactly what Play / Shuffle will enqueue.
+    /// Playlist members restricted to playable video leaves; the list, count, and both play queues all read this so what's shown is exactly what Play/Shuffle enqueues.
     private func videoItems(_ vm: DetailViewModel) -> [JellyfinItem] {
         vm.collectionItems.filter { $0.type == .movie || $0.type == .episode }
     }

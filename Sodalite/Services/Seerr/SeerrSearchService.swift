@@ -17,8 +17,7 @@ final class SeerrSearchService: SeerrSearchServiceProtocol {
             endpoint: SeerrEndpoint.search(query: query, page: page),
             responseType: SeerrDiscoverResult.self
         )
-        // Drop `person` results, the catalog only shows requestable
-        // media. Re-wrap so pagination metadata stays intact.
+        // Drop person results (catalog shows only requestable media); re-wrap to keep pagination metadata.
         let filtered = raw.results.filter { $0.mediaType == .movie || $0.mediaType == .tv }
         return SeerrDiscoverResult(
             page: raw.page,

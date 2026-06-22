@@ -28,18 +28,12 @@ struct HomeCustomizeView: View {
             configs = HomeRowConfig.loadFromStorage(serverID: serverID)
             mergeCWNextUp = HomeRowConfig.mergeContinueWatchingNextUp(serverID: serverID)
             rewatchNextUp = HomeRowConfig.enableRewatchingNextUp(serverID: serverID)
-            // The per-library rows are otherwise only discovered when the
-            // Home screen loads, so opening Customize right after adding or
-            // switching a server showed a stale list until Home had run.
-            // Reconcile here too so this screen populates on its own.
+            // Per-library rows are otherwise discovered only on Home load, so Customize showed a stale list right after a server add/switch. Reconcile here too.
             Task { await reconcileLibraries() }
         }
     }
 
-    /// Fetch the active server's libraries and fold any new per-library
-    /// rows into the config, mirroring HomeViewModel. Additive: preserves
-    /// the user's toggles and order, and only persists on a successful
-    /// fetch so a transient failure can't wipe the dynamic rows.
+    /// Fold new per-library rows into the config, mirroring HomeViewModel. Additive (keeps toggles/order); persists only on success so a transient failure can't wipe the dynamic rows.
     private func reconcileLibraries() async {
         guard let userID = appState.activeUser?.id,
               let libraries = try? await dependencies.jellyfinLibraryService.getLibraries(userID: userID)
@@ -89,11 +83,7 @@ struct HomeCustomizeView: View {
 
     // MARK: - Merge toggle
 
-    /// Plex-style combined row: folds Next Up into Continue Watching.
-    /// Lives here rather than in Appearance because it changes which
-    /// rows exist, same as the show/hide controls below it. App toggle
-    /// convention: a ValuePickerRow whose value flips with left/right,
-    /// like every other On/Off setting, NOT a tap-toggle.
+    /// Combined row toggle: folds Next Up into Continue Watching. Here not Appearance because it changes which rows exist. ValuePickerRow (left/right), not a tap-toggle, per app convention.
     private var mergeRowToggle: some View {
         ValuePickerRow(
             icon: "arrow.triangle.merge",
@@ -122,10 +112,7 @@ struct HomeCustomizeView: View {
 
     // MARK: - Rewatching toggle
 
-    /// Jellyfin's EnableRewatching for Next Up: keeps surfacing the next
-    /// episode after the last one played once a series is fully watched, for
-    /// rewatching. Same On/Off ValuePickerRow convention as the merge toggle
-    /// above; per server, drives a Home reload via .homeConfigDidChange.
+    /// Jellyfin EnableRewatching for Next Up: keeps surfacing the next episode after a series is fully watched. ValuePickerRow per server, drives a Home reload via .homeConfigDidChange.
     private var rewatchRowToggle: some View {
         ValuePickerRow(
             icon: "arrow.clockwise",
@@ -152,14 +139,7 @@ struct HomeCustomizeView: View {
 
     // MARK: - Row list
 
-    /// One unified, ordered list. Enabled rows sit on top in their Home
-    /// order; disabled rows sink below a thin divider, greyed. Each row has
-    /// two focus targets: the body (click reorders an enabled row, or
-    /// re-enables a disabled one) and a trailing On/Off switch (click shows
-    /// or hides the row). Splitting the two gestures across two elements
-    /// keeps each one a plain clickpad press, which the Siri Remote delivers
-    /// reliably; overloading one element with a directional toggle made the
-    /// reorder click ambiguous with a directional press and swallowed it.
+    /// Unified ordered list; disabled rows sink below a divider. Two focus targets per row (body reorders/re-enables, trailing switch shows/hides) so each stays a plain clickpad press the Siri Remote delivers reliably; one element with a directional toggle made the reorder click ambiguous and swallowed it.
     private var rowList: some View {
         VStack(spacing: 6) {
             ForEach(Array(enabledRows.enumerated()), id: \.element.id) { index, config in
@@ -175,8 +155,7 @@ struct HomeCustomizeView: View {
         }
     }
 
-    /// Thin separator with a small "Inactive" caption, replacing the old
-    /// full-weight section header so the two groups read as one list.
+    /// Thin "Inactive" separator so the two groups read as one list.
     private var inactiveDivider: some View {
         HStack(spacing: 12) {
             Text("home.customize.inactive")
@@ -212,9 +191,7 @@ struct HomeCustomizeView: View {
 
     // MARK: - Disabled row
 
-    /// Disabled rows have no Home position, so the body itself re-activates
-    /// the row on click (a big, forgiving target), and the trailing switch
-    /// shows "Off" and re-enables it too.
+    /// Disabled rows have no Home position, so the body click also re-activates the row (forgiving target).
     private func disabledRow(_ config: HomeRowConfig) -> some View {
         HStack(spacing: 16) {
             FocusableTile(action: { toggle(id: config.id) }) { isFocused in
@@ -260,9 +237,7 @@ struct HomeCustomizeView: View {
                 .stroke(movingID == config.id ? AnyShapeStyle(.tint.opacity(0.6)) : AnyShapeStyle(Color.clear), lineWidth: 2)
         )
         .overlay(
-            // Accent focus stroke, same 3pt treatment as the rest of the
-            // app's focusable cards. When a row is both focused and picked
-            // up, this fully opaque stroke dominates the thinner move ring.
+            // Accent focus stroke (app-wide 3pt); when focused + picked up, this opaque stroke dominates the thinner move ring.
             RoundedRectangle(cornerRadius: 12)
                 .strokeBorder(.tint, lineWidth: 3)
                 .opacity(isFocused ? 1 : 0)
@@ -277,9 +252,7 @@ struct HomeCustomizeView: View {
         return AnyShapeStyle(isEnabled ? Color.white.opacity(0.05) : Color.white.opacity(0.02))
     }
 
-    /// Up Next disappears from both lists while the merge toggle is
-    /// on; its content rides inside Continue Watching then, and an
-    /// orderable-but-inert row would just confuse.
+    /// Up Next drops from both lists while merge is on (it rides inside Continue Watching then; an orderable-but-inert row would confuse).
     private var enabledRows: [HomeRowConfig] {
         configs
             .filter(\.isEnabled)
@@ -376,11 +349,7 @@ struct FocusableTile<Content: View>: View {
 
 // MARK: - Row On/Off switch (show / hide a row on Home)
 
-/// Trailing control that flips a row's membership in Home. Its own focus
-/// target with a single gesture, the clickpad press, so it never competes
-/// with the row body's reorder click. The chevron-free pill makes clear it
-/// is a click button (add / remove), not a left/right ValuePickerRow; a
-/// directional toggle here would trap focus against the body beside it.
+/// Trailing show/hide control. Own focus target, single clickpad gesture, so it never competes with the row body's reorder click; a directional toggle here would trap focus against the body beside it.
 struct RowToggleButton: View {
     let isOn: Bool
     let action: () -> Void
@@ -439,17 +408,13 @@ extension HomeRowConfig {
 
     static func loadFromStorage(serverID: String) -> [HomeRowConfig] {
         let key = storageKey(serverID: serverID)
-        // Migrate a pre-multi-server install: if this server has no
-        // scoped config yet but a legacy global one exists, adopt it.
+        // Migrate a pre-multi-server install: adopt the legacy global config if this server has no scoped one yet.
         let data = UserDefaults.standard.data(forKey: key)
             ?? UserDefaults.standard.data(forKey: legacyKey)
         guard let data else {
             return HomeRowConfig.defaultConfig()
         }
-        // Lossy decode: stored configs may reference retired row types.
-        // A plain decode would fail the whole array on the first unknown
-        // raw value and silently reset every customization; the
-        // JSONSerialization detour skips dead entries and keeps the rest.
+        // Lossy decode via JSONSerialization: stored configs may reference retired row types, and a plain decode fails the whole array on the first unknown raw value, silently resetting every customization.
         guard let raw = try? JSONSerialization.jsonObject(with: data) as? [[String: Any]] else {
             return HomeRowConfig.defaultConfig()
         }
@@ -493,11 +458,7 @@ extension HomeRowConfig {
         "homeMergeCWNextUp.\(serverID)"
     }
 
-    /// Plex-style combined row (Sodalite#15 request): when on, the
-    /// Continue Watching row also carries the Next Up episodes
-    /// (resume items first) and the separate Up Next row is dropped
-    /// from Home and hidden in the customize list. Per server, like
-    /// the row configs themselves; default off.
+    /// Combined row (Sodalite#15): when on, Continue Watching carries Next Up (resume first) and the separate Up Next row drops. Per server, default off.
     static func mergeContinueWatchingNextUp(serverID: String) -> Bool {
         UserDefaults.standard.bool(forKey: mergeKey(serverID: serverID))
     }
@@ -512,11 +473,7 @@ extension HomeRowConfig {
         "homeRewatchNextUp.\(serverID)"
     }
 
-    /// Jellyfin's EnableRewatching for /Shows/NextUp (Sodalite#19): when
-    /// on, Next Up keeps surfacing the episode after the last one played
-    /// even once a series is fully watched, for rewatching. Applies to the
-    /// Home Next Up row only (standalone row + the merged Continue Watching
-    /// path). Per server, like the row configs themselves; default off.
+    /// EnableRewatching for /Shows/NextUp (Sodalite#19): keeps surfacing the next episode after a series is fully watched. Home Next Up row (standalone + merged path). Per server, default off.
     static func enableRewatchingNextUp(serverID: String) -> Bool {
         UserDefaults.standard.bool(forKey: rewatchingKey(serverID: serverID))
     }

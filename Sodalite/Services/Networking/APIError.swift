@@ -6,10 +6,7 @@ enum APIError: LocalizedError, Sendable {
     case httpError(statusCode: Int, data: Data?)
     case decodingError(Error)
     case networkError(Error)
-    /// 401 from the server. `message` carries the server-provided
-    /// reason (e.g. "Incorrect credentials", "Media server has not
-    /// been set up yet") when the response body contained one, so
-    /// the user sees a real explanation instead of a generic prompt.
+    /// 401; `message` carries the server-provided reason when present so the user sees a real explanation.
     case unauthorized(message: String?)
     case serverUnreachable
     case timeout
@@ -42,15 +39,7 @@ enum APIError: LocalizedError, Sendable {
         }
     }
 
-    /// Best-effort decode of a Jellyfin/Jellyseerr JSON error body,
-    /// surfaces the server's real reason ("Invalid password",
-    /// "Media server has not been set up yet", …) instead of the
-    /// generic HTTP-code fallback. Falls back to a truncated raw
-    /// body when the response isn't JSON with a message/error field.
-    /// True for both `.unauthorized` (401) and `.httpError(403, _)`.
-    /// The Seerr admin gates surface as 403; cookie expiry surfaces
-    /// as 401. Both should drop the user back to a permission-denied
-    /// toast.
+    /// True for `.unauthorized` (401) and `.httpError(403, _)`: Seerr admin gates surface as 403, cookie expiry as 401, both → permission-denied toast.
     var isUnauthorized: Bool {
         switch self {
         case .unauthorized:                                return true
@@ -59,9 +48,7 @@ enum APIError: LocalizedError, Sendable {
         }
     }
 
-    /// True for `.httpError(404, _)`. Used by admin mutation paths to
-    /// silently reload the list when another admin already deleted
-    /// or modified the request.
+    /// True for `.httpError(404, _)`: admin mutation paths silently reload when another admin already changed the request.
     var isNotFound: Bool {
         if case .httpError(404, _) = self { return true }
         return false

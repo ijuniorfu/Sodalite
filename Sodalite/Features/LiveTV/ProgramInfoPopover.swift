@@ -4,20 +4,18 @@ struct ProgramInfoPopover: View {
     let program: JellyfinProgram
     let channel: JellyfinChannel
     let tint: Color
-    /// Set by the tab to launch live playback when the user taps Watch Live.
+    /// Launch live playback when the user taps Watch Live.
     var onWatchLive: ((LivePlaybackContext) -> Void)?
-    /// Initial favorite state of the channel and a callback to flip it.
     var channelIsFavorite: Bool = false
     var onToggleFavorite: (() -> Void)?
-    /// Record state + toggles, provided by the guide's view model.
+    /// Record state + toggles, from the guide's view model.
     var hasTimer: Bool = false
     var hasSeriesTimer: Bool = false
     var onToggleRecord: (() -> Void)?
     var onToggleSeriesRecord: (() -> Void)?
 
     @Environment(\.dismiss) private var dismiss
-    /// Local mirror for snappy button feedback; the guide's view model holds
-    /// the source of truth and persists to the server.
+    /// Local mirror for snappy feedback; the view model is source of truth and persists.
     @State private var isFavorite: Bool = false
     @State private var isRecording: Bool = false
     @State private var isSeriesRecording: Bool = false
@@ -53,8 +51,7 @@ struct ProgramInfoPopover: View {
                     isFavorite.toggle()
                     onToggleFavorite?()
                 }
-                // Record affordances: future or currently airing programs
-                // only (a finished program cannot be recorded).
+                // Record affordances only for future / currently airing programs.
                 if let end = program.endDate, end > Date(), !program.isSynthesized {
                     PopoverActionButton(
                         title: isRecording ? "livetv.cancelRecording" : "livetv.record",
@@ -85,10 +82,8 @@ struct ProgramInfoPopover: View {
             isRecording = hasTimer
             isSeriesRecording = hasSeriesTimer
         }
-        // Resync the optimistic local mirrors when the model's timer
-        // state changes underneath the open popover (rollback after a
-        // failed toggle, reconcile after a create); without this the
-        // button kept its flipped state until the sheet was reopened.
+        // Resync local mirrors when model timer state changes under the open popover (rollback /
+        // reconcile); else the button kept its flipped state until reopened.
         .onChange(of: hasTimer) { _, newValue in
             isRecording = newValue
         }
@@ -98,11 +93,9 @@ struct ProgramInfoPopover: View {
     }
 }
 
-/// Popover action button. A raw `.focusable` surface, not a `Button`: tvOS's
-/// default `Button` over a sheet renders only the focused button's label and
-/// leaves the unfocused one a blank tinted pill. This always shows the label
-/// (white on a translucent fill), and fills tinted when focused (the app's
-/// focus convention), mirroring the Return-to-Live pill + BoolPillRow.
+/// Raw `.focusable` surface, not a `Button`: tvOS's default Button over a sheet renders only the
+/// focused button's label, leaving the unfocused one a blank tinted pill. Always shows the label,
+/// fills tinted when focused (app convention), mirroring the Return-to-Live pill + BoolPillRow.
 private struct PopoverActionButton: View {
     let title: LocalizedStringKey
     let systemImage: String

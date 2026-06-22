@@ -1,8 +1,6 @@
 import SwiftUI
 
-/// The animated "now playing" waveform indicator, shared by the album
-/// tracklist and the fullscreen player's queue so they look identical. The
-/// bars pulse (variableColor) while playing and sit static when paused.
+/// Animated waveform indicator, shared by the album tracklist and player queue; pulses (variableColor) while playing, static when paused.
 struct NowPlayingWaveIcon: View {
     let isPlaying: Bool
     var font: Font = .body

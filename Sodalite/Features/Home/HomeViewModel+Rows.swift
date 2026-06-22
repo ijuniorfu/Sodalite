@@ -4,16 +4,7 @@ import SwiftUI
 
 extension HomeViewModel {
 
-    /// /Items/Latest with GroupItems (the server default) returns the
-    /// bare Episode object when a series gained exactly one new
-    /// episode; only multi-episode batches come back folded into their
-    /// Series. The web client papers over this by rendering such
-    /// episodes with the series poster and linking to the series.
-    /// Sodalite's Latest rows are series-level, so replace each
-    /// episode with its parent series (one batched Ids lookup) and
-    /// dedupe in case the series is already in the row. On any lookup
-    /// failure the row falls back to the unfolded items rather than
-    /// going empty.
+    /// /Items/Latest (GroupItems default) returns a bare Episode when a series gained exactly one new episode; only multi-episode batches fold into the Series. Replace each episode with its parent series (one batched Ids lookup) and dedupe; on lookup failure fall back to the unfolded items rather than going empty.
     private func foldEpisodesIntoSeries(_ items: [JellyfinItem]) async -> [JellyfinItem] {
         let seriesIDs = items.compactMap { $0.type == .episode ? $0.seriesId : nil }
         guard !seriesIDs.isEmpty else { return items }
@@ -55,12 +46,7 @@ extension HomeViewModel {
             case .continueWatching:
                 let response = try await libraryService.getResumeItems(userID: userID, mediaType: "Video", limit: 16)
                 if HomeRowConfig.mergeContinueWatchingNextUp(serverID: serverID) {
-                    // Plex-style combined row: resume items first, the
-                    // Next Up episodes appended behind them. Next Up
-                    // already excludes resumable episodes server-side
-                    // (EnableResumable=false), the id dedupe is belt
-                    // and suspenders. Next Up failing must not take
-                    // the resume items down with it.
+                    // Combined row: resume items, then Next Up. Next Up already excludes resumables server-side (EnableResumable=false); the id dedupe is belt-and-suspenders. Next Up failing must not take resume items down (try?).
                     let rewatching = HomeRowConfig.enableRewatchingNextUp(serverID: serverID)
                     let nextUp = (try? await libraryService.getNextUp(userID: userID, seriesID: nil, limit: 16, rewatching: rewatching))?.items ?? []
                     var seen = Set(response.items.map(\.id))
@@ -75,14 +61,7 @@ extension HomeViewModel {
                 items = response.items
 
             case .latestMovies:
-                // Native /Items/Latest for Jellyfin parity, whatever
-                // order the Jellyfin web UI shows is what Sodalite
-                // shows. ParentId omitted so users with multiple
-                // movie libraries (Movies + Documentaries + Kids …)
-                // see fresh content from every source; without the
-                // parent-id hint we MUST pass IncludeItemTypes=Movie,
-                // otherwise Jellyfin returns a mix of movies,
-                // series, and music jumbled into one row.
+                // Native /Items/Latest for web-UI parity. ParentId omitted so multiple movie libraries all surface, which makes IncludeItemTypes=Movie mandatory (else Jellyfin jumbles movies/series/music into one row).
                 items = try await libraryService.getLatestMedia(
                     userID: userID,
                     parentID: nil,
@@ -91,27 +70,10 @@ extension HomeViewModel {
                 )
 
             case .latestShows:
-                // Per-library fan-out instead of one typed aggregate
-                // query. The aggregate needed IncludeItemTypes=
-                // Series,Episode (Series alone misses shows that only
-                // gained episodes, the filter applies before
-                // grouping), but WITH the explicit type filter the
-                // server's episode grouping is unreliable, so episode
-                // bursts from a few shows crowded everything else out
-                // of the fetch window no matter the over-fetch
-                // (Vincent device reports, 2026-06-11). ParentId-only
-                // queries are the semantics the per-library rows have
-                // used reliably since Sodalite#12: grouping works,
-                // every shows library is represented. Lists arrive
-                // newest-first per library; round-robin interleave
-                // approximates global recency (item DateCreated can't
-                // sort this: a grouped entry carries the SERIES'
-                // creation date, not the new episode's).
+                // Per-library fan-out, not one typed aggregate: IncludeItemTypes=Series,Episode filters before grouping, so episode bursts from a few shows crowd out everything else (device reports 2026-06-11). ParentId-only queries group reliably (Sodalite#12). Round-robin interleave approximates global recency (a grouped entry carries the SERIES' DateCreated, not the new episode's, so it can't sort).
                 let showLibraries = videoLibraries.filter { ($0.collectionType ?? "") == "tvshows" }
                 if showLibraries.isEmpty {
-                    // Library list unavailable (getLibraries failed):
-                    // fall back to the typed aggregate, imperfect but
-                    // better than an empty row.
+                    // getLibraries failed: fall back to the typed aggregate, imperfect but better than empty.
                     let latest = try await libraryService.getLatestMedia(
                         userID: userID,
                         parentID: nil,
@@ -230,29 +192,9 @@ extension HomeViewModel {
                 items = response.items
 
             case .libraryLatest:
-                // Per-library Latest: scope /Items/Latest to this
-                // library via parentID alone, exactly like the Jellyfin
-                // web client's per-library Latest row.
-                //
-                // We deliberately do NOT pass IncludeItemTypes here.
-                // The endpoint defaults to GroupItems=true, which folds
-                // freshly added episodes up into their parent series.
-                // Forcing IncludeItemTypes=Series made the server filter
-                // to Series-typed rows *before* grouping, so a library
-                // whose recent additions were all episodes of one show
-                // collapsed to a single tile (Sodalite#12, DrHurt:
-                // "latest in Series - French only loads 1 item"). Movie
-                // libraries never showed the symptom because movies have
-                // nothing to group into. ParentId already constrains the
-                // row to this library's content, so the type hint that
-                // the aggregate latestMovies/latestShows rows need (they
-                // drop ParentId) is not just unnecessary here, it's the
-                // bug.
+                // Per-library Latest scoped by parentID alone. Deliberately NO IncludeItemTypes: it would filter before GroupItems grouping, collapsing an episodes-only library to one tile (Sodalite#12, DrHurt "latest in Series - French only loads 1 item"). ParentId already constrains the library, so the type hint the aggregate rows need (they drop ParentId) is the bug here.
                 guard let libraryID = config.libraryID else { return nil }
-                // Mild over-fetch with a post-fold cap, same rationale
-                // as latestShows: the fold can dedupe a series object
-                // against its own episode entries, shrinking the row
-                // below the intended 16.
+                // Over-fetch + post-fold cap (latestShows rationale): the fold can dedupe a series against its own episodes, shrinking the row below 16.
                 let latest = try await libraryService.getLatestMedia(
                     userID: userID,
                     parentID: libraryID,
@@ -287,15 +229,11 @@ extension HomeViewModel {
                 return nil
             }
 
-            // Fetch one item per tag in parallel for matching backdrops
             let tagItems: [(String, JellyfinItem?)] = await withTaskGroup(
                 of: (String, JellyfinItem?).self,
                 returning: [(String, JellyfinItem?)].self
             ) { group in
-                // Bounded fan-out: one backdrop query per genre, but at
-                // most `maxConcurrent` enqueued at a time instead of all
-                // ~15-20 up front, so a genre-heavy library doesn't pile
-                // a burst onto the HTTPClient limiter on first load.
+                // Bounded fan-out: at most maxConcurrent backdrop queries at a time, not all ~15-20 up front, so a genre-heavy library doesn't burst the HTTPClient limiter on first load.
                 var iter = tags.makeIterator()
                 let maxConcurrent = 6
 

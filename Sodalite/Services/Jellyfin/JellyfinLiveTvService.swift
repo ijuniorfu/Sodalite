@@ -4,11 +4,9 @@ protocol JellyfinLiveTvServiceProtocol: Sendable {
     func getChannels(userID: String, startIndex: Int, limit: Int) async throws -> LiveTvChannelsResponse
     func getPrograms(channelIDs: [String], userID: String, start: Date, end: Date) async throws -> [JellyfinProgram]
     func getGuideInfo() async throws -> JellyfinGuideInfo
-    /// Mark/unmark a channel as favorite. Channels are `BaseItemDto`, so this
-    /// reuses the generic FavoriteItems endpoint media items already use.
+    /// Channels are BaseItemDto, so favorite reuses the generic FavoriteItems endpoint.
     func setFavorite(userID: String, channelID: String, isFavorite: Bool) async throws
-    /// `isInProgress` nil fetches everything; true/false filters
-    /// server-side (active-recording detection, see the endpoint note).
+    /// `isInProgress` nil = everything; true/false filters server-side (active-recording detection).
     func getRecordings(userID: String, isInProgress: Bool?) async throws -> [JellyfinItem]
     func getTimers() async throws -> [LiveTvTimer]
     func getSeriesTimers() async throws -> [LiveTvSeriesTimer]
@@ -61,8 +59,7 @@ final class JellyfinLiveTvService: JellyfinLiveTvServiceProtocol {
     }
 
     func getRecordings(userID: String, isInProgress: Bool?) async throws -> [JellyfinItem] {
-        // Recordings are plain BaseItemDtos; the standard item decoder
-        // applies (JellyfinItemsResponse), not the lenient LiveTv one.
+        // Recordings are plain BaseItemDtos: standard decoder, not the lenient LiveTv one.
         let response: JellyfinItemsResponse = try await client.request(
             endpoint: JellyfinEndpoint.liveTvRecordings(userID: userID, isInProgress: isInProgress),
             responseType: JellyfinItemsResponse.self
@@ -88,10 +85,7 @@ final class JellyfinLiveTvService: JellyfinLiveTvServiceProtocol {
         return response.items
     }
 
-    /// GET the server-side defaults for this program and POST them back
-    /// unchanged. The defaults payload (TimerInfoDto) carries pre/post
-    /// padding, priority, and the program/channel binding; round-tripping
-    /// it avoids re-modeling every field.
+    /// GET the server defaults (TimerInfoDto: padding, priority, program/channel binding) and POST them back unchanged, avoiding re-modeling every field.
     func createTimer(programID: String) async throws {
         let defaults: JSONValue = try await client.request(
             endpoint: JellyfinEndpoint.liveTvTimerDefaults(programID: programID),
@@ -109,8 +103,7 @@ final class JellyfinLiveTvService: JellyfinLiveTvServiceProtocol {
         )
     }
 
-    /// Same defaults round-trip; POSTing to /LiveTv/SeriesTimers turns
-    /// the program defaults into a series rule (record every episode).
+    /// Same defaults round-trip; POSTing to /LiveTv/SeriesTimers makes a series rule (record every episode).
     func createSeriesTimer(programID: String) async throws {
         let defaults: JSONValue = try await client.request(
             endpoint: JellyfinEndpoint.liveTvTimerDefaults(programID: programID),

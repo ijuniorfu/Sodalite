@@ -1,11 +1,9 @@
 import SwiftUI
 
-/// Feature #4: confirm / progress / error prompt for deleting an external
-/// subtitle (hold Select on an external row in the subtitle dropdown).
-/// DISPLAY-ONLY: it renders from `viewModel.subtitleDeleteState` /
-/// `subtitleDeleteFocus`; PlayerHostController routes all remote input,
-/// because the player host has user interaction disabled like every other
-/// player overlay.
+/// Feature #4: confirm/progress/error prompt for deleting an external subtitle.
+/// DISPLAY-ONLY: renders from `subtitleDeleteState`/`subtitleDeleteFocus`;
+/// PlayerHostController routes all remote input (host has user interaction
+/// disabled like every player overlay).
 struct SubtitleDeletePromptView: View {
     @Bindable var viewModel: PlayerViewModel
     var tint: Color

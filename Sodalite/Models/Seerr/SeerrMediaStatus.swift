@@ -7,12 +7,7 @@ enum SeerrMediaStatus: Int, Codable, Sendable {
     case partiallyAvailable = 4
     case available = 5
 
-    // Lenient decoding: future Seerr versions have already added more
-    // states (e.g. a "deleted" value has shown up on some servers).
-    // An unknown int would otherwise abort the whole /movie/{id} or
-    // /tv/{id} decode, breaking the catalog-detail view for any item
-    // with an exotic status. Fall back to `.unknown` and let the UI
-    // handle it gracefully.
+    // Lenient decode: newer Seerr adds states (e.g. "deleted"); an unknown int would abort the whole /movie|/tv decode, so fall back to `.unknown`.
     init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()
         let raw = try container.decode(Int.self)
@@ -47,10 +42,7 @@ enum SeerrRequestStatus: Int, Codable, Sendable {
     case failed = 4
     case completed = 5
 
-    // Same lenient pattern as SeerrMediaStatus. The `completed = 5`
-    // value is what tripped us up, Seerr returns it for every request
-    // attached to an already-available movie/series, so any library
-    // item the user owns would fail to decode.
+    // Lenient (as SeerrMediaStatus): `completed = 5` is returned for requests on already-available items, so without it any owned library item failed to decode.
     init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()
         let raw = try container.decode(Int.self)
@@ -71,15 +63,9 @@ enum SeerrRequestStatus: Int, Codable, Sendable {
 enum SeerrMediaType: String, Codable, Sendable {
     case movie
     case tv
-    // `/search` also returns `person` results, we decode them so the
-    // array parse doesn't fail, then filter them out in the service
-    // layer before they reach the UI.
+    // `/search` returns `person` too; decoded so the array parse succeeds, filtered out in the service layer before UI.
     case person
-    // Lenient fallback, same rationale as SeerrMediaStatus: mediaType
-    // is non-optional on SeerrMedia, so a single unrecognized string
-    // from a future Jellyseerr would otherwise abort the whole
-    // discover/search array decode. Treated like `person` everywhere
-    // (inert, filtered before the UI).
+    // Lenient fallback: mediaType is non-optional on SeerrMedia, so an unrecognized string would abort the whole discover/search array decode. Inert, filtered like `person`.
     case unknown
 
     init(from decoder: Decoder) throws {

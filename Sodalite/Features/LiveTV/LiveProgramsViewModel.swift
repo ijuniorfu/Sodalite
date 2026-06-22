@@ -1,11 +1,9 @@
 import SwiftUI
 import Observation
 
-/// Backs the Live TV "Übersicht" tab: fetches recommended programs per
-/// category and synthesizes the channel a tapped program needs for playback.
-/// Timer / favorite state is intentionally NOT held here. The Übersicht view
-/// reuses the shared `EPGGuideViewModel` for those so the optimistic overlay
-/// stays consistent across all three Live TV segments.
+/// Backs the "Übersicht" tab: fetches recommended programs per category and synthesizes the channel
+/// a tapped program needs. Timer/favorite state is intentionally NOT here; the view reuses the shared
+/// `EPGGuideViewModel` for those so the optimistic overlay stays consistent across all three segments.
 @Observable
 @MainActor
 final class LiveProgramsViewModel {
@@ -25,8 +23,7 @@ final class LiveProgramsViewModel {
         self.userID = userID
     }
 
-    /// Fan out one recommended-programs call per category concurrently.
-    /// Idempotent: a second call while data exists is a no-op.
+    /// Fan out one recommended-programs call per category. Idempotent (no-op once data exists).
     func load() async {
         guard rows.isEmpty, !isLoading else { return }
         isLoading = true
@@ -49,18 +46,15 @@ final class LiveProgramsViewModel {
                 }
             }
             rows = collected
-            // Only surface an error when every category failed; a partial
-            // failure still renders the rows that loaded.
+            // Only error when every category failed; a partial failure still renders loaded rows.
             loadError = anySucceeded ? nil : String(
                 localized: "livetv.loadFailed.title", defaultValue: "Couldn't load programs")
         }
     }
 
-    /// Build the `JellyfinChannel` a tapped program needs for the popover /
-    /// playback. Prefers the guide's real channel object (logo tag, favorite
-    /// state) when it is already loaded; otherwise synthesizes a minimal one
-    /// from the program's channel id + name, decoupled from the guide's
-    /// 50-at-a-time channel pagination.
+    /// The `JellyfinChannel` a tapped program needs. Prefers the guide's real channel (logo tag,
+    /// favorite state) if loaded; else synthesizes a minimal one from program id+name, decoupled from
+    /// the guide's 50-at-a-time pagination.
     func channel(for program: JellyfinProgram, guideChannels: [JellyfinChannel]) -> JellyfinChannel? {
         guard let channelID = program.channelId else { return nil }
         if let real = guideChannels.first(where: { $0.id == channelID }) {

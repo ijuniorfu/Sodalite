@@ -1,28 +1,9 @@
 import Foundation
 
-/// Run `work` on the next main-queue turn, optionally after a small
-/// delay. Use this, not `Task.sleep`, for any `@FocusState` write
-/// that has to land *after* the SwiftUI tick currently committing
-/// the focus engine, and for the scroll calls that need to chase a
-/// just-written focus target.
-///
-/// Background: `Task.sleep` resumes on a cooperative thread and the
-/// follow-up MainActor hop occasionally lands inside the same focus
-/// commit it was meant to dodge, particularly on tvOS when the
-/// remote's button press already drives one focus update. The
-/// `DispatchQueue.main.asyncAfter` path always lands on a fresh
-/// main-queue turn after the deadline, which is exactly the
-/// "tomorrow's runloop" semantics the focus engine needs.
-///
-/// Default `delay` of 0.05 s is the smallest interval that's been
-/// reliable on the focus-write call sites. Callers that need a
-/// different value (e.g. waiting on a 0.2 s scroll animation
-/// before the focus write lands) pass their own number.
+/// Run `work` on the next main-queue turn (not `Task.sleep`) for `@FocusState` writes that must land *after* the current focus-engine commit. `Task.sleep`'s cooperative-thread resume can land back inside the same commit it meant to dodge (tvOS, remote-press-driven focus update); `asyncAfter` always lands on a fresh turn. Default 0.05 s is the smallest reliable delay for focus-write sites; callers chasing a scroll animation pass their own.
 @inlinable
 func deferOnMain(by delay: TimeInterval = 0.05, _ work: @escaping @MainActor () -> Void) {
-    // The closure is @MainActor (hence Sendable, satisfying asyncAfter's
-    // @Sendable parameter), and the main queue IS the MainActor's
-    // executor, so assumeIsolated is correct by construction here.
+    // assumeIsolated is correct by construction: closure is @MainActor (so Sendable) and the main queue is the MainActor's executor.
     DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
         MainActor.assumeIsolated { work() }
     }

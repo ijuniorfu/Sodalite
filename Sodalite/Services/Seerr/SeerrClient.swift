@@ -13,10 +13,7 @@ final class SeerrClient {
     init(httpClient: HTTPClientProtocol = HTTPClient()) {
         self.httpClient = httpClient
 
-        // Seerr returns TMDB-shaped JSON with snake_case keys (poster_path,
-        // first_air_date, vote_average, …) so we convert on decode, but
-        // POST bodies are camelCase (useSsl, urlBase, mediaId, mediaType)
-        // and the API rejects snake_case there with HTTP 500.
+        // Decode converts snake_case (TMDB-shaped responses: poster_path, vote_average); encoder stays camelCase, the API rejects snake_case bodies with HTTP 500.
         let decoder = JSONDecoder()
         decoder.keyDecodingStrategy = .convertFromSnakeCase
         self.decoder = decoder
@@ -71,11 +68,7 @@ final class SeerrClient {
         }
     }
 
-    /// `requiresAuth` was previously declared per endpoint but never
-    /// consulted; the cookie went out unconditionally and the login
-    /// flow had to clear it manually so a stale connect.sid couldn't
-    /// poison the fresh /auth/jellyfin POST. Honoring the flag makes
-    /// the endpoint declaration authoritative.
+    /// Honor `requiresAuth` so the cookie isn't attached to the /auth/jellyfin POST, where a stale connect.sid would poison the fresh login.
     private func buildHeaders(requiresAuth: Bool) -> [String: String] {
         var headers: [String: String] = [:]
         headers["Accept"] = "application/json"

@@ -1,32 +1,23 @@
 import SwiftUI
 
-/// DVR transport for live playback: a scrubber over the engine's moving
-/// seekable window, a live-edge marker, a position/LIVE label, and a
-/// return-to-live indicator.
-///
-/// Live transport: a "Return to Live" pill focusable via Up from the
-/// scrubber (PlayerHostController routes `.returnToLiveButton` Select to
-/// returnToLiveEdge); scrubbing fully to the right edge still snaps to live
-/// too (commitLiveScrub at >= 0.99). Audio/subtitle/speed chips for live are
-/// a separate follow-up.
+/// DVR transport for live playback: scrubber over the engine's moving seekable
+/// window, live-edge marker, position/LIVE label, and a "Return to Live" pill
+/// focusable via Up (PlayerHostController routes `.returnToLiveButton` Select
+/// to returnToLiveEdge); scrubbing to the right edge also snaps to live
+/// (commitLiveScrub at >= 0.99).
 struct LiveTransportBar: View {
     @Bindable var viewModel: PlayerViewModel
 
-    /// The return-to-live pill currently holds remote focus.
     private var returnToLiveFocused: Bool {
         viewModel.controlsFocus == .returnToLiveButton
     }
 
     var body: some View {
         VStack(spacing: 16) {
-            // Scrub preview: same frame card the VOD bar shows, fed from
-            // the engine's DVR cache. Nil image keeps the bar exactly as
-            // before (the bar already has its own position label).
             if viewModel.isScrubbing, let preview = viewModel.scrubPreview.previewImage {
                 liveScrubPreviewArea(image: preview)
             }
 
-            // Position label (left) + return-to-live pill + LIVE badge (right).
             HStack(spacing: 16) {
                 Text(positionLabel)
                     .font(.callout)
@@ -36,10 +27,6 @@ struct LiveTransportBar: View {
 
                 Spacer()
 
-                // Return-to-live pill. Focusable from the scrubber via Up
-                // (controlsFocus == .returnToLiveButton); Select fires
-                // returnToLiveEdge. Focused state fills tinted per the app's
-                // focus convention; unfocused is a muted outline.
                 if !viewModel.isAtLiveEdge {
                     Text("livetv.returnToLive")
                         .font(.caption.bold())
@@ -73,8 +60,7 @@ struct LiveTransportBar: View {
 
     // MARK: - Live Badge
 
-    /// "LIVE" pill. Lit with the active tint at the edge, muted while the
-    /// user is watching behind live.
+    /// "LIVE" pill: tinted at the edge, muted while behind live.
     private var liveBadge: some View {
         Text("livetv.liveBadge")
             .font(.caption.bold())
@@ -91,10 +77,8 @@ struct LiveTransportBar: View {
 
     private static let scrubCardWidth: CGFloat = 320
 
-    /// Frame card tracking the scrub knob, mirroring TransportBar's
-    /// scrubPreviewArea (clamped so the card never leaves the bar). Sizes to
-    /// the frame's own aspect (SD 4:3 channels stay 4:3) instead of forcing
-    /// 16:9.
+    /// Frame card tracking the scrub knob (clamped inside the bar), sized to
+    /// the frame's own aspect (SD 4:3 channels stay 4:3) not forced 16:9.
     private func liveScrubPreviewArea(image: CGImage) -> some View {
         let cardHeight = TransportBar.previewImageHeight(for: image)
         return GeometryReader { geo in
@@ -129,25 +113,21 @@ struct LiveTransportBar: View {
             let knobX = max(0, min(width, width * liveProgress))
 
             ZStack(alignment: .leading) {
-                // Unplayed window track, white for contrast regardless of
-                // the user's accent color (matches TransportBar).
+                // Unplayed track white for contrast regardless of accent color.
                 Capsule()
                     .fill(.white.opacity(0.2))
                     .frame(height: trackHeight)
 
-                // Position within the window, tinted.
                 Capsule()
                     .fill(.tint)
                     .frame(width: knobX, height: trackHeight)
 
-                // Live-edge marker: a thin tinted tick pinned to the right
-                // end of the window (the live edge).
+                // Live-edge tick pinned to the right end of the window.
                 Capsule()
                     .fill(.tint)
                     .frame(width: 3, height: trackHeight + 8)
                     .offset(x: width - 3)
 
-                // Playhead knob, tinted (focused-fill-tinted convention).
                 Circle()
                     .fill(.tint)
                     .frame(width: knobSize, height: knobSize)
@@ -161,11 +141,9 @@ struct LiveTransportBar: View {
 
     // MARK: - Derived
 
-    /// Fraction of the seekable window the playhead currently sits at.
-    /// While scrubbing this tracks the in-flight scrub; otherwise it maps
-    /// the playhead across `liveSeekableRange`. Defaults to the right edge
-    /// (full bar) when the window is not yet known, so the bar reads "at
-    /// live" on first paint.
+    /// Playhead fraction of the seekable window: in-flight scrub while
+    /// scrubbing, else playhead across `liveSeekableRange`. Defaults to 1
+    /// (at-live) before the window is known.
     private var liveProgress: CGFloat {
         if viewModel.isScrubbing { return CGFloat(viewModel.scrubProgress) }
         guard let range = viewModel.liveSeekableRange,
@@ -175,7 +153,6 @@ struct LiveTransportBar: View {
         return CGFloat(max(0, min(1, pos / span)))
     }
 
-    /// "LIVE" at the edge, otherwise "-M:SS" behind live.
     private var positionLabel: String {
         if viewModel.isAtLiveEdge {
             return NSLocalizedString("livetv.liveBadge", comment: "Live edge label")

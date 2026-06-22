@@ -1,9 +1,6 @@
 import SwiftUI
 
-/// Horizontal scroller of genre tiles. Each tile renders the
-/// genre's primary backdrop dimmed with the genre name overlaid,
-/// matching Jellyseerr web's discover sliders. Tap navigates to a
-/// CatalogFilteredGridView for that filter.
+/// Horizontal scroller of genre tiles (dimmed backdrop + name overlay, matching Jellyseerr web's discover sliders); tap navigates to a CatalogFilteredGridView.
 struct CatalogGenreRow: View {
     let titleKey: LocalizedStringKey
     let genres: [SeerrGenreSlide]
@@ -28,8 +25,7 @@ struct CatalogGenreRow: View {
                     }
                 }
                 .padding(.horizontal, 50)
-                // Match SeerrHorizontalMediaRow vertical padding so
-                // the focus halo doesn't clip the row above/below.
+                // Match SeerrHorizontalMediaRow vertical padding so the focus halo doesn't clip adjacent rows.
                 .padding(.vertical, 16)
             }
         }
@@ -53,11 +49,7 @@ private struct GenreTile: View {
     private let height: CGFloat = 180
 
     var body: some View {
-        // FocusableCard rather than Button: tvOS layers a subtle
-        // white system halo on top of every focused .plain button
-        // that we can't suppress, so all focusable cards in the app
-        // route through the same focus primitive that handles its
-        // own scale + shadow + tint outline.
+        // FocusableCard not Button: tvOS layers an unsuppressable white halo on focused .plain buttons, so all cards route through this primitive (own scale + shadow + tint outline).
         FocusableCard(action: action) { isFocused in
             ZStack {
                 if let path = genre.primaryBackdrop,
@@ -97,9 +89,7 @@ private struct GenreTile: View {
     }
 
     private var fallbackBackground: some View {
-        // LinearGradient(colors:) requires [Color], so resolve the
-        // effective tint here. Falls back to Color.accentColor only
-        // when the user has no custom tint selected (.system path).
+        // LinearGradient(colors:) needs [Color], so resolve effectiveTint here; Color.accentColor only on the .system (no custom tint) path.
         let tint = dependencies.appearancePreferences.effectiveTint(
             isSupporter: dependencies.storeKitService.isSupporter
         ) ?? Color.accentColor

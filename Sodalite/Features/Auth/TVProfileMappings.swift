@@ -1,21 +1,13 @@
 import Foundation
 import Observation
 
-/// Persistent binding between a tvOS system user (as reported by
-/// TVUserContext.currentUserID) and a Sodalite (server, Jellyfin
-/// profile) tuple. Mappings get auto-recorded the first time a tvOS
-/// user successfully signs into a profile, and can be overridden
-/// manually from the Apple TV Profile settings sub-screen.
+/// Binds a tvOS system user (TVUserContext.currentUserID) to a Sodalite (server, Jellyfin profile) tuple. Auto-recorded on first sign-in, overridable from the Apple TV Profile settings.
 struct TVProfileMapping: Codable, Sendable, Equatable {
     let serverID: String
     let jellyfinUserID: String
 }
 
-/// UserDefaults-backed store for `[tvUserID: TVProfileMapping]`.
-/// The whole table lives behind a single JSON-encoded key so reads
-/// and writes are atomic. Not keychain-backed: the table contains
-/// only identifiers, no tokens or other secrets, and we want it to
-/// be syncable later via iCloud KVS without a security review.
+/// UserDefaults store for `[tvUserID: TVProfileMapping]`, one JSON key for atomic R/W. Not keychain-backed: only IDs, and intended for later iCloud KVS sync.
 @Observable
 @MainActor
 final class TVProfileMappings {
@@ -32,16 +24,11 @@ final class TVProfileMappings {
         self.allMappings = Self.load(from: store)
     }
 
-    /// Returns the mapping for the given tvOS user identifier, or
-    /// nil if none has been recorded yet.
     func mapping(for tvUserID: String) -> TVProfileMapping? {
         allMappings[tvUserID]
     }
 
-    /// Upserts a mapping. Passing nil removes the entry for that
-    /// tvOS user. Re-recording an identical mapping is a no-op
-    /// (auto-record paths call this repeatedly and shouldn't churn
-    /// the disk on every login).
+    /// Upserts (nil removes). Re-recording an identical mapping is a no-op so repeated auto-record calls don't churn disk.
     func setMapping(_ mapping: TVProfileMapping?, for tvUserID: String) {
         if let mapping {
             if allMappings[tvUserID] == mapping { return }
@@ -53,8 +40,7 @@ final class TVProfileMappings {
         persist()
     }
 
-    /// Removes every mapping that points at the given server. Called
-    /// when a server is removed from the multi-server schema.
+    /// Called when a server is removed from the multi-server schema.
     func removeMappings(forServer serverID: String) {
         let filtered = allMappings.filter { $0.value.serverID != serverID }
         if filtered.count == allMappings.count { return }
@@ -62,8 +48,7 @@ final class TVProfileMappings {
         persist()
     }
 
-    /// Removes a single (server, user) mapping. Called when a
-    /// remembered user is forgotten from the profile picker.
+    /// Called when a remembered user is forgotten from the profile picker.
     func removeMapping(forUser userID: String, on serverID: String) {
         let filtered = allMappings.filter {
             !($0.value.serverID == serverID && $0.value.jellyfinUserID == userID)

@@ -18,10 +18,7 @@ struct SettingsView: View {
                 .padding(.horizontal, 80)
             }
         }
-        // Settings is the only surface that shows the server version, so
-        // refreshing on appear is the natural "live" trigger: a server
-        // upgrade since login is picked up the next time the user opens
-        // Settings, instead of staying stale until a full logout/login.
+        // Settings is the only surface showing server version; refresh on appear so an upgrade since login is picked up.
         .task {
             if let updated = await dependencies.refreshActiveServerVersion() {
                 appState.updateActiveServer(updated)
@@ -60,10 +57,7 @@ struct SettingsView: View {
         .frame(maxWidth: .infinity)
     }
 
-    /// User avatar, loads from the Jellyfin server when a
-    /// `primaryImageTag` is set, falls back to initials otherwise.
-    /// Same treatment as the UserPicker card so the user recognises
-    /// themselves consistently across the app.
+    /// Loads from the server when `primaryImageTag` is set, else initials.
     @ViewBuilder
     private var avatar: some View {
         if let user = appState.activeUser,
@@ -104,14 +98,7 @@ struct SettingsView: View {
     // MARK: - Settings List
 
     private var settingsList: some View {
-        // Ordered by how often users actually reach for each tile:
-        //   1. Identity       (Profile)
-        //   2. Content layout (Home)
-        //   3. Media behavior (Playback)
-        //   4. Personalisation (Appearance, supporter-gated, lives
-        //                       deeper than the always-free tiles)
-        //   5. Integrations   (Seerr)
-        //   6. Meta / give-back (Support)
+        // Ordered by reach frequency: Profile, Home, Playback, Appearance (supporter-gated), Seerr, Support.
         VStack(spacing: 4) {
             GatedSettingsTile(
                 icon: "person.2",
@@ -177,8 +164,7 @@ struct SettingsView: View {
                 SeerrSettingsView()
             }
 
-            // Gated: Support hosts the supporter-pack / tip IAPs, so a kid
-            // on a protected profile must not reach the purchase flow.
+            // Gated: Support hosts the IAP purchase flow, off-limits to a kid on a protected profile.
             GatedSettingsTile(
                 icon: "heart",
                 title: "settings.support.title",
@@ -242,10 +228,7 @@ struct SettingsView: View {
 
     // MARK: - About
 
-    /// Brand footer at the very bottom of Settings, the conventional
-    /// place for app version and credit. Lives below the logout button
-    /// so users see it after they've already navigated past the
-    /// actionable content.
+    /// Brand footer with app version + credit, below the logout button.
     private var aboutFooter: some View {
         let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0"
         let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "1"
@@ -257,11 +240,7 @@ struct SettingsView: View {
                 .font(.caption)
                 .foregroundStyle(.tertiary)
                 .monospacedDigit()
-            // TMDB attribution, required by their API terms whenever
-            // their data or imagery is displayed in a downstream app.
-            // Catalog posters, backdrops and metadata in Sodalite
-            // come from TMDB (directly for images, via Jellyseerr for
-            // metadata), so the notice belongs here.
+            // TMDB attribution, required by their API terms wherever their data/imagery is displayed.
             Text("settings.about.tmdbAttribution")
                 .font(.caption2)
                 .foregroundStyle(.tertiary)
@@ -288,12 +267,7 @@ struct SettingsView: View {
     // MARK: - Logout
 
     private var logoutButton: some View {
-        // No destructive role, on tvOS that renders as dark red text
-        // that's hard to read against the dark background. A subtle
-        // arrow-out icon + neutral text is clear enough; the
-        // consequence isn't catastrophic. SettingsTileButtonStyle
-        // sidesteps the default-tvOS-bordered tint trap where icon
-        // and background end up the same color.
+        // No destructive role: tvOS renders hard-to-read dark red; SettingsTileButtonStyle sidesteps the tint trap.
         Button {
             if dependencies.parentalGateRequiredForSessionAction() {
                 Task {
@@ -361,8 +335,7 @@ struct SettingsTile<Destination: View>: View {
     }
 }
 
-/// Like SettingsTile, but when `requiresPIN()` is true it presents the
-/// Guardian-PIN challenge first and only navigates on success.
+/// SettingsTile that presents the Guardian-PIN challenge when `requiresPIN()`, navigating only on success.
 struct GatedSettingsTile<Destination: View>: View {
     let icon: String
     let title: LocalizedStringKey
@@ -403,11 +376,7 @@ struct GatedSettingsTile<Destination: View>: View {
 
 struct SettingsTileButtonStyle: ButtonStyle {
     @Environment(\.isFocused) private var isFocused
-    /// Reads the `.disabled(...)` modifier upstream. The default tvOS
-    /// bordered style auto-dims when disabled, but a custom ButtonStyle
-    /// has to do that work itself, without this read, a disabled
-    /// Request / Restore / Logout tile looks identical to an enabled
-    /// one.
+    /// A custom ButtonStyle must self-dim when disabled; the default bordered style auto-dims, this one doesn't.
     @Environment(\.isEnabled) private var isEnabled
 
     func makeBody(configuration: Configuration) -> some View {
@@ -428,13 +397,7 @@ struct SettingsTileButtonStyle: ButtonStyle {
     }
 }
 
-/// Plain pass-through style: renders the label exactly as written
-/// and adds nothing on focus. Used by avatar / profile cards that
-/// already draw their own focus ring (tinted Circle stroke around
-/// the avatar), the system-default `.plain` style still overlays a
-/// thick white halo on tvOS, which fights our custom ring. Defining
-/// any custom ButtonStyle is enough to suppress that halo; the body
-/// here is intentionally minimal.
+/// Pass-through style for cards drawing their own focus ring; suppresses tvOS' thick white halo (any custom ButtonStyle suffices).
 struct BareButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
@@ -443,18 +406,11 @@ struct BareButtonStyle: ButtonStyle {
     }
 }
 
-/// Focus treatment only, accent-tint stroke, scale, shadow, without
-/// the default background fill. For buttons that already paint their
-/// own backdrop (e.g. SeerrSettings' Jellyfin-credentials toggle, with
-/// an internal "On / Off" badge and a translucent tile) but still
-/// want the rest of the app's focus look. The `.plain` button style
-/// would otherwise tint the label and surround it with tvOS' default
-/// thick white halo.
+/// Focus stroke+scale+shadow without bg fill, for buttons that paint their own backdrop; .plain would tint the label + draw the white halo.
 struct GhostTileButtonStyle: ButtonStyle {
     @Environment(\.isFocused) private var isFocused
     @Environment(\.isEnabled) private var isEnabled
-    /// Corner radius of the focus stroke. Matches whatever rounded
-    /// shape the button's own label has chosen for its background.
+    /// Matches the rounded shape of the button's own label background.
     var cornerRadius: CGFloat = 16
 
     func makeBody(configuration: Configuration) -> some View {

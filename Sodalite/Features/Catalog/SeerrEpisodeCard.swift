@@ -1,17 +1,13 @@
 import SwiftUI
 
-/// Read-only preview card for a Jellyseerr episode. Used inside the
-/// catalog series detail to show what the user is actually requesting
-/// when they pick a season, Jellyseerr's smallest request unit is a
-/// whole season, so the card itself has no per-episode request action.
+/// Read-only episode preview card in the catalog series detail; no per-episode request action since Jellyseerr's smallest request unit is a whole season.
 struct SeerrEpisodeCard: View {
     let episode: SeerrEpisode
     let isFocused: Bool
 
     private let width: CGFloat = 320
     private let imageHeight: CGFloat = 180
-    // Reserves room for the title line plus an optional subtitle line so
-    // cards with and without a subtitle end up the exact same height.
+    // Reserves room for title + optional subtitle so cards stay equal height regardless of subtitle presence.
     private let captionHeight: CGFloat = 58
 
     var body: some View {
@@ -34,8 +30,7 @@ struct SeerrEpisodeCard: View {
                     placeholderArt
                 }
 
-                // Episode-number chip, anchored top-leading so it
-                // doesn't overlap the still's centre composition.
+                // Episode-number chip, top-leading so it doesn't overlap the still's centre.
                 VStack {
                     HStack {
                         Text("\(episode.episodeNumber)")
@@ -52,17 +47,14 @@ struct SeerrEpisodeCard: View {
             }
             .frame(width: width, height: imageHeight)
             .clipShape(RoundedRectangle(cornerRadius: 12))
-            // Focus border lives on the still itself (fixed height), so it
-            // can't drift when the caption block below grows or shrinks.
+            // Focus border on the fixed-height still so it can't drift with caption-block size.
             .overlay(
                 RoundedRectangle(cornerRadius: 12)
                     .strokeBorder(.tint, lineWidth: 4)
                     .opacity(isFocused ? 1 : 0)
             )
 
-            // Fixed-height caption block keeps every card the same total
-            // height regardless of whether the optional subtitle is present,
-            // so cards stay top-aligned in the row.
+            // Fixed-height caption block keeps cards equal total height (top-aligned in the row) with or without the subtitle.
             VStack(alignment: .leading, spacing: 2) {
                 Text(episode.name ?? "")
                     .font(.body)

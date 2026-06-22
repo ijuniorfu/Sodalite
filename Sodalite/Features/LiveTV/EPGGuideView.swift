@@ -1,15 +1,9 @@
 import SwiftUI
 
-/// SwiftUI wrapper for the EPG guide. The grid itself is a UIKit
-/// `UICollectionView` with a custom layout (see `EPGCollectionContainer`),
-/// which gives a true 2D-scrollable time grid with a pinned channel column
-/// and time header plus cell reuse, the things SwiftUI cannot do performantly
-/// for a large guide. This view owns the loading / error states and the
-/// program info popover.
-/// Bundles the tapped channel + program so the info sheet receives both
-/// atomically. Two separate `@State` values race: `.sheet(item:)` presents as
-/// soon as the program is set, but the channel can still read nil in the
-/// content closure on the first tap, leaving the sheet empty.
+/// Bundles tapped channel + program so the info sheet gets both atomically: with two separate
+/// `@State`s, `.sheet(item:)` presents as soon as program is set but the channel can read nil in the
+/// content closure on the first tap, leaving the sheet empty. (The grid is a UIKit
+/// `UICollectionView`, see `EPGCollectionContainer`; this view owns loading/error + the popover.)
 private struct EPGSelection: Identifiable {
     let channel: JellyfinChannel
     let program: JellyfinProgram
@@ -60,9 +54,7 @@ struct EPGGuideView: View {
                         selection = EPGSelection(channel: channel, program: program)
                     }
                 )
-                // Fill width / bottom, but keep the top safe area so the grid
-                // starts below the tab bar (the time header pins to the top of
-                // this area, not over the tab bar).
+                // Keep the top safe area so the grid (and its pinned time header) starts below the tab bar.
                 .ignoresSafeArea(edges: [.horizontal, .bottom])
             }
         }
@@ -77,10 +69,8 @@ struct EPGGuideView: View {
                 hasSeriesTimer: model.effectiveTimerState(for: sel.program).seriesTimerId != nil,
                 onToggleRecord: { model.toggleRecord(program: sel.program) },
                 onToggleSeriesRecord: { model.toggleSeriesRecord(program: sel.program) })
-            // Same alert as below, attached INSIDE the sheet: SwiftUI
-            // won't present an alert and a sheet from the same node at
-            // once, so a fast server failure on a record toggle (fired
-            // from this sheet) was silently dropped while the popover
+            // Alert attached INSIDE the sheet: SwiftUI won't present an alert and a sheet from the
+            // same node at once, so a fast record-toggle failure was dropped while the popover
             // stayed up with its optimistically flipped button.
             .alert(
                 Text("livetv.recording.error.title"),
@@ -94,10 +84,8 @@ struct EPGGuideView: View {
                 Text(model.recordingError ?? "")
             }
         }
-        // Gated on `selection == nil`: while the popover sheet is up,
-        // its inner copy above owns the presentation. Without the gate
-        // both alerts observe the same error and SwiftUI logs a
-        // double-present, leaving one of them undismissable.
+        // Gated on `selection == nil`: while the sheet is up its inner alert owns presentation;
+        // without the gate both observe the same error and SwiftUI double-presents (one undismissable).
         .alert(
             Text("livetv.recording.error.title"),
             isPresented: Binding(

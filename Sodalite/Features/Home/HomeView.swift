@@ -7,42 +7,22 @@ struct HomeView: View {
     @State private var selectedItem: JellyfinItem?
     @State private var selectedFilter: FilterDestination?
 
-    /// Resolved accent for the loading spinner. The TabView tint is set on
-    /// the tab shell, but HomeView's NavigationStack resets the inherited
-    /// tint, so the activity indicator falls back to white. Re-applying the
-    /// effective tint keeps it consistent with the Live TV spinner (which
-    /// has no NavigationStack and inherits the tab tint directly).
+    /// Spinner accent: HomeView's NavigationStack resets the inherited TabView tint to white, so re-apply the effective tint to match the Live TV spinner.
     private var spinnerTint: Color {
         dependencies.appearancePreferences.effectiveTint(
             isSupporter: dependencies.storeKitService.isSupporter
         ) ?? Color.accentColor
     }
 
-    /// Tracks which content row currently holds focus. Goes `nil`
-    /// when focus moves out of the rows (typically: user pressed Up
-    /// at the top row and the focus engine jumped to the tab bar).
-    /// Used to drive an auto-scroll-to-top so the tab bar is fully
-    /// visible (not clipped by scrolled-down content) when the user
-    /// arrives at it from below.
+    /// Which content row holds focus; nil when focus leaves the rows (Up from the top row to the tab bar). Drives auto-scroll-to-top so the tab bar isn't clipped on arrival from below.
     @FocusState private var focusedRowIndex: Int?
 
-    /// Debounce task for the focus-left-rows → scroll-to-top action.
-    /// Cancelled and respawned every time `focusedRowIndex` changes.
-    /// Without this debounce, transient nil states between row
-    /// transitions (the focus engine briefly has no focused descendant
-    /// during fast up / down navigation) trigger spurious scroll-to-top
-    /// snaps that fight with the user's scroll direction.
+    /// Debounce for the focus-left-rows → scroll-to-top, cancelled/respawned on focus change; without it transient nils between row transitions trigger spurious scroll-to-top snaps.
     @State private var scrollResetTask: Task<Void, Never>?
 
-    /// serverDidSwitch value of the last switch this view reacted to.
-    /// `.task(id:)` re-fires with the SAME id every time the view
-    /// reappears (tab change, sheet dismiss); without the latch each
-    /// reappear would wipe FilterCache and reload the whole feed even
-    /// though no switch happened.
+    /// Last serverDidSwitch this view reacted to. .task(id:) re-fires with the same id on every reappear; without the latch each reappear would wipe FilterCache and reload the whole feed.
     @State private var lastHandledServerSwitch = 0
 
-    /// How long the home feed is considered fresh before a revisit
-    /// triggers an automatic reload.
     private static let refreshStaleSeconds: TimeInterval = 60
 
     var body: some View {
@@ -108,11 +88,7 @@ struct HomeView: View {
                 Task { await viewModel?.loadContent() }
             } else if let last = viewModel?.lastLoadedAt,
                       Date().timeIntervalSince(last) > Self.refreshStaleSeconds {
-                // Pick up new server-side content (Latest Movies,
-                // Latest Series, …) when the user comes back to Home
-                // after a while. 60 s is tight enough that fresh
-                // additions show up quickly and loose enough that
-                // rapid tab-hopping doesn't spam the server.
+                // Pick up new server-side content on return after 60 s: tight enough to show additions fast, loose enough that tab-hopping doesn't spam the server.
                 Task { await viewModel?.loadContent() }
             }
         }
@@ -127,13 +103,7 @@ struct HomeView: View {
             Task { await viewModel?.loadContent() }
         }
         .onReceive(NotificationCenter.default.publisher(for: .playbackProgressDidChange)) { note in
-            // The Jellyfin server has fresh progress for whatever the
-            // user just watched. Patch that item's tile progress in
-            // place from the payload (authoritative, race-free), then
-            // reload so Continue Watching / Next Up reflect the
-            // structural changes (reorder, finished items dropping out).
-            // Re-apply the patch after the reload so a stale cached
-            // re-fetch can't regress the bar (issue #24).
+            // Patch the tile progress in place from the payload (race-free), then reload for structural changes (reorder, finished drop-out), then re-apply so a stale cached re-fetch can't regress the bar (issue #24).
             let itemID = note.userInfo?[PlaybackProgressKey.itemID] as? String
             let ticks = note.userInfo?[PlaybackProgressKey.positionTicks] as? Int64
             Task { @MainActor in
@@ -147,16 +117,11 @@ struct HomeView: View {
             }
         }
         .onReceive(NotificationCenter.default.publisher(for: .homeItemDidDelete)) { _ in
-            // The user just deleted an item. Reload so it drops out of
-            // the rows immediately instead of lingering until the next
-            // stale refresh.
+            // Reload so the deleted item drops out immediately instead of lingering until the next stale refresh.
             Task { await viewModel?.loadContent() }
         }
         .onChange(of: appState.activeUser?.id) { _, newValue in
-            // Profile switch, tear down the old HomeViewModel so the
-            // next .onAppear rebuilds it with the new userID. Leaving
-            // the old one around would keep loading content for the
-            // previous profile's permissions + watch state.
+            // Profile switch: tear down the old VM so .onAppear rebuilds it with the new userID (else it keeps loading the previous profile's permissions/watch state).
             guard let userID = newValue else {
                 viewModel = nil
                 return
@@ -175,9 +140,7 @@ struct HomeView: View {
             let signal = appState.serverDidSwitch
             guard signal > 0, signal != lastHandledServerSwitch else { return }
             lastHandledServerSwitch = signal
-            // Roll the latch back if this run is cancelled mid-reload
-            // (view disappears) so the re-fire on reappear finishes
-            // the job instead of being guarded away.
+            // Roll the latch back if cancelled mid-reload so the reappear re-fire finishes the job instead of being guarded away.
             defer {
                 if Task.isCancelled, lastHandledServerSwitch == signal {
                     lastHandledServerSwitch = 0
@@ -191,10 +154,7 @@ struct HomeView: View {
     private func contentView(vm: HomeViewModel) -> some View {
         ScrollViewReader { proxy in
             ScrollView(.vertical, showsIndicators: false) {
-                // Invisible top anchor for programmatic scroll-to-top
-                // when focus leaves the rows (user arrives at the
-                // tab bar from below). Zero-height + `Color.clear`
-                // so it doesn't affect layout.
+                // Invisible zero-height scroll-to-top anchor for when focus leaves the rows.
                 Color.clear.frame(height: 0).id("top")
                 LazyVStack(alignment: .leading, spacing: 40) {
                     ForEach(Array(vm.orderedSections().enumerated()), id: \.element.id) { idx, section in
@@ -235,19 +195,7 @@ struct HomeView: View {
                         .focused($focusedRowIndex, equals: idx)
 
                     case .discoverProviders:
-                        // Hide tiles whose resolved match count is
-                        // zero. The view-model precomputes counts in
-                        // the background (so the filter activates
-                        // automatically without requiring the user
-                        // to tap each tile first); a `nil` count
-                        // means "not yet computed" and shows the
-                        // tile, so first-run sees everything until
-                        // the precompute fills in the dict and empty
-                        // tiles fade out a few seconds later. Once
-                        // the user adds matching content the tile
-                        // re-appears on the next session, the
-                        // precompute reruns and the count climbs
-                        // above zero.
+                        // Hide zero-match tiles. nil count = not yet computed, so first-run shows everything until the background precompute fills the dict and empties fade out.
                         let visibleProviders = CatalogProviders.networks.filter { provider in
                             let count = vm.providerItemCounts[provider.id]
                             return count == nil || count! > 0
@@ -281,33 +229,9 @@ struct HomeView: View {
                 .padding(.vertical, 40)
             }
             .onChange(of: focusedRowIndex) { oldValue, newValue in
-                // Scroll content to top only when focus left specifically
-                // the topmost row (oldValue == 0) and stayed away long
-                // enough to be a real tab-bar arrival (not a transient
-                // nil between row materializations).
-                //
-                // Two constraints, both needed:
-                //
-                // 1. `oldValue == 0`: the focus engine only routes Up
-                //    from the topmost row to the tab bar. Up from row N
-                //    (N > 0) goes to row N-1, not to the tab bar. If
-                //    focusedRowIndex transitions row-N → nil while
-                //    N > 0, the nil is a transient between row
-                //    materializations (LazyVStack lays out the next
-                //    row), NOT an actual tab-bar arrival. Filtering on
-                //    oldValue == 0 eliminates those false triggers
-                //    during normal down-scrolling.
-                //
-                // 2. 200 ms debounce via cancellable Task: even for
-                //    a legitimate row-0 → tab-bar transition, the focus
-                //    engine briefly has no focused descendant. If the
-                //    user is scrolling DOWN from row 0 to row 1, the
-                //    state may also pass through nil for a beat. The
-                //    debounce gives the focus engine time to settle on
-                //    the next row before we commit to scroll-to-top.
-                //    200 ms is comfortably longer than any inter-row
-                //    transient observed and still feels immediate when
-                //    the user actually parks focus on the tab bar.
+                // Scroll to top only on a real top-row → tab-bar arrival, gated two ways:
+                // 1. oldValue == 0: the focus engine routes Up to the tab bar only from the top row; a row-N→nil (N>0) is a transient between LazyVStack row materializations, not a tab-bar arrival.
+                // 2. 200ms debounce: even a legit row-0→tab-bar transition (and a down-scroll past row 0) passes through nil for a beat; 200ms outlasts those transients but still feels immediate.
                 scrollResetTask?.cancel()
                 guard newValue == nil, oldValue == 0 else { return }
                 scrollResetTask = Task { @MainActor in
@@ -322,15 +246,7 @@ struct HomeView: View {
     }
 
     private func makeJellyfinFilter(for provider: CatalogProvider) -> FilterDestination {
-        // Tap on a Netflix/Disney+/… tile filters the *local* library
-        // by Studio rather than pushing the Jellyseerr discover page.
-        // Multiple aliases are pipe-joined in JellyfinEndpoints, so a
-        // user whose scraper tagged some items "Disney+" and others
-        // "Walt Disney Pictures" gets both in one row. The smart-
-        // provider hint augments that with TMDB's live watch-provider
-        // data so titles whose Studios tag doesn't betray the streamer
-        // still surface (Modern Family on Disney+, Bluey via Ludo
-        // Studio, …).
+        // A provider tile filters the LOCAL library by Studio (pipe-joined aliases catch "Disney+" and "Walt Disney Pictures"), augmented by the smart-provider TMDB watch-provider hint so studio-tag-less titles surface (Modern Family on Disney+, Bluey via Ludo Studio).
         let region = Locale.current.region?.identifier ?? "US"
         return FilterDestination(
             title: provider.name,
@@ -347,10 +263,7 @@ struct HomeView: View {
         )
     }
 
-    /// Convenience that pulls the right key out of the central
-    /// `FilterCacheKey.Home` namespace, kept here so existing call
-    /// sites that pass a `CatalogProvider` don't have to reach into
-    /// the provider's id field themselves.
+    /// Convenience over FilterCacheKey.Home so CatalogProvider call sites don't reach into the id field themselves.
     static func providerCacheKey(provider: CatalogProvider, region: String) -> String {
         FilterCacheKey.Home.provider(id: provider.id, region: region)
     }
@@ -367,12 +280,7 @@ struct HomeView: View {
                     limit: 50,
                     genres: [tag.name]
                 ),
-                // Without a cacheKey FilteredGridView's init() falls
-                // through to the empty-state branch and shows
-                // isLoading=true on every visit, that's the "lädt
-                // kurz" the user perceives every time they open a
-                // genre tile. Tag name is the differentiator (Action,
-                // Comedy, Drama, …) so it's a stable enough key.
+                // Without a cacheKey FilteredGridView.init falls to the empty-state branch with isLoading=true on every visit (the brief flash on opening a genre tile). Tag name is a stable enough key.
                 cacheKey: FilterCacheKey.Home.genre(name: tag.name)
             )
         default:
@@ -385,9 +293,7 @@ struct HomeView: View {
     }
 
     private func makeLibraryFilter(for library: JellyfinLibrary) -> FilterDestination {
-        // Tap a My Media tile -> browse that one library in the shared
-        // filtered grid. parentID scopes the query to the library; the
-        // item types match what the library holds.
+        // My Media tile browses one library in the shared grid; parentID scopes it, types match the library.
         let types: [ItemType]
         switch library.libraryType {
         case .movies: types = [.movie]
@@ -412,24 +318,11 @@ struct FilterDestination: Identifiable, Hashable {
     let id = UUID()
     let title: String
     let query: ItemQuery
-    /// Optional TMDB watch-provider id used to augment the studio-
-    /// name filter with the live "what's actually streaming on this
-    /// service right now" list from Jellyseerr, picks up titles
-    /// whose Studios tag in Jellyfin doesn't betray the streamer
-    /// (Modern Family on Disney+, Bluey via Ludo Studio, Suits on
-    /// Netflix even though the studio is Universal, …). nil → only
-    /// the studio match runs.
+    /// TMDB watch-provider id augmenting the studio filter with Jellyseerr's live "streaming now" list, picking up studio-tag-less titles (Modern Family on Disney+, Suits on Netflix). nil runs only the studio match.
     var smartProviderID: Int?
-    /// ISO 3166-1 alpha-2 region used with `smartProviderID`. TMDB's
-    /// watch-provider data is region-specific (Disney+ in DE has
-    /// different titles than Disney+ in US), so we always pin to a
-    /// concrete region, defaulting to the user's `Locale.current`.
+    /// ISO 3166-1 alpha-2 region for smartProviderID; TMDB watch-provider data is region-specific (Disney+ DE != US), defaults to Locale.current.
     var smartProviderRegion: String?
-    /// Stable identifier under which FilteredGridView caches its
-    /// final result. Set independently of `smartProviderID` so that
-    /// broadcast-only tiles (ABC / NBC / CBS, no watch-provider
-    /// concept) still cache their results and feed the empty-tile-
-    /// hide pass on the next visit.
+    /// Stable key for FilteredGridView's result cache, independent of smartProviderID so broadcast-only tiles (ABC/NBC/CBS) still cache and feed the empty-tile-hide pass.
     var cacheKey: String?
 }
 

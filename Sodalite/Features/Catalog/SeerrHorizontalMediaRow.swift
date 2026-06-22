@@ -7,8 +7,7 @@ struct SeerrHorizontalMediaRow: View {
     var onItemSelected: ((SeerrMedia) -> Void)?
     var onNeedsMore: (() -> Void)?
 
-    // Trigger pagination a few items before the end so the new cards
-    // are already in place by the time the focus reaches them.
+    // Paginate a few items before the end so new cards land before focus reaches them.
     private let prefetchThreshold = 5
 
     var body: some View {
@@ -20,9 +19,7 @@ struct SeerrHorizontalMediaRow: View {
 
             ScrollView(.horizontal, showsIndicators: false) {
                 LazyHStack(spacing: 30) {
-                    // stableKey, not id: TMDB ids collide across movie/tv
-                    // and trending rows mix both, duplicate ForEach ids
-                    // cause ghost cards and focus jumps.
+                    // stableKey not id: TMDB ids collide across movie/tv (trending mixes both); duplicate ForEach ids cause ghost cards and focus jumps.
                     ForEach(Array(items.enumerated()), id: \.element.stableKey) { index, media in
                         FocusableCard {
                             onItemSelected?(media)

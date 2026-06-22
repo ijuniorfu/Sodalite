@@ -4,15 +4,10 @@ import Observation
 @Observable
 @MainActor
 final class EPGGuideViewModel {
-    // Layout constants
-    /// Horizontal scale: points per minute of program time. 8 pt/min
-    /// puts roughly three and a quarter hours on screen next to the
-    /// channel column; the previous 6 pt/min showed about four and a
-    /// third, which squeezed program titles too hard to read.
+    /// Horizontal scale, points per minute. 8 puts ~3.25h on screen; the previous 6 showed ~4.3h,
+    /// squeezing program titles too hard to read.
     static let pointsPerMinute: CGFloat = 8
-    /// Height of a single channel row.
     static let rowHeight: CGFloat = 110
-    /// Width of the sticky channel column.
     static let channelColumnWidth: CGFloat = 360
     /// How far ahead of `now` the guide axis extends.
     static let windowHours: Int = 24
@@ -22,31 +17,24 @@ final class EPGGuideViewModel {
     private(set) var programsByChannel: [String: [JellyfinProgram]] = [:]
     private(set) var isLoadingChannels = false
     private(set) var loadError: String?
-    /// Channel IDs the user has favorited. Seeded from each loaded page's
-    /// server-side IsFavorite, then updated optimistically on toggle. The
-    /// server-side EnableFavoriteSorting floats these to the top on the next
-    /// fresh load; the star marker tracks this set live.
+    /// Favorited channel IDs. Seeded from each page's server-side IsFavorite, updated optimistically;
+    /// server-side EnableFavoriteSorting floats them to the top on the next fresh load.
     private(set) var favoriteChannelIDs: Set<String> = []
 
-    /// Timer-state overlay: programID -> (timerId, seriesTimerId). Seeded
-    /// from fetched programs, updated optimistically on record toggles so
-    /// the grid dot and a reopened popover agree without refetching the
-    /// guide. A nil tuple member means "no such timer".
+    /// Timer-state overlay: programID -> (timerId, seriesTimerId). Seeded from fetched programs,
+    /// updated optimistically so grid dot and reopened popover agree without refetching. nil member = no such timer.
     private(set) var timerState: [String: (timerId: String?, seriesTimerId: String?)] = [:]
 
-    /// Sentinel marking a create still in flight (the server assigns the
-    /// real id; reconcileTimers replaces it). Toggles no-op on it so a
-    /// double-tap cannot DELETE /LiveTv/Timers/pending.
+    /// Sentinel for a create still in flight (server assigns the real id; reconcileTimers replaces).
+    /// Toggles no-op on it so a double-tap can't DELETE /LiveTv/Timers/pending.
     private static let pendingTimerID = "pending"
-    /// Bumped on every timerState change; the collection VC observes this
-    /// (an Observable dictionary of tuples is not diffable cheaply).
+    /// Bumped on every timerState change; the VC observes this (a dict of tuples isn't cheaply diffable).
     private(set) var timerStateVersion = 0
     /// Transient record-toggle error for the guide's alert.
     var recordingError: String?
 
     /// Guide axis start: floored to the previous half hour from now.
     let axisStart: Date
-    /// Guide axis end.
     let axisEnd: Date
 
     private let service: JellyfinLiveTvServiceProtocol
@@ -141,20 +129,16 @@ final class EPGGuideViewModel {
     func timerID(programID: String) -> String? { timerState[programID]?.timerId }
     func seriesTimerID(programID: String) -> String? { timerState[programID]?.seriesTimerId }
 
-    /// Effective timer state for a program: the overlay entry when one
-    /// exists (authoritative: it reflects local toggles), else the
-    /// program's server-snapshot fields. The distinction matters after a
-    /// cancel: the overlay holds (nil, ...) and the stale snapshot must
-    /// NOT resurrect the dead timer id.
+    /// Effective timer state: the overlay entry (authoritative, reflects local toggles) when one
+    /// exists, else the program's server snapshot. After a cancel the overlay holds (nil, ...) and
+    /// must shadow the stale snapshot so the dead timer id is not resurrected.
     func effectiveTimerState(for program: JellyfinProgram) -> (timerId: String?, seriesTimerId: String?) {
         timerState[program.id] ?? (program.timerId, program.seriesTimerId)
     }
 
-    /// Toggle a channel's favorite state: flip the local set immediately for
-    /// snappy feedback, then persist to the server. Roll back on failure.
-    /// Re-sorting (favorites first) happens on the next fresh guide load via
-    /// the server's EnableFavoriteSorting, not live, so the current scroll /
-    /// focus position is preserved.
+    /// Optimistically flip the local favorite set, persist, roll back on failure. Re-sorting
+    /// (favorites first) happens on the next fresh load via EnableFavoriteSorting, not live, so the
+    /// current scroll / focus position is preserved.
     func toggleFavorite(channelID: String) {
         let wasFavorite = favoriteChannelIDs.contains(channelID)
         if wasFavorite { favoriteChannelIDs.remove(channelID) }
@@ -165,15 +149,13 @@ final class EPGGuideViewModel {
                 try await service.setFavorite(
                     userID: userID, channelID: channelID, isFavorite: target)
             } catch {
-                // Revert the optimistic change.
                 if target { favoriteChannelIDs.remove(channelID) }
                 else { favoriteChannelIDs.insert(channelID) }
             }
         }
     }
 
-    /// Lazily fetch programs for a set of channels not yet requested.
-    /// Called by the view as channel rows become visible.
+    /// Lazily fetch programs for not-yet-requested channels, as their rows become visible.
     func ensurePrograms(for channelIDs: [String]) async {
         let missing = channelIDs.filter { !requestedProgramChannelIDs.contains($0) }
         guard !missing.isEmpty else { return }
@@ -184,27 +166,23 @@ final class EPGGuideViewModel {
             var grouped = programsByChannel
             for program in programs {
                 guard let cid = program.channelId else { continue }
-                // The MinEndDate overlap query is inclusive; a program
-                // ending exactly at the axis start has zero visible span
-                // and would render as a 1pt sliver. Skip anything that
-                // does not actually reach into the window.
+                // MinEndDate overlap query is inclusive; a program ending exactly at axisStart has
+                // zero span and renders as a 1pt sliver. Skip anything not reaching into the window.
                 if let end = program.endDate, end <= axisStart { continue }
                 grouped[cid, default: []].append(program)
                 if program.timerId != nil || program.seriesTimerId != nil {
                     timerState[program.id] = (program.timerId, program.seriesTimerId)
                 }
             }
-            // Only the newly fetched channels need sorting; already-loaded
-            // channels were sorted on their first fetch and never refetched
-            // (the requestedProgramChannelIDs guard makes each a one-shot).
+            // Only newly fetched channels need sorting; the requestedProgramChannelIDs guard makes
+            // each fetch a one-shot, so already-loaded channels stay sorted from their first fetch.
             for cid in missing {
                 grouped[cid]?.sort { ($0.startDate ?? .distantPast) < ($1.startDate ?? .distantPast) }
             }
             programsByChannel = grouped
             timerStateVersion += 1
         } catch {
-            // Leave these channels program-less; the grid shows placeholders.
-            // Allow a retry by clearing them from the requested set.
+            // Leave these program-less (grid shows placeholders); clear from requested set to allow retry.
             missing.forEach { requestedProgramChannelIDs.remove($0) }
         }
     }
@@ -217,13 +195,9 @@ final class EPGGuideViewModel {
         let effective = effectiveTimerState(for: program)
         if let timerID = effective.timerId {
             if timerID == Self.pendingTimerID { return }
-            // Preserve the EFFECTIVE series id, not the overlay's: for a
-            // series-spawned timer with no overlay entry yet (the ids
-            // live in the program snapshot), old is nil and writing
-            // (nil, old?.seriesTimerId) would erase the still-live
-            // series rule from effectiveTimerState; the popover then
-            // offers "Record Series" for a series that already has a
-            // rule and a tap creates a duplicate on the server.
+            // Preserve the EFFECTIVE series id, not the overlay's: a series-spawned timer with no
+            // overlay entry has old=nil, so (nil, old?.seriesTimerId) would erase the still-live
+            // series rule and let the popover offer "Record Series" again, creating a server duplicate.
             timerState[program.id] = (nil, effective.seriesTimerId)
             timerStateVersion += 1
             Task {
@@ -231,9 +205,8 @@ final class EPGGuideViewModel {
                 catch { self.rollbackTimerState(programID: program.id, to: old, error: error) }
             }
         } else {
-            // The server assigns the real timer id; mark with a sentinel
-            // and reconcile from /LiveTv/Timers right after. Same
-            // effective-id preservation as the cancel branch above.
+            // Server assigns the real id; mark sentinel and reconcile from /LiveTv/Timers right
+            // after. Same effective-id preservation as the cancel branch.
             timerState[program.id] = (Self.pendingTimerID, effective.seriesTimerId)
             timerStateVersion += 1
             Task {
@@ -257,10 +230,8 @@ final class EPGGuideViewModel {
             Task {
                 do {
                     try await self.service.cancelSeriesTimer(timerID: seriesID)
-                    // The server cancels the rule's spawned episode timers
-                    // with it; clear every overlay entry tied to this series
-                    // so dead "Cancel Recording" buttons and dots disappear
-                    // (mirrors RecordingsViewModel.cancelSeriesTimer).
+                    // Server cancels the rule's spawned episode timers too; clear every overlay entry
+                    // tied to this series so dead dots/buttons vanish (mirrors RecordingsViewModel.cancelSeriesTimer).
                     self.clearSeriesOverlay(seriesTimerID: seriesID)
                 }
                 catch { self.rollbackTimerState(programID: program.id, to: old, error: error) }
@@ -294,8 +265,7 @@ final class EPGGuideViewModel {
         recordingError = error.localizedDescription
     }
 
-    /// Replace sentinel ids with the server's real ones (and pick up
-    /// series-spawned episode timers) after a create.
+    /// After a create, replace sentinel ids with the server's real ones (and pick up series-spawned timers).
     private func reconcileTimers() async {
         guard let timers = try? await service.getTimers() else { return }
         for timer in timers {
@@ -303,10 +273,8 @@ final class EPGGuideViewModel {
             guard let programID = timer.programId else { continue }
             timerState[programID] = (timer.id, timer.seriesTimerId ?? timerState[programID]?.seriesTimerId)
         }
-        // A create whose timer the server did not report back (failed
-        // fetch was already guarded above; here: a series rule that
-        // spawned no timer for this exact program) must not leave the
-        // sentinel pinned, or both toggles no-op on it forever.
+        // A create the server didn't report back (e.g. a series rule that spawned no timer for this
+        // exact program) must not leave the sentinel pinned, or both toggles no-op on it forever.
         for (programID, state) in timerState {
             let timerID = state.timerId == Self.pendingTimerID ? nil : state.timerId
             let seriesID = state.seriesTimerId == Self.pendingTimerID ? nil : state.seriesTimerId
@@ -317,11 +285,9 @@ final class EPGGuideViewModel {
         timerStateVersion += 1
     }
 
-    /// Full overlay sync against the server's timer lists. Called when
-    /// the user returns from the Recordings segment, where timers and
-    /// series rules can be cancelled outside this model's optimistic
-    /// overlay; without this the guide keeps showing red dots and the
-    /// popover offers "Cancel Recording" for timers that 404.
+    /// Full overlay sync against the server's timer lists, on return from the Recordings segment
+    /// (where timers/rules can be cancelled outside this overlay); else the guide keeps stale dots
+    /// and offers "Cancel Recording" for timers that 404.
     func syncTimersWithServer() async {
         async let timersTask = try? service.getTimers()
         async let seriesTask = try? service.getSeriesTimers()
@@ -330,10 +296,8 @@ final class EPGGuideViewModel {
 
         let live = timers.filter { $0.status != "Cancelled" }
         let liveTimerIDs = Set(live.map(\.id))
-        // Series-rule drops need the dedicated list: the ids referenced
-        // by live timers are NOT a substitute, a rule between airings
-        // has no live timer and would be wrongly dropped. When that
-        // fetch failed, keep existing series state untouched this sync.
+        // Series-rule drops need the dedicated list: ids on live timers aren't a substitute (a rule
+        // between airings has no live timer, would be wrongly dropped). On fetch failure, keep series state untouched.
         let seriesListAuthoritative = seriesTimers != nil
         let liveSeriesIDs = seriesTimers.map { Set($0.map(\.id)) } ?? []
 
@@ -353,10 +317,8 @@ final class EPGGuideViewModel {
                 timerState[programID] = (timerID, seriesID)
             }
         }
-        // Programs whose timer ids live only in the immutable program
-        // snapshot (no overlay entry yet): a cancelled timer there
-        // needs an explicit overriding overlay entry, (nil, nil)
-        // shadows the stale snapshot in effectiveTimerState.
+        // Programs with ids only in the immutable snapshot (no overlay yet): a cancelled timer there
+        // needs an explicit overriding overlay entry to shadow the stale snapshot in effectiveTimerState.
         for programs in programsByChannel.values {
             for program in programs where timerState[program.id] == nil {
                 let snapTimer = program.timerId

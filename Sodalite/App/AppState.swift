@@ -3,58 +3,31 @@ import Observation
 
 @Observable
 final class AppState {
-    /// The one and only app state. Both the App's `@State` and the
-    /// `@Environment` default value resolve to this so a single instance
-    /// exists (mirrors `DependencyContainer.shared`).
+    /// Single instance (App `@State` + `@Environment` default both resolve here); mirrors DependencyContainer.shared.
     static let shared = AppState()
 
     var isAuthenticated = false
     var activeServer: JellyfinServer?
     var activeUser: JellyfinUser?
-    /// Starts as `true` so the brand splash covers the very first
-    /// frame, otherwise the underlying view (whichever it is)
-    /// flashes for a frame before the AppRouter task can flip it.
+    /// Starts `true` so the splash covers the first frame, else the underlying view flashes before AppRouter flips it.
     var isLoading = true
 
     var activeSeerrServer: SeerrServer?
     var activeSeerrUser: SeerrUser?
 
-    /// Set by `onOpenURL` whenever a `sodalite://item/{id}` link
-    /// arrives, typically from the TopShelf extension. Cleared
-    /// after the AppRouter has fetched + presented the item, so a
-    /// repeated tap on the same shelf cell still re-fires.
+    /// `sodalite://item/{id}` id set by onOpenURL (usually TopShelf); AppRouter clears it after presenting so a repeat tap re-fires. The deep-link signal field.
     var pendingDeepLinkItemID: String?
 
-    /// Flipped by `ContinueWatchingIntent` so AppRouter knows to
-    /// fetch the latest Resume item and route to it. Kept separate
-    /// from `pendingDeepLinkItemID` because the intent runs before
-    /// we know which item to play, AppRouter resolves the queue
-    /// and then sets `pendingDeepLinkItemID` itself, reusing the
-    /// existing TopShelf navigation path.
+    /// Flipped by ContinueWatchingIntent; AppRouter fetches the latest Resume item then routes via pendingDeepLinkItemID. Separate because the intent runs before the target item is known.
     var requestContinueWatching: Bool = false
 
-    /// Incremented by DependencyContainer after every successful
-    /// server switch. Consumers (Home) observe via
-    /// `.task(id: appState.serverDidSwitch)` and clear their caches
-    /// + reload. Uses an integer rather than a Date so back-to-back
-    /// switches always change the value.
+    /// Bumped by DependencyContainer after a server switch; consumers (Home) observe via `.task(id:)` to clear caches + reload. Int (not Date) so back-to-back switches always change the value.
     var serverDidSwitch: Int = 0
 
-    /// Monotonic counter the deep-link path increments to ask any
-    /// currently presented player to dismiss before the new detail
-    /// sheet appears. Without this, a TopShelf tap on a different
-    /// item while a paused player is in the background brings the
-    /// app forward with the stale player still on top, hiding the
-    /// freshly presented detail sheet underneath it. Detail views
-    /// that drive a `PlayerLauncher` watch this counter and clear
-    /// their local `showPlayer` state on change.
+    /// Bumped by the deep-link path to dismiss a presented player before the new sheet, else a TopShelf tap brings the app forward with the stale player on top. Detail views driving a PlayerLauncher clear showPlayer on change.
     var requestPlayerDismissal: Int = 0
 
-    /// True while a deep-link is in flight (between the URL handler
-    /// dismissing the active player and the new detail sheet
-    /// presenting). AppRouter overlays a brief loading view so the
-    /// user never sees the prior detail view flash before the new
-    /// one slides up.
+    /// True while a deep-link is in flight; AppRouter overlays a loading view so the prior detail view doesn't flash.
     var isResolvingDeepLink: Bool = false
 
     var isSeerrConnected: Bool {
@@ -67,14 +40,7 @@ final class AppState {
         isAuthenticated = true
     }
 
-    /// Replaces `activeUser.policy` while preserving every other field
-    /// (id, name, server, image tag, etc.). Called after a profile
-    /// switch or session restore once `getCurrentUser()` returns a
-    /// fresh `JellyfinUser` whose `Policy` block reflects the current
-    /// server-side rights. Without this, the activeUser is the
-    /// keychain-bootstrapped stub with `policy: nil`, and the
-    /// permission-gated UI (delete button, future admin surfaces)
-    /// stays hidden until a full logout/login cycle.
+    /// Replaces activeUser.policy (preserving other fields) after a profile switch/restore once getCurrentUser() returns fresh rights, else the keychain stub's policy: nil keeps permission-gated UI hidden until logout/login.
     func updateActiveUserPolicy(_ policy: JellyfinUser.Policy?) {
         guard let current = activeUser else { return }
         activeUser = JellyfinUser(
@@ -87,10 +53,7 @@ final class AppState {
         )
     }
 
-    /// Replaces `activeServer` with a freshly fetched copy (currently
-    /// used to apply an updated server version after a server-side
-    /// upgrade). Guards on id so a profile switch racing the refresh
-    /// doesn't apply another server's data to the now-current one.
+    /// Replaces activeServer with a fresh copy (applies an updated version after a server upgrade). id guard so a racing switch doesn't apply another server's data.
     func updateActiveServer(_ server: JellyfinServer) {
         guard activeServer?.id == server.id else { return }
         activeServer = server

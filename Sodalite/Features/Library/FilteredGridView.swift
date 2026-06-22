@@ -1,8 +1,6 @@
 import SwiftUI
 
-/// Watch-status narrowing for the library grids (Sodalite#17,
-/// requested by RyoShinzo). Maps to Jellyfin's `Filters` parameter;
-/// `.all` sends nothing and is the long-standing default.
+/// Watch-status narrowing for the library grids (Sodalite#17). Maps to Jellyfin's `Filters`; `.all` sends nothing (the default).
 enum WatchStatusFilter: String, CaseIterable, Hashable {
     case all
     case unwatched
@@ -39,41 +37,22 @@ struct FilteredGridView: View {
     @FocusState private var focusedItemID: String?
     @Environment(\.dismiss) private var dismiss
 
-    /// Distinguishes "fetch failed with nothing to show" (error state
-    /// with a retry) from "server says the list is empty".
+    /// Distinguishes "fetch failed, nothing to show" (retry state) from "server says empty".
     @State private var loadFailed = false
-    /// Stamped at the start of every loadItems run; checked after each
-    /// await so a superseded run (filter flip, retry) can never write
-    /// its results over the newer run's.
+    /// Stamped per loadItems run, checked after each await so a superseded run (filter flip, retry) can't write over the newer one.
     @State private var loadGeneration = 0
-    /// TotalRecordCount from the last phase-1 response; drives the
-    /// load-more trigger. nil until the first fresh fetch lands.
+    /// TotalRecordCount from the last phase-1 response, drives load-more; nil until the first fetch lands.
     @State private var totalRecordCount: Int?
     @State private var isLoadingMore = false
-    /// True once loadMore has appended at least one page this filter
-    /// cycle. The refresh pass uses it to keep the appended pages
-    /// instead of truncating the grid back to page 1 under the user's
-    /// focus. Explicit flag, not a count/prefix heuristic: a server-
-    /// side reorder of page 1 (new item added at the front) breaks
-    /// prefix comparison even though the user genuinely paginated.
+    /// True once loadMore appended a page this cycle; the refresh keeps appended pages instead of truncating to page 1. Explicit flag, not a prefix heuristic: a page-1 server reorder breaks prefix comparison.
     @State private var didPaginate = false
 
     let title: String
     let query: ItemQuery
-    /// Optional TMDB watch-provider id. When set, after the studio
-    /// filter resolves we ask Jellyseerr for the live "currently
-    /// streaming on this service" list and look up any matches in
-    /// the local library. Lets shows like Modern Family or Bluey
-    /// surface under Disney+ even though their Studios tag points at
-    /// 20th Century Fox Television / Ludo Studio respectively.
+    /// TMDB watch-provider id: after the studio filter resolves, augment with Jellyseerr's "streaming now" list so studio-tag-less titles surface under their service (Modern Family on Disney+).
     let smartProviderID: Int?
     let smartProviderRegion: String?
-    /// Stable identifier used by FilterCache to persist the final
-    /// merged item list. Independent of `smartProviderID` so even
-    /// providers without a watch-provider concept (broadcast nets
-    /// like ABC / NBC / CBS) still get their result cached, and
-    /// therefore become eligible for the empty-tile-hide pass on
-    /// the next visit.
+    /// Stable key for FilterCache, independent of smartProviderID so broadcast nets (ABC/NBC/CBS) still cache and feed the empty-tile-hide pass.
     let cacheKey: String?
 
     init(
@@ -88,11 +67,7 @@ struct FilteredGridView: View {
         self.smartProviderID = smartProviderID
         self.smartProviderRegion = smartProviderRegion
         self.cacheKey = cacheKey
-        // Hydrate from FilterCache during init so the very first
-        // body render already paints the cached grid. Doing it
-        // inside `.task` later means one frame with isLoading=true
-        // before the cache snaps in, that's the brief "loading
-        // flash" the user perceives on every tap.
+        // Hydrate from FilterCache in init so the first render paints the cached grid; doing it in .task means a frame with isLoading=true first (the brief loading flash on every tap).
         if let key = cacheKey,
            let cached = FilterCache.shared.homeFilterItems(filterKey: key),
            !cached.isEmpty {
@@ -258,9 +233,7 @@ struct FilteredGridView: View {
             DetailRouterView(item: item)
         }
         .onChange(of: watchFilter) { _, _ in
-            // Filter switch: drop the now-mismatched grid immediately
-            // (stale-while-revalidate would briefly show watched items
-            // under "Unwatched") and let the keyed task below refetch.
+            // Drop the now-mismatched grid immediately (else stale-while-revalidate briefly shows watched items under "Unwatched"); the keyed task refetches.
             items = []
             isLoading = true
             loadFailed = false
@@ -269,21 +242,11 @@ struct FilteredGridView: View {
         }
         .task(id: watchFilter) {
             await loadItems()
-            // No forced first-item focus: the watch-status Picker is
-            // rendered unconditionally at the top of the ScrollView (and
-            // every loading/empty/error state carries its own focusable
-            // element), so there is always a focus anchor, the old
-            // "pressing back closes the app because nothing is focused"
-            // case can no longer happen. Nudging focus to item 0 here was
-            // actively harmful: switching the Picker clears `items`, which
-            // drops focusedItemID to nil, and this keyed task would then
-            // yank focus off the Picker down to the first card mid-browse.
+            // No forced first-item focus: the Picker (always rendered) plus each state's own focusable anchor means back never closes the app. Nudging to item 0 was harmful: a Picker switch clears items, dropping focusedItemID to nil, and this keyed task would yank focus off the Picker mid-browse.
         }
     }
 
-    /// Phase-1 (studio match) results, kept separate from `items` so
-    /// the augmentation refresh can rebuild the merged grid without
-    /// re-running the studio query.
+    /// Phase-1 (studio match), kept separate from `items` so the augment refresh rebuilds the merged grid without re-running the studio query.
     @State private var studioItems: [JellyfinItem] = []
 
     private func loadItems() async {
@@ -291,26 +254,14 @@ struct FilteredGridView: View {
         loadGeneration += 1
         let generation = loadGeneration
 
-        // Cache hydration happened in init(...), items + isLoading
-        // already reflect the cache hit (or miss). Now run the
-        // background refresh that replaces them with the freshest
-        // server response.
-
-        // Watch-status filter applies server-side to BOTH phases:
-        // phase 1 directly, and the full-library map the smart
-        // provider augment resolves against, so phase 2 cannot
-        // re-introduce filtered-out items. `.all` sends nothing.
+        // Watch-status filter applies server-side to BOTH phases (phase 1 + the full-library map phase 2 resolves against), so phase 2 can't re-introduce filtered-out items.
         var effectiveQuery = query
         if let filter = watchFilter.jellyfinFilter {
             effectiveQuery.filters = [filter]
         }
         let isWatchFiltered = watchFilter != .all
 
-        // nil = fetch failed or was cancelled. The distinction from
-        // "server says empty" matters: a failure must never replace
-        // the on-screen grid or be persisted into FilterCache as a
-        // valid empty result (that used to poison the cache and kill
-        // the instant-paint hydration until the next pre-warm).
+        // nil = fetch failed/cancelled, distinct from "server empty": a failure must never replace the grid or persist into FilterCache as a valid empty (that poisoned the cache and killed instant-paint until the next pre-warm).
         async let studioMatchTask: JellyfinItemsResponse? = { [effectiveQuery] in
             try? await dependencies.jellyfinLibraryService.getItems(
                 userID: userID, query: effectiveQuery
@@ -319,10 +270,7 @@ struct FilteredGridView: View {
 
         async let allLibraryTask: [JellyfinItem]? = { [watchFilterValue = watchFilter.jellyfinFilter] in
             guard smartProviderID != nil else { return [] }
-            // Fetch the entire library in one shot rather than running
-            // per-id `AnyProviderIdEquals` lookups. Robust against
-            // Jellyfin version quirks and amortises across every
-            // TMDB id we want to resolve.
+            // Fetch the whole library in one shot, not per-id AnyProviderIdEquals lookups: robust against Jellyfin version quirks and amortised across every TMDB id.
             var allQuery = ItemQuery(
                 includeItemTypes: [.movie, .series],
                 sortBy: "SortName",
@@ -340,13 +288,11 @@ struct FilteredGridView: View {
         let phase1Response = await studioMatchTask
         let allItems = await allLibraryTask
 
-        // Backed out (Menu press, tap into a detail page) or superseded
-        // by a newer run: leave every piece of state alone.
+        // Backed out (Menu/detail tap) or superseded: leave all state alone.
         guard !Task.isCancelled, generation == loadGeneration else { return }
 
         guard let phase1Response else {
-            // Real failure. Keep whatever the cache hydrated; only
-            // surface the error state when there is nothing to show.
+            // Real failure: keep the cache-hydrated grid, surface error only when there's nothing to show.
             loadFailed = items.isEmpty
             isLoading = false
             return
@@ -356,27 +302,20 @@ struct FilteredGridView: View {
         studioItems = phase1
         totalRecordCount = phase1Response.totalRecordCount
 
-        // Build TMDB-id → JellyfinItem map once and reuse for the
-        // background refresh.
         var tmdbMap: [Int: JellyfinItem] = [:]
         for item in allItems ?? [] {
             if let id = item.tmdbID { tmdbMap[id] = item }
         }
 
-        // No cache yet → at least surface the studio match while the
-        // watch-provider phase runs.
+        // No cache yet: surface the studio match while the watch-provider phase runs.
         if items.isEmpty {
             items = phase1
             isLoading = false
         }
 
-        // Always refresh, the cache is stale-while-revalidate. The
-        // fresh list replaces whatever the cache held, so titles that
-        // rotated off the service since last visit drop out.
+        // Always refresh (stale-while-revalidate): the fresh list replaces the cache so titles rotated off the service drop out.
         if let providerID = smartProviderID, let region = smartProviderRegion {
-            // The 10k library scan feeding tmdbMap failed: the augment
-            // would resolve against an empty map and shrink the grid /
-            // cache to studio-only matches. Skip the refresh round.
+            // tmdbMap's 10k scan failed: the augment would resolve against an empty map and shrink to studio-only. Skip the refresh.
             guard allItems != nil else {
                 isLoading = false
                 return
@@ -389,27 +328,13 @@ struct FilteredGridView: View {
                 isWatchFiltered: isWatchFiltered
             )
         } else {
-            // No smart filter (broadcast networks, generic genre /
-            // studio tiles), Phase 1 is the final result. Persist
-            // it so the empty-tile-hide pass on the next visit has
-            // a count to work with, and so a re-tap renders without
-            // the studio-query roundtrip. Skip the assignment when
-            // the id list is unchanged: even with identical ids the
-            // wholesale replace forces SwiftUI to re-diff every cell,
-            // which reads to the user as a brief reload flash. And
-            // when the user already paginated past page 1, keep the
-            // appended pages instead of truncating the grid under
-            // their focus (explicit didPaginate flag; the old
-            // count/prefix heuristic broke when the server reordered
-            // page 1, truncating a paginated grid).
+            // No smart filter (broadcast nets, genre/studio tiles): phase 1 is final. Skip the assignment on an unchanged id list (a wholesale replace re-diffs every cell, a reload flash), and keep appended pages when the user paginated (didPaginate; the old prefix heuristic broke on a page-1 server reorder).
             let pagedPastPhase1 = didPaginate && !items.isEmpty
             if !pagedPastPhase1, items.map(\.id) != phase1.map(\.id) {
                 items = phase1
             }
             isLoading = false
-            // Cache only the unfiltered default: the cached list feeds
-            // init hydration (always .all) and the empty-tile-hide
-            // counts, both of which must reflect the full library.
+            // Cache only the unfiltered default: it feeds init hydration (always .all) + empty-tile-hide counts, both needing the full library.
             if let key = cacheKey, !isWatchFiltered {
                 FilterCache.shared.setHomeFilterItems(phase1, filterKey: key)
             }
@@ -418,11 +343,7 @@ struct FilteredGridView: View {
 
     // MARK: - Pagination
 
-    /// Whether more pages exist server-side. Only the plain (non-smart)
-    /// path paginates: smart-provider grids are merged from the full
-    /// library map and complete by construction, and genre/My-Media
-    /// tiles were previously hard-truncated at their query limit with
-    /// no indication anything was missing.
+    /// More pages exist server-side. Only the plain path paginates: smart-provider grids are merged from the full library map and complete by construction.
     private var canLoadMore: Bool {
         guard smartProviderID == nil, query.limit != nil else { return false }
         guard let total = totalRecordCount else { return false }
@@ -431,8 +352,7 @@ struct FilteredGridView: View {
 
     private func loadMoreIfNeeded(after item: JellyfinItem) {
         guard canLoadMore, !isLoadingMore, !isLoading else { return }
-        // Trigger within the last two grid rows so the next page is
-        // in place before focus reaches the edge.
+        // Trigger within the last two rows so the next page lands before focus reaches the edge.
         guard let index = items.firstIndex(where: { $0.id == item.id }),
               index >= items.count - 12 else { return }
         isLoadingMore = true
@@ -461,12 +381,7 @@ struct FilteredGridView: View {
         didPaginate = true
     }
 
-    /// Background refresh of the TMDB watch-provider id list: 5
-    /// pages each on movies + tv, then re-resolve against the local
-    /// library map and write the fresh ids to the cache. Shows the
-    /// updated grid the moment the new list lands. Stale entries
-    /// drop out automatically because the merged grid is rebuilt
-    /// from scratch every refresh.
+    /// Refresh the TMDB watch-provider id list, re-resolve against the local map, cache the fresh ids. Stale entries drop out because the merged grid is rebuilt from scratch.
     private func refreshWatchProviderAugment(
         providerID: Int,
         region: String,
@@ -479,12 +394,7 @@ struct FilteredGridView: View {
 
         guard !Task.isCancelled, generation == loadGeneration else { return }
 
-        // collectWatchProviderTmdbIDs swallows failures into an empty
-        // set, so emptiness is ambiguous: a transient Seerr outage is
-        // indistinguishable from "this service streams nothing". A
-        // real streaming service never has zero titles, treat empty
-        // as a failed round: keep the on-screen grid and the cached
-        // entry, surface phase 1 only if nothing is showing yet.
+        // collectWatchProviderTmdbIDs swallows failures into an empty set, ambiguous with "service streams nothing". A real service never has zero, so treat empty as a failed round: keep the grid + cache, surface phase 1 only if nothing's showing.
         guard !providerTmdbIDs.isEmpty else {
             if items.isEmpty {
                 items = studioItems
@@ -504,10 +414,7 @@ struct FilteredGridView: View {
         }
         isLoading = false
 
-        // Persist the fully-resolved list so the next visit can
-        // hydrate the grid synchronously, no library fetch, no
-        // watch-provider roundtrip needed for the initial display.
-        // Unfiltered default only, same rationale as the phase-1 write.
+        // Persist the resolved list so the next visit hydrates synchronously, no library fetch or watch-provider roundtrip. Unfiltered default only (phase-1 rationale).
         if let key = cacheKey, !isWatchFiltered {
             FilterCache.shared.setHomeFilterItems(merged, filterKey: key)
         }
@@ -518,8 +425,7 @@ struct GridCardButtonStyle: ButtonStyle {
     @Environment(\.isFocused) private var isFocused
 
     func makeBody(configuration: Configuration) -> some View {
-        // Stroke is drawn inside MediaCard (around the poster only),
-        // keeping the title text below the card outside the outline.
+        // Stroke drawn inside MediaCard (poster only), keeping the title below outside the outline.
         configuration.label
             .scaleEffect(isFocused ? 1.05 : 1.0)
             .shadow(color: .black.opacity(isFocused ? 0.4 : 0), radius: 20, y: 10)

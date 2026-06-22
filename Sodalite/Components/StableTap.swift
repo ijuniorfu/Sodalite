@@ -1,32 +1,11 @@
 import SwiftUI
 
-/// View modifier that wraps the standard Sodalite focusable-row activation
-/// (clickpad press fires the action) with a focus-stability check.
-///
-/// On the Siri Remote, tiny finger drift in the last frames of a click can
-/// shift focus from the user's intended target onto a neighbouring row,
-/// so the click activates the wrong tile. This modifier records when the
-/// row most recently acquired focus and only fires the action if focus
-/// has been stable for at least `stableFocusWindow`. Below that threshold
-/// the press is silently dropped (the user will press again on the row
-/// they actually want).
-///
-/// 80 ms is below typical human reaction time to a visual focus shift
-/// (~200 ms) so it filters drift inside a single click motion without
-/// adding perceptible latency to deliberate fast clicks.
-///
-/// Replaces the `.onLongPressGesture(minimumDuration: 0.01) { action() }`
-/// / `.onTapGesture { action() }` pair on focusable rows. The caller
-/// still owns `.focusable(true)` and `.focused($focused)`, and continues
-/// to drive any tint-stroke or scale-effect styling off the same
-/// `@FocusState`.
+/// Focusable-row activation gated on focus stability. Siri Remote finger drift in the last frames of a click can shift focus to a neighbour and activate the wrong tile; this drops presses until focus has been steady for `stableFocusWindow`. 80 ms is below human reaction to a focus shift (~200 ms) so it filters drift without latency on deliberate clicks. Caller still owns `.focusable`/`.focused` and styling.
 struct StableTapModifier: ViewModifier {
     let isFocused: Bool
     let action: () -> Void
 
-    /// Minimum time (s) that focus must have been steady on this row
-    /// before a press is allowed to fire the action. Drop to 0.06 if
-    /// 80 ms ever feels sluggish in practice.
+    /// Minimum steady-focus time (s) before a press fires; drop to 0.06 if 80 ms feels sluggish.
     static let stableFocusWindow: TimeInterval = 0.08
 
     @State private var focusAcquiredAt: Date?
@@ -55,12 +34,7 @@ struct StableTapModifier: ViewModifier {
 }
 
 extension View {
-    /// Apply a stable-focus-gated tap activation to a focusable row.
-    ///
-    /// Pass the same `@FocusState` value the row uses for its focus
-    /// styling. The action fires only after focus has been steady on
-    /// this row for `StableTapModifier.stableFocusWindow`. See the
-    /// modifier docs for the rationale.
+    /// Stable-focus-gated tap; pass the row's `@FocusState`. See `StableTapModifier` for rationale.
     func stableTap(isFocused: Bool, perform action: @escaping () -> Void) -> some View {
         modifier(StableTapModifier(isFocused: isFocused, action: action))
     }

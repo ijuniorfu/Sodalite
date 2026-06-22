@@ -7,16 +7,9 @@ import AVKit
 import UIKit
 import os
 
-/// ViewModel that bridges AetherEngine with Jellyfin session reporting
-/// and our custom tvOS-style player UI.
-///
-/// Uses Combine subscriptions to observe AetherEngine's @Published
-/// properties instead of polling timers, eliminates AttributeGraph cycles.
-///
-/// Split into extensions:
-/// - `PlayerViewModel+Scrubbing.swift`, pan/arrow scrubbing
-/// - `PlayerViewModel+NextEpisode.swift`, auto-play next episode
-/// - `PlayerViewModel+SessionReporting.swift`, Jellyfin progress reports
+/// Bridges AetherEngine with Jellyfin session reporting and the custom tvOS player UI.
+/// Combine subscriptions observe the engine's @Published properties (no polling timers,
+/// avoids AttributeGraph cycles). Split across +Scrubbing / +NextEpisode / +SessionReporting.
 @Observable
 @MainActor
 final class PlayerViewModel {
@@ -25,41 +18,31 @@ final class PlayerViewModel {
 
     var isLoading = true
     var errorMessage: String?
-    /// Icon (SF Symbol) chosen for the active error, set together
-    /// with `errorMessage` via `setError(from:)`. nil when no error.
+    /// SF Symbol for the active error, set with `errorMessage` via `setError(from:)`.
     var errorIcon: String?
-    /// Localised headline for the active error (e.g. "Connection
-    /// problem" / "Sign-in required"). Sits above `errorMessage` in
-    /// the player overlay; the message provides the detail.
+    /// Localised error headline above `errorMessage` in the overlay.
     var errorTitle: String?
     var isPlaying = false
     var showControls = false
 
-    // Time display
     var currentTime: String = "00:00"
     var totalTime: String = "00:00"
     var remainingTime: String = "-00:00"
     var progress: Float = 0
 
-    // Playback time (raw seconds, tracked by @Observable for subtitle sync)
     var playbackTime: Double = 0
 
-    /// Source-PTS time of the currently displayed frame, mirrored from
-    /// `AetherEngine.sourceTime`. On the native HLS path AVPlayer's
-    /// clock sits at `source_pts - producer.videoShiftPts`, so cues
-    /// from the side-demuxer (raw source PTS) need this view of the
-    /// timeline to render in sync. Equal to `playbackTime` on the SW
-    /// path where the clock and source PTS already match.
+    /// source-PTS of displayed frame, mirrored from `AetherEngine.sourceTime`; native-path
+    /// AVPlayer clock = source_pts - producer.videoShiftPts, so side-demuxer cues sync off this.
+    /// Equals playbackTime on the SW path.
     var subtitleTime: Double = 0
 
-    // Scrubbing
     var isScrubbing = false
     var scrubProgress: Float = 0
     var scrubTime: String = "00:00"
     var displayedProgress: Float { isScrubbing ? scrubProgress : progress }
     var scrubStartProgress: Float = 0
 
-    // Custom focus for transport bar navigation
     var controlsFocus: ControlsFocus = .progressBar
     var trackDropdown: TrackDropdown = .none
 
@@ -72,25 +55,19 @@ final class PlayerViewModel {
         case empty
         case downloading(id: String)
         case error(String)
-        /// The download POST was accepted but the server had not attached the
-        /// track by the time polling stopped (typical on a slow CDN). Carries
-        /// the originally requested subtitle and the pre-download stream index
-        /// snapshot so the overlay's "Try again" button can re-check without
-        /// re-issuing the download. `message` is the localized pending copy.
+        /// Download POST accepted but track not attached by the time polling stopped (slow CDN).
+        /// Carries the requested subtitle + pre-download stream-index snapshot so "Try again"
+        /// re-checks without re-downloading. `message` is the localized pending copy.
         case downloadTimedOut(info: RemoteSubtitleInfo, before: Set<Int>, message: String)
     }
 
-    /// Drives the SubtitleSearchView overlay.
     var subtitleSearchVisible = false
     var subtitleSearchState: SubtitleSearchState = .idle
-    /// 3-letter ISO language used for the next search. Seeded from the
-    /// preferred subtitle language, fallback the device language.
+    /// 3-letter ISO language for the next search; seeded from preferred subtitle, then device language.
     var subtitleSearchLanguage: String = "eng"
 
-    /// Which element of the subtitle-search overlay is highlighted.
-    /// The overlay has two regions: the horizontal language switcher and
-    /// the vertical results list. Rendered display-only by
-    /// SubtitleSearchView; driven by PlayerHostController's press handlers.
+    /// Highlighted element of the subtitle-search overlay. Display-only in SubtitleSearchView;
+    /// driven by PlayerHostController press handlers.
     enum SubtitleSearchFocus: Equatable {
         case language(Int)   // index into subtitleSearchLanguageOptions
         case result(Int)     // index into the current results
@@ -98,9 +75,8 @@ final class PlayerViewModel {
     }
     var subtitleSearchFocus: SubtitleSearchFocus = .language(0)
 
-    /// Delete-confirmation flow for an external subtitle (hold-to-delete
-    /// on an external row in the subtitle dropdown). Host-driven overlay,
-    /// rendered display-only by SubtitleDeletePromptView. Feature #4.
+    /// Delete-confirmation flow for an external subtitle (hold-to-delete on its dropdown row).
+    /// Host-driven overlay, display-only in SubtitleDeletePromptView. Feature #4.
     enum SubtitleDeleteState: Equatable {
         case hidden
         case confirm(streamIndex: Int)
@@ -110,7 +86,6 @@ final class PlayerViewModel {
     enum SubtitleDeleteButton { case cancel, delete }
     var subtitleDeleteState: SubtitleDeleteState = .hidden
     var subtitleDeleteFocus: SubtitleDeleteButton = .cancel
-    /// True while a delete confirmation / progress / error is on screen.
     var isSubtitleDeletePromptVisible: Bool {
         if case .hidden = subtitleDeleteState { return false }
         return true
@@ -126,43 +101,27 @@ final class PlayerViewModel {
         case speedButton
         case pictureButton
         case infoButton
-        // Live-only: the "Return to Live" pill in LiveTransportBar. Reached
-        // by pressing Up from the live scrubber while behind the live edge;
-        // Select fires returnToLiveEdge(). The VOD button row above does not
-        // apply to live (LiveTransportBar renders none of those controls).
+        // Live-only "Return to Live" pill (LiveTransportBar); Up from the live scrubber when
+        // behind the live edge, Select fires returnToLiveEdge(). VOD button row N/A for live.
         case returnToLiveButton
     }
 
-    /// True while the stats-for-nerds side panel is mounted. Toggled
-    /// by pressing the transport bar's info chip; the chip itself only
-    /// appears when `preferences.showStatsForNerds` is on so casual
-    /// users never see either. When set to `true` the side panel
-    /// captures all remote presses (up/down scroll, menu/select
-    /// dismiss) so the player UI behind it stays inert until the
-    /// user closes the panel.
+    /// Stats-for-nerds side panel mount flag. While true it captures all remote presses
+    /// (scroll, dismiss) so the player UI behind it stays inert.
     var showStatsOverlay: Bool = false {
         didSet {
-            // Reset the scroll cursor each time the overlay opens so
-            // the user always starts at the Playback section regardless
-            // of where they were last time. Closing doesn't need to
-            // reset; the next open clears it.
+            // Reset scroll cursor on open so the user always starts at the first section.
             if showStatsOverlay && !oldValue {
                 statsSectionIndex = 0
             }
         }
     }
 
-    /// Section anchor cursor for the stats-for-nerds side panel. 0
-    /// addresses the first section (Playback), N-1 the last (File).
-    /// Up/down arrow presses while the panel is open shift this index;
-    /// `StatsOverlayView` watches it via `scrollTo`. Range is clamped
-    /// by `statsSectionAnchors.count`.
+    /// Section-anchor cursor for the stats panel; up/down shifts it, StatsOverlayView watches
+    /// via `scrollTo`. Clamped by `statsSectionAnchors.count`.
     var statsSectionIndex: Int = 0
 
-    /// Ordered anchor IDs the stats panel attaches to each section.
-    /// Up/down cursor jumps move between these, so the user pages
-    /// through Playback → Video → Audio → Subtitles → File without
-    /// needing per-row focus.
+    /// Ordered anchor IDs per stats section; up/down cursor jumps page through them.
     static let statsSectionAnchors: [String] = [
         "stats.section.live",       // 0 — always shown when stats on
         "stats.section.playback",   // 1
@@ -188,10 +147,8 @@ final class PlayerViewModel {
 
     var isDropdownOpen: Bool { trackDropdown != .none }
 
-    /// Playback speed choices. Native tvOS player uses the same stepped
-    /// set, keeping it consistent with user expectations. Index 2 = 1.0×.
+    /// Playback speed choices; index 2 = 1.0x (matches native tvOS player's stepped set).
     static let speedOptions: [Float] = [0.5, 0.75, 1.0, 1.25, 1.5, 2.0]
-    /// Index into `speedOptions` for the currently applied rate.
     var activeSpeedIndex: Int = 2
 
     // Tracks
@@ -202,18 +159,13 @@ final class PlayerViewModel {
             }
         }
     }
-    /// Longest cue duration in `subtitleCues` (floor 60 s), recomputed
-    /// on every assignment. Bounds the overlay's active-cue walk-back:
-    /// a fixed 60 s bound silently dropped longer cues (PGS tracks can
-    /// carry effectively unbounded endTimes meaning "until cleared").
-    /// Unbounded sentinels blow the bound up, but the engine prunes
-    /// bitmap cues to a trailing 300 s window so the walk stays short.
+    /// Longest cue duration (floor 60s) bounding the overlay's active-cue walk-back; a fixed
+    /// bound dropped long PGS cues (unbounded endTimes), engine prunes bitmap cues to 300s.
     var subtitleMaxCueDuration: Double = 60
     var activeAudioIndex: Int?
     var activeSubtitleIndex: Int?
 
-    /// Cues for the secondary companion subtitle track (issue #47),
-    /// mirrored from `engine.secondarySubtitleCues`.
+    /// Secondary companion subtitle cues (issue #47), mirrored from `engine.secondarySubtitleCues`.
     var secondarySubtitleCues: [SubtitleCue] = [] {
         didSet {
             secondarySubtitleMaxCueDuration = secondarySubtitleCues.reduce(60.0) {
@@ -222,33 +174,26 @@ final class PlayerViewModel {
         }
     }
     var secondarySubtitleMaxCueDuration: Double = 60
-    /// Stream index of the active secondary track, or nil for off.
     var activeSecondarySubtitleIndex: Int?
 
-    /// Audio tracks in picker order: container-default first, then demuxer order. All picker UI indexes here, not into `player.audioTracks`.
+    /// Audio tracks in picker order (container-default first); picker UI indexes here, not `player.audioTracks`.
     var displayAudioTracks: [TrackInfo] {
         let tracks = player.audioTracks
         return tracks.filter { $0.isDefault } + tracks.filter { !$0.isDefault }
     }
 
-    /// Subtitle streams in picker order: Jellyfin-default first, then source order. All picker UI indexes here (with the "Off" row at position 0), not into `subtitleStreams`.
+    /// Subtitle streams in picker order (Jellyfin-default first); picker UI indexes here with "Off" at 0, not `subtitleStreams`.
     var displaySubtitleStreams: [MediaStream] {
         let streams = subtitleStreams
         return streams.filter { $0.isDefault == true } + streams.filter { $0.isDefault != true }
     }
 
-    /// Whether the in-player "Search online..." subtitle download flow is
-    /// reachable. Available for any VOD library item (the Jellyfin
-    /// RemoteSearch keys on `item.id`); live channels have no searchable
-    /// library item, so it is suppressed there. Drives showing the
-    /// subtitle button even when the file ships zero subtitle tracks, so
-    /// the download entry point is reachable in exactly the case it is
-    /// most needed (issue #15).
+    /// In-player subtitle-search reachability; VOD-only (live has no searchable library item).
+    /// Also shows the subtitle button on files with zero tracks so the download entry exists (issue #15).
     var supportsSubtitleSearch: Bool { !isLiveSession }
 
-    /// Streams eligible as the SECONDARY track: text codecs only (bitmap
-    /// codecs cannot stack as a companion line) and never the stream
-    /// already chosen as primary. Picker order matches `displaySubtitleStreams`.
+    /// Streams eligible as SECONDARY track: text codecs only (bitmap can't stack as a companion line),
+    /// never the active primary. Picker order matches `displaySubtitleStreams`.
     var secondarySubtitleCandidates: [MediaStream] {
         let bitmapCodecs: Set<String> = ["pgssub", "hdmv_pgs_subtitle", "dvbsub", "dvb_subtitle", "dvdsub", "dvd_subtitle", "xsub"]
         return displaySubtitleStreams.filter { stream in
@@ -258,68 +203,41 @@ final class PlayerViewModel {
         }
     }
 
-    /// Episodes from the currently-playing item's season, sorted by
-    /// indexNumber. Populated lazily after startPlayback so the
-    /// transport bar can offer an in-season episode picker without
-    /// the user having to back out to the series detail screen.
-    /// Stays empty for movies, single-episode series, and any item
-    /// without a parent season, TransportBar suppresses the button
-    /// when count <= 1.
+    /// Current season's episodes sorted by indexNumber, populated lazily after startPlayback for
+    /// the transport-bar episode picker. Empty for movies/single-episode; TransportBar hides button at count <= 1.
     var seasonEpisodes: [JellyfinItem] = []
 
-    /// Chapter markers from the source container. Populated at
-    /// startPlayback from `item.chapters`. Sorted by start position
-    /// so the scrub-bar overlay can iterate without re-sorting and
-    /// the chapter dropdown lists them in playback order. Empty when
-    /// the file ships no chapters, TransportBar suppresses the
-    /// button when count <= 1.
+    /// Source-container chapters from `item.chapters`, sorted by start position so the scrub-bar
+    /// and dropdown iterate in playback order. TransportBar hides the button at count <= 1.
     var chapters: [ChapterInfo] = []
 
-    /// Original `item.chapters` index for each entry in the sorted
-    /// `chapters` array (parallel, same count). The server's chapter
-    /// image endpoint is keyed by the chapter's position in the
-    /// unsorted container order, so the defensive start-position sort
-    /// above would point at the wrong image without this remap.
+    /// Original unsorted `item.chapters` index per sorted `chapters` entry (parallel array). The
+    /// server's chapter-image endpoint keys on the unsorted container position, so the sort above
+    /// would fetch the wrong image without this remap.
     @ObservationIgnored private var chapterImageIndices: [Int] = []
 
-    /// Picture-fill mode for the currently active session. Initialised
-    /// at `startPlayback` from the user's `PlaybackPreferences.pictureMode`,
-    /// then mutable on the fly via `selectPictureMode`. Doesn't write
-    /// back to prefs, the in-player picker is treated as a transient
-    /// override for this playback only, the settings screen owns the
-    /// global default.
+    /// Session-local picture-fill mode, seeded from `PlaybackPreferences.pictureMode` at startPlayback.
+    /// Transient override, not persisted; settings owns the global default.
     var pictureMode: PlaybackPreferences.PictureMode = .original
 
-    // Video format (HDR/DV indicator)
     var videoFormat: VideoFormat = .sdr
 
     // MARK: - Shuffle / play queue
 
-    /// When non-empty, playback advances through this shuffled list
-    /// instead of (or, for episodes, in preference to) the series
-    /// successor. The currently-playing item is `playQueue[queueIndex]`;
-    /// the next item is `playQueue[queueIndex + 1]`. Empty for ordinary
-    /// single-item and series-autoplay sessions. Reusing the
-    /// next-episode overlay + reload-in-place path keeps the engine
-    /// AVPlayer alive across items (issue #15).
+    /// When non-empty, playback advances through this shuffled list instead of the series
+    /// successor; current item is `playQueue[queueIndex]`. Reuses the next-episode reload-in-place
+    /// path to keep the engine AVPlayer alive across items (issue #15).
     var playQueue: [JellyfinItem] = []
-    /// Index of the currently-playing item within `playQueue`. The
-    /// launch item is index 0; `playNextEpisode()` increments it.
+    /// Index of the current item in `playQueue` (launch item = 0; `playNextEpisode()` increments).
     var queueIndex: Int = 0
 
-    /// True while a shuffle / play queue is driving auto-advance.
     var isQueuePlayback: Bool { !playQueue.isEmpty }
 
-    // Next episode
     var nextEpisode: JellyfinItem?
     var showNextEpisodeOverlay = false
     var nextEpisodeCountdown = 10
-    /// Fired once when playback hits demux EOF and there's no next
-    /// episode to advance to (movies, last episode of a season /
-    /// series). PlayerHostController wires this up to the same dismiss path the
-    /// Menu button takes, without it, the player sits on a black
-    /// frame with no focus target and the user has to mash Menu to
-    /// get back to the detail screen they came from.
+    /// Fired once at demux EOF when there's no next episode; PlayerHostController routes it to the
+    /// Menu dismiss path. Without it the player sits on a black frame with no focus target.
     var onPlaybackReachedEnd: (() -> Void)?
 
     var isCountdownActive = false
@@ -327,43 +245,25 @@ final class PlayerViewModel {
     var hasFetchedNextEpisode = false
     var nextEpisodeCancelled = false
 
-    /// Last `currentTime` observed by the next-episode visibility
-    /// hook. Used to detect backward time movement (user scrubs back
-    /// from the trigger window) so the overlay + countdown can reset.
-    /// Without this the show-logic is one-way ("if remaining < 30
-    /// and overlay hidden, show it") and the overlay sticks on screen
-    /// when the user scrubs out of the end window.
+    /// Last `currentTime` seen by the next-episode hook, used to detect backward scrubs so the
+    /// overlay resets; without it the show-logic is one-way and the overlay sticks on screen.
     var lastPlaybackTimeForNextEpisode: Double = 0
 
-    // Intro skip + outro-aware next-episode trigger, both populated
-    // from Jellyfin Media Segments / intro-skipper plugin in one call.
+    // Intro + outro markers, both from Jellyfin Media Segments / intro-skipper plugin in one call.
     var introSegment: MediaSegment?
     var outroSegment: MediaSegment?
-    /// True while playbackTime is inside the intro range. UI shows the
-    /// Skip Intro button whenever this is true, regardless of whether
-    /// the transport controls are open.
+    /// True while playbackTime is inside the intro; shows Skip Intro even when controls are closed.
     var isInsideIntro: Bool = false
-    /// Set once per episode after an auto-skip fires, keeps the time
-    /// subscriber from re-triggering the skip in the brief window before
-    /// the seek actually moves currentTime past introEnd.
+    /// Set once per episode after auto-skip fires; keeps the time subscriber from re-triggering
+    /// before the seek moves currentTime past introEnd.
     var didAutoSkipCurrentIntro: Bool = false
-    /// Mirrors `didAutoSkipCurrentIntro` for the outro segment. Set the
-    /// first tick after playback crosses into the outro range; prevents
-    /// the auto-skip from firing repeatedly while currentTime ticks
-    /// through the couple of seconds between the marker and the seek
-    /// landing on outro.endSeconds.
+    /// Outro equivalent of `didAutoSkipCurrentIntro`; prevents repeat auto-skip while currentTime
+    /// ticks toward outro.endSeconds.
     var didAutoSkipCurrentOutro: Bool = false
-    /// Latches once the user (or auto-skip) has skipped this episode's
-    /// intro. While set, `updateIntroVisibility` refuses to flip
-    /// `isInsideIntro` back to true regardless of the currentTime
-    /// value reported, so stale pre-seek ticks arriving between
-    /// `skipIntro`'s synchronous flag flip and the actual seek landing
-    /// cannot revive the Skip Intro pill mid-fade-out. Cleared 500 ms
-    /// after `player.seek` returns (absorbing AVPlayer's post-seek
-    /// time jitter) so a subsequent deliberate backward scrub into or
-    /// past the intro range re-offers the pill. Also cleared on
-    /// episode change and as a fast path when a tick arrives with
-    /// `time < seg.startSeconds` before the settle window expires.
+    /// Skip-lockout latch: while set, `updateIntroVisibility` refuses to re-flip `isInsideIntro` true
+    /// so stale pre-seek ticks (between skipIntro's flag flip and the seek landing) can't revive the
+    /// pill mid-fade. Cleared 500ms after `player.seek` returns (absorbs post-seek jitter), on episode
+    /// change, and as a fast path when a tick arrives with `time < seg.startSeconds`.
     var didSkipCurrentIntro: Bool = false
 
     // MARK: - Dependencies
@@ -377,29 +277,22 @@ final class PlayerViewModel {
     var cachedPlaybackInfo: PlaybackInfoResponse?
     let preferences: PlaybackPreferences
 
-    /// When set, `startPlayback()` selects the matching source from the
-    /// PlaybackInfo response instead of taking the first one. Nil keeps the
-    /// previous default-first behavior. Set by the detail-view version picker.
+    /// When set, `startPlayback()` selects the matching PlaybackInfo source instead of first.
+    /// Nil keeps default-first. Set by the detail-view version picker.
     let preferredMediaSourceID: String?
 
-    /// Produces the scrub-preview thumbnail via the session FrameExtractor.
-    /// Configured per session in `startPlayback`, reset in `stopPlayback`.
+    /// Scrub-preview thumbnail provider over the session FrameExtractor; configured in startPlayback,
+    /// reset in stopPlayback.
     let scrubPreview: ScrubPreviewProvider
 
-    /// Session-scoped frame extractor. Built from the static stream URL
-    /// once per `startPlayback` and shut down in `stopPlayback`. Shared
-    /// by `scrubPreview` and `chapterThumbnail(forIndex:)`.
+    /// Session-scoped frame extractor (static stream URL); built in startPlayback, shut down in
+    /// stopPlayback. Shared by `scrubPreview` and `chapterThumbnail(forIndex:)`.
     @ObservationIgnored private var frameExtractor: FrameExtractor?
 
-    /// A still for a chapter. Prefers the Jellyfin-rendered chapter image
-    /// when the server has one (the `imageTag` is set once the "Chapter
-    /// image extraction" scheduled task has run): it's pre-rendered, cheap,
-    /// and cached, so it loads reliably for every chapter. Only when the
-    /// server has no image do we fall back to decoding the still ourselves
-    /// from the stream, which needs a deep random-access seek that grows
-    /// slower and flakier the further into the file the chapter sits, the
-    /// root of issue #21 where only the first couple of extractor seeks
-    /// landed. Nil if neither source yields an image or index is invalid.
+    /// A chapter still. Prefers the Jellyfin-rendered chapter image (when `imageTag` is set, post
+    /// "Chapter image extraction" task): pre-rendered, cheap, reliable. Falls back to decoding the
+    /// still ourselves, which needs a deep random-access seek that flakes deeper into the file
+    /// (root of issue #21). Nil if neither yields an image or index is invalid.
     func chapterThumbnail(forIndex index: Int) async -> CGImage? {
         guard chapters.indices.contains(index) else { return nil }
         let chapter = chapters[index]
@@ -417,11 +310,8 @@ final class PlayerViewModel {
         return await frameExtractor.thumbnail(at: chapter.startSeconds, maxWidth: 320)
     }
 
-    /// Fetches + decodes a server chapter image, reusing the shared
-    /// `ImageCache` (memory-only, cost-evicted) so re-opening the chapter
-    /// picker doesn't re-hit the network. Auth rides in the URL's `api_key`
-    /// query, like the other playback URLs, so no header is needed.
-    /// `nonisolated` + `static` lets the fetch/decode run off the MainActor.
+    /// Fetches + decodes a server chapter image via the shared `ImageCache` (memory-only). Auth rides
+    /// the URL's `api_key` query so no header needed; `nonisolated static` runs the decode off MainActor.
     nonisolated private static func loadServerChapterImage(from url: URL) async -> CGImage? {
         if let cached = ImageCache.shared.image(for: url) { return cached.cgImage }
         var request = URLRequest(url: url)
@@ -445,99 +335,69 @@ final class PlayerViewModel {
     var progressTimer: Task<Void, Never>?
     var progressReportOnDemandTask: Task<Void, Never>?
     var controlsTimer: Task<Void, Never>?
-    /// The in-flight continuous (hold-to-seek) scrub task. Non-nil while a
-    /// left/right press is held; advances scrubProgress with acceleration
-    /// until the press is released (see PlayerViewModel+Scrubbing).
+    /// In-flight continuous (hold-to-seek) scrub task; non-nil while left/right is held, advances
+    /// scrubProgress with acceleration until release (see PlayerViewModel+Scrubbing).
     var continuousSeekTask: Task<Void, Never>?
-    /// The in-flight initial-launch task (see `beginPlayback`). Held so
-    /// a back-press during the loading spinner can cancel it before it
-    /// calls `player.load()` on the shared engine. Without this, the
-    /// untracked task would resume after `stopPlayback()`'s
-    /// `player.stop()` and restart playback behind the dismissed player,
-    /// leaving audio running until an app restart.
+    /// In-flight initial-launch task (see `beginPlayback`), held so a back-press during the spinner
+    /// can cancel it before `player.load()`; untracked it would resume after stopPlayback's
+    /// player.stop() and restart playback behind a dismissed player (audio runs until app restart).
     var loadTask: Task<Void, Never>?
-    /// Latched true by `stopPlayback()`. `startPlayback()` resets it at
-    /// entry and re-checks it after every `await` so a teardown that
-    /// races an in-flight load (including the next-episode / season-picker
-    /// transitions, whose tasks aren't `loadTask` and so can't be
-    /// cancelled) still bails before, or immediately stops after,
-    /// `player.load()`.
+    /// Latched by `stopPlayback()`; startPlayback resets it at entry and re-checks after every await
+    /// so a teardown racing an in-flight load (incl. next-episode / season-picker tasks, not loadTask
+    /// and thus uncancellable) still bails before or stops right after `player.load()`.
     var isTearingDown = false
     var hasReportedStart = false
     var hasStartedPlaying = false
-    /// The position we resumed from, used as minimum for progress reports
-    /// to prevent Jellyfin from resetting progress when stopping early.
+    /// Resume position, used as minimum for progress reports so Jellyfin doesn't reset progress on early stop.
     var resumePositionTicks: Int64 = 0
     var mediaSourceID: String = ""
     var playSessionID: String?
     var activePlayMethod: PlayMethod = .directPlay
     var subtitleStreams: [MediaStream] = []
-    /// Codec of the active subtitle stream, lowercased Jellyfin value
-    /// ("ass" / "ssa" / "subrip" / ...). nil when subtitles are off.
+    /// Lowercased Jellyfin codec of the active subtitle ("ass"/"ssa"/"subrip"/...), nil when off.
     /// The overlay reads it to gate the raw-ASS-event-line stripper.
     var activeSubtitleCodec: String?
-    /// Styled ASS rendering bridge; active only while the selected
-    /// embedded subtitle track is ASS/SSA (AetherEngine#30). Lazy so
-    /// it can capture `player`; ignored by @Observable (the macro
-    /// can't expand lazy storage), the observable surface is
-    /// `assRenderer` below.
+    /// Styled ASS rendering bridge, active only while the selected embedded track is ASS/SSA
+    /// (AetherEngine#30). Lazy to capture `player`; @ObservationIgnored, observable surface is `assRenderer`.
     @ObservationIgnored private lazy var assCoordinator = ASSRenderCoordinator(player: player)
-    /// Mirror of `assCoordinator.renderer` on the observable surface,
-    /// updated at every activate/deactivate site so the overlay swaps
-    /// between the styled ASS layer and the cue path reactively
-    /// (the coordinator itself is not @Observable).
+    /// Observable mirror of `assCoordinator.renderer` (coordinator isn't @Observable), updated at
+    /// every activate/deactivate so the overlay swaps between styled ASS and cue path reactively.
     private(set) var assRenderer: AssSubtitlesRenderer?
-    /// One-shot observation of `engine.sidecarASSHeader` for the styled
-    /// ASS path on EXTERNAL .ass/.ssa sidecars (AetherEngine#48). Unlike
-    /// embedded tracks (header known at load time via TrackInfo), a
-    /// sidecar's header is published asynchronously when the engine
-    /// finishes decoding the file, so activation waits for the first
-    /// non-nil value. Cancelled on every track change / deactivate.
+    /// One-shot observation of `engine.sidecarASSHeader` for styled ASS on EXTERNAL .ass/.ssa sidecars
+    /// (AetherEngine#48): sidecar headers publish asynchronously (unlike embedded TrackInfo), so
+    /// activation waits for the first non-nil value. Cancelled on track change / deactivate.
     @ObservationIgnored private var sidecarASSHeaderCancellable: AnyCancellable?
-    /// Reload pre-announcements from the coordinator; the overlay's
-    /// frame view subscribes so reload-induced transient nil frames
-    /// never blank a visible subtitle. Stable for the VM's lifetime
-    /// (the coordinator is created once, lazily).
+    /// Coordinator reload pre-announcements; the overlay's frame view subscribes so reload-induced
+    /// transient nil frames never blank a visible subtitle. Stable for the VM lifetime.
     var assReloadSignal: PassthroughSubject<Void, Never> { assCoordinator.reloadSignal }
 
     // MARK: - Live TV
 
-    /// True when this session is a live channel rather than VOD. Gates DVR
-    /// transport and disables resume / chapters / next-episode.
+    /// True for a live channel (not VOD); gates DVR transport, disables resume / chapters / next-episode.
     private(set) var isLiveSession = false
-    /// The Jellyfin tuner handle for the current live stream; captured on
-    /// load, released on teardown. Nil for VOD.
+    /// Jellyfin tuner handle for the current live stream; captured on load, released on teardown. Nil for VOD.
     var activeLiveStreamID: String?
-    /// Live-edge mirror fields, populated by PlayerViewModel+Live from the
-    /// engine's published live surfaces.
+    /// Live-edge mirror fields, populated by PlayerViewModel+Live from the engine's live surfaces.
     var liveSeekableRange: ClosedRange<Double>?
     var isAtLiveEdge: Bool = true
     var behindLiveSeconds: Double = 0
-    /// The channel being played, for live sessions. Nil for VOD.
+    /// Channel for live sessions. Nil for VOD.
     let liveChannel: JellyfinChannel?
-    /// The live-TV service used by PlayerViewModel+Live for tuner lifecycle.
-    /// Nil for VOD.
+    /// Live-TV service for tuner lifecycle (PlayerViewModel+Live). Nil for VOD.
     let liveTvService: JellyfinLiveTvServiceProtocol?
-    /// Latched by `observeLiveEdge()` so a live retune (which re-runs
-    /// `loadLiveStream`) cannot stack duplicate Combine sinks on the same
-    /// view model.
+    /// Latched by `observeLiveEdge()` so a retune (re-runs `loadLiveStream`) can't stack duplicate sinks.
     var hasLiveEdgeObservers = false
-    /// Retune guard state for `handleLiveSourceReset`: a retune in flight
-    /// swallows further reset events, and a per-session cap with minimum
-    /// spacing stops a server that replays on EVERY reconnect from looping
-    /// tuner re-negotiations forever.
+    /// Retune guard for `handleLiveSourceReset`: in-flight retune swallows further resets; per-session
+    /// cap + min spacing stops a server replaying on EVERY reconnect from looping retunes forever.
     var liveRetuneInFlight = false
     var lastLiveRetuneAt: Date?
     var liveRetuneCount = 0
-    /// When live playback FIRST reached .playing. Gates the startup-window
-    /// spinner masking in the state sink (cold transcodes stall once right
-    /// after the start while the server catches up to real time).
+    /// When live first reached .playing; gates startup-window spinner masking (cold transcodes stall
+    /// once right after start while the server catches up to real time).
     var liveFirstPlayingAt: Date?
-    /// True while the current live session plays the tuner upstream
-    /// directly (HLS ingest), Jellyfin out of the data path.
+    /// True while this live session plays the tuner upstream directly (HLS ingest), Jellyfin out of the path.
     var usedDirectLivePath = false
-    /// Latch: the once-per-session fallback from direct to the Jellyfin
-    /// path has been consumed.
+    /// Latch: the once-per-session direct-to-Jellyfin fallback has been consumed.
     var didAttemptLiveFallback = false
 
     init(
@@ -571,14 +431,9 @@ final class PlayerViewModel {
 
     // MARK: - Lifecycle
 
-    /// Initial-launch entry point called by the host VC as the modal
-    /// appears. Routes through a tracked task so a back-press during the
-    /// loading spinner can cancel the in-flight `startPlayback()` (the
-    /// engine throws `CancellationError` out of `player.load()` on
-    /// cancel) before it touches the shared engine. The bare
-    /// `Task { await startPlayback() }` it replaces was untracked, so a
-    /// dismiss mid-load left the task to resume after `player.stop()` and
-    /// restart playback behind a gone player.
+    /// Initial-launch entry point (host VC, modal appear), via a tracked task so a back-press during
+    /// the spinner cancels the in-flight startPlayback (engine throws CancellationError out of
+    /// player.load()) before it touches the shared engine.
     func beginPlayback() {
         loadTask?.cancel()
         loadTask = Task { [weak self] in await self?.startPlayback() }
@@ -588,73 +443,49 @@ final class PlayerViewModel {
         isTearingDown = false
         isLoading = true
         clearError()
-        // Source-container chapters are already on the item if the
-        // detail fetch requested the Chapters field. Sort defensively
-        //, the API documents start-position order but a few legacy
-        // taggers emit them out of sequence.
+        // Sort chapters defensively: API documents start-position order but some legacy taggers emit out of sequence.
         let orderedChapters = (item.chapters ?? [])
             .enumerated()
             .sorted { $0.element.startPositionTicks < $1.element.startPositionTicks }
         chapters = orderedChapters.map(\.element)
         chapterImageIndices = orderedChapters.map(\.offset)
-        // Reset the picture mode to the user's global default for
-        // each new playback session, in-player overrides shouldn't
-        // bleed across episodes / movies.
+        // Reset to the global default each session so in-player overrides don't bleed across episodes/movies.
         pictureMode = preferences.pictureMode
         applyPictureMode()
         #if DEBUG
         print("[PlayerVM] startPlayback: item=\(item.name), seriesId=\(item.seriesId ?? "nil"), type=\(item.type), chapters=\(chapters.count)")
         #endif
 
-        // Now Playing is driven by AVKit's internal session: it
-        // activates automatically when `showsPlaybackControls = true`
-        // (set on the host VC) and an AVPlayer is assigned, and
-        // reads title/description/artwork off
-        // `AVPlayerItem.externalMetadata`. The engine stages those
-        // via setExternalMetadata pre-load; we refresh with cover
-        // post-load below. The 10s skip remote commands are opt-in
-        // so we bind them explicitly on the shared command center.
+        // Now Playing is driven by AVKit's internal session (auto-activates with showsPlaybackControls
+        // + an assigned AVPlayer, reads AVPlayerItem.externalMetadata). 10s skip commands are opt-in,
+        // bound explicitly on the shared command center.
         bindRemoteSkipCommands()
 
         do {
-            // Live channels take a dedicated load path: open the tuner,
-            // pick the infinite live MediaSource, and hand it to the engine
-            // with isLive + a DVR window. The VOD wiring below (resume,
-            // chapters, intro markers, episode picker) does not apply, so we
-            // reproduce only the shared post-load steps and return. Kept as a
-            // separate branch on purpose: the VOD path below stays untouched.
+            // Live channels take a dedicated load path (open tuner, infinite live MediaSource, isLive
+            // + DVR window). VOD wiring below (resume, chapters, intro markers, episode picker) doesn't
+            // apply; the shared post-load steps are duplicated here on purpose to keep the VOD path untouched.
             if isLiveSession {
                 stageInitialNowPlayingMetadata()
-                // Reset per-session direct-path flags so a re-entrant
-                // startPlayback (shouldn't happen in practice, but guards
-                // against a future caller) starts clean.
                 usedDirectLivePath = false
                 didAttemptLiveFallback = false
                 try await loadLiveStream()
                 if Task.isCancelled || isTearingDown {
                     player.stop()
-                    // loadLiveStream() may have opened a tuner before the
-                    // cancel landed; release it so the server does not leak.
+                    // loadLiveStream() may have opened a tuner before cancel landed; release so server doesn't leak.
                     releaseLiveTunerIfNeeded()
                     isLoading = false
                     return
                 }
-                // Shared post-load wiring (mirrors the VOD path; live skips
-                // resume, chapters, intro markers, and the episode picker).
-                // Duplicated rather than extracted to keep the VOD path intact.
                 let preferredAudio = effectivePreferredAudioLanguage()
                 let chosenAudio = player.audioTracks.first(where: {
                     preferredAudio != nil && Self.languagesMatch($0.language, preferredAudio)
                 }) ?? player.audioTracks.first(where: { $0.isDefault })
                   ?? player.audioTracks.first
-                // Only switch when there is an actual CHOICE. A live
-                // audio switch is an engine reload; on a single-track
-                // channel the engine already plays the only track, and a
-                // phantom index mismatch here used to reload the session
-                // ~2 s after start and stall AVPlayer (device repro:
-                // Das Erste on the server route, frozen frame, no audio).
-                // The engine now reconciles its published index after
-                // live loads; this guard is the host-side belt.
+                // Only switch on an actual CHOICE: a live audio switch is an engine reload; a phantom
+                // index mismatch on a single-track channel reloaded the session ~2s after start and
+                // stalled AVPlayer (repro: Das Erste, frozen frame). Engine now reconciles its index;
+                // this is the host-side belt.
                 if let chosenAudio,
                    player.audioTracks.count > 1,
                    chosenAudio.id != player.activeAudioTrackIndex {
@@ -696,24 +527,9 @@ final class PlayerViewModel {
             }
             #endif
 
-            // Filter subtitle streams:
-            // 1. Exclude image-based formats (PGS, VOBSUB), can't convert to text
-            // 2. Drop forced tracks, they only cover foreign-dialogue
-            //    segments inside an otherwise-understood audio track, so
-            //    users rarely want them on; keeping them also poisons the
-            //    preferred-language auto-select (a forced "deu" beats a
-            //    full "deu" track if it comes first).
-            // 3. Deduplicate same-language streams with no distinguishing metadata.
-            // Bitmap codecs (PGS / HDMV / DVB / DVD) used to be excluded
-            // here because the legacy server-extraction path couldn't
-            // produce SRT for them. The engine renders them as CGImage
-            // now, so they belong in the picker. "Forced" tracks also
-            // stay in the list, many releases mark every subtitle
-            // track as forced and we'd otherwise leave the user with
-            // an empty dropdown for a file that obviously has subs.
-            // The dedupe step below uses `forced` / `signs` / `sdh` /
-            // etc. as descriptors so distinct tracks for the same
-            // language don't collapse into one.
+            // Keep all subtitle tracks: bitmap codecs (PGS/HDMV/DVB/DVD) now render as CGImage so they
+            // belong in the picker, and forced tracks stay (many releases mark every track forced). Dedupe
+            // keys on forced/signs/sdh descriptors so distinct same-language tracks don't collapse.
             subtitleStreams = Self.dedupedSubtitleStreams(from: source.mediaStreams)
 
             let url: URL
@@ -745,11 +561,8 @@ final class PlayerViewModel {
                 throw PlayerEngineError.noURL
             }
 
-            // Scrub preview + chapter thumbnails decode stills from the
-            // original file via FFmpeg, independent of how playback
-            // streams it (direct or transcode). Build against
-            // buildStreamURL(isStatic:true) so transcode sessions still
-            // get a preview. api_key rides in the URL query.
+            // Scrub preview + chapter thumbnails decode stills from the original file (isStatic:true)
+            // regardless of playback method, so transcode sessions still get a preview.
             if let previewURL = playbackService.buildStreamURL(
                 itemID: item.id, mediaSourceID: source.id,
                 container: source.container, isStatic: true
@@ -773,75 +586,30 @@ final class PlayerViewModel {
                 resumePositionTicks = 0
             }
 
-            // Stage title / description as externalMetadata BEFORE
-            // engine.load so the engine applies it to the AVPlayerItem
-            // pre-replaceCurrentItem. Cover follows asynchronously
-            // post-load via refreshExternalMetadataWithArtwork(),
-            // which the engine writes onto the live AVPlayerItem;
-            // AVKit's internal Now Playing session re-reads
-            // externalMetadata automatically.
-            //
+            // Stage title/description as externalMetadata BEFORE engine.load (applied pre-replaceCurrentItem);
+            // cover follows async post-load via refreshExternalMetadataWithArtwork(); AVKit re-reads it.
             stageInitialNowPlayingMetadata()
 
-            // Bail before touching the shared engine if the player was
-            // torn down while we awaited playback info (user pressed Back
-            // during the loading spinner). Otherwise this in-flight task
-            // calls player.load() AFTER stopPlayback()'s player.stop(),
-            // restarting playback with no UI to dismiss it, audio keeps
-            // running until an app restart.
+            // Bail before touching the shared engine if torn down while awaiting playback info, else
+            // this in-flight task calls player.load() AFTER stopPlayback's player.stop() and restarts
+            // playback with no UI to dismiss it (audio runs until app restart).
             if Task.isCancelled || isTearingDown {
                 isLoading = false
                 return
             }
 
-            // Single load path: hand the source to the engine and let
-            // it pick AVPlayer-backed native (the default) or fall
-            // through to its legacy aether sample-buffer path for
-            // codecs HLSVideoEngine still rejects (VP9 / AV1 until
-            // Phase 3; DV P7 always). Format detection, HDMI HDR
-            // handshake, AVPlayerLayer ownership, and refresh-rate
-            // matching all live inside engine.load(url:options:) now.
+            // Single load path: engine picks native AVPlayer or its sample-buffer fallback (VP9/AV1,
+            // DV P7). Format detection, HDMI HDR handshake, layer ownership, refresh-rate matching all
+            // inside engine.load now.
             LogTap.shared.note("[PlayerVM] engine.load url=\(url.absoluteString)")
-            // Two panel-state inputs feed the engine's master-vs-media
-            // playlist routing:
-            // - `matchContentEnabled` mirrors the tvOS Match Content
-            //   master toggle (Dynamic Range OR Frame Rate). False means
-            //   tvOS keeps the panel locked in its current mode, so the
-            //   engine knows AVPlayer can't drive a panel-mode switch.
-            // - `panelIsInHDRMode` reflects whether the panel is right
-            //   now in HDR (EDR active). True means master-playlist
-            //   routing is safe regardless of the match flag, because
-            //   the panel already accepts HDR signaling and any
-            //   SUPPLEMENTAL-CODECS=dvh1 upgrade hint can land per
-            //   DrHurt's empirical test in AetherEngine#4. False (panel
-            //   currently SDR) means the engine falls back to media for
-            //   HDR sources unless match-content is on AND the display
-            //   can do HDR, since otherwise AVPlayer fails asset open
-            //   with `Cannot Open` (-11848) on a master that claims
-            //   HDR while the panel sits in SDR.
-            // Engine drives the criteria pre-flight; AVKit's auto
-            // path is disabled on PlayerHostController so only one
-            // writer touches AVDisplayManager.preferredDisplayCriteria
-            // per session. The engine's apply() fires BEFORE asset.load
-            // and blocks on the two-stage waitForSwitch (AetherEngine
-            // c08dcfc) until the panel actually reaches the target
-            // dynamic range, which is the only way to guarantee the
-            // panel is in DV mode before AVPlayer attempts to decode
-            // the first DV5 frame. The earlier waitForSwitch
-            // implementation had an async-handshake race that broke
-            // DV8.1 on HDR10 panels (commit 7f225e74 → fd3368c8
-            // revert); c08dcfc's two-stage poll closes that gap.
-            // AVKit is the sole criteria writer (host has
-            // appliesPreferredDisplayCriteriaAutomatically=true on
-            // PlayerHostController), engine pre-flight is OFF via
-            // suppressDisplayCriteria=true. AVKit reads the live
-            // AVPlayerItem.formatDescription (which has dvcC parsed
-            // from the fMP4 sample entry via private CoreMedia hooks)
-            // and writes correct DV criteria the panel actually
-            // honours. The engine's job shrinks to GATING play() on
-            // the panel handshake completion (AetherEngine 5d60dbb).
-            // See PlayerHostController's init comment for the full
-            // architecture rationale.
+            // matchContentEnabled (tvOS Match Content master toggle) + panelIsInHDRMode (EDR active)
+            // feed the engine's master-vs-media playlist routing: panel-in-HDR makes master routing safe
+            // regardless of the match flag (SUPPLEMENTAL-CODECS=dvh1 upgrade per AetherEngine#4), else
+            // HDR sources fall back to media to avoid AVPlayer asset-open -11848 on an SDR panel.
+            // AVKit is the sole criteria writer (appliesPreferredDisplayCriteriaAutomatically=true on
+            // PlayerHostController); it reads live AVPlayerItem.formatDescription (dvcC from the fMP4
+            // sample entry) and writes the DV criteria, engine only GATES play() on the panel handshake
+            // (AetherEngine 5d60dbb). See PlayerHostController init for full rationale.
             try await player.load(
                 url: url,
                 startPosition: startPos,
@@ -850,17 +618,13 @@ final class PlayerViewModel {
                     matchContentEnabled: Self.matchDynamicRangeEnabled,
                     panelIsInHDRMode: Self.panelIsInHDRMode,
                     audioBridgeMode: preferences.audioBridgeMode,
-                    // Raw ASS event lines for the styled-subtitle path
-                    // (ASSRenderCoordinator). Only changes ASS/SSA cue
-                    // content; other subtitle codecs are unaffected.
+                    // Raw ASS event lines for the styled path; only affects ASS/SSA cue content.
                     preserveASSMarkup: true
                 )
             )
 
-            // Teardown can land in the tiny window between load() returning
-            // and us wiring up observation (back-press just as the engine
-            // finished opening the asset). Stop the engine we just started
-            // and bail so nothing plays behind the dismissed player.
+            // Teardown can land between load() returning and observation wiring (back-press just as the
+            // asset opened); stop the engine we just started so nothing plays behind a dismissed player.
             if Task.isCancelled || isTearingDown {
                 player.stop()
                 isLoading = false
@@ -868,25 +632,15 @@ final class PlayerViewModel {
             }
 
             totalTime = formatSeconds(effectiveDuration)
-            // Audio track priority: preferred language → stream default → first.
-            // Engine has already picked the container's default; we only
-            // call selectAudioTrack if the user's preferred language is
-            // available and differs from that pick, which goes through
-            // the reload path (one extra ~1 s pipeline restart at session
-            // start). Common case: preferred language matches default,
-            // no reload happens.
+            // Audio priority: preferred language → stream default → first. Engine already picked the
+            // container default; selectAudioTrack (a ~1s reload) only fires if preferred differs.
             let preferredAudio = effectivePreferredAudioLanguage()
             let chosenAudio = player.audioTracks.first(where: {
                 preferredAudio != nil && Self.languagesMatch($0.language, preferredAudio)
             }) ?? player.audioTracks.first(where: { $0.isDefault })
               ?? player.audioTracks.first
-            // Live: keep the engine's auto-pick. The reselect costs a full
-            // pipeline reload (fresh source connection, rejoin at the live
-            // edge), and broadcast channels rarely carry language
-            // alternatives worth it. It also mis-fired on channels whose
-            // session came up video-only (activeAudioTrackIndex nil, KiKA)
-            // and turned a silent stream into an error screen. Manual
-            // selection through the track menu still works.
+            // Live keeps the engine's auto-pick: reselect costs a full pipeline reload, and it mis-fired
+            // on video-only channels (activeAudioTrackIndex nil, KiKA) turning a silent stream into an error.
             if let chosenAudio, chosenAudio.id != player.activeAudioTrackIndex,
                !isLiveSession {
                 player.selectAudioTrack(index: chosenAudio.id)
@@ -898,42 +652,27 @@ final class PlayerViewModel {
             isPlaying = true
 
             startObserving()
-            // Cover fetch happens async post-load; the engine writes
-            // the updated externalMetadata to the live AVPlayerItem
-            // and the session republishes automatically when the
-            // task completes.
+            // Cover fetch is async post-load; engine writes externalMetadata to the live item and the session republishes.
             Task { [weak self] in await self?.refreshExternalMetadataWithArtwork() }
             await reportStart()
             startProgressReporting()
 
-            // Fetch intro marker in the background, don't block
-            // playback start if the server is slow or doesn't expose
-            // the endpoint. Once the marker lands the next time tick
-            // will flip isInsideIntro on naturally.
+            // Background fetch, doesn't block start; the next tick flips isInsideIntro once the marker lands.
             Task { [weak self] in await self?.loadEpisodeSegments() }
 
-            // Same fire-and-forget: the season episode list powers the
-            // transport-bar episode picker. A movie or single-episode
-            // series leaves the list empty and the picker stays hidden.
+            // Powers the transport-bar episode picker; stays empty (picker hidden) for movies / single-episode.
             Task { [weak self] in await self?.loadSeasonEpisodes() }
 
         } catch is CancellationError {
-            // The engine signals a SUPERSEDED load this way: a newer
-            // load/stop took over the singleton engine mid-flight (rapid
-            // channel zap, player dismissed during spin-up). The
-            // successor owns the engine and its UI; showing an error
-            // here would clobber it. Still release any tuner THIS load
-            // opened.
+            // Engine signals a SUPERSEDED load this way (newer load/stop took the singleton mid-flight,
+            // rapid channel zap / dismiss during spin-up). The successor owns the engine + UI; an error
+            // here would clobber it. Still release any tuner THIS load opened.
             releaseLiveTunerIfNeeded()
         } catch {
-            // If a live load opened the tuner before failing, release it.
-            // No-op for VOD (activeLiveStreamID is nil).
+            // Release the tuner if a live load opened one before failing. No-op for VOD.
             releaseLiveTunerIfNeeded()
             if isLiveSession && !(error is APIError) {
-                // Engine-level live open failure (probe fail-fast, no
-                // source): the server cannot deliver this channel's
-                // stream. Friendly message instead of the raw engine
-                // error; APIErrors keep their specific trio.
+                // Engine-level live open failure (probe fail-fast): friendly message, APIErrors keep their trio.
                 setLiveChannelUnavailableError()
             } else {
                 setError(from: error)
@@ -942,10 +681,8 @@ final class PlayerViewModel {
         }
     }
 
-    /// Apple TV's "Match Dynamic Range" toggle. Read at the same
-    /// instant the host renders an HDR badge so the badge only shows
-    /// when the panel is actually engaging HDR mode for the current
-    /// session.
+    /// Apple TV's "Match Dynamic Range" toggle; read when rendering the HDR badge so it only shows
+    /// when the panel actually engages HDR.
     static var matchDynamicRangeEnabled: Bool {
         #if os(tvOS)
         guard let win = UIApplication.shared.connectedScenes
@@ -960,13 +697,9 @@ final class PlayerViewModel {
     }
 
     /// Snapshot of whether the connected panel is currently presenting
-    /// in HDR (EDR active). Read off `UIScreen.currentEDRHeadroom`,
-    /// which AVKit / UIKit publishes per active display; > 1.0 means
-    /// the panel is in an HDR mode and accepting extended-range pixels
-    /// at this moment. Feeds the engine's master-vs-media playlist
-    /// routing as the strong signal that master-playlist routing is
-    /// safe even with Match Dynamic Range off (per DrHurt's
-    /// HDR10-locked-panel-upgrades-to-DV test in AetherEngine#4).
+    /// Whether the panel is presenting in HDR now (`UIScreen.currentEDRHeadroom` > 1.0). Feeds the
+    /// engine's master-vs-media routing as the strong signal that master routing is safe even with
+    /// Match Dynamic Range off (AetherEngine#4).
     static var panelIsInHDRMode: Bool {
         #if os(tvOS)
         guard let win = UIApplication.shared.connectedScenes
@@ -974,44 +707,30 @@ final class PlayerViewModel {
             .flatMap({ $0.windows })
             .first
         else { return false }
-        // `currentEDRHeadroom == 1.0` means the panel is in SDR; > 1.0
-        // means HDR is active and the renderer can present brighter-
-        // than-paper-white pixels. Use a small epsilon to dodge a
-        // floating-point comparison glitch on the boundary.
+        // Headroom 1.0 = SDR, > 1.0 = HDR active; epsilon dodges a boundary float-comparison glitch.
         return win.screen.currentEDRHeadroom > 1.001
         #else
         return false
         #endif
     }
 
-    /// Tear down the active playback session. Synchronous local
-    /// work (progress reporting, KVO, engine stop) finishes inline;
-    /// the network "reportStop" round-trip is detached into a
-    /// background Task so a slow / hiccupping Jellyfin server can't
-    /// stall the dismiss path. The default 30 s URLRequest timeout on
-    /// the report would otherwise leave the user staring at a still-up
-    /// player after their back press on a slow CDN (DrHurt #12). Same
-    /// fire-and-forget shape `playNextEpisode` already uses. The
-    /// session endpoints also opt into a 90 s timeout so the position
-    /// write survives a slow origin without being silently dropped.
+    /// Tear down the session. Local work (progress reporting, KVO, engine stop) finishes inline;
+    /// the network reportStop is detached so a slow Jellyfin server can't stall the dismiss path
+    /// (default 30s timeout would leave the player up on a slow CDN, DrHurt #12). Session endpoints
+    /// opt into a 90s timeout so the position write survives a slow origin.
     func stopPlayback() {
-        // Latch teardown and cancel the in-flight launch first. The flag
-        // is re-checked after every await in startPlayback; the cancel
-        // makes the engine throw CancellationError out of an in-flight
-        // player.load(). Together they stop a back-press-during-load from
-        // resuming into player.load() after the player.stop() below.
+        // Latch teardown + cancel the in-flight launch (re-checked after every await in startPlayback;
+        // cancel throws CancellationError out of player.load()) so a back-press-during-load can't resume
+        // into player.load() after the player.stop() below.
         isTearingDown = true
         loadTask?.cancel()
         loadTask = nil
         stopProgressReporting()
         progressReportOnDemandTask?.cancel()
         progressReportOnDemandTask = nil
-        // The next-episode countdown is NOT cancelled by external
-        // dismissals (deep link / TopShelf while the overlay counts
-        // down); left running it would fire playNextEpisode() against
-        // the shared engine behind a dismissed player, and
-        // startPlayback resets isTearingDown at entry, defeating the
-        // latch above. Kill every UI timer with the session.
+        // External dismissals (deep link / TopShelf) don't cancel the next-episode countdown; left
+        // running it fires playNextEpisode() behind a dismissed player (startPlayback resets isTearingDown
+        // at entry, defeating the latch). Kill every UI timer with the session.
         nextEpisodeTimer?.cancel()
         nextEpisodeTimer = nil
         controlsTimer?.cancel()
@@ -1023,24 +742,13 @@ final class PlayerViewModel {
         let extractorToClose = frameExtractor
         frameExtractor = nil
         Task { await extractorToClose?.shutdown() }
-        // AVKit clears its internal Now Playing registration when
-        // the host VC sets `player = nil` (done in dismissPlayer /
-        // viewWillDisappear).
         deactivateASSRendering()
         cancellables.removeAll()
-        // Capture position synchronously, then stop the engine, then
-        // fire-and-forget the report. The capture-then-stop order is
-        // critical: player.stop() resets currentTime to 0, so we'd
-        // lose the position if we read it inside reportStop after
-        // the stop.
+        // Capture position BEFORE stopping: player.stop() resets currentTime to 0.
         let finalTicks = currentPositionTicks
-        // Snapshot the report payload + service BEFORE engine teardown
-        // and detach with a strong capture. If we used `[weak self]`,
-        // PlayerHostController's dismissal could deallocate the view model before
-        // the @MainActor hop ran, dropping the position write silently
-        // (precisely DrHurt's "don't timeout on it too soon" concern,
-        // just via lifecycle instead of network). The detached task
-        // owns everything it needs to complete on its own.
+        // Snapshot the payload + service and detach with a STRONG capture: a [weak self] task could be
+        // deallocated by PlayerHostController's dismissal before the @MainActor hop ran, silently dropping
+        // the position write.
         let svc = playbackService
         let stopReport = PlaybackStopReport(
             itemId: item.id,
@@ -1049,18 +757,11 @@ final class PlayerViewModel {
             positionTicks: finalTicks,
             liveStreamId: activeLiveStreamID
         )
-        // Engine handles native AVPlayer teardown + HLS server shutdown
-        // + AVDisplayManager criteria reset inside stopInternal(). The
-        // host just calls stop() and trusts the engine to leave the
-        // session in a clean state for the next playback.
+        // Engine does native teardown + HLS server shutdown + AVDisplayManager criteria reset in stopInternal().
         player.stop()
-        // Explicit tuner release safety net. The stop report above already
-        // carries liveStreamId, but if that report fails to deliver this
-        // detached close still frees the server-side tuner. No-op for VOD.
+        // Tuner-release safety net: frees the server-side tuner even if the stop report fails to deliver. No-op for VOD.
         releaseLiveTunerIfNeeded()
-        // Fire-and-forget: caller (dismissPlayer / viewWillDisappear)
-        // returns immediately so the SwiftUI dismiss animation can
-        // start without waiting on Jellyfin's PlaybackStopped endpoint.
+        // Fire-and-forget so the caller can start the dismiss animation without waiting on PlaybackStopped.
         let sessionToKill = playSessionID
         Task.detached {
             do {
@@ -1080,12 +781,8 @@ final class PlayerViewModel {
                 print("[SessionReport] Stop FAILED: \(error)")
                 #endif
             }
-            // Explicit transcode kill, independent of the stop report's
-            // fate: live transcodes write an endlessly growing stream.ts
-            // server-side, and an orphaned job (lost report, crash, app
-            // kill on a previous run) fills the server disk. Same DELETE
-            // /Videos/ActiveEncodings jellyfin-web fires on every stop;
-            // harmless no-op when nothing is encoding.
+            // Explicit transcode kill independent of the stop report: orphaned live transcodes write an
+            // endlessly growing stream.ts and fill the server disk (DELETE /Videos/ActiveEncodings, no-op when idle).
             if let sessionToKill {
                 try? await svc.stopActiveEncodings(playSessionID: sessionToKill)
             }
@@ -1105,19 +802,13 @@ final class PlayerViewModel {
                     self.hasStartedPlaying = true
                     self.isPlaying = true
                     if self.isLiveSession, firstPlay {
-                        // Cold live transcodes: AVPlayer flips to .playing
-                        // ~1s before the segment at its start position has
-                        // arrived, stalls within ~50ms, and resumes after
-                        // the fetch. Clearing the spinner on that first
-                        // flicker swaps it for a frozen frame; debounce the
-                        // clear so the spinner rides through the gun-jump.
+                        // Cold live transcodes flip to .playing ~1s before the start segment arrives, stall,
+                        // then resume; clearing the spinner on that flicker shows a frozen frame, so debounce 700ms.
                         self.liveFirstPlayingAt = Date()
                         Task { @MainActor [weak self] in
                             try? await Task.sleep(nanoseconds: 700_000_000)
-                            // Engine state, not isPlaying: a stall within
-                            // the window flips state to .loading but leaves
-                            // isPlaying true; the spinner must stay until
-                            // the NEXT .playing clears it.
+                            // Gate on engine state, not isPlaying: a stall flips state to .loading but leaves
+                            // isPlaying true; the spinner must stay until the NEXT .playing.
                             guard let self, case .playing = self.player.state else { return }
                             self.isLoading = false
                         }
@@ -1130,13 +821,8 @@ final class PlayerViewModel {
                     self.isPlaying = false
                 case .idle:
                     self.isPlaying = false
-                    // Demux EOF, safety net countdown start for cases
-                    // where player.$currentTime never fires near the
-                    // end (Combine only emits on value changes, and
-                    // the demux's 15–20 s look-ahead means currentTime
-                    // can stall a few seconds short of duration). Cap
-                    // at 10 s so the overlay copy stays readable even
-                    // if the real remaining is tiny.
+                    // Demux-EOF safety net for when $currentTime stalls a few seconds short of duration
+                    // (demux's 15-20s look-ahead); cap the countdown at 10s so the overlay copy stays readable.
                     if self.hasStartedPlaying,
                        self.nextEpisode != nil,
                        !self.nextEpisodeCancelled,
@@ -1148,13 +834,8 @@ final class PlayerViewModel {
                     } else if self.hasStartedPlaying,
                               self.nextEpisode == nil,
                               !self.showNextEpisodeOverlay {
-                        // Real end-of-content: a movie just finished, or
-                        // the last episode of a series rolled credits.
-                        // The engine reaches .idle on stop(); for native
-                        // sessions, end-of-stream auto-dismiss currently
-                        // depends on the user / next-episode countdown
-                        // since AVPlayer's didPlayToEnd → engine state
-                        // wiring is a follow-up.
+                        // Real end-of-content (movie / last episode). Native-path end-of-stream auto-dismiss
+                        // still depends on the user / next-episode countdown (AVPlayer didPlayToEnd wiring is a follow-up).
                         self.onPlaybackReachedEnd?()
                     }
                 case .loading:
@@ -1163,11 +844,8 @@ final class PlayerViewModel {
                     } else if self.isLiveSession,
                               let firstPlay = self.liveFirstPlayingAt,
                               Date().timeIntervalSince(firstPlay) < 15 {
-                        // Early live re-buffer (cold transcode still
-                        // catching up to real time right after start):
-                        // surface the spinner instead of a silent frozen
-                        // frame. Bounded to the startup window so brief
-                        // mid-session blips don't flash the spinner.
+                        // Early live re-buffer (cold transcode catching up): surface the spinner instead of a
+                        // frozen frame. Bounded to the startup window so mid-session blips don't flash it.
                         self.isLoading = true
                     }
                 case .seeking:
@@ -1175,27 +853,18 @@ final class PlayerViewModel {
                 case .error(let msg):
                     if self.isLiveSession, self.liveFirstPlayingAt == nil,
                        self.usedDirectLivePath, !self.didAttemptLiveFallback {
-                        // Direct session died before first frame: consume the
-                        // once-per-session fallback via the guarded retune path
-                        // (handleLiveSourceReset flips the flags, counts the retune,
-                        // and keeps the spinner up).
+                        // Direct session died before first frame: consume the once-per-session fallback via
+                        // the guarded retune path.
                         LogTap.shared.note("[LiveDirect] route=fallback reason=engine_error_pre_play(\(msg))")
                         self.handleLiveSourceReset()
                     } else if self.isLiveSession, self.liveFirstPlayingAt == nil {
-                        // Live channel died before ever playing: the
-                        // server could not open the source. Same friendly
-                        // message as the load-path failure; "Playback
-                        // stopped" + raw engine text is for sessions
-                        // that were actually running.
+                        // Live channel died before ever playing: friendly "unavailable" message ("Playback
+                        // stopped" + raw text is for sessions that actually ran).
                         self.setLiveChannelUnavailableError()
                         self.isLoading = false
                     } else if self.isLiveSession {
-                        // Mid-session engine error on a live channel:
-                        // retune instead of surfacing raw engine text.
-                        // A live transcode dying is recoverable the same
-                        // way a source reset is, and the retune guard
-                        // (budget + spacing) surfaces a friendly error
-                        // once attempts are exhausted.
+                        // Mid-session live error: retune (recoverable like a source reset); the retune guard
+                        // surfaces a friendly error once attempts are exhausted.
                         LogTap.shared.note("[Live] route=retune reason=engine_error_mid_session(\(msg))")
                         self.handleLiveSourceReset()
                     } else {
@@ -1211,10 +880,8 @@ final class PlayerViewModel {
             .sink { [weak self] t in self?.subtitleTime = t }
             .store(in: &cancellables)
 
-        // Live source replay after a reconnect (Jellyfin transcode respawn
-        // re-served the stream from its beginning). The engine parked the
-        // session and cannot recover on the same URL; re-negotiate a fresh
-        // playback session at the live edge.
+        // Live source replay after a reconnect (Jellyfin transcode respawn re-served from the start);
+        // engine parked the session and can't recover on the same URL, so re-negotiate at the live edge.
         player.liveSourceReset
             .receive(on: DispatchQueue.main)
             .sink { [weak self] in self?.handleLiveSourceReset() }
@@ -1225,26 +892,16 @@ final class PlayerViewModel {
             .sink { [weak self] time in
                 guard let self else { return }
                 self.playbackTime = time
-                // Segment markers (intro/outro) from Jellyfin live on the
-                // absolute source timeline; player.currentTime is the
-                // AVPlayer clock (source - playlistShiftSeconds on the
-                // native HLS path). Compare against sourceTime so the
-                // ranges line up regardless of the per-session shift,
-                // mirroring how the subtitle path already keys off it.
+                // Intro/outro markers are absolute source-timeline values; currentTime is the AVPlayer
+                // clock (source - playlistShiftSeconds on native HLS), so compare against sourceTime.
                 self.updateIntroVisibility(time: self.player.sourceTime)
                 self.updateOutroAutoSkip(time: self.player.sourceTime)
                 self.checkForNextEpisode()
                 let dur = self.effectiveDuration
                 let remaining = dur - time
 
-                // Detect backward time movement (scrub-back) and reset
-                // the next-episode overlay + countdown so the user
-                // sees the same fresh trigger when they return to the
-                // end. Tolerate small jitter from AVPlayer's internal
-                // precision; only > 1 s backward counts as a real
-                // scrub. The forward-trigger logic below re-fires
-                // naturally on the next tick once the user reaches
-                // the trigger window again.
+                // Detect backward movement (scrub-back) and reset the next-episode overlay; > 1s tolerates
+                // AVPlayer jitter. The forward-trigger below re-fires naturally on the next tick.
                 let movedBackward = time + 1.0 < self.lastPlaybackTimeForNextEpisode
                 self.lastPlaybackTimeForNextEpisode = time
                 if movedBackward, self.showNextEpisodeOverlay {
@@ -1252,21 +909,8 @@ final class PlayerViewModel {
                 }
 
                 if self.nextEpisode != nil && !self.nextEpisodeCancelled && dur > 0 && remaining > 0 {
-                    // Two separate UI-visibility flows depending on
-                    // whether the server gave us an outro marker.
-                    //
-                    // Outro available:
-                    //   Credits typically run 2–3 minutes. Show the
-                    //   overlay the moment we cross outro.startSeconds
-                    //   and fire a fixed 10 s countdown, transition
-                    //   happens well before the episode naturally ends,
-                    //   cutting through the credits.
-                    //
-                    // No outro:
-                    //   Fall back to "show at 30 s, countdown at 10 s
-                    //   remaining, synced to the clock." Countdown
-                    //   hits 0 right at playback end, seamless
-                    //   transition that doesn't cut anything off.
+                    // Outro available: show + fixed 10s countdown at outro.startSeconds, cutting through
+                    // the credits. No outro: show at 30s remaining, countdown at 10s synced to the clock.
                     if let outro = self.outroSegment {
                         // sourceTime, not the AVPlayer clock: outro.startSeconds
                         // is an absolute source-timeline marker.
@@ -1286,25 +930,18 @@ final class PlayerViewModel {
                         }
                     }
                 }
-                // Elapsed/remaining track the live playhead even while
-                // scrubbing: playback keeps running during a scrub, so the
-                // bottom time labels must keep advancing. The scrub target is
-                // previewed separately in the scrub bubble (`scrubTime`).
+                // Time labels track the live playhead even while scrubbing (playback keeps running); the
+                // scrub target previews separately in the scrub bubble (`scrubTime`).
                 self.currentTime = self.formatSeconds(time)
                 let rem = dur - time
                 self.remainingTime = rem > 0 ? "-\(self.formatSeconds(rem))" : "-00:00"
-                // The progress bar and the warmed scrub frame, on the other
-                // hand, must NOT follow the live clock during a scrub or they
-                // would fight the user's scrubProgress. Gate just those.
+                // Progress bar + warmed frame must NOT follow the live clock during a scrub (would fight scrubProgress).
                 guard !self.isScrubbing else { return }
-                // Live owns `progress` via the DVR baseline subscription in
-                // observeLiveEdge (live duration is 0, so the VOD math below
-                // would pin it to 0). Leave VOD untouched.
+                // Live owns `progress` via the DVR baseline in observeLiveEdge (live duration is 0). Leave VOD untouched.
                 if !self.isLiveSession {
                     self.progress = dur > 0 ? Float(time / dur) : 0
                 }
-                // Keep one frame warm at the playhead so the first scrub frame
-                // is already on screen the instant the user swipes to scrub.
+                // Keep one frame warm at the playhead so the first scrub frame is on screen instantly.
                 self.scrubPreview.warm(toSeconds: time)
             }
             .store(in: &cancellables)
@@ -1321,19 +958,14 @@ final class PlayerViewModel {
             .receive(on: DispatchQueue.main)
             .sink { [weak self] format in
                 guard let self else { return }
-                // Engine sources videoFormat from its demuxer probe
-                // and from late-discovered HDR10+ T.35 SEI mid-stream,
-                // works for both backends. Log transitions for
-                // TestFlight diagnostics.
+                // Log videoFormat transitions for TestFlight diagnostics (engine sources it from the demuxer
+                // probe + late-discovered HDR10+ T.35 SEI mid-stream).
                 if format != self.videoFormat {
                     let line = "[PlayerVM] videoFormat changed: \(self.videoFormat) → \(format)"
                     print(line)
                     LogTap.shared.note(line)
                 }
-                // Only show the HDR badge if the panel actually went
-                // to HDR mode. With Match Dynamic Range off, the TV
-                // stays in SDR even for an HDR source, so showing
-                // "HDR10" would be misleading.
+                // Only badge HDR if the panel went to HDR mode; with Match Dynamic Range off the TV stays SDR.
                 #if os(tvOS)
                 if format != .sdr, !Self.matchDynamicRangeEnabled {
                     self.videoFormat = .sdr
@@ -1344,14 +976,9 @@ final class PlayerViewModel {
             }
             .store(in: &cancellables)
 
-        // Engine subtitle pipeline, covers both embedded streams
-        // (cues stream in from the main demux loop) and sidecar
-        // files (cues arrive in one batch when SubtitleDecoder
-        // finishes). Mirror them into our `subtitleCues` whenever
-        // the engine is the source. The legacy HTTP path for
-        // bitmap codecs / transcoded sessions writes `subtitleCues`
-        // directly with `isSubtitleActive == false`, so the guard
-        // keeps those two paths from clobbering each other.
+        // Mirror engine cues into `subtitleCues` only when the engine is the source. The legacy HTTP path
+        // (bitmap / transcode) writes subtitleCues directly with isSubtitleActive == false, so the guard
+        // keeps the two paths from clobbering each other.
         player.$subtitleCues
             .receive(on: DispatchQueue.main)
             .sink { [weak self] cues in
@@ -1361,8 +988,7 @@ final class PlayerViewModel {
             }
             .store(in: &cancellables)
 
-        // Secondary companion subtitle cues (issue #47). Same mirror
-        // contract as the primary sink, gated on the secondary active flag.
+        // Secondary companion subtitle cues (issue #47); same mirror contract as the primary sink.
         player.$secondarySubtitleCues
             .receive(on: DispatchQueue.main)
             .sink { [weak self] cues in
@@ -1372,13 +998,8 @@ final class PlayerViewModel {
             }
             .store(in: &cancellables)
 
-        // Engine is the source of truth for which audio track is
-        // currently muxed: the picker reflects whatever the pipeline
-        // actually settled on, including the brief window during a
-        // mid-playback audio switch when the new HLSVideoEngine session
-        // is still spinning up. Without this mirror, the picker would
-        // claim the new track was active before AVPlayer had the new
-        // item loaded, which made early scrubs look broken.
+        // Engine is the source of truth for the active audio track; mirror it so the picker reflects what
+        // the pipeline settled on (not the requested track mid-reload, which made early scrubs look broken).
         player.$activeAudioTrackIndex
             .receive(on: DispatchQueue.main)
             .sink { [weak self] index in
@@ -1389,28 +1010,20 @@ final class PlayerViewModel {
 
     // MARK: - Controls
 
-    /// True while a post-background pipeline reload is in flight. The
-    /// reload auto-plays, then the host pauses by policy ("don't auto-resume
-    /// after a Home / sleep / screensaver gap"). The reload is async and
-    /// slow (teardown + reopen), so the user can press Play during it; that
-    /// intent is authoritative and the trailing pause must be skipped, or it
-    /// clobbers the resume they just triggered (the "play does nothing,
-    /// press again" symptom).
+    /// True while a post-background pipeline reload is in flight. The reload auto-plays, then policy
+    /// pauses ("don't auto-resume after a Home/sleep gap"); but if the user pressed Play during the
+    /// slow reload that intent wins and the trailing pause must be skipped (else "play does nothing").
     private(set) var isAwaitingBackgroundReload = false
     private var userToggledDuringBackgroundReload = false
 
-    /// Mark the start of the post-background reload window. Call before
-    /// awaiting `reloadAtCurrentPosition()`.
+    /// Mark the start of the post-background reload window; call before awaiting `reloadAtCurrentPosition()`.
     func beginBackgroundReload() {
         isAwaitingBackgroundReload = true
         userToggledDuringBackgroundReload = false
     }
 
-    /// Apply the post-reload pause policy once the reload returns: hold the
-    /// player paused on the resumed frame so the user resumes deliberately,
-    /// UNLESS they already pressed play/pause during the reload (then their
-    /// intent wins and we leave the engine's state alone). Surfaces the
-    /// controls either way.
+    /// Apply post-reload pause policy: hold paused on the resumed frame UNLESS the user toggled
+    /// play/pause during the reload (their intent wins). Surfaces controls either way.
     func finishBackgroundReload() {
         let userIntervened = userToggledDuringBackgroundReload
         isAwaitingBackgroundReload = false
@@ -1427,9 +1040,8 @@ final class PlayerViewModel {
         scheduleControlsHide()
     }
 
-    /// Seek by the user's configured interval (5/10/15/30 s). The
-    /// direction is +1 (right) or −1 (left). Wraps the seconds variant
-    /// so the press handler doesn't need a Preferences lookup.
+    /// Seek by the user's configured interval; direction +1 (right) or -1 (left). Wraps the seconds
+    /// variant so the press handler doesn't need a Preferences lookup.
     func seekJumpByConfiguredInterval(direction: Int) {
         let interval = preferences.skipIntervalSeconds
         let signed = (direction < 0 ? -1 : 1) * interval
@@ -1451,19 +1063,15 @@ final class PlayerViewModel {
 
         let jumpProgress = Float(seconds / dur)
         scrubProgress = max(0, min(1, scrubProgress + jumpProgress))
-        // scrubTime stays VOD-only: the live bar renders its own behind-live
-        // label. The preview IS fed for live via updateLiveScrubPreview
-        // (DVR-cache thumbnails from the engine).
+        // scrubTime is VOD-only (live bar renders its own behind-live label); preview is fed for live
+        // via updateLiveScrubPreview (DVR-cache thumbnails).
         if !isLiveSession {
             scrubTime = formatSeconds(Double(scrubProgress) * dur)
             scrubPreview.update(fraction: scrubProgress, durationSeconds: dur)
         } else { updateLiveScrubPreview() }
 
-        // Auto-cancel on idle, matching `scrubPanEnded`. Commit stays
-        // explicit (Select), but if the user taps left / right and
-        // walks away without pressing anything else the scrub is
-        // discarded after 5 s and the controls fade out, instead of
-        // sitting on the picture forever.
+        // Auto-cancel on idle (matches scrubPanEnded): discard the scrub + fade controls after 5s if the
+        // user taps left/right and walks away without committing via Select.
         controlsTimer = Task {
             try? await Task.sleep(for: .seconds(5))
             guard !Task.isCancelled else { return }
@@ -1473,19 +1081,15 @@ final class PlayerViewModel {
         }
     }
 
-    /// Reset the error trio so a fresh `startPlayback` shows nothing
-    /// stale while it loads.
+    /// Reset the error trio so a fresh `startPlayback` shows nothing stale while loading.
     func clearError() {
         errorMessage = nil
         errorIcon = nil
         errorTitle = nil
     }
 
-    /// Categorise an error from the playback-start path into an
-    /// icon + title + body trio for the player overlay. The body
-    /// stays the underlying `localizedDescription` (already localised
-    /// for `APIError`) so the user sees the real reason; the icon
-    /// and title give it shape.
+    /// Categorise a playback-start error into an icon + title + body trio for the overlay; body stays
+    /// the underlying localizedDescription so the user sees the real reason.
     func setError(from error: Error) {
         let icon: String
         let title: String
@@ -1533,12 +1137,8 @@ final class PlayerViewModel {
         errorMessage = error.localizedDescription
     }
 
-    /// Friendly trio for a live channel whose stream the server cannot
-    /// deliver (dead upstream source; signature: PlaybackInfo without
-    /// stream info, then HTTP 500 with zero bytes on the stream URL).
-    /// Covers the engine-level open failures where the raw message
-    /// ("openFailed(code: -5)") would be noise to the user; network and
-    /// auth APIErrors keep their specific messaging via setError(from:).
+    /// Friendly trio for a live channel the server can't deliver (dead upstream); covers engine-level
+    /// open failures where the raw message would be noise. Network/auth APIErrors keep setError(from:).
     func setLiveChannelUnavailableError() {
         errorIcon = "tv.slash"
         errorTitle = String(
@@ -1551,10 +1151,8 @@ final class PlayerViewModel {
         )
     }
 
-    /// Engine-side terminal error mid-playback (decoder failure,
-    /// renderer death, network drop after we'd already handed off).
-    /// Different category from start-up errors, playback was running
-    /// and stopped, so the headline reads as such.
+    /// Engine-side terminal error mid-playback (decoder/renderer death, network drop after handoff);
+    /// headline reads as "stopped" since playback was actually running, unlike start-up errors.
     func setEnginePlaybackError(message: String) {
         errorIcon = "exclamationmark.triangle"
         errorTitle = String(
@@ -1564,13 +1162,9 @@ final class PlayerViewModel {
         errorMessage = message
     }
 
-    /// Apply the current `pictureMode` to whichever layer is on screen.
-    /// Writes to the engine (which forwards to its native + software
-    /// surfaces) AND fires `onPictureModeChanged` so the host's
-    /// AVPlayerViewController can mirror the gravity onto AVKit's own
-    /// internal AVPlayerLayer. The AVKit-owned layer is what's actually
-    /// on screen for the native AVPlayer path, so without the callback
-    /// the toggle would be a no-op there.
+    /// Apply `pictureMode` to whichever layer is on screen: writes to the engine AND fires
+    /// `onPictureModeChanged` so the host mirrors the gravity onto AVKit's own AVPlayerLayer (the layer
+    /// actually on screen for the native path, where without the callback the toggle is a no-op).
     func applyPictureMode() {
         switch pictureMode {
         case .original: player.videoGravity = .resizeAspect
@@ -1579,22 +1173,17 @@ final class PlayerViewModel {
         onPictureModeChanged?(pictureMode)
     }
 
-    /// Fired whenever `applyPictureMode` resolves a new gravity. The
-    /// `PlayerHostController` hooks this to update AVPlayerViewController's
-    /// own `videoGravity`, which controls the native path's rendering.
+    /// Fired when `applyPictureMode` resolves a new gravity; PlayerHostController hooks it to update
+    /// AVPlayerViewController's own `videoGravity` (the native path's rendering).
     var onPictureModeChanged: ((PlaybackPreferences.PictureMode) -> Void)?
 
-    /// In-player picker change. Mutates the session-local `pictureMode`
-    /// and pushes it to the engine. Doesn't persist, the user's
-    /// global default lives in `PlaybackPreferences.pictureMode` and
-    /// is set from the Settings screen.
+    /// In-player picker change; mutates session-local `pictureMode` and pushes to the engine. Not persisted.
     func selectPictureMode(_ mode: PlaybackPreferences.PictureMode) {
         pictureMode = mode
         applyPictureMode()
     }
 
-    /// Seek directly to the start of a chapter. Index is into the
-    /// already-sorted `chapters` array, out-of-range calls no-op.
+    /// Seek to a chapter start. Index is into the sorted `chapters`; out-of-range no-ops.
     func selectChapter(at index: Int) {
         guard chapters.indices.contains(index) else { return }
         let target = chapters[index].startSeconds
@@ -1602,34 +1191,22 @@ final class PlayerViewModel {
     }
 
     func selectAudioTrack(id: Int) {
-        // No optimistic `activeAudioIndex = id` here; the Combine
-        // subscription on `player.$activeAudioTrackIndex` updates the
-        // picker once the engine actually settles on the new track.
-        // Setting it now would make the picker claim the switch already
-        // happened while the pipeline is still mid-reload.
+        // No optimistic `activeAudioIndex = id`: the $activeAudioTrackIndex sink updates the picker once
+        // the engine settles, else it claims the switch happened while the pipeline is still mid-reload.
         player.selectAudioTrack(index: id)
-        // Re-run the auto-subtitle resolution so a manual mid-playback
-        // language switch behaves like the initial load did. Without
-        // this, switching DE → EN inside the player kept subtitles off
-        // even though autoSubtitleForForeignAudio would have turned on
-        // German subs at load-time for the same audio choice.
+        // Re-run auto-subtitle resolution so a manual mid-playback language switch behaves like load-time
+        // (else DE → EN kept subs off even though autoSubtitleForForeignAudio would have turned them on).
         let language = player.audioTracks.first(where: { $0.id == id })?.language
         applyPreferredSubtitle(forAudioLanguage: language)
     }
 
-    /// Deduplicates subtitle streams in a media source's stream list.
-    /// Keeps one EMBEDDED track per (language, codec); embedded tracks
-    /// with a descriptor (SDH / Forced / commentary / etc.) keep their own
-    /// variant so distinct same-language tracks don't collapse. EXTERNAL
-    /// subtitles (sidecar files and in-app downloads) are never collapsed:
-    /// each is a distinct user-curated file and must stay individually
-    /// selectable, even when several share the same language and codec.
-    /// Shared by initial load and the post-download refetch.
+    /// Dedupes subtitle streams: one EMBEDDED track per (language, codec), but descriptor variants
+    /// (SDH/Forced/commentary) keep their own slot. EXTERNAL subs (sidecars, downloads) are never
+    /// collapsed (each is a distinct user-curated file). Shared by initial load + post-download refetch.
     static func dedupedSubtitleStreams(from mediaStreams: [MediaStream]?) -> [MediaStream] {
         let allSubStreams = mediaStreams?.filter { $0.type == .subtitle } ?? []
         var seen = Set<String>()
         return allSubStreams.filter { stream in
-            // External subs are individual files; keep every one.
             if stream.isExternal == true { return true }
             let lang = stream.language ?? "und"
             let hasDescriptor = stream.isForced == true
@@ -1646,18 +1223,11 @@ final class PlayerViewModel {
         }
     }
 
-    /// Resolves which subtitle track to surface, given the language of
-    /// the currently selected audio track:
-    ///
+    /// Resolves which subtitle to surface for the active audio language:
     /// 1. Explicit `preferredSubtitleLanguage` always wins.
-    /// 2. Otherwise, if `autoSubtitleForForeignAudio` is on AND the
-    ///    audio isn't in the preferred audio language, surface subs in
-    ///    the preferred audio language, the "Netflix convention":
-    ///    German audio missing → English audio plays → German subs on
-    ///    top.
-    /// 3. No match → leave the current subtitle selection alone (the
-    ///    user may have picked one manually; we don't override it on
-    ///    a switch back to native audio).
+    /// 2. Else if `autoSubtitleForForeignAudio` and audio isn't the preferred language, surface subs
+    ///    in the preferred audio language (the "Netflix convention").
+    /// 3. No match → leave the current selection alone (may be a manual user pick).
     private func applyPreferredSubtitle(forAudioLanguage audioLanguage: String?) {
         if let explicit = preferences.preferredSubtitleLanguage {
             if let match = bestSubtitleMatch(forLanguage: explicit) {
@@ -1674,19 +1244,8 @@ final class PlayerViewModel {
         }
     }
 
-    /// Picks the most useful subtitle track in a given language for a
-    /// viewer who needs subs to follow the dialog. Plain "full" tracks
-    /// win, SDH / CC come next (still cover all dialog), forced tracks
-    /// are last-resort because they only translate foreign-language
-    /// snippets inside an otherwise-understood audio track, and
-    /// signs / songs / commentary tracks are excluded from the
-    /// auto-pick entirely since they don't carry general dialog.
-    ///
-    /// `min(by:)` is stable for ties in Swift, so when multiple
-    /// candidates share the best rank the one appearing first in
-    /// `subtitleStreams` (which preserves the server's source order)
-    /// wins, matching prior behavior for releases where every track
-    /// happens to carry the same descriptor.
+    /// Picks the most useful subtitle in a language for following dialog: full > SDH/CC > forced;
+    /// signs/songs/commentary excluded. `min(by:)` is stable so ties keep source order.
     private func bestSubtitleMatch(forLanguage language: String) -> MediaStream? {
         let candidates = subtitleStreams.filter {
             Self.languagesMatch($0.language, language)
@@ -1697,16 +1256,10 @@ final class PlayerViewModel {
         })
     }
 
-    /// Lower rank wins. See `bestSubtitleMatch` for the rationale.
-    ///
-    /// Encoded as `descriptorRank * 2 + bitmapPenalty` so the
-    /// descriptor axis (full > SDH > forced > signs/songs) stays
-    /// dominant and codec (text < bitmap) is only a tiebreaker. Full
-    /// bitmap still wins over forced text because complete dialog
-    /// coverage matters more than appearance customization; full text
-    /// wins over full bitmap because the user's font / colour /
-    /// background / position / delay settings only apply to text cues
-    /// (bitmap cues come pre-rendered from the source).
+    /// Lower rank wins (see `bestSubtitleMatch`). `descriptorRank * 2 + bitmapPenalty` keeps the
+    /// descriptor axis (full > SDH > forced > signs/songs) dominant, codec (text < bitmap) a tiebreaker:
+    /// full bitmap beats forced text (coverage > styling), full text beats full bitmap (user styling
+    /// only applies to text cues).
     private static func subtitleAutoPickRank(_ stream: MediaStream) -> Int {
         let title = stream.title?.lowercased() ?? ""
         let descriptorRank: Int = {
@@ -1726,14 +1279,9 @@ final class PlayerViewModel {
         return descriptorRank * 2 + (isBitmap ? 1 : 0)
     }
 
-    /// Resolves the effective "preferred audio language" used for the
-    /// foreign-audio detection. The Settings UI ships an "Auto" choice
-    /// that stores nil, without a fallback that path leaves the
-    /// foreign-audio guard unable to compare against anything, so a
-    /// user who keeps the default never gets auto-subs even when their
-    /// system locale clearly indicates the language they speak. We
-    /// substitute the device's primary language code so "Auto" still
-    /// behaves like "the language my Apple TV is set to".
+    /// Effective preferred audio language for foreign-audio detection. Settings' "Auto" stores nil; we
+    /// substitute the device's primary language code so "Auto" still gives auto-subs (else the guard
+    /// has nothing to compare against).
     private func effectivePreferredAudioLanguage() -> String? {
         if let explicit = preferences.preferredAudioLanguage {
             return explicit
@@ -1741,23 +1289,15 @@ final class PlayerViewModel {
         return Locale.current.language.languageCode?.identifier
     }
 
-    /// Compares two language tags loosely so settings ("ger"), FFmpeg
-    /// container metadata ("deu"), and BCP-47 ("de") all line up as
-    /// the same language. Without this, the auto-subtitle path was
-    /// silently failing for users whose preferred-audio code didn't
-    /// match the format the muxer / Jellyfin happened to write into
-    /// the stream.
+    /// Loose language-tag comparison so settings ("ger"), container metadata ("deu"), and BCP-47 ("de")
+    /// line up; without it auto-subtitles silently failed when codes differed in format.
     static func languagesMatch(_ a: String?, _ b: String?) -> Bool {
         guard let a = a?.lowercased(), let b = b?.lowercased() else { return false }
         if a == b { return true }
         return languageSynonyms.contains { $0.contains(a) && $0.contains(b) }
     }
 
-    /// Equivalence classes spanning ISO 639-1, 639-2/T, and 639-2/B
-    /// for every language Sodalite ships UI for plus the major ones
-    /// users typically have library content in. Anything outside the
-    /// table falls back to strict equality, which is fine when both
-    /// sides are stamped from the same source.
+    /// ISO 639-1 / 639-2/T / 639-2/B equivalence classes; anything outside falls back to strict equality.
     private static let languageSynonyms: [Set<String>] = [
         ["de", "deu", "ger"], ["en", "eng"], ["fr", "fra", "fre"],
         ["es", "spa"], ["it", "ita"], ["ja", "jpn"], ["ko", "kor"],
@@ -1774,9 +1314,7 @@ final class PlayerViewModel {
 
     // MARK: - Intro Skip
 
-    /// Called from the playback-time Combine subscription. Toggles
-    /// `isInsideIntro` so the UI can show/hide the Skip Intro button
-    /// without each caller recomputing the range.
+    /// Toggles `isInsideIntro` from the playback-time sink so the UI shows/hides Skip Intro.
     func updateIntroVisibility(time: Double) {
         guard let seg = introSegment else {
             if isInsideIntro { setInsideIntro(false) }
@@ -1784,16 +1322,8 @@ final class PlayerViewModel {
             return
         }
 
-        // Skip-lockout: once the user (or auto-skip) has skipped this
-        // intro, keep the pill hidden regardless of currentTime
-        // reports. Clears only when the playhead moves below the
-        // intro start (deliberate back-scrub past the intro) so a
-        // user who scrubs back into the intro range still gets the
-        // pill. Without this lockout, stale pre-seek currentTime
-        // ticks arriving between `skipIntro`'s synchronous flag flip
-        // and the seek landing re-flip isInsideIntro back to true
-        // for a frame or two and the user sees the pill briefly
-        // re-appear (fade-out → fade-in → fade-out) after the tap.
+        // Skip-lockout: keep the pill hidden after a skip; clears only when the playhead moves below
+        // intro start. Without it, stale pre-seek ticks revive the pill for a frame after the tap.
         if didSkipCurrentIntro {
             if time < seg.startSeconds {
                 didSkipCurrentIntro = false
@@ -1803,17 +1333,12 @@ final class PlayerViewModel {
             }
         }
 
-        // Plugin sometimes reports introStart=0 on episodes with a
-        // pre-title cold-open → button would pop up the instant the
-        // episode starts, before the titles even play. Give it a tiny
-        // lead-in so the button appears with the intro music.
+        // Plugin sometimes reports introStart=0 on cold-opens; the 0.5s floor stops the pill popping
+        // before titles play.
         let inside = time >= max(seg.startSeconds, 0.5)
                   && time < seg.endSeconds - 1   // hide 1s before end
 
-        // Auto-skip path: the very first tick inside the intro fires
-        // the skip automatically if the user opted in. Guarded so the
-        // skip only happens once per episode even as further ticks
-        // arrive before currentTime has actually moved past introEnd.
+        // Auto-skip on the first tick inside the intro (opt-in), guarded to fire once per episode.
         if inside && preferences.autoSkipIntro && !didAutoSkipCurrentIntro {
             didAutoSkipCurrentIntro = true
             skipIntro()
@@ -1825,9 +1350,7 @@ final class PlayerViewModel {
         }
     }
 
-    /// Update the flag *and* move focus away from the Skip Intro button
-    /// if it just disappeared, otherwise the user would be stuck on a
-    /// button that's no longer in the row.
+    /// Update the flag and move focus off the Skip Intro button if it just vanished, else the user is stuck on it.
     private func setInsideIntro(_ newValue: Bool) {
         isInsideIntro = newValue
         if !newValue && controlsFocus == .skipIntroButton {
@@ -1843,36 +1366,18 @@ final class PlayerViewModel {
         isInsideIntro = false
         didSkipCurrentIntro = true
         Task { [weak self] in
-            // seg.endSeconds is absolute source time; seek(to:) is
-            // source-PTS based and applies any AVPlayer-clock shift itself.
+            // seg.endSeconds is absolute source time; seek(to:) is source-PTS based and applies the clock shift itself.
             await self?.player.seek(to: seg.endSeconds)
-            // Lockout only needs to cover the seek-in-flight stale-tick
-            // window. Once seek() returns the seek has landed; a brief
-            // settle absorbs AVPlayer's post-seek time jitter, then
-            // clear so a deliberate backward scrub (into or past the
-            // intro range) re-offers the pill. Without this clear the
-            // lockout persists for the whole episode and the pill
-            // never reappears.
+            // Clear the lockout after a 500ms settle (absorbs post-seek jitter) so a deliberate
+            // backward scrub re-offers the pill; without it the lockout persists the whole episode.
             try? await Task.sleep(for: .milliseconds(500))
             self?.didSkipCurrentIntro = false
         }
     }
 
-    /// Outro equivalent to `updateIntroVisibility`, no Skip Outro UI
-    /// button today, so this only has to handle the auto-skip path.
-    /// Fires once per episode the moment playback crosses into the
-    /// outro range.
-    ///
-    /// Two variants depending on which combination of preferences is
-    /// active:
-    ///
-    /// - autoSkipOutro + autoplayNextEpisode + next episode ready →
-    ///   skip straight to the next episode. Keeping the 10 s
-    ///   next-episode countdown on top of a user who explicitly
-    ///   asked to skip outros is a contradiction.
-    /// - Anything else (e.g. next episode still fetching, or
-    ///   autoplayNextEpisode off): seek to outro.endSeconds and let
-    ///   the regular next-episode flow pick up from there.
+    /// Outro auto-skip (no Skip Outro button), fires once per episode at the outro boundary:
+    /// - autoSkipOutro + autoplayNextEpisode + next ready → jump straight to the next episode.
+    /// - else → seek to outro.endSeconds and let the regular next-episode flow take over.
     func updateOutroAutoSkip(time: Double) {
         guard let seg = outroSegment,
               preferences.autoSkipOutro,
@@ -1889,10 +1394,8 @@ final class PlayerViewModel {
         }
     }
 
-    /// Fetch intro + outro markers once on startup. Safe if the server
-    /// doesn't expose the endpoint, service returns an empty struct
-    /// and the features simply stay off (no Skip Intro button, normal
-    /// 30 s fallback trigger for the next-episode overlay).
+    /// Fetch intro + outro markers once on startup. Safe if the server lacks the endpoint (empty struct,
+    /// features stay off).
     func loadEpisodeSegments() async {
         didAutoSkipCurrentIntro = false
         didAutoSkipCurrentOutro = false
@@ -1927,8 +1430,7 @@ final class PlayerViewModel {
             return
         }
         activeSubtitleIndex = id
-        // If the newly chosen primary equals the active secondary, drop
-        // the secondary (a track cannot be both lines at once).
+        // Drop the secondary if it equals the new primary (a track can't be both lines).
         if activeSecondarySubtitleIndex == id {
             selectSecondarySubtitleTrack(id: nil)
         }
@@ -1938,11 +1440,8 @@ final class PlayerViewModel {
 
         if isExternal {
             deactivateASSRendering()
-            // Sidecar file (.srt / .ass / .vtt next to the media).
-            // Hand the URL to the engine, it fetches the file once
-            // and decodes it via FFmpeg, no host-side SRTParser. The
-            // resulting cues land on `engine.subtitleCues` and the
-            // mirror sink picks them up.
+            // Sidecar file: hand the URL to the engine (FFmpeg decode, no host SRTParser); cues land on
+            // engine.subtitleCues and the mirror sink picks them up.
             if let url = playbackService.buildSubtitleURL(
                 itemID: item.id,
                 mediaSourceID: mediaSourceID,
@@ -1951,13 +1450,8 @@ final class PlayerViewModel {
             ) {
                 player.selectSidecarSubtitle(url: url)
                 subtitleCues = []
-                // Styled ASS for external .ass/.ssa: the engine decodes
-                // the sidecar with preserveASSMarkup (cues carry raw
-                // event lines) and publishes the script header on
-                // engine.sidecarASSHeader once decoding finishes. Wait
-                // for that async header, then activate the coordinator
-                // exactly like the embedded path (AetherEngine#48). When
-                // styling is off, the overlay strips the raw lines.
+                // Styled ASS for external .ass/.ssa: wait for the async engine.sidecarASSHeader, then
+                // activate the coordinator like the embedded path (AetherEngine#48).
                 if (activeSubtitleCodec == "ass" || activeSubtitleCodec == "ssa"),
                    preferences.styledASSSubtitles {
                     activateSidecarASSWhenHeaderArrives()
@@ -1967,42 +1461,28 @@ final class PlayerViewModel {
                 subtitleCues = []
             }
         } else if activePlayMethod != .transcode {
-            // Embedded stream on direct play / direct stream, engine
-            // streams cues from packets already flowing through the
-            // main demux loop, both for text codecs (SubRip / ASS /
-            // WebVTT / mov_text) and bitmap codecs (PGS / DVB / HDMV
-            // PGS). No second connection, no server extraction.
+            // Embedded stream on direct play/stream: engine streams cues from the main demux loop (text
+            // and bitmap codecs alike), no second connection or server extraction.
             player.selectSubtitleTrack(index: id)
             subtitleCues = player.subtitleCues
-            // ASS/SSA gets the styled libass path on top: the engine
-            // keeps emitting raw event-line cues (preserveASSMarkup),
-            // the coordinator reassembles them into a script for
-            // swift-ass-renderer. Falls back to the stripped-text
-            // overlay when the track header is missing.
+            // ASS/SSA gets the styled libass path on top (coordinator reassembles raw event cues for
+            // swift-ass-renderer); falls back to the stripped-text overlay when the header is missing.
             if (activeSubtitleCodec == "ass" || activeSubtitleCodec == "ssa"),
                preferences.styledASSSubtitles {
                 let engineTrack = player.subtitleTracks.first(where: { $0.id == id })
-                // The renderer can arrive asynchronously when font
-                // attachments still need writing (first activation on
-                // a file with embedded fonts); the callback mirrors it
-                // onto the observable surface in that case. The direct
-                // read below covers the synchronous warm path.
+                // Renderer can arrive async when embedded font attachments need writing; the callback
+                // mirrors it then, the direct read below covers the synchronous warm path.
                 assCoordinator.onRendererChanged = { [weak self] renderer in
                     self?.assRenderer = renderer
                 }
                 assCoordinator.activate(header: engineTrack?.assHeader, itemID: item.id)
                 assRenderer = assCoordinator.renderer
             } else {
-                // Non-ASS codec, or the user prefers the plain text
-                // path (settings toggle); the overlay's tag stripper
-                // handles the raw event lines there.
                 deactivateASSRendering()
             }
         } else {
-            // Transcoded session, HLS rewrites stream indices so
-            // the engine can't reach the source subtitle. Fall back
-            // to the legacy server-extracted SRT loader, which only
-            // works for text codecs.
+            // Transcoded session: HLS rewrites stream indices, so fall back to the legacy server-extracted
+            // SRT loader (text codecs only).
             deactivateASSRendering()
             player.clearSubtitle()
             subtitleCues = []
@@ -2010,10 +1490,8 @@ final class PlayerViewModel {
         }
     }
 
-    /// Select the SECONDARY companion subtitle track (issue #47).
-    /// Text-only and session-only: no styled-ASS path (secondary always
-    /// renders as plain text), no transcode fallback (only direct play /
-    /// sidecar offer a secondary), no persistence.
+    /// Select the SECONDARY companion subtitle track (issue #47). Text-only, session-only: no styled-ASS,
+    /// no transcode fallback (only direct play / sidecar offer a secondary), no persistence.
     func selectSecondarySubtitleTrack(id: Int?) {
         guard let id else {
             activeSecondarySubtitleIndex = nil
@@ -2050,16 +1528,9 @@ final class PlayerViewModel {
         }
     }
 
-    /// Activate styled ASS for an external sidecar once the engine
-    /// publishes its header. The sidecar header is populated
-    /// asynchronously after `SubtitleDecoder` finishes (unlike embedded
-    /// tracks, whose header is known synchronously from `TrackInfo`), so
-    /// we subscribe to `engine.$sidecarASSHeader` and activate on the
-    /// first non-nil value (AetherEngine#48). The coordinator's cue sink
-    /// then picks up the already-published raw event cues (a @Published
-    /// sink receives the current value on subscription). If the file
-    /// carries no header the value stays nil, the coordinator never
-    /// activates, and the overlay's stripper handles the raw lines.
+    /// Activate styled ASS for an external sidecar once the engine publishes its (async) header:
+    /// subscribe to `engine.$sidecarASSHeader` and activate on the first non-nil value (AetherEngine#48).
+    /// No header → coordinator never activates and the overlay's stripper handles the raw lines.
     private func activateSidecarASSWhenHeaderArrives() {
         sidecarASSHeaderCancellable?.cancel()
         assCoordinator.onRendererChanged = { [weak self] renderer in
@@ -2076,10 +1547,8 @@ final class PlayerViewModel {
             }
     }
 
-    /// Tear down the styled ASS bridge and clear its observable
-    /// mirror. Safe to call when already inactive. Internal so the
-    /// NextEpisode extension (cross-file) can call it on the bypass-
-    /// teardown episode transition paths.
+    /// Tear down the styled ASS bridge and clear its observable mirror; safe when already inactive.
+    /// Internal so the cross-file NextEpisode extension can call it on bypass-teardown transitions.
     func deactivateASSRendering() {
         sidecarASSHeaderCancellable?.cancel()
         sidecarASSHeaderCancellable = nil
@@ -2108,12 +1577,8 @@ final class PlayerViewModel {
             return
         }
 
-        // The first hit on a 4K UHD container can take several
-        // seconds, Jellyfin lazy-extracts the sub via FFmpeg and
-        // a freshly-loaded server hasn't cached anything yet. Two
-        // attempts with a generous budget catches both the slow-
-        // extraction case (long timeout buys it through) and the
-        // odd transient (retry hits the now-cached payload).
+        // First hit can take seconds (Jellyfin lazy-extracts the sub via FFmpeg, nothing cached yet).
+        // Two attempts with a 120s budget cover both the slow extraction and a transient.
         var request = URLRequest(url: url)
         request.timeoutInterval = 120
 

@@ -3,9 +3,7 @@ import Foundation
 @MainActor
 final class JellyfinClient {
     let httpClient: HTTPClientProtocol
-    /// Stable per-install device identifier; rides in the auth header and
-    /// stream URLs. Read-only exposed because /Videos/ActiveEncodings
-    /// kills transcode jobs by (DeviceId, PlaySessionId) pair.
+    /// Stable per-install device id (auth header + stream URLs). Exposed because /Videos/ActiveEncodings kills transcodes by (DeviceId, PlaySessionId).
     private(set) var deviceID: String
     private let appVersion: String
 
@@ -32,9 +30,7 @@ final class JellyfinClient {
         )
     }
 
-    /// Like `request(endpoint:responseType:)` but decodes with a
-    /// caller-supplied decoder. Needed for Live TV, whose Jellyfin date
-    /// format the shared HTTPClient `.iso8601` decoder cannot parse.
+    /// Variant with a caller-supplied decoder, needed for Live TV whose date format the shared `.iso8601` decoder can't parse.
     func request<T: Decodable>(
         endpoint: APIEndpoint,
         responseType: T.Type,
@@ -47,9 +43,7 @@ final class JellyfinClient {
         do {
             return try decoder.decode(T.self, from: data)
         } catch {
-            // Same mapping as HTTPClient.request: surfaces the localized
-            // "Failed to process server response" instead of a raw
-            // DecodingError description in Live TV error states.
+            // Mirror HTTPClient.request: localized message instead of raw DecodingError.
             throw APIError.decodingError(error)
         }
     }
@@ -68,9 +62,7 @@ final class JellyfinClient {
         buildMediaBrowserHeader(includeToken: true)
     }
 
-    /// Single owner of the MediaBrowser header string so client /
-    /// device / version fields can't drift between the auth-header
-    /// consumers (engine device profile) and per-request headers.
+    /// Single owner of the MediaBrowser header so client/device/version can't drift between the engine device profile and per-request headers.
     private func buildMediaBrowserHeader(includeToken: Bool) -> String {
         var authParts = [
             "Client=\"Sodalite\"",

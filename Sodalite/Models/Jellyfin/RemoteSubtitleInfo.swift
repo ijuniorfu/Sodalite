@@ -4,8 +4,7 @@ import Foundation
 /// (`GET /Items/{id}/RemoteSearch/Subtitles/{lang}`). Requires a
 /// server-side subtitle provider plugin (OpenSubtitles).
 struct RemoteSubtitleInfo: Codable, Sendable, Identifiable, Equatable {
-    /// Provider-scoped id, passed back (URL-encoded) to the download
-    /// endpoint. Not a plain integer, can contain slashes.
+    /// Provider-scoped id, URL-encoded when passed to download; not a plain int, can contain slashes.
     let id: String
     let providerName: String?
     let name: String?

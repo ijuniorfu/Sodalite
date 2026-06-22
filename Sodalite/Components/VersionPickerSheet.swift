@@ -3,14 +3,11 @@ import SwiftUI
 // MARK: - MediaSource display helpers
 
 extension MediaSource {
-    /// Primary video stream, used to derive resolution and codec labels.
     var primaryVideoStream: MediaStream? {
         mediaStreams?.first { $0.type == .video }
     }
 
-    /// "4K" / "1440p" / "1080p" etc. derived from the video stream
-    /// dimensions. Normalizes height to a 16:9-equivalent width so a
-    /// 2.39:1 scope master (height < 1080) still reads as the right tier.
+    /// "4K"/"1080p" etc. Normalizes height to a 16:9-equivalent width so a 2.39:1 scope master still reads as the right tier.
     var resolutionLabel: String? {
         guard let v = primaryVideoStream else { return nil }
         let w = v.width ?? 0
@@ -25,22 +22,16 @@ extension MediaSource {
         }
     }
 
-    /// Uppercased video codec, e.g. "HEVC", "H264", "AV1".
     var codecLabel: String? {
         primaryVideoStream?.codec?.uppercased()
     }
 
-    /// Human file size, e.g. "82 GB".
     var sizeLabel: String? {
         guard let size, size > 0 else { return nil }
         return ByteCountFormatter.string(fromByteCount: size, countStyle: .file)
     }
 
-    /// Display label for a version row. Prefers the server's version
-    /// name (Jellyfin fills `MediaSource.Name` with the file's version
-    /// tag, e.g. "1080p" / "Directors Cut", for multi-version items),
-    /// then appends any derived specs the name doesn't already convey.
-    /// Falls back to container so a row is never blank.
+    /// Version-row label: prefers the server's version name (Jellyfin's `MediaSource.Name`, e.g. "Directors Cut"), appends derived specs the name doesn't convey, falls back to container so a row is never blank.
     var versionLabel: String {
         var parts: [String] = []
         if let name, !name.trimmingCharacters(in: .whitespaces).isEmpty {
@@ -67,28 +58,19 @@ extension MediaSource {
 
 // MARK: - Version picker presentation payload
 
-/// Drives the version sheet via `.sheet(item:)`. Carrying the sources in
-/// the presented item (instead of a separate `@State` array read by a
-/// `.sheet(isPresented:)` content closure) avoids SwiftUI's stale-content
-/// race, where the closure captures the initial empty array and the sheet
-/// renders with zero sources.
+/// Drives the version sheet via `.sheet(item:)`. Carrying sources in the item (not a separate `@State` array via `.sheet(isPresented:)`) avoids SwiftUI's stale-content race where the closure captures the initial empty array.
 struct VersionPickerChoice: Identifiable {
     let id = UUID()
-    /// The item to play (a movie, or the chosen episode for series).
     let item: JellyfinItem
     let sources: [MediaSource]
     let fromBeginning: Bool
-    /// Series-only: preserves the focus-restoration origin flag. Ignored
-    /// by movie detail.
+    /// Series-only focus-restoration origin flag; ignored by movie detail.
     let fromPlayButton: Bool
 }
 
 // MARK: - Version picker sheet
 
-/// Shown from the detail views when an item has more than one media
-/// source. Lists the versions (highest quality first, top one focused),
-/// and calls `onSelect` with the chosen source. Dismissing without a
-/// selection cancels playback (the caller starts nothing).
+/// Multi-source version picker (highest quality first, top focused); `onSelect` gets the chosen source, dismissing without one cancels playback.
 struct VersionPickerSheet: View {
     let sources: [MediaSource]
     let tintColor: Color?

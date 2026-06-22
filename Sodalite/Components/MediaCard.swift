@@ -9,22 +9,16 @@ enum MediaCardStyle: Sendable {
 struct MediaCard: View {
     let item: JellyfinItem
     let imageURL: URL?
-    /// Tried when `imageURL` is nil or fails (e.g. a series Thumb that
-    /// falls back to the backdrop / episode still for Continue Watching).
+    /// Tried when `imageURL` is nil or fails (e.g. series Thumb to backdrop/episode still for Continue Watching).
     let fallbackURL: URL?
     let style: MediaCardStyle
 
-    /// Set by the caller, either forwarded from `FocusableCard`'s
-    /// content closure or derived from a surrounding `@FocusState`
-    /// (`focusedID == item.id`). tvOS's `@Environment(\.isFocused)`
-    /// doesn't propagate reliably through Button labels, so we pass
-    /// it explicitly.
+    /// Passed explicitly because tvOS's `@Environment(\.isFocused)` doesn't propagate reliably through Button labels; caller forwards from `FocusableCard` or a `@FocusState` match.
     let isFocused: Bool
 
     @Environment(\.dependencies) private var dependencies
 
-    /// Apple TV-style enlarge factor from Appearance settings (1.0 normal).
-    /// Applied to every style so rows stay proportional to each other.
+    /// Enlarge factor from Appearance settings (1.0 normal), applied to every style so rows stay proportional.
     private var scale: CGFloat { dependencies.appearancePreferences.cardScale }
 
     private var cardWidth: CGFloat {
@@ -95,10 +89,7 @@ struct MediaCard: View {
             }
         }
         .overlay(
-            // Outer stroke, padding(-3) pushes the overlay frame 3pt
-            // past the image edge, so the border sits *around* the card
-            // rather than eating into it. Outer corner radius is
-            // card radius + stroke width so the curve stays concentric.
+            // padding(-3) pushes the stroke around the card, not into it; radius is card radius + stroke width to stay concentric.
             RoundedRectangle(cornerRadius: 15)
                 .strokeBorder(.tint, lineWidth: 3)
                 .padding(-3)
@@ -108,12 +99,7 @@ struct MediaCard: View {
     }
 
     private var itemInfo: some View {
-        // Always render the subtitle slot, even with an empty
-        // string, so cards in a row stay the same total height.
-        // Otherwise items without a subtitle (BoxSets without a
-        // year, episodes from very thinly-scraped libraries) make
-        // the row's vertical centering kick in and the titles end
-        // up at staggered y-positions next to neighbouring cards.
+        // Always render the subtitle slot (even empty) so cards keep equal height; otherwise subtitle-less items stagger title y-positions across the row.
         VStack(alignment: .leading, spacing: 2) {
             Text(displayTitle)
                 .font(.caption)

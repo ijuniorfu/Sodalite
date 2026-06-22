@@ -15,10 +15,7 @@ final class SeerrAuthService: SeerrAuthServiceProtocol {
     }
 
     func loginWithJellyfin(username: String, password: String) async throws -> SeerrUser {
-        // Drop any residual cookie before the login POST. The client
-        // otherwise attaches the old connect.sid on every request, and
-        // a stale/invalid cookie can make Seerr reject the fresh
-        // credentials with 401 before it looks at the body.
+        // Drop any residual cookie: a stale connect.sid makes Seerr 401 the fresh credentials before reading the body.
         client.sessionCookie = nil
 
         let body = SeerrJellyfinAuthBody(username: username, password: password)

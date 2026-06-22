@@ -1,10 +1,7 @@
 import SwiftUI
 
 enum HomeRowType: String, Codable, Sendable, CaseIterable, Identifiable {
-    // Declaration order is the default display order for new installs
-    // (defaultConfig() uses allCases.enumerated() for sortOrder). Existing
-    // users keep whatever order they saved; this only affects fresh
-    // installs and a Reset-to-Default.
+    // Declaration order = default display order for fresh installs / Reset (defaultConfig uses allCases.enumerated()); existing users keep their saved order.
     case continueWatching
     case nextUp
     case myMedia
@@ -20,10 +17,7 @@ enum HomeRowType: String, Codable, Sendable, CaseIterable, Identifiable {
     case topRatedShows
     case allMovies
     case allSeries
-    /// Dynamic, per-library "Latest in <library>" row. Never created
-    /// from `allCases`; only ever instantiated by reconciliation
-    /// against the server's libraries, which fills in the libraryID /
-    /// libraryName / collectionType on the owning HomeRowConfig.
+    /// Dynamic per-library "Latest in <library>" row; never from `allCases`, only instantiated by reconciliation (fills libraryID/libraryName/collectionType).
     case libraryLatest
 
     var id: String { rawValue }
@@ -66,11 +60,7 @@ enum HomeRowType: String, Codable, Sendable, CaseIterable, Identifiable {
         }
     }
 
-    /// True for rows whose contents are *not* sourced from Jellyfin,
-    /// today only the Discover (Jellyseerr) streaming-provider row,
-    /// which renders a hardcoded provider list with TMDB logos and
-    /// pushes a Jellyseerr-backed filter grid instead of the local
-    /// FilteredGridView.
+    /// Row not sourced from Jellyfin (today only Discover/Jellyseerr): hardcoded provider list, pushes a Seerr-backed grid, not FilteredGridView.
     var isDiscoverProviderRow: Bool { self == .discoverProviders }
 
     var localizedTitle: LocalizedStringKey {
@@ -120,20 +110,13 @@ struct HomeRowConfig: Codable, Sendable, Identifiable, Equatable {
     let type: HomeRowType
     var isEnabled: Bool
     var sortOrder: Int
-    /// Set only for `.libraryLatest` rows. Jellyfin library id, used
-    /// to scope the Latest query and to give the row a stable identity
-    /// across launches and server switches.
+    /// `.libraryLatest` only: scopes the Latest query and gives the row a stable identity across launches/server switches.
     var libraryID: String?
-    /// Display name for a `.libraryLatest` row (the library's name).
     var libraryName: String?
-    /// Jellyfin collectionType ("movies" / "tvshows") for a
-    /// `.libraryLatest` row; drives which item type the Latest query
-    /// asks for.
+    /// `.libraryLatest` collectionType ("movies"/"tvshows"); drives which item type the Latest query asks for.
     var collectionType: String?
 
-    /// Icon for the customize list. `.libraryLatest` rows pick it from
-    /// the library's collectionType; the type-level fallback ("film")
-    /// would slap a movies icon onto TV libraries (Sodalite#15).
+    /// Customize-list icon; `.libraryLatest` derives from collectionType so TV libraries don't get the "film" fallback (Sodalite#15).
     var systemImage: String {
         if type == .libraryLatest, collectionType == "tvshows" {
             return "tv"
@@ -141,8 +124,7 @@ struct HomeRowConfig: Codable, Sendable, Identifiable, Equatable {
         return type.systemImage
     }
 
-    /// `.libraryLatest` rows share the same enum rawValue, so identity
-    /// has to fold in the libraryID to stay unique and stable.
+    /// `.libraryLatest` rows share an enum rawValue, so id folds in libraryID to stay unique/stable.
     var id: String {
         if type == .libraryLatest, let libraryID {
             return "libraryLatest:\(libraryID)"
@@ -151,9 +133,7 @@ struct HomeRowConfig: Codable, Sendable, Identifiable, Equatable {
     }
 
     static func defaultConfig() -> [HomeRowConfig] {
-        // `.libraryLatest` is a template case, never a standalone row,
-        // so it's excluded here; reconciliation adds the real per-
-        // library rows once the server's libraries are known.
+        // `.libraryLatest` is a template case; excluded here, added by reconciliation once libraries are known.
         HomeRowType.allCases
             .filter { $0 != .libraryLatest }
             .enumerated()
@@ -167,17 +147,7 @@ extension HomeRowConfig {
     /// Library types that get their own per-library "Latest" row.
     static let perLibraryLatestTypes: Set<String> = ["movies", "tvshows"]
 
-    /// Merge `stored` with the server's `libraries`:
-    /// - existing rows keep their enabled flag and sortOrder,
-    /// - a `.libraryLatest` row is added for each movies/tvshows
-    ///   library not already present (libraryName/collectionType
-    ///   refreshed in case they changed server-side),
-    /// - `.libraryLatest` rows whose library no longer exists drop out,
-    /// - adaptive default: new per-library rows start enabled only when
-    ///   the server has more than one movies/tvshows library (so single-
-    ///   library servers keep the aggregated Latest rows), and when any
-    ///   per-library rows are enabled by that rule on a fresh reconcile,
-    ///   the aggregated `.latestMovies` / `.latestShows` start disabled.
+    /// Merge `stored` with server `libraries`: existing rows keep enabled/sortOrder, add a `.libraryLatest` per movies/tvshows lib (refresh name/type), drop vanished ones. Adaptive default: per-library rows start enabled only on multi-library servers, and on first such reconcile the aggregated latestMovies/latestShows start disabled.
     static func reconciled(
         stored: [HomeRowConfig],
         libraries: [JellyfinLibrary]
@@ -188,10 +158,7 @@ extension HomeRowConfig {
         let multiLibrary = latestLibs.count > 1
         let liveIDs = Set(latestLibs.map(\.id))
 
-        // Has the user already seen per-library rows for this server?
-        // If any libraryLatest config exists in storage we treat the
-        // adaptive-default decision as already made and never re-flip
-        // the aggregated rows again.
+        // Any stored libraryLatest means the adaptive-default decision was already made; never re-flip the aggregated rows.
         let firstReconcile = !stored.contains { $0.type == .libraryLatest }
 
         var result = stored.filter { config in
@@ -212,9 +179,7 @@ extension HomeRowConfig {
 
         // Append rows for libraries not yet represented.
         var nextOrder = (result.map(\.sortOrder).max() ?? -1) + 1
-        // Track appended ids too, so a server that ever returns two
-        // libraries with the same id can't produce two rows sharing a
-        // composite id (which would break SwiftUI Identifiable/ForEach).
+        // Track appended ids: duplicate library ids would yield colliding composite ids and break SwiftUI Identifiable/ForEach.
         var knownIDs = Set(result.compactMap { $0.type == .libraryLatest ? $0.libraryID : nil })
         for lib in latestLibs where !knownIDs.contains(lib.id) {
             result.append(
@@ -245,10 +210,7 @@ extension HomeRowConfig {
         return result
     }
 
-    /// Reset that preserves discovered `.libraryLatest` rows (so they
-    /// don't vanish from the customize list until the next reconcile)
-    /// while restoring static rows to their default order and enabled
-    /// state. Library rows go to the end, disabled.
+    /// Reset static rows to default order/enabled state; keep discovered `.libraryLatest` rows (at the end, disabled) so they don't vanish before the next reconcile.
     static func resetToDefault(current: [HomeRowConfig]) -> [HomeRowConfig] {
         var result = defaultConfig()
         var order = result.count

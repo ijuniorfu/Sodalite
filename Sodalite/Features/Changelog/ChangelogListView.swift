@@ -1,12 +1,6 @@
 import SwiftUI
 
-/// Settings → "What's New" entry. Lists every shipped release with
-/// its highlights so users can browse history any time, not just
-/// in the post-update moment. Uses the same row visual as the
-/// WhatsNewView modal, single source of truth for highlight
-/// rendering would be nice, but keeping them as parallel views
-/// avoids over-binding the Settings layout to a modal-shaped
-/// component.
+/// Settings → "What's New": lists every shipped release; parallel to WhatsNewView modal by design.
 struct ChangelogListView: View {
     @Environment(\.dismiss) private var dismiss
 
@@ -34,12 +28,7 @@ struct ChangelogListView: View {
             }
             .frame(maxWidth: .infinity)
         }
-        // Same bottom edge-fade as the WhatsNewView modal, soft
-        // visual cue that the list keeps going below the viewport.
-        // Slightly wider band (88%→100%) than the modal so the fade
-        // reads through the navigation-stack container that wraps
-        // this view; the modal version sits over plain black, so
-        // 94% is enough there but not here.
+        // Bottom edge-fade "scrollable" cue; wider band (88%→100%) than the modal so it reads through the nav-stack container.
         .mask(
             LinearGradient(
                 stops: [
@@ -54,9 +43,7 @@ struct ChangelogListView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .glassBackground()
         .toolbar(.hidden, for: .navigationBar)
-        // Belt and braces: explicitly catch the Menu button and pop
-        // back to Settings even if the focus state ever drifts away
-        // from the focusable rows.
+        // Belt and braces: catch the Menu button and pop back even if focus drifts off the focusable rows.
         .onExitCommand { dismiss() }
     }
 }
@@ -66,10 +53,7 @@ private struct VersionSection: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 24) {
-            // "Version 0.4.0", keep the literal "Version" prefix
-            // verbatim so we don't have to ship a catalog entry for
-            // every language; "Version" reads correctly in every
-            // shipped locale.
+            // "Version" prefix kept verbatim, reads correctly in every shipped locale, no catalog entry needed.
             Text("Version \(entry.version)")
                 .font(.title2)
                 .fontWeight(.bold)
@@ -87,11 +71,7 @@ private struct VersionSection: View {
 private struct HighlightRow: View {
     let highlight: ChangelogHighlight
 
-    // @FocusState rather than @Environment(\.isFocused): the latter
-    // doesn't propagate reliably into a plain .focusable() View on
-    // tvOS, so the row would otherwise stay on its not-focused
-    // background and the accent stroke would never appear. Binding
-    // a real FocusState updates on every focus-engine event.
+    // @FocusState not @Environment(\.isFocused): latter doesn't propagate into a plain .focusable() View on tvOS.
     @FocusState private var isFocused: Bool
 
     var body: some View {
@@ -123,9 +103,7 @@ private struct HighlightRow: View {
             RoundedRectangle(cornerRadius: 14)
                 .fill(isFocused ? .white.opacity(0.15) : .white.opacity(0.05))
         )
-        // Same accent-tint stroke + lift treatment SettingsTileButtonStyle
-        // uses for actionable tiles, so focused rows read as the same
-        // visual primitive across the app.
+        // Same SettingsTileButtonStyle accent-tint stroke + lift.
         .overlay(
             RoundedRectangle(cornerRadius: 14)
                 .strokeBorder(.tint, lineWidth: 3)
@@ -134,9 +112,7 @@ private struct HighlightRow: View {
         .scaleEffect(isFocused ? 1.03 : 1.0)
         .shadow(color: .black.opacity(isFocused ? 0.3 : 0), radius: 15, y: 8)
         .animation(.easeInOut(duration: 0.2), value: isFocused)
-        // Each row is focusable so the tvOS focus engine can step
-        // through them and auto-scroll the list as it goes, same
-        // pattern as the WhatsNewView modal.
+        // Focusable so the tvOS focus engine can step through rows and auto-scroll the list.
         .focusable()
         .focused($isFocused)
     }

@@ -28,9 +28,7 @@ final class SeerrServerDiscoveryService: SeerrServerDiscoveryServiceProtocol {
     func discoverServer(input: String) async -> SeerrServerDiscoveryResult {
         let candidates = buildCandidateURLs(from: input)
 
-        // A candidate that connects but doesn't speak Jellyseerr is a
-        // better diagnostic than "unreachable"; remember the first such
-        // error and prefer it for the failure result.
+        // A candidate that connects but isn't Jellyseerr is a better diagnostic than "unreachable"; prefer the first such error.
         var firstProtocolError: APIError?
 
         for url in candidates {
@@ -70,10 +68,7 @@ final class SeerrServerDiscoveryService: SeerrServerDiscoveryServiceProtocol {
         if cleaned.hasPrefix("https://") || cleaned.hasPrefix("http://") {
             guard let url = URL(string: cleaned) else { return [] }
             var candidates = [url]
-            // Default-port fallback only for plain-HTTP inputs (5055 is
-            // Jellyseerr's plain-HTTP default) without a path. Set the
-            // port through URLComponents: string-appending ":5055" to
-            // http://host/jellyseerr glues the port onto the path.
+            // Port 5055 fallback only for plain-HTTP, no port, no path. Via URLComponents, NOT string append (":5055" on http://host/jellyseerr glues onto the path).
             if url.port == nil, cleaned.hasPrefix("http://"),
                url.path.isEmpty || url.path == "/",
                var components = URLComponents(url: url, resolvingAgainstBaseURL: true) {
@@ -98,9 +93,7 @@ final class SeerrServerDiscoveryService: SeerrServerDiscoveryServiceProtocol {
                 if let https = URL(string: "https://\(cleaned)") { candidates.append(https) }
                 if let http = URL(string: "http://\(cleaned)") { candidates.append(http) }
             } else {
-                // Port variants only without a path (same guard as the
-                // domain branch): appending ":5055" to an IP+path input
-                // glues the port onto the path.
+                // Port variants only without a path (":5055" on an IP+path glues onto the path).
                 if !cleaned.contains("/") {
                     if let url = URL(string: "http://\(cleaned):5055") { candidates.append(url) }
                     if let url = URL(string: "https://\(cleaned):5055") { candidates.append(url) }
@@ -109,15 +102,13 @@ final class SeerrServerDiscoveryService: SeerrServerDiscoveryServiceProtocol {
                 if let url = URL(string: "http://\(cleaned)") { candidates.append(url) }
             }
         } else if hasPort {
-            // Domain with explicit port: appending another port would
-            // produce host:port:port, which URL(string:) rejects.
+            // Appending another port yields host:port:port, which URL(string:) rejects.
             if let url = URL(string: "https://\(cleaned)") { candidates.append(url) }
             if let url = URL(string: "http://\(cleaned)") { candidates.append(url) }
         } else {
             if let url = URL(string: "https://\(cleaned)") { candidates.append(url) }
             if let url = URL(string: "http://\(cleaned)") { candidates.append(url) }
-            // Port variants only make sense without a path; appending
-            // ":5055" to "host/jellyseerr" glues the port onto the path.
+            // Port variants only without a path (":5055" on "host/jellyseerr" glues onto the path).
             if !cleaned.contains("/") {
                 if let url = URL(string: "http://\(cleaned):5055") { candidates.append(url) }
                 if let url = URL(string: "https://\(cleaned):5055") { candidates.append(url) }

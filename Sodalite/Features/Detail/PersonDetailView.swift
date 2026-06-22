@@ -1,13 +1,9 @@
 import SwiftUI
 
-/// Person page: photo, biography, and a filmography grid. Reached from
-/// a cast row (Seerr detail in SP2, Jellyfin detail in SP3). Tapping a
-/// filmography title routes to the Jellyfin detail when the library
-/// owns it, otherwise to the Seerr detail to request it.
+/// Person page: photo, biography, filmography grid. A filmography tap routes to Jellyfin detail when the library owns the title, else to Seerr detail to request it.
 struct PersonDetailView: View {
     let personID: Int
-    /// Shown in the header until the detail fetch lands. Pass "" if
-    /// unknown; the fetched name replaces it.
+    /// Shown in the header until the detail fetch lands; pass "" if unknown.
     let personName: String
 
     @Environment(\.appState) private var appState
@@ -26,8 +22,7 @@ struct PersonDetailView: View {
 
     var body: some View {
         content
-            // Filmography has no hero backdrop, so it carries the shared grey
-            // glass page background instead of flat black.
+            // No hero backdrop, so the shared grey-glass page background, not flat black.
             .glassBackground()
             .ignoresSafeArea()
             .toolbar(.hidden, for: .tabBar)
@@ -220,9 +215,7 @@ struct PersonDetailView: View {
         }
     }
 
-    /// Owned in Jellyfin -> play path; else -> Seerr request path. The
-    /// library lookup only runs when Seerr marks the title available, so
-    /// non-owned titles skip the extra query.
+    /// Owned in Jellyfin routes to play; else to Seerr request. The library lookup runs only when Seerr marks the title available, so non-owned titles skip the query.
     private func handleTap(_ media: SeerrMedia) {
         Task {
             let status = media.mediaInfo?.status

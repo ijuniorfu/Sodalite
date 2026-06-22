@@ -1,42 +1,17 @@
 import SwiftUI
 import AetherEngine
 
-/// Right-anchored "stats for nerds" panel mounted over the player. Only
-/// visible when `PlaybackPreferences.showStatsForNerds` is on and the
-/// transport bar's info chip has been pressed (see PlayerHostController). Read-
-/// only and non-focusable: the user opens it, scans the data, then
-/// dismisses it via Menu or the same info chip.
-///
-/// Data sources are split between the engine and the Jellyfin item to
-/// keep the labels honest:
-///
-/// - **Playback** (backend, decoder identity, runtime HDR format) comes
-///   from `AetherEngine`'s @Published surface, observed live so an
-///   audio-track-switch reload that flips the audio decoder description
-///   updates the panel without the user having to re-open it.
-/// - **Container metadata** (codec, resolution, frame rate, bitrate,
-///   file size, filename) comes from `item.mediaStreams` /
-///   `item.mediaSources`, which the detail fetch already pulls.
+/// Right-anchored read-only "stats for nerds" panel; visible when `PlaybackPreferences.showStatsForNerds` is on and the transport's info chip is pressed. Data is split for honesty: Playback (backend, decoder, runtime HDR) from `AetherEngine`'s @Published surface (observed live so an audio-track-switch reload updates it in place); container metadata (codec/resolution/fps/bitrate/size/filename) from `item.mediaStreams`/`mediaSources`.
 struct StatsOverlayView: View {
     @ObservedObject var player: AetherEngine
-    /// Timer-sampled telemetry lives on a separate ObservableObject
-    /// since the engine.diagnostics split (the engine's
-    /// objectWillChange no longer fires on 1 Hz samples), so the
-    /// panel observes it explicitly. Only mounted while the panel is
-    /// open, so the 1 Hz re-render stays scoped to this view.
+    /// Timer-sampled telemetry observed separately since the engine.diagnostics split (engine's objectWillChange no longer fires on 1 Hz samples). Mounted only while the panel is open, scoping the 1 Hz re-render to this view.
     @ObservedObject var diagnostics: EngineDiagnostics
     let item: JellyfinItem
-    /// Active subtitle stream's container index (matches
-    /// `MediaStream.index`), or `nil` when subtitles are off.
+    /// Active subtitle stream's container index (matches `MediaStream.index`), or `nil` when off.
     let activeSubtitleIndex: Int?
-    /// Cursor into `PlayerViewModel.statsSectionAnchors`, written by
-    /// the press handlers in `PlayerView` while the panel is open.
-    /// Used to drive the embedded `ScrollViewReader` to the section
-    /// the user navigated to with the Up/Down arrows.
+    /// Cursor into `PlayerViewModel.statsSectionAnchors`, written by PlayerView's press handlers to drive the ScrollViewReader to the Up/Down-navigated section.
     let scrollSectionIndex: Int
-    /// Whether to render the Engine/Buffer/Network diagnostic sections
-    /// at the bottom of the panel. Driven by
-    /// `PlaybackPreferences.showEngineDiagnostics`.
+    /// Renders the Engine/Buffer/Network sections; driven by `PlaybackPreferences.showEngineDiagnostics`.
     let showEngineDiagnostics: Bool
 
     private var videoStream: MediaStream? {
@@ -65,22 +40,10 @@ struct StatsOverlayView: View {
                 .padding(.vertical, 40)
         }
         .transition(.move(edge: .trailing).combined(with: .opacity))
-        // Pointer-style hit testing isn't needed (no tap targets), but
-        // we leave it enabled so the underlying focus engine sees the
-        // overlay as a layer that should consume gestures. Up/Down
-        // press routing happens in PlayerHostController's @objc handlers, gated
-        // on viewModel.showStatsOverlay.
+        // Hit testing left on so the focus engine treats the overlay as a gesture-consuming layer; Up/Down routing is in PlayerHostController's @objc handlers gated on viewModel.showStatsOverlay.
     }
 
-    /// Latches true once the panel's slide-in transition has settled,
-    /// gating the ScrollViewReader's `scrollTo` so it doesn't race
-    /// the entrance animation. Without the gate, the
-    /// `statsSectionIndex = 0` reset in `PlayerViewModel.showStatsOverlay`'s
-    /// didSet (which fires the same render cycle the overlay mounts)
-    /// triggered a scrollTo whose own 0.2 s animation fought the
-    /// panel's 0.25 s `.move(edge: .trailing)` transition, sometimes
-    /// leaving the panel stuck halfway in for ~1 s. After the latch
-    /// flips the user's up / down navigation drives scrollTo normally.
+    /// Latches once the slide-in settles, gating scrollTo so the mount-time `statsSectionIndex = 0` reset (fires the same render cycle) doesn't run a 0.2s scrollTo that fights the panel's 0.25s `.move(edge: .trailing)` transition (stuck-halfway-in for ~1s).
     @State private var didFinishAppearTransition = false
 
     private var panel: some View {
@@ -126,21 +89,12 @@ struct StatsOverlayView: View {
                 .frame(width: 560, alignment: .topLeading)
             }
             .onChange(of: scrollSectionIndex) { _, newIndex in
-                // Skip the auto-scroll while the panel is still
-                // sliding in; the mount-time reset to index 0 fires
-                // this change during the entrance transition and the
-                // two animations conflict. The content's already at
-                // the top anyway since the ScrollView mounts there
-                // by default, so suppressing the initial scrollTo
-                // costs nothing.
+                // Skip auto-scroll while sliding in (the mount-time index-0 reset fires here and the two animations conflict); content starts at top anyway.
                 guard didFinishAppearTransition else { return }
                 let anchors = PlayerViewModel.statsSectionAnchors
                 guard anchors.indices.contains(newIndex) else { return }
                 withAnimation(.easeInOut(duration: 0.2)) {
-                    // `.top` keeps the active section header at the top
-                    // edge of the visible area, mirroring how the
-                    // transport-bar dropdowns scroll their highlighted
-                    // row into view.
+                    // `.top` keeps the active section header at the top edge, mirroring transport-bar dropdowns.
                     proxy.scrollTo(anchors[newIndex], anchor: .top)
                 }
             }
@@ -156,11 +110,7 @@ struct StatsOverlayView: View {
         )
         .shadow(color: .black.opacity(0.4), radius: 18, y: 6)
         .task {
-            // Wait past the entrance transition (0.25 s in PlayerHostController's
-            // `.animation(.easeInOut(duration: 0.25), value:
-            // viewModel.showStatsOverlay)`) plus a small buffer before
-            // unlatching the scrollTo gate. After this point user
-            // navigation triggers scrolls normally.
+            // Wait past the 0.25s entrance transition (+ buffer) before unlatching the scrollTo gate.
             try? await Task.sleep(for: .milliseconds(300))
             didFinishAppearTransition = true
         }
@@ -248,10 +198,7 @@ struct StatsOverlayView: View {
 
     @ViewBuilder
     private var audioSection: some View {
-        // Prefer the engine's TrackInfo (carries the live Atmos flag and
-        // channel count the host wouldn't otherwise know about) and fall
-        // back to the Jellyfin MediaStream when the engine hasn't
-        // resolved one yet (very brief window at session start).
+        // Prefer the engine's TrackInfo (live Atmos flag + channel count); fall back to the Jellyfin MediaStream during the brief session-start window before the engine resolves one.
         let engineTrack = player.audioTracks.first(where: { $0.id == player.activeAudioTrackIndex })
         if engineTrack != nil || activeAudioStream != nil {
             section("detail.tech.audio") {
@@ -384,21 +331,13 @@ struct StatsOverlayView: View {
         row(labelKey, value: value, valueColor: .white)
     }
 
-    /// Same as `row(_:value:)` but lets the caller tint the value column.
-    /// Currently used by the live A/V-gap row to colour-code the gap
-    /// magnitude (green / yellow / red); other callers stay at white via
-    /// the convenience overload above. The label column is intentionally
-    /// not coloured: it has to stay legible across all locales.
+    /// `row(_:value:)` with a caller-tinted value column (used by the live A/V-gap row for green/yellow/red); label column stays uncoloured for cross-locale legibility.
     private func row(
         _ labelKey: LocalizedStringKey,
         value: String,
         valueColor: Color
     ) -> some View {
-        // 180pt label column carries the longer German + Romance-
-        // language terms ("Dynamikbereich", "Décodeur vidéo",
-        // "Decodificador de áudio") on a single line. English labels
-        // (~7 chars) read slightly loose at this width, an acceptable
-        // trade for not truncating mid-word in the other 25 locales.
+        // 180pt label column fits the longer German/Romance terms ("Dynamikbereich", "Décodeur vidéo") on one line, trading slight English looseness for no mid-word truncation in the other 25 locales.
         HStack(alignment: .firstTextBaseline, spacing: 12) {
             Text(labelKey)
                 .font(.caption)
@@ -424,24 +363,12 @@ struct StatsOverlayView: View {
         case .software:
             return String(localized: "player.stats.backend.software", defaultValue: "Software (dav1d / FFmpeg)")
         case .aether, .none, .audio:
-            // .aether is the legacy backend the engine no longer
-            // dispatches to; reachable only via a stale enum value.
-            // .audio is the lean audio-only path, which drives its own
-            // music UI, not this video stats overlay, so it can't surface
-            // here either. Collapse all into the placeholder rather than
-            // carrying a localised string for backends that can't surface.
+            // .aether is legacy (no longer dispatched to); .audio drives its own music UI, not this video overlay. Neither can surface here, so collapse to the placeholder.
             return "—"
         }
     }
 
-    /// Source-detected video range, refined with Jellyfin's source DV
-    /// profile when the engine reports Dolby Vision. When the panel
-    /// can't present the source (DV / HDR10 source on an SDR panel, or
-    /// Match Content off) the engine clamps `videoFormat` to `.sdr` to
-    /// match what's actually on screen; in that case render
-    /// "Source → Target" so the row labels both the file and the
-    /// rendering. Examples: "SDR", "HDR10+", "Dolby Vision P5",
-    /// "Dolby Vision P5 → SDR", "Dolby Vision P8 → HDR10".
+    /// Source video range refined with Jellyfin's DV profile. When the engine clamps `videoFormat` to `.sdr` (DV/HDR10 source on SDR panel, or Match Content off), render "Source → Target" (e.g. "Dolby Vision P5 → SDR", "Dolby Vision P8 → HDR10").
     private func videoRangeLabel(stream: MediaStream) -> String {
         let source = Self.formatLabel(player.sourceVideoFormat, dvProfile: stream.dvProfile)
         let effective = Self.formatLabel(player.videoFormat, dvProfile: stream.dvProfile)
@@ -512,9 +439,7 @@ struct StatsOverlayView: View {
         return String(format: "%.0f ms", ms)
     }
 
-    /// Tints the live A/V-gap value by magnitude. Thresholds mirror the
-    /// engine's existing `abs(gapMs) > 50` warn-log site, so the user-
-    /// visible "this is hot" cue matches what we'd log internally.
+    /// Tints the A/V-gap value by magnitude; thresholds mirror the engine's `abs(gapMs) > 50` warn-log site.
     private static func avGapColor(_ ms: Double) -> Color {
         let abs = Swift.abs(ms)
         if abs < 50 { return .green }
@@ -535,13 +460,7 @@ struct StatsOverlayView: View {
     }
 }
 
-/// Highlights the section the up/down cursor currently sits on with a
-/// background fill + accent-tint stroke. Read-only visual indicator,
-/// not focusable: the sections aren't reachable through the focus
-/// engine (the AVKit-host gesture recognizers eat arrow-key presses
-/// before the engine sees them), so the cursor is driven by the same
-/// @objc press handlers that drive scrollTo. This modifier just makes
-/// the cursor's position visible.
+/// Visual-only highlight (fill + accent stroke) for the up/down cursor's section; not focusable (AVKit-host gesture recognizers eat arrow presses before the focus engine), so the cursor is driven by the same @objc handlers that drive scrollTo.
 private struct StatsSectionHighlight: ViewModifier {
     let isCurrent: Bool
 

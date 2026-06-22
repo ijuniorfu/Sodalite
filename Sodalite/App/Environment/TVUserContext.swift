@@ -3,17 +3,11 @@ import Foundation
 import TVServices
 #endif
 
-/// Resolves the system-level tvOS user identifier when multi-user
-/// mode is active. Returns nil on Apple TVs without multi-user
-/// (older models, single-user setup, or non-tvOS targets). Callers
-/// use the nil case as "behave like before, no per-user routing."
+/// Resolves the tvOS system user id under multi-user; nil otherwise (older models, single-user, non-tvOS). Callers treat nil as "no per-user routing."
 enum TVUserContext {
     static var currentUserID: String? {
         #if os(tvOS)
-        // Dispatch through the protocol witness below so the
-        // deprecation marker on the concrete impl doesn't propagate
-        // here (a directly-called deprecated wrapper just moves the
-        // warning to its call site).
+        // Protocol-witness dispatch so the impl's deprecation marker doesn't propagate to this call site.
         let reader: any TVUserTokenReading = TVUserTokenReader()
         return reader.currentToken()
         #else
@@ -28,13 +22,7 @@ private protocol TVUserTokenReading {
 }
 
 private struct TVUserTokenReader: TVUserTokenReading {
-    /// `currentUserIdentifier` is deprecated since tvOS 16, but it is
-    /// the only way to learn WHICH system user is active; the suggested
-    /// replacement (runs-as-current-user entitlement + user-independent
-    /// keychain) is a different model in which the app never sees the
-    /// user identity at all, which would replace the whole profile-
-    /// mapping feature. Deliberately kept; the deprecation marker on
-    /// this impl silences the API warning inside the body.
+    /// `currentUserIdentifier` is deprecated (tvOS 16) but the only way to learn WHICH system user is active; the replacement (runs-as-current-user entitlement + user-independent keychain) hides identity entirely and would replace the whole profile-mapping feature. Deliberately kept.
     @available(tvOS, deprecated: 16.0, message: "Deliberate: only source of the per-user token.")
     func currentToken() -> String? {
         TVUserManager().currentUserIdentifier

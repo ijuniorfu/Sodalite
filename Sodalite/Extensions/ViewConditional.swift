@@ -1,9 +1,7 @@
 import SwiftUI
 
 extension View {
-    /// Applies `transform` only when `condition` is true, otherwise returns
-    /// the view unchanged. Handy for attaching a modifier (e.g. `.focused`)
-    /// to a single element inside a `ForEach`.
+    /// Applies `transform` only when `condition` is true; handy for a conditional modifier (e.g. `.focused`) inside a `ForEach`.
     @ViewBuilder
     func applyIf<Transformed: View>(
         _ condition: Bool,

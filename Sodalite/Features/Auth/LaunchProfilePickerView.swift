@@ -19,10 +19,7 @@ struct LaunchProfilePickerView: View {
     @State private var showServerSwitchSheet = false
     @State private var showAddServerFlow = false
 
-    /// Namespace anchoring the focus scope so cold-launch focus lands
-    /// on a profile card rather than the server-switch button. Picking
-    /// a profile is the frequent action, switching servers is rare, so
-    /// the picker should open with a profile pre-focused (issue #25).
+    /// Anchors the focus scope so cold-launch focus lands on a profile card, not the server-switch button (issue #25).
     @Namespace private var focusNamespace
 
     var body: some View {
@@ -32,10 +29,6 @@ struct LaunchProfilePickerView: View {
 
                 profileGrid
 
-                // Server switch + add profile sit below the grid as
-                // secondary actions. The grid is the primary target
-                // both visually and for default focus, switching the
-                // active server is the lower-priority path.
                 serverSwitchButton
 
                 addProfileButton
@@ -47,10 +40,6 @@ struct LaunchProfilePickerView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .glassBackground()
             .navigationDestination(isPresented: $navigateToAddProfile) {
-                // UserPickerView shows the server's public users with
-                // avatars, mirrors the normal login entry point so a
-                // second profile feels like "pick another user" rather
-                // than "type username+password from scratch".
                 UserPickerView(server: server)
             }
             .alert(
@@ -77,9 +66,7 @@ struct LaunchProfilePickerView: View {
                         showAddServerFlow = true
                     },
                     onSwitched: { _ in
-                        // Picker re-resolves the active server via the
-                        // environment dependencies on next render; no
-                        // explicit reload needed here.
+                        // Picker re-resolves the active server from environment dependencies on next render.
                     }
                 )
             }
@@ -155,10 +142,7 @@ struct LaunchProfilePickerView: View {
                         onSelect: { select(user) },
                         onLongPress: { forget(user) }
                     )
-                    // Pre-focus the remembered default profile (or the
-                    // first card when no default is set) so a cold
-                    // launch opens with a profile highlighted instead
-                    // of the server-switch button (issue #25).
+                    // Pre-focus the remembered default profile (or first card) so cold launch opens with a profile highlighted (issue #25).
                     .prefersDefaultFocus(isPreferredDefault(user), in: focusNamespace)
                 }
             }
@@ -193,11 +177,7 @@ struct LaunchProfilePickerView: View {
             .padding(.horizontal, 28)
             .padding(.vertical, 14)
         }
-        // Same accent-tint trap as the addProfileButton on the
-        // ProfileSettingsView, the default tvOS bordered style fills
-        // with the active tint and propagates that tint into the
-        // Label's icon + text. Tile style fills with white-opacity
-        // and lets the label render in primary foreground regardless.
+        // Same SettingsTileButtonStyle tint trap as ProfileSettingsView addProfileButton: default tvOS bordered style fills with tint and bleeds it into the Label; tile style keeps the label in primary foreground.
         .buttonStyle(SettingsTileButtonStyle())
     }
 
@@ -221,12 +201,9 @@ struct LaunchProfilePickerView: View {
     private func performSelect(_ user: RememberedUser) {
         do {
             try dependencies.switchToUser(user, server: server)
-            // Drop cached thumbnails, they were fetched under the
-            // old profile's token which may no longer resolve.
+            // Thumbnails fetched under the old token may no longer resolve.
             ImageCache.shared.clear()
-            // Filter-grid caches carry the previous user's library
-            // permissions + watched/favorite flags; same-server
-            // switches never bump serverDidSwitch, so clear here.
+            // FilterCache carries the previous user's library perms + watched flags; same-server switches don't bump serverDidSwitch, so clear here.
             FilterCache.shared.clearAll()
             let jf = JellyfinUser(
                 id: user.id,
@@ -238,16 +215,9 @@ struct LaunchProfilePickerView: View {
             )
             appState.setAuthenticated(server: server, user: jf)
 
-            // Restore this profile's own remembered Seerr session.
-            // If the target profile never signed into Seerr, Seerr
-            // stays disconnected and the Catalog tab shows the "set
-            // up Seerr" empty state.
+            // Restore this profile's own remembered Seerr session (else Catalog shows the "set up Seerr" empty state).
             Task { await restoreSeerrForProfile(userID: user.id, serverID: server.id) }
-            // Backfill a missing PrimaryImageTag AND the server-side
-            // Policy block (drives the File Management permission
-            // gate) from /Users/Me. Without the Policy refresh, the
-            // delete button stays hidden after switching back to a
-            // profile that has the right.
+            // Backfill missing PrimaryImageTag + the server-side Policy block (drives the File Management gate) from /Users/Me, else the delete button stays hidden after switching back.
             Task { await refreshUserDetails(userID: user.id, serverID: server.id) }
         } catch {
             switchError = error.localizedDescription
@@ -273,9 +243,7 @@ struct LaunchProfilePickerView: View {
     }
 
     private func refreshUserDetails(userID: String, serverID: String) async {
-        // Fetch + keychain/remembered-user persistence live in the
-        // container; this view only applies the refreshed user to
-        // AppState.
+        // Fetch + persistence live in the container; this view only applies the refreshed user to AppState.
         if let fresh = await dependencies.refreshActiveUserDetails(
             expectedUserID: userID,
             serverID: serverID
@@ -285,11 +253,7 @@ struct LaunchProfilePickerView: View {
     }
 
     private func restoreSeerrForProfile(userID: String, serverID: String) async {
-        // allowLegacyFallback matches the launch-restore path in
-        // AppRouter: a pre-0.3.0 install that lands on the picker
-        // (no default profile) has only the legacy global Seerr
-        // entry, and without the fallback its session would never
-        // bridge to a scoped copy on this path.
+        // allowLegacyFallback mirrors AppRouter launch-restore: a pre-0.3.0 install on the picker has only the legacy global Seerr entry, else it never bridges to a scoped copy here.
         let outcome = await dependencies.syncSeerrSession(
             forJellyfinUserID: userID,
             jellyfinServerID: serverID,
@@ -320,19 +284,11 @@ struct LaunchProfilePickerView: View {
 
 // MARK: - Card
 
-/// Circular avatar + name card with long-press-to-forget support.
-/// Matches the UserPickerCard look so switching between the "server
-/// public users" picker and the "remembered profiles" picker feels
-/// consistent.
+/// Circular avatar + name card with long-press-to-forget. Matches UserPickerCard for consistency between the two pickers.
 struct RememberedProfileCard: View {
     let user: RememberedUser
     let server: JellyfinServer
-    /// Set on the card representing the active session. Surfaces a
-    /// green checkmark badge on the avatar + a green idle ring so
-    /// the user can spot the current login at a glance, same row
-    /// of cards otherwise looks identical, and the previous
-    /// "Currently signed in" / "Switch profile" split-section UI
-    /// disappears in favour of a single grid.
+    /// Marks the active session: green checkmark badge + idle ring so the current login is spottable in an otherwise-identical grid.
     var isCurrent: Bool = false
     let onSelect: () -> Void
     let onLongPress: () -> Void
@@ -352,16 +308,10 @@ struct RememberedProfileCard: View {
                     .lineLimit(1)
             }
         }
-        // BareButtonStyle suppresses tvOS' default thick white focus
-        // halo around the card. The avatar itself draws our tint
-        // (or green-when-current) ring inside its own overlay.
+        // BareButtonStyle suppresses tvOS' default thick white focus halo; the avatar overlay draws our tint (or green-when-current) ring instead.
         .buttonStyle(BareButtonStyle())
         .focused($isFocused)
-        // tvOS-native: long-pressing a focusable button opens a
-        // context menu instead of firing both the primary action
-        // and a secondary gesture on release. Tapping "Remove"
-        // inside the menu is the explicit confirmation, one extra
-        // click to protect against accidental deletion.
+        // Long-press opens a context menu; tapping "Remove" is the explicit confirm against accidental deletion.
         .contextMenu {
             Button(role: .destructive, action: onLongPress) {
                 Label(
@@ -389,10 +339,7 @@ struct RememberedProfileCard: View {
             }
         }
         .overlay(
-            // Subtle green idle ring on the active profile so it's
-            // recognisable even before the user moves focus over it.
-            // Suppressed when the user moves focus onto this card,
-            // the focus-tint ring takes over.
+            // Green idle ring on the active profile; suppressed when focused (focus-tint ring takes over).
             Circle()
                 .strokeBorder(.green, lineWidth: 4)
                 .padding(-3)

@@ -26,28 +26,11 @@ final class HTTPClient: HTTPClientProtocol, @unchecked Sendable {
     private let encoder: JSONEncoder
     private let decoder: JSONDecoder
 
-    /// Caps concurrent in-flight requests on this client's session.
-    /// The Home fan-out on a multi-library server can otherwise burst
-    /// 60-90 requests in a few seconds (one per per-library Latest row,
-    /// one per genre, one per streaming provider, plus the background
-    /// precompute passes); a CDN/WAF in front of Jellyfin reads that as
-    /// scraping and tarpits the client for ~a minute, while requests
-    /// queued behind it blow past their 30 s timeout and silently
-    /// return nil rows (Sodalite#12 / #14). 6 matches browser-like
-    /// per-host concurrency. Per-client, so Jellyfin and Seerr (each
-    /// their own HTTPClient) don't share a budget.
+    /// Caps in-flight requests: unthrottled Home fan-out (60-90 reqs) trips a CDN/WAF in front of Jellyfin into tarpitting + timeout-nil rows (Sodalite#12/#14). 6 = browser-like per-host; per-client so Jellyfin/Seerr don't share a budget.
     private let inFlightLimiter = AsyncSemaphore(limit: 6)
 
     nonisolated init(session: URLSession? = nil) {
-        // Cookie handling is done manually by each client (Seerr sets
-        // connect.sid, Jellyfin uses header-based auth). If we let
-        // URLSession.shared auto-persist cookies in HTTPCookieStorage,
-        // a stale connect.sid from an expired Seerr session keeps
-        // getting attached to every request, including the fresh
-        // /auth/jellyfin POST, which Seerr then rejects with 401
-        // before looking at the credentials. Using a dedicated session
-        // with cookies disabled keeps our manual header the single
-        // source of truth.
+        // Cookies disabled: clients set auth manually (Seerr connect.sid, Jellyfin header). Auto-persisted cookies would reattach a stale connect.sid to the fresh /auth/jellyfin POST and earn a 401.
         if let session {
             self.session = session
         } else {
@@ -56,40 +39,14 @@ final class HTTPClient: HTTPClientProtocol, @unchecked Sendable {
             config.httpShouldSetCookies = false
             config.httpCookieStorage = nil
 
-            // Response caching with always-revalidate policy.
-            // The earlier hard-disable was a heavy hammer for one
-            // specific symptom: Jellyfin /Items responses being
-            // served stale across app restarts because URLSession
-            // honoured the server's Cache-Control max-age without
-            // checking back. The fix isn't "no caching" — it's
-            // "always ask the server but skip the body if nothing
-            // changed". `.reloadRevalidatingCacheData` makes
-            // URLSession send a conditional GET (If-None-Match /
-            // If-Modified-Since) on every request; the server
-            // replies 304 + ~200 bytes if the resource is unchanged
-            // and URLSession serves the cached body, otherwise 200
-            // + full payload and the cache is rewritten. The
-            // freshness guarantee is identical to the no-cache
-            // policy (server is the authority on every request);
-            // the win is body bytes on unchanged metadata, which
-            // on a 1 PB CDN-backed Jellyfin (Sodalite#12) trims
-            // /Items/Latest, /Users/Me, /Items/{id} from multi-MB
-            // payloads to a 304 stub.
-            //
-            // Sizes match a typical Jellyfin metadata working set:
-            // 10 MB memory keeps the hot rows of the home page
-            // resident; 50 MB disk survives app restarts so a cold
-            // launch can revalidate (cheap) instead of refetching
-            // (expensive). Image caching is still separate
-            // (AsyncCachedImage on its own session).
+            // .reloadRevalidatingCacheData: conditional GET (If-None-Match) every request, so freshness == no-cache (server always authoritative) but unchanged metadata returns a 304 stub instead of multi-MB payload (Sodalite#12). 10MB mem (hot home rows) / 50MB disk (survives restart for cheap cold-launch revalidate). Images cache separately (AsyncCachedImage).
             config.urlCache = URLCache(
                 memoryCapacity: 10 * 1024 * 1024,
                 diskCapacity: 50 * 1024 * 1024,
                 diskPath: "sodalite-http-cache"
             )
             config.requestCachePolicy = .reloadRevalidatingCacheData
-            // Belt to the app-level inFlightLimiter: keep the transport
-            // pool from opening more than the limiter admits anyway.
+            // Belt to inFlightLimiter: transport pool shouldn't exceed what the limiter admits.
             config.httpMaximumConnectionsPerHost = 6
             self.session = URLSession(configuration: config)
         }
@@ -131,11 +88,7 @@ final class HTTPClient: HTTPClientProtocol, @unchecked Sendable {
     ) async throws -> (Data, HTTPURLResponse) {
         let urlRequest = try buildRequest(baseURL: baseURL, endpoint: endpoint, headers: headers)
 
-        // Throttle concurrent requests so a Home fan-out can't flood the
-        // origin. wait() suspends (it does not start the request's
-        // timeout clock) until a permit frees, and throws if the calling
-        // task is cancelled while queued. The permit is balanced on
-        // every exit path by the defer below.
+        // wait() suspends without starting the request's timeout clock; permit balanced by the defer below on every exit path.
         try await inFlightLimiter.wait()
         defer { inFlightLimiter.signal() }
 
@@ -144,12 +97,7 @@ final class HTTPClient: HTTPClientProtocol, @unchecked Sendable {
         do {
             (data, response) = try await session.data(for: urlRequest)
         } catch let error as URLError where error.code == .cancelled {
-            // Task cancellation surfaces from URLSession as
-            // URLError(.cancelled). Mapping it to networkError would
-            // paint "Network connection failed" into the UI for a
-            // request the user abandoned by navigating away; rethrow
-            // as CancellationError so callers can ignore it like any
-            // other cancelled task.
+            // URLSession surfaces task cancellation as URLError(.cancelled); rethrow as CancellationError so callers ignore it instead of painting "Network connection failed".
             throw CancellationError()
         } catch let error as CancellationError {
             throw error
@@ -190,11 +138,7 @@ final class HTTPClient: HTTPClientProtocol, @unchecked Sendable {
             components = URLComponents(url: baseURL.appendingPathComponent(endpoint.path), resolvingAgainstBaseURL: true)
         }
         components?.queryItems = endpoint.queryItems
-        // URLComponents leaves "+" literal in query values, but
-        // ASP.NET Core (Jellyfin) and Express (Seerr) decode "+" as a
-        // space, so a search for "Disney+" arrives as "Disney ".
-        // Spaces are already %20 at this point, so every remaining
-        // literal "+" is a real plus character and safe to escape.
+        // URLComponents leaves "+" literal, but ASP.NET (Jellyfin) / Express (Seerr) decode it as space ("Disney+"→"Disney "). Spaces are already %20 here, so any remaining "+" is a real plus, escape to %2B.
         let encodedQuery = components?.percentEncodedQuery
         components?.percentEncodedQuery = encodedQuery?
             .replacingOccurrences(of: "+", with: "%2B")
@@ -205,10 +149,7 @@ final class HTTPClient: HTTPClientProtocol, @unchecked Sendable {
 
         var request = URLRequest(url: url)
         request.httpMethod = endpoint.method.rawValue
-        // Endpoint may opt into a longer timeout when 30 s is too
-        // aggressive (e.g. fire-and-forget session-progress writes
-        // that must survive a slow CDN hiccup, Sodalite#12). All
-        // other calls keep the 30 s default.
+        // Endpoints may override the 30s default (e.g. fire-and-forget session-progress writes surviving a slow CDN hiccup, Sodalite#12).
         request.timeoutInterval = endpoint.timeoutInterval ?? 30
 
         for (key, value) in headers {

@@ -1,15 +1,12 @@
 import SwiftUI
 
-/// Compact metadata line for the Seerr detail header: rating, runtime,
-/// year, certification. Mirrors the Jellyfin `ItemMetadataRow` style.
-/// Each segment is omitted when its value is nil.
+/// Compact Seerr detail-header metadata line (rating, runtime, year, certification), mirroring Jellyfin's `ItemMetadataRow`; nil segments omitted.
 struct SeerrMetadataRow: View {
     let rating: Double?
     let runtimeMinutes: Int?
     let year: String?
     let certification: String?
-    /// Rotten Tomatoes critics score (0-100). Shown with the fresh/rotten
-    /// badge, split at 60, matching the Jellyfin detail row.
+    /// Rotten Tomatoes critics score (0-100); fresh/rotten badge split at 60, matching the Jellyfin detail row.
     var rtCriticsScore: Int? = nil
 
     var body: some View {

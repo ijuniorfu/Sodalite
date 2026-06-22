@@ -1,21 +1,12 @@
 import SwiftUI
 
-/// Horizontal scroller of streaming-network or movie-studio tiles.
-/// Each tile renders the provider's TMDB logo on a dark card; tap
-/// pushes a CatalogFilteredGridView for the matching network/studio
-/// filter. Mirrors Jellyseerr web's CompanyCard slider.
+/// Horizontal scroller of network/studio tiles (TMDB logo on a dark card); tap pushes a CatalogFilteredGridView. Mirrors Jellyseerr web's CompanyCard slider.
 struct CatalogProviderRow: View {
     let titleKey: LocalizedStringKey
     let providers: [CatalogProvider]
-    /// The destination is decided by the caller, Catalog wraps the
-    /// provider in a Jellyseerr-backed `CatalogFilter`, Home translates
-    /// it into a Jellyfin Studios filter against the local library.
+    /// Destination chosen by caller: Catalog wraps in a `CatalogFilter`, Home translates to a Jellyfin Studios filter.
     let onSelect: (CatalogProvider) -> Void
-    /// Optional resolver for a sample backdrop per provider. The
-    /// caller decides whether the sample comes from the local
-    /// Jellyfin library (home) or Jellyseerr discover (catalog), the
-    /// row just renders whatever URL it gets, with a graceful fallback
-    /// to the dark logo-only tile when the lookup returns nil.
+    /// Per-provider sample backdrop resolver (local Jellyfin for home, Jellyseerr discover for catalog); nil falls back to the dark logo-only tile.
     var backdropFor: (CatalogProvider) -> URL? = { _ in nil }
 
     var body: some View {
@@ -48,16 +39,12 @@ private struct ProviderTile: View {
     let backdropURL: URL?
     let action: () -> Void
 
-    // Match the genre tile dimensions so provider + genre rows
-    // line up visually when they sit on the same screen (catalog
-    // discover surface, home page).
+    // Match genre tile dimensions so provider + genre rows line up on the same screen.
     private let width: CGFloat = 320
     private let height: CGFloat = 180
 
     var body: some View {
-        // Same reason as GenreTile / SeerrMediaCard / etc., Button
-        // on tvOS layers a system white halo we can't disable, so we
-        // route through FocusableCard for a consistent tint outline.
+        // FocusableCard not Button: tvOS layers an unsuppressable white halo on focused buttons (as GenreTile/SeerrMediaCard).
         FocusableCard(action: action) { isFocused in
             ZStack {
                 if let backdropURL {
@@ -71,9 +58,7 @@ private struct ProviderTile: View {
                     .frame(width: width, height: height)
                     .clipped()
 
-                    // Slightly heavier than the genre tile gradient
-                    // so the duotone logo on top stays readable even
-                    // against bright backdrops.
+                    // Heavier than the genre tile gradient so the duotone logo stays readable on bright backdrops.
                     LinearGradient(
                         colors: [.black.opacity(0.55), .black.opacity(0.85)],
                         startPoint: .top,

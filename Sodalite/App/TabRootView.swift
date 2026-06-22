@@ -35,17 +35,12 @@ enum AppTab: String, CaseIterable, Sendable {
 struct TabRootView: View {
     @State private var selectedTab: AppTab = .home
     @State private var availableTabs: [AppTab] = AppTab.allCases.filter { $0 != .music && $0 != .liveTV }
-    /// serverDidSwitch value of the last completed tab probe. -1 until
-    /// the first probe so the initial run always fires; afterwards a
-    /// `.task` re-fire from a view reappearance is a no-op while a real
-    /// server switch (different signal value) resets and re-probes.
+    /// serverDidSwitch value of the last completed tab probe. -1 so the first probe fires; a `.task` re-fire on reappear is a no-op while a real switch re-probes.
     @State private var lastProbedServerSwitch = -1
     @Environment(\.dependencies) private var dependencies
     @Environment(\.appState) private var appState
 
-    /// Resolved accent color for the tab-bar icons. Falls back to the
-    /// asset-catalog accent when the user is on `.system`, so the icons
-    /// never render as plain white.
+    /// Tab-bar icon accent; falls back to the asset-catalog accent on `.system` so icons never render plain white.
     private var iconColor: Color {
         dependencies.appearancePreferences.effectiveTint(
             isSupporter: dependencies.storeKitService.isSupporter
@@ -61,16 +56,7 @@ struct TabRootView: View {
                     Label {
                         Text(tab.labelKey)
                     } icon: {
-                        // Force monochrome rendering. The accent is applied
-                        // via UITabBarItemAppearance.iconColor (see
-                        // configureTabBarItemAppearance), which tints a
-                        // template symbol. Most SF Symbols render monochrome
-                        // by default, but a few (notably "tv", the Live TV
-                        // tab) default to HIERARCHICAL rendering with a baked
-                        // white color that overrides the tab-bar tint, the
-                        // icon stays gray while its siblings tint. .monochrome
-                        // strips that baked color so the tint applies
-                        // uniformly across every tab.
+                        // .monochrome strips the baked white color that "tv" (Live TV) renders hierarchically by default, which would override UITabBarItemAppearance.iconColor and leave that one icon gray while siblings tint.
                         Image(systemName: tab.systemImage)
                             .symbolRenderingMode(.monochrome)
                     }
@@ -78,16 +64,11 @@ struct TabRootView: View {
             }
         }
         .tint(iconColor)
-        // Display-only active-profile badge in the top-trailing corner.
-        // Non-focusable, so it never intercepts focus from the nav bar;
-        // sits below the player fullScreenCover, so it's absent during
-        // playback. Hidden unless the server has multiple profiles.
+        // Display-only active-profile badge; non-focusable, below the player cover, hidden unless the server has multiple profiles.
         .overlay(alignment: .topTrailing) {
             ActiveUserBadge()
         }
-        // Siri Remote play/pause button while browsing (foreground): it is
-        // delivered to the responder chain, not MPRemoteCommandCenter, so
-        // toggle music here when a track is active.
+        // Foreground Siri Remote play/pause arrives via the responder chain (not MPRemoteCommandCenter), so toggle music here when a track is active.
         .onPlayPauseCommand {
             let coordinator = dependencies.musicPlaybackCoordinator
             if coordinator.currentItem != nil {
@@ -96,22 +77,13 @@ struct TabRootView: View {
             }
         }
         .task(id: appState.serverDidSwitch) {
-            // TabRootView stays mounted across a server switch, so the
-            // Live TV / Music tabs have to be recomputed per server:
-            // otherwise the old server's Live TV tab lingers (querying
-            // the wrong backend) and a new server's Music tab never
-            // appears until app relaunch.
+            // TabRootView stays mounted across a switch, so recompute the optional Live TV / Music tabs per server, else the old server's Live TV lingers (wrong backend) and a new server's Music never appears until relaunch.
             let signal = appState.serverDidSwitch
             guard signal != lastProbedServerSwitch else { return }
             let isServerSwitch = lastProbedServerSwitch != -1
             let previousSignal = lastProbedServerSwitch
             lastProbedServerSwitch = signal
-            // The latch is taken up front so a re-entrant fire of the
-            // same signal can't double-probe, but a cancelled run (view
-            // disappears mid-probe) must give the latch back: the .task
-            // re-fires with the same signal on reappear, and without the
-            // rollback that re-fire would hit the guard above and the
-            // Live TV / Music tabs would stay missing for the session.
+            // Latch up front against re-entrant double-probe, but give it back on cancellation (view disappears mid-probe), else the reappear re-fire hits the guard and the Live TV / Music tabs stay missing for the session.
             defer {
                 if Task.isCancelled, lastProbedServerSwitch == signal {
                     lastProbedServerSwitch = previousSignal
@@ -127,19 +99,11 @@ struct TabRootView: View {
 
             guard let userID = dependencies.activeUserID else { return }
 
-            // Probe both optional tabs, then publish the whole tab set in a
-            // SINGLE assignment. Inserting Live TV and Music as two separate
-            // mutations rebuilt the tab bar twice; the item created in the
-            // earlier rebuild (Live TV) got stranded on tvOS's gray icon
-            // template while the one created in the later rebuild (Music)
-            // picked up the accent. One atomic rebuild means every item is
-            // born in the same appearance pass and tints uniformly.
+            // Probe both optional tabs then publish the tab set in ONE assignment. Two separate insertions rebuilt the bar twice, stranding the earlier item (Live TV) on tvOS's gray icon template; one atomic rebuild tints every item uniformly.
             let hasLive = await dependencies.serverHasLiveTV(userID: userID)
             guard !Task.isCancelled, signal == lastProbedServerSwitch else { return }
 
-            // A music probe failure must not keep the Live TV tab hidden, so
-            // swallow its error into a plain false rather than letting it
-            // skip the assignment below.
+            // Swallow a music-probe error into false so it doesn't skip the assignment and leave Live TV hidden.
             var hasMusic = false
             do {
                 hasMusic = try await dependencies.jellyfinMusicService.hasMusicLibrary(userID: userID)
@@ -164,42 +128,18 @@ struct TabRootView: View {
             configureTabBarItemAppearance()
         }
         .onChange(of: iconColor) { _, _ in
-            // Re-apply when the user changes their accent in
-            // Appearance settings; UITabBarItem.appearance() reads
-            // the values at configure time, not live.
+            // Re-apply on accent change; UITabBarItem.appearance() reads at configure time, not live.
             configureTabBarItemAppearance()
         }
         .onChange(of: availableTabs) { _, _ in
-            // The Live TV / Music tabs are inserted asynchronously after
-            // the server probe completes (see the .task above), which
-            // rebuilds the TabView's UITabBar. The standardAppearance
-            // proxy covers the freshly allocated tab bar, but re-apply on
-            // the next tick as a belt-and-braces measure in case the new
-            // bar exists before the proxy is consulted.
+            // Async Live TV / Music insertion rebuilds the UITabBar; re-apply next tick in case the new bar exists before the appearance proxy is consulted.
             DispatchQueue.main.async {
                 configureTabBarItemAppearance()
             }
         }
     }
 
-    /// Tints the tab bar's icons and titles through `UITabBarAppearance`.
-    ///
-    /// Why the appearance API and not per-item images: tvOS always
-    /// renders tab-bar SF Symbols as templates. Baking an
-    /// `.alwaysOriginal` accent image onto each `UITabBarItem` looked
-    /// right until the Live TV / Music tabs were inserted mid-session,
-    /// which rebuilds the underlying `UITabBar`; tvOS re-templated the
-    /// new items gray and discarded the baked image. Titles never had
-    /// this problem because they flow through `titleTextAttributes`,
-    /// which the framework honors. `iconColor` is the equivalent lever
-    /// for symbols: it tells tvOS which color to template TO, so the
-    /// accent survives any rebuild.
-    ///
-    /// Applied two ways: the `UITabBar.appearance()` proxy so a freshly
-    /// allocated tab bar (the mid-session rebuild) inherits it, and a
-    /// walk of the live window hierarchy so the tab bar currently on
-    /// screen repaints immediately (e.g. when the user flips their
-    /// accent in Appearance settings).
+    /// Tints tab-bar icons + titles via UITabBarAppearance.iconColor, NOT per-item .alwaysOriginal images: tvOS re-templates mid-session-inserted items (Live TV / Music) gray and discards baked images, but iconColor tells it which color to template TO so the accent survives a rebuild. Applied both via the .appearance() proxy (future bars) and a live-window walk (repaint on-screen, e.g. accent change).
     private func configureTabBarItemAppearance() {
         let tintUIColor = UIColor(iconColor)
 
@@ -214,8 +154,7 @@ struct TabRootView: View {
 
         let appearance = UITabBarAppearance()
         appearance.configureWithDefaultBackground()
-        // tvOS may lay items out stacked or inline depending on width;
-        // set all three so the tint holds regardless.
+        // tvOS may lay items stacked or inline by width; set all three so the tint holds.
         appearance.stackedLayoutAppearance = itemAppearance
         appearance.inlineLayoutAppearance = itemAppearance
         appearance.compactInlineLayoutAppearance = itemAppearance

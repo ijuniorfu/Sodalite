@@ -11,21 +11,12 @@ final class SearchViewModel {
     var errorMessage: String?
 
     private let itemService: JellyfinItemServiceProtocol
-    /// `var` rather than `let` so the SearchView can flip it from nil
-    /// to a real service when Seerr finishes connecting after the user
-    /// has already opened the search tab. Otherwise a fast tap into
-    /// Search during cold-start would freeze the catalog half at nil
-    /// for the entire app session.
+    /// `var` so SearchView can flip nil→service when Seerr connects after the search tab is already open; otherwise a cold-start tap pins the catalog half at nil for the session.
     var seerrSearchService: SeerrSearchServiceProtocol?
     private let userID: String
     private var searchTask: Task<Void, Never>?
 
-    /// Monotonic counter for in-flight searches. Each scheduled search
-    /// captures its own ID; only the run whose ID still matches
-    /// `currentSearchID` at write-time is allowed to publish results.
-    /// Plain `Task.isCancelled` is not enough here: the inner network
-    /// helpers swallow cancellation into `[]`, which would otherwise
-    /// blow away a newer search's results with empty data.
+    /// Monotonic in-flight search ID; only the run still matching `currentSearchID` may publish. `Task.isCancelled` alone is insufficient since network helpers swallow cancellation into `[]`, which would wipe a newer search's results.
     private var currentSearchID: UInt64 = 0
 
     init(
@@ -38,17 +29,13 @@ final class SearchViewModel {
         self.userID = userID
     }
 
-    /// Debounced search. Cancels the previous task so fast typing only
-    /// runs the final query against the servers (saves bandwidth and
-    /// stops results arriving out-of-order).
+    /// Debounced search; cancels the prior task so fast typing only runs the final query (saves bandwidth, avoids out-of-order results).
     func scheduleSearch() {
         searchTask?.cancel()
 
         let trimmed = query.trimmingCharacters(in: .whitespaces)
         guard trimmed.count >= 2 else {
-            // Bump the ID so any in-flight task is also disqualified
-            // from writing, even the cleared state belongs to the
-            // newest "search" (which is "no search").
+            // Bump the ID so in-flight tasks can't write; the cleared state owns the newest "search".
             currentSearchID &+= 1
             jellyfinResults = []
             seerrResults = []
@@ -77,11 +64,7 @@ final class SearchViewModel {
         let jfResult = await jfTask
         let seerrResult = await seerrTask
 
-        // Only publish if we are still the most recent search. A run
-        // that's been superseded must not overwrite the newer query's
-        // results, including not flipping isSearching back to false,
-        // which would tell the UI "done" while a fresher run is still
-        // mid-flight.
+        // Publish only if still the latest search; a superseded run must not overwrite results nor flip isSearching to false while a fresher run is mid-flight.
         guard id == currentSearchID else { return }
 
         let jfItems = jfResult.items
@@ -90,12 +73,7 @@ final class SearchViewModel {
         seerrResults = deduplicate(seerr: seerrItems, against: jfItems)
         isSearching = false
 
-        // Differentiate connection failure from "no results found".
-        // The Jellyfin call is the primary signal, if it errored *and*
-        // we have nothing to show from either service, the user is
-        // looking at a network problem, not an empty library. Seerr
-        // alone can't trigger this because users may have it
-        // disconnected on purpose.
+        // Connection failure vs "no results": Jellyfin is the primary signal; only its error + both lists empty means network problem. Seerr alone can't trigger this (may be intentionally disconnected).
         if jfResult.error != nil && jellyfinResults.isEmpty && seerrResults.isEmpty {
             errorMessage = String(
                 localized: "search.error.connection",
@@ -137,10 +115,7 @@ final class SearchViewModel {
         }
     }
 
-    /// Remove Seerr results that already exist in the Jellyfin library.
-    /// Primary signal: TMDB id. Fallback when Jellyfin has no TMDB
-    /// provider id (manual imports, old scanner versions): normalized
-    /// title + production year.
+    /// Remove Seerr results already in the Jellyfin library. Primary key: TMDB id; fallback (no TMDB provider id, e.g. manual imports/old scanner): normalized title + production year.
     private func deduplicate(seerr: [SeerrMedia], against jellyfin: [JellyfinItem]) -> [SeerrMedia] {
         let jellyfinTmdbIDs = Set(jellyfin.compactMap { $0.tmdbID })
         let jellyfinTitleYears = Set(jellyfin.map { titleYearKey(name: $0.name, year: $0.productionYear) })

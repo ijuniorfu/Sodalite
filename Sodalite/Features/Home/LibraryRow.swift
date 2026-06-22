@@ -1,8 +1,6 @@
 import SwiftUI
 
-/// "My Media" row: one tile per video library. Tapping a tile opens
-/// that library in the shared FilteredGridView (the caller builds the
-/// FilterDestination with the library's parentID).
+/// "My Media" row: one tile per video library, opening it in the shared FilteredGridView.
 struct LibraryRow: View {
     let titleKey: LocalizedStringKey
     let libraries: [JellyfinLibrary]
@@ -34,8 +32,7 @@ private struct LibraryTile: View {
     let library: JellyfinLibrary
     let action: () -> Void
 
-    // Match the .landscape MediaCard image dimensions so My Media
-    // tiles line up with the rows above them.
+    // Match .landscape MediaCard dimensions so My Media tiles line up with the rows above.
     private let width: CGFloat = 360
     private let height: CGFloat = 202
 
@@ -64,9 +61,7 @@ private struct LibraryTile: View {
             .frame(width: width, height: height)
             .clipShape(RoundedRectangle(cornerRadius: 12))
             .overlay(
-                // Match the MediaCard focus stroke: concentric outer
-                // border (card radius + stroke width), pushed 3pt past
-                // the edge so it sits around the tile.
+                // MediaCard focus stroke: concentric outer border pushed 3pt past the edge.
                 RoundedRectangle(cornerRadius: 15)
                     .strokeBorder(.tint, lineWidth: 3)
                     .padding(-3)

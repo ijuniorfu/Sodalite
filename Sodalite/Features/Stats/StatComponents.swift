@@ -1,9 +1,6 @@
 import SwiftUI
 
-/// A single labelled number tile in the stats count grid. Focusable so
-/// the otherwise non-focusable header (title + watch-time) above the grid
-/// is reachable on tvOS: initial focus lands here and the focus engine can
-/// scroll the header into view.
+/// A labelled number tile in the stats count grid; focusable so the non-focusable header above the grid is reachable (scrollable into view) on tvOS.
 struct StatTile: View {
     let icon: String
     let value: String
@@ -42,9 +39,7 @@ struct StatTile: View {
     }
 }
 
-/// One genre row: name, a proportional bar, and the count. `fraction`
-/// is the genre's share of the top genre (0...1) so the longest bar is
-/// full-width.
+/// One genre row; `fraction` is the genre's share of the top genre (0...1) so the longest bar is full-width.
 struct GenreBar: View {
     let name: String
     let count: Int

@@ -1,8 +1,6 @@
 import SwiftUI
 
-/// "Where to watch" strip: streaming (flatrate) provider logos for the
-/// resolved region. The caller passes the already-region-resolved
-/// provider list; this view only renders. The caller guards emptiness.
+/// "Where to watch" strip of flatrate provider logos; caller passes the already-region-resolved list and guards emptiness, this view only renders.
 struct SeerrWatchProvidersRow: View {
     var title: LocalizedStringKey = "catalog.watchProviders"
     let providers: [SeerrWatchProvider]

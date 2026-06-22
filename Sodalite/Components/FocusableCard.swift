@@ -1,7 +1,6 @@
 import SwiftUI
 
-/// A focusable card that handles tvOS focus without the default white border.
-/// Use this instead of Button for media cards and settings tiles.
+/// Focusable card avoiding tvOS's default white focus border; use instead of Button for media cards and settings tiles.
 struct FocusableCard<Content: View>: View {
     let action: () -> Void
     @ViewBuilder let content: (_ isFocused: Bool) -> Content

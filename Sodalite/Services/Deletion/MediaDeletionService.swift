@@ -1,22 +1,13 @@
 import Foundation
 
 protocol MediaDeletionServiceProtocol: Sendable {
-    /// Deletes a movie from Jellyfin. If `cascadeToArrStack` is true,
-    /// also instructs Seerr to remove the Radarr entry (no-op if Seerr
-    /// has no record for the title).
+    /// `cascadeToArrStack` also removes the Radarr entry via Seerr (no-op if Seerr has no record).
     func deleteMovie(itemID: String, tmdbID: Int?, cascadeToArrStack: Bool) async throws
 
-    /// Deletes an entire series from Jellyfin (cascades to all seasons
-    /// + episodes server-side). If `cascadeToArrStack` is true, also
-    /// instructs Seerr to remove the Sonarr entry.
+    /// Jellyfin cascades all seasons/episodes server-side; `cascadeToArrStack` also removes the Sonarr entry via Seerr.
     func deleteSeries(itemID: String, tmdbID: Int?, cascadeToArrStack: Bool) async throws
 
-    /// Deletes one or more seasons from Jellyfin. The Seerr cascade is
-    /// not available at season granularity (Jellyseerr's media-delete
-    /// endpoint only operates on the whole series), so
-    /// `cascadeToArrStack` is accepted but ignored. The UI prevents the
-    /// toggle from being on in this case; the parameter is here for
-    /// signature symmetry.
+    /// `cascadeToArrStack` accepted but IGNORED: Jellyseerr media-delete only operates per-series, so a season cascade would remove the whole Sonarr series. Param kept for signature symmetry.
     func deleteSeasons(seasonItemIDs: [String], cascadeToArrStack: Bool) async throws
 }
 
@@ -24,12 +15,7 @@ protocol MediaDeletionServiceProtocol: Sendable {
 final class MediaDeletionService: MediaDeletionServiceProtocol {
     private let jellyfinItems: any JellyfinItemServiceProtocol
     private let seerrMedia: any SeerrMediaServiceProtocol
-    /// Returns true when the host currently has an active Seerr session
-    /// cookie. Read each call so the result reacts live to session
-    /// expiry / sign-out without the service caching a stale boolean.
-    /// Implemented as a closure (rather than a SeerrClient injection)
-    /// so the service stays decoupled from the client; the
-    /// DependencyContainer wires it to `seerrClient.sessionCookie != nil`.
+    /// Active-Seerr-session check; a closure (not a SeerrClient injection) so it stays decoupled and re-reads live each call instead of caching a stale boolean. DependencyContainer wires it to `seerrClient.sessionCookie != nil`.
     private let isSeerrAuthenticated: @MainActor () -> Bool
 
     init(
@@ -49,10 +35,7 @@ final class MediaDeletionService: MediaDeletionServiceProtocol {
             throw MediaDeletionError(stage: .jellyfin, underlying: error)
         }
         guard cascadeToArrStack, let tmdbID = tmdbID else { return }
-        // Pre-flight: the cascade call requires an active Seerr session
-        // (MANAGE_REQUESTS permission on the Seerr user). Surface the
-        // missing-session case as a typed reason so the UI can render
-        // a specific toast instead of the generic "could not remove".
+        // Cascade needs an active Seerr session (MANAGE_REQUESTS); surface the missing-session case as a typed reason.
         guard isSeerrAuthenticated() else {
             throw MediaDeletionError(stage: .seerr, reason: .seerrNotSignedIn)
         }
@@ -81,10 +64,7 @@ final class MediaDeletionService: MediaDeletionServiceProtocol {
     }
 
     func deleteSeasons(seasonItemIDs: [String], cascadeToArrStack: Bool) async throws {
-        // cascadeToArrStack is intentionally ignored. Jellyseerr's
-        // media-delete endpoint only operates at series granularity; if
-        // the caller asked for a season-cascade the UI is buggy, but we
-        // refuse to silently remove the whole Sonarr series.
+        // cascadeToArrStack ignored: Jellyseerr media-delete is series-granular, refuse to silently remove the whole Sonarr series.
         for itemID in seasonItemIDs {
             do {
                 try await jellyfinItems.deleteItem(itemID: itemID)

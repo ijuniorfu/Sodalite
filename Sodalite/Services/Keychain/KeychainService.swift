@@ -17,24 +17,10 @@ final class KeychainService: KeychainServiceProtocol {
         self.service = service
     }
 
-    /// Per-user isolation under `com.apple.developer.user-management =
-    /// runs-as-current-user` is the OS default for SecItem operations.
-    /// `kSecUseUserIndependentKeychain` is the OPT-IN to cross-user
-    /// sharing (set it to true on items that should be visible to every
-    /// tvOS user). Setting it to false explicitly is rejected as a
-    /// param error (-50) on SecItemDelete, so we just omit it: the
-    /// implicit default already isolates per user.
-    ///
-    /// Access groups (`kSecAttrAccessGroup`) are orthogonal, they govern
-    /// cross-PROCESS sharing (e.g. the TopShelf extension reading the
-    /// main app's session blob), not cross-USER sharing. We omit them
-    /// here and let the OS pick the first entitled group.
+    // Per-user isolation is the SecItem default under runs-as-current-user; omit kSecUseUserIndependentKeychain (setting it false is rejected -50 on SecItemDelete). Access groups (kSecAttrAccessGroup) govern cross-PROCESS not cross-USER sharing; omitted so the OS picks the first entitled group.
 
     func save(_ data: Data, for key: String) throws {
-        // Upsert (update-then-add), NOT delete-then-add: the old
-        // delete+add destroyed the previous value before the add could
-        // fail, so a failed token-refresh save lost the old token, and
-        // two interleaved saves could collide on errSecDuplicateItem.
+        // Upsert (update-then-add), NOT delete-then-add: delete+add lost the old token if the add failed and could collide on errSecDuplicateItem under interleaved saves.
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: service,

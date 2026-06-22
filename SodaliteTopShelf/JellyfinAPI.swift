@@ -1,18 +1,11 @@
 import Foundation
 
-/// Lean Jellyfin client scoped to what the TopShelf needs:
-/// `/Items/Resume` and `/Shows/NextUp`. The main app's full client
-/// is intentionally not shared here — pulling it in would drag the
-/// whole DI graph (HTTPClient + 9 services + AppState) into the
-/// extension's tight memory budget for one or two GET requests.
+/// Lean Jellyfin client for the TopShelf (/Items/Resume, /Shows/NextUp). Not the main app's client: pulling in its DI graph would blow the extension's tight memory budget for one or two GETs.
 struct JellyfinAPI: Sendable {
     let session: SharedSession
 
     private static let deviceID: String = {
-        // Stable per-extension device id so Jellyfin's session list
-        // doesn't fill with one-off rows every time the system
-        // refreshes the shelf. Lives in the shared App Group
-        // UserDefaults so the main app's device id stays distinct.
+        // Stable per-extension device id (App Group UserDefaults, distinct from the main app's) so shelf refreshes don't fill Jellyfin's session list with one-off rows.
         let defaults = UserDefaults(suiteName: "group.de.superuser404.Sodalite")
         let key = "topShelf.deviceID"
         if let existing = defaults?.string(forKey: key) { return existing }

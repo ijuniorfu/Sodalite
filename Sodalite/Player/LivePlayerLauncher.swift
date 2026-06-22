@@ -3,12 +3,8 @@ import UIKit
 
 // MARK: - Live Player Launcher (UIKit modal presentation)
 
-/// UIKit-modal launcher for the live player, mirroring PlayerLauncher but
-/// constructing the view model with the live initializer. Presents only when
-/// `isPresented` is true and a `context` is set.
-///
-/// On tvOS, SwiftUI's fullScreenCover intercepts the Menu button at the
-/// presentation level. UIKit modals don't have this problem.
+/// UIKit-modal launcher for the live player (mirrors PlayerLauncher with the
+/// live initializer); presents when `isPresented` and `context` are set.
 struct LivePlayerLauncher: UIViewControllerRepresentable {
     @Binding var isPresented: Bool
     let context: LivePlaybackContext?
@@ -29,21 +25,18 @@ struct LivePlayerLauncher: UIViewControllerRepresentable {
             host.pendingLivePresent = true
             attemptPresent(host: host, liveContext: liveContext, attempt: 0)
         } else if !isPresented, host.presentedViewController is PlayerHostController {
-            // Programmatic dismissal (sign-out, deep link, session
-            // teardown flipping the binding): mirror PlayerLauncher,
-            // otherwise the live player stays as a zombie modal.
+            // Programmatic dismissal (sign-out, deep link, teardown); else the
+            // live player stays as a zombie modal.
             host.dismiss(animated: false)
         }
     }
 
-    /// Present the player from the stable host VC, but only once the info
-    /// popover (a SwiftUI sheet presented from this same host) has finished
-    /// dismissing. Presenting while it is mid-dismiss fails ("view is not in
-    /// the window hierarchy"), so poll until host has nothing presented.
+    /// Present only once the info popover (a SwiftUI sheet from this host) has
+    /// finished dismissing; presenting mid-dismiss fails ("view is not in the
+    /// window hierarchy"), so poll (40 x 50ms) until host has nothing presented.
     private func attemptPresent(host: PlayerLauncherHostVC, liveContext: LivePlaybackContext, attempt: Int) {
-        // The binding can flip false during the poll window (user backed
-        // out while the info sheet was still dismissing); presenting
-        // anyway would launch a player nobody asked for.
+        // Binding can flip false during the poll (user backed out); don't
+        // launch a player nobody asked for.
         guard isPresented else {
             host.pendingLivePresent = false
             return

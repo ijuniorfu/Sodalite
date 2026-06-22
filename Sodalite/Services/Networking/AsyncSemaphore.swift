@@ -1,32 +1,6 @@
 import Foundation
 
-/// A FIFO counting semaphore for async/await. Bounds how many
-/// operations may proceed concurrently, suspending the rest until a
-/// permit frees up.
-///
-/// `HTTPClient` holds one to cap the number of in-flight requests on
-/// its `URLSession`. Without it, a Home fan-out on a multi-library
-/// server bursts 60-90 requests in a few seconds (one per per-library
-/// Latest row, one per genre, one per streaming provider, plus the
-/// background precompute passes), all funnelled through a single
-/// connection pool. A CDN/WAF in front of Jellyfin reads that burst as
-/// scraping and tarpits the client for ~a minute, while requests
-/// queued behind it blow past their 30 s timeout and silently return
-/// nil (Sodalite#12 / #14). Admitting at most N at a time keeps the
-/// client to browser-like per-host concurrency, and because a
-/// request's timeout clock only starts once it is actually issued, a
-/// request waiting on a permit never times out while merely queued.
-///
-/// Cancellation-aware: a task cancelled while waiting for a permit
-/// throws `CancellationError` and removes itself from the queue, so it
-/// never strands a permit. Without that, the background fan-out tasks
-/// (cancelled on every profile switch / re-entrant load) would each
-/// leak a permit and permanently shrink the pool until every Jellyfin
-/// request hangs forever.
-/// `nonisolated` so it opts out of the project's default MainActor
-/// isolation: every method runs wherever it is called (including the
-/// Sendable cancellation handler that touches `waiters`), with the
-/// `NSLock` rather than an actor providing thread-safety.
+/// FIFO counting semaphore for async/await; caps HTTPClient in-flight requests so a Home fan-out can't trip the CDN/WAF (Sodalite#12/#14). Timeout clock only starts once issued, so a queued waiter never times out. Cancellation-aware: a cancelled waiter throws CancellationError and dequeues so it never strands a permit (else cancelled fan-out tasks leak permits until the pool starves). `nonisolated` (opts out of MainActor): NSLock provides thread-safety for the Sendable cancel handler touching `waiters`.
 nonisolated final class AsyncSemaphore: @unchecked Sendable {
     private struct Waiter {
         let id: UInt64
@@ -45,10 +19,7 @@ nonisolated final class AsyncSemaphore: @unchecked Sendable {
         self.available = limit
     }
 
-    /// Acquire a permit, suspending until one is free. Throws
-    /// `CancellationError` if the awaiting task is cancelled before a
-    /// permit is granted. On success the caller owns a permit and must
-    /// balance it with exactly one `signal()`.
+    /// Acquire a permit (suspends until free; throws CancellationError if cancelled first). Caller must balance with exactly one `signal()`.
     func wait() async throws {
         let id = nextWaiterID()
         try await withTaskCancellationHandler {

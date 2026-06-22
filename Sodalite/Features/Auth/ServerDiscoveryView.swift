@@ -4,10 +4,7 @@ struct ServerDiscoveryView: View {
     @Environment(\.dependencies) private var dependencies
     @State private var viewModel: ServerDiscoveryViewModel?
 
-    /// If true, the post-login flow runs through addServer instead
-    /// of the first-run "set as initial server" path. The completion
-    /// closure is called when the user has either finished adding
-    /// (success) or cancelled out (no server added).
+    /// True routes post-login through addServer instead of the first-run "set as initial server" path. onCompletion fires on finish or cancel.
     var addMode: Bool = false
     var onCompletion: (() -> Void)? = nil
 

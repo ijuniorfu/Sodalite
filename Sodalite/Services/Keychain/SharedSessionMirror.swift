@@ -2,27 +2,11 @@ import Foundation
 import os.log
 import Security
 
-/// Writes the active Jellyfin credentials into the shared keychain
-/// access group that the TopShelf extension reads from. One slot
-/// per tvOS system user: nil (single-user Apple TV) folds into
-/// `tvOSSession_default`, multi-user lands in `tvOSSession_<id>`.
-/// Each slot holds a JSON-encoded `Payload` with server URL,
-/// user ID, and access token. Re-mirrored on every login, profile
-/// switch, and logout to keep the extension's view in lockstep
-/// with the running app.
-///
-/// Lives in its own service bucket (`…Sodalite.shared`) so the
-/// main app's primary keychain entries (in the default access
-/// group) stay logically separated from the shelf's narrow
-/// projection, even though both physically share the same
-/// app-bundle keychain unless the .shared access group resolves at
-/// runtime, in which case the mirror lands in that group.
+/// Mirrors active Jellyfin credentials into the shared keychain access group the TopShelf extension reads. One slot per tvOS user (nil → `tvOSSession_default`, multi-user → `tvOSSession_<id>`), each a JSON `Payload`; re-mirrored on every login/profile-switch/logout. Own service bucket (`…Sodalite.shared`) to keep it separate from the app's primary entries.
 enum SharedSessionMirror {
     static let service = "de.superuser404.Sodalite.shared"
 
-    /// JSON shape stored in each `tvOSSession_<id>` keychain slot.
-    /// Kept in sync with the matching decoder in
-    /// `SodaliteTopShelf/SharedSession.swift`.
+    /// JSON shape per slot; keep in sync with the decoder in `SodaliteTopShelf/SharedSession.swift`.
     struct Payload: Codable {
         let serverURL: String
         let userID: String
@@ -48,11 +32,7 @@ enum SharedSessionMirror {
         delete(account: slot)
     }
 
-    /// Wipes every shared-session blob (default + every per-tvOS-user
-    /// slot). Used by clearSession (full logout) so a multi-user setup
-    /// doesn't leave one user's mirror behind after a global wipe.
-    /// Enumerates the keychain by account-name prefix because SecItem
-    /// doesn't accept prefix matching directly.
+    /// Wipes every shared-session slot (full logout). Enumerates by `tvOSSession_` account-prefix since SecItem has no prefix match.
     static func clearAll() {
         var query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
@@ -105,23 +85,7 @@ enum SharedSessionMirror {
         SecItemDelete(query as CFDictionary)
     }
 
-    /// Materializes the actual `<TeamID>.de.superuser404.Sodalite.shared`
-    /// string at runtime, `$(AppIdentifierPrefix)` only expands at
-    /// codesign, never at `SecItemAdd`. We crib the team prefix off
-    /// any keychain item the process can already see (the main
-    /// app's KeychainService has always written at least `activeServer`
-    /// by the time the mirror runs). When no items exist yet (truly
-    /// fresh install, somehow called pre-login), we drop the access
-    /// group from the query and let the OS fall back to the first
-    /// entitled group, losing some isolation but keeping the write
-    /// from failing outright.
-    /// Caches only a SUCCESSFUL probe. A `static let` latched the very
-    /// first result for the process lifetime, so a probe that ran
-    /// against an empty keychain (first launch right after the
-    /// migrator wipe, or a clear before any login save) pinned the
-    /// nil fallback forever; writes and deletes could then target
-    /// different groups across launches, leaving a stale TopShelf
-    /// session behind after logout.
+    /// Materializes `<TeamID>.de.superuser404.Sodalite.shared` at runtime ($(AppIdentifierPrefix) expands only at codesign). Cribs the team prefix off any visible keychain item; if none exist (fresh install pre-login) drops the access group and lets the OS pick the first entitled one. Caches only a SUCCESSFUL probe: a `static let` would pin the nil fallback forever after an empty-keychain probe, so writes/deletes could target different groups and strand a stale TopShelf session after logout.
     private static var cachedAccessGroup: String?
     private static var resolvedAccessGroup: String? {
         if let cachedAccessGroup { return cachedAccessGroup }

@@ -1,22 +1,17 @@
 import SwiftUI
 
-/// Source-neutral cast member, so both the Jellyfin and Seerr detail
-/// views can feed the same row. `personID` is the TMDB person id used
-/// for navigation to a filmography page (SP2); nil disables the tap.
+/// Source-neutral cast member so Jellyfin and Seerr detail views share one row. `personID` is the TMDB id used for filmography navigation; nil disables the tap.
 struct CastMember: Identifiable, Hashable, Sendable {
     let id: String
     let name: String
     let role: String?
     let imageURL: URL?
     let personID: Int?
-    /// Jellyfin person id, set for Jellyfin-sourced cast (resolved to a
-    /// TMDB id on tap). Nil for Seerr-sourced cast, which set `personID`
-    /// (TMDB) directly.
+    /// Jellyfin person id (resolved to TMDB on tap); nil for Seerr-sourced cast, which set `personID` directly.
     let jellyfinPersonID: String?
 }
 
-/// Horizontal strip of cast portraits. `onSelect` is nil in SP1 (the
-/// cards are non-interactive); SP2 wires it to push a person page.
+/// Horizontal strip of cast portraits; `onSelect` nil makes the cards non-interactive.
 struct MediaCastRow: View {
     var title: LocalizedStringKey = "detail.cast"
     let members: [CastMember]

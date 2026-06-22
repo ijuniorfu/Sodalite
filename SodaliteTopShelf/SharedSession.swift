@@ -4,32 +4,20 @@ import Security
 
 private let log = Logger(subsystem: "de.superuser404.Sodalite.TopShelf", category: "SharedSession")
 
-/// Pulls the active Jellyfin session out of the shared keychain
-/// access group that the main app mirrors credentials into. Read
-/// only — the extension never writes here.
-///
-/// The main app remains the single source of truth for auth state;
-/// every login/switch/logout writes through `SharedSessionMirror`
-/// which keeps the per-tvOS-user JSON slot in sync. If the slot is
-/// missing or fails to decode we treat the session as absent and the
-/// TopShelf renders empty rather than guessing.
+/// Reads the active Jellyfin session from the shared keychain access group the main app mirrors into via SharedSessionMirror. Read-only; missing/undecodable slot is treated as no session (shelf renders empty).
 struct SharedSession: Sendable {
     let baseURL: URL
     let userID: String
     let accessToken: String
 
-    /// JSON shape the main app writes into each tvOSSession_<id>
-    /// slot. Kept in sync with `SharedSessionMirror.Payload`.
+    /// JSON the main app writes into each tvOSSession_<id> slot; kept in sync with SharedSessionMirror.Payload.
     private struct Payload: Codable {
         let serverURL: String
         let userID: String
         let accessToken: String
     }
 
-    /// Reads the per-tvOS-user blob the main app's
-    /// `SharedSessionMirror.write` deposits. Nil tvUserID (single-
-    /// user Apple TV) reads the `tvOSSession_default` slot, identical
-    /// to the no-multi-user shape.
+    /// Reads the per-tvOS-user blob SharedSessionMirror.write deposits. Nil tvUserID (single-user Apple TV) reads the `tvOSSession_default` slot.
     static func read(tvUserID: String?) -> SharedSession? {
         let slot = sharedSessionSlot(tvUserID: tvUserID)
         guard let data = readSharedKeychainData(account: slot) else {
@@ -47,9 +35,7 @@ struct SharedSession: Sendable {
     }
 }
 
-/// Mirrors `KeychainKeys.sharedSession(tvUserID:)` from the main
-/// target. Duplicated here so the TopShelf extension stays
-/// source-independent from Sodalite's target.
+/// Mirrors KeychainKeys.sharedSession(tvUserID:); duplicated so the extension stays source-independent from the main target.
 private func sharedSessionSlot(tvUserID: String?) -> String {
     "tvOSSession_\(tvUserID ?? "default")"
 }
@@ -74,13 +60,7 @@ private func readSharedKeychainData(account: String) -> Data? {
     return data
 }
 
-/// `$(AppIdentifierPrefix)` only expands inside entitlement plists —
-/// at runtime the prefix is the team ID followed by a dot, recovered
-/// here by querying any one keychain item the process can already
-/// see and reading its `kSecAttrAccessGroup` back. Falls back to the
-/// raw entitlement value as a last resort so a brand-new install
-/// (with nothing in the keychain yet) still finds its bucket on the
-/// next read.
+/// `$(AppIdentifierPrefix)` only expands in entitlement plists; at runtime recover the team-ID prefix by reading kSecAttrAccessGroup off any visible keychain item. Falls back to the raw entitlement value for a brand-new install with an empty keychain.
 private let resolvedAccessGroup: String = {
     let query: [String: Any] = [
         kSecClass as String: kSecClassGenericPassword,

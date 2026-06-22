@@ -8,9 +8,7 @@ struct LoginView: View {
     @State private var showSuccess = false
 
     let server: JellyfinServer
-    /// Pre-selected user from the UserPicker step. `nil` means the
-    /// user clicked "Sign in manually" and we show the full form
-    /// including the username field.
+    /// Nil means "Sign in manually": show the full form including the username field.
     var preSelectedUser: JellyfinUser? = nil
     var addMode: Bool = false
     var onCompletion: (() -> Void)? = nil
@@ -78,9 +76,7 @@ struct LoginView: View {
         }
     }
 
-    // Avatar for the pre-selected user, identical composition to the
-    // UserPicker card so the transition feels like "same user, now
-    // enter password" instead of "different screen."
+    // Identical composition to the UserPicker card so the transition reads as "same user, now enter password".
     @ViewBuilder
     private func userAvatar(for user: JellyfinUser) -> some View {
         let url = dependencies.jellyfinImageService.userProfileImageURL(
@@ -135,9 +131,7 @@ struct LoginView: View {
     @ViewBuilder
     private func loginFormSection(vm: LoginViewModel) -> some View {
         VStack(spacing: 20) {
-            // Hide the username field when the user was picked from
-            // the preceding user-grid, their name is already in the
-            // view model and shown above the password field.
+            // Username already shown above when picked from the user-grid.
             if preSelectedUser == nil {
                 TextField(String(localized: "auth.login.username"), text: Bindable(vm).username)
                     .autocorrectionDisabled()
@@ -252,43 +246,24 @@ struct LoginView: View {
             try? await Task.sleep(for: .seconds(1.5))
             guard let result = vm.authResult else { return }
 
-            // Persistence already happened in finalizeAuth ->
-            // saveSession (addServer + activeServerID pointer + token
-            // + user keys); the explicit addServer / pointer writes
-            // that used to live here were no-op repeats with a comment
-            // wrongly claiming they were required.
+            // Persistence already happened in finalizeAuth -> saveSession; old addServer/pointer writes here were no-ops.
             appState.setAuthenticated(server: result.server, user: result.user)
 
-            // Re-evaluate the Seerr session against the freshly-signed-in
-            // user. Both first-run and add-mode need this: add-mode was
-            // previously skipping it, leaving the new server's user with
-            // whatever Seerr state the previous profile had.
+            // Re-evaluate Seerr against the new user. Add-mode needs this too, else it inherits the previous profile's Seerr state.
             await syncSeerrToActiveProfile(
                 userID: result.user.id,
                 serverID: result.server.id
             )
 
-            // Tell anyone who pushed this view that we're done.
-            // Initial-login flows (ServerDiscoveryView -> ...) don't
-            // need this, AppRouter swaps its root when isAuthenticated
-            // flips, but the "Add another profile" branch from
-            // ProfileSettingsView stays mounted on top of TabRootView
-            // until the push is popped.
+            // Needed by the "Add another profile" branch (stays mounted on TabRootView until popped); first-run relies on AppRouter swapping its root on isAuthenticated.
             NotificationCenter.default.post(name: .loginDidComplete, object: nil)
 
-            // Add-mode hook: let the host react (e.g. refresh the server
-            // list in Settings). No-op in first-run because onCompletion
-            // is nil there.
+            // Add-mode hook (refresh Settings server list); nil in first-run.
             onCompletion?()
         }
     }
 
-    /// Pulls the Seerr session that belongs to the just-authed
-    /// Jellyfin profile out of the keychain (or wipes the active
-    /// session when the new profile has no Seerr login of its own).
-    /// Mirrors ProfileSettingsView.restoreSeerrForSwitchedProfile so
-    /// the add-profile path lands on the same end state as a
-    /// regular profile switch.
+    /// Restores the just-authed profile's Seerr session from keychain (or wipes it). Mirrors ProfileSettingsView.restoreSeerrForSwitchedProfile.
     private func syncSeerrToActiveProfile(userID: String, serverID: String) async {
         let outcome = await dependencies.syncSeerrSession(
             forJellyfinUserID: userID,

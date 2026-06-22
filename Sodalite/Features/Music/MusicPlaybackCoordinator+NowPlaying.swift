@@ -6,49 +6,36 @@ import AetherEngine
 
 /// Native system Now-Playing for the music path.
 ///
-/// On tvOS 14+ a bare AVPlayer must own an `MPNowPlayingSession` to stay the
-/// active Now-Playing app across a background pause: the SHARED
-/// `MPNowPlayingInfoCenter` / `MPRemoteCommandCenter` are not reliably bound
-/// to the player, so when audio output stops (pause -> rate 0) the system
-/// drops the app and the play button stops being delivered (Apple forums
-/// 658311 / 706656). So we route EVERYTHING through the engine's per-player
-/// session: metadata to `session.nowPlayingInfoCenter`, transport handlers on
-/// `session.remoteCommandCenter`. Mixing in the shared singletons is exactly
-/// what produced the earlier half-working state. tvOS infers play/pause from
-/// the published `MPNowPlayingInfoPropertyPlaybackRate` (1.0 playing / 0.0
-/// paused); we keep it accurate and refresh it on a timer.
+/// On tvOS 14+ a bare AVPlayer must own an `MPNowPlayingSession` to stay the active Now-Playing app
+/// across a background pause: the SHARED info/command centers aren't reliably bound, so on pause
+/// (rate 0) the system drops the app and stops delivering the play button (Apple forums 658311 /
+/// 706656). So route EVERYTHING through the engine's per-player session; mixing in the shared
+/// singletons produced the earlier half-working state. tvOS infers play/pause from the published
+/// `MPNowPlayingInfoPropertyPlaybackRate` (1.0/0.0), kept accurate via the timer.
 ///
-/// The FFmpeg fallback path has no AVPlayer/session, so it falls back to the
-/// shared singletons (`infoCenter` / `commandCenter` resolve to the defaults).
-///
-/// Remote command handlers are delivered on the main thread on tvOS. The
-/// coordinator is `@MainActor`, so each handler reads/writes coordinator
-/// state inside `MainActor.assumeIsolated`.
+/// The FFmpeg fallback has no AVPlayer/session, so infoCenter/commandCenter resolve to the shared defaults.
+/// Remote handlers arrive on the main thread; the coordinator is @MainActor, so each uses MainActor.assumeIsolated.
 extension MusicPlaybackCoordinator {
 
-    /// The Now-Playing info center to write to: the active AVPlayer session's
-    /// own center when that path is live, else the shared default (FFmpeg).
+    /// Info center to write to: the active AVPlayer session's own center, else the shared default (FFmpeg).
     private var infoCenter: MPNowPlayingInfoCenter {
         engine.audioNowPlayingSession?.nowPlayingInfoCenter ?? MPNowPlayingInfoCenter.default()
     }
 
-    /// The command center to register transport handlers on: the active
-    /// AVPlayer session's own center when live, else the shared default.
+    /// Command center for transport handlers: the active session's own center, else the shared default.
     private var commandCenter: MPRemoteCommandCenter {
         engine.audioNowPlayingSession?.remoteCommandCenter ?? MPRemoteCommandCenter.shared()
     }
 
-    /// Build and publish the now-playing dictionary for the current track,
-    /// register the remote commands (once), then kick an async artwork load.
-    /// Clears the surface when there is no current item.
+    /// Build + publish the now-playing dictionary, register remote commands (once), kick an async
+    /// artwork load. Clears the surface when there is no current item.
     func applyNowPlayingInfo() {
         guard let item = currentItem else {
             clearNowPlayingInfo()
             return
         }
 
-        // Register the transport handlers once, on the session's command
-        // center (the binding tvOS needs to keep delivering commands).
+        // Register transport handlers once, on the session's command center (the binding tvOS needs).
         registerRemoteCommandsIfNeeded()
 
         var info: [String: Any] = [:]
@@ -59,30 +46,23 @@ extension MusicPlaybackCoordinator {
         info[MPNowPlayingInfoPropertyElapsedPlaybackTime] = currentTime
         info[MPNowPlayingInfoPropertyPlaybackRate] = isPlaying ? 1.0 : 0.0
         info[MPNowPlayingInfoPropertyMediaType] = MPNowPlayingInfoMediaType.audio.rawValue
-        // Preserve any artwork already resolved for this track so a state /
-        // duration refresh does not flash it away while a fresh load runs.
+        // Preserve already-resolved artwork so a state/duration refresh doesn't flash it away mid-load.
         if let art = cachedArtwork, cachedArtworkItemID == item.id {
             info[MPMediaItemPropertyArtwork] = art
         }
         infoCenter.nowPlayingInfo = info
 
-        // NOTE: deliberately NOT setting MPNowPlayingInfoCenter.playbackState.
-        // It is a macOS-only mechanism; on tvOS third-party apps lack the
-        // private set-playback-state entitlement so it is silently dropped
-        // (the "Ignoring setPlaybackState" log spam). tvOS reads the
-        // PlaybackRate above to know play-vs-pause.
+        // NOTE: deliberately NOT setting MPNowPlayingInfoCenter.playbackState: macOS-only; tvOS
+        // third-party apps lack the entitlement so it's silently dropped ("Ignoring setPlaybackState"
+        // spam). tvOS reads the PlaybackRate above for play-vs-pause.
 
         loadArtwork(for: item)
         LogTap.shared.note("[NowPlaying] info set: '\(item.name)' rate=\(isPlaying ? 1 : 0) dur=\(Int(duration))")
     }
 
-    /// Lightweight refresh of just the elapsed time + rate on the EXISTING
-    /// now-playing entry, without rebuilding the whole dictionary, reloading
-    /// artwork, or logging. Driven by a periodic timer so the system keeps a
-    /// fresh, live entry: tvOS shows the Home Now-Playing overlay promptly
-    /// (instead of lagging behind our last discrete write) and keeps it alive
-    /// across a pause (a stale entry gets dropped, hiding the overlay and the
-    /// remote play route). Also keeps the system progress/scrubber moving.
+    /// Refresh just elapsed + rate on the EXISTING entry (no rebuild / artwork reload / log), on the
+    /// timer so the system keeps a live entry: shows the Home overlay promptly (not lagging our last
+    /// write), keeps it alive across a pause (stale entries get dropped), and moves the scrubber.
     func refreshNowPlayingElapsed() {
         guard currentItem != nil else { return }
         let center = infoCenter
@@ -97,7 +77,6 @@ extension MusicPlaybackCoordinator {
         center.nowPlayingInfo = info
     }
 
-    /// Tear down the system now-playing surface.
     func clearNowPlayingInfo() {
         infoCenter.nowPlayingInfo = nil
         cachedArtwork = nil
@@ -106,16 +85,12 @@ extension MusicPlaybackCoordinator {
 
     // MARK: - Artwork
 
-    /// Resolve an album-art URL (album image preferred, track primary as
-    /// fallback) and load it off the main actor, then merge the artwork
-    /// into the live now-playing dictionary, guarding against a track
-    /// change while the load was in flight. Caches the resolved artwork so
-    /// subsequent state/duration refreshes keep showing it.
+    /// Resolve album-art URL (album image, track primary fallback), load off the main actor, merge
+    /// into the live dictionary guarding against a track change mid-load. Caches so refreshes keep it.
     private func loadArtwork(for item: JellyfinItem) {
         let itemID = item.id
         nowPlayingArtworkItemID = itemID
 
-        // Already resolved for this track, nothing to fetch.
         if cachedArtworkItemID == itemID, cachedArtwork != nil { return }
 
         guard let url = imageService.musicCoverURL(for: item, maxWidth: 600) else { return }
@@ -141,16 +116,11 @@ extension MusicPlaybackCoordinator {
 
     // MARK: - Remote commands
 
-    /// Bind transport handlers to the session's command center, re-binding
-    /// whenever the RESOLVED center changes. The engine dispatches per track
-    /// on codec: AVPlayer-decodable audio routes through the session path
-    /// (per-session center), Opus/Vorbis through the FFmpeg path (shared
-    /// default center). A once-only registration bound to whichever center
-    /// happened to be live first, so in a mixed queue the other path's
-    /// tracks had a command center with no targets and Control Center /
-    /// Siri Remote transport went dead. Identity-tracked so same-center
-    /// calls stay no-ops (the session is persistent for the engine's
-    /// lifetime, per-track re-registering is unnecessary churn).
+    /// Bind transport handlers to the command center, re-binding whenever the RESOLVED center changes.
+    /// The engine routes per codec: AVPlayer-decodable audio -> session center, Opus/Vorbis -> FFmpeg
+    /// shared center. A once-only registration bound to whichever was live first, so in a mixed queue
+    /// the other path had a target-less center and Control Center / Siri Remote went dead.
+    /// Identity-tracked so same-center calls stay no-ops (session is persistent, per-track re-register is churn).
     private func registerRemoteCommandsIfNeeded() {
         let center = commandCenter
         let centerID = ObjectIdentifier(center)

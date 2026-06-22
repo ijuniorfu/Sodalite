@@ -1,8 +1,6 @@
 import SwiftUI
 
-/// Playback preferences UI. Each row is a single focusable surface:
-/// the Siri Remote's left/right swipe cycles through values directly,
-/// no click needed, matching the native tvOS System Settings feel.
+/// Playback preferences UI; each row is a focusable left/right value cycler (no click), like native tvOS Settings.
 struct PlaybackSettingsView: View {
     @Environment(\.dependencies) private var dependencies
 
@@ -46,13 +44,7 @@ struct PlaybackSettingsView: View {
                     )
                 )
 
-                // Next-episode countdown length deliberately not a user
-                // setting. Netflix/Prime/Disney+ all hardcode something
-                // in the 8–12 s range; users who only saw the "10 s"
-                // option in the old picker correctly guessed the other
-                // values felt pointless. `autoplayNextEpisode` above is
-                // the real knob, on = 10 s countdown then advance,
-                // off = overlay stays up until the user picks.
+                // Countdown length not a setting: Netflix/Prime hardcode 8-12 s; autoplayNextEpisode above is the real knob.
 
                 sectionHeader("settings.playback.section.controls")
 
@@ -167,9 +159,7 @@ struct PlaybackSettingsView: View {
                     options: PlaybackPreferences.subtitleDelayChoices,
                     selection: Binding(
                         get: {
-                            // Snap the persisted value to the nearest
-                            // option so a stale value from a previous
-                            // version doesn't render as a no-op picker.
+                            // Snap persisted value to nearest option so a stale value doesn't render as a no-op picker.
                             let stored = prefs.subtitleDelaySeconds
                             return PlaybackPreferences.subtitleDelayChoices
                                 .min(by: { abs($0 - stored) < abs($1 - stored) })
@@ -266,10 +256,7 @@ struct PlaybackSettingsView: View {
                     )
                 }
 
-                // Diagnostic overlay toggle. Only mounted in DEBUG /
-                // TestFlight builds; App Store users never see this row
-                // because the overlay can't be enabled there at all
-                // (LogTap.isDiagnosticBuild is the upstream gate).
+                // Diagnostic overlay row only in DEBUG/TestFlight; LogTap.isDiagnosticBuild is the upstream gate.
                 if LogTap.isDiagnosticBuild {
                     sectionHeader("settings.playback.section.diagnostics")
 
@@ -304,8 +291,7 @@ struct PlaybackSettingsView: View {
         }
         .frame(maxWidth: .infinity)
         .toolbar(.hidden, for: .tabBar)
-        // Suppress the floating tvOS nav-title; we show our own inline
-        // header because the default one sits behind scrolling content.
+        // Suppress floating tvOS nav-title; we show our own inline header (default sits behind scrolling content).
         .toolbar(.hidden, for: .navigationBar)
     }
 
@@ -367,10 +353,7 @@ struct PlaybackSettingsView: View {
         )
     }
 
-    /// Format a subtitle-delay value for the picker chip. Uses the
-    /// proper Unicode minus sign (−, U+2212) rather than the hyphen
-    /// for typography parity with the on-screen "+" sign, and trims
-    /// trailing zeroes ("0.5 s" instead of "0.50 s").
+    /// Uses U+2212 minus (not hyphen) for parity with "+", and trims trailing zeroes.
     static func formatSubtitleDelay(_ seconds: Double) -> String {
         if seconds == 0 {
             return "0 s"
