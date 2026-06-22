@@ -9,7 +9,6 @@ final class LoginViewModel {
     var errorMessage: String?
     var loginSucceeded = false
 
-    // Quick Connect
     var quickConnectCode: String?
     var isPollingQuickConnect = false
     var quickConnectAuthorized = false

@@ -1797,7 +1797,6 @@ final class PlayerViewModel {
         if didSkipCurrentIntro {
             if time < seg.startSeconds {
                 didSkipCurrentIntro = false
-                // fall through to normal evaluation
             } else {
                 if isInsideIntro { setInsideIntro(false) }
                 return

@@ -16,7 +16,6 @@ enum TrackDisplayFormatter {
     static func audioDisplayName(for track: TrackInfo) -> String {
         var parts: [String] = []
 
-        // Language name (localized)
         if let lang = languageName(for: track) {
             parts.append(lang)
         }
@@ -43,7 +42,6 @@ enum TrackDisplayFormatter {
     /// Display name for a subtitle track.
     /// Example: "Deutsch" or "English (Forced)"
     static func subtitleDisplayName(for track: TrackInfo) -> String {
-        // Use title if it contains useful info (e.g. "Forced", "SDH", "Commentary")
         if let title = titleIfUseful(track), let lang = languageName(for: track) {
             return "\(lang) (\(title))"
         }

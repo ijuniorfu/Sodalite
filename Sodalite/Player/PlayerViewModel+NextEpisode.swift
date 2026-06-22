@@ -175,7 +175,6 @@ extension PlayerViewModel {
         nextEpisodeTimer = nil
         showNextEpisodeOverlay = false
 
-        // Stop current
         stopProgressReporting()
         cancellables.removeAll()
 
@@ -219,7 +218,6 @@ extension PlayerViewModel {
 
         resetSessionState(switchingTo: next)
 
-        // Start new
         LogTap.shared.note("[NextEp] start_playback_enter id=\(item.id)")
         await startPlayback()
         LogTap.shared.note("[NextEp] start_playback_exit error=\(errorMessage ?? "nil") isPlaying=\(isPlaying)")

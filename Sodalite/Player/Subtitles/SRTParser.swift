@@ -23,7 +23,6 @@ enum SRTParser {
             // Skip WebVTT header
             if lines.first?.hasPrefix("WEBVTT") == true { continue }
 
-            // Find the timing line (contains "-->")
             guard let timingIdx = lines.firstIndex(where: { $0.contains("-->") }) else {
                 continue
             }
@@ -31,7 +30,6 @@ enum SRTParser {
             let timingLine = lines[timingIdx]
             guard let (start, end) = parseTimingLine(timingLine) else { continue }
 
-            // Text is everything after the timing line
             let textLines = lines[(timingIdx + 1)...]
             let text = textLines.joined(separator: "\n")
                 .trimmingCharacters(in: .whitespacesAndNewlines)
@@ -40,6 +38,7 @@ enum SRTParser {
 
             // Strip basic HTML tags (<i>, <b>, <u>, etc.)
             let cleanText = text.replacingOccurrences(
+
                 of: "<[^>]+>",
                 with: "",
                 options: .regularExpression

@@ -336,7 +336,6 @@ final class PlayerHostController: AVPlayerViewController {
         hosting.didMove(toParent: self)
         overlayHostingView = hosting.view
 
-        // Gesture recognizers for ALL buttons including Menu
         // A short Select click activates; holding Select deletes the
         // highlighted external subtitle (Feature #4). The tap requires the
         // hold to fail so a quick click never triggers a delete.
@@ -357,7 +356,6 @@ final class PlayerHostController: AVPlayerViewController {
         addPressGesture(.upArrow, action: #selector(upPressed))
         addPressGesture(.downArrow, action: #selector(downPressed))
 
-        // Touchpad pan gesture
         let pan = UIPanGestureRecognizer(target: self, action: #selector(handlePan(_:)))
         pan.allowedTouchTypes = [NSNumber(value: UITouch.TouchType.indirect.rawValue)]
         view.addGestureRecognizer(pan)

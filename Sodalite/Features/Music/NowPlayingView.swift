@@ -37,12 +37,10 @@ private struct NowPlayingContent: View {
             Color.black
                 .ignoresSafeArea()
 
-            // Blurred album art background
             backgroundArt
 
             // Player column is vertically centered; the queue scrolls.
             HStack(alignment: .center, spacing: 80) {
-                // Left column: cover + transport + progress
                 VStack(spacing: 32) {
                     albumCover
                     transportRow
@@ -50,7 +48,6 @@ private struct NowPlayingContent: View {
                 }
                 .frame(width: 560)
 
-                // Right column: track metadata + scrollable queue
                 VStack(alignment: .leading, spacing: 28) {
                     trackMetadata
                     ScrollView(.vertical, showsIndicators: false) {
@@ -171,7 +168,6 @@ private struct NowPlayingContent: View {
 
     private var transportRow: some View {
         HStack(spacing: 28) {
-            // Previous
             TransportIconButton(
                 systemImage: "backward.fill",
                 focusKey: TransportButton.previous,
@@ -191,7 +187,6 @@ private struct NowPlayingContent: View {
                 coordinator.togglePlayPause()
             }
 
-            // Next
             TransportIconButton(
                 systemImage: "forward.fill",
                 focusKey: TransportButton.next,
@@ -379,7 +374,6 @@ private struct QueueRow: View {
 
     var body: some View {
         HStack(spacing: 16) {
-            // Playing indicator or track number
             if isCurrent {
                 NowPlayingWaveIcon(isPlaying: isPlaying, font: .caption)
                     .frame(width: 24, alignment: .center)
@@ -399,7 +393,6 @@ private struct QueueRow: View {
                 focused: focused
             )
 
-            // Duration
             if let ticks = track.runTimeTicks,
                let formatted = ResumeTimeFormatter.format(ticks: ticks) {
                 Text(formatted)

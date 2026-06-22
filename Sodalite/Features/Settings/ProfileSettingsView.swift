@@ -132,6 +132,7 @@ struct ProfileSettingsView: View {
                                     // current user is the default state
                                     // already.
                                     guard !isCurrent else { return }
+
                                     switchTo(user, server: server)
                                 },
                                 onLongPress: {

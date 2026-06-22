@@ -45,7 +45,6 @@ struct NowPlayingCard: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
 
-            // Elapsed / total, live.
             Text("\(MusicTimeFormatter.string(coordinator.currentTime)) / \(MusicTimeFormatter.string(coordinator.duration))")
                 .font(.caption)
                 .foregroundStyle(cardFocused ? Color.white.opacity(0.9) : Color.secondary)

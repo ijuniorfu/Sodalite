@@ -204,7 +204,6 @@ struct TabRootView: View {
         let tintUIColor = UIColor(iconColor)
 
         let itemAppearance = UITabBarItemAppearance()
-        // Icons: accent color in every state.
         itemAppearance.normal.iconColor = tintUIColor
         itemAppearance.selected.iconColor = tintUIColor
         itemAppearance.focused.iconColor = tintUIColor

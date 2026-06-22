@@ -179,7 +179,6 @@ private struct TrackRow: View {
             }
             .frame(width: 32, alignment: .center)
 
-            // Title: the current track wears the tint.
             Text(song.name)
                 .font(.body)
                 .fontWeight(isCurrent ? .semibold : .medium)
@@ -187,7 +186,6 @@ private struct TrackRow: View {
                 .lineLimit(1)
                 .frame(maxWidth: .infinity, alignment: .leading)
 
-            // Duration
             if let ticks = song.runTimeTicks,
                let formatted = ResumeTimeFormatter.format(ticks: ticks) {
                 Text(formatted)
