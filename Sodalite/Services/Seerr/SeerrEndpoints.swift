@@ -29,7 +29,7 @@ enum SeerrEndpoint: APIEndpoint {
     case movieSimilar(tmdbID: Int, page: Int)
     case tvRecommendations(tmdbID: Int, page: Int)
     case tvSimilar(tmdbID: Int, page: Int)
-    /// GET /api/v1/movie|tv/{id}/ratings — Rotten Tomatoes scores.
+    /// GET /api/v1/movie|tv/{id}/ratings: Rotten Tomatoes scores.
     case movieRatings(tmdbID: Int)
     case tvRatings(tmdbID: Int)
     case discoverMoviesByWatchProvider(providerID: Int, region: String, page: Int)

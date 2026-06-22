@@ -13,7 +13,7 @@ final class ContentProvider: TVTopShelfContentProvider {
         let reader: any TVUserTokenReading = TVUserTokenReader()
         let tvUserID = reader.currentToken()
         guard let session = SharedSession.read(tvUserID: tvUserID) else {
-            log.notice("No shared session in keychain — TopShelf will render empty.")
+            log.notice("No shared session in keychain; TopShelf will render empty.")
             return nil
         }
         let api = JellyfinAPI(session: session)
@@ -61,10 +61,7 @@ final class ContentProvider: TVTopShelfContentProvider {
         cell.displayAction = TVTopShelfAction(url: deepLink(for: item))
 
         if let url = item.topShelfImageURL(baseURL: session.baseURL, token: session.accessToken) {
-            // 2x is the only scale Apple TV actually renders — setting
-            // both 1x and 2x doubles the daemon's fetch work and trips
-            // memory pressure that can surface as "-17102 decompressing
-            // image" when several cells race to decode at once.
+            // 2x is the only scale Apple TV renders; setting both 1x and 2x doubles the daemon's fetch work and trips memory pressure surfacing as "-17102 decompressing image" when cells race to decode.
             cell.setImageURL(url, for: .screenScale2x)
         } else {
             log.notice("cell \(item.id, privacy: .public) has no image URL")
@@ -72,9 +69,7 @@ final class ContentProvider: TVTopShelfContentProvider {
         return cell
     }
 
-    /// `sodalite://item/{id}` — handled by the main app's
-    /// `onOpenURL` to push directly into the detail/player route
-    /// for that item.
+    /// `sodalite://item/{id}`: handled by the main app's `onOpenURL` to push directly into the detail/player route for that item.
     private func deepLink(for item: JellyfinItem) -> URL {
         URL(string: "sodalite://item/\(item.id)")!
     }

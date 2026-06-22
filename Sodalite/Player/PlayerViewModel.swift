@@ -123,15 +123,15 @@ final class PlayerViewModel {
 
     /// Ordered anchor IDs per stats section; up/down cursor jumps page through them.
     static let statsSectionAnchors: [String] = [
-        "stats.section.live",       // 0 — always shown when stats on
+        "stats.section.live",       // 0: always shown when stats on
         "stats.section.playback",   // 1
         "stats.section.video",      // 2
         "stats.section.audio",      // 3
         "stats.section.subtitle",   // 4
         "stats.section.file",       // 5
-        "stats.section.engine",     // 6 — gated by showEngineDiagnostics
-        "stats.section.buffer",     // 7 — gated by showEngineDiagnostics
-        "stats.section.network",    // 8 — gated by showEngineDiagnostics
+        "stats.section.engine",     // 6: gated by showEngineDiagnostics
+        "stats.section.buffer",     // 7: gated by showEngineDiagnostics
+        "stats.section.network",    // 8: gated by showEngineDiagnostics
     ]
 
     enum TrackDropdown: Equatable {
