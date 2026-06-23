@@ -185,6 +185,9 @@ extension PlayerViewModel {
         subtitleStreams = []
         activeSubtitleIndex = nil
         activeAudioIndex = nil
+        // The in-place AVPlayer reload (issue #15) resumes the next item at 1.0x; reset to the
+        // 1.0x index so the speed badge/picker match the engine instead of the prior episode's rate.
+        activeSpeedIndex = 2
         // This path bypasses teardown() for AVPlayer reuse (issue #15), so deactivate explicitly: stale ASS script and subtitle-search overlay would otherwise survive onto the next episode.
         deactivateASSRendering()
         dismissSubtitleSearch()
