@@ -12,7 +12,6 @@ struct JellyfinItem: Decodable, Sendable {
     let imageTags: ImageTags?
     let backdropImageTags: [String]?
     let parentBackdropImageTags: [String]?
-    let seriesPrimaryImageTag: String?
 
     enum CodingKeys: String, CodingKey {
         case id = "Id"
@@ -25,7 +24,6 @@ struct JellyfinItem: Decodable, Sendable {
         case imageTags = "ImageTags"
         case backdropImageTags = "BackdropImageTags"
         case parentBackdropImageTags = "ParentBackdropImageTags"
-        case seriesPrimaryImageTag = "SeriesPrimaryImageTag"
     }
 }
 
@@ -43,12 +41,10 @@ enum ItemType: String, Decodable, Sendable {
 
 struct ImageTags: Decodable, Sendable {
     let primary: String?
-    let backdrop: String?
     let thumb: String?
 
     enum CodingKeys: String, CodingKey {
         case primary = "Primary"
-        case backdrop = "Backdrop"
         case thumb = "Thumb"
     }
 }

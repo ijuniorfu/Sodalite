@@ -68,7 +68,7 @@ struct JellyfinAPI: Sendable {
         return "MediaBrowser " + parts.joined(separator: ", ")
     }
 
-    private static let fields = "ImageTags,BackdropImageTags,ParentBackdropImageTags,SeriesPrimaryImageTag"
+    private static let fields = "ImageTags,BackdropImageTags,ParentBackdropImageTags"
 }
 
 private struct ItemsResponse: Decodable {
