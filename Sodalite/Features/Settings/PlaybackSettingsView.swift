@@ -48,7 +48,7 @@ struct PlaybackSettingsView: View {
 
                 sectionHeader("settings.playback.section.controls")
 
-                valueRow(
+                ValuePickerRow(
                     icon: "goforward",
                     title: "settings.playback.skipInterval",
                     subtitle: "settings.playback.skipInterval.subtitle",
@@ -116,7 +116,7 @@ struct PlaybackSettingsView: View {
                     )
                 )
 
-                valueRow(
+                ValuePickerRow(
                     icon: "textformat.size",
                     title: "settings.playback.subtitle.size",
                     subtitle: "settings.playback.subtitle.size.subtitle",
@@ -128,7 +128,7 @@ struct PlaybackSettingsView: View {
                     label: { String(localized: String.LocalizationValue($0.titleKey)) }
                 )
 
-                valueRow(
+                ValuePickerRow(
                     icon: "paintpalette",
                     title: "settings.playback.subtitle.color",
                     subtitle: "settings.playback.subtitle.color.subtitle",
@@ -140,7 +140,7 @@ struct PlaybackSettingsView: View {
                     label: { String(localized: String.LocalizationValue($0.titleKey)) }
                 )
 
-                valueRow(
+                ValuePickerRow(
                     icon: "rectangle.fill",
                     title: "settings.playback.subtitle.background",
                     subtitle: "settings.playback.subtitle.background.subtitle",
@@ -152,7 +152,7 @@ struct PlaybackSettingsView: View {
                     label: { String(localized: String.LocalizationValue($0.titleKey)) }
                 )
 
-                valueRow(
+                ValuePickerRow(
                     icon: "metronome",
                     title: "settings.playback.subtitle.delay",
                     subtitle: "settings.playback.subtitle.delay.subtitle",
@@ -170,7 +170,7 @@ struct PlaybackSettingsView: View {
                     label: PlaybackSettingsView.formatSubtitleDelay
                 )
 
-                valueRow(
+                ValuePickerRow(
                     icon: "arrow.up.and.down",
                     title: "settings.playback.subtitle.position",
                     subtitle: "settings.playback.subtitle.position.subtitle",
@@ -182,7 +182,7 @@ struct PlaybackSettingsView: View {
                     label: { String(localized: String.LocalizationValue($0.titleKey)) }
                 )
 
-                valueRow(
+                ValuePickerRow(
                     icon: "textformat",
                     title: "settings.playback.subtitle.font",
                     subtitle: "settings.playback.subtitle.font.subtitle",
@@ -194,7 +194,7 @@ struct PlaybackSettingsView: View {
                     label: { String(localized: String.LocalizationValue($0.titleKey)) }
                 )
 
-                valueRow(
+                ValuePickerRow(
                     icon: "bold",
                     title: "settings.playback.subtitle.weight",
                     subtitle: "settings.playback.subtitle.weight.subtitle",
@@ -208,7 +208,7 @@ struct PlaybackSettingsView: View {
 
                 sectionHeader("settings.playback.section.picture")
 
-                valueRow(
+                ValuePickerRow(
                     icon: "rectangle.expand.vertical",
                     title: "settings.playback.picture",
                     subtitle: "settings.playback.picture.subtitle",
@@ -332,24 +332,6 @@ struct PlaybackSettingsView: View {
                     ? String(localized: "settings.playback.on", defaultValue: "On")
                     : String(localized: "settings.playback.off", defaultValue: "Off")
             }
-        )
-    }
-
-    private func valueRow<Value: Hashable>(
-        icon: String,
-        title: LocalizedStringKey,
-        subtitle: LocalizedStringKey,
-        options: [Value],
-        selection: Binding<Value>,
-        label: @escaping (Value) -> String
-    ) -> some View {
-        ValuePickerRow(
-            icon: icon,
-            title: title,
-            subtitle: subtitle,
-            options: options,
-            selection: selection,
-            label: label
         )
     }
 

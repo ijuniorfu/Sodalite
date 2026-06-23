@@ -4,7 +4,6 @@ import Foundation
 @MainActor
 final class WatchStatsViewModel {
     var stats: WatchStats?
-    var isLoading = false
     var errorMessage: String?
     /// Items summed so far during the scan, surfaced as live progress.
     var progressCount = 0
@@ -28,7 +27,6 @@ final class WatchStatsViewModel {
     }
 
     func loadStats() async {
-        isLoading = true
         errorMessage = nil
         progressCount = 0
         do {
@@ -59,7 +57,6 @@ final class WatchStatsViewModel {
         } catch {
             errorMessage = String(localized: "stats.error.generic", defaultValue: "Couldn't load your stats.")
         }
-        isLoading = false
     }
 
     // MARK: - Cheap count

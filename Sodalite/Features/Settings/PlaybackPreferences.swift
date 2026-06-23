@@ -42,8 +42,6 @@ final class PlaybackPreferences {
 
     // MARK: - Allowed Values
 
-    /// 0 = disabled (countdown doesn't appear), otherwise countdown seconds.
-    static let countdownChoices: [Int] = [0, 5, 10, 15]
     static let skipIntervalChoices: [Int] = [5, 10, 15, 30]
 
     /// Negative shifts subs earlier, positive later; finer steps near zero.
