@@ -1,13 +1,13 @@
 #!/bin/bash
 #
-# bump-engine.sh — bump the pinned AetherEngine revision in
+# bump-engine.sh - bump the pinned AetherEngine revision in
 # Package.resolved to whatever sits at the tip of origin/main, run
 # `xcodebuild -resolvePackageDependencies` so the new commit is
 # actually pulled, then commit + push the bump.
 #
 # Usage:  Scripts/bump-engine.sh
 #
-# No flags. Idempotent — exits cleanly when already at the latest.
+# No flags. Idempotent. Exits cleanly when already at the latest.
 
 set -e
 
@@ -121,7 +121,7 @@ xcodebuild -project Sodalite.xcodeproj -scheme Sodalite \
     -resolvePackageDependencies > /dev/null
 
 git add "$RESOLVED"
-git commit -m "chore(deps): bump AetherEngine to $SHORT_SHA — $HUMAN_SUBJECT"
+git commit -m "chore(deps): bump AetherEngine to $SHORT_SHA - $HUMAN_SUBJECT"
 git push
 
 echo "✓ Bumped AetherEngine ${CURRENT_SHA:0:7} → $SHORT_SHA"
