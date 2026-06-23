@@ -46,6 +46,14 @@ struct FilteredGridView: View {
     @State private var isLoadingMore = false
     /// True once loadMore appended a page this cycle; the refresh keeps appended pages instead of truncating to page 1. Explicit flag, not a prefix heuristic: a page-1 server reorder breaks prefix comparison.
     @State private var didPaginate = false
+    /// Raw server cursor for pagination, advanced by the fetched count (NOT items.count): a page that
+    /// returns only already-known ids (SortName ties, library mutated between fetches) must still move
+    /// the cursor past the overlapping window, else it re-requests the same offset forever and the tail
+    /// never loads.
+    @State private var nextStartIndex = 0
+    /// Set once the server returns a short/empty page; stops paginating even when dedup leaves
+    /// items.count short of totalRecordCount.
+    @State private var reachedEnd = false
 
     let title: String
     let query: ItemQuery
@@ -239,6 +247,8 @@ struct FilteredGridView: View {
             loadFailed = false
             totalRecordCount = nil
             didPaginate = false
+            nextStartIndex = 0
+            reachedEnd = false
         }
         .task(id: watchFilter) {
             await loadItems()
@@ -346,7 +356,7 @@ struct FilteredGridView: View {
     /// More pages exist server-side. Only the plain path paginates: smart-provider grids are merged from the full library map and complete by construction.
     private var canLoadMore: Bool {
         guard smartProviderID == nil, query.limit != nil else { return false }
-        guard let total = totalRecordCount else { return false }
+        guard !reachedEnd, let total = totalRecordCount else { return false }
         return items.count < total
     }
 
@@ -368,7 +378,10 @@ struct FilteredGridView: View {
         if let filter = watchFilter.jellyfinFilter {
             pageQuery.filters = [filter]
         }
-        pageQuery.startIndex = items.count
+        // Seed the cursor from the already-loaded first page, then advance it by the raw fetched count
+        // below so an all-duplicate page can't pin it.
+        if nextStartIndex == 0 { nextStartIndex = items.count }
+        pageQuery.startIndex = nextStartIndex
 
         guard let response = try? await dependencies.jellyfinLibraryService.getItems(
             userID: userID, query: pageQuery
@@ -376,9 +389,15 @@ struct FilteredGridView: View {
         guard !Task.isCancelled, generation == loadGeneration else { return }
 
         totalRecordCount = response.totalRecordCount
+        nextStartIndex += response.items.count
         let known = Set(items.map(\.id))
         items += response.items.filter { !known.contains($0.id) }
         didPaginate = true
+        // A short/empty page means the server has no more rows; stop even if dedup left items.count
+        // below totalRecordCount, so canLoadMore can't loop on the same overlapping window.
+        if let limit = query.limit, response.items.count < limit {
+            reachedEnd = true
+        }
     }
 
     /// Refresh the TMDB watch-provider id list, re-resolve against the local map, cache the fresh ids. Stale entries drop out because the merged grid is rebuilt from scratch.
