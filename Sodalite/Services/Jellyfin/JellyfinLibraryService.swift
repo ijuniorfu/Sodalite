@@ -61,15 +61,16 @@ final class JellyfinLibraryService: JellyfinLibraryServiceProtocol {
     }
 
     func getLatestMedia(userID: String, parentID: String?, includeItemTypes: [ItemType]?, limit: Int) async throws -> [JellyfinItem] {
-        try await client.request(
+        let response: LossyJellyfinItems = try await client.request(
             endpoint: JellyfinEndpoint.latestMedia(
                 userID: userID,
                 parentID: parentID,
                 includeItemTypes: includeItemTypes,
                 limit: limit
             ),
-            responseType: [JellyfinItem].self
+            responseType: LossyJellyfinItems.self
         )
+        return response.elements
     }
 
     func getGenres(userID: String) async throws -> [NamedItem] {

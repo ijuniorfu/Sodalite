@@ -29,6 +29,27 @@ enum LibraryType: String, Sendable {
     case unknown
 }
 
+/// Decodes one item, yielding nil instead of throwing when the element is malformed (e.g. a Jellyfin
+/// entry with a null Name). Jellyfin's BaseItemDto.Name is nullable, and a standard `[JellyfinItem]`
+/// decode is all-or-nothing: one such item would throw and strand the entire grid or row. Decoding
+/// into `[FailableJellyfinItem]` and compact-mapping keeps the rest and drops only the bad element.
+struct FailableJellyfinItem: Decodable {
+    let value: JellyfinItem?
+    init(from decoder: Decoder) throws {
+        value = try? JellyfinItem(from: decoder)
+    }
+}
+
+/// A `[JellyfinItem]` for top-level array endpoints that drops elements which fail to decode rather
+/// than failing the whole response.
+struct LossyJellyfinItems: Decodable, Sendable {
+    let elements: [JellyfinItem]
+    init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        elements = try container.decode([FailableJellyfinItem].self).compactMap(\.value)
+    }
+}
+
 struct JellyfinItemsResponse: Codable, Sendable {
     let items: [JellyfinItem]
     let totalRecordCount: Int
@@ -36,5 +57,12 @@ struct JellyfinItemsResponse: Codable, Sendable {
     enum CodingKeys: String, CodingKey {
         case items = "Items"
         case totalRecordCount = "TotalRecordCount"
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let raw = try container.decodeIfPresent([FailableJellyfinItem].self, forKey: .items) ?? []
+        items = raw.compactMap(\.value)
+        totalRecordCount = try container.decode(Int.self, forKey: .totalRecordCount)
     }
 }

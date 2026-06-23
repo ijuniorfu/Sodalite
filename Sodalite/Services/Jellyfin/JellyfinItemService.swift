@@ -32,10 +32,11 @@ final class JellyfinItemService: JellyfinItemServiceProtocol {
     }
 
     func getLocalTrailers(userID: String, itemID: String) async throws -> [JellyfinItem] {
-        try await client.request(
+        let response: LossyJellyfinItems = try await client.request(
             endpoint: JellyfinEndpoint.localTrailers(userID: userID, itemID: itemID),
-            responseType: [JellyfinItem].self
+            responseType: LossyJellyfinItems.self
         )
+        return response.elements
     }
 
     func getSeasons(seriesID: String, userID: String) async throws -> JellyfinItemsResponse {
