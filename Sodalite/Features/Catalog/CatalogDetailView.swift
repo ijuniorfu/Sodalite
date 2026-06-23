@@ -23,6 +23,11 @@ struct CatalogDetailView: View {
     /// Per-season in-flight markers driving the episode-strip spinner.
     @State private var loadingSeasons: Set<Int> = []
 
+    /// Jellyfin ground-truth reconcile of Seerr's cached availability. Seerr's mediaInfo.status stays "available" after a Radarr/Sonarr deletion until its ~6h availability-sync runs; Sodalite is the Jellyfin client, so it cross-checks the library directly and overrides stale "available" with .deleted. .unknown = trust Seerr (no Jellyfin user, lookup failed, or Seerr never claimed availability).
+    @State private var titlePresence: JellyfinPresence = .unknown
+    /// Per-season episode-file presence in Jellyfin (seasonNumber -> hasFiles); nil until the reconcile runs for a present series. A Seerr-available season absent here (or false) was deleted server-side.
+    @State private var jellyfinSeasonHasFiles: [Int: Bool]?
+
     /// Recommendations (falling back to similar), loaded in parallel with the detail so the screen paints first.
     @State private var recommendations: [SeerrMedia] = []
     /// Rotten Tomatoes critics score, best-effort from Seerr's ratings endpoint; nil on older server / no RT data.
@@ -48,6 +53,9 @@ struct CatalogDetailView: View {
     /// First-screen focus. Seeded to `.request` once loaded so no focus lands below the fold and triggers an on-open auto-scroll (old tab-bar-stuck-hidden bug). Request with no seasons picked moves focus to `.seasons` to scroll the picker into view.
     @FocusState private var focusedField: DetailFocus?
     private enum DetailFocus: Hashable { case request, seasons }
+
+    /// Result of the Jellyfin library cross-check. .unknown degrades to trusting Seerr; never a false .absent.
+    private enum JellyfinPresence: Equatable { case unknown, present, absent }
 
     var body: some View {
         ZStack {
@@ -718,7 +726,12 @@ struct CatalogDetailView: View {
     }
 
     private var mediaStatus: SeerrMediaStatus? {
-        movieDetail?.mediaInfo?.status ?? tvDetail?.mediaInfo?.status ?? media.mediaInfo?.status
+        let seerr = movieDetail?.mediaInfo?.status ?? tvDetail?.mediaInfo?.status ?? media.mediaInfo?.status
+        // Jellyfin ground truth: the whole title is gone, so override Seerr's stale "available" badge with .deleted.
+        if (seerr == .available || seerr == .partiallyAvailable), titlePresence == .absent {
+            return .deleted
+        }
+        return seerr
     }
 
     private var availableSeasons: [SeerrSeason]? {
@@ -768,10 +781,21 @@ struct CatalogDetailView: View {
     }
 
     /// Informational status for the season, or nil if untracked. Never gates requesting (status is display-only); a deleted/declined season must still be re-requestable.
-    /// Priority: (1) `mediaInfo.seasons`, authoritative Sonarr-scan status, the sole source of genuine availability. (2) `mediaInfo.requests[].seasons[]` for in-flight pipeline states (processing, pending approval) only from still-active requests.
+    /// Layers Seerr's cached status with the Jellyfin ground-truth override: a stale "available" is downgraded to .deleted when the season's episode files are actually gone from the library.
     private func seasonStatus(_ season: SeerrSeason) -> SeerrMediaStatus? {
-        let n = season.seasonNumber
+        let seerr = seerrSeasonStatus(season.seasonNumber)
+        // Jellyfin ground truth: override Seerr's stale available/partially-available with .deleted when the show is gone entirely (titlePresence absent) or this specific season has no episode files, so the user sees it's gone (and can re-request).
+        if seerr == .available || seerr == .partiallyAvailable {
+            if titlePresence == .absent { return .deleted }
+            if let hasFiles = jellyfinSeasonHasFiles, hasFiles[season.seasonNumber] != true {
+                return .deleted
+            }
+        }
+        return seerr
+    }
 
+    /// Seerr's own per-season status: (1) `mediaInfo.seasons`, authoritative Sonarr-scan status, the sole source of genuine availability. (2) `mediaInfo.requests[].seasons[]` for in-flight pipeline states (processing, pending approval) only from still-active requests.
+    private func seerrSeasonStatus(_ n: Int) -> SeerrMediaStatus? {
         // 1. Authoritative: server-derived per-season status.
         if let mediaSeasons = tvDetail?.mediaInfo?.seasons {
             for s in mediaSeasons where s.seasonNumber == n {
@@ -780,6 +804,7 @@ struct CatalogDetailView: View {
                 case .partiallyAvailable: return .partiallyAvailable
                 case .processing: return .processing
                 case .pending: return .pending
+                case .deleted: return .deleted
                 case .unknown, .none: break
                 }
             }
@@ -810,6 +835,7 @@ struct CatalogDetailView: View {
         case .processing: return "catalog.seasons.downloading"
         case .pending: return "catalog.seasons.pendingApproval"
         case .partiallyAvailable: return "catalog.status.partiallyAvailable"
+        case .deleted: return "catalog.status.removed"
         case .unknown: return "catalog.status.unknown"
         }
     }
@@ -838,10 +864,13 @@ struct CatalogDetailView: View {
             switch media.mediaType {
             case .movie:
                 movieDetail = try await dependencies.seerrMediaService.movieDetail(tmdbID: media.id)
+                // Background: reconcile Seerr's cached availability against the Jellyfin library; patches the badge after first paint, never blocks.
+                Task { await reconcileAvailability() }
                 return
             case .tv:
                 let detail = try await dependencies.seerrMediaService.tvDetail(tmdbID: media.id)
                 tvDetail = detail
+                Task { await reconcileAvailability() }
                 // Default to the lowest real season (skip specials/season 0) synchronously so the episode block has content the instant loading ends.
                 let realSeasons = (detail.seasons ?? [])
                     .filter { $0.seasonNumber > 0 }
@@ -858,6 +887,59 @@ struct CatalogDetailView: View {
             }
         } catch {
             errorMessage = error.localizedDescription
+        }
+    }
+
+    /// Cross-checks Seerr's cached availability against the Jellyfin library (the playability ground truth). Runs only when Seerr claims available/partially-available; degrades to .unknown (trust Seerr) on any lookup failure, never a false "deleted". For series it also builds the per-season episode-file map so individually deleted seasons surface even when the show is otherwise present.
+    private func reconcileAvailability() async {
+        guard let userID = appState.activeUser?.id else { return }
+        let seerrStatus = movieDetail?.mediaInfo?.status ?? tvDetail?.mediaInfo?.status
+        guard seerrStatus == .available || seerrStatus == .partiallyAvailable else { return }
+
+        let service = dependencies.jellyfinItemService
+        switch media.mediaType {
+        case .movie:
+            do {
+                let item = try await service.findByProviderIDs(
+                    userID: userID,
+                    tmdbID: media.id,
+                    tvdbID: nil,
+                    imdbID: movieDetail?.externalIds?.imdbId,
+                    includeItemTypes: [.movie]
+                )
+                // Present only if the matched item carries a real media source; nil match or a shell with no file counts as gone.
+                titlePresence = (item?.mediaSources?.isEmpty == false) ? .present : .absent
+            } catch {
+                titlePresence = .unknown
+            }
+        case .tv:
+            do {
+                let series = try await service.findByProviderIDs(
+                    userID: userID,
+                    tmdbID: media.id,
+                    tvdbID: tvDetail?.externalIds?.tvdbId,
+                    imdbID: tvDetail?.externalIds?.imdbId,
+                    includeItemTypes: [.series]
+                )
+                guard let series else {
+                    // Whole series absent from the library: every Seerr-available season is gone.
+                    titlePresence = .absent
+                    return
+                }
+                titlePresence = .present
+                // childCount rides on the seasons endpoint's ItemCounts field; a season Jellyfin lists with zero episode files, or doesn't list at all, was deleted.
+                let seasons = try await service.getSeasons(seriesID: series.id, userID: userID).items
+                var hasFiles: [Int: Bool] = [:]
+                for season in seasons {
+                    guard let n = season.indexNumber else { continue }
+                    hasFiles[n] = (season.childCount ?? 0) > 0
+                }
+                jellyfinSeasonHasFiles = hasFiles
+            } catch {
+                titlePresence = .unknown
+            }
+        case .person, .unknown:
+            break
         }
     }
 

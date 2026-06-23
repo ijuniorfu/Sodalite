@@ -15,6 +15,7 @@ struct SeerrMovieDetail: Codable, Sendable {
     let credits: SeerrCredits?
     let watchProviders: [SeerrWatchProviderRegion]?
     let releases: SeerrReleases?
+    let externalIds: SeerrExternalIds?
 
     var displayYear: String? {
         guard let releaseDate, releaseDate.count >= 4 else { return nil }
@@ -42,6 +43,7 @@ struct SeerrTVDetail: Codable, Sendable {
     let credits: SeerrCredits?
     let watchProviders: [SeerrWatchProviderRegion]?
     let contentRatings: SeerrContentRatings?
+    let externalIds: SeerrExternalIds?
 
     var displayYear: String? {
         guard let firstAirDate, firstAirDate.count >= 4 else { return nil }
@@ -51,6 +53,12 @@ struct SeerrTVDetail: Codable, Sendable {
     func certification(region: String) -> String? {
         seerrCertification(tvRatings: contentRatings, region: region)
     }
+}
+
+/// External provider ids from `/movie|tv/{id}` (TMDB-shaped `external_ids`). Used to match a Seerr title against the Jellyfin library: Sonarr-pipeline series often carry only a Tvdb id in Jellyfin and lack a Tmdb id, so tvdbId/imdbId are required fallbacks for a reliable presence check.
+struct SeerrExternalIds: Codable, Sendable, Equatable {
+    let tvdbId: Int?
+    let imdbId: String?
 }
 
 struct SeerrSeason: Codable, Sendable, Identifiable, Equatable {

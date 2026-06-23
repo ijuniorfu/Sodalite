@@ -6,8 +6,10 @@ enum SeerrMediaStatus: Int, Codable, Sendable {
     case processing = 3
     case partiallyAvailable = 4
     case available = 5
+    /// Client-side only: set by the Jellyfin ground-truth reconcile when a Seerr-"available" title/season is absent from the library (deleted in Radarr/Sonarr, Seerr's cached status still stale). High sentinel so it never collides with a real server status; the server's own deleted/blocklisted values (6/7) decode to `.unknown` via the lenient init.
+    case deleted = 1000
 
-    // Lenient decode: newer Seerr adds states (e.g. "deleted"); an unknown int would abort the whole /movie|/tv decode, so fall back to `.unknown`.
+    // Lenient decode: newer Seerr adds states (deleted/blocklisted); an unknown int would abort the whole /movie|/tv decode, so fall back to `.unknown`.
     init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()
         let raw = try container.decode(Int.self)
@@ -21,6 +23,7 @@ enum SeerrMediaStatus: Int, Codable, Sendable {
         case .processing: "catalog.status.processing"
         case .partiallyAvailable: "catalog.status.partiallyAvailable"
         case .available: "catalog.status.available"
+        case .deleted: "catalog.status.removed"
         }
     }
 
@@ -31,6 +34,7 @@ enum SeerrMediaStatus: Int, Codable, Sendable {
         case .processing: "arrow.triangle.2.circlepath"
         case .partiallyAvailable: "circle.lefthalf.filled"
         case .available: "checkmark.circle.fill"
+        case .deleted: "trash"
         }
     }
 
@@ -41,6 +45,7 @@ enum SeerrMediaStatus: Int, Codable, Sendable {
         case .processing: .blue
         case .partiallyAvailable: .teal
         case .available: .green
+        case .deleted: .gray
         }
     }
 }

@@ -12,6 +12,8 @@ protocol JellyfinItemServiceProtocol: Sendable {
     func getCollectionItems(userID: String, query: ItemQuery) async throws -> JellyfinItemsResponse
     /// Resolves a library item by TMDB id via `AnyProviderIdEquals`; first match or nil.
     func findByTmdbID(userID: String, tmdbID: Int) async throws -> JellyfinItem?
+    /// Resolves a library item across several external ids (tmdb, then tvdb/imdb fallbacks), first hit wins. nil only when every supplied id misses, i.e. a confident "not in this library". Throws on query failure so callers can degrade to "trust Seerr" rather than a false absence.
+    func findByProviderIDs(userID: String, tmdbID: Int?, tvdbID: Int?, imdbID: String?, includeItemTypes: [ItemType]) async throws -> JellyfinItem?
     func deleteItem(itemID: String) async throws
 }
 
@@ -72,6 +74,32 @@ final class JellyfinItemService: JellyfinItemServiceProtocol {
         )
         let response = try await getCollectionItems(userID: userID, query: query)
         return response.items.first
+    }
+
+    func findByProviderIDs(
+        userID: String,
+        tmdbID: Int?,
+        tvdbID: Int?,
+        imdbID: String?,
+        includeItemTypes: [ItemType]
+    ) async throws -> JellyfinItem? {
+        // AnyProviderIdEquals takes one value per query, so try each id in turn and short-circuit on the first hit (tmdb usually matches movies in one call; Sonarr/TVDB-scanned series fall through to tvdb).
+        var values: [String] = []
+        if let tmdbID { values.append("tmdb.\(tmdbID)") }
+        if let tvdbID { values.append("tvdb.\(tvdbID)") }
+        if let imdbID, !imdbID.isEmpty { values.append("imdb.\(imdbID)") }
+
+        for value in values {
+            let query = ItemQuery(
+                includeItemTypes: includeItemTypes,
+                limit: 1,
+                anyProviderIdEquals: value
+            )
+            if let hit = try await getCollectionItems(userID: userID, query: query).items.first {
+                return hit
+            }
+        }
+        return nil
     }
 
     func setFavorite(userID: String, itemID: String, isFavorite: Bool) async throws {
