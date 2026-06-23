@@ -2,7 +2,6 @@ import SwiftUI
 
 struct ExpandableTextBox: View {
     let text: String
-    @Environment(\.appState) private var appState
     @State private var showFullText = false
     @FocusState private var isFocused: Bool
 
