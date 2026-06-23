@@ -100,48 +100,6 @@ struct JellyfinItem: Codable, Sendable, Identifiable, Equatable, Hashable {
         case albumPrimaryImageTag = "AlbumPrimaryImageTag"
     }
 
-    init(item: JellyfinItem, userData: UserItemData?) {
-        self.id = item.id
-        self.name = item.name
-        self.sortName = item.sortName
-        self.originalTitle = item.originalTitle
-        self.overview = item.overview
-        self.type = item.type
-        self.seriesName = item.seriesName
-        self.seriesId = item.seriesId
-        self.seasonId = item.seasonId
-        self.parentIndexNumber = item.parentIndexNumber
-        self.indexNumber = item.indexNumber
-        self.productionYear = item.productionYear
-        self.communityRating = item.communityRating
-        self.criticRating = item.criticRating
-        self.officialRating = item.officialRating
-        self.runTimeTicks = item.runTimeTicks
-        self.premiereDate = item.premiereDate
-        self.endDate = item.endDate
-        self.status = item.status
-        self.genres = item.genres
-        self.taglines = item.taglines
-        self.imageTags = item.imageTags
-        self.backdropImageTags = item.backdropImageTags
-        self.parentBackdropImageTags = item.parentBackdropImageTags
-        self.userData = userData
-        self.mediaStreams = item.mediaStreams
-        self.mediaSources = item.mediaSources
-        self.people = item.people
-        self.studios = item.studios
-        self.collectionType = item.collectionType
-        self.childCount = item.childCount
-        self.localTrailerCount = item.localTrailerCount
-        self.seriesPrimaryImageTag = item.seriesPrimaryImageTag
-        self.providerIds = item.providerIds
-        self.chapters = item.chapters
-        self.albumArtist = item.albumArtist
-        self.artists = item.artists
-        self.albumId = item.albumId
-        self.albumPrimaryImageTag = item.albumPrimaryImageTag
-    }
-
     init(seriesStub id: String, name: String) {
         self.id = id
         self.name = name

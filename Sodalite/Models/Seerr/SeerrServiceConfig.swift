@@ -34,8 +34,6 @@ struct SeerrRootFolder: Codable, Sendable, Identifiable, Equatable, Hashable {
     let id: Int
     let path: String
     let freeSpace: Int64?
-
-    var displayPath: String { path }
 }
 
 struct SeerrLanguageProfile: Codable, Sendable, Identifiable, Equatable, Hashable {
