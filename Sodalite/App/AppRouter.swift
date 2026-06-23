@@ -136,11 +136,11 @@ struct AppRouter: View {
                         appState.disconnectSeerr()
                     }
                 } else {
-                    // Token expired or no remembered user: route to
-                    // the profile picker for the new active server.
-                    if let server = dependencies.activeServer {
-                        launchPickerServer = server
-                    }
+                    // Token expired, no remembered user, or the active server was removed with no
+                    // successor: route to the picker for the new active server, or fall through to
+                    // ServerDiscoveryView when there is none. Assign unconditionally so a nil
+                    // activeServer clears any stale picker instead of stranding a deleted server.
+                    launchPickerServer = dependencies.activeServer
                     appState.isAuthenticated = false
                 }
             } catch {
