@@ -29,10 +29,24 @@ final class MediaDeletionService: MediaDeletionServiceProtocol {
     }
 
     func deleteMovie(itemID: String, tmdbID: Int?, cascadeToArrStack: Bool) async throws {
+        try await cascadeDelete(itemID: itemID, tmdbID: tmdbID, cascadeToArrStack: cascadeToArrStack) { id in
+            _ = try await self.seerrMedia.removeMovieFromRadarr(tmdbID: id)
+        }
+    }
+
+    func deleteSeries(itemID: String, tmdbID: Int?, cascadeToArrStack: Bool) async throws {
+        try await cascadeDelete(itemID: itemID, tmdbID: tmdbID, cascadeToArrStack: cascadeToArrStack) { id in
+            _ = try await self.seerrMedia.removeSeriesFromSonarr(tmdbID: id)
+        }
+    }
+
+    /// Delete the Jellyfin item, then optionally cascade the *arr-stack removal through Seerr.
+    /// `seerrOperation` receives the unwrapped tmdbID and performs the Radarr/Sonarr removal.
+    private func cascadeDelete(itemID: String, tmdbID: Int?, cascadeToArrStack: Bool, seerrOperation: (Int) async throws -> Void) async throws {
         do {
             try await jellyfinItems.deleteItem(itemID: itemID)
         } catch {
-            throw MediaDeletionError(stage: .jellyfin, underlying: error)
+            throw MediaDeletionError(stage: .jellyfin)
         }
         guard cascadeToArrStack, let tmdbID = tmdbID else { return }
         // Cascade needs an active Seerr session (MANAGE_REQUESTS); surface the missing-session case as a typed reason.
@@ -40,26 +54,9 @@ final class MediaDeletionService: MediaDeletionServiceProtocol {
             throw MediaDeletionError(stage: .seerr, reason: .seerrNotSignedIn)
         }
         do {
-            _ = try await seerrMedia.removeMovieFromRadarr(tmdbID: tmdbID)
+            try await seerrOperation(tmdbID)
         } catch {
-            throw MediaDeletionError(stage: .seerr, underlying: error)
-        }
-    }
-
-    func deleteSeries(itemID: String, tmdbID: Int?, cascadeToArrStack: Bool) async throws {
-        do {
-            try await jellyfinItems.deleteItem(itemID: itemID)
-        } catch {
-            throw MediaDeletionError(stage: .jellyfin, underlying: error)
-        }
-        guard cascadeToArrStack, let tmdbID = tmdbID else { return }
-        guard isSeerrAuthenticated() else {
-            throw MediaDeletionError(stage: .seerr, reason: .seerrNotSignedIn)
-        }
-        do {
-            _ = try await seerrMedia.removeSeriesFromSonarr(tmdbID: tmdbID)
-        } catch {
-            throw MediaDeletionError(stage: .seerr, underlying: error)
+            throw MediaDeletionError(stage: .seerr)
         }
     }
 
@@ -69,7 +66,7 @@ final class MediaDeletionService: MediaDeletionServiceProtocol {
             do {
                 try await jellyfinItems.deleteItem(itemID: itemID)
             } catch {
-                throw MediaDeletionError(stage: .jellyfin, underlying: error)
+                throw MediaDeletionError(stage: .jellyfin)
             }
         }
     }

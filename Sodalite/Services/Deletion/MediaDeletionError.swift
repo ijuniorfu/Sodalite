@@ -9,14 +9,12 @@ struct MediaDeletionError: Error, Sendable {
     }
     let stage: Stage
     let reason: Reason
-    let underlying: Error?
     /// True when Jellyfin succeeded but Seerr failed afterwards. The
     /// caller surfaces a different toast in that case.
     var partialSuccess: Bool { stage == .seerr }
 
-    init(stage: Stage, reason: Reason = .generic, underlying: Error? = nil) {
+    init(stage: Stage, reason: Reason = .generic) {
         self.stage = stage
         self.reason = reason
-        self.underlying = underlying
     }
 }
