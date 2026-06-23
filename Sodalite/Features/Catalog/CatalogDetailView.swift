@@ -518,8 +518,8 @@ struct CatalogDetailView: View {
         }
         HStack(spacing: 12) {
             if let season = viewedSeason {
+                // Status is informational and never blocks: show the pipeline state (if any) as a label, then always offer add/remove so a deleted-but-stale-available season stays re-requestable.
                 if let status = seasonStatus(season) {
-                    // Show the pipeline state, not a generic "available", to distinguish ready-to-play from downloading/awaiting-approval.
                     Label(
                         seasonStatusLabel(status),
                         systemImage: status.systemImage
@@ -528,23 +528,22 @@ struct CatalogDetailView: View {
                     .foregroundStyle(status.color)
                     .padding(.horizontal, 14)
                     .padding(.vertical, 8)
-                } else {
-                    let isSelected = selectedSeasons.contains(season.seasonNumber)
-                    Button {
-                        toggleSeason(season)
-                    } label: {
-                        Label(
-                            isSelected
-                                ? "catalog.seasons.removeFromRequest"
-                                : "catalog.seasons.addToRequest",
-                            systemImage: isSelected ? "checkmark.circle.fill" : "plus.circle"
-                        )
-                        .font(.caption)
-                        .padding(.horizontal, 14)
-                        .padding(.vertical, 8)
-                    }
-                    .buttonStyle(SeasonChipButtonStyle())
                 }
+                let isSelected = selectedSeasons.contains(season.seasonNumber)
+                Button {
+                    toggleSeason(season)
+                } label: {
+                    Label(
+                        isSelected
+                            ? "catalog.seasons.removeFromRequest"
+                            : "catalog.seasons.addToRequest",
+                        systemImage: isSelected ? "checkmark.circle.fill" : "plus.circle"
+                    )
+                    .font(.caption)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 8)
+                }
+                .buttonStyle(SeasonChipButtonStyle())
             }
             if hasSelectableSeasons(in: seasons) {
                 Button {
@@ -652,7 +651,8 @@ struct CatalogDetailView: View {
     }
 
     private func selectableSeasons(in seasons: [SeerrSeason]) -> [SeerrSeason] {
-        seasons.filter { !isSeasonAvailable($0) }
+        // Status never gates a request: a season deleted in Radarr/Sonarr (server reports it stale-available) must stay re-requestable, so every real season is selectable and status is display-only.
+        seasons
     }
 
     private func hasSelectableSeasons(in seasons: [SeerrSeason]) -> Bool {
@@ -767,8 +767,8 @@ struct CatalogDetailView: View {
         return pick?.flatrate ?? []
     }
 
-    /// Most-advanced known status for the season, or nil if untracked.
-    /// Priority: (1) `mediaInfo.seasons`, authoritative Sonarr-scan status (catches manual downloads outside Seerr that have no request entry but are server-available). (2) `mediaInfo.requests[].seasons[]` for pipeline states not yet materialised on the server (processing, pending approval). Most-advanced wins.
+    /// Informational status for the season, or nil if untracked. Never gates requesting (status is display-only); a deleted/declined season must still be re-requestable.
+    /// Priority: (1) `mediaInfo.seasons`, authoritative Sonarr-scan status, the sole source of genuine availability. (2) `mediaInfo.requests[].seasons[]` for in-flight pipeline states (processing, pending approval) only from still-active requests.
     private func seasonStatus(_ season: SeerrSeason) -> SeerrMediaStatus? {
         let n = season.seasonNumber
 
@@ -785,31 +785,23 @@ struct CatalogDetailView: View {
             }
         }
 
-        // 2. Fallback: walk the request entries for in-flight states.
+        // 2. Fallback: in-flight states from still-active requests only. Jellyseerr never reverts request.seasons[].status, so a declined/failed/completed request keeps stale .pending/.processing entries; gating on request.status is required or a cancelled season stays pinned forever (overseerr#690). Availability is owned solely by path #1, so the request walk never surfaces .available.
         guard let requests = tvDetail?.mediaInfo?.requests else { return nil }
-        var hasAvailable = false
         var hasProcessing = false
         var hasPending = false
-        for request in requests {
+        for request in requests where request.status == .pendingApproval || request.status == .approved {
             guard let seasons = request.seasons else { continue }
             for s in seasons where s.seasonNumber == n {
                 switch s.status {
-                case .available: hasAvailable = true
                 case .processing: hasProcessing = true
                 case .pending: hasPending = true
                 default: break
                 }
             }
         }
-        if hasAvailable { return .available }
         if hasProcessing { return .processing }
         if hasPending { return .pending }
         return nil
-    }
-
-    /// A season is "occupied" (not selectable for a new request) whenever any pipeline status applies.
-    private func isSeasonAvailable(_ season: SeerrSeason) -> Bool {
-        seasonStatus(season) != nil
     }
 
     private func seasonStatusLabel(_ status: SeerrMediaStatus) -> LocalizedStringKey {
@@ -823,7 +815,6 @@ struct CatalogDetailView: View {
     }
 
     private func toggleSeason(_ season: SeerrSeason) {
-        if isSeasonAvailable(season) { return }
         if selectedSeasons.contains(season.seasonNumber) {
             selectedSeasons.remove(season.seasonNumber)
         } else {

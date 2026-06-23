@@ -14,14 +14,16 @@ struct CatalogSeasonTab: View {
     var body: some View {
         Button(action: action) {
             HStack(spacing: 8) {
+                // Selection and status can both apply (status never blocks a re-request), so the picked-checkmark shows alongside the pipeline icon.
+                if isSelectedForRequest {
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.caption)
+                        .foregroundStyle(.tint)
+                }
                 if let status = availabilityStatus {
                     Image(systemName: status.systemImage)
                         .font(.caption)
                         .foregroundStyle(status.color)
-                } else if isSelectedForRequest {
-                    Image(systemName: "checkmark.circle.fill")
-                        .font(.caption)
-                        .foregroundStyle(.tint)
                 }
                 Text(seasonTitle)
                     .font(.body)
@@ -41,10 +43,10 @@ struct CatalogSeasonTab: View {
 
     private var background: some ShapeStyle {
         if isViewed { return AnyShapeStyle(.tint.opacity(0.35)) }
+        if isSelectedForRequest { return AnyShapeStyle(.tint.opacity(0.18)) }
         if let status = availabilityStatus {
             return AnyShapeStyle(status.color.opacity(0.18))
         }
-        if isSelectedForRequest { return AnyShapeStyle(.tint.opacity(0.18)) }
         return AnyShapeStyle(.white.opacity(0.08))
     }
 }
