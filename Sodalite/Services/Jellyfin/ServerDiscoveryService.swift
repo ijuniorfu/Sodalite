@@ -36,10 +36,11 @@ final class ServerDiscoveryService: ServerDiscoveryServiceProtocol {
                     headers: ["Accept": "application/json"],
                     responseType: JellyfinPublicServerInfo.self
                 )
+                // Only a decodable connection gates discovery; missing optional metadata must not.
                 let info = ServerDiscoveryInfo(
-                    id: serverInfo.id,
-                    serverName: serverInfo.serverName,
-                    version: serverInfo.version
+                    id: serverInfo.id ?? "",
+                    serverName: serverInfo.serverName ?? "Jellyfin",
+                    version: serverInfo.version ?? ""
                 )
                 return .success(url: url, serverInfo: info)
             } catch is CancellationError {
