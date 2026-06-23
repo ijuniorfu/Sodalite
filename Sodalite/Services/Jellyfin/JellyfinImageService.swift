@@ -5,7 +5,6 @@ enum ImageType: String, Sendable {
     case backdrop = "Backdrop"
     case thumb = "Thumb"
     case logo = "Logo"
-    case banner = "Banner"
 }
 
 final class JellyfinImageService {

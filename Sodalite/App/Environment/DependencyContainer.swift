@@ -17,7 +17,6 @@ final class DependencyContainer {
     let jellyfinLiveTvService: JellyfinLiveTvServiceProtocol
     let jellyfinMusicService: JellyfinMusicServiceProtocol
     let jellyfinItemService: JellyfinItemServiceProtocol
-    let jellyfinSearchService: JellyfinSearchServiceProtocol
     let jellyfinImageService: JellyfinImageService
     let jellyfinPlaybackService: JellyfinPlaybackServiceProtocol
     let playbackPreferences: PlaybackPreferences
@@ -64,7 +63,6 @@ final class DependencyContainer {
             libraryService: jellyfinLibraryService
         )
         self.jellyfinItemService = JellyfinItemService(client: jellyfinClient)
-        self.jellyfinSearchService = JellyfinSearchService(client: jellyfinClient)
         self.jellyfinImageService = JellyfinImageService(
             baseURLProvider: { [weak jellyfinClient] in
                 jellyfinClient?.baseURL

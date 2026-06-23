@@ -192,24 +192,17 @@ final class JellyfinPlaybackService: JellyfinPlaybackServiceProtocol {
     }
 
     func buildStreamURL(itemID: String, mediaSourceID: String, container: String?, isStatic: Bool) -> URL? {
-        guard let baseURL = client.baseURL, let token = client.accessToken else { return nil }
-        let ext = container ?? "mp4"
-        var components = URLComponents(url: baseURL.appendingPathComponent("/Videos/\(itemID)/stream.\(ext)"), resolvingAgainstBaseURL: true)
-        var queryItems = [
-            URLQueryItem(name: "MediaSourceId", value: mediaSourceID),
-            URLQueryItem(name: "api_key", value: token),
-        ]
-        if isStatic {
-            queryItems.append(URLQueryItem(name: "Static", value: "true"))
-        }
-        components?.queryItems = queryItems
-        return components?.url
+        buildMediaStreamURL(pathPrefix: "Videos", itemID: itemID, mediaSourceID: mediaSourceID, container: container, defaultExt: "mp4", isStatic: isStatic)
     }
 
     func buildAudioStreamURL(itemID: String, mediaSourceID: String, container: String?, isStatic: Bool) -> URL? {
+        buildMediaStreamURL(pathPrefix: "Audio", itemID: itemID, mediaSourceID: mediaSourceID, container: container, defaultExt: "mp3", isStatic: isStatic)
+    }
+
+    private func buildMediaStreamURL(pathPrefix: String, itemID: String, mediaSourceID: String, container: String?, defaultExt: String, isStatic: Bool) -> URL? {
         guard let baseURL = client.baseURL, let token = client.accessToken else { return nil }
-        let ext = container ?? "mp3"
-        var components = URLComponents(url: baseURL.appendingPathComponent("/Audio/\(itemID)/stream.\(ext)"), resolvingAgainstBaseURL: true)
+        let ext = container ?? defaultExt
+        var components = URLComponents(url: baseURL.appendingPathComponent("/\(pathPrefix)/\(itemID)/stream.\(ext)"), resolvingAgainstBaseURL: true)
         var queryItems = [
             URLQueryItem(name: "MediaSourceId", value: mediaSourceID),
             URLQueryItem(name: "api_key", value: token),
