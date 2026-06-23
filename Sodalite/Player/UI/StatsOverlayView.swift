@@ -288,7 +288,7 @@ struct StatsOverlayView: View {
                 )
                 row(
                     "player.stats.audioBridge",
-                    value: Self.formatByteCountShort(telemetry.audioBridgeLiveBytes)
+                    value: Self.formatByteCount(Int64(telemetry.audioBridgeLiveBytes))
                 )
             }
         }
@@ -453,10 +453,6 @@ struct StatsOverlayView: View {
         let mb = Double(bytes) / 1_048_576
         if mb >= 1 { return String(format: "%.0f MB", mb) }
         return String(format: "%.0f KB", Double(bytes) / 1024)
-    }
-
-    private static func formatByteCountShort(_ bytes: Int) -> String {
-        return formatByteCount(Int64(bytes))
     }
 }
 

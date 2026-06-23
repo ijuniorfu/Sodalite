@@ -73,7 +73,7 @@ struct SubtitleOverlayView: View {
             GeometryReader { geo in
                 Color.clear
                     .overlay(alignment: .topLeading) {
-                        ForEach(activeCues, id: \.id) { cue in
+                        ForEach(activeCues(in: cues, maxDuration: maxCueDuration), id: \.id) { cue in
                             if case .image(let image) = cue.body {
                                 imageOverlay(image, in: geo.size)
                             }
@@ -88,12 +88,12 @@ struct SubtitleOverlayView: View {
             GeometryReader { geo in
                 Color.clear
                     .overlay(alignment: .topLeading) {
-                        let primaryLines: [String] = activeCues.compactMap { cue in
+                        let primaryLines: [String] = activeCues(in: cues, maxDuration: maxCueDuration).compactMap { cue in
                             guard case .text(let raw) = cue.body else { return nil }
                             let display = isASSTrackActive ? strippedASSText(raw) : raw
                             return display.isEmpty ? nil : display
                         }
-                        let secondaryLines: [String] = activeSecondaryCues.compactMap { cue in
+                        let secondaryLines: [String] = activeCues(in: secondaryCues, maxDuration: secondaryMaxCueDuration).compactMap { cue in
                             guard case .text(let raw) = cue.body, !raw.isEmpty else { return nil }
                             return raw
                         }
@@ -294,9 +294,6 @@ struct SubtitleOverlayView: View {
     }
 
     // MARK: - Active-cue lookup
-
-    private var activeCues: [SubtitleCue] { activeCues(in: cues, maxDuration: maxCueDuration) }
-    private var activeSecondaryCues: [SubtitleCue] { activeCues(in: secondaryCues, maxDuration: secondaryMaxCueDuration) }
 
     /// Every cue in `source` whose range contains `currentTime`. Cues are sorted by `startTime`,
     /// so binary-search the first cue starting after now and walk back collecting unexpired ones.

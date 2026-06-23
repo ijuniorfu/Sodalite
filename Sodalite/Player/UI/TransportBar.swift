@@ -482,7 +482,6 @@ struct TransportBar: View {
 
     private var secondarySubtitleDropdownItems: [DropdownItem] {
         guard case .secondarySubtitle(let highlighted) = trackDropdown else { return [] }
-        let candidates = secondarySubtitleCandidates
         var items: [DropdownItem] = [
             DropdownItem(
                 title: String(localized: "player.subtitle.secondary.back", defaultValue: "Back"),
@@ -497,7 +496,7 @@ struct TransportBar: View {
                 isHighlighted: highlighted == 1
             )
         ]
-        items += candidates.enumerated().map { idx, stream in
+        items += secondarySubtitleCandidates.enumerated().map { idx, stream in
             DropdownItem(
                 title: TrackDisplayFormatter.subtitleStreamDisplayName(for: stream),
                 isActive: stream.index == activeSecondarySubtitleIndex,

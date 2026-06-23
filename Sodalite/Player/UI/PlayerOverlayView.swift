@@ -460,9 +460,9 @@ private struct DiagnosticLogOverlay: View {
 
     private var renderedLines: [String] {
         if focusOnDV {
-            return tap.lines.filter { line in
+            return Array(tap.lines.filter { line in
                 Self.focusSubstrings.contains { line.contains($0) }
-            }.suffix(visibleCount).map { $0 }
+            }.suffix(visibleCount))
         }
         return Array(tap.lines.suffix(visibleCount))
     }
