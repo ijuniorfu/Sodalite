@@ -29,6 +29,10 @@ final class CatalogViewModel {
     private(set) var hiddenNetworkIDs: Set<Int> = []
     private(set) var hiddenStudioIDs: Set<Int> = []
     var myRequests: [SeerrRequest] = []
+    var isLoadingMoreRequests: Bool = false
+    private var myRequestsTotal: Int = 0
+    private var myRequestsSkip: Int = 0
+    private var myRequestsUserID: Int?
 
     // MARK: - Admin requests (Phase B)
     /// Via `allRequests(filter:)`; visible only when the SeerrUser has MANAGE_REQUESTS or ADMIN.
@@ -342,6 +346,9 @@ final class CatalogViewModel {
     func loadMyRequests(userID: Int) async {
         isLoadingRequests = true
         errorMessage = nil
+        myRequestsUserID = userID
+        myRequestsSkip = 0
+        myRequestsTotal = 0
         defer { isLoadingRequests = false }
 
         do {
@@ -351,10 +358,40 @@ final class CatalogViewModel {
                 skip: 0
             )
             myRequests = result.results
+            myRequestsTotal = result.pageInfo.results
+            myRequestsSkip = result.results.count
             // Background enrichment; list renders immediately with placeholders, swaps to real metadata as fetches return.
             Task { await enrichRequestMetadata(for: result.results) }
         } catch {
             errorMessage = error.localizedDescription
+        }
+    }
+
+    /// Next page for "My Requests" (mirrors loadMoreAllRequests): prolific users have more than one
+    /// page, so the tab must paginate instead of capping at the first 50.
+    func loadMoreMyRequests() async {
+        guard let userID = myRequestsUserID,
+              myRequests.count < myRequestsTotal,
+              !isLoadingMoreRequests,
+              !isLoadingRequests else { return }
+        isLoadingMoreRequests = true
+        defer { isLoadingMoreRequests = false }
+
+        do {
+            let result = try await requestService.myRequests(
+                userID: userID,
+                take: 50,
+                skip: myRequestsSkip
+            )
+            // Dedupe against the visible list: Seerr repeats records across adjacent pages when status counts shift between fetches.
+            let existing = Set(myRequests.map(\.id))
+            let additions = result.results.filter { !existing.contains($0.id) }
+            myRequests.append(contentsOf: additions)
+            myRequestsTotal = result.pageInfo.results
+            myRequestsSkip += result.results.count
+            Task { await enrichRequestMetadata(for: additions) }
+        } catch {
+            // Mid-scroll error stays silent; the visible page remains.
         }
     }
 

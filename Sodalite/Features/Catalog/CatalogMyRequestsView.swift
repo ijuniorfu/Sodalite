@@ -17,7 +17,7 @@ struct CatalogMyRequestsView: View {
             } else {
                 ScrollView {
                     LazyVStack(spacing: 12) {
-                        ForEach(viewModel.myRequests) { request in
+                        ForEach(Array(viewModel.myRequests.enumerated()), id: \.element.id) { index, request in
                             SeerrRequestRow(
                                 request: request,
                                 title: viewModel.title(for: request),
@@ -25,6 +25,11 @@ struct CatalogMyRequestsView: View {
                                 posterURL: viewModel.posterURL(for: request),
                                 onSelect: { handleSelect(request) }
                             )
+                            .onAppear {
+                                if index >= viewModel.myRequests.count - 5 {
+                                    Task { await viewModel.loadMoreMyRequests() }
+                                }
+                            }
                         }
                     }
                     .padding(.horizontal, 50)
