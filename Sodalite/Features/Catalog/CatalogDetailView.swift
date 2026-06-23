@@ -1043,6 +1043,8 @@ struct CatalogDetailView: View {
             case .person, .unknown:
                 break
             }
+            // Re-reconcile so the Jellyfin presence verdict matches the refreshed mediaInfo; background so it doesn't extend the submit spinner, self-guards on Seerr still claiming availability.
+            Task { await reconcileAvailability() }
         } catch {
             // Badges stay stale until the next open; not worth an alert.
         }
