@@ -1,12 +1,11 @@
 import SwiftUI
 
-/// Brand splash shown while AppRouter restores the session. Logo fades + grows 80%→100% over appearDuration, holds, fades out; minimum on-screen time appearDuration+holdDuration so it never blinks past on a fast restore. Supporters get the crowned Premium variant.
+/// Brand splash shown while AppRouter restores the session. Logo fades + grows 80%→100% over appearDuration, holds, fades out; minimum on-screen time is SplashView.minimumDisplayDuration (1.2s, enforced in AppRouter) so it never blinks past on a fast restore. Supporters get the crowned Premium variant.
 struct SplashView: View {
 
     @Environment(\.dependencies) private var dependencies
 
     private let appearDuration: Double = 0.6
-    private let holdDuration: Double = 0.6
 
     @State private var hasAppeared = false
 
