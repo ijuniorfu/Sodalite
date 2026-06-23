@@ -136,11 +136,19 @@ struct LaunchProfilePickerView: View {
                 spacing: 40
             ) {
                 ForEach(rememberedUsers) { user in
+                    let isCurrent = user.id == activeSessionUserID
                     RememberedProfileCard(
                         user: user,
                         server: server,
+                        isCurrent: isCurrent,
                         onSelect: { select(user) },
-                        onLongPress: { forget(user) }
+                        // The active-session profile can't be forgotten here (mirrors ProfileSettingsView):
+                        // forgetUser leaves the active token, and SessionRestorer's migration block would
+                        // resurrect the entry on the next launch.
+                        onLongPress: {
+                            guard !isCurrent else { return }
+                            forget(user)
+                        }
                     )
                     // Pre-focus the remembered default profile (or first card) so cold launch opens with a profile highlighted (issue #25).
                     .prefersDefaultFocus(isPreferredDefault(user), in: focusNamespace)
@@ -266,7 +274,16 @@ struct LaunchProfilePickerView: View {
         }
     }
 
+    /// The profile the active session points at. `AppState.activeUser` may not be populated at the
+    /// picker, so read the keychain for this server directly.
+    private var activeSessionUserID: String? {
+        try? dependencies.keychainService.loadString(for: KeychainKeys.userID(serverID: server.id))
+    }
+
     private func forget(_ user: RememberedUser) {
+        // Never forget the active-session profile here: forgetUser leaves the active token in the
+        // keychain and SessionRestorer's migration block would resurrect the entry on next launch.
+        guard user.id != activeSessionUserID else { return }
         do {
             try dependencies.forgetUser(id: user.id, serverID: server.id)
             rememberedUsers = dependencies.listRememberedUsers(serverID: server.id)
