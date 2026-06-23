@@ -27,8 +27,6 @@ extension PlayerViewModel {
     ///   - Manual `MPNowPlayingInfoCenter.nowPlayingInfo` writes crash with `_dispatch_assert_queue_fail` on both NWConnection and BSD-socket HLS loopback (962292d).
     ///   - `AVAssetResourceLoaderDelegate` for HLS segments rejected by AVPlayer (Apple Forum 113063).
     /// Only path left is private API (`_nowPlayingSession` via KVC), not worth the reject risk. Everything else (title/cover/scrub/play-pause/AirPods/Enhance Dialogue/Reduce Loud Sounds/Atmos) works.
-    func bindRemoteSkipCommands() {}
-    func unbindRemoteSkipCommands() {}
 
     // MARK: - Post-load artwork refresh
 

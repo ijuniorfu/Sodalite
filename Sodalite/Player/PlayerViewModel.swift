@@ -457,9 +457,7 @@ final class PlayerViewModel {
         #endif
 
         // Now Playing is driven by AVKit's internal session (auto-activates with showsPlaybackControls
-        // + an assigned AVPlayer, reads AVPlayerItem.externalMetadata). 10s skip commands are opt-in,
-        // bound explicitly on the shared command center.
-        bindRemoteSkipCommands()
+        // + an assigned AVPlayer, reads AVPlayerItem.externalMetadata).
 
         do {
             // Live channels take a dedicated load path (open tuner, infinite live MediaSource, isLive
@@ -737,7 +735,6 @@ final class PlayerViewModel {
         controlsTimer = nil
         continuousSeekTask?.cancel()
         continuousSeekTask = nil
-        unbindRemoteSkipCommands()
         scrubPreview.reset()
         let extractorToClose = frameExtractor
         frameExtractor = nil
