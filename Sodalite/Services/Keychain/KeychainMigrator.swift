@@ -14,8 +14,6 @@ enum KeychainMigrator {
 
     private static let oldMainService = "de.superuser404.JellySeeTV"
     private static let oldSharedService = "de.superuser404.JellySeeTV.shared"
-    private static let newMainService = "de.superuser404.Sodalite"
-    private static let newSharedService = "de.superuser404.Sodalite.shared"
 
     /// Safe to call from any thread; idempotent after the first
     /// successful run per tvOS user.
@@ -30,8 +28,8 @@ enum KeychainMigrator {
 
         var totalDeleted = 0
         let services = [
-            newMainService,
-            newSharedService,
+            KeychainKeys.service,
+            SharedSessionMirror.service,
             oldMainService,
             oldSharedService,
         ]
