@@ -37,9 +37,4 @@ enum ChangelogPreferences {
         guard lastSeenVersion.isEmpty else { return }
         markCurrentSeen()
     }
-
-    /// Test/debug only: forget last-seen version so the next launch fires the modal.
-    static func forget() {
-        UserDefaults.standard.removeObject(forKey: storeKey)
-    }
 }

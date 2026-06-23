@@ -11,7 +11,6 @@ final class LoginViewModel {
 
     var quickConnectCode: String?
     var isPollingQuickConnect = false
-    var quickConnectAuthorized = false
 
     // savedPassword set only for regular (non-Quick-Connect) logins; cached in keychain so Seerr can reuse it.
     var authResult: (server: JellyfinServer, user: JellyfinUser, token: String, savedPassword: String?)?
@@ -97,7 +96,6 @@ final class LoginViewModel {
         isPollingQuickConnect = false
         quickConnectCode = nil
         quickConnectSecret = nil
-        quickConnectAuthorized = false
     }
 
     private func startPolling() {
@@ -120,7 +118,6 @@ final class LoginViewModel {
                     let isAuthorized = try await self.authService.checkQuickConnect(secret: secret)
                     if isAuthorized {
                         self.isPollingQuickConnect = false
-                        self.quickConnectAuthorized = true
                         await self.authenticateQuickConnect()
                         return
                     }
