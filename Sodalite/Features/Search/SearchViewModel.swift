@@ -114,15 +114,33 @@ final class SearchViewModel {
         }
     }
 
-    /// Remove Seerr results already in the Jellyfin library. Primary key: TMDB id; fallback (no TMDB provider id, e.g. manual imports/old scanner): normalized title + production year.
+    /// Remove Seerr results already in the Jellyfin library. Both keys are qualified by media type:
+    /// TMDB reuses numeric ids across the movie and tv namespaces (mirrors SeerrMedia.stableKey), so
+    /// an owned movie must not suppress a different series sharing that id (or the same title+year).
+    /// Primary key: type + TMDB id; fallback (no TMDB provider id, e.g. manual imports/old scanner):
+    /// type + normalized title + production year.
     private func deduplicate(seerr: [SeerrMedia], against jellyfin: [JellyfinItem]) -> [SeerrMedia] {
-        let jellyfinTmdbIDs = Set(jellyfin.compactMap { $0.tmdbID })
-        let jellyfinTitleYears = Set(jellyfin.map { titleYearKey(name: $0.name, year: $0.productionYear) })
+        func seerrType(_ type: ItemType) -> String? {
+            switch type {
+            case .movie: return SeerrMediaType.movie.rawValue
+            case .series: return SeerrMediaType.tv.rawValue
+            default: return nil
+            }
+        }
+
+        var jellyfinTmdbKeys: Set<String> = []
+        var jellyfinTitleYears: Set<String> = []
+        for item in jellyfin {
+            guard let type = seerrType(item.type) else { continue }
+            if let tmdb = item.tmdbID { jellyfinTmdbKeys.insert("\(type)-\(tmdb)") }
+            jellyfinTitleYears.insert("\(type)|" + titleYearKey(name: item.name, year: item.productionYear))
+        }
 
         return seerr.filter { media in
-            if jellyfinTmdbIDs.contains(media.id) { return false }
+            let type = media.mediaType.rawValue
+            if jellyfinTmdbKeys.contains("\(type)-\(media.id)") { return false }
             let mediaYear = Int(media.displayYear ?? "")
-            let key = titleYearKey(name: media.displayTitle, year: mediaYear)
+            let key = "\(type)|" + titleYearKey(name: media.displayTitle, year: mediaYear)
             return !jellyfinTitleYears.contains(key)
         }
     }
