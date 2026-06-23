@@ -367,6 +367,9 @@ final class PlayerViewModel {
     /// (AetherEngine#48): sidecar headers publish asynchronously (unlike embedded TrackInfo), so
     /// activation waits for the first non-nil value. Cancelled on track change / deactivate.
     @ObservationIgnored private var sidecarASSHeaderCancellable: AnyCancellable?
+    /// In-flight transcode-path SRT load (server extraction can take up to 120s). Cancelled when the
+    /// user switches or disables the subtitle track so a stale load can't clobber the new selection.
+    @ObservationIgnored private var subtitleLoadTask: Task<Void, Never>?
     /// Coordinator reload pre-announcements; the overlay's frame view subscribes so reload-induced
     /// transient nil frames never blank a visible subtitle. Stable for the VM lifetime.
     var assReloadSignal: PassthroughSubject<Void, Never> { assCoordinator.reloadSignal }
@@ -1418,6 +1421,10 @@ final class PlayerViewModel {
     }
 
     func selectSubtitleTrack(id: Int?) {
+        // Cancel any in-flight transcode-path load so a slow earlier extraction can't overwrite the
+        // cues for the track the user just selected (or disabled).
+        subtitleLoadTask?.cancel()
+        subtitleLoadTask = nil
         guard let id else {
             activeSubtitleIndex = nil
             activeSubtitleCodec = nil
@@ -1483,7 +1490,7 @@ final class PlayerViewModel {
             deactivateASSRendering()
             player.clearSubtitle()
             subtitleCues = []
-            Task { await loadSubtitles(streamIndex: id) }
+            subtitleLoadTask = Task { await loadSubtitles(streamIndex: id) }
         }
     }
 
@@ -1599,6 +1606,12 @@ final class PlayerViewModel {
                     if attempt == 2 { return }
                     try? await Task.sleep(for: .seconds(1))
                     continue
+                }
+                // A slow extraction may finish after the user switched/disabled the track; only the
+                // still-selected stream may write, so a stale load is a no-op.
+                guard !Task.isCancelled, activeSubtitleIndex == streamIndex else {
+                    Self.subtitleLog.notice("→ stale load for \(streamIndex, privacy: .public) dropped (active=\(self.activeSubtitleIndex ?? -1, privacy: .public))")
+                    return
                 }
                 subtitleCues = cues
                 Self.subtitleLog.notice("→ loaded \(cues.count, privacy: .public) cues on attempt \(attempt, privacy: .public)")
