@@ -77,12 +77,18 @@ enum SRTParser {
             guard let h = Double(parts[0]),
                   let m = Double(parts[1]),
                   let s = Double(parts[2]) else { return nil }
-            return h * 3600 + m * 60 + s
+            // Double() parses "inf"/"nan"/overflow into non-finite values; reject them so a
+            // malformed line can't admit an Inf endTime (stuck cue + O(n) per-tick lookup).
+            let result = h * 3600 + m * 60 + s
+            guard result.isFinite else { return nil }
+            return result
         } else {
             // MM:SS.mmm
             guard let m = Double(parts[0]),
                   let s = Double(parts[1]) else { return nil }
-            return m * 60 + s
+            let result = m * 60 + s
+            guard result.isFinite else { return nil }
+            return result
         }
     }
 }
