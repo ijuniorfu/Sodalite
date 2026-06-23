@@ -129,6 +129,7 @@ The Seerr integration isn't a tacked-on link to a web view. It's a first-class p
 - **Seerr integration**: browse trending and popular media right inside the app
 - **One-tap requests** for movies and full series
 - **Track status**: see what's been approved, declined, or is already downloading
+- **Honest availability**: cross-checks your Jellyfin library so a title (or single season) deleted in Radarr / Sonarr shows as gone, not a stale "available", and stays re-requestable
 - **Single sign-on**: log in once, Sodalite handles your Seerr session
 - **Admin view**: with Jellyseerr admin permissions, approve, decline, edit, or delete any user's request right from the All Requests tab
 
