@@ -196,8 +196,6 @@ struct SeerrRequestEditSheet: View {
                     )
                 }
             }
-        } else {
-            EmptyView()
         }
     }
 

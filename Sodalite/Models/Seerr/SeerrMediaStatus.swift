@@ -1,4 +1,4 @@
-import Foundation
+import SwiftUI
 
 enum SeerrMediaStatus: Int, Codable, Sendable {
     case unknown = 1
@@ -31,6 +31,16 @@ enum SeerrMediaStatus: Int, Codable, Sendable {
         case .processing: "arrow.triangle.2.circlepath"
         case .partiallyAvailable: "circle.lefthalf.filled"
         case .available: "checkmark.circle.fill"
+        }
+    }
+
+    var color: Color {
+        switch self {
+        case .unknown: .gray
+        case .pending: .orange
+        case .processing: .blue
+        case .partiallyAvailable: .teal
+        case .available: .green
         }
     }
 }

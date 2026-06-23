@@ -17,7 +17,7 @@ struct CatalogSeasonTab: View {
                 if let status = availabilityStatus {
                     Image(systemName: status.systemImage)
                         .font(.caption)
-                        .foregroundStyle(statusColor(status))
+                        .foregroundStyle(status.color)
                 } else if isSelectedForRequest {
                     Image(systemName: "checkmark.circle.fill")
                         .font(.caption)
@@ -42,20 +42,10 @@ struct CatalogSeasonTab: View {
     private var background: some ShapeStyle {
         if isViewed { return AnyShapeStyle(.tint.opacity(0.35)) }
         if let status = availabilityStatus {
-            return AnyShapeStyle(statusColor(status).opacity(0.18))
+            return AnyShapeStyle(status.color.opacity(0.18))
         }
         if isSelectedForRequest { return AnyShapeStyle(.tint.opacity(0.18)) }
         return AnyShapeStyle(.white.opacity(0.08))
-    }
-
-    private func statusColor(_ status: SeerrMediaStatus) -> Color {
-        switch status {
-        case .available: return .green
-        case .processing: return .blue
-        case .pending: return .orange
-        case .partiallyAvailable: return .teal
-        case .unknown: return .gray
-        }
     }
 }
 

@@ -10,7 +10,7 @@ struct SeerrStatusBadge: View {
                 .font(.caption)
                 .foregroundStyle(.white)
                 .padding(6)
-                .background(color, in: Circle())
+                .background(status.color, in: Circle())
         } else {
             Label {
                 Text(LocalizedStringKey(status.localizationKey))
@@ -23,17 +23,7 @@ struct SeerrStatusBadge: View {
             .foregroundStyle(.white)
             .padding(.horizontal, 10)
             .padding(.vertical, 4)
-            .background(color, in: Capsule())
-        }
-    }
-
-    private var color: Color {
-        switch status {
-        case .unknown: .gray
-        case .pending: .orange
-        case .processing: .blue
-        case .partiallyAvailable: .teal
-        case .available: .green
+            .background(status.color, in: Capsule())
         }
     }
 }

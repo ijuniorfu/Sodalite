@@ -525,7 +525,7 @@ struct CatalogDetailView: View {
                         systemImage: status.systemImage
                     )
                     .font(.caption)
-                    .foregroundStyle(seasonStatusColor(status))
+                    .foregroundStyle(status.color)
                     .padding(.horizontal, 14)
                     .padding(.vertical, 8)
                 } else {
@@ -819,16 +819,6 @@ struct CatalogDetailView: View {
         case .pending: return "catalog.seasons.pendingApproval"
         case .partiallyAvailable: return "catalog.status.partiallyAvailable"
         case .unknown: return "catalog.status.unknown"
-        }
-    }
-
-    private func seasonStatusColor(_ status: SeerrMediaStatus) -> Color {
-        switch status {
-        case .available: return .green
-        case .processing: return .blue
-        case .pending: return .orange
-        case .partiallyAvailable: return .teal
-        case .unknown: return .gray
         }
     }
 
