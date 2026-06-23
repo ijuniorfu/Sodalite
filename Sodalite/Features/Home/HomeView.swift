@@ -259,37 +259,23 @@ struct HomeView: View {
             ),
             smartProviderID: provider.tmdbWatchProviderID,
             smartProviderRegion: region,
-            cacheKey: HomeView.providerCacheKey(provider: provider, region: region)
+            cacheKey: FilterCacheKey.Home.provider(id: provider.id, region: region)
         )
     }
 
-    /// Convenience over FilterCacheKey.Home so CatalogProvider call sites don't reach into the id field themselves.
-    static func providerCacheKey(provider: CatalogProvider, region: String) -> String {
-        FilterCacheKey.Home.provider(id: provider.id, region: region)
-    }
-
     private func makeFilter(for tag: TagCardData, type: HomeRowType) -> FilterDestination {
-        switch type {
-        case .genres:
-            FilterDestination(
-                title: tag.name,
-                query: ItemQuery(
-                    includeItemTypes: [.movie, .series],
-                    sortBy: "SortName",
-                    sortOrder: "Ascending",
-                    limit: 50,
-                    genres: [tag.name]
-                ),
-                // Without a cacheKey FilteredGridView.init falls to the empty-state branch with isLoading=true on every visit (the brief flash on opening a genre tile). Tag name is a stable enough key.
-                cacheKey: FilterCacheKey.Home.genre(name: tag.name)
-            )
-        default:
-            FilterDestination(
-                title: tag.name,
-                query: ItemQuery(),
-                cacheKey: FilterCacheKey.Home.tag(name: tag.name)
-            )
-        }
+        FilterDestination(
+            title: tag.name,
+            query: ItemQuery(
+                includeItemTypes: [.movie, .series],
+                sortBy: "SortName",
+                sortOrder: "Ascending",
+                limit: 50,
+                genres: [tag.name]
+            ),
+            // Without a cacheKey FilteredGridView.init falls to the empty-state branch with isLoading=true on every visit (the brief flash on opening a genre tile). Tag name is a stable enough key.
+            cacheKey: FilterCacheKey.Home.genre(name: tag.name)
+        )
     }
 
     private func makeLibraryFilter(for library: JellyfinLibrary) -> FilterDestination {

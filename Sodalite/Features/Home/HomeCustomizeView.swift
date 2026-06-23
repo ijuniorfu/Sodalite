@@ -388,8 +388,8 @@ struct RowToggleButton: View {
     }
 
     private var foreground: AnyShapeStyle {
-        if isOn { return AnyShapeStyle(focused ? AnyShapeStyle(.white) : AnyShapeStyle(.tint)) }
-        return AnyShapeStyle(focused ? AnyShapeStyle(.white) : AnyShapeStyle(.secondary))
+        if isOn { return focused ? AnyShapeStyle(.white) : AnyShapeStyle(.tint) }
+        return focused ? AnyShapeStyle(.white) : AnyShapeStyle(.secondary)
     }
 
     private var background: AnyShapeStyle {
