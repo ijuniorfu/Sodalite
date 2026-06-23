@@ -4,11 +4,11 @@ enum SeerrImageURL {
     private static let base = URL(string: "https://image.tmdb.org/t/p")!
 
     enum PosterSize: String {
-        case w342, w500, w780, original
+        case w342, w500
     }
 
     enum BackdropSize: String {
-        case w780, w1280, original
+        case w780, w1280
     }
 
     static func poster(path: String?, size: PosterSize = .w500) -> URL? {
@@ -31,7 +31,7 @@ enum SeerrImageURL {
     }
 
     enum ProfileSize: String {
-        case w185, h632, original
+        case w185
     }
 
     static func profile(path: String?, size: ProfileSize = .w185) -> URL? {

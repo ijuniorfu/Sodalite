@@ -8,17 +8,14 @@ final class SeerrClient {
     var sessionCookie: String?
 
     private let decoder: JSONDecoder
-    private let encoder: JSONEncoder
 
     init(httpClient: HTTPClientProtocol = HTTPClient()) {
         self.httpClient = httpClient
 
-        // Decode converts snake_case (TMDB-shaped responses: poster_path, vote_average); encoder stays camelCase, the API rejects snake_case bodies with HTTP 500.
+        // Decode converts snake_case (TMDB-shaped responses: poster_path, vote_average). POST bodies stay camelCase (HTTPClient.encoder); the API rejects snake_case bodies with HTTP 500.
         let decoder = JSONDecoder()
         decoder.keyDecodingStrategy = .convertFromSnakeCase
         self.decoder = decoder
-
-        self.encoder = JSONEncoder()
     }
 
     func request<T: Decodable>(

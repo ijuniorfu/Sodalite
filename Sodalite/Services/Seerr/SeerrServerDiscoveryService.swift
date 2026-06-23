@@ -2,7 +2,6 @@ import Foundation
 
 struct SeerrServerInfo: Codable, Sendable {
     let version: String
-    let commitTag: String?
 }
 
 enum SeerrServerDiscoveryResult: Sendable {
