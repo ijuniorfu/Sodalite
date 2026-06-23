@@ -68,9 +68,8 @@ final class SearchViewModel {
         guard id == currentSearchID else { return }
 
         let jfItems = jfResult.items
-        let seerrItems = seerrResult.items
         jellyfinResults = jfItems
-        seerrResults = deduplicate(seerr: seerrItems, against: jfItems)
+        seerrResults = deduplicate(seerr: seerrResult.items, against: jfItems)
         isSearching = false
 
         // Connection failure vs "no results": Jellyfin is the primary signal; only its error + both lists empty means network problem. Seerr alone can't trigger this (may be intentionally disconnected).

@@ -5,7 +5,6 @@ import UIKit
 struct SearchTextField: UIViewRepresentable {
     @Binding var text: String
     var placeholder: String
-    var onCommit: () -> Void = {}
 
     func makeUIView(context: Context) -> UITextField {
         let field = UITextField()
@@ -48,7 +47,6 @@ struct SearchTextField: UIViewRepresentable {
         }
 
         func textFieldShouldReturn(_ textField: UITextField) -> Bool {
-            parent.onCommit()
             textField.resignFirstResponder()
             return true
         }
