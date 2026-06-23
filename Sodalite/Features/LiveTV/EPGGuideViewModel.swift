@@ -126,9 +126,6 @@ final class EPGGuideViewModel {
         return state?.timerId != nil || state?.seriesTimerId != nil
     }
 
-    func timerID(programID: String) -> String? { timerState[programID]?.timerId }
-    func seriesTimerID(programID: String) -> String? { timerState[programID]?.seriesTimerId }
-
     /// Effective timer state: the overlay entry (authoritative, reflects local toggles) when one
     /// exists, else the program's server snapshot. After a cancel the overlay holds (nil, ...) and
     /// must shadow the stale snapshot so the dead timer id is not resurrected.

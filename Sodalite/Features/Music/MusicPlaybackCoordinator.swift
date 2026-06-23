@@ -15,7 +15,7 @@ import AetherEngine
 /// state WITHOUT re-stopping the engine (it has already moved on).
 ///
 /// System Now-Playing is driven by the `+NowPlaying` extension via a per-player `MPNowPlayingSession`;
-/// updateNowPlaying / clearNowPlaying fire at every track-change / play-pause / seek.
+/// applyNowPlayingInfo / clearNowPlayingInfo fire at every track-change / play-pause / seek.
 @MainActor
 @Observable
 final class MusicPlaybackCoordinator {
@@ -167,7 +167,7 @@ final class MusicPlaybackCoordinator {
                 await engine.seek(to: 0)
                 engine.play()
             }
-            updateNowPlaying()
+            applyNowPlayingInfo()
         } else {
             reportStopped()
             currentIndex -= 1
@@ -177,7 +177,7 @@ final class MusicPlaybackCoordinator {
 
     func seek(to seconds: Double) {
         Task { await engine.seek(to: seconds) }
-        updateNowPlaying()
+        applyNowPlayingInfo()
     }
 
     /// User-driven stop. Latches `isStopping` first so the engine's `.idle` (then `.none`) transition
@@ -197,7 +197,7 @@ final class MusicPlaybackCoordinator {
         playSessionId = nil
         currentMediaSourceId = nil
         stopNowPlayingKeepAlive()
-        clearNowPlaying()
+        clearNowPlayingInfo()
         isStopping = false
     }
 
@@ -260,7 +260,7 @@ final class MusicPlaybackCoordinator {
             // Publish now-playing + register remote commands BEFORE the first play(): tvOS only
             // registers the app as the system Now-Playing source (and flips the Siri Remote to a play
             // affordance) when the info center is populated and handlers bound ahead of playback (WWDC17 S251).
-            updateNowPlaying()
+            applyNowPlayingInfo()
             engine.play()
             startNowPlayingKeepAlive()
 
@@ -315,7 +315,7 @@ final class MusicPlaybackCoordinator {
                 self.duration = dur
                 // AVPlayer publishes duration async after the item is ready, so the now-playing set
                 // at track load had duration 0; refresh so system UI shows the right length / progress.
-                self.updateNowPlaying()
+                self.applyNowPlayingInfo()
             }
             .store(in: &cancellables)
 
@@ -327,7 +327,7 @@ final class MusicPlaybackCoordinator {
                 self.isPlaying = (state == .playing)
                 // Refresh now-playing on a play/pause transition so native rate / elapsed match.
                 if self.isPlaying != wasPlaying {
-                    self.updateNowPlaying()
+                    self.applyNowPlayingInfo()
                 }
 
                 // Natural end-of-track: engine reaches `.idle` when the source runs out. Only treat
@@ -368,7 +368,7 @@ final class MusicPlaybackCoordinator {
                 self.playSessionId = nil
                 self.currentMediaSourceId = nil
                 self.stopNowPlayingKeepAlive()
-                self.clearNowPlaying()
+                self.clearNowPlayingInfo()
                 self.isStopping = false
             }
             .store(in: &cancellables)
@@ -382,7 +382,7 @@ final class MusicPlaybackCoordinator {
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in
                 guard let self, self.currentItem != nil else { return }
-                self.updateNowPlaying()
+                self.applyNowPlayingInfo()
             }
             .store(in: &cancellables)
 
@@ -459,9 +459,4 @@ final class MusicPlaybackCoordinator {
         let svc = playbackService
         Task { try? await svc.reportPlaybackStopped(report) }
     }
-
-    // MARK: - Now Playing hooks (implemented in +NowPlaying)
-
-    private func updateNowPlaying() { applyNowPlayingInfo() }
-    private func clearNowPlaying() { clearNowPlayingInfo() }
 }

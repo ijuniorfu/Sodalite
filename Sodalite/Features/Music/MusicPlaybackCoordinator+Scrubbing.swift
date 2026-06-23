@@ -6,21 +6,18 @@ import AetherEngine
 /// keeps the preview armed until Select commits (see endContinuousSeek).
 extension MusicPlaybackCoordinator {
 
-    /// Track duration in seconds (0 when unknown).
-    var scrubDuration: Double { duration }
-
     /// The 0...1 progress the bar should render: the scrub preview while
     /// scrubbing, otherwise the live playback position.
     var displayProgress: Double {
-        guard scrubDuration > 0 else { return 0 }
+        guard duration > 0 else { return 0 }
         return isScrubbing
             ? scrubProgress
-            : min(max(currentTime / scrubDuration, 0), 1)
+            : min(max(currentTime / duration, 0), 1)
     }
 
     /// The seconds the bar should label (preview while scrubbing, else live).
     var displayTime: Double {
-        isScrubbing ? scrubProgress * scrubDuration : currentTime
+        isScrubbing ? scrubProgress * duration : currentTime
     }
 
     private var skipSeconds: Double { 10 }
@@ -28,7 +25,7 @@ extension MusicPlaybackCoordinator {
     /// Discrete left/right skip: enters the scrub preview and nudges the
     /// position by the configured interval (committed on Select).
     func seekSkip(direction: Int) {
-        let dur = scrubDuration
+        let dur = duration
         guard dur > 0 else { return }
         beginScrubIfNeeded()
         let delta = Double(direction < 0 ? -1 : 1) * skipSeconds / dur
@@ -50,7 +47,7 @@ extension MusicPlaybackCoordinator {
     /// Begin a continuous (hold-to-seek) spool in `direction` (-1 left, +1
     /// right). Accelerates from 15x to 240x, same curve as the video player.
     func beginContinuousSeek(direction: Int) {
-        let dur = scrubDuration
+        let dur = duration
         guard dur > 0 else { return }
         beginScrubIfNeeded()
         continuousSeekTask?.cancel()
@@ -60,7 +57,7 @@ extension MusicPlaybackCoordinator {
             var held = 0.0
             while !Task.isCancelled {
                 guard let self else { return }
-                let dur = self.scrubDuration
+                let dur = self.duration
                 guard dur > 0 else { return }
                 let rate = min(15 + held * 26, 240)
                 self.scrubProgress = min(max(self.scrubProgress + dir * rate * tick / dur, 0), 1)
@@ -86,7 +83,7 @@ extension MusicPlaybackCoordinator {
         // the next beginScrubIfNeeded's initial position.
         continuousSeekTask?.cancel()
         continuousSeekTask = nil
-        let dur = scrubDuration
+        let dur = duration
         guard isScrubbing, dur > 0 else {
             isScrubbing = false
             return
@@ -105,6 +102,6 @@ extension MusicPlaybackCoordinator {
     private func beginScrubIfNeeded() {
         guard !isScrubbing else { return }
         isScrubbing = true
-        scrubProgress = scrubDuration > 0 ? min(max(currentTime / scrubDuration, 0), 1) : 0
+        scrubProgress = duration > 0 ? min(max(currentTime / duration, 0), 1) : 0
     }
 }
