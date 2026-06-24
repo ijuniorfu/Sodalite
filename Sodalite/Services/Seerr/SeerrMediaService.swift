@@ -80,7 +80,7 @@ final class SeerrMediaService: SeerrMediaServiceProtocol {
         case .movie: endpoint = .movieRatings(tmdbID: tmdbID)
         case .tv: endpoint = .tvRatings(tmdbID: tmdbID)
         case .person, .unknown:
-            return SeerrRTRating(criticsScore: nil, criticsRating: nil, audienceScore: nil, audienceRating: nil, url: nil)
+            return SeerrRTRating(criticsScore: nil)
         }
         return try await client.request(
             endpoint: endpoint,
