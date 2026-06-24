@@ -37,6 +37,8 @@ struct TabRootView: View {
     @State private var availableTabs: [AppTab] = AppTab.allCases.filter { $0 != .music && $0 != .liveTV }
     /// serverDidSwitch value of the last completed tab probe. -1 so the first probe fires; a `.task` re-fire on reappear is a no-op while a real switch re-probes.
     @State private var lastProbedServerSwitch = -1
+    /// Re-probe triggered by .loginDidComplete (add-server / add-profile authenticates via setAuthenticated WITHOUT bumping serverDidSwitch, so the serverDidSwitch probe never fires for the new server).
+    @State private var loginProbeTask: Task<Void, Never>?
     @Environment(\.dependencies) private var dependencies
     @Environment(\.appState) private var appState
 
@@ -124,6 +126,11 @@ struct TabRootView: View {
                 availableTabs = tabs
             }
         }
+        // Adding a server (or another profile) authenticates through LoginView -> setAuthenticated, which changes the active server WITHOUT bumping serverDidSwitch, so the probe above never re-fires for the new backend. Re-probe here, else the previous server's Live TV / Music tabs linger and tapping a Live TV tab on a server without Live TV crashes.
+        .onReceive(NotificationCenter.default.publisher(for: .loginDidComplete)) { _ in
+            loginProbeTask?.cancel()
+            loginProbeTask = Task { await recomputeOptionalTabsAfterLogin() }
+        }
         .onAppear {
             configureTabBarItemAppearance()
         }
@@ -136,6 +143,38 @@ struct TabRootView: View {
             DispatchQueue.main.async {
                 configureTabBarItemAppearance()
             }
+        }
+    }
+
+    /// Re-evaluates the optional Live TV / Music tabs for the now-active server after a login completion. Drops the previous server's optional tabs first (so a stale, crash-prone Live TV tab is gone immediately), then probes the new backend and republishes. Mirrors the serverDidSwitch probe; kept separate so that device-verified path stays untouched.
+    @MainActor
+    private func recomputeOptionalTabsAfterLogin() async {
+        let base = AppTab.allCases.filter { $0 != .music && $0 != .liveTV }
+        availableTabs = base
+        if !base.contains(selectedTab) {
+            selectedTab = .home
+        }
+        guard let userID = dependencies.activeUserID else { return }
+
+        let hasLive = await dependencies.serverHasLiveTV(userID: userID)
+        if Task.isCancelled { return }
+        var hasMusic = false
+        do {
+            hasMusic = try await dependencies.jellyfinMusicService.hasMusicLibrary(userID: userID)
+        } catch {
+            // No music library confirmed; tab stays hidden.
+        }
+        if Task.isCancelled { return }
+
+        var tabs = base
+        if hasLive, let homeIndex = tabs.firstIndex(of: .home) {
+            tabs.insert(.liveTV, at: homeIndex + 1)
+        }
+        if hasMusic, let settingsIndex = tabs.firstIndex(of: .settings) {
+            tabs.insert(.music, at: settingsIndex)
+        }
+        if tabs != availableTabs {
+            availableTabs = tabs
         }
     }
 
