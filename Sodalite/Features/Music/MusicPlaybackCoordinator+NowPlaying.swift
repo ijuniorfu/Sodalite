@@ -9,23 +9,24 @@ import AetherEngine
 /// On tvOS 14+ a bare AVPlayer must own an `MPNowPlayingSession` to stay the active Now-Playing app
 /// across a background pause: the SHARED info/command centers aren't reliably bound, so on pause
 /// (rate 0) the system drops the app and stops delivering the play button (Apple forums 658311 /
-/// 706656). The engine owns that session with `automaticallyPublishesNowPlayingInfo` OFF: enabled, the
-/// session harvests and decodes the asset's OWN embedded cover, which crashed on a corrupt one
-/// (dispatch_assert_queue_fail on MediaPlayer's serial queue). So the AVPlayer path hands its staged
-/// dict (title/artist/album + our force-decoded artwork) to the engine, which publishes it to the
-/// session's OWN center and appends the player's elapsed/rate/duration. externalMetadata is NOT used
-/// here, it is an AVKit property the bare audio AVPlayer (no AVPlayerViewController) never surfaces.
+/// 706656). The engine owns that session with `automaticallyPublishesNowPlayingInfo` ON (Apple's
+/// documented bare-AVPlayer path, WWDC22 110338): the AVPlayer path hands its staged dict
+/// (title/artist/album + a GUARANTEED-valid, @Sendable artwork) to the engine, which stamps it on
+/// AVPlayerItem.nowPlayingInfo, and the session auto-derives elapsed/rate/state/duration from the
+/// player. We always supply a valid artwork so the system never falls back to decoding the asset's
+/// OWN embedded cover, which crashes on a corrupt one. externalMetadata is NOT used here, it is an
+/// AVKit property the bare audio AVPlayer (no AVPlayerViewController) never surfaces.
 ///
 /// The FFmpeg fallback has no AVPlayer/session, so infoCenter/commandCenter resolve to the shared defaults,
-/// and it writes that shared center directly (no auto-publisher to conflict with).
+/// and it writes that shared center directly (no auto-publisher there).
 /// MPRemoteCommandCenter does NOT guarantee main-thread delivery on tvOS (it dispatches on a background
 /// MediaPlayer queue), so each handler returns its status synchronously and hops the actual @MainActor work to
 /// the main actor via `Task { @MainActor }`. Assuming main (MainActor.assumeIsolated in the handler body)
 /// crashed with dispatch_assert_queue_fail when a command arrived off-main during playback.
 extension MusicPlaybackCoordinator {
 
-    /// Shared center for the FFmpeg fallback only. The AVPlayer/session path publishes through the engine to the
-    /// session's OWN center, so every use of this shared default is gated on `audioNowPlayingSession == nil`.
+    /// Shared center for the FFmpeg fallback only. The AVPlayer/session path stamps AVPlayerItem.nowPlayingInfo
+    /// (via the engine) and auto-publishes, so every use of this shared default is gated on `audioNowPlayingSession == nil`.
     private var infoCenter: MPNowPlayingInfoCenter {
         MPNowPlayingInfoCenter.default()
     }
@@ -46,10 +47,9 @@ extension MusicPlaybackCoordinator {
         // Register transport handlers once, on the session's command center (the binding tvOS needs).
         registerRemoteCommandsIfNeeded()
 
-        // AVPlayer path: hand the staged dict to the engine, which publishes it to the session's OWN center and
-        // appends the player's elapsed/rate/duration. NO manual write to the shared MPNowPlayingInfoCenter, and NO
-        // externalMetadata (an AVKit/AVPlayerViewController property the bare audio AVPlayer never surfaces). The
-        // engine keeps auto-publish OFF so the session never decodes the asset's (possibly corrupt) embedded cover.
+        // AVPlayer path: hand the staged dict (with a guaranteed-valid artwork) to the engine, which stamps it on
+        // AVPlayerItem.nowPlayingInfo; the auto-publishing session merges in elapsed/rate/duration. NO manual write
+        // to MPNowPlayingInfoCenter, and NO externalMetadata (an AVKit property the bare audio AVPlayer never surfaces).
         if engine.audioNowPlayingSession != nil {
             engine.setAudioNowPlayingInfo(baseNowPlayingDict(for: item))
             loadArtwork(for: item)
@@ -66,20 +66,43 @@ extension MusicPlaybackCoordinator {
         loadArtwork(for: item)
     }
 
-    /// Title/artist/album/mediaType (+ already-resolved artwork) shared by both paths. The session path leaves
-    /// elapsed/rate/duration to the engine's manual publish; the FFmpeg path appends them before writing the shared center.
+    /// Title/artist/album/mediaType + a GUARANTEED-valid artwork, shared by both paths. The session path (auto-publish)
+    /// leaves elapsed/rate/duration to the system; the FFmpeg path appends them before writing the shared center.
     private func baseNowPlayingDict(for item: JellyfinItem) -> [String: Any] {
         var info: [String: Any] = [:]
         info[MPMediaItemPropertyTitle] = item.name
         info[MPMediaItemPropertyArtist] = item.trackArtistLine ?? ""
         info[MPMediaItemPropertyAlbumTitle] = item.albumArtist ?? ""
         info[MPNowPlayingInfoPropertyMediaType] = MPNowPlayingInfoMediaType.audio.rawValue
-        // Preserve already-resolved artwork so a state/duration refresh doesn't flash it away mid-load.
+        // ALWAYS fill the artwork slot: the real cover once loaded, else a placeholder. A non-empty, valid slot keeps
+        // the auto-publishing session from falling back to decoding the asset's OWN embedded cover (a corrupt one
+        // crashes MediaPlayer). The placeholder is shown only for the moment before the real cover resolves.
         if let art = cachedArtwork, cachedArtworkItemID == item.id {
             info[MPMediaItemPropertyArtwork] = art
+        } else {
+            info[MPMediaItemPropertyArtwork] = Self.placeholderArtwork
         }
         return info
     }
+
+    /// Solid placeholder cover used whenever the real album art is missing or still loading, so the Now-Playing
+    /// artwork slot is never empty. @Sendable handler (MediaPlayer requests the bitmap off the main actor). Built once.
+    static let placeholderArtwork: MPMediaItemArtwork = {
+        let size = CGSize(width: 600, height: 600)
+        let format = UIGraphicsImageRendererFormat.default()
+        format.opaque = true
+        let image = UIGraphicsImageRenderer(size: size, format: format).image { ctx in
+            UIColor(white: 0.12, alpha: 1).setFill()
+            ctx.fill(CGRect(origin: .zero, size: size))
+            let cfg = UIImage.SymbolConfiguration(pointSize: 220, weight: .regular)
+            if let symbol = UIImage(systemName: "music.note", withConfiguration: cfg)?
+                .withTintColor(UIColor(white: 0.5, alpha: 1), renderingMode: .alwaysOriginal) {
+                symbol.draw(at: CGPoint(x: (size.width - symbol.size.width) / 2,
+                                        y: (size.height - symbol.size.height) / 2))
+            }
+        }
+        return MPMediaItemArtwork(boundsSize: image.size) { @Sendable _ in image }
+    }()
 
     /// Refresh just elapsed + rate on the EXISTING entry (no rebuild / artwork reload / log), on the
     /// timer so the system keeps a live entry: shows the Home overlay promptly (not lagging our last
@@ -127,16 +150,21 @@ extension MusicPlaybackCoordinator {
                   let image = UIImage(data: data),
                   // Force-decode off-main. A corrupt cover (Jellyfin can serve a truncated embedded image:
                   // "Error -17102 decompressing image -- possibly corrupt") otherwise crashes MediaPlayer when
-                  // it decodes the image lazily. nil = undecodable, so skip the artwork instead of crashing.
+                  // it decodes the image lazily. nil = undecodable, so keep the already-published placeholder.
                   let decoded = await image.byPreparingForDisplay() else { return }
 
             await MainActor.run { [weak self] in
                 guard let self, self.nowPlayingArtworkItemID == itemID else { return }
-                let artwork = MPMediaItemArtwork(boundsSize: decoded.size) { _ in decoded }
+                // @Sendable is REQUIRED: MediaPlayer invokes this handler off the main actor (it requests the bitmap
+                // via -[MPMediaItemArtwork jpegDataWithSize:] on its own thread). The MediaPlayer header does not
+                // declare the handler @Sendable, so a plain closure silently inherits MainActor isolation and, in a
+                // Swift 6 target, trips _dispatch_assert_queue_fail on that thread (Apple DTS forum 764874). `decoded`
+                // is an immutable, already-force-decoded UIImage, so the @Sendable capture is sound.
+                let artwork = MPMediaItemArtwork(boundsSize: decoded.size) { @Sendable _ in decoded }
                 self.cachedArtwork = artwork
                 self.cachedArtworkItemID = itemID
                 if self.engine.audioNowPlayingSession != nil {
-                    // AVPlayer path: re-stage the dict WITH artwork; the engine republishes it to the session center.
+                    // AVPlayer path: re-stamp the dict with the real cover (replacing the placeholder) on the item.
                     self.engine.setAudioNowPlayingInfo(self.baseNowPlayingDict(for: item))
                 } else {
                     // FFmpeg fallback: merge artwork into the shared center.
