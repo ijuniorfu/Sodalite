@@ -14,7 +14,10 @@ import AetherEngine
 /// `MPNowPlayingInfoPropertyPlaybackRate` (1.0/0.0), kept accurate via the timer.
 ///
 /// The FFmpeg fallback has no AVPlayer/session, so infoCenter/commandCenter resolve to the shared defaults.
-/// Remote handlers arrive on the main thread; the coordinator is @MainActor, so each uses MainActor.assumeIsolated.
+/// MPRemoteCommandCenter does NOT guarantee main-thread delivery on tvOS (it dispatches on a background
+/// MediaPlayer queue), so each handler returns its status synchronously and hops the actual @MainActor work to
+/// the main actor via `Task { @MainActor }`. Assuming main (MainActor.assumeIsolated in the handler body)
+/// crashed with dispatch_assert_queue_fail when a command arrived off-main during playback.
 extension MusicPlaybackCoordinator {
 
     /// Info center to write to: the active AVPlayer session's own center, else the shared default (FFmpeg).
@@ -130,56 +133,56 @@ extension MusicPlaybackCoordinator {
         center.playCommand.removeTarget(nil)
         center.playCommand.isEnabled = true
         center.playCommand.addTarget { [weak self] _ in
-            return MainActor.assumeIsolated {
-                guard let self else { return .commandFailed }
+            Task { @MainActor in
+                guard let self else { return }
                 LogTap.shared.note("[NowPlaying] playCommand fired (isPlaying=\(self.isPlaying), hasItem=\(self.currentItem != nil))")
                 self.resume()
-                return .success
             }
+            return .success
         }
 
         center.pauseCommand.removeTarget(nil)
         center.pauseCommand.isEnabled = true
         center.pauseCommand.addTarget { [weak self] _ in
-            return MainActor.assumeIsolated {
-                guard let self else { return .commandFailed }
+            Task { @MainActor in
+                guard let self else { return }
                 LogTap.shared.note("[NowPlaying] pauseCommand fired (isPlaying=\(self.isPlaying))")
                 self.engine.pause()
-                return .success
             }
+            return .success
         }
 
         center.togglePlayPauseCommand.removeTarget(nil)
         center.togglePlayPauseCommand.isEnabled = true
         center.togglePlayPauseCommand.addTarget { [weak self] _ in
-            return MainActor.assumeIsolated {
-                guard let self else { return .commandFailed }
+            Task { @MainActor in
+                guard let self else { return }
                 LogTap.shared.note("[NowPlaying] togglePlayPauseCommand fired (isPlaying=\(self.isPlaying))")
                 self.togglePlayPause()
-                return .success
             }
+            return .success
         }
 
         center.nextTrackCommand.removeTarget(nil)
         center.nextTrackCommand.isEnabled = true
         center.nextTrackCommand.addTarget { [weak self] _ in
-            return MainActor.assumeIsolated {
-                guard let self else { return .commandFailed }
+            Task { @MainActor in
+                guard let self else { return }
                 LogTap.shared.note("[NowPlaying] nextTrackCommand fired (hasNext=\(self.hasNext), index=\(self.currentIndex))")
                 self.next()
-                return .success
             }
+            return .success
         }
 
         center.previousTrackCommand.removeTarget(nil)
         center.previousTrackCommand.isEnabled = true
         center.previousTrackCommand.addTarget { [weak self] _ in
-            return MainActor.assumeIsolated {
-                guard let self else { return .commandFailed }
+            Task { @MainActor in
+                guard let self else { return }
                 LogTap.shared.note("[NowPlaying] previousTrackCommand fired (hasPrevious=\(self.hasPrevious), index=\(self.currentIndex))")
                 self.previous()
-                return .success
             }
+            return .success
         }
 
         center.changePlaybackPositionCommand.removeTarget(nil)
@@ -189,12 +192,12 @@ extension MusicPlaybackCoordinator {
                 return .commandFailed
             }
             let position = positionEvent.positionTime
-            return MainActor.assumeIsolated {
-                guard let self else { return .commandFailed }
+            Task { @MainActor in
+                guard let self else { return }
                 LogTap.shared.note("[NowPlaying] changePlaybackPositionCommand fired (pos=\(Int(position))s)")
                 self.seek(to: position)
-                return .success
             }
+            return .success
         }
 
         LogTap.shared.note("[NowPlaying] shared remote command handlers registered")
