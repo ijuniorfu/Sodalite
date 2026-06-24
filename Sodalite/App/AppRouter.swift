@@ -362,7 +362,7 @@ struct AppRouter: View {
         await resolveTVUserContext()
 
         // Restore policy (pointer repair, default-server promotion, migrations, launch routing) lives in SessionRestorer; this view only maps the outcome onto AppState + picker state.
-        let outcome = SessionRestorer(dependencies: dependencies).restore()
+        let outcome = SessionRestorer(env: dependencies).restore()
         let syncSeerr: Bool
         switch outcome {
         case .authenticated(let server, let user):

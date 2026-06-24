@@ -10,6 +10,7 @@
 		2013375022BB486CA4862DC8 /* ProviderMatchMergingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 874D726F6CCC65E84AABB258 /* ProviderMatchMergingTests.swift */; };
 		2B1E261C886B695DE162D2C7 /* ServerDiscoveryURLTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 978CD708E9C5ACCED67A3F97 /* ServerDiscoveryURLTests.swift */; };
 		331EA504B8232818D894A842 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AC76FE12491CE8E6DCDD5B42 /* Foundation.framework */; };
+		53CD6B51D9123C4578E8B0A2 /* SessionRestorerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09862C8C1314699B9D2BB5B8 /* SessionRestorerTests.swift */; };
 		9CCDBA223FFEB4D853908DCD /* JellyfinItemTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEB609BEE54ED543FDF51101 /* JellyfinItemTests.swift */; };
 		9D491D932F8F92E600B3BE42 /* AVKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9D491D922F8F92E500B3BE42 /* AVKit.framework */; };
 		A99103ECA91C496739871989 /* SeerrDecodingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57CF00E5C87F92A3DAF35F27 /* SeerrDecodingTests.swift */; };
@@ -52,6 +53,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		09862C8C1314699B9D2BB5B8 /* SessionRestorerTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SessionRestorerTests.swift; sourceTree = "<group>"; };
 		2044851138A5C53DBFC678F9 /* SodaliteTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SodaliteTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		51EDE94C9EB4640F5FBFA1B9 /* SRTParserTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SRTParserTests.swift; sourceTree = "<group>"; };
 		57CF00E5C87F92A3DAF35F27 /* SeerrDecodingTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SeerrDecodingTests.swift; sourceTree = "<group>"; };
@@ -149,8 +151,8 @@
 				57CF00E5C87F92A3DAF35F27 /* SeerrDecodingTests.swift */,
 				756D59BCF6F1E09889825D6E /* SeerrMediaTests.swift */,
 				978CD708E9C5ACCED67A3F97 /* ServerDiscoveryURLTests.swift */,
+				09862C8C1314699B9D2BB5B8 /* SessionRestorerTests.swift */,
 			);
-			name = SodaliteTests;
 			path = SodaliteTests;
 			sourceTree = "<group>";
 		};
@@ -343,6 +345,7 @@
 				A99103ECA91C496739871989 /* SeerrDecodingTests.swift in Sources */,
 				D6CDFC24E2E33767EB59131B /* SeerrMediaTests.swift in Sources */,
 				2B1E261C886B695DE162D2C7 /* ServerDiscoveryURLTests.swift in Sources */,
+				53CD6B51D9123C4578E8B0A2 /* SessionRestorerTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
