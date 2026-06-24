@@ -177,7 +177,9 @@ cd Sodalite
 open Sodalite.xcodeproj
 ```
 
-Pick the `Sodalite` scheme, an Apple TV destination, and run. AetherEngine is wired in as a local Swift Package, so you'll need it cloned next to this repo (or adjust the path in Package dependencies).
+Pick the `Sodalite` scheme, an Apple TV destination, and run. AetherEngine is referenced as a remote Swift Package pinned by commit SHA in `Package.resolved`, so Xcode resolves and fetches it from GitHub automatically. No local clone is required to build Sodalite.
+
+If you also want to work on the engine, clone it next to this repo and switch the package reference to your local copy in Xcode:
 
 ```
 ~/Dev/
