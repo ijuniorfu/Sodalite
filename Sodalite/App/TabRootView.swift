@@ -65,6 +65,8 @@ struct TabRootView: View {
                 }
             }
         }
+        // Rebuild the tab bar from scratch when the active server changes while TabRootView stays mounted (deleting the active server auto-promotes a survivor; isAuthenticated never drops, so the view isn't recreated). tvOS re-templates an on-screen tab bar's icons to its default gray in place and re-setting the appearance can't recover them; a fresh TabView gets a fresh UITabBar that reads the tinted appearance proxy at creation. A picker-driven switch already remounts TabRootView, so this is a no-op there. NOT mutating the live bar, so it avoids the _UIReplicantView hierarchy breakage a live appearance-walk caused.
+        .id(appState.activeServer?.id)
         .tint(iconColor)
         // Display-only active-profile badge; non-focusable, below the player cover, hidden unless the server has multiple profiles.
         .overlay(alignment: .topTrailing) {
