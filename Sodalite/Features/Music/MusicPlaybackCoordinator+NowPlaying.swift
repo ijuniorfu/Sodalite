@@ -100,8 +100,13 @@ extension MusicPlaybackCoordinator {
 
         Task { [weak self] in
             guard let (data, _) = try? await URLSession.shared.data(from: url),
-                  let image = UIImage(data: data) else { return }
-            let artwork = MPMediaItemArtwork(boundsSize: image.size) { _ in image }
+                  let image = UIImage(data: data),
+                  // Force-decode off-main. A corrupt cover (Jellyfin can serve a truncated embedded image:
+                  // "Error -17102 decompressing image -- possibly corrupt") otherwise reaches
+                  // MPNowPlayingInfoCenter as a lazily-decoded image and crashes MediaPlayer on its own queue
+                  // (dispatch_assert_queue_fail). nil = undecodable, so skip the artwork instead of crashing.
+                  let decoded = await image.byPreparingForDisplay() else { return }
+            let artwork = MPMediaItemArtwork(boundsSize: decoded.size) { _ in decoded }
 
             await MainActor.run { [weak self] in
                 guard let self else { return }
