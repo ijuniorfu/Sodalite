@@ -149,6 +149,31 @@ struct HomeView: View {
             FilterCache.shared.clearAll()
             await viewModel?.reloadAfterServerSwitch()
         }
+        // Pre-warm row artwork as rows land so first focus doesn't pay round-trip + decode. Keyed on the cross-row item-id set so it re-fires whenever row membership changes.
+        .onChange(of: viewModel?.rows.flatMap({ $0.items.map(\.id) })) { _, _ in
+            if let vm = viewModel { prefetchHomePosters(vm) }
+        }
+    }
+
+    /// Hand the loaded rows' artwork URLs to `ImageCache.prefetch` so first focus doesn't pay round-trip + decode. Mirrors `SearchView.prefetchSearchPosters`: cached URLs are skipped and the fan-out is bounded, so it never starves foreground fetches. Reuses `vm.imageURL` so prefetched URLs match exactly what the cards request.
+    private func prefetchHomePosters(_ vm: HomeViewModel) {
+        var urls: [URL] = []
+        for row in vm.rows {
+            let cwImage = row.type.usesBackdrop
+                ? dependencies.appearancePreferences.continueWatchingImage
+                : .still
+            for item in row.items {
+                if let url = vm.imageURL(for: item, rowType: row.type, cwImage: cwImage) {
+                    urls.append(url)
+                }
+            }
+        }
+        guard !urls.isEmpty else { return }
+        let token = dependencies.jellyfinClient.accessToken
+        let host = dependencies.jellyfinClient.baseURL?.host
+        Task.detached(priority: .utility) {
+            await ImageCache.prefetch(urls, authToken: token, jellyfinHost: host)
+        }
     }
 
     private func contentView(vm: HomeViewModel) -> some View {
