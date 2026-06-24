@@ -68,7 +68,7 @@ final class MusicPlaybackCoordinator {
     /// now-playing over the newer track's.
     private var loadGeneration = 0
     /// Distinguishes a user-driven stop / music->video handoff from a natural track end. Latched true
-    /// before any teardown so the `$state == .idle` sink doesn't mistake the stop for end-of-track and recursively advance.
+    /// before any teardown so the `$state` sink doesn't mistake the stop for end-of-track (`.ended`) and recursively advance.
     private var isStopping: Bool = false
     private var cancellables = Set<AnyCancellable>()
     /// The 2 s now-playing refresh; non-nil only while a queue is live.
@@ -331,11 +331,12 @@ final class MusicPlaybackCoordinator {
                     self.applyNowPlayingInfo()
                 }
 
-                // Natural end-of-track: engine reaches `.idle` when the source runs out. Only treat
-                // it as such when we didn't initiate the stop, a queue is live, AND no load is in
-                // flight: a Next racing the natural end already advanced but its load only leaves
-                // .idle after the fetch, so without the loadTask gate the stale .idle double-advances.
-                if state == .idle, !self.isStopping, !self.queue.isEmpty, self.loadTask == nil {
+                // Natural end-of-track: the engine reaches `.ended` when the source runs out (#63;
+                // user-driven stop latches isStopping and drives `.idle`, so matching `.ended` is exact).
+                // Only treat it as such when we didn't initiate the stop, a queue is live, AND no load
+                // is in flight: a Next racing the natural end already advanced but its load only leaves
+                // the terminal state after the fetch, so without the loadTask gate it double-advances.
+                if state == .ended, !self.isStopping, !self.queue.isEmpty, self.loadTask == nil {
                     if self.hasNext {
                         self.next()
                     } else {

@@ -819,10 +819,12 @@ final class PlayerViewModel {
                 case .paused:
                     self.isLoading = false
                     self.isPlaying = false
-                case .idle:
+                case .ended:
+                    // End-of-media on any backend: the engine surfaces .ended for native / software / audio
+                    // alike (AetherEngine#63), so this fires uniformly without watching the AVPlayer directly.
                     self.isPlaying = false
-                    // Demux-EOF safety net for when $currentTime stalls a few seconds short of duration
-                    // (demux's 15-20s look-ahead); cap the countdown at 10s so the overlay copy stays readable.
+                    // currentTime can stall a few seconds short of duration (demux's 15-20s look-ahead); cap the
+                    // countdown at 10s so the overlay copy stays readable.
                     if self.hasStartedPlaying,
                        self.nextEpisode != nil,
                        !self.nextEpisodeCancelled,
@@ -834,10 +836,12 @@ final class PlayerViewModel {
                     } else if self.hasStartedPlaying,
                               self.nextEpisode == nil,
                               !self.showNextEpisodeOverlay {
-                        // Real end-of-content (movie / last episode). Native-path end-of-stream auto-dismiss
-                        // still depends on the user / next-episode countdown (AVPlayer didPlayToEnd wiring is a follow-up).
+                        // Real end-of-content (movie / last episode).
                         self.onPlaybackReachedEnd?()
                     }
+                case .idle:
+                    // Pure teardown (stop / new load); end-of-media is .ended now, so no next-episode trigger here.
+                    self.isPlaying = false
                 case .loading:
                     if !self.hasStartedPlaying {
                         self.isLoading = true
