@@ -44,7 +44,7 @@ final class RecordingsViewModel {
         inProgressIDs = Set(((try? await active) ?? []).map(\.id))
         // Server returns cancelled series-spawned entries; drop them so only actionable timers appear
         // (mirrors EPGGuideViewModel.reconcileTimers).
-        timers = ((try? await tims) ?? []).filter { $0.status != "Cancelled" }
+        timers = ((try? await tims) ?? []).filter { $0.status != .cancelled }
         seriesTimers = (try? await series) ?? []
         timers.sort { ($0.startDate ?? .distantFuture) < ($1.startDate ?? .distantFuture) }
     }

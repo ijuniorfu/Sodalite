@@ -123,6 +123,22 @@ struct LiveTvProgramsResponse: Codable, Sendable {
     }
 }
 
+/// Recording timer status from `/LiveTv/Timers`. Unknown server values decode to `.unknown` rather than failing the whole timer (mirrors `SegmentType`).
+enum LiveTimerStatus: String, Codable, Sendable, Equatable {
+    case new = "New"
+    case inProgress = "InProgress"
+    case completed = "Completed"
+    case cancelled = "Cancelled"
+    case error = "Error"
+    case unknown
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        let raw = try container.decode(String.self)
+        self = LiveTimerStatus(rawValue: raw) ?? .unknown
+    }
+}
+
 /// A scheduled single-program recording (`/LiveTv/Timers`).
 struct LiveTvTimer: Codable, Sendable, Identifiable, Equatable {
     let id: String
@@ -134,8 +150,7 @@ struct LiveTvTimer: Codable, Sendable, Identifiable, Equatable {
     let endDate: Date?
     /// Set when this timer was spawned by a series timer.
     let seriesTimerId: String?
-    /// "New" | "InProgress" | "Completed" | "Cancelled" | "Error".
-    let status: String?
+    let status: LiveTimerStatus?
 
     enum CodingKeys: String, CodingKey {
         case id = "Id"

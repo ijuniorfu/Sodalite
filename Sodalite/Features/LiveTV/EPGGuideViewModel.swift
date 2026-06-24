@@ -266,7 +266,7 @@ final class EPGGuideViewModel {
     private func reconcileTimers() async {
         guard let timers = try? await service.getTimers() else { return }
         for timer in timers {
-            guard timer.status != "Cancelled" else { continue }
+            guard timer.status != .cancelled else { continue }
             guard let programID = timer.programId else { continue }
             timerState[programID] = (timer.id, timer.seriesTimerId ?? timerState[programID]?.seriesTimerId)
         }
@@ -291,7 +291,7 @@ final class EPGGuideViewModel {
         guard let timers = await timersTask else { return }
         let seriesTimers = await seriesTask
 
-        let live = timers.filter { $0.status != "Cancelled" }
+        let live = timers.filter { $0.status != .cancelled }
         let liveTimerIDs = Set(live.map(\.id))
         // Series-rule drops need the dedicated list: ids on live timers aren't a substitute (a rule
         // between airings has no live timer, would be wrongly dropped). On fetch failure, keep series state untouched.
