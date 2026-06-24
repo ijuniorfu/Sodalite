@@ -10,7 +10,13 @@ extension PlayerHostController: AVPlayerViewControllerDelegate {
     /// (AVKit binds CC's skipForwardCommand to an internal no-op we can't
     /// override). Kept as a fallback for other AVKit skip pathways (Siri Remote
     /// chord, future tvOS); we'd rather seek than no-op.
-    func skipToNextItem(for playerViewController: AVPlayerViewController) {
+    ///
+    /// `nonisolated`: the AVPlayerViewControllerDelegate requirement is nonisolated, but with Swift 6 +
+    /// InferIsolatedConformances this conformance is silently MainActor-isolated, so a plain `func` would inherit
+    /// MainActor isolation (no compiler warning) and trip _dispatch_assert_queue_fail if AVKit dispatched the
+    /// selector off-main, BEFORE the inner hop runs (same mechanism as the music MPMediaItemArtwork crash). The body
+    /// already hops via Task { @MainActor }, so all actor access stays on the actor. Matches the siblings below.
+    nonisolated func skipToNextItem(for playerViewController: AVPlayerViewController) {
         LogTap.shared.note("[NowPlaying] delegate skipToNextItem fired (+10s)")
         Task { @MainActor [weak self] in
             guard let self else { return }
@@ -19,7 +25,7 @@ extension PlayerHostController: AVPlayerViewControllerDelegate {
         }
     }
 
-    func skipToPreviousItem(for playerViewController: AVPlayerViewController) {
+    nonisolated func skipToPreviousItem(for playerViewController: AVPlayerViewController) {
         LogTap.shared.note("[NowPlaying] delegate skipToPreviousItem fired (-10s)")
         Task { @MainActor [weak self] in
             guard let self else { return }
