@@ -45919,14 +45919,14 @@
       "localizations" : {
         "cs" : {
           "stringUnit" : {
-            "state": "needs_review",
-            "value": "Major upgrade to the underlying video engine. Supports more video formats including AV1 and VP9, with smarter routing so every file in your library plays with the best quality your TV can show."
+            "state": "translated",
+            "value": "Zásadní vylepšení interního přehrávacího jádra. Podporuje více video formátů včetně AV1 a VP9 s chytřejším směrováním, takže každý soubor ve vaší knihovně se přehraje v nejlepší kvalitě, jakou váš televizor dokáže zobrazit."
           }
         },
         "da" : {
           "stringUnit" : {
-            "state": "needs_review",
-            "value": "Major upgrade to the underlying video engine. Supports more video formats including AV1 and VP9, with smarter routing so every file in your library plays with the best quality your TV can show."
+            "state": "translated",
+            "value": "Stor opgradering af den underliggende videomotor. Understøtter nu flere videoformater, herunder AV1 og VP9, med smartere dirigering, så hver fil i dit bibliotek afspilles i den bedste kvalitet, dit TV kan vise."
           }
         },
         "de" : {
@@ -45937,8 +45937,8 @@
         },
         "el" : {
           "stringUnit" : {
-            "state": "needs_review",
-            "value": "Major upgrade to the underlying video engine. Supports more video formats including AV1 and VP9, with smarter routing so every file in your library plays with the best quality your TV can show."
+            "state": "translated",
+            "value": "Σημαντική αναβάθμιση της υποκείμενης μηχανής βίντεο. Υποστηρίζει περισσότερες μορφές βίντεο, συμπεριλαμβανομένων των AV1 και VP9, με εξυπνότερη δρομολόγηση ώστε κάθε αρχείο της βιβλιοθήκης σου να αναπαράγεται στην καλύτερη δυνατή ποιότητα που μπορεί να εμφανίσει η τηλεόρασή σου."
           }
         },
         "en" : {
@@ -45949,116 +45949,128 @@
         },
         "es" : {
           "stringUnit" : {
-            "state": "needs_review",
-            "value": "Major upgrade to the underlying video engine. Supports more video formats including AV1 and VP9, with smarter routing so every file in your library plays with the best quality your TV can show."
+            "state": "translated",
+            "value": "Gran mejora del motor de vídeo subyacente. Admite más formatos de vídeo, incluidos AV1 y VP9, con un enrutamiento más inteligente para que cada archivo de tu biblioteca se reproduzca con la mejor calidad que pueda mostrar tu televisor."
           }
         },
         "fi" : {
           "stringUnit" : {
-            "state": "needs_review",
-            "value": "Major upgrade to the underlying video engine. Supports more video formats including AV1 and VP9, with smarter routing so every file in your library plays with the best quality your TV can show."
+            "state": "translated",
+            "value": "Merkittävä päivitys taustalla toimivaan videotoisto-ohjelmistoon. Tukee nyt useampia videoformaatteja, kuten AV1- ja VP9-muotoa, ja älykkäämpi reititys varmistaa, että jokainen kirjastosi tiedosto toistuu parhaalla televisiosi tukemalla laadulla."
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state": "needs_review",
-            "value": "Major upgrade to the underlying video engine. Supports more video formats including AV1 and VP9, with smarter routing so every file in your library plays with the best quality your TV can show."
+            "state": "translated",
+            "value": "Mise à niveau majeure du moteur vidéo sous-jacent. Il prend en charge davantage de formats vidéo, dont AV1 et VP9, avec un routage plus intelligent pour que chaque fichier de votre bibliothèque soit lu dans la meilleure qualité que votre téléviseur puisse afficher."
           }
         },
         "hr" : {
           "stringUnit" : {
-            "state": "needs_review",
-            "value": "Major upgrade to the underlying video engine. Supports more video formats including AV1 and VP9, with smarter routing so every file in your library plays with the best quality your TV can show."
+            "state": "translated",
+            "value": "Velika nadogradnja temeljnog video pogona. Podržava više video formata, uključujući AV1 i VP9, uz pametnije usmjeravanje kako bi se svaka datoteka u vašoj biblioteci reproducirala u najboljoj kvaliteti koju vaš televizor može prikazati."
           }
         },
         "hu" : {
           "stringUnit" : {
-            "state": "needs_review",
-            "value": "Major upgrade to the underlying video engine. Supports more video formats including AV1 and VP9, with smarter routing so every file in your library plays with the best quality your TV can show."
+            "state": "translated",
+            "value": "Jelentős fejlesztés a háttérben működő videómotorban. Mostantól több videoformátumot támogat, köztük az AV1-et és a VP9-et, intelligensebb útválasztással, hogy a könyvtárad minden fájlja a tévéd által megjeleníthető legjobb minőségben játssza le."
           }
         },
         "it" : {
           "stringUnit" : {
-            "state": "needs_review",
-            "value": "Major upgrade to the underlying video engine. Supports more video formats including AV1 and VP9, with smarter routing so every file in your library plays with the best quality your TV can show."
+            "state": "translated",
+            "value": "Importante aggiornamento del motore video sottostante. Supporta più formati video, tra cui AV1 e VP9, con un instradamento più intelligente, così ogni file della tua libreria viene riprodotto con la migliore qualità che il tuo televisore può offrire."
           }
         },
         "ja" : {
           "stringUnit" : {
-            "state": "needs_review",
-            "value": "Major upgrade to the underlying video engine. Supports more video formats including AV1 and VP9, with smarter routing so every file in your library plays with the best quality your TV can show."
+            "state": "translated",
+            "value": "基盤となる再生エンジンを大幅にアップグレード。AV1やVP9を含むより多くの動画形式に対応し、よりスマートな振り分けによって、ライブラリ内のすべてのファイルをテレビが表示できる最高画質で再生します。"
           }
         },
         "ko" : {
           "stringUnit" : {
-            "state": "needs_review",
-            "value": "Major upgrade to the underlying video engine. Supports more video formats including AV1 and VP9, with smarter routing so every file in your library plays with the best quality your TV can show."
+            "state": "translated",
+            "value": "기반 비디오 엔진을 대폭 개선했습니다. AV1과 VP9를 포함한 더 많은 영상 포맷을 지원하며, 더 똑똑한 처리 방식으로 라이브러리의 모든 파일을 TV가 표현할 수 있는 최고의 화질로 재생합니다."
           }
         },
         "nb" : {
           "stringUnit" : {
-            "state": "needs_review",
-            "value": "Major upgrade to the underlying video engine. Supports more video formats including AV1 and VP9, with smarter routing so every file in your library plays with the best quality your TV can show."
+            "state": "translated",
+            "value": "Stor oppgradering av den underliggende videomotoren. Støtter nå flere videoformater, inkludert AV1 og VP9, med smartere ruting slik at hver fil i biblioteket ditt spilles av med best mulig kvalitet TV-en din kan vise."
           }
         },
         "nl" : {
           "stringUnit" : {
-            "state": "needs_review",
-            "value": "Major upgrade to the underlying video engine. Supports more video formats including AV1 and VP9, with smarter routing so every file in your library plays with the best quality your TV can show."
+            "state": "translated",
+            "value": "Grote upgrade van de onderliggende videoengine. Ondersteunt meer videoformaten, waaronder AV1 en VP9, met slimmere routering zodat elk bestand in je bibliotheek wordt afgespeeld met de beste kwaliteit die je tv kan tonen."
           }
         },
         "pl" : {
           "stringUnit" : {
-            "state": "needs_review",
-            "value": "Major upgrade to the underlying video engine. Supports more video formats including AV1 and VP9, with smarter routing so every file in your library plays with the best quality your TV can show."
+            "state": "translated",
+            "value": "Duża aktualizacja silnika wideo. Obsługuje więcej formatów wideo, w tym AV1 i VP9, dzięki inteligentniejszemu kierowaniu, więc każdy plik z biblioteki jest odtwarzany w najlepszej jakości, jaką może wyświetlić Twój telewizor."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state": "needs_review",
-            "value": "Major upgrade to the underlying video engine. Supports more video formats including AV1 and VP9, with smarter routing so every file in your library plays with the best quality your TV can show."
+            "state": "translated",
+            "value": "Grande atualização do motor de vídeo subjacente. Suporta mais formatos de vídeo, incluindo AV1 e VP9, com roteamento mais inteligente para que cada arquivo da sua biblioteca seja reproduzido com a melhor qualidade que a sua TV pode exibir."
           }
         },
         "pt-PT" : {
           "stringUnit" : {
-            "state": "needs_review",
-            "value": "Major upgrade to the underlying video engine. Supports more video formats including AV1 and VP9, with smarter routing so every file in your library plays with the best quality your TV can show."
+            "state": "translated",
+            "value": "Grande atualização do motor de vídeo subjacente. Suporta mais formatos de vídeo, incluindo AV1 e VP9, com um encaminhamento mais inteligente para que cada ficheiro da sua biblioteca seja reproduzido com a melhor qualidade que o seu televisor consegue apresentar."
           }
         },
         "ro" : {
           "stringUnit" : {
-            "state": "needs_review",
-            "value": "Major upgrade to the underlying video engine. Supports more video formats including AV1 and VP9, with smarter routing so every file in your library plays with the best quality your TV can show."
+            "state": "translated",
+            "value": "Actualizare majoră a motorului video intern. Suportă mai multe formate video, inclusiv AV1 și VP9, cu o direcționare mai inteligentă, astfel încât fiecare fișier din biblioteca ta să fie redat la cea mai bună calitate pe care o poate afișa televizorul tău."
           }
         },
         "ru" : {
           "stringUnit" : {
-            "state": "needs_review",
-            "value": "Major upgrade to the underlying video engine. Supports more video formats including AV1 and VP9, with smarter routing so every file in your library plays with the best quality your TV can show."
+            "state": "translated",
+            "value": "Крупное обновление видеодвижка: поддержка большего числа форматов, включая AV1 и VP9, и более умная маршрутизация, благодаря которой каждый файл из вашей библиотеки воспроизводится с наилучшим качеством, доступным вашему телевизору."
           }
         },
         "sk" : {
           "stringUnit" : {
-            "state": "needs_review",
-            "value": "Major upgrade to the underlying video engine. Supports more video formats including AV1 and VP9, with smarter routing so every file in your library plays with the best quality your TV can show."
+            "state": "translated",
+            "value": "Zásadná aktualizácia interného prehrávacieho jadra. Podporuje viac video formátov vrátane AV1 a VP9 a vďaka inteligentnejšiemu smerovaniu sa každý súbor vo vašej knižnici prehrá v najlepšej kvalite, akú váš televízor dokáže zobraziť."
           }
         },
         "sv" : {
           "stringUnit" : {
-            "state": "needs_review",
-            "value": "Major upgrade to the underlying video engine. Supports more video formats including AV1 and VP9, with smarter routing so every file in your library plays with the best quality your TV can show."
+            "state": "translated",
+            "value": "Stor uppgradering av den underliggande videomotorn. Stöder fler videoformat, inklusive AV1 och VP9, med smartare routing så att varje fil i ditt bibliotek spelas upp i bästa möjliga kvalitet som din TV kan visa."
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state": "needs_review",
-            "value": "Major upgrade to the underlying video engine. Supports more video formats including AV1 and VP9, with smarter routing so every file in your library plays with the best quality your TV can show."
+            "state": "translated",
+            "value": "Temeldeki video motorunda büyük bir iyileştirme. AV1 ve VP9 dahil daha fazla video biçimini destekler; daha akıllı yönlendirme sayesinde kitaplığınızdaki her dosya, TV'nizin gösterebileceği en iyi kalitede oynatılır."
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state": "needs_review",
-            "value": "Major upgrade to the underlying video engine. Supports more video formats including AV1 and VP9, with smarter routing so every file in your library plays with the best quality your TV can show."
+            "state": "translated",
+            "value": "Масштабне оновлення базового відеодвигуна. Підтримує більше форматів відео, включно з AV1 та VP9, із розумнішим маршрутизуванням — кожен файл із вашої бібліотеки відтворюється з найкращою якістю, яку здатен показати ваш телевізор."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "视频引擎重大升级，新增对 AV1、VP9 等更多视频格式的支持，并通过更智能的路由，确保媒体库中的每个文件都以电视所能呈现的最佳画质播放。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "底層影片引擎重大升級，支援更多影片格式，包括 AV1 與 VP9，並透過更智慧的分流機制，讓媒體庫中的每個檔案都能以電視所能呈現的最佳畫質播放。"
           }
         }
       }
@@ -46068,14 +46080,14 @@
       "localizations" : {
         "cs" : {
           "stringUnit" : {
-            "state": "needs_review",
-            "value": "Rebuilt video engine"
+            "state": "translated",
+            "value": "Přepracované přehrávací jádro"
           }
         },
         "da" : {
           "stringUnit" : {
-            "state": "needs_review",
-            "value": "Rebuilt video engine"
+            "state": "translated",
+            "value": "Genopbygget videomotor"
           }
         },
         "de" : {
@@ -46086,8 +46098,8 @@
         },
         "el" : {
           "stringUnit" : {
-            "state": "needs_review",
-            "value": "Rebuilt video engine"
+            "state": "translated",
+            "value": "Ανανεωμένη μηχανή βίντεο"
           }
         },
         "en" : {
@@ -46098,116 +46110,128 @@
         },
         "es" : {
           "stringUnit" : {
-            "state": "needs_review",
-            "value": "Rebuilt video engine"
+            "state": "translated",
+            "value": "Motor de vídeo reconstruido"
           }
         },
         "fi" : {
           "stringUnit" : {
-            "state": "needs_review",
-            "value": "Rebuilt video engine"
+            "state": "translated",
+            "value": "Uudistettu videotoisto-ohjelmisto"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state": "needs_review",
-            "value": "Rebuilt video engine"
+            "state": "translated",
+            "value": "Nouveau moteur vidéo"
           }
         },
         "hr" : {
           "stringUnit" : {
-            "state": "needs_review",
-            "value": "Rebuilt video engine"
+            "state": "translated",
+            "value": "Obnovljen video pogon"
           }
         },
         "hu" : {
           "stringUnit" : {
-            "state": "needs_review",
-            "value": "Rebuilt video engine"
+            "state": "translated",
+            "value": "Újjáépített videómotor"
           }
         },
         "it" : {
           "stringUnit" : {
-            "state": "needs_review",
-            "value": "Rebuilt video engine"
+            "state": "translated",
+            "value": "Nuovo motore video"
           }
         },
         "ja" : {
           "stringUnit" : {
-            "state": "needs_review",
-            "value": "Rebuilt video engine"
+            "state": "translated",
+            "value": "ビデオエンジンを刷新"
           }
         },
         "ko" : {
           "stringUnit" : {
-            "state": "needs_review",
-            "value": "Rebuilt video engine"
+            "state": "translated",
+            "value": "새로워진 비디오 엔진"
           }
         },
         "nb" : {
           "stringUnit" : {
-            "state": "needs_review",
-            "value": "Rebuilt video engine"
+            "state": "translated",
+            "value": "Gjenoppbygd videomotor"
           }
         },
         "nl" : {
           "stringUnit" : {
-            "state": "needs_review",
-            "value": "Rebuilt video engine"
+            "state": "translated",
+            "value": "Nieuwe videoengine"
           }
         },
         "pl" : {
           "stringUnit" : {
-            "state": "needs_review",
-            "value": "Rebuilt video engine"
+            "state": "translated",
+            "value": "Nowy silnik wideo"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state": "needs_review",
-            "value": "Rebuilt video engine"
+            "state": "translated",
+            "value": "Motor de vídeo reconstruído"
           }
         },
         "pt-PT" : {
           "stringUnit" : {
-            "state": "needs_review",
-            "value": "Rebuilt video engine"
+            "state": "translated",
+            "value": "Motor de vídeo reconstruído"
           }
         },
         "ro" : {
           "stringUnit" : {
-            "state": "needs_review",
-            "value": "Rebuilt video engine"
+            "state": "translated",
+            "value": "Motor video reconstruit"
           }
         },
         "ru" : {
           "stringUnit" : {
-            "state": "needs_review",
-            "value": "Rebuilt video engine"
+            "state": "translated",
+            "value": "Новый видеодвижок"
           }
         },
         "sk" : {
           "stringUnit" : {
-            "state": "needs_review",
-            "value": "Rebuilt video engine"
+            "state": "translated",
+            "value": "Prepracovaný video engine"
           }
         },
         "sv" : {
           "stringUnit" : {
-            "state": "needs_review",
-            "value": "Rebuilt video engine"
+            "state": "translated",
+            "value": "Ombyggd videomotor"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state": "needs_review",
-            "value": "Rebuilt video engine"
+            "state": "translated",
+            "value": "Yeniden Tasarlanan Video Motoru"
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state": "needs_review",
-            "value": "Rebuilt video engine"
+            "state": "translated",
+            "value": "Перебудований відеодвигун"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "全新视频引擎"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "全新打造的影片引擎"
           }
         }
       }
@@ -46217,14 +46241,14 @@
       "localizations" : {
         "cs" : {
           "stringUnit" : {
-            "state": "needs_review",
-            "value": "Cleaner scrubbing, more reliable resume from where you left off, audio language switching that just works, and a more accurate HDR indicator in the player."
+            "state": "translated",
+            "value": "Čistší posouvání na časové ose, spolehlivější pokračování od místa, kde jste skončili, bezproblémové přepínání jazyka zvuku a přesnější indikátor HDR v přehrávači."
           }
         },
         "da" : {
           "stringUnit" : {
-            "state": "needs_review",
-            "value": "Cleaner scrubbing, more reliable resume from where you left off, audio language switching that just works, and a more accurate HDR indicator in the player."
+            "state": "translated",
+            "value": "Renere spoling, mere pålidelig genoptagelse fra det sted, du slap, skift af lydsprog der bare virker, og en mere præcis HDR-indikator i afspilleren."
           }
         },
         "de" : {
@@ -46235,8 +46259,8 @@
         },
         "el" : {
           "stringUnit" : {
-            "state": "needs_review",
-            "value": "Cleaner scrubbing, more reliable resume from where you left off, audio language switching that just works, and a more accurate HDR indicator in the player."
+            "state": "translated",
+            "value": "Πιο καθαρή μετακίνηση στη γραμμή χρόνου, πιο αξιόπιστη συνέχιση από το σημείο που σταμάτησες, αλλαγή γλώσσας ήχου που λειτουργεί πάντα και πιο ακριβής ένδειξη HDR στο πρόγραμμα αναπαραγωγής."
           }
         },
         "en" : {
@@ -46247,116 +46271,128 @@
         },
         "es" : {
           "stringUnit" : {
-            "state": "needs_review",
-            "value": "Cleaner scrubbing, more reliable resume from where you left off, audio language switching that just works, and a more accurate HDR indicator in the player."
+            "state": "translated",
+            "value": "Avance y retroceso más precisos, reanudación más fiable desde donde lo dejaste, cambio de idioma de audio que funciona siempre y un indicador HDR más exacto en el reproductor."
           }
         },
         "fi" : {
           "stringUnit" : {
-            "state": "needs_review",
-            "value": "Cleaner scrubbing, more reliable resume from where you left off, audio language switching that just works, and a more accurate HDR indicator in the player."
+            "state": "translated",
+            "value": "Sujuvampi kelaus, luotettavampi jatkaminen viimeisestä toistokohdasta, ääniraidan kielen vaihto joka vain toimii, ja tarkempi HDR-ilmaisin soittimessa."
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state": "needs_review",
-            "value": "Cleaner scrubbing, more reliable resume from where you left off, audio language switching that just works, and a more accurate HDR indicator in the player."
+            "state": "translated",
+            "value": "Défilement plus net dans la barre de progression, reprise plus fiable à l'endroit où vous vous étiez arrêté, changement de langue audio qui fonctionne sans accroc, et un indicateur HDR plus précis dans le lecteur."
           }
         },
         "hr" : {
           "stringUnit" : {
-            "state": "needs_review",
-            "value": "Cleaner scrubbing, more reliable resume from where you left off, audio language switching that just works, and a more accurate HDR indicator in the player."
+            "state": "translated",
+            "value": "Čišće premotavanje, pouzdaniji nastavak s mjesta na kojem ste stali, prebacivanje jezika zvuka koje jednostavno radi i točniji HDR pokazatelj u reproduktoru."
           }
         },
         "hu" : {
           "stringUnit" : {
-            "state": "needs_review",
-            "value": "Cleaner scrubbing, more reliable resume from where you left off, audio language switching that just works, and a more accurate HDR indicator in the player."
+            "state": "translated",
+            "value": "Tisztább tekerés, megbízhatóbb folytatás onnan, ahol abbahagytad, zökkenőmentes hangnyelvváltás, és pontosabb HDR-jelzés a lejátszóban."
           }
         },
         "it" : {
           "stringUnit" : {
-            "state": "needs_review",
-            "value": "Cleaner scrubbing, more reliable resume from where you left off, audio language switching that just works, and a more accurate HDR indicator in the player."
+            "state": "translated",
+            "value": "Avanzamento più preciso sulla timeline, ripresa più affidabile dal punto in cui avevi interrotto, cambio della lingua audio che funziona sempre e un indicatore HDR più accurato nel lettore."
           }
         },
         "ja" : {
           "stringUnit" : {
-            "state": "needs_review",
-            "value": "Cleaner scrubbing, more reliable resume from where you left off, audio language switching that just works, and a more accurate HDR indicator in the player."
+            "state": "translated",
+            "value": "スムーズなシーク操作、前回の続きからの確実な再開、確実に動作する音声言語の切り替え、そしてプレーヤー内のより正確なHDR表示を実現しました。"
           }
         },
         "ko" : {
           "stringUnit" : {
-            "state": "needs_review",
-            "value": "Cleaner scrubbing, more reliable resume from where you left off, audio language switching that just works, and a more accurate HDR indicator in the player."
+            "state": "translated",
+            "value": "더 깔끔한 탐색, 멈춘 지점부터 더 안정적으로 이어보기, 자연스럽게 작동하는 음성 언어 전환, 그리고 플레이어 내 더 정확한 HDR 표시를 제공합니다."
           }
         },
         "nb" : {
           "stringUnit" : {
-            "state": "needs_review",
-            "value": "Cleaner scrubbing, more reliable resume from where you left off, audio language switching that just works, and a more accurate HDR indicator in the player."
+            "state": "translated",
+            "value": "Renere spoling, mer pålitelig gjenopptakelse fra der du slapp, bytte av lydspråk som bare virker, og en mer nøyaktig HDR-indikator i spilleren."
           }
         },
         "nl" : {
           "stringUnit" : {
-            "state": "needs_review",
-            "value": "Cleaner scrubbing, more reliable resume from where you left off, audio language switching that just works, and a more accurate HDR indicator in the player."
+            "state": "translated",
+            "value": "Vloeiender spoelen, betrouwbaarder hervatten vanaf waar je gebleven was, audiotaal wisselen dat gewoon werkt, en een nauwkeurigere HDR-indicator in de speler."
           }
         },
         "pl" : {
           "stringUnit" : {
-            "state": "needs_review",
-            "value": "Cleaner scrubbing, more reliable resume from where you left off, audio language switching that just works, and a more accurate HDR indicator in the player."
+            "state": "translated",
+            "value": "Czystsze przewijanie, niezawodne wznawianie od ostatniej pozycji, przełączanie ścieżki audio działające bez zarzutu oraz dokładniejszy wskaźnik HDR w odtwarzaczu."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state": "needs_review",
-            "value": "Cleaner scrubbing, more reliable resume from where you left off, audio language switching that just works, and a more accurate HDR indicator in the player."
+            "state": "translated",
+            "value": "Avanço e retrocesso mais precisos, retomada confiável de onde você parou, troca de idioma do áudio que funciona de verdade e um indicador de HDR mais preciso no reprodutor."
           }
         },
         "pt-PT" : {
           "stringUnit" : {
-            "state": "needs_review",
-            "value": "Cleaner scrubbing, more reliable resume from where you left off, audio language switching that just works, and a more accurate HDR indicator in the player."
+            "state": "translated",
+            "value": "Navegação na linha de tempo mais suave, retoma fiável a partir do ponto onde parou, mudança de idioma de áudio que simplesmente funciona e um indicador HDR mais preciso no leitor."
           }
         },
         "ro" : {
           "stringUnit" : {
-            "state": "needs_review",
-            "value": "Cleaner scrubbing, more reliable resume from where you left off, audio language switching that just works, and a more accurate HDR indicator in the player."
+            "state": "translated",
+            "value": "Derulare mai precisă, reluare mai fiabilă din punctul în care te-ai oprit, schimbare a limbii audio care funcționează impecabil și un indicator HDR mai precis în player."
           }
         },
         "ru" : {
           "stringUnit" : {
-            "state": "needs_review",
-            "value": "Cleaner scrubbing, more reliable resume from where you left off, audio language switching that just works, and a more accurate HDR indicator in the player."
+            "state": "translated",
+            "value": "Чёткая перемотка, надёжное продолжение с места остановки, переключение языка аудио без сбоев и более точный индикатор HDR в плеере."
           }
         },
         "sk" : {
           "stringUnit" : {
-            "state": "needs_review",
-            "value": "Cleaner scrubbing, more reliable resume from where you left off, audio language switching that just works, and a more accurate HDR indicator in the player."
+            "state": "translated",
+            "value": "Čistejšie posúvanie v časovej osi, spoľahlivejšie pokračovanie od miesta, kde ste skončili, prepínanie jazyka zvuku, ktoré jednoducho funguje, a presnejší indikátor HDR v prehrávači."
           }
         },
         "sv" : {
           "stringUnit" : {
-            "state": "needs_review",
-            "value": "Cleaner scrubbing, more reliable resume from where you left off, audio language switching that just works, and a more accurate HDR indicator in the player."
+            "state": "translated",
+            "value": "Renare spolning, tillförlitligare återupptagning där du slutade, ljudspråksbyte som bara fungerar och en mer exakt HDR-indikator i spelaren."
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state": "needs_review",
-            "value": "Cleaner scrubbing, more reliable resume from where you left off, audio language switching that just works, and a more accurate HDR indicator in the player."
+            "state": "translated",
+            "value": "Daha temiz ileri/geri sarma, kaldığınız yerden daha güvenilir devam etme, sorunsuz çalışan ses dili değiştirme ve oynatıcıda daha doğru bir HDR göstergesi."
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state": "needs_review",
-            "value": "Cleaner scrubbing, more reliable resume from where you left off, audio language switching that just works, and a more accurate HDR indicator in the player."
+            "state": "translated",
+            "value": "Чіткіше перемотування, надійніше продовження з останньої позиції, безвідмовне перемикання мови звуку та точніший індикатор HDR у плеєрі."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "进度拖动更顺滑，从上次停下的位置继续播放更可靠，音频语言切换简单好用，播放器中的 HDR 标识也更加准确。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "拖曳進度更滑順、續播位置更可靠、音軌語言切換穩定好用，播放器中的 HDR 標示也更為精確。"
           }
         }
       }
@@ -46366,14 +46402,14 @@
       "localizations" : {
         "cs" : {
           "stringUnit" : {
-            "state": "needs_review",
-            "value": "Smoother playback throughout"
+            "state": "translated",
+            "value": "Plynulejší přehrávání všude"
           }
         },
         "da" : {
           "stringUnit" : {
-            "state": "needs_review",
-            "value": "Smoother playback throughout"
+            "state": "translated",
+            "value": "Jævnere afspilning hele vejen igennem"
           }
         },
         "de" : {
@@ -46384,8 +46420,8 @@
         },
         "el" : {
           "stringUnit" : {
-            "state": "needs_review",
-            "value": "Smoother playback throughout"
+            "state": "translated",
+            "value": "Πιο ομαλή αναπαραγωγή παντού"
           }
         },
         "en" : {
@@ -46396,116 +46432,128 @@
         },
         "es" : {
           "stringUnit" : {
-            "state": "needs_review",
-            "value": "Smoother playback throughout"
+            "state": "translated",
+            "value": "Reproducción más fluida en todo momento"
           }
         },
         "fi" : {
           "stringUnit" : {
-            "state": "needs_review",
-            "value": "Smoother playback throughout"
+            "state": "translated",
+            "value": "Sujuvampi toisto kauttaaltaan"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state": "needs_review",
-            "value": "Smoother playback throughout"
+            "state": "translated",
+            "value": "Une lecture plus fluide partout"
           }
         },
         "hr" : {
           "stringUnit" : {
-            "state": "needs_review",
-            "value": "Smoother playback throughout"
+            "state": "translated",
+            "value": "Glađa reprodukcija u svemu"
           }
         },
         "hu" : {
           "stringUnit" : {
-            "state": "needs_review",
-            "value": "Smoother playback throughout"
+            "state": "translated",
+            "value": "Mindenütt gördülékenyebb lejátszás"
           }
         },
         "it" : {
           "stringUnit" : {
-            "state": "needs_review",
-            "value": "Smoother playback throughout"
+            "state": "translated",
+            "value": "Riproduzione più fluida ovunque"
           }
         },
         "ja" : {
           "stringUnit" : {
-            "state": "needs_review",
-            "value": "Smoother playback throughout"
+            "state": "translated",
+            "value": "再生全体をより滑らかに"
           }
         },
         "ko" : {
           "stringUnit" : {
-            "state": "needs_review",
-            "value": "Smoother playback throughout"
+            "state": "translated",
+            "value": "전반적으로 더 매끄러워진 재생"
           }
         },
         "nb" : {
           "stringUnit" : {
-            "state": "needs_review",
-            "value": "Smoother playback throughout"
+            "state": "translated",
+            "value": "Jevnere avspilling gjennomgående"
           }
         },
         "nl" : {
           "stringUnit" : {
-            "state": "needs_review",
-            "value": "Smoother playback throughout"
+            "state": "translated",
+            "value": "Overal soepelere weergave"
           }
         },
         "pl" : {
           "stringUnit" : {
-            "state": "needs_review",
-            "value": "Smoother playback throughout"
+            "state": "translated",
+            "value": "Płynniejsze odtwarzanie na każdym kroku"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state": "needs_review",
-            "value": "Smoother playback throughout"
+            "state": "translated",
+            "value": "Reprodução mais fluida em todo o app"
           }
         },
         "pt-PT" : {
           "stringUnit" : {
-            "state": "needs_review",
-            "value": "Smoother playback throughout"
+            "state": "translated",
+            "value": "Reprodução mais fluida do início ao fim"
           }
         },
         "ro" : {
           "stringUnit" : {
-            "state": "needs_review",
-            "value": "Smoother playback throughout"
+            "state": "translated",
+            "value": "Redare mai fluidă peste tot"
           }
         },
         "ru" : {
           "stringUnit" : {
-            "state": "needs_review",
-            "value": "Smoother playback throughout"
+            "state": "translated",
+            "value": "Более плавное воспроизведение"
           }
         },
         "sk" : {
           "stringUnit" : {
-            "state": "needs_review",
-            "value": "Smoother playback throughout"
+            "state": "translated",
+            "value": "Plynulejšie prehrávanie všade"
           }
         },
         "sv" : {
           "stringUnit" : {
-            "state": "needs_review",
-            "value": "Smoother playback throughout"
+            "state": "translated",
+            "value": "Smidigare uppspelning överallt"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state": "needs_review",
-            "value": "Smoother playback throughout"
+            "state": "translated",
+            "value": "Baştan Sona Daha Akıcı Oynatma"
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state": "needs_review",
-            "value": "Smoother playback throughout"
+            "state": "translated",
+            "value": "Плавніше відтворення загалом"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "播放全面更流畅"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "全面提升播放流暢度"
           }
         }
       }
