@@ -22,7 +22,7 @@ extension PlayerViewModel {
             playSessionId: playSessionID,
             positionTicks: ticks,
             canSeek: true,
-            playMethod: activePlayMethod.rawValue,
+            playMethod: activePlayMethod,
             audioStreamIndex: nil,
             subtitleStreamIndex: nil
         )
@@ -45,7 +45,7 @@ extension PlayerViewModel {
             positionTicks: ticks,
             isPaused: !isPlaying,
             canSeek: true,
-            playMethod: activePlayMethod.rawValue,
+            playMethod: activePlayMethod,
             audioStreamIndex: nil,
             subtitleStreamIndex: nil
         )

@@ -420,7 +420,7 @@ final class MusicPlaybackCoordinator {
             playSessionId: playSessionId,
             positionTicks: positionTicks,
             canSeek: true,
-            playMethod: PlayMethod.directPlay.rawValue,
+            playMethod: PlayMethod.directPlay,
             audioStreamIndex: nil,
             subtitleStreamIndex: nil
         )
@@ -439,7 +439,7 @@ final class MusicPlaybackCoordinator {
             positionTicks: ticks,
             isPaused: !isPlaying,
             canSeek: true,
-            playMethod: PlayMethod.directPlay.rawValue,
+            playMethod: PlayMethod.directPlay,
             audioStreamIndex: nil,
             subtitleStreamIndex: nil
         )

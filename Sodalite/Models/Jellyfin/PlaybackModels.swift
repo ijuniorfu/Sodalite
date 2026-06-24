@@ -110,7 +110,7 @@ struct PlaybackStartReport: Encodable, Sendable {
     let playSessionId: String?
     let positionTicks: Int64
     let canSeek: Bool
-    let playMethod: String
+    let playMethod: PlayMethod
     let audioStreamIndex: Int?
     let subtitleStreamIndex: Int?
 
@@ -133,7 +133,7 @@ struct PlaybackProgressReport: Encodable, Sendable {
     let positionTicks: Int64
     let isPaused: Bool
     let canSeek: Bool
-    let playMethod: String
+    let playMethod: PlayMethod
     let audioStreamIndex: Int?
     let subtitleStreamIndex: Int?
 
@@ -170,7 +170,7 @@ struct PlaybackStopReport: Encodable, Sendable {
 
 // MARK: - Play Method
 
-enum PlayMethod: String, Sendable {
+enum PlayMethod: String, Encodable, Sendable {
     case directPlay = "DirectPlay"
     case directStream = "DirectStream"
     case transcode = "Transcode"
