@@ -80,7 +80,8 @@ final class MusicPlaybackCoordinator {
     var registeredCommandCenterID: ObjectIdentifier?
     var nowPlayingArtworkItemID: String?
     /// Cached current-track artwork so a state/duration refresh keeps showing it instead of flashing
-    /// empty mid-load. Cleared on stop / track change.
+    /// empty mid-load. Both paths use it: the AVPlayer path stages it into AVPlayerItem.nowPlayingInfo,
+    /// the FFmpeg fallback writes it to the shared center. Cleared on stop / track change.
     var cachedArtwork: MPMediaItemArtwork?
     var cachedArtworkItemID: String?
 

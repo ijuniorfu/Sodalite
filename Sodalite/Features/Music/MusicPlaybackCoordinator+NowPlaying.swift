@@ -9,20 +9,25 @@ import AetherEngine
 /// On tvOS 14+ a bare AVPlayer must own an `MPNowPlayingSession` to stay the active Now-Playing app
 /// across a background pause: the SHARED info/command centers aren't reliably bound, so on pause
 /// (rate 0) the system drops the app and stops delivering the play button (Apple forums 658311 /
-/// 706656). So route EVERYTHING through the engine's per-player session; mixing in the shared
-/// singletons produced the earlier half-working state. tvOS infers play/pause from the published
-/// `MPNowPlayingInfoPropertyPlaybackRate` (1.0/0.0), kept accurate via the timer.
+/// 706656). The engine owns that session with `automaticallyPublishesNowPlayingInfo` enabled, so the
+/// AVPlayer path stages metadata into the item's `nowPlayingInfo` dictionary (via the engine) and the
+/// system merges in elapsed/rate/duration. NO manual write to the session's MPNowPlayingInfoCenter:
+/// "must not be used" with auto-publishing, and such writes raced MediaPlayer's serial queue on tvOS 26
+/// (dispatch_assert_queue_fail). externalMetadata is NOT used here, it is an AVKit property the bare
+/// audio AVPlayer (no AVPlayerViewController) never surfaces.
 ///
-/// The FFmpeg fallback has no AVPlayer/session, so infoCenter/commandCenter resolve to the shared defaults.
+/// The FFmpeg fallback has no AVPlayer/session, so infoCenter/commandCenter resolve to the shared defaults,
+/// and it writes that shared center directly (no auto-publisher to conflict with).
 /// MPRemoteCommandCenter does NOT guarantee main-thread delivery on tvOS (it dispatches on a background
 /// MediaPlayer queue), so each handler returns its status synchronously and hops the actual @MainActor work to
 /// the main actor via `Task { @MainActor }`. Assuming main (MainActor.assumeIsolated in the handler body)
 /// crashed with dispatch_assert_queue_fail when a command arrived off-main during playback.
 extension MusicPlaybackCoordinator {
 
-    /// Info center to write to: the active AVPlayer session's own center, else the shared default (FFmpeg).
+    /// Shared center for the FFmpeg fallback only. The AVPlayer/session path must NOT write a
+    /// MPNowPlayingInfoCenter under auto-publishing, so every use of this is gated on `audioNowPlayingSession == nil`.
     private var infoCenter: MPNowPlayingInfoCenter {
-        engine.audioNowPlayingSession?.nowPlayingInfoCenter ?? MPNowPlayingInfoCenter.default()
+        MPNowPlayingInfoCenter.default()
     }
 
     /// Command center for transport handlers: the active session's own center, else the shared default.
@@ -41,33 +46,47 @@ extension MusicPlaybackCoordinator {
         // Register transport handlers once, on the session's command center (the binding tvOS needs).
         registerRemoteCommandsIfNeeded()
 
+        // AVPlayer path: stage metadata into the item's nowPlayingInfo dictionary; the engine's auto-publishing
+        // MPNowPlayingSession merges it with the player's elapsed/rate/duration. This is the queue-safe channel.
+        // NO manual MPNowPlayingInfoCenter write (which races MediaPlayer's serial queue on tvOS 26 and crashes),
+        // and NO externalMetadata (an AVKit/AVPlayerViewController property the bare audio AVPlayer never surfaces).
+        if engine.audioNowPlayingSession != nil {
+            engine.setAudioNowPlayingInfo(baseNowPlayingDict(for: item))
+            loadArtwork(for: item)
+            return
+        }
+
+        // FFmpeg fallback (Opus/Vorbis: no AVPlayer/session): manual write to the shared center.
+        var info = baseNowPlayingDict(for: item)
+        if duration > 0 { info[MPMediaItemPropertyPlaybackDuration] = duration }
+        info[MPNowPlayingInfoPropertyElapsedPlaybackTime] = currentTime
+        info[MPNowPlayingInfoPropertyPlaybackRate] = isPlaying ? 1.0 : 0.0
+        // NOTE: deliberately NOT setting playbackState (macOS-only; tvOS reads PlaybackRate for play/pause).
+        infoCenter.nowPlayingInfo = info
+        loadArtwork(for: item)
+    }
+
+    /// Title/artist/album/mediaType (+ already-resolved artwork) shared by both paths. The session path leaves
+    /// elapsed/rate/duration to auto-publishing; the FFmpeg path appends them before writing the shared center.
+    private func baseNowPlayingDict(for item: JellyfinItem) -> [String: Any] {
         var info: [String: Any] = [:]
         info[MPMediaItemPropertyTitle] = item.name
         info[MPMediaItemPropertyArtist] = item.trackArtistLine ?? ""
         info[MPMediaItemPropertyAlbumTitle] = item.albumArtist ?? ""
-        if duration > 0 { info[MPMediaItemPropertyPlaybackDuration] = duration }
-        info[MPNowPlayingInfoPropertyElapsedPlaybackTime] = currentTime
-        info[MPNowPlayingInfoPropertyPlaybackRate] = isPlaying ? 1.0 : 0.0
         info[MPNowPlayingInfoPropertyMediaType] = MPNowPlayingInfoMediaType.audio.rawValue
         // Preserve already-resolved artwork so a state/duration refresh doesn't flash it away mid-load.
         if let art = cachedArtwork, cachedArtworkItemID == item.id {
             info[MPMediaItemPropertyArtwork] = art
         }
-        infoCenter.nowPlayingInfo = info
-
-        // NOTE: deliberately NOT setting MPNowPlayingInfoCenter.playbackState: macOS-only; tvOS
-        // third-party apps lack the entitlement so it's silently dropped ("Ignoring setPlaybackState"
-        // spam). tvOS reads the PlaybackRate above for play-vs-pause.
-
-        loadArtwork(for: item)
-        LogTap.shared.note("[NowPlaying] info set: '\(item.name)' rate=\(isPlaying ? 1 : 0) dur=\(Int(duration))")
+        return info
     }
 
     /// Refresh just elapsed + rate on the EXISTING entry (no rebuild / artwork reload / log), on the
     /// timer so the system keeps a live entry: shows the Home overlay promptly (not lagging our last
     /// write), keeps it alive across a pause (stale entries get dropped), and moves the scrubber.
     func refreshNowPlayingElapsed() {
-        guard currentItem != nil else { return }
+        // The auto-publishing session derives elapsed/rate from the player; only the FFmpeg fallback needs this.
+        guard engine.audioNowPlayingSession == nil, currentItem != nil else { return }
         let center = infoCenter
         guard var info = center.nowPlayingInfo else {
             // No entry yet (first publish): build the full one.
@@ -81,7 +100,12 @@ extension MusicPlaybackCoordinator {
     }
 
     func clearNowPlayingInfo() {
-        infoCenter.nowPlayingInfo = nil
+        // Clear the AVPlayer path's staged per-item dictionary (no-op if no audio host).
+        engine.setAudioNowPlayingInfo([:])
+        // The session auto-clears on stop; only the FFmpeg fallback's shared-center entry needs an explicit nil.
+        if engine.audioNowPlayingSession == nil {
+            infoCenter.nowPlayingInfo = nil
+        }
         cachedArtwork = nil
         cachedArtworkItemID = nil
     }
@@ -102,22 +126,24 @@ extension MusicPlaybackCoordinator {
             guard let (data, _) = try? await URLSession.shared.data(from: url),
                   let image = UIImage(data: data),
                   // Force-decode off-main. A corrupt cover (Jellyfin can serve a truncated embedded image:
-                  // "Error -17102 decompressing image -- possibly corrupt") otherwise reaches
-                  // MPNowPlayingInfoCenter as a lazily-decoded image and crashes MediaPlayer on its own queue
-                  // (dispatch_assert_queue_fail). nil = undecodable, so skip the artwork instead of crashing.
+                  // "Error -17102 decompressing image -- possibly corrupt") otherwise crashes MediaPlayer when
+                  // it decodes the image lazily. nil = undecodable, so skip the artwork instead of crashing.
                   let decoded = await image.byPreparingForDisplay() else { return }
-            let artwork = MPMediaItemArtwork(boundsSize: decoded.size) { _ in decoded }
 
             await MainActor.run { [weak self] in
-                guard let self else { return }
-                // Drop stale artwork if the track changed mid-load.
-                guard self.nowPlayingArtworkItemID == itemID else { return }
+                guard let self, self.nowPlayingArtworkItemID == itemID else { return }
+                let artwork = MPMediaItemArtwork(boundsSize: decoded.size) { _ in decoded }
                 self.cachedArtwork = artwork
                 self.cachedArtworkItemID = itemID
-                let center = self.infoCenter
-                guard var info = center.nowPlayingInfo else { return }
-                info[MPMediaItemPropertyArtwork] = artwork
-                center.nowPlayingInfo = info
+                if self.engine.audioNowPlayingSession != nil {
+                    // AVPlayer path: re-stage the dict WITH artwork for the auto-publishing session.
+                    self.engine.setAudioNowPlayingInfo(self.baseNowPlayingDict(for: item))
+                } else {
+                    // FFmpeg fallback: merge artwork into the shared center.
+                    guard var info = self.infoCenter.nowPlayingInfo else { return }
+                    info[MPMediaItemPropertyArtwork] = artwork
+                    self.infoCenter.nowPlayingInfo = info
+                }
             }
         }
     }
