@@ -62,7 +62,8 @@ final class ServerDiscoveryService: ServerDiscoveryServiceProtocol {
         return .failure(firstProtocolError ?? .serverUnreachable)
     }
 
-    private func buildCandidateURLs(from input: String) -> [URL] {
+    // Widened from private to internal so SodaliteTests can exercise the URL-candidate branches directly.
+    func buildCandidateURLs(from input: String) -> [URL] {
         var cleaned = input.trimmingCharacters(in: .whitespacesAndNewlines)
         cleaned = cleaned.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
 

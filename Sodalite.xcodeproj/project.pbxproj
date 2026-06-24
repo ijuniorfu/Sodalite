@@ -7,13 +7,27 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		2013375022BB486CA4862DC8 /* ProviderMatchMergingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 874D726F6CCC65E84AABB258 /* ProviderMatchMergingTests.swift */; };
+		2B1E261C886B695DE162D2C7 /* ServerDiscoveryURLTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 978CD708E9C5ACCED67A3F97 /* ServerDiscoveryURLTests.swift */; };
+		331EA504B8232818D894A842 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AC76FE12491CE8E6DCDD5B42 /* Foundation.framework */; };
+		9CCDBA223FFEB4D853908DCD /* JellyfinItemTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEB609BEE54ED543FDF51101 /* JellyfinItemTests.swift */; };
 		9D491D932F8F92E600B3BE42 /* AVKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9D491D922F8F92E500B3BE42 /* AVKit.framework */; };
+		A99103ECA91C496739871989 /* SeerrDecodingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57CF00E5C87F92A3DAF35F27 /* SeerrDecodingTests.swift */; };
 		AA000001STEELPLAYER /* AetherEngine in Frameworks */ = {isa = PBXBuildFile; productRef = AA000002STEELPLAYER /* AetherEngine */; };
 		AA000006ASSBUILD /* SwiftAssRenderer in Frameworks */ = {isa = PBXBuildFile; productRef = AA000005ASSPROD /* SwiftAssRenderer */; };
+		D6CDFC24E2E33767EB59131B /* SeerrMediaTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 756D59BCF6F1E09889825D6E /* SeerrMediaTests.swift */; };
 		DE5C0D60D4D900000000F00B /* SodaliteTopShelf.appex in Embed Extensions */ = {isa = PBXBuildFile; fileRef = DE5C0D60D4D900000000F001 /* SodaliteTopShelf.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		E53E078DD81B6242BD668D1D /* SRTParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51EDE94C9EB4640F5FBFA1B9 /* SRTParserTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		88D127BF8F09A8669D0089D1 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 9DD913652F8645860078D0BE /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 9DD9136C2F8645860078D0BE;
+			remoteInfo = Sodalite;
+		};
 		DE5C0D60D4D900000000F00D /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 9DD913652F8645860078D0BE /* Project object */;
@@ -38,25 +52,45 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		2044851138A5C53DBFC678F9 /* SodaliteTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SodaliteTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		51EDE94C9EB4640F5FBFA1B9 /* SRTParserTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SRTParserTests.swift; sourceTree = "<group>"; };
+		57CF00E5C87F92A3DAF35F27 /* SeerrDecodingTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SeerrDecodingTests.swift; sourceTree = "<group>"; };
+		756D59BCF6F1E09889825D6E /* SeerrMediaTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SeerrMediaTests.swift; sourceTree = "<group>"; };
+		874D726F6CCC65E84AABB258 /* ProviderMatchMergingTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ProviderMatchMergingTests.swift; sourceTree = "<group>"; };
+		978CD708E9C5ACCED67A3F97 /* ServerDiscoveryURLTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ServerDiscoveryURLTests.swift; sourceTree = "<group>"; };
 		9D491D922F8F92E500B3BE42 /* AVKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVKit.framework; path = System/Library/Frameworks/AVKit.framework; sourceTree = SDKROOT; };
 		9DD9136D2F8645860078D0BE /* Sodalite.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Sodalite.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		AC76FE12491CE8E6DCDD5B42 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/AppleTVOS.platform/Developer/SDKs/AppleTVOS18.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
+		BEB609BEE54ED543FDF51101 /* JellyfinItemTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = JellyfinItemTests.swift; sourceTree = "<group>"; };
 		DE5C0D60D4D900000000F001 /* SodaliteTopShelf.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = SodaliteTopShelf.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		9DD9136F2F8645860078D0BE /* Sodalite */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+			);
 			path = Sodalite;
 			sourceTree = "<group>";
 		};
 		DE5C0D60D4D900000000F002 /* SodaliteTopShelf */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+			);
 			path = SodaliteTopShelf;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		2BFE98C1A31C9ED72A16B6C4 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				331EA504B8232818D894A842 /* Foundation.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		9DD9136A2F8645860078D0BE /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -77,6 +111,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		994B4A7A438A684D95552383 /* tvOS */ = {
+			isa = PBXGroup;
+			children = (
+				AC76FE12491CE8E6DCDD5B42 /* Foundation.framework */,
+			);
+			name = tvOS;
+			sourceTree = "<group>";
+		};
 		9DD913642F8645860078D0BE = {
 			isa = PBXGroup;
 			children = (
@@ -84,6 +126,7 @@
 				DE5C0D60D4D900000000F002 /* SodaliteTopShelf */,
 				9DD9136E2F8645860078D0BE /* Products */,
 				F2FA2CF0B38B315088DC439E /* Frameworks */,
+				DC5953DE379AEF4392473358 /* SodaliteTests */,
 			);
 			sourceTree = "<group>";
 		};
@@ -92,14 +135,30 @@
 			children = (
 				9DD9136D2F8645860078D0BE /* Sodalite.app */,
 				DE5C0D60D4D900000000F001 /* SodaliteTopShelf.appex */,
+				2044851138A5C53DBFC678F9 /* SodaliteTests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		DC5953DE379AEF4392473358 /* SodaliteTests */ = {
+			isa = PBXGroup;
+			children = (
+				BEB609BEE54ED543FDF51101 /* JellyfinItemTests.swift */,
+				874D726F6CCC65E84AABB258 /* ProviderMatchMergingTests.swift */,
+				51EDE94C9EB4640F5FBFA1B9 /* SRTParserTests.swift */,
+				57CF00E5C87F92A3DAF35F27 /* SeerrDecodingTests.swift */,
+				756D59BCF6F1E09889825D6E /* SeerrMediaTests.swift */,
+				978CD708E9C5ACCED67A3F97 /* ServerDiscoveryURLTests.swift */,
+			);
+			name = SodaliteTests;
+			path = SodaliteTests;
 			sourceTree = "<group>";
 		};
 		F2FA2CF0B38B315088DC439E /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
 				9D491D922F8F92E500B3BE42 /* AVKit.framework */,
+				994B4A7A438A684D95552383 /* tvOS */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -107,6 +166,24 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		5C5E2EB2ADBF9557571AC077 /* SodaliteTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 0D06E83EC94C8368361193D8 /* Build configuration list for PBXNativeTarget "SodaliteTests" */;
+			buildPhases = (
+				FFE2EFB5AA254C1DCC474669 /* Sources */,
+				2BFE98C1A31C9ED72A16B6C4 /* Frameworks */,
+				375ACFE918E804E284C822A7 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				ABD0C387CA647E510261BDE4 /* PBXTargetDependency */,
+			);
+			name = SodaliteTests;
+			productName = SodaliteTests;
+			productReference = 2044851138A5C53DBFC678F9 /* SodaliteTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 		9DD9136C2F8645860078D0BE /* Sodalite */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 9DD913782F8645880078D0BE /* Build configuration list for PBXNativeTarget "Sodalite" */;
@@ -212,11 +289,19 @@
 			targets = (
 				9DD9136C2F8645860078D0BE /* Sodalite */,
 				DE5C0D60D4D900000000F003 /* SodaliteTopShelf */,
+				5C5E2EB2ADBF9557571AC077 /* SodaliteTests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		375ACFE918E804E284C822A7 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		9DD9136B2F8645860078D0BE /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -248,9 +333,28 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		FFE2EFB5AA254C1DCC474669 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				9CCDBA223FFEB4D853908DCD /* JellyfinItemTests.swift in Sources */,
+				2013375022BB486CA4862DC8 /* ProviderMatchMergingTests.swift in Sources */,
+				E53E078DD81B6242BD668D1D /* SRTParserTests.swift in Sources */,
+				A99103ECA91C496739871989 /* SeerrDecodingTests.swift in Sources */,
+				D6CDFC24E2E33767EB59131B /* SeerrMediaTests.swift in Sources */,
+				2B1E261C886B695DE162D2C7 /* ServerDiscoveryURLTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		ABD0C387CA647E510261BDE4 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = Sodalite;
+			target = 9DD9136C2F8645860078D0BE /* Sodalite */;
+			targetProxy = 88D127BF8F09A8669D0089D1 /* PBXContainerItemProxy */;
+		};
 		DE5C0D60D4D900000000F00C /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = DE5C0D60D4D900000000F003 /* SodaliteTopShelf */;
@@ -259,6 +363,51 @@
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
+		061AAD30C4C23ED80611A73A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 4NY63S72W9;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 0.12.0;
+				PRODUCT_BUNDLE_IDENTIFIER = de.superuser404.SodaliteTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = appletvos;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = 3;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Sodalite.app/Sodalite";
+				TVOS_DEPLOYMENT_TARGET = 26.0;
+			};
+			name = Debug;
+		};
+		632B70D3758FB73D7B0B2F6F /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 4NY63S72W9;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 0.12.0;
+				PRODUCT_BUNDLE_IDENTIFIER = de.superuser404.SodaliteTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = appletvos;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = 3;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Sodalite.app/Sodalite";
+				TVOS_DEPLOYMENT_TARGET = 26.0;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
 		9DD913762F8645880078D0BE /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -531,6 +680,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		0D06E83EC94C8368361193D8 /* Build configuration list for PBXNativeTarget "SodaliteTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				632B70D3758FB73D7B0B2F6F /* Release */,
+				061AAD30C4C23ED80611A73A /* Debug */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		9DD913682F8645860078D0BE /* Build configuration list for PBXProject "Sodalite" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
