@@ -171,9 +171,11 @@ private struct TrackRow: View {
                         .font(.body)
                         .foregroundStyle(focused ? .white : Color.secondary)
                         .monospacedDigit()
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.5)
                 }
             }
-            .frame(width: 32, alignment: .center)
+            .frame(width: 40, alignment: .center)
 
             Text(song.name)
                 .font(.body)

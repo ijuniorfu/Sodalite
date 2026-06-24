@@ -364,6 +364,8 @@ private struct QueueRow: View {
                     .font(.caption)
                     .foregroundStyle(focused ? .white : Color.secondary)
                     .monospacedDigit()
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.5)
                     .frame(width: 24, alignment: .trailing)
             }
 
