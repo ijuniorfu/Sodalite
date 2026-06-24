@@ -306,6 +306,16 @@ final class DependencyContainer {
             throw ServerSwitchError.unknown
         }
 
+        // Stop session-scoped background music at the source, before the session changes. The AppRouter
+        // activeSessionIdentity onChange only catches the completed setAuthenticated, which lags the async
+        // probe on a server switch (and never fires on the .missingToken picker route below), so the previous
+        // server's track would keep playing. Covers removeServer's active-server promotion (it calls this).
+        Task { @MainActor in
+            if self.musicPlaybackCoordinator.currentItem != nil {
+                self.musicPlaybackCoordinator.stop()
+            }
+        }
+
         try keychainService.save(serverID, for: KeychainKeys.activeServerID)
 
         let loaded: String?
