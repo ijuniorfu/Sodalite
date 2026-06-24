@@ -28,6 +28,13 @@ struct AppRouter: View {
     /// Drives the NowPlaying fullScreenCover off the coordinator's nowPlayingPresentationRequest bump.
     @State private var showNowPlaying = false
 
+    /// (server, user) identity of the active session. Background music is scoped to it and must stop when it
+    /// changes: server switch, same-server profile switch (switchToUser, which does NOT bump serverDidSwitch),
+    /// active-server removal, logout (activeServer/activeUser -> nil), and tvOS-user change all land here.
+    private var activeSessionIdentity: String {
+        "\(appState.activeServer?.id ?? "none")|\(appState.activeUser?.id ?? "none")"
+    }
+
     var body: some View {
         ZStack {
             if appState.isAuthenticated {
@@ -163,6 +170,13 @@ struct AppRouter: View {
         }
         .onChange(of: dependencies.musicPlaybackCoordinator.nowPlayingPresentationRequest) { _, _ in
             showNowPlaying = true
+        }
+        // Background music is scoped to the active (server, user) session; stop it whenever that identity
+        // changes (server switch, profile switch, active-server removal, logout). No-op when nothing is playing.
+        .onChange(of: activeSessionIdentity) { _, _ in
+            if dependencies.musicPlaybackCoordinator.currentItem != nil {
+                dependencies.musicPlaybackCoordinator.stop()
+            }
         }
         .fullScreenCover(isPresented: $showWhatsNew) {
             if let entry = Changelog.latest {
