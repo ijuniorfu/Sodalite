@@ -329,6 +329,40 @@ final class PlayerViewModel {
         }
     }
 
+    /// Fetch a trickplay tile sprite (cached whole, keyed by tile URL) and crop `crop` out of it.
+    /// Off-MainActor (network + decode), mirroring loadServerChapterImage. The MainActor caller
+    /// resolves the tile URL + crop rect from the TrickplayTileSet first. Nil on fetch failure or
+    /// an out-of-bounds crop.
+    nonisolated private static func fetchTrickplayCrop(from url: URL, crop: CGRect) async -> CGImage? {
+        let tileImage: UIImage
+        if let cached = ImageCache.shared.image(for: url) {
+            tileImage = cached
+        } else {
+            var request = URLRequest(url: url)
+            request.timeoutInterval = 15
+            do {
+                let (data, response) = try await URLSession.shared.data(for: request)
+                guard let http = response as? HTTPURLResponse,
+                      (200...299).contains(http.statusCode),
+                      let image = UIImage(data: data) else { return nil }
+                let prepared = image.preparingForDisplay() ?? image
+                ImageCache.shared.store(prepared, for: url)
+                tileImage = prepared
+            } catch {
+                return nil
+            }
+        }
+        guard let cg = tileImage.cgImage else { return nil }
+        guard crop.maxX <= CGFloat(cg.width), crop.maxY <= CGFloat(cg.height),
+              let cropped = cg.cropping(to: crop) else { return nil }
+        return cropped
+    }
+
+    /// Use server trickplay only when the user opted in AND the item actually has tiles.
+    nonisolated static func shouldUseServerTrickplay(preferServer: Bool, tileSet: TrickplayTileSet?) -> Bool {
+        preferServer && tileSet != nil
+    }
+
     // MARK: - Internal State
 
     var cancellables = Set<AnyCancellable>()
@@ -572,10 +606,30 @@ final class PlayerViewModel {
             } else {
                 frameExtractor = nil
             }
-            scrubPreview.configure(
-                extractor: frameExtractor,
-                enabled: preferences.showScrubPreview
-            )
+            let trickplayTileSet = TrickplayTileSet(
+                trickplay: item.trickplay, mediaSourceID: source.id, targetWidth: 320)
+            if Self.shouldUseServerTrickplay(
+                preferServer: preferences.preferServerTrickplay, tileSet: trickplayTileSet),
+               let tileSet = trickplayTileSet {
+                let itemID = item.id
+                let service = playbackService
+                scrubPreview.configure(
+                    serverThumbnail: { seconds in
+                        // MainActor: resolve tile index + crop, then hop off-actor to fetch/decode.
+                        guard let placement = tileSet.tile(forSeconds: seconds),
+                              let url = service.buildTrickplayTileURL(
+                                  itemID: itemID, width: tileSet.width, tileIndex: placement.tileIndex)
+                        else { return nil }
+                        return await Self.fetchTrickplayCrop(from: url, crop: placement.crop)
+                    },
+                    enabled: preferences.showScrubPreview
+                )
+            } else {
+                scrubPreview.configure(
+                    extractor: frameExtractor,
+                    enabled: preferences.showScrubPreview
+                )
+            }
 
             let startPos: Double?
             if !startFromBeginning,

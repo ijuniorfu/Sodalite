@@ -38,6 +38,7 @@ final class PlaybackPreferences {
         static let focusDiagnosticOverlayOnDV = "playback.focusDiagnosticOverlayOnDV"
         static let preferLosslessAudioBridge = "playback.preferLosslessAudioBridge"
         static let showScrubPreview = "playback.showScrubPreview"
+        static let preferServerTrickplay = "playback.preferServerTrickplay"
     }
 
     // MARK: - Allowed Values
@@ -277,6 +278,12 @@ final class PlaybackPreferences {
         didSet { store.set(showScrubPreview, forKey: Keys.showScrubPreview) }
     }
 
+    /// ON = scrub preview pulls Jellyfin server trickplay tiles when the item has them (decode-free),
+    /// else the on-device FrameExtractor. Default OFF (the FrameExtractor is the default source).
+    var preferServerTrickplay: Bool {
+        didSet { store.set(preferServerTrickplay, forKey: Keys.preferServerTrickplay) }
+    }
+
     var audioBridgeMode: AudioBridgeMode {
         preferLosslessAudioBridge ? .lossless : .surroundCompat
     }
@@ -333,5 +340,6 @@ final class PlaybackPreferences {
         self.focusDiagnosticOverlayOnDV = store.object(forKey: Keys.focusDiagnosticOverlayOnDV) as? Bool ?? true
         self.preferLosslessAudioBridge = store.object(forKey: Keys.preferLosslessAudioBridge) as? Bool ?? false
         self.showScrubPreview = store.object(forKey: Keys.showScrubPreview) as? Bool ?? true
+        self.preferServerTrickplay = store.object(forKey: Keys.preferServerTrickplay) as? Bool ?? false
     }
 }
