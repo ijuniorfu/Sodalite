@@ -18,6 +18,10 @@ final class ScrubPreviewProvider {
     /// Live mode: thumbnails from the engine's DVR segment cache (seconds,
     /// maxWidth) instead of a session FrameExtractor.
     @ObservationIgnored private var liveThumbnail: ((Double, Int) async -> CGImage?)?
+    /// VOD server-trickplay source: seconds -> cropped tile image. Mutually exclusive
+    /// with the FrameExtractor source; reset() clears it. Mirrors `liveThumbnail`: a
+    /// MainActor closure that does its placement/URL work, then hops off-actor to fetch.
+    @ObservationIgnored private var serverThumbnail: ((Double) async -> CGImage?)?
 
     @ObservationIgnored private var loadTask: Task<Void, Never>?
     @ObservationIgnored private var generation = 0
@@ -33,6 +37,14 @@ final class ScrubPreviewProvider {
     func configure(extractor: FrameExtractor?, enabled: Bool) {
         reset()
         self.extractor = extractor
+        self.enabled = enabled
+    }
+
+    /// Use a Jellyfin server-trickplay closure as the VOD scrub source instead of the
+    /// FrameExtractor. Mutually exclusive with configure(extractor:); reset() clears both.
+    func configure(serverThumbnail: @escaping (Double) async -> CGImage?, enabled: Bool) {
+        reset()
+        self.serverThumbnail = serverThumbnail
         self.enabled = enabled
     }
 
@@ -72,8 +84,11 @@ final class ScrubPreviewProvider {
     /// Drive the preview to a scrub position (`fraction` 0...1). Debounced so a
     /// fast swipe doesn't decode per frame; `generation` guard drops stale results.
     func update(fraction: Float, durationSeconds: Double) {
-        guard enabled, let extractor, durationSeconds > 0 else { return }
+        guard enabled, durationSeconds > 0 else { return }
         let seconds = Double(max(0, min(1, fraction))) * durationSeconds
+        let server = serverThumbnail
+        let ext = extractor
+        guard server != nil || ext != nil else { return }
 
         generation += 1
         let gen = generation
@@ -81,7 +96,14 @@ final class ScrubPreviewProvider {
         loadTask = Task { [weak self] in
             try? await Task.sleep(for: .milliseconds(60))
             if Task.isCancelled { return }
-            let image = await extractor.thumbnail(at: seconds, maxWidth: 320)
+            let image: CGImage?
+            if let server {
+                image = await server(seconds)
+            } else if let ext {
+                image = await ext.thumbnail(at: seconds, maxWidth: 320)
+            } else {
+                image = nil
+            }
             guard let self else { return }
             if gen == self.generation { self.previewImage = image }
         }
@@ -92,15 +114,24 @@ final class ScrubPreviewProvider {
     /// during playback). Driven from currentTime while not scrubbing; throttled
     /// to ~keyframe spacing; shares the `generation` guard with update(fraction:).
     func warm(toSeconds seconds: Double) {
-        guard enabled, let extractor, seconds >= 0 else { return }
+        guard enabled, seconds >= 0, (extractor != nil || serverThumbnail != nil) else { return }
         guard abs(seconds - lastWarmedSeconds) >= warmThresholdSeconds else { return }
         lastWarmedSeconds = seconds
 
         generation += 1
         let gen = generation
         loadTask?.cancel()
+        let server = serverThumbnail
+        let ext = extractor
         loadTask = Task { [weak self] in
-            let image = await extractor.thumbnail(at: seconds, maxWidth: 320)
+            let image: CGImage?
+            if let server {
+                image = await server(seconds)
+            } else if let ext {
+                image = await ext.thumbnail(at: seconds, maxWidth: 320)
+            } else {
+                image = nil
+            }
             guard let self, gen == self.generation else { return }
             self.previewImage = image
         }
@@ -125,6 +156,7 @@ final class ScrubPreviewProvider {
         previewImage = nil
         extractor = nil
         liveThumbnail = nil
+        serverThumbnail = nil
         enabled = false
         lastWarmedSeconds = -Double.infinity
     }
