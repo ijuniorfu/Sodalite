@@ -445,7 +445,7 @@ enum JellyfinEndpoint: APIEndpoint {
         }
     }
 
-    static let defaultFields = "Overview,Genres,People,Studios,MediaStreams,MediaSources,CommunityRating,CriticRating,OfficialRating,ImageTags,BackdropImageTags,ParentBackdropImageTags,SeriesPrimaryImageTag,ProviderIds,Chapters,LocalTrailerCount"
+    static let defaultFields = "Overview,Genres,People,Studios,MediaStreams,MediaSources,CommunityRating,CriticRating,OfficialRating,ImageTags,BackdropImageTags,ParentBackdropImageTags,SeriesPrimaryImageTag,ProviderIds,Chapters,LocalTrailerCount,Trickplay"
 
     /// Season bar: ItemCounts keeps childCount (skeleton sizing) without defaultFields' heavy arrays. Name/index/watched are base/UserData fields.
     static let seasonListFields = "ItemCounts"

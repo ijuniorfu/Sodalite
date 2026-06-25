@@ -39,6 +39,9 @@ struct JellyfinItem: Codable, Sendable, Identifiable, Equatable, Hashable {
     let seriesPrimaryImageTag: String?
     let providerIds: [String: String]?
     let chapters: [ChapterInfo]?
+    /// Trickplay manifest: mediaSourceId -> width-string -> rendition. nil unless the server
+    /// generated tiles and the fetch requested `Fields=Trickplay`.
+    let trickplay: [String: [String: TrickplayInfo]]?
     let albumArtist: String?
     let artists: [String]?
     let albumId: String?
@@ -94,6 +97,7 @@ struct JellyfinItem: Codable, Sendable, Identifiable, Equatable, Hashable {
         case seriesPrimaryImageTag = "SeriesPrimaryImageTag"
         case providerIds = "ProviderIds"
         case chapters = "Chapters"
+        case trickplay = "Trickplay"
         case albumArtist = "AlbumArtist"
         case artists = "Artists"
         case albumId = "AlbumId"
@@ -136,6 +140,7 @@ struct JellyfinItem: Codable, Sendable, Identifiable, Equatable, Hashable {
         self.seriesPrimaryImageTag = nil
         self.providerIds = nil
         self.chapters = nil
+        self.trickplay = nil
         self.albumArtist = nil
         self.artists = nil
         self.albumId = nil
@@ -179,6 +184,7 @@ struct JellyfinItem: Codable, Sendable, Identifiable, Equatable, Hashable {
         self.seriesPrimaryImageTag = nil
         self.providerIds = nil
         self.chapters = nil
+        self.trickplay = nil
         self.albumArtist = nil
         self.artists = nil
         self.albumId = nil
@@ -246,6 +252,29 @@ struct ChapterInfo: Codable, Sendable, Equatable, Hashable {
     /// Start in seconds (10⁷ ticks/sec).
     var startSeconds: Double {
         Double(startPositionTicks) / 10_000_000
+    }
+}
+
+/// One trickplay rendition (Jellyfin 10.9+ Trickplay API). A tile image is a sprite of
+/// `tileWidth` x `tileHeight` thumbnails, each `width` x `height`; `interval` is the ms between
+/// thumbnails. Present only when the server admin enabled Trickplay generation and the task ran.
+struct TrickplayInfo: Codable, Sendable, Equatable, Hashable {
+    let width: Int
+    let height: Int
+    let tileWidth: Int
+    let tileHeight: Int
+    let thumbnailCount: Int
+    let interval: Int
+    let bandwidth: Int?
+
+    enum CodingKeys: String, CodingKey {
+        case width = "Width"
+        case height = "Height"
+        case tileWidth = "TileWidth"
+        case tileHeight = "TileHeight"
+        case thumbnailCount = "ThumbnailCount"
+        case interval = "Interval"
+        case bandwidth = "Bandwidth"
     }
 }
 

@@ -54,4 +54,18 @@ struct JellyfinItemTests {
     @Test func chapterStartSecondsConvertsTicks() {
         #expect(ChapterInfo(startPositionTicks: 10_000_000, name: nil, imageTag: nil).startSeconds == 1.0)
     }
+
+    @Test func decodesTrickplayManifest() throws {
+        let item = try decodeItem(#"""
+        {"Id":"abc","Name":"X","Type":"Movie",
+         "Trickplay":{"src1":{"320":{"Width":320,"Height":180,"TileWidth":10,"TileHeight":10,
+                      "ThumbnailCount":240,"Interval":10000,"Bandwidth":1000}}}}
+        """#)
+        let info = try #require(item.trickplay?["src1"]?["320"])
+        #expect(info.width == 320)
+        #expect(info.tileWidth == 10)
+        #expect(info.tileHeight == 10)
+        #expect(info.thumbnailCount == 240)
+        #expect(info.interval == 10000)
+    }
 }
