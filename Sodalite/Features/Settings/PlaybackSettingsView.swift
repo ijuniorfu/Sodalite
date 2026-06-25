@@ -70,6 +70,18 @@ struct PlaybackSettingsView: View {
                     )
                 )
 
+                if prefs.showScrubPreview {
+                    boolRow(
+                        icon: "square.grid.3x3.fill",
+                        title: "settings.playback.serverTrickplay",
+                        subtitle: "settings.playback.serverTrickplay.subtitle",
+                        value: Binding(
+                            get: { prefs.preferServerTrickplay },
+                            set: { prefs.preferServerTrickplay = $0 }
+                        )
+                    )
+                }
+
                 sectionHeader("settings.playback.section.languages")
 
                 languageRow(

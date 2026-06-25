@@ -108185,6 +108185,328 @@
         }
       }
     },
+    "settings.playback.serverTrickplay" : {
+      "extractionState": "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Náhledy Trickplay ze serveru"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Trickplay-billeder fra serveren"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Server-Trickplay-Bilder"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Εικόνες Trickplay από τον διακομιστή"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Server Trickplay Images"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Imágenes de Trickplay del servidor"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Palvelimen Trickplay-kuvat"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Images Trickplay du serveur"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Trickplay slike s poslužitelja"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Kiszolgálói Trickplay-képek"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Immagini Trickplay dal server"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "サーバーのトリックプレイ画像"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "서버 트릭플레이 이미지"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Trickplay-bilder fra serveren"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Trickplay-afbeeldingen van server"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Obrazy Trickplay z serwera"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Imagens de Trickplay do servidor"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Imagens de Trickplay do servidor"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Imagini Trickplay de pe server"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Изображения Trickplay с сервера"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Náhľady Trickplay zo servera"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Trickplay-bilder från servern"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Sunucu Trickplay görüntüleri"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Зображення Trickplay із сервера"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "服务器 Trickplay 图像"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "伺服器 Trickplay 影像"
+          }
+        }
+      }
+    },
+    "settings.playback.serverTrickplay.subtitle" : {
+      "extractionState": "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Použít předgenerované náhledy ze serveru, jsou-li k dispozici, místo jejich dekódování v tomto zařízení."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Brug serverens forhåndsgenererede miniaturer, når de er tilgængelige, i stedet for at afkode dem på denne enhed."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Verwende die vom Server vorab erzeugten Vorschaubilder, sofern vorhanden, statt sie auf diesem Gerät zu dekodieren."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Χρήση των προδημιουργημένων μικρογραφιών του διακομιστή όταν είναι διαθέσιμες, αντί για αποκωδικοποίηση σε αυτήν τη συσκευή."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Use the server's pre-generated scrub thumbnails when available, instead of decoding them on this device."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Usa las miniaturas pregeneradas del servidor cuando estén disponibles, en lugar de decodificarlas en este dispositivo."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Käytä palvelimen valmiiksi luotuja pikkukuvia, kun ne ovat saatavilla, sen sijaan että ne puretaan tällä laitteella."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Utiliser les miniatures pré-générées du serveur lorsqu'elles sont disponibles, au lieu de les décoder sur cet appareil."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Koristi unaprijed generirane sličice s poslužitelja kada su dostupne, umjesto dekodiranja na ovom uređaju."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "A kiszolgáló előre elkészített bélyegképeinek használata, ha elérhetők, ahelyett, hogy ezen az eszközön dekódolódnának."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Usa le miniature pregenerate dal server quando disponibili, invece di decodificarle su questo dispositivo."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "可能な場合は、この端末でデコードする代わりにサーバーが事前生成したサムネイルを使用します。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "가능한 경우 이 기기에서 디코딩하는 대신 서버가 미리 생성한 썸네일을 사용합니다."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Bruk serverens forhåndsgenererte miniatyrbilder når de er tilgjengelige, i stedet for å dekode dem på denne enheten."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Gebruik de vooraf gegenereerde miniaturen van de server indien beschikbaar, in plaats van ze op dit apparaat te decoderen."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Używaj wstępnie wygenerowanych miniatur z serwera, gdy są dostępne, zamiast dekodować je na tym urządzeniu."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Use as miniaturas pré-geradas do servidor quando disponíveis, em vez de decodificá-las neste dispositivo."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Utilizar as miniaturas pré-geradas do servidor quando disponíveis, em vez de as descodificar neste dispositivo."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Folosește miniaturile pregenerate de server când sunt disponibile, în loc să le decodezi pe acest dispozitiv."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Использовать готовые миниатюры с сервера, когда они доступны, вместо декодирования на этом устройстве."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Použiť vopred vygenerované náhľady zo servera, ak sú k dispozícii, namiesto ich dekódovania v tomto zariadení."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Använd serverns förgenererade miniatyrer när de är tillgängliga i stället för att avkoda dem på den här enheten."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Mevcut olduğunda küçük resimleri bu cihazda çözmek yerine sunucunun önceden oluşturduğu küçük resimleri kullan."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Використовувати попередньо згенеровані мініатюри із сервера, коли вони доступні, замість декодування на цьому пристрої."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "可用时使用服务器预先生成的缩略图，而不是在本设备上解码。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "可用時使用伺服器預先產生的縮圖，而非在本裝置上解碼。"
+          }
+        }
+      }
+    },
     "settings.playback.section.advanced" : {
       "extractionState": "manual",
       "localizations" : {
