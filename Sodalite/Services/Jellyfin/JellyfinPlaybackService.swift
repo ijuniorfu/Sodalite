@@ -18,6 +18,8 @@ protocol JellyfinPlaybackServiceProtocol: Sendable {
     func buildSubtitleURL(itemID: String, mediaSourceID: String, streamIndex: Int, format: String) -> URL?
     /// Server-rendered chapter image (from the "Chapter image extraction" task); `chapterIndex` indexes the original `Chapters` array. Nil without server/token, caller decodes a still itself.
     func buildChapterImageURL(itemID: String, chapterIndex: Int, imageTag: String, maxWidth: Int) -> URL?
+    /// Server-generated trickplay tile sprite (Jellyfin 10.9+ Trickplay task); a grid of thumbnails at the given rendition `width`. Nil without server/token. Present only when the server generated tiles.
+    func buildTrickplayTileURL(itemID: String, width: Int, tileIndex: Int) -> URL?
     /// Searches server subtitle provider(s); `language` is 3-letter ISO 639-2. Empty = no results, throws on missing provider plugin (404/500).
     func searchRemoteSubtitles(itemID: String, language: String) async throws -> [RemoteSubtitleInfo]
     /// Server downloads `subtitleID` and attaches it to `itemID` as an external stream.
@@ -234,6 +236,14 @@ final class JellyfinPlaybackService: JellyfinPlaybackServiceProtocol {
             URLQueryItem(name: "quality", value: "90"),
             URLQueryItem(name: "api_key", value: token),
         ]
+        return components?.url
+    }
+
+    func buildTrickplayTileURL(itemID: String, width: Int, tileIndex: Int) -> URL? {
+        guard let baseURL = client.baseURL, let token = client.accessToken else { return nil }
+        let path = "/Videos/\(itemID)/Trickplay/\(width)/\(tileIndex).jpg"
+        var components = URLComponents(url: baseURL.appendingPathComponent(path), resolvingAgainstBaseURL: true)
+        components?.queryItems = [URLQueryItem(name: "api_key", value: token)]
         return components?.url
     }
 
