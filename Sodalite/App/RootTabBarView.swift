@@ -3,7 +3,7 @@ import UIKit
 
 /// UIKit tab-bar shell. Replaces SwiftUI `TabView` so the tab content controllers persist across the tab-bar hide/show a detail performs: SwiftUI's `TabView` couples bar identity to content identity, so the only way to get a freshly-tinted bar (tvOS will not re-tint a reused one) was to rebuild the whole TabView, which reloaded every tab. Here each tab is a cached `UIHostingController`, so the bar can be hidden/shown (or rebuilt) without touching content.
 ///
-/// Immersion (hiding the bar inside a detail) is driven by `.hidesShellTabBar()` posting a depth delta, NOT by SwiftUI's `.toolbar(.hidden, for: .tabBar)` (which only targets a SwiftUI `TabView`, absent here).
+/// Immersion (hiding the bar inside a detail) is driven by `.hidesShellTabBar()` posting a per-view token, NOT by SwiftUI's `.toolbar(.hidden, for: .tabBar)` (which only targets a SwiftUI `TabView`, absent here).
 struct RootTabBarView: UIViewControllerRepresentable {
     @Binding var selectedTab: AppTab
     let availableTabs: [AppTab]
@@ -46,17 +46,22 @@ final class ShellTabBarController: UIViewController, UITabBarControllerDelegate 
     private var iconColor: UIColor = .white
     /// Last accent applied; gates the (otherwise per-update) appearance + rootView refresh so a normal re-render does not churn every tab's content.
     private var appliedIconColor: UIColor?
-    /// Nesting-safe immersion counter: >0 while any detail that called `.hidesShellTabBar()` is on screen.
-    private var immersionDepth = 0
+    /// Stable per-view immersion tokens; the bar is hidden iff non-empty. A Set (idempotent insert), NOT an Int counter: SwiftUI re-fires onAppear when a child `.sheet`/`.fullScreenCover` dismisses without a matching onDisappear, which drifted the old +1/-1 counter positive and left the bar stuck hidden after back-out (device-confirmed).
+    private var immersionTokens: Set<UUID> = []
 
     override func viewDidLoad() {
         super.viewDidLoad()
         // App is dark-only; SodaliteApp sets .preferredColorScheme(.dark) at the SwiftUI root, but a freshly created hosting/tab controller does not inherit it, so pin it here (propagates to the child tab bar + all hosted content).
         overrideUserInterfaceStyle = .dark
+        // Opaque dark fill on both backing layers so the UITabBarController's selected-child swap never flashes the system-default (white) backing through a transparent host on a tab switch.
+        view.backgroundColor = .black
+        view.isOpaque = true
         tabController.delegate = self
         addChild(tabController)
         tabController.view.frame = view.bounds
         tabController.view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        tabController.view.backgroundColor = .black
+        tabController.view.isOpaque = true
         view.addSubview(tabController.view)
         tabController.didMove(toParent: self)
 
@@ -86,14 +91,17 @@ final class ShellTabBarController: UIViewController, UITabBarControllerDelegate 
                 if colorChanged { host.rootView = content(tab) }
             } else {
                 host = UIHostingController(rootView: content(tab))
-                host.view.backgroundColor = .clear
+                // Opaque dark fill so the UITabBarController's selected-child swap never flashes the system-default (white) backing through a transparent host on a tab switch.
+                host.view.backgroundColor = .black
+                host.view.isOpaque = true
+                // Tab item set once at creation: the icon size is baked into the image and the tint comes from appearance.iconColor, not the image, so a plain tab switch must not rebuild every item.
+                host.tabBarItem = UITabBarItem(
+                    title: tab.titleString,
+                    image: Self.tabIcon(tab.systemImage),
+                    selectedImage: Self.tabIcon(tab.systemImage)
+                )
                 hosts[tab] = host
             }
-            host.tabBarItem = UITabBarItem(
-                title: tab.titleString,
-                image: Self.tabIcon(tab.systemImage),
-                selectedImage: Self.tabIcon(tab.systemImage)
-            )
             viewControllers.append(host)
         }
         for key in Array(hosts.keys) where !tabs.contains(key) {
@@ -118,18 +126,26 @@ final class ShellTabBarController: UIViewController, UITabBarControllerDelegate 
     }
 
     @objc private func immersionChanged(_ note: Notification) {
-        let delta = (note.userInfo?[ShellImmersionKey.delta] as? Int) ?? 0
-        immersionDepth = max(0, immersionDepth + delta)
-        let shouldHide = immersionDepth > 0
-        guard tabController.tabBar.isHidden != shouldHide else { return }
-        tabController.tabBar.isHidden = shouldHide
-        if !shouldHide {
-            // Returned to a tab root. Re-assert the appearance; if tvOS still renders the re-shown bar gray, the fresh-bar rebuild is the fallback (see rebuildTabBar()).
-            applyAppearance()
+        guard let token = note.userInfo?[ShellImmersionKey.token] as? UUID,
+              let active = note.userInfo?[ShellImmersionKey.active] as? Bool else { return }
+        let wasImmersed = !immersionTokens.isEmpty
+        if active {
+            immersionTokens.insert(token)   // idempotent: a repeated onAppear is a no-op, so the set cannot drift
+        } else {
+            immersionTokens.remove(token)   // no-op for an unknown token, so a stray onDisappear cannot underflow
+        }
+        let isImmersed = !immersionTokens.isEmpty
+        guard wasImmersed != isImmersed else { return }
+        if isImmersed {
+            // Hiding via isHidden is the reliable direction.
+            tabController.tabBar.isHidden = true
+        } else {
+            // Back at a tab root. isHidden=false does NOT reliably re-show, and re-greys, a reused UITabBarController bar (device-confirmed), so rebuild a fresh child controller: a new UITabBar is visible and reads the tinted appearance at creation; cached content controllers are re-parented, so no reload.
+            rebuildTabBar()
         }
     }
 
-    /// Fallback for a re-shown bar that tvOS refuses to re-tint: build a brand-new child `UITabBarController` and move the cached content controllers into it. A fresh `UITabBar` reads the tinted appearance at creation; content state survives because the hosting controllers are reused.
+    /// Builds a brand-new child `UITabBarController` and moves the cached content controllers into it. A fresh `UITabBar` is visible and reads the tinted appearance at creation; content state survives because the hosting controllers are reused. Used to restore the bar on immersion exit (a reused, re-shown bar comes back gray).
     func rebuildTabBar() {
         let selectedIndex = tabController.selectedIndex
         let viewControllers = tabController.viewControllers ?? []
@@ -140,6 +156,8 @@ final class ShellTabBarController: UIViewController, UITabBarControllerDelegate 
 
         let fresh = UITabBarController()
         fresh.delegate = self
+        fresh.view.backgroundColor = .black
+        fresh.view.isOpaque = true
         for vc in viewControllers { vc.removeFromParent() }
         fresh.setViewControllers(viewControllers, animated: false)
         if viewControllers.indices.contains(selectedIndex) {
@@ -171,9 +189,10 @@ final class ShellTabBarController: UIViewController, UITabBarControllerDelegate 
         tabController.tabBar.standardAppearance = appearance
     }
 
-    /// Monochrome template symbol; mirrors the SwiftUI `.symbolRenderingMode(.monochrome)` fix so the `tv` symbol's baked hierarchical color does not override the icon tint.
+    /// Template symbol sized for the tvOS tab bar. `preferringMonochrome()` alone carries no point size, so symbols fall back to the ~17pt default (about half the bar's text height); compose an explicit size config (matching the prior SwiftUI TabView, measured at pointSize 29 / weight Medium / scale Medium) with the monochrome preference via `.applying()` (size and color are independent axes, so the merge keeps both). `.alwaysTemplate` keeps the iconColor tint over the `tv` symbol's baked hierarchical color.
     private static func tabIcon(_ name: String) -> UIImage? {
-        let config = UIImage.SymbolConfiguration.preferringMonochrome()
+        let config = UIImage.SymbolConfiguration(pointSize: 29, weight: .medium, scale: .medium)
+            .applying(UIImage.SymbolConfiguration.preferringMonochrome())
         return UIImage(systemName: name, withConfiguration: config)?.withRenderingMode(.alwaysTemplate)
     }
 }
@@ -181,7 +200,10 @@ final class ShellTabBarController: UIViewController, UITabBarControllerDelegate 
 // MARK: - Immersion signal
 
 enum ShellImmersionKey {
-    static let delta = "delta"
+    /// Stable `UUID` identifying the posting view instance.
+    static let token = "token"
+    /// `Bool`: true on appear, false on disappear.
+    static let active = "active"
 }
 
 extension View {
@@ -194,16 +216,21 @@ extension View {
 }
 
 private struct ShellImmersionModifier: ViewModifier {
+    /// Stable for this view instance's lifetime, so a repeated onAppear (e.g. after a child sheet/cover dismisses) re-inserts the SAME token (a no-op) instead of drifting a counter.
+    @State private var token = UUID()
+
     func body(content: Content) -> some View {
         content
             .onAppear {
                 NotificationCenter.default.post(
-                    name: .shellTabBarImmersion, object: nil, userInfo: [ShellImmersionKey.delta: 1]
+                    name: .shellTabBarImmersion, object: nil,
+                    userInfo: [ShellImmersionKey.token: token, ShellImmersionKey.active: true]
                 )
             }
             .onDisappear {
                 NotificationCenter.default.post(
-                    name: .shellTabBarImmersion, object: nil, userInfo: [ShellImmersionKey.delta: -1]
+                    name: .shellTabBarImmersion, object: nil,
+                    userInfo: [ShellImmersionKey.token: token, ShellImmersionKey.active: false]
                 )
             }
     }

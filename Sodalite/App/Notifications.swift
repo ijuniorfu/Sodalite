@@ -13,7 +13,7 @@ extension Notification.Name {
     static let loginDidComplete = Notification.Name("loginDidComplete")
     /// Posted by CatalogDetailView after a Seerr request so CatalogView refreshes loaded request lists, else a new request doesn't appear until restart.
     static let seerrRequestDidSubmit = Notification.Name("seerrRequestDidSubmit")
-    /// Posted by `.hidesShellTabBar()` with a `ShellImmersionKey.delta` of +1 (on appear) / -1 (on disappear). ShellTabBarController keeps a nesting-safe depth counter and hides its tab bar while any immersive detail is on screen.
+    /// Posted by `.hidesShellTabBar()` with a `ShellImmersionKey.token` (stable per-view UUID) and `ShellImmersionKey.active` (true on appear, false on disappear). ShellTabBarController keeps a Set of active tokens and hides its tab bar while any immersive detail is on screen.
     static let shellTabBarImmersion = Notification.Name("shellTabBarImmersion")
 }
 
