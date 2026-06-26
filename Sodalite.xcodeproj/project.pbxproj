@@ -12,6 +12,7 @@
 		2B1E261C886B695DE162D2C7 /* ServerDiscoveryURLTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 978CD708E9C5ACCED67A3F97 /* ServerDiscoveryURLTests.swift */; };
 		331EA504B8232818D894A842 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AC76FE12491CE8E6DCDD5B42 /* Foundation.framework */; };
 		53CD6B51D9123C4578E8B0A2 /* SessionRestorerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09862C8C1314699B9D2BB5B8 /* SessionRestorerTests.swift */; };
+		9B8BA45BD3090349A076C1DF /* ProbeBudgetTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED884F9F893445BCE139AAB8 /* ProbeBudgetTests.swift */; };
 		9CCDBA223FFEB4D853908DCD /* JellyfinItemTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEB609BEE54ED543FDF51101 /* JellyfinItemTests.swift */; };
 		9D491D932F8F92E600B3BE42 /* AVKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9D491D922F8F92E500B3BE42 /* AVKit.framework */; };
 		9DEB1EBCC03C245F50B5BEE9 /* TrickplayTileSetTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4553932DFC543AB554886993 /* TrickplayTileSetTests.swift */; };
@@ -69,6 +70,7 @@
 		AC76FE12491CE8E6DCDD5B42 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/AppleTVOS.platform/Developer/SDKs/AppleTVOS18.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
 		BEB609BEE54ED543FDF51101 /* JellyfinItemTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = JellyfinItemTests.swift; sourceTree = "<group>"; };
 		DE5C0D60D4D900000000F001 /* SodaliteTopShelf.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = SodaliteTopShelf.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		ED884F9F893445BCE139AAB8 /* ProbeBudgetTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ProbeBudgetTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -158,6 +160,7 @@
 				09862C8C1314699B9D2BB5B8 /* SessionRestorerTests.swift */,
 				4553932DFC543AB554886993 /* TrickplayTileSetTests.swift */,
 				58BB91A936798EBE022F9F6F /* TrickplayScrubSourceTests.swift */,
+				ED884F9F893445BCE139AAB8 /* ProbeBudgetTests.swift */,
 			);
 			path = SodaliteTests;
 			sourceTree = "<group>";
@@ -354,6 +357,7 @@
 				53CD6B51D9123C4578E8B0A2 /* SessionRestorerTests.swift in Sources */,
 				9DEB1EBCC03C245F50B5BEE9 /* TrickplayTileSetTests.swift in Sources */,
 				1BD485EF6A5DBD9C83BD8020 /* TrickplayScrubSourceTests.swift in Sources */,
+				9B8BA45BD3090349A076C1DF /* ProbeBudgetTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

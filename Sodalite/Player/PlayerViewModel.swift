@@ -363,6 +363,24 @@ final class PlayerViewModel {
         preferServer && tileSet != nil
     }
 
+    /// Open-time routing-probe budget for the engine on remote direct-play / direct-stream sources (#68).
+    /// Direct play and direct stream serve the original container, whose sparse HDMV PGS tracks and cover-art
+    /// attachments otherwise drag the engine's `find_stream_info` to the full 50 MB / 60 s default, adding
+    /// ~13-14 s before first frame over a slow connection. Video and HDR/DV signaling resolve from the first
+    /// packets and every audio track interleaves early, so a 16 MB / 10 s cap keeps the audio picker complete
+    /// (it reads `player.audioTracks`, which comes from this probe) while skipping the PGS tail. The subtitle
+    /// picker is built from Jellyfin `MediaStreams`, and bitmap tracks select through the engine's own
+    /// full-budget side-demuxer by absolute container index, so a routing probe that skips a PGS track loses
+    /// nothing. Transcode sessions get a clean HLS stream with no sparse-track tail, so they keep the default.
+    nonisolated static func remoteDirectPlayProbeBudget(method: PlayMethod) -> (probesize: Int64?, maxAnalyzeDuration: Int64?) {
+        switch method {
+        case .directPlay, .directStream:
+            return (16 * 1024 * 1024, 10 * 1_000_000)
+        case .transcode:
+            return (nil, nil)
+        }
+    }
+
     // MARK: - Internal State
 
     var cancellables = Set<AnyCancellable>()
@@ -665,6 +683,10 @@ final class PlayerViewModel {
             // PlayerHostController); it reads live AVPlayerItem.formatDescription (dvcC from the fMP4
             // sample entry) and writes the DV criteria, engine only GATES play() on the panel handshake
             // (AetherEngine 5d60dbb). See PlayerHostController init for full rationale.
+            // Cap the engine's open-time probe on direct-play/-stream remuxes so a sparse PGS / cover-art
+            // tail doesn't drag find_stream_info to the 50 MB default before first frame (#68). Safe because
+            // the subtitle picker is Jellyfin-sourced and selects via the engine's full-budget side-demuxer.
+            let probeBudget = Self.remoteDirectPlayProbeBudget(method: activePlayMethod)
             try await player.load(
                 url: url,
                 startPosition: startPos,
@@ -674,7 +696,9 @@ final class PlayerViewModel {
                     panelIsInHDRMode: Self.panelIsInHDRMode,
                     audioBridgeMode: preferences.audioBridgeMode,
                     // Raw ASS event lines for the styled path; only affects ASS/SSA cue content.
-                    preserveASSMarkup: true
+                    preserveASSMarkup: true,
+                    probesize: probeBudget.probesize,
+                    maxAnalyzeDuration: probeBudget.maxAnalyzeDuration
                 )
             )
 
