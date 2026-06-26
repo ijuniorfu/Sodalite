@@ -39,8 +39,6 @@ struct TabRootView: View {
     @State private var lastProbedServerSwitch = -1
     /// Re-probe triggered by .loginDidComplete (add-server / add-profile authenticates via setAuthenticated WITHOUT bumping serverDidSwitch, so the serverDidSwitch probe never fires for the new server).
     @State private var loginProbeTask: Task<Void, Never>?
-    /// Alpha-hides the live tab bar for detail immersion (no `.toolbar(.hidden)`, which would gray the icons on return). Held here so its token set survives re-renders.
-    @State private var immersion = TabBarImmersion()
     @Environment(\.dependencies) private var dependencies
     @Environment(\.appState) private var appState
 
@@ -135,11 +133,6 @@ struct TabRootView: View {
             loginProbeTask?.cancel()
             loginProbeTask = Task { await recomputeOptionalTabsAfterLogin() }
         }
-        .onReceive(NotificationCenter.default.publisher(for: .shellTabBarImmersion)) { note in
-            guard let token = note.userInfo?[ShellImmersionKey.token] as? UUID,
-                  let active = note.userInfo?[ShellImmersionKey.active] as? Bool else { return }
-            immersion.handle(token: token, active: active)
-        }
         .onAppear {
             configureTabBarItemAppearance()
         }
@@ -148,10 +141,9 @@ struct TabRootView: View {
             configureTabBarItemAppearance()
         }
         .onChange(of: availableTabs) { _, _ in
-            // Async Live TV / Music insertion rebuilds the UITabBar; re-apply the tint next tick once the new bar exists, then re-assert the immersion alpha in case a detail is open while the fresh (alpha 1) bar appears.
+            // Async Live TV / Music insertion rebuilds the UITabBar; re-apply the tint next tick once the new bar exists.
             DispatchQueue.main.async {
                 configureTabBarItemAppearance()
-                immersion.reassert()
             }
         }
     }
@@ -188,7 +180,7 @@ struct TabRootView: View {
         }
     }
 
-    /// Tints tab-bar icons + titles via UITabBarAppearance.iconColor at bar creation. NOT per-item .alwaysOriginal images: tvOS re-templates mid-session-inserted items (Live TV / Music) gray and discards baked images, but iconColor tells it which color to template TO. The gray-on-detail-return is avoided separately by alpha-hiding the bar (TabBarImmersion) instead of removing it.
+    /// Tints tab-bar icons + titles via UITabBarAppearance.iconColor at bar creation. NOT per-item .alwaysOriginal images: tvOS re-templates mid-session-inserted items (Live TV / Music) gray and discards baked images, but iconColor tells it which color to template TO. (The gray-on-detail-RETURN is a separate tvOS 26 issue, addressed by presenting details as a full-screen cover so the bar is never hidden/removed.)
     private func configureTabBarItemAppearance() {
         let tintUIColor = UIColor(iconColor)
 

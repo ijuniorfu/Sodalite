@@ -48,11 +48,16 @@ struct CatalogView: View {
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
             }
-            .navigationDestination(item: $selectedMedia) { media in
-                CatalogDetailView(media: media)
+            // PROTOTYPE: present details as a full-screen cover (over the tab bar) instead of a push, so the bar is never hidden/removed and thus never re-templated gray on return (the tvOS 26 system bug). Each cover hosts its own NavigationStack so the detail's own deeper navigation (detail->detail, ->person) still pushes.
+            .fullScreenCover(item: $selectedMedia) { media in
+                NavigationStack {
+                    CatalogDetailView(media: media)
+                }
             }
-            .navigationDestination(item: $selectedFilter) { filter in
-                CatalogFilteredGridView(filter: filter)
+            .fullScreenCover(item: $selectedFilter) { filter in
+                NavigationStack {
+                    CatalogFilteredGridView(filter: filter)
+                }
             }
         }
         .onAppear(perform: bootstrap)

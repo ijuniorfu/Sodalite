@@ -13,8 +13,6 @@ extension Notification.Name {
     static let loginDidComplete = Notification.Name("loginDidComplete")
     /// Posted by CatalogDetailView after a Seerr request so CatalogView refreshes loaded request lists, else a new request doesn't appear until restart.
     static let seerrRequestDidSubmit = Notification.Name("seerrRequestDidSubmit")
-    /// Posted by `.hidesShellTabBar()` with a `ShellImmersionKey.token` (stable per-view UUID) and `ShellImmersionKey.active` (true on appear, false on disappear). TabRootView's `TabBarImmersion` keeps a Set of active tokens and alpha-hides the live tab bar while any immersive detail is on screen.
-    static let shellTabBarImmersion = Notification.Name("shellTabBarImmersion")
 }
 
 /// userInfo keys for `.playbackProgressDidChange`.
