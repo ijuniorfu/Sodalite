@@ -135,6 +135,8 @@ struct TabRootView: View {
         }
         .onAppear {
             configureTabBarItemAppearance()
+            // DIAG (temporary): tinted baseline so the broken state can be diffed against it.
+            deferOnMain(by: 0.6) { Self.dumpTabBarState("appear") }
         }
         .onChange(of: iconColor) { _, _ in
             // Re-apply on accent change; UITabBarItem.appearance() reads at configure time, not live.
@@ -147,10 +149,46 @@ struct TabRootView: View {
             }
         }
         .onReceive(NotificationCenter.default.publisher(for: .tabBarNeedsRetint)) { _ in
-            // A detail that hid the tab bar just disappeared. tvOS re-templates the re-shown bar gray; re-assert the tint. onDisappear fires before the bar is back on screen, so bracket the pop transition with two deferred passes.
-            deferOnMain(by: 0.1) { configureTabBarItemAppearance() }
-            deferOnMain(by: 0.45) { configureTabBarItemAppearance() }
+            // A detail that hid the tab bar just disappeared; tvOS re-templates the re-shown bar gray.
+            // DIAG (temporary): capture the live bar state across the pop transition, bracketing our re-apply, to see WHY the re-show greys (same instance vs new, proxy state, whether our set values take then get overridden).
+            deferOnMain(by: 0.1) { Self.dumpTabBarState("return-pre") }
+            deferOnMain(by: 0.2) { configureTabBarItemAppearance() }
+            deferOnMain(by: 0.6) { Self.dumpTabBarState("return-post") }
+            deferOnMain(by: 1.8) { Self.dumpTabBarState("return-late") }
         }
+    }
+
+    // MARK: - DIAG (temporary tab-bar state dump; remove once the gray-on-return root cause is pinned)
+
+    private static func dumpTabBarState(_ tag: String) {
+        for scene in UIApplication.shared.connectedScenes {
+            guard let windowScene = scene as? UIWindowScene else { continue }
+            for window in windowScene.windows {
+                dumpTabBars(in: window, tag: tag)
+            }
+        }
+    }
+
+    private static func dumpTabBars(in view: UIView, tag: String) {
+        if let tabBar = view as? UITabBar {
+            let ptr = "\(Unmanaged.passUnretained(tabBar).toOpaque())"
+            let appIcon = tabBar.standardAppearance.stackedLayoutAppearance.normal.iconColor.map(describeColor) ?? "nil"
+            let unselected = tabBar.unselectedItemTintColor.map(describeColor) ?? "nil"
+            LogTap.shared.note("[TabBarDiag:\(tag)] bar=\(ptr) hidden=\(tabBar.isHidden) alpha=\(tabBar.alpha) tint=\(describeColor(tabBar.tintColor)) unselected=\(unselected) appNormalIconColor=\(appIcon) items=\(tabBar.items?.count ?? 0)")
+            for (idx, item) in (tabBar.items ?? []).enumerated() {
+                let mode = item.image?.renderingMode.rawValue ?? -1
+                let itemIcon = item.standardAppearance?.stackedLayoutAppearance.normal.iconColor.map(describeColor) ?? "nil(inherits-proxy)"
+                let imgDesc = item.image?.description ?? "nil"
+                LogTap.shared.note("[TabBarDiag:\(tag)]   item[\(idx)] '\(item.title ?? "")' renderMode=\(mode) itemNormalIconColor=\(itemIcon) img=\(imgDesc)")
+            }
+        }
+        for sub in view.subviews { dumpTabBars(in: sub, tag: tag) }
+    }
+
+    private static func describeColor(_ color: UIColor) -> String {
+        var r: CGFloat = 0, g: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
+        color.getRed(&r, green: &g, blue: &b, alpha: &a)
+        return String(format: "rgba(%.2f,%.2f,%.2f,%.2f)", r, g, b, a)
     }
 
     /// Re-evaluates the optional Live TV / Music tabs for the now-active server after a login completion. Drops the previous server's optional tabs first (so a stale, crash-prone Live TV tab is gone immediately), then probes the new backend and republishes. Mirrors the serverDidSwitch probe; kept separate so that device-verified path stays untouched.
