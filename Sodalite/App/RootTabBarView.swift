@@ -35,10 +35,13 @@ struct RootTabBarView: UIViewControllerRepresentable {
     }
 }
 
-/// `UITabBarController` whose default/initial focus falls back to the tab bar when the selected content has no focusable item yet (cold launch, content still loading). The focus engine walks `preferredFocusEnvironments` in order and uses the first that yields a focusable item, so content keeps priority once it is ready while the bar stays the reachable default during load. SwiftUI's TabView gave this for free; the raw-UIKit shell otherwise drove initial focus into the empty Home host and left the bar unreachable until the first row materialized.
+/// `UITabBarController` whose default/initial focus optionally falls back to the tab bar when the selected content has no focusable item yet. The focus engine walks `preferredFocusEnvironments` in order and uses the first that yields a focusable item.
 final class ShellChildTabBarController: UITabBarController {
+    /// Cold launch only: append the tab bar as a focus fallback so it is reachable while Home's content is still loading (the engine otherwise drives focus into the empty Home host and never settles, leaving the bar unreachable until the first row appears - something SwiftUI's TabView handled for free). Controllers built on immersion EXIT set this false: the content is already loaded there, and on a back-out focus must restore INTO the content (the row you came from), not jump up to the bar.
+    var fallbackToBar = true
+
     override var preferredFocusEnvironments: [UIFocusEnvironment] {
-        super.preferredFocusEnvironments + [tabBar]
+        fallbackToBar ? super.preferredFocusEnvironments + [tabBar] : super.preferredFocusEnvironments
     }
 }
 
@@ -165,6 +168,8 @@ final class ShellTabBarController: UIViewController, UITabBarControllerDelegate 
 
         let fresh = ShellChildTabBarController()
         fresh.delegate = self
+        // Immersion exit: content is loaded, so focus must restore INTO it (the row the user came from), never jump up to the tab bar. Only the cold-launch controller wants the bar fallback.
+        fresh.fallbackToBar = false
         fresh.view.backgroundColor = .clear
         for vc in viewControllers { vc.removeFromParent() }
         fresh.setViewControllers(viewControllers, animated: false)
