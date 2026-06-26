@@ -137,16 +137,17 @@ final class ShellTabBarController: UIViewController, UITabBarControllerDelegate 
     @objc private func immersionChanged(_ note: Notification) {
         guard let token = note.userInfo?[ShellImmersionKey.token] as? UUID,
               let active = note.userInfo?[ShellImmersionKey.active] as? Bool else { return }
-        let wasImmersed = !immersionTokens.isEmpty
         if active {
             immersionTokens.insert(token)   // idempotent: a repeated onAppear is a no-op, so the set cannot drift
         } else {
             immersionTokens.remove(token)   // no-op for an unknown token, so a stray onDisappear cannot underflow
         }
         let isImmersed = !immersionTokens.isEmpty
-        guard wasImmersed != isImmersed else { return }
+        // No edge guard: set alpha from the CURRENT set state on every event, so a missed empty<->non-empty edge (out-of-order onAppear/onDisappear in deep nested navigation) cannot leave the bar stuck invisible.
         // Hide via alpha, NOT isHidden, and never rebuild: isHidden re-templates the reused bar gray on re-show and forced a fresh-controller rebuild whose re-parenting wiped the tvOS focus memory, so a detail back-out jumped focus up to the bar. alpha 0 hides the bar AND drops it from the focus graph (tvOS skips alpha <= 0.01) without ever re-templating it, so it stays tinted, no rebuild is needed, and the back-out restores focus to the row natively. The bar keeps its layout slot (a safe-area inset), but details use .ignoresSafeArea so they still fill full-screen under the now-invisible bar.
         tabController.tabBar.alpha = isImmersed ? 0 : 1
+        // DIAG (temporary): trace the token balance + resulting alpha to find why the catalog bar gets stuck invisible after nested navigation.
+        LogTap.shared.note("[Immersion] \(active ? "+" : "-")\(token.uuidString.prefix(4)) count=\(immersionTokens.count) alpha=\(isImmersed ? 0 : 1)")
     }
 
     private func applyAppearance() {
