@@ -13,6 +13,8 @@ extension Notification.Name {
     static let loginDidComplete = Notification.Name("loginDidComplete")
     /// Posted by CatalogDetailView after a Seerr request so CatalogView refreshes loaded request lists, else a new request doesn't appear until restart.
     static let seerrRequestDidSubmit = Notification.Name("seerrRequestDidSubmit")
+    /// Posted when a detail that hid the tab bar (`.toolbar(.hidden, for: .tabBar)`) disappears. tvOS re-templates the re-shown bar's icons to default gray, dropping the accent tint; TabRootView re-asserts the icon appearance on this signal.
+    static let tabBarNeedsRetint = Notification.Name("tabBarNeedsRetint")
 }
 
 /// userInfo keys for `.playbackProgressDidChange`.

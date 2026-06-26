@@ -146,6 +146,11 @@ struct TabRootView: View {
                 configureTabBarItemAppearance()
             }
         }
+        .onReceive(NotificationCenter.default.publisher(for: .tabBarNeedsRetint)) { _ in
+            // A detail that hid the tab bar just disappeared. tvOS re-templates the re-shown bar gray; re-assert the tint. onDisappear fires before the bar is back on screen, so bracket the pop transition with two deferred passes.
+            deferOnMain(by: 0.1) { configureTabBarItemAppearance() }
+            deferOnMain(by: 0.45) { configureTabBarItemAppearance() }
+        }
     }
 
     /// Re-evaluates the optional Live TV / Music tabs for the now-active server after a login completion. Drops the previous server's optional tabs first (so a stale, crash-prone Live TV tab is gone immediately), then probes the new backend and republishes. Mirrors the serverDidSwitch probe; kept separate so that device-verified path stays untouched.
