@@ -35,17 +35,14 @@ struct RootTabBarView: UIViewControllerRepresentable {
     }
 }
 
-/// `UITabBarController` whose default/initial focus optionally falls back to the tab bar when the selected content has no focusable item yet. The focus engine walks `preferredFocusEnvironments` in order and uses the first that yields a focusable item.
+/// `UITabBarController` that appends the tab bar as a focus fallback so it is reachable while Home's content is still loading on cold launch (the engine otherwise drives focus into the empty Home host and never settles, leaving the bar unreachable until the first row appears - something SwiftUI's TabView handled for free). Once content is loaded the engine picks it first, so the fallback is only consulted when the selected content has no focusable item; during immersion the bar is alpha 0, so it is skipped then too.
 final class ShellChildTabBarController: UITabBarController {
-    /// Cold launch only: append the tab bar as a focus fallback so it is reachable while Home's content is still loading (the engine otherwise drives focus into the empty Home host and never settles, leaving the bar unreachable until the first row appears - something SwiftUI's TabView handled for free). Controllers built on immersion EXIT set this false: the content is already loaded there, and on a back-out focus must restore INTO the content (the row you came from), not jump up to the bar.
-    var fallbackToBar = true
-
     override var preferredFocusEnvironments: [UIFocusEnvironment] {
-        fallbackToBar ? super.preferredFocusEnvironments + [tabBar] : super.preferredFocusEnvironments
+        super.preferredFocusEnvironments + [tabBar]
     }
 }
 
-/// Container hosting a child `UITabBarController`. The container is what SwiftUI retains, so the child bar can be rebuilt (fresh, correctly tinted) while the cached content controllers are re-parented intact.
+/// Container hosting a child `UITabBarController`. Immersion hides the bar via alpha (never isHidden), so the bar is never re-templated and stays tinted; the cached content controllers are never disturbed, so a detail back-out restores focus natively.
 final class ShellTabBarController: UIViewController, UITabBarControllerDelegate {
     var onSelect: ((AppTab) -> Void)?
 
@@ -148,41 +145,8 @@ final class ShellTabBarController: UIViewController, UITabBarControllerDelegate 
         }
         let isImmersed = !immersionTokens.isEmpty
         guard wasImmersed != isImmersed else { return }
-        if isImmersed {
-            // Hiding via isHidden is the reliable direction.
-            tabController.tabBar.isHidden = true
-        } else {
-            // Back at a tab root. isHidden=false does NOT reliably re-show, and re-greys, a reused UITabBarController bar (device-confirmed), so rebuild a fresh child controller: a new UITabBar is visible and reads the tinted appearance at creation; cached content controllers are re-parented, so no reload.
-            rebuildTabBar()
-        }
-    }
-
-    /// Builds a brand-new child `UITabBarController` and moves the cached content controllers into it. A fresh `UITabBar` is visible and reads the tinted appearance at creation; content state survives because the hosting controllers are reused. Used to restore the bar on immersion exit (a reused, re-shown bar comes back gray).
-    func rebuildTabBar() {
-        let selectedIndex = tabController.selectedIndex
-        let viewControllers = tabController.viewControllers ?? []
-
-        tabController.willMove(toParent: nil)
-        tabController.view.removeFromSuperview()
-        tabController.removeFromParent()
-
-        let fresh = ShellChildTabBarController()
-        fresh.delegate = self
-        // Immersion exit: content is loaded, so focus must restore INTO it (the row the user came from), never jump up to the tab bar. Only the cold-launch controller wants the bar fallback.
-        fresh.fallbackToBar = false
-        fresh.view.backgroundColor = .clear
-        for vc in viewControllers { vc.removeFromParent() }
-        fresh.setViewControllers(viewControllers, animated: false)
-        if viewControllers.indices.contains(selectedIndex) {
-            fresh.selectedIndex = selectedIndex
-        }
-        addChild(fresh)
-        fresh.view.frame = view.bounds
-        fresh.view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        view.addSubview(fresh.view)
-        fresh.didMove(toParent: self)
-        tabController = fresh
-        applyAppearance()
+        // Hide via alpha, NOT isHidden, and never rebuild: isHidden re-templates the reused bar gray on re-show and forced a fresh-controller rebuild whose re-parenting wiped the tvOS focus memory, so a detail back-out jumped focus up to the bar. alpha 0 hides the bar AND drops it from the focus graph (tvOS skips alpha <= 0.01) without ever re-templating it, so it stays tinted, no rebuild is needed, and the back-out restores focus to the row natively. The bar keeps its layout slot (a safe-area inset), but details use .ignoresSafeArea so they still fill full-screen under the now-invisible bar.
+        tabController.tabBar.alpha = isImmersed ? 0 : 1
     }
 
     private func applyAppearance() {
