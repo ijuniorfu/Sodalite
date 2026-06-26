@@ -212,17 +212,20 @@ struct TabRootView: View {
         for scene in UIApplication.shared.connectedScenes {
             guard let windowScene = scene as? UIWindowScene else { continue }
             for window in windowScene.windows {
-                Self.applyTabBarAppearance(appearance, in: window)
+                Self.applyTabBarAppearance(appearance, tint: tintUIColor, in: window)
             }
         }
     }
 
-    private static func applyTabBarAppearance(_ appearance: UITabBarAppearance, in view: UIView) {
+    private static func applyTabBarAppearance(_ appearance: UITabBarAppearance, tint: UIColor, in view: UIView) {
         if let tabBar = view as? UITabBar {
             tabBar.standardAppearance = appearance
+            // The appearance proxy only governs items at CREATION; a tab bar tvOS re-templated to gray (after hiding it for a detail) keeps its existing items, so recolor them in place via the live instance's tint. Part of the previously device-verified stack, dropped in a later cleanup.
+            tabBar.tintColor = tint
+            tabBar.unselectedItemTintColor = tint
         }
         for subview in view.subviews {
-            applyTabBarAppearance(appearance, in: subview)
+            applyTabBarAppearance(appearance, tint: tint, in: subview)
         }
     }
 
