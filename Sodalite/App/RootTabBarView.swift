@@ -60,13 +60,13 @@ final class ShellTabBarController: UIViewController, UITabBarControllerDelegate 
         super.viewDidLoad()
         // App is dark-only; SodaliteApp sets .preferredColorScheme(.dark) at the SwiftUI root, but a freshly created hosting/tab controller does not inherit it, so pin it here (propagates to the child tab bar + all hosted content).
         overrideUserInterfaceStyle = .dark
-        // Dark fill on the backing layers BEHIND the hosted content so the UITabBarController's tab cross-fade never flashes the white window backing through a translucent (glass) page. NOT isOpaque, and NOT on the host itself: the host stays .clear so a page's .regularMaterial still composites as glass over this dark root (isOpaque flattens the material to dead black).
-        view.backgroundColor = .black
+        // Transparent shell: a page's .regularMaterial glass background must capture the real app backdrop behind the shell to read as glass; a flat black fill here flattened it to dead black. Clear also means a tab switch reveals that (dark) backdrop, not a white default, so it does not reintroduce the white flash.
+        view.backgroundColor = .clear
         tabController.delegate = self
         addChild(tabController)
         tabController.view.frame = view.bounds
         tabController.view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        tabController.view.backgroundColor = .black
+        tabController.view.backgroundColor = .clear
         view.addSubview(tabController.view)
         tabController.didMove(toParent: self)
 
@@ -165,7 +165,7 @@ final class ShellTabBarController: UIViewController, UITabBarControllerDelegate 
 
         let fresh = ShellChildTabBarController()
         fresh.delegate = self
-        fresh.view.backgroundColor = .black
+        fresh.view.backgroundColor = .clear
         for vc in viewControllers { vc.removeFromParent() }
         fresh.setViewControllers(viewControllers, animated: false)
         if viewControllers.indices.contains(selectedIndex) {
