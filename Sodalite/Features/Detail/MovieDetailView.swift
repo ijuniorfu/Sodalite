@@ -147,7 +147,7 @@ struct MovieDetailView: View {
         }
         .navigationDestination(item: $navigateToSeries) { series in
             SeriesDetailView(item: series)
-                .toolbar(.hidden, for: .tabBar)
+                .hidesShellTabBar()
         }
         .navigationDestination(item: $navigateToPerson) { route in
             PersonDetailView(personID: route.tmdbID, personName: route.name)

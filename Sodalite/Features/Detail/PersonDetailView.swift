@@ -25,7 +25,7 @@ struct PersonDetailView: View {
             // No hero backdrop, so the shared grey-glass page background, not flat black.
             .glassBackground()
             .ignoresSafeArea()
-            .toolbar(.hidden, for: .tabBar)
+            .hidesShellTabBar()
         .navigationDestination(item: $navigateToJellyfinItem) { item in
             DetailRouterView(item: item)
         }

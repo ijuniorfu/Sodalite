@@ -163,7 +163,7 @@ struct AppearanceSettingsView: View {
 
             NavigationLink {
                 SupportDevelopmentView()
-                    .toolbar(.hidden, for: .tabBar)
+                    .hidesShellTabBar()
             } label: {
                 Text(String(
                     localized: "settings.appearance.locked.cta",

@@ -305,7 +305,7 @@ struct SettingsTile<Destination: View>: View {
     var body: some View {
         NavigationLink {
             destination()
-                .toolbar(.hidden, for: .tabBar)
+                .hidesShellTabBar()
         } label: {
             HStack(spacing: 28) {
                 Image(systemName: icon)
@@ -362,7 +362,7 @@ struct GatedSettingsTile<Destination: View>: View {
         }
         .buttonStyle(SettingsTileButtonStyle())
         .navigationDestination(isPresented: $navigate) {
-            destination().toolbar(.hidden, for: .tabBar)
+            destination().hidesShellTabBar()
         }
     }
 

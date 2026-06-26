@@ -68,7 +68,7 @@ struct CatalogDetailView: View {
             content
         }
         .ignoresSafeArea()
-        .toolbar(.hidden, for: .tabBar)
+        .hidesShellTabBar()
         .navigationDestination(item: $navigateToMedia) { media in
             CatalogDetailView(media: media)
         }

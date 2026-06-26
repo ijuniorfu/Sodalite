@@ -236,7 +236,7 @@ struct FilteredGridView: View {
             if showPlayer { showPlayer = false }
         }
         .navigationBarHidden(true)
-        .toolbar(.hidden, for: .tabBar)
+        .hidesShellTabBar()
         .navigationDestination(item: $selectedItem) { item in
             DetailRouterView(item: item)
         }

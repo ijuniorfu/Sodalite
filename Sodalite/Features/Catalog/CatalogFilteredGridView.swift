@@ -81,7 +81,7 @@ struct CatalogFilteredGridView: View {
             }
         }
         .ignoresSafeArea(edges: .bottom)
-        .toolbar(.hidden, for: .tabBar)
+        .hidesShellTabBar()
         .navigationDestination(item: $selectedMedia) { media in
             CatalogDetailView(media: media)
         }

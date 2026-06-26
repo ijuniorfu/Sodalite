@@ -56,17 +56,6 @@ struct CatalogView: View {
             }
         }
         .onAppear(perform: bootstrap)
-        .onChange(of: selectedMedia) { old, new in
-            // Returned to the catalog root from a pushed detail (which hid the tab bar). Fires only on full pop, not on deeper detail->detail pushes (those use CatalogDetailView's own navigationDestination). tvOS leaves the re-shown tab bar's icons gray; TabRootView rebuilds the bar on this signal.
-            if old != nil, new == nil {
-                NotificationCenter.default.post(name: .tabBarNeedsRetint, object: nil)
-            }
-        }
-        .onChange(of: selectedFilter) { old, new in
-            if old != nil, new == nil {
-                NotificationCenter.default.post(name: .tabBarNeedsRetint, object: nil)
-            }
-        }
         .onChange(of: selectedSection) { _, newValue in
             guard let vm = viewModel else { return }
             switch newValue {
@@ -146,7 +135,7 @@ struct CatalogView: View {
             // Quick-jump into Seerr setup so first-time users have a path forward; pushed inside Catalog's own NavigationStack so back returns to the tab.
             NavigationLink {
                 SeerrSettingsView()
-                    .toolbar(.hidden, for: .tabBar)
+                    .hidesShellTabBar()
             } label: {
                 Label {
                     Text(String(

@@ -30,13 +30,23 @@ enum AppTab: String, CaseIterable, Sendable {
         case .settings: "gearshape"
         }
     }
+
+    /// Resolved tab-bar title for the UIKit shell, which needs a `String` (not SwiftUI's `LocalizedStringKey`).
+    var titleString: String {
+        switch self {
+        case .home: String(localized: "tab.home")
+        case .liveTV: String(localized: "tab.liveTV")
+        case .catalog: String(localized: "tab.catalog")
+        case .search: String(localized: "tab.search")
+        case .music: String(localized: "tab.music")
+        case .settings: String(localized: "tab.settings")
+        }
+    }
 }
 
 struct TabRootView: View {
     @State private var selectedTab: AppTab = .home
     @State private var availableTabs: [AppTab] = AppTab.allCases.filter { $0 != .music && $0 != .liveTV }
-    /// Bumped when returning to a tab root from a detail that hid the tab bar. tvOS reuses the same UITabBar instance across the hide/show and will not re-tint its icons from the (correct) appearance; only a brand-new UITabBar reads the tint. Feeding this into the TabView `.id()` forces a fresh bar. selectedTab + availableTabs live on TabRootView (outside the rebuilt subtree) so the active tab and tab set survive the rebuild.
-    @State private var tabBarGeneration = 0
     /// serverDidSwitch value of the last completed tab probe. -1 so the first probe fires; a `.task` re-fire on reappear is a no-op while a real switch re-probes.
     @State private var lastProbedServerSwitch = -1
     /// Re-probe triggered by .loginDidComplete (add-server / add-profile authenticates via setAuthenticated WITHOUT bumping serverDidSwitch, so the serverDidSwitch probe never fires for the new server).
@@ -52,24 +62,14 @@ struct TabRootView: View {
     }
 
     var body: some View {
-        TabView(selection: $selectedTab) {
-            ForEach(availableTabs, id: \.self) { tab in
-                Tab(value: tab) {
-                    tabContent(for: tab)
-                } label: {
-                    Label {
-                        Text(tab.labelKey)
-                    } icon: {
-                        // .monochrome strips the baked white color that "tv" (Live TV) renders hierarchically by default, which would override UITabBarItemAppearance.iconColor and leave that one icon gray while siblings tint.
-                        Image(systemName: tab.systemImage)
-                            .symbolRenderingMode(.monochrome)
-                    }
-                }
-            }
-        }
-        // Rebuild the tab bar from scratch when the active server changes while TabRootView stays mounted (deleting the active server auto-promotes a survivor; isAuthenticated never drops, so the view isn't recreated). tvOS re-templates an on-screen tab bar's icons to its default gray in place and re-setting the appearance can't recover them; a fresh TabView gets a fresh UITabBar that reads the tinted appearance proxy at creation. A picker-driven switch already remounts TabRootView, so this is a no-op there. NOT mutating the live bar, so it avoids the _UIReplicantView hierarchy breakage a live appearance-walk caused.
-        .id("\(String(describing: appState.activeServer?.id))#\(tabBarGeneration)")
-        .tint(iconColor)
+        // UIKit tab-bar shell (not SwiftUI TabView): the per-tab content controllers persist across the tab-bar hide/show a detail performs, so the bar can be re-tinted or rebuilt without reloading any tab. See RootTabBarView.
+        RootTabBarView(
+            selectedTab: $selectedTab,
+            availableTabs: availableTabs,
+            iconColor: iconColor,
+            content: { tab in AnyView(tabContent(for: tab).tint(iconColor)) }
+        )
+        .ignoresSafeArea()
         // Display-only active-profile badge; non-focusable, below the player cover, hidden unless the server has multiple profiles.
         .overlay(alignment: .topTrailing) {
             ActiveUserBadge()
@@ -135,58 +135,6 @@ struct TabRootView: View {
             loginProbeTask?.cancel()
             loginProbeTask = Task { await recomputeOptionalTabsAfterLogin() }
         }
-        .onAppear {
-            configureTabBarItemAppearance()
-            // DIAG (temporary): tinted baseline so the broken state can be diffed against it.
-            deferOnMain(by: 0.6) { Self.dumpTabBarState("appear") }
-        }
-        .onChange(of: iconColor) { _, _ in
-            // Re-apply on accent change; UITabBarItem.appearance() reads at configure time, not live.
-            configureTabBarItemAppearance()
-        }
-        .onChange(of: availableTabs) { _, _ in
-            // Async Live TV / Music insertion rebuilds the UITabBar; re-apply next tick in case the new bar exists before the appearance proxy is consulted.
-            DispatchQueue.main.async {
-                configureTabBarItemAppearance()
-            }
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .tabBarNeedsRetint)) { _ in
-            // Returned to a tab root from a detail that hid the tab bar. The reused UITabBar will not re-tint (confirmed via on-device dump: same instance, correct appearance, still gray), so force a fresh bar by bumping the TabView id. Deferred so the pop transition settles first; the fresh bar reads the tinted appearance proxy at creation.
-            deferOnMain(by: 0.4) { tabBarGeneration += 1 }
-        }
-    }
-
-    // MARK: - DIAG (temporary tab-bar state dump; remove once the gray-on-return root cause is pinned)
-
-    private static func dumpTabBarState(_ tag: String) {
-        for scene in UIApplication.shared.connectedScenes {
-            guard let windowScene = scene as? UIWindowScene else { continue }
-            for window in windowScene.windows {
-                dumpTabBars(in: window, tag: tag)
-            }
-        }
-    }
-
-    private static func dumpTabBars(in view: UIView, tag: String) {
-        if let tabBar = view as? UITabBar {
-            let ptr = "\(Unmanaged.passUnretained(tabBar).toOpaque())"
-            let appIcon = tabBar.standardAppearance.stackedLayoutAppearance.normal.iconColor.map(describeColor) ?? "nil"
-            let unselected = tabBar.unselectedItemTintColor.map(describeColor) ?? "nil"
-            LogTap.shared.note("[TabBarDiag:\(tag)] bar=\(ptr) hidden=\(tabBar.isHidden) alpha=\(tabBar.alpha) tint=\(describeColor(tabBar.tintColor)) unselected=\(unselected) appNormalIconColor=\(appIcon) items=\(tabBar.items?.count ?? 0)")
-            for (idx, item) in (tabBar.items ?? []).enumerated() {
-                let mode = item.image?.renderingMode.rawValue ?? -1
-                let itemIcon = item.standardAppearance?.stackedLayoutAppearance.normal.iconColor.map(describeColor) ?? "nil(inherits-proxy)"
-                let imgDesc = item.image?.description ?? "nil"
-                LogTap.shared.note("[TabBarDiag:\(tag)]   item[\(idx)] '\(item.title ?? "")' renderMode=\(mode) itemNormalIconColor=\(itemIcon) img=\(imgDesc)")
-            }
-        }
-        for sub in view.subviews { dumpTabBars(in: sub, tag: tag) }
-    }
-
-    private static func describeColor(_ color: UIColor) -> String {
-        var r: CGFloat = 0, g: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
-        color.getRed(&r, green: &g, blue: &b, alpha: &a)
-        return String(format: "rgba(%.2f,%.2f,%.2f,%.2f)", r, g, b, a)
     }
 
     /// Re-evaluates the optional Live TV / Music tabs for the now-active server after a login completion. Drops the previous server's optional tabs first (so a stale, crash-prone Live TV tab is gone immediately), then probes the new backend and republishes. Mirrors the serverDidSwitch probe; kept separate so that device-verified path stays untouched.
@@ -218,50 +166,6 @@ struct TabRootView: View {
         }
         if tabs != availableTabs {
             availableTabs = tabs
-        }
-    }
-
-    /// Tints tab-bar icons + titles via UITabBarAppearance.iconColor, NOT per-item .alwaysOriginal images: tvOS re-templates mid-session-inserted items (Live TV / Music) gray and discards baked images, but iconColor tells it which color to template TO so the accent survives a rebuild. Applied both via the .appearance() proxy (future bars) and a live-window walk (repaint on-screen, e.g. accent change).
-    private func configureTabBarItemAppearance() {
-        let tintUIColor = UIColor(iconColor)
-
-        let itemAppearance = UITabBarItemAppearance()
-        itemAppearance.normal.iconColor = tintUIColor
-        itemAppearance.selected.iconColor = tintUIColor
-        itemAppearance.focused.iconColor = tintUIColor
-        // Titles: white at rest, accent when selected or focused.
-        itemAppearance.normal.titleTextAttributes = [.foregroundColor: UIColor.white]
-        itemAppearance.selected.titleTextAttributes = [.foregroundColor: tintUIColor]
-        itemAppearance.focused.titleTextAttributes = [.foregroundColor: tintUIColor]
-
-        let appearance = UITabBarAppearance()
-        appearance.configureWithDefaultBackground()
-        // tvOS may lay items stacked or inline by width; set all three so the tint holds.
-        appearance.stackedLayoutAppearance = itemAppearance
-        appearance.inlineLayoutAppearance = itemAppearance
-        appearance.compactInlineLayoutAppearance = itemAppearance
-
-        // Future tab bars (a rebuild allocates a new one) inherit this.
-        UITabBar.appearance().standardAppearance = appearance
-
-        // Repaint the tab bar that's already on screen.
-        for scene in UIApplication.shared.connectedScenes {
-            guard let windowScene = scene as? UIWindowScene else { continue }
-            for window in windowScene.windows {
-                Self.applyTabBarAppearance(appearance, tint: tintUIColor, in: window)
-            }
-        }
-    }
-
-    private static func applyTabBarAppearance(_ appearance: UITabBarAppearance, tint: UIColor, in view: UIView) {
-        if let tabBar = view as? UITabBar {
-            tabBar.standardAppearance = appearance
-            // The appearance proxy only governs items at CREATION; a tab bar tvOS re-templated to gray (after hiding it for a detail) keeps its existing items, so recolor them in place via the live instance's tint. Part of the previously device-verified stack, dropped in a later cleanup.
-            tabBar.tintColor = tint
-            tabBar.unselectedItemTintColor = tint
-        }
-        for subview in view.subviews {
-            applyTabBarAppearance(appearance, tint: tint, in: subview)
         }
     }
 
