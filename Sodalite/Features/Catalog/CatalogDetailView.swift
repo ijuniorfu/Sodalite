@@ -85,10 +85,6 @@ struct CatalogDetailView: View {
             }
         }
         .task { await load() }
-        .onDisappear {
-            // This detail hides the tab bar; tvOS re-templates the re-shown bar's icons to default gray on the way back, so nudge TabRootView to re-assert the accent tint. Harmless no-op when pushing deeper (bar stays hidden).
-            NotificationCenter.default.post(name: .tabBarNeedsRetint, object: nil)
-        }
     }
 
     @ViewBuilder

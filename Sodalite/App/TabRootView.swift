@@ -35,6 +35,8 @@ enum AppTab: String, CaseIterable, Sendable {
 struct TabRootView: View {
     @State private var selectedTab: AppTab = .home
     @State private var availableTabs: [AppTab] = AppTab.allCases.filter { $0 != .music && $0 != .liveTV }
+    /// Bumped when returning to a tab root from a detail that hid the tab bar. tvOS reuses the same UITabBar instance across the hide/show and will not re-tint its icons from the (correct) appearance; only a brand-new UITabBar reads the tint. Feeding this into the TabView `.id()` forces a fresh bar. selectedTab + availableTabs live on TabRootView (outside the rebuilt subtree) so the active tab and tab set survive the rebuild.
+    @State private var tabBarGeneration = 0
     /// serverDidSwitch value of the last completed tab probe. -1 so the first probe fires; a `.task` re-fire on reappear is a no-op while a real switch re-probes.
     @State private var lastProbedServerSwitch = -1
     /// Re-probe triggered by .loginDidComplete (add-server / add-profile authenticates via setAuthenticated WITHOUT bumping serverDidSwitch, so the serverDidSwitch probe never fires for the new server).
@@ -66,7 +68,7 @@ struct TabRootView: View {
             }
         }
         // Rebuild the tab bar from scratch when the active server changes while TabRootView stays mounted (deleting the active server auto-promotes a survivor; isAuthenticated never drops, so the view isn't recreated). tvOS re-templates an on-screen tab bar's icons to its default gray in place and re-setting the appearance can't recover them; a fresh TabView gets a fresh UITabBar that reads the tinted appearance proxy at creation. A picker-driven switch already remounts TabRootView, so this is a no-op there. NOT mutating the live bar, so it avoids the _UIReplicantView hierarchy breakage a live appearance-walk caused.
-        .id(appState.activeServer?.id)
+        .id("\(String(describing: appState.activeServer?.id))#\(tabBarGeneration)")
         .tint(iconColor)
         // Display-only active-profile badge; non-focusable, below the player cover, hidden unless the server has multiple profiles.
         .overlay(alignment: .topTrailing) {
@@ -149,12 +151,8 @@ struct TabRootView: View {
             }
         }
         .onReceive(NotificationCenter.default.publisher(for: .tabBarNeedsRetint)) { _ in
-            // A detail that hid the tab bar just disappeared; tvOS re-templates the re-shown bar gray.
-            // DIAG (temporary): capture the live bar state across the pop transition, bracketing our re-apply, to see WHY the re-show greys (same instance vs new, proxy state, whether our set values take then get overridden).
-            deferOnMain(by: 0.1) { Self.dumpTabBarState("return-pre") }
-            deferOnMain(by: 0.2) { configureTabBarItemAppearance() }
-            deferOnMain(by: 0.6) { Self.dumpTabBarState("return-post") }
-            deferOnMain(by: 1.8) { Self.dumpTabBarState("return-late") }
+            // Returned to a tab root from a detail that hid the tab bar. The reused UITabBar will not re-tint (confirmed via on-device dump: same instance, correct appearance, still gray), so force a fresh bar by bumping the TabView id. Deferred so the pop transition settles first; the fresh bar reads the tinted appearance proxy at creation.
+            deferOnMain(by: 0.4) { tabBarGeneration += 1 }
         }
     }
 
