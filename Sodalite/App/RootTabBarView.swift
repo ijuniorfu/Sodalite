@@ -55,6 +55,8 @@ final class ShellTabBarController: UIViewController, UITabBarControllerDelegate 
     private var appliedIconColor: UIColor?
     /// Stable per-view immersion tokens; the bar is hidden iff non-empty. A Set (idempotent insert), NOT an Int counter: SwiftUI re-fires onAppear when a child `.sheet`/`.fullScreenCover` dismisses without a matching onDisappear, which drifted the old +1/-1 counter positive and left the bar stuck hidden after back-out (device-confirmed).
     private var immersionTokens: Set<UUID> = []
+    /// Bumped per immersion event; the debounced re-assert runs only if it still matches (cancels superseded re-asserts).
+    private var immersionGeneration = 0
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -142,12 +144,24 @@ final class ShellTabBarController: UIViewController, UITabBarControllerDelegate 
         } else {
             immersionTokens.remove(token)   // no-op for an unknown token, so a stray onDisappear cannot underflow
         }
+        applyImmersion(active ? "+\(token.uuidString.prefix(4))" : "-\(token.uuidString.prefix(4))")
+        // Re-assert after the push/pop transition settles: a nav transition can animate the bar's alpha back, leaving it stuck invisible after deep nested navigation even though the token set is balanced (device-observed: count reaches 0 / alpha set to 1, but the bar stays hidden). Debounced via a generation token so only the last event's re-assert runs.
+        immersionGeneration += 1
+        let generation = immersionGeneration
+        deferOnMain(by: 0.45) { [weak self] in
+            guard let self, self.immersionGeneration == generation else { return }
+            self.applyImmersion("reconcile")
+        }
+    }
+
+    /// Set the bar alpha from the CURRENT token-set state (no edge guard, so a missed empty<->non-empty edge cannot strand it), animation-free so a nav transition cannot capture it into an animation. Hide via alpha, NOT isHidden: isHidden re-templates the reused bar gray on re-show and forced a focus-destroying rebuild; alpha 0 hides the bar AND drops it from the focus graph (tvOS skips alpha <= 0.01) without re-templating, so it stays tinted and a back-out restores focus natively. Details use .ignoresSafeArea so they still fill full-screen under the alpha-0 bar.
+    private func applyImmersion(_ reason: String) {
         let isImmersed = !immersionTokens.isEmpty
-        // No edge guard: set alpha from the CURRENT set state on every event, so a missed empty<->non-empty edge (out-of-order onAppear/onDisappear in deep nested navigation) cannot leave the bar stuck invisible.
-        // Hide via alpha, NOT isHidden, and never rebuild: isHidden re-templates the reused bar gray on re-show and forced a fresh-controller rebuild whose re-parenting wiped the tvOS focus memory, so a detail back-out jumped focus up to the bar. alpha 0 hides the bar AND drops it from the focus graph (tvOS skips alpha <= 0.01) without ever re-templating it, so it stays tinted, no rebuild is needed, and the back-out restores focus to the row natively. The bar keeps its layout slot (a safe-area inset), but details use .ignoresSafeArea so they still fill full-screen under the now-invisible bar.
-        tabController.tabBar.alpha = isImmersed ? 0 : 1
-        // DIAG (temporary): trace the token balance + resulting alpha to find why the catalog bar gets stuck invisible after nested navigation.
-        LogTap.shared.note("[Immersion] \(active ? "+" : "-")\(token.uuidString.prefix(4)) count=\(immersionTokens.count) alpha=\(isImmersed ? 0 : 1)")
+        UIView.performWithoutAnimation {
+            tabController.tabBar.alpha = isImmersed ? 0 : 1
+        }
+        // DIAG (temporary): reason, token count, intended alpha, and the actual read-back so we can tell whether the set sticks or a transition overrides it.
+        LogTap.shared.note("[Immersion] \(reason) count=\(immersionTokens.count) want=\(isImmersed ? 0 : 1) actual=\(tabController.tabBar.alpha)")
     }
 
     private func applyAppearance() {
