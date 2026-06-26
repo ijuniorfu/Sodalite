@@ -59,7 +59,8 @@ struct EPGGuideView: View {
             }
         }
         .task { await model.loadInitialChannels() }
-        .sheet(item: $selection) { sel in
+        // Full-screen cover, NOT .sheet: a tvOS sheet leaves the tab bar visible behind it and backgrounds it, which tvOS 26 re-templates gray. The cover covers the bar so it is never disturbed (same fix as the detail screens).
+        .detailCover(item: $selection) { sel in
             ProgramInfoPopover(
                 program: sel.program, channel: sel.channel, tint: tint,
                 onWatchLive: onWatchLive,
