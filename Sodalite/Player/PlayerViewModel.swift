@@ -530,20 +530,10 @@ final class PlayerViewModel {
                     isLoading = false
                     return
                 }
-                let preferredAudio = effectivePreferredAudioLanguage()
-                let chosenAudio = player.audioTracks.first(where: {
-                    preferredAudio != nil && Self.languagesMatch($0.language, preferredAudio)
-                }) ?? player.audioTracks.first(where: { $0.isDefault })
-                  ?? player.audioTracks.first
-                // Only switch on an actual CHOICE: a live audio switch is an engine reload; a phantom
-                // index mismatch on a single-track channel reloaded the session ~2s after start and
-                // stalled AVPlayer (repro: Das Erste, frozen frame). Engine now reconciles its index;
-                // this is the host-side belt.
-                if let chosenAudio,
-                   player.audioTracks.count > 1,
-                   chosenAudio.id != player.activeAudioTrackIndex {
-                    player.selectAudioTrack(index: chosenAudio.id)
-                }
+                // The engine picked the preferred-language audio on the first frame (#72), so there is
+                // no live selectAudioTrack reload here (it used to misfire on single-track channels:
+                // Das Erste, frozen frame). Read its pick to drive the matching subtitle.
+                let chosenAudio = player.audioTracks.first(where: { $0.id == player.activeAudioTrackIndex })
                 applyPreferredSubtitle(forAudioLanguage: chosenAudio?.language)
                 isLoading = false
                 isPlaying = true
@@ -687,6 +677,9 @@ final class PlayerViewModel {
             // tail doesn't drag find_stream_info to the 50 MB default before first frame (#68). Safe because
             // the subtitle picker is Jellyfin-sourced and selects via the engine's full-budget side-demuxer.
             let probeBudget = Self.remoteDirectPlayProbeBudget(method: activePlayMethod)
+            // Hand the language preference to the engine so it picks the audio track on the first frame
+            // from its single probe (#72), instead of us reloading via selectAudioTrack after load.
+            let preferredAudio = effectivePreferredAudioLanguage()
             try await player.load(
                 url: url,
                 startPosition: startPos,
@@ -698,7 +691,8 @@ final class PlayerViewModel {
                     // Raw ASS event lines for the styled path; only affects ASS/SSA cue content.
                     preserveASSMarkup: true,
                     probesize: probeBudget.probesize,
-                    maxAnalyzeDuration: probeBudget.maxAnalyzeDuration
+                    maxAnalyzeDuration: probeBudget.maxAnalyzeDuration,
+                    preferredAudioLanguages: preferredAudio.map { [$0] } ?? []
                 )
             )
 
@@ -711,20 +705,9 @@ final class PlayerViewModel {
             }
 
             totalTime = formatSeconds(effectiveDuration)
-            // Audio priority: preferred language → stream default → first. Engine already picked the
-            // container default; selectAudioTrack (a ~1s reload) only fires if preferred differs.
-            let preferredAudio = effectivePreferredAudioLanguage()
-            let chosenAudio = player.audioTracks.first(where: {
-                preferredAudio != nil && Self.languagesMatch($0.language, preferredAudio)
-            }) ?? player.audioTracks.first(where: { $0.isDefault })
-              ?? player.audioTracks.first
-            // Live keeps the engine's auto-pick: reselect costs a full pipeline reload, and it mis-fired
-            // on video-only channels (activeAudioTrackIndex nil, KiKA) turning a silent stream into an error.
-            if let chosenAudio, chosenAudio.id != player.activeAudioTrackIndex,
-               !isLiveSession {
-                player.selectAudioTrack(index: chosenAudio.id)
-            }
-
+            // The engine resolved the preferred-language audio on the first frame (#72), so there is no
+            // selectAudioTrack reload here; read what it picked to drive the matching subtitle.
+            let chosenAudio = player.audioTracks.first(where: { $0.id == player.activeAudioTrackIndex })
             applyPreferredSubtitle(forAudioLanguage: chosenAudio?.language)
 
             isLoading = false
@@ -1364,7 +1347,8 @@ final class PlayerViewModel {
     /// Effective preferred audio language for foreign-audio detection. Settings' "Auto" stores nil; we
     /// substitute the device's primary language code so "Auto" still gives auto-subs (else the guard
     /// has nothing to compare against).
-    private func effectivePreferredAudioLanguage() -> String? {
+    // Not private: the +Live extension (separate file) reads it to seed LoadOptions.preferredAudioLanguages.
+    func effectivePreferredAudioLanguage() -> String? {
         if let explicit = preferences.preferredAudioLanguage {
             return explicit
         }
