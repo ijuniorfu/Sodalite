@@ -35,11 +35,18 @@ struct RootTabBarView: UIViewControllerRepresentable {
     }
 }
 
+/// `UITabBarController` whose default/initial focus falls back to the tab bar when the selected content has no focusable item yet (cold launch, content still loading). The focus engine walks `preferredFocusEnvironments` in order and uses the first that yields a focusable item, so content keeps priority once it is ready while the bar stays the reachable default during load. SwiftUI's TabView gave this for free; the raw-UIKit shell otherwise drove initial focus into the empty Home host and left the bar unreachable until the first row materialized.
+final class ShellChildTabBarController: UITabBarController {
+    override var preferredFocusEnvironments: [UIFocusEnvironment] {
+        super.preferredFocusEnvironments + [tabBar]
+    }
+}
+
 /// Container hosting a child `UITabBarController`. The container is what SwiftUI retains, so the child bar can be rebuilt (fresh, correctly tinted) while the cached content controllers are re-parented intact.
 final class ShellTabBarController: UIViewController, UITabBarControllerDelegate {
     var onSelect: ((AppTab) -> Void)?
 
-    private var tabController = UITabBarController()
+    private var tabController: UITabBarController = ShellChildTabBarController()
     /// One hosting controller per tab, reused across rebuilds so tab content (and its SwiftUI navigation/scroll state) survives a bar hide/show or rebuild.
     private var hosts: [AppTab: UIHostingController<AnyView>] = [:]
     private var orderedTabs: [AppTab] = []
@@ -53,15 +60,13 @@ final class ShellTabBarController: UIViewController, UITabBarControllerDelegate 
         super.viewDidLoad()
         // App is dark-only; SodaliteApp sets .preferredColorScheme(.dark) at the SwiftUI root, but a freshly created hosting/tab controller does not inherit it, so pin it here (propagates to the child tab bar + all hosted content).
         overrideUserInterfaceStyle = .dark
-        // Opaque dark fill on both backing layers so the UITabBarController's selected-child swap never flashes the system-default (white) backing through a transparent host on a tab switch.
+        // Dark fill on the backing layers BEHIND the hosted content so the UITabBarController's tab cross-fade never flashes the white window backing through a translucent (glass) page. NOT isOpaque, and NOT on the host itself: the host stays .clear so a page's .regularMaterial still composites as glass over this dark root (isOpaque flattens the material to dead black).
         view.backgroundColor = .black
-        view.isOpaque = true
         tabController.delegate = self
         addChild(tabController)
         tabController.view.frame = view.bounds
         tabController.view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         tabController.view.backgroundColor = .black
-        tabController.view.isOpaque = true
         view.addSubview(tabController.view)
         tabController.didMove(toParent: self)
 
@@ -71,6 +76,11 @@ final class ShellTabBarController: UIViewController, UITabBarControllerDelegate 
             name: .shellTabBarImmersion,
             object: nil
         )
+    }
+
+    /// Route the container's default-focus search into the child tab controller, which applies its content-then-bar fallback order (see ShellChildTabBarController).
+    override var preferredFocusEnvironments: [UIFocusEnvironment] {
+        [tabController]
     }
 
     func apply(tabs: [AppTab], selected: AppTab, iconColor color: UIColor, content: (AppTab) -> AnyView) {
@@ -91,9 +101,8 @@ final class ShellTabBarController: UIViewController, UITabBarControllerDelegate 
                 if colorChanged { host.rootView = content(tab) }
             } else {
                 host = UIHostingController(rootView: content(tab))
-                // Opaque dark fill so the UITabBarController's selected-child swap never flashes the system-default (white) backing through a transparent host on a tab switch.
-                host.view.backgroundColor = .black
-                host.view.isOpaque = true
+                // Clear, NOT opaque black: a page's own .regularMaterial must composite as glass over the dark backing layers behind this host; an opaque black host flattens it to dead black. White-flash prevention lives on those backing layers, not here.
+                host.view.backgroundColor = .clear
                 // Tab item set once at creation: the icon size is baked into the image and the tint comes from appearance.iconColor, not the image, so a plain tab switch must not rebuild every item.
                 host.tabBarItem = UITabBarItem(
                     title: tab.titleString,
@@ -154,10 +163,9 @@ final class ShellTabBarController: UIViewController, UITabBarControllerDelegate 
         tabController.view.removeFromSuperview()
         tabController.removeFromParent()
 
-        let fresh = UITabBarController()
+        let fresh = ShellChildTabBarController()
         fresh.delegate = self
         fresh.view.backgroundColor = .black
-        fresh.view.isOpaque = true
         for vc in viewControllers { vc.removeFromParent() }
         fresh.setViewControllers(viewControllers, animated: false)
         if viewControllers.indices.contains(selectedIndex) {
