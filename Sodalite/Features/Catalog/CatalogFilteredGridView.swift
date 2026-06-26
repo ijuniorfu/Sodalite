@@ -81,8 +81,6 @@ struct CatalogFilteredGridView: View {
             }
         }
         .ignoresSafeArea(edges: .bottom)
-        // Own page background: presented as a full-screen cover now, so it can't inherit the root Color.black and would otherwise be see-through over the catalog.
-        .glassBackground()
         .hidesShellTabBar()
         .navigationDestination(item: $selectedMedia) { media in
             CatalogDetailView(media: media)

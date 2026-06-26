@@ -59,10 +59,11 @@ struct HomeView: View {
                         .tint(spinnerTint)
                 }
             }
-            .navigationDestination(item: $selectedItem) { item in
+            // Full-screen cover (over the tab bar) instead of a push: the bar is never hidden/removed, so it is never re-templated gray on return (tvOS 26). See detailCover.
+            .detailCover(item: $selectedItem) { item in
                 DetailRouterView(item: item)
             }
-            .navigationDestination(item: $selectedFilter) { filter in
+            .detailCover(item: $selectedFilter) { filter in
                 FilteredGridView(
                     title: filter.title,
                     query: filter.query,
