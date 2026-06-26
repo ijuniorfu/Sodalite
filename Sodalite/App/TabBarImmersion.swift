@@ -26,19 +26,26 @@ final class TabBarImmersion {
 
     private func apply() {
         let alpha: CGFloat = tokens.isEmpty ? 1 : 0
+        var found = 0
         for scene in UIApplication.shared.connectedScenes {
             guard let windowScene = scene as? UIWindowScene else { continue }
             for window in windowScene.windows {
-                Self.setTabBarAlpha(alpha, in: window)
+                found += Self.setTabBarAlpha(alpha, in: window)
             }
         }
+        // DIAG (temporary): confirm the window-walk actually finds the live UITabBar and that our alpha is the value set. If barsFound is 0 the walk is wrong; if barsFound>=1 yet the bar still grays on return, the gray is tvOS's own bar management, not our hide.
+        LogTap.shared.note("[Immersion] tokens=\(tokens.count) wantAlpha=\(alpha) barsFound=\(found)")
     }
 
-    private static func setTabBarAlpha(_ alpha: CGFloat, in view: UIView) {
+    @discardableResult
+    private static func setTabBarAlpha(_ alpha: CGFloat, in view: UIView) -> Int {
+        var n = 0
         if let tabBar = view as? UITabBar {
             UIView.performWithoutAnimation { tabBar.alpha = alpha }
+            n += 1
         }
-        for subview in view.subviews { setTabBarAlpha(alpha, in: subview) }
+        for subview in view.subviews { n += setTabBarAlpha(alpha, in: subview) }
+        return n
     }
 }
 
