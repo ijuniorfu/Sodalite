@@ -36,7 +36,7 @@ struct AlbumDetailView: View {
         }
         // Hide the top tab bar inside an album, matching movie/series/catalog detail (playlists via
         // DetailRouterView already hide it; this covers the music tab's album destination).
-        .toolbar(.hidden, for: .tabBar)
+        .hidesShellTabBar()
         .task {
             await viewModel.load(album: album, using: dependencies)
         }

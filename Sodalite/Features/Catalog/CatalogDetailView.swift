@@ -68,7 +68,7 @@ struct CatalogDetailView: View {
             content
         }
         .ignoresSafeArea()
-        .toolbar(.hidden, for: .tabBar)
+        .hidesShellTabBar()
         .navigationDestination(item: $navigateToMedia) { media in
             CatalogDetailView(media: media)
         }
@@ -236,47 +236,46 @@ struct CatalogDetailView: View {
 
     // MARK: - Request options sheet
 
+    // No ScrollView wrapper: a ScrollView root under-reports its height to a tvOS sheet, so the card is sized too short and the focused confirm button's halo (SettingsTileButtonStyle scale+shadow+stroke) gets clipped at the bottom edge. The content (title + a few advanced rows + button) always fits, so the sheet hugs the real VStack height instead.
     private var requestOptionsSheet: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 28) {
-                Text(displayTitle)
-                    .font(.title2)
-                    .fontWeight(.bold)
+        VStack(alignment: .leading, spacing: 28) {
+            Text(displayTitle)
+                .font(.title2)
+                .fontWeight(.bold)
 
-                // Empty for users without service options; confirm still submits with server defaults.
-                advancedOptionsSection
+            // Empty for users without service options; confirm still submits with server defaults.
+            advancedOptionsSection
 
-                Button {
-                    Task {
-                        await submitRequest()
-                        if didRequest { showRequestOptions = false }
-                    }
-                } label: {
-                    if isSubmitting {
-                        ProgressView()
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 14)
-                    } else {
-                        Label(requestButtonTitle, systemImage: "tray.and.arrow.down")
-                            .font(.body)
-                            .fontWeight(.semibold)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 14)
-                    }
+            Button {
+                Task {
+                    await submitRequest()
+                    if didRequest { showRequestOptions = false }
                 }
-                .buttonStyle(SettingsTileButtonStyle())
-                .disabled(isSubmitting || !canSubmit)
-
-                if let requestError {
-                    Text(requestError)
-                        .font(.caption)
-                        .foregroundStyle(.red)
+            } label: {
+                if isSubmitting {
+                    ProgressView()
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 14)
+                } else {
+                    Label(requestButtonTitle, systemImage: "tray.and.arrow.down")
+                        .font(.body)
+                        .fontWeight(.semibold)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 14)
                 }
             }
-            .padding(48)
-            .frame(maxWidth: 900, alignment: .leading)
-            .frame(maxWidth: .infinity)
+            .buttonStyle(SettingsTileButtonStyle())
+            .disabled(isSubmitting || !canSubmit)
+
+            if let requestError {
+                Text(requestError)
+                    .font(.caption)
+                    .foregroundStyle(.red)
+            }
         }
+        .padding(48)
+        .frame(maxWidth: 900, alignment: .leading)
+        .frame(maxWidth: .infinity)
     }
 
     // MARK: - Trailing (scrolls below the fold)

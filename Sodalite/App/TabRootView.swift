@@ -65,7 +65,7 @@ struct TabRootView: View {
                 }
             }
         }
-        // Rebuild the tab bar from scratch when the active server changes while TabRootView stays mounted (deleting the active server auto-promotes a survivor; isAuthenticated never drops, so the view isn't recreated). tvOS re-templates an on-screen tab bar's icons to its default gray in place and re-setting the appearance can't recover them; a fresh TabView gets a fresh UITabBar that reads the tinted appearance proxy at creation. A picker-driven switch already remounts TabRootView, so this is a no-op there. NOT mutating the live bar, so it avoids the _UIReplicantView hierarchy breakage a live appearance-walk caused.
+        // Fresh TabView (fresh UITabBar) when the active server changes while TabRootView stays mounted (deleting the active server auto-promotes a survivor; isAuthenticated never drops, so the view isn't recreated). A fresh bar reads the tinted appearance at creation. NOT bumped on detail return: detail immersion now alpha-hides the bar instead of removing it, so the bar is never re-templated gray and never needs a rebuild.
         .id(appState.activeServer?.id)
         .tint(iconColor)
         // Display-only active-profile badge; non-focusable, below the player cover, hidden unless the server has multiple profiles.
@@ -141,7 +141,7 @@ struct TabRootView: View {
             configureTabBarItemAppearance()
         }
         .onChange(of: availableTabs) { _, _ in
-            // Async Live TV / Music insertion rebuilds the UITabBar; re-apply next tick in case the new bar exists before the appearance proxy is consulted.
+            // Async Live TV / Music insertion rebuilds the UITabBar; re-apply the tint next tick once the new bar exists.
             DispatchQueue.main.async {
                 configureTabBarItemAppearance()
             }
@@ -180,7 +180,7 @@ struct TabRootView: View {
         }
     }
 
-    /// Tints tab-bar icons + titles via UITabBarAppearance.iconColor, NOT per-item .alwaysOriginal images: tvOS re-templates mid-session-inserted items (Live TV / Music) gray and discards baked images, but iconColor tells it which color to template TO so the accent survives a rebuild. Applied both via the .appearance() proxy (future bars) and a live-window walk (repaint on-screen, e.g. accent change).
+    /// Tints tab-bar icons + titles via UITabBarAppearance.iconColor at bar creation. NOT per-item .alwaysOriginal images: tvOS re-templates mid-session-inserted items (Live TV / Music) gray and discards baked images, but iconColor tells it which color to template TO. (The gray-on-detail-RETURN is a separate tvOS 26 issue, addressed by presenting details as a full-screen cover so the bar is never hidden/removed.)
     private func configureTabBarItemAppearance() {
         let tintUIColor = UIColor(iconColor)
 
@@ -207,17 +207,20 @@ struct TabRootView: View {
         for scene in UIApplication.shared.connectedScenes {
             guard let windowScene = scene as? UIWindowScene else { continue }
             for window in windowScene.windows {
-                Self.applyTabBarAppearance(appearance, in: window)
+                Self.applyTabBarAppearance(appearance, tint: tintUIColor, in: window)
             }
         }
     }
 
-    private static func applyTabBarAppearance(_ appearance: UITabBarAppearance, in view: UIView) {
+    private static func applyTabBarAppearance(_ appearance: UITabBarAppearance, tint: UIColor, in view: UIView) {
         if let tabBar = view as? UITabBar {
             tabBar.standardAppearance = appearance
+            // The appearance proxy only governs items at CREATION; recolor the live instance directly so an accent change repaints the on-screen bar.
+            tabBar.tintColor = tint
+            tabBar.unselectedItemTintColor = tint
         }
         for subview in view.subviews {
-            applyTabBarAppearance(appearance, in: subview)
+            applyTabBarAppearance(appearance, tint: tint, in: subview)
         }
     }
 
@@ -239,4 +242,3 @@ struct TabRootView: View {
         }
     }
 }
-

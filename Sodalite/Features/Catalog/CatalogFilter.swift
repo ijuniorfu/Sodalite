@@ -1,7 +1,10 @@
 import Foundation
 
 /// Selector for a Jellyseerr filtered-discover page (genre, network, studio); plumbed through CatalogFilteredGridView's navigation destination to pick the Seerr endpoint and title.
-enum CatalogFilter: Hashable, Sendable {
+enum CatalogFilter: Hashable, Sendable, Identifiable {
+    /// Stable id (the cache key) so the filter can drive a `fullScreenCover(item:)`.
+    var id: String { cacheKey }
+
     case movieGenre(id: Int, name: String)
     case tvGenre(id: Int, name: String)
     case movieStudio(id: Int, name: String)

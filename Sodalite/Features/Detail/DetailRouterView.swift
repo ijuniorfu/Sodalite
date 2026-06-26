@@ -29,6 +29,6 @@ struct DetailRouterView: View {
                 MovieDetailView(item: item)
             }
         }
-        .toolbar(.hidden, for: .tabBar)
+        .hidesShellTabBar()
     }
 }

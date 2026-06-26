@@ -56,6 +56,8 @@ struct SeriesDetailView: View {
     private enum FocusArea { case none, season, episode }
     /// Bridge season→episode writes the target episode id here; the episode-row ScrollViewReader scrolls it into the LazyHStack then writes focusedEpisodeID, since a focusedEpisodeID write for an unrendered card is a silent no-op (right-side-takes-two-clicks case).
     @State private var pendingEpisodeFocus: String?
+    /// Gates the isLoading crossfade so it stays inert during the cover's present transition (the viewModel is built lazily in onAppear, so isLoading flips while the fullScreenCover dissolves in and animating those flips reads as an ugly top-left fly-in). Same fix as MovieDetailView.
+    @State private var didSettleIn = false
 
     let item: JellyfinItem
     /// Seeds the preselected episode for an episode-route open (DetailRouterView .episode) so the panel paints from snapshot and the VM lands on the right season. nil for a normal series open.
@@ -204,7 +206,7 @@ struct SeriesDetailView: View {
                 .transition(.opacity)
             }
         }
-        .animation(.easeInOut(duration: 0.25), value: viewModel?.isLoading)
+        .animation(didSettleIn ? .easeInOut(duration: 0.25) : nil, value: viewModel?.isLoading)
         .ignoresSafeArea()
         .overlay {
             if let userID = appState.activeUser?.id {
@@ -324,6 +326,8 @@ struct SeriesDetailView: View {
                     }
                 }
             }
+            // Open the animation gate once the cover's present transition has settled.
+            deferOnMain(by: 0.35) { didSettleIn = true }
         }
         .onChange(of: viewModel?.isLoading) { _, loading in
             updateBackdropURL()

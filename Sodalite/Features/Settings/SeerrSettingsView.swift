@@ -53,7 +53,7 @@ struct SeerrSettingsView: View {
             }
         }
         .animation(.easeInOut(duration: 0.3), value: showSuccess)
-        .toolbar(.hidden, for: .tabBar)
+        .hidesShellTabBar()
         // Inline header only; floating tvOS nav-title sits behind scrolling content. Matches PlaybackSettingsView.
         .toolbar(.hidden, for: .navigationBar)
         .onAppear(perform: bootstrap)

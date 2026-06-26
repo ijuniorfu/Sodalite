@@ -48,10 +48,11 @@ struct CatalogView: View {
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
             }
-            .navigationDestination(item: $selectedMedia) { media in
+            // Present details as a full-screen cover (over the tab bar) instead of a push, so the bar is never hidden/removed and thus never re-templated gray on return (the tvOS 26 system bug). See detailCover.
+            .detailCover(item: $selectedMedia) { media in
                 CatalogDetailView(media: media)
             }
-            .navigationDestination(item: $selectedFilter) { filter in
+            .detailCover(item: $selectedFilter) { filter in
                 CatalogFilteredGridView(filter: filter)
             }
         }
@@ -135,7 +136,7 @@ struct CatalogView: View {
             // Quick-jump into Seerr setup so first-time users have a path forward; pushed inside Catalog's own NavigationStack so back returns to the tab.
             NavigationLink {
                 SeerrSettingsView()
-                    .toolbar(.hidden, for: .tabBar)
+                    .hidesShellTabBar()
             } label: {
                 Label {
                     Text(String(

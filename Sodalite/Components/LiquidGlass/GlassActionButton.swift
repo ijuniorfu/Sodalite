@@ -149,12 +149,17 @@ extension View {
 /// Forces a shared spring onto every transaction in the row so focus change + label reveal + all sibling shifts interpolate in one pass. `.transaction` (not preference-keyed `.animation(value:)`, which lagged a frame and let distant buttons snap) rides the focus change so the row reflows as a unit.
 private struct CollapsingActionRowModifier: ViewModifier {
     let collapses: Bool
+    /// Gates the forced animation off until the row has settled in. The transaction otherwise animates the row's FIRST layout too, which during a fullScreenCover present interpolated the buttons from their initial frame and read as a "fly in from the top". After settling, focus-change reflows animate as before.
+    @State private var settled = false
 
     func body(content: Content) -> some View {
         content
             .environment(\.collapsesActionButtonLabel, collapses)
             .transaction { txn in
-                txn.animation = .smooth(duration: 0.32)
+                txn.animation = settled ? .smooth(duration: 0.32) : nil
+            }
+            .onAppear {
+                deferOnMain(by: 0.35) { settled = true }
             }
     }
 }

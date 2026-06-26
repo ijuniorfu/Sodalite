@@ -67,7 +67,8 @@ struct LiveProgramsView: View {
             }
         }
         .task { await model.load() }
-        .sheet(item: $selection) { sel in
+        // Full-screen cover, NOT .sheet: a tvOS sheet leaves the tab bar visible behind it and tvOS 26 re-templates the backgrounded bar gray. The cover covers the bar so it is never disturbed.
+        .detailCover(item: $selection) { sel in
             ProgramInfoPopover(
                 program: sel.program, channel: sel.channel, tint: tint,
                 onWatchLive: onWatchLive,

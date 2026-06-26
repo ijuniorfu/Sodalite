@@ -23,10 +23,11 @@ struct SearchView: View {
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
             }
-            .navigationDestination(item: $selectedJellyfinItem) { item in
+            // Full-screen cover (over the tab bar) instead of a push: the bar is never hidden/removed, so it is never re-templated gray on return (tvOS 26). See detailCover.
+            .detailCover(item: $selectedJellyfinItem) { item in
                 DetailRouterView(item: item)
             }
-            .navigationDestination(item: $selectedSeerrMedia) { media in
+            .detailCover(item: $selectedSeerrMedia) { media in
                 CatalogDetailView(media: media)
             }
         }

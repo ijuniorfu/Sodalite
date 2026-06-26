@@ -23,7 +23,7 @@ struct HomeCustomizeView: View {
             .padding(.vertical, 40)
         }
         .navigationBarHidden(true)
-        .toolbar(.hidden, for: .tabBar)
+        .hidesShellTabBar()
         .onAppear {
             configs = HomeRowConfig.loadFromStorage(serverID: serverID)
             mergeCWNextUp = HomeRowConfig.mergeContinueWatchingNextUp(serverID: serverID)

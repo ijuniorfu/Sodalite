@@ -18,6 +18,8 @@ struct MovieDetailView: View {
     @State private var trailerItem: JellyfinItem?
     @State private var isPresentingDeleteSheet: Bool = false
     @FocusState private var playButtonFocused: Bool
+    /// Gates the isLoading crossfade so it stays inert during the cover's present transition. The viewModel is built lazily in onAppear, so isLoading flips several times (nil->false->true->false) WHILE the fullScreenCover is dissolving in; animating those flips interpolates the content's not-yet-laid-out frame (origin top-left) and reads as an ugly fly-in. Enabled ~0.35s after appear so the later, deliberate slow-server spinner->content fade still animates.
+    @State private var didSettleIn = false
 
     let item: JellyfinItem
 
@@ -46,7 +48,7 @@ struct MovieDetailView: View {
                 .transition(.opacity)
             }
         }
-        .animation(.easeInOut(duration: 0.25), value: viewModel?.isLoading)
+        .animation(didSettleIn ? .easeInOut(duration: 0.25) : nil, value: viewModel?.isLoading)
         .ignoresSafeArea()
         .overlay {
             if let userID = appState.activeUser?.id {
@@ -147,7 +149,7 @@ struct MovieDetailView: View {
         }
         .navigationDestination(item: $navigateToSeries) { series in
             SeriesDetailView(item: series)
-                .toolbar(.hidden, for: .tabBar)
+                .hidesShellTabBar()
         }
         .navigationDestination(item: $navigateToPerson) { route in
             PersonDetailView(personID: route.tmdbID, personName: route.name)
@@ -164,6 +166,8 @@ struct MovieDetailView: View {
                 )
                 Task { await viewModel?.loadFullDetail() }
             }
+            // Open the animation gate once the cover's present transition has settled.
+            deferOnMain(by: 0.35) { didSettleIn = true }
         }
         .sheet(isPresented: $isPresentingDeleteSheet) {
             if let vm = viewModel {
