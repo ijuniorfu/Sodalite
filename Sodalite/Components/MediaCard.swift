@@ -17,27 +17,17 @@ struct MediaCard: View {
     let isFocused: Bool
 
     @Environment(\.dependencies) private var dependencies
+    @Environment(\.horizontalSizeClass) private var hSizeClass
 
     /// Enlarge factor from Appearance settings (1.0 normal), applied to every style so rows stay proportional.
     private var scale: CGFloat { dependencies.appearancePreferences.cardScale }
 
-    private var cardWidth: CGFloat {
-        let base: CGFloat = switch style {
-        case .poster: 220
-        case .landscape: 360
-        case .square: 220
-        }
-        return base * scale
+    private var cardSize: CGSize {
+        let base = LayoutMetrics.current(hSizeClass).size(for: style)
+        return CGSize(width: base.width * scale, height: base.height * scale)
     }
-
-    private var cardHeight: CGFloat {
-        let base: CGFloat = switch style {
-        case .poster: 330
-        case .landscape: 202
-        case .square: 220
-        }
-        return base * scale
-    }
+    private var cardWidth: CGFloat { cardSize.width }
+    private var cardHeight: CGFloat { cardSize.height }
 
     init(
         item: JellyfinItem,

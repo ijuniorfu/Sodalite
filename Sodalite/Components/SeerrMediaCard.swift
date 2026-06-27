@@ -5,8 +5,9 @@ struct SeerrMediaCard: View {
     /// Passed by the caller (same pattern as `MediaCard`); drives the focus stroke.
     var isFocused: Bool = false
 
-    private let cardWidth: CGFloat = 220
-    private let cardHeight: CGFloat = 330
+    @Environment(\.horizontalSizeClass) private var hSizeClass
+    private var cardWidth: CGFloat { LayoutMetrics.current(hSizeClass).posterSize.width }
+    private var cardHeight: CGFloat { LayoutMetrics.current(hSizeClass).posterSize.height }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
