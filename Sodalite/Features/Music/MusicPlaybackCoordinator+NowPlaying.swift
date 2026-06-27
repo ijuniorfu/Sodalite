@@ -89,7 +89,7 @@ extension MusicPlaybackCoordinator {
     /// artwork slot is never empty. @Sendable handler (MediaPlayer requests the bitmap off the main actor). Built once.
     static let placeholderArtwork: MPMediaItemArtwork = {
         let size = CGSize(width: 600, height: 600)
-        let format = UIGraphicsImageRendererFormat.default()
+        let format = UIGraphicsImageRendererFormat.preferred()
         format.opaque = true
         let image = UIGraphicsImageRenderer(size: size, format: format).image { ctx in
             UIColor(white: 0.12, alpha: 1).setFill()
