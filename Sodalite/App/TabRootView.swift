@@ -114,6 +114,7 @@ struct TabRootView: View {
                         Image(systemName: "gearshape")
                             .font(.title3)
                             .padding(12)
+                            .glassEffect(.regular, in: Circle())
                     }
                     .buttonStyle(.plain)
                     .accessibilityLabel(Text("tab.settings"))
