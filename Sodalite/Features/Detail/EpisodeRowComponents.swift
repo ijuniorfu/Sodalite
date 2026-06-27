@@ -79,28 +79,32 @@ struct SeasonTabButtonStyle: ButtonStyle {
 struct EpisodeSkeletonCard: View {
     @State private var shimmer = false
 
+    @Environment(\.horizontalSizeClass) private var hSizeClass
+    private var cardSize: CGSize { LayoutMetrics.current(hSizeClass).landscapeSize }
+    private var synopsisWidth: CGFloat { cardSize.width - 28 }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             RoundedRectangle(cornerRadius: 12)
                 .fill(Color.Theme.surface)
-                .frame(width: 360, height: 202)
+                .frame(width: cardSize.width, height: cardSize.height)
                 .overlay(shimmerOverlay.clipShape(RoundedRectangle(cornerRadius: 12)))
 
             VStack(alignment: .leading, spacing: 6) {
                 RoundedRectangle(cornerRadius: 4)
                     .fill(Color.Theme.surface)
-                    .frame(width: 220, height: 14)
+                    .frame(width: min(220, cardSize.width), height: 14)
                 RoundedRectangle(cornerRadius: 4)
                     .fill(Color.Theme.surface)
-                    .frame(width: 90, height: 11)
+                    .frame(width: min(90, cardSize.width), height: 11)
             }
-            .frame(width: 360, alignment: .leading)
+            .frame(width: cardSize.width, alignment: .leading)
 
             // Synopsis placeholder at EpisodeSynopsisBox's three-line height so the row keeps its height on swap.
             Text(" ")
                 .font(.caption)
                 .lineLimit(3, reservesSpace: true)
-                .frame(width: 332, alignment: .topLeading)
+                .frame(width: synopsisWidth, alignment: .topLeading)
                 .padding(.horizontal, 14)
                 .padding(.vertical, 12)
                 .background(RoundedRectangle(cornerRadius: 12).fill(Color.Theme.surface))
@@ -120,7 +124,7 @@ struct EpisodeSkeletonCard: View {
             endPoint: .trailing
         )
         .frame(width: 180)
-        .offset(x: shimmer ? 360 : -180)
+        .offset(x: shimmer ? cardSize.width : -180)
     }
 }
 
@@ -135,6 +139,9 @@ struct EpisodeLandscapeCard: View {
 
     /// Passed explicitly so the badge live-updates from the VM override map (the immutable episode.userData wouldn't change in-session).
     var isPlayed: Bool = false
+
+    @Environment(\.horizontalSizeClass) private var hSizeClass
+    private var cardSize: CGSize { LayoutMetrics.current(hSizeClass).landscapeSize }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -152,7 +159,7 @@ struct EpisodeLandscapeCard: View {
                                 .foregroundStyle(.tertiary)
                         )
                 }
-                .frame(width: 360, height: 202)
+                .frame(width: cardSize.width, height: cardSize.height)
                 .clipShape(RoundedRectangle(cornerRadius: 12))
                 .overlay(
                     // Outer stroke (MediaCard pattern): no inner bite, leaves the progress bar fully visible.
@@ -172,7 +179,7 @@ struct EpisodeLandscapeCard: View {
                             }
                         }
                     }
-                    .frame(width: 360, height: 202)
+                    .frame(width: cardSize.width, height: cardSize.height)
                     .clipShape(RoundedRectangle(cornerRadius: 12))
                 }
 
@@ -184,7 +191,7 @@ struct EpisodeLandscapeCard: View {
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
                 }
             }
-            .frame(width: 360, height: 202)
+            .frame(width: cardSize.width, height: cardSize.height)
 
             VStack(alignment: .leading, spacing: 2) {
                 HStack(spacing: 6) {
@@ -205,7 +212,7 @@ struct EpisodeLandscapeCard: View {
                         .foregroundStyle(.tertiary)
                 }
             }
-            .frame(width: 360, alignment: .leading)
+            .frame(width: cardSize.width, alignment: .leading)
         }
     }
 
@@ -231,6 +238,10 @@ struct EpisodeSynopsisBox: View {
     @State private var showFullText = false
     @FocusState private var isFocused: Bool
 
+    @Environment(\.horizontalSizeClass) private var hSizeClass
+    /// Matches the episode card width (landscape art width minus the 14pt horizontal padding each side) so the synopsis column lines up under its card.
+    private var synopsisWidth: CGFloat { LayoutMetrics.current(hSizeClass).landscapeSize.width - 28 }
+
     private var hasText: Bool { !text.isEmpty }
 
     var body: some View {
@@ -247,7 +258,7 @@ struct EpisodeSynopsisBox: View {
             .foregroundStyle(.secondary)
             .lineLimit(3, reservesSpace: true)
             .multilineTextAlignment(.leading)
-            .frame(width: 332, alignment: .topLeading)
+            .frame(width: synopsisWidth, alignment: .topLeading)
             .padding(.horizontal, 14)
             .padding(.vertical, 12)
             .background(

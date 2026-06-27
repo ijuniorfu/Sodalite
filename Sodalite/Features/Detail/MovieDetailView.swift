@@ -4,6 +4,7 @@ struct MovieDetailView: View {
     @Environment(\.appState) private var appState
     @Environment(\.dependencies) private var dependencies
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.horizontalSizeClass) private var hSizeClass
     @State private var viewModel: DetailViewModel?
     @State private var navigateToSeries: JellyfinItem?
     @State private var navigateToItem: JellyfinItem?
@@ -27,6 +28,8 @@ struct MovieDetailView: View {
     private var canDelete: Bool {
         appState.activeUser?.canDeleteContent == true
     }
+
+    private var metrics: LayoutMetrics { LayoutMetrics.current(hSizeClass) }
 
     var body: some View {
         ZStack {
@@ -219,16 +222,16 @@ struct MovieDetailView: View {
                     glassPanel(vm: vm)
                     actionButtonRow(vm: vm)
                 }
-                .padding(.horizontal, 50)
+                .padding(.horizontal, metrics.rowInset)
                 .id(vm.item.genres?.first ?? vm.item.name)
             }) {
                 if let overview = vm.item.overview, !overview.isEmpty {
                     ExpandableTextBox(text: overview)
-                        .padding(.horizontal, 50)
+                        .padding(.horizontal, metrics.rowInset)
                 } else if !vm.hasFullDetail {
                     // Overview in flight after a snapshot paint: reserve the footprint (Sodalite#15).
                     ExpandableTextBoxPlaceholder()
-                        .padding(.horizontal, 50)
+                        .padding(.horizontal, metrics.rowInset)
                 }
 
                 if vm.item.mediaStreams != nil || vm.item.mediaSources != nil {
@@ -391,6 +394,7 @@ struct MovieDetailView: View {
             }
         }
         .collapsesActionButtonLabel()
+        .compactScrollableRow(hSizeClass)
     }
 
     // MARK: - Helpers

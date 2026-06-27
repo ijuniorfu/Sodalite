@@ -19,6 +19,10 @@ struct MediaDeletionSheet: View {
     /// Invoked on confirm; the sheet stays open until its async work completes (the sheet self-dismisses on success, see performDelete).
     let onConfirm: (DeletionRequest) async -> DeletionOutcome
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.horizontalSizeClass) private var hSizeClass
+
+    /// Tighter sheet inset on a phone so the footer buttons keep their full labels; tvOS/iPad keep the roomy 48pt plate.
+    private var contentInset: CGFloat { hSizeClass == .compact ? 24 : 48 }
 
     /// seasonItemIDs is empty for movie + entire-series.
     struct DeletionRequest {
@@ -58,14 +62,14 @@ struct MediaDeletionSheet: View {
 
                 footer
             }
-            .padding(48)
+            .padding(contentInset)
             .frame(maxWidth: 800)
 
             // Outcome toast; in-flight feedback is on the Delete button itself (GlassActionButton isLoading).
             if let toast = toast {
                 toastView(toast)
                     .padding(.bottom, 24)
-                    .padding(.horizontal, 48)
+                    .padding(.horizontal, contentInset)
                     .transition(.move(edge: .bottom).combined(with: .opacity))
             }
         }

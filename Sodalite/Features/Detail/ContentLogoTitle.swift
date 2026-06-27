@@ -42,13 +42,14 @@ struct ContentLogoTitle<Fallback: View>: View {
 
 /// Backdrop hero logo. Addressed by viewModel.item.id (the series id even for an episode-stub), so the logo loads on the first frame; reading viewModel.item keeps the text fallback in sync once the real name lands.
 struct DetailHeroLogo: View {
+    @Environment(\.horizontalSizeClass) private var hSizeClass
     let viewModel: DetailViewModel
     var maxHeight: CGFloat = 150
 
     var body: some View {
         ContentLogoTitle(
             itemID: viewModel.item.id,
-            maxHeight: maxHeight
+            maxHeight: hSizeClass == .compact ? 96 : maxHeight
         ) {
             Text(viewModel.item.name)
                 .font(.largeTitle)

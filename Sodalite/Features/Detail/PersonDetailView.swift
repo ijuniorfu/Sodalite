@@ -9,6 +9,7 @@ struct PersonDetailView: View {
     @Environment(\.appState) private var appState
     @Environment(\.dependencies) private var dependencies
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.horizontalSizeClass) private var hSizeClass
 
     @State private var detail: SeerrPersonDetail?
     @State private var credits: SeerrPersonCredits?
@@ -18,7 +19,16 @@ struct PersonDetailView: View {
     @State private var navigateToJellyfinItem: JellyfinItem?
     @State private var navigateToSeerrMedia: SeerrMedia?
 
-    private let columns = Array(repeating: GridItem(.fixed(220), spacing: 32), count: 5)
+    private var metrics: LayoutMetrics { LayoutMetrics.current(hSizeClass) }
+
+    /// tvOS keeps the fixed five-up filmography grid; iOS/iPadOS wrap to as many adaptive columns as the width fits (fixed-five overflows an iPad in portrait).
+    private var columns: [GridItem] {
+        #if os(tvOS)
+        return Array(repeating: GridItem(.fixed(220), spacing: 32), count: 5)
+        #else
+        return [GridItem(.adaptive(minimum: metrics.gridMinimum), spacing: metrics.gridSpacing)]
+        #endif
+    }
 
     var body: some View {
         content
@@ -58,43 +68,58 @@ struct PersonDetailView: View {
 
                     filmographySection
                 }
-                .padding(.horizontal, 80)
-                .padding(.vertical, 60)
+                .padding(.horizontal, hSizeClass == .compact ? metrics.gridInset : 80)
+                .padding(.vertical, hSizeClass == .compact ? 24 : 60)
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
         }
     }
 
     private var header: some View {
-        HStack(alignment: .top, spacing: 32) {
-            AsyncCachedImage(url: SeerrImageURL.profile(path: detail?.profilePath)) { image in
-                image
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-            } placeholder: {
-                ZStack {
-                    Circle().fill(.ultraThinMaterial)
-                    Text(initials)
-                        .font(.largeTitle)
-                        .fontWeight(.semibold)
-                        .foregroundStyle(.secondary)
-                }
-            }
-            .frame(width: 200, height: 200)
-            .clipShape(Circle())
-
-            VStack(alignment: .leading, spacing: 8) {
-                Text(displayName)
+        // Compact stacks the photo above the name so neither gets squeezed on a phone; wider tiers keep the side-by-side hero.
+        let photoSide: CGFloat = hSizeClass == .compact ? 140 : 200
+        let photo = AsyncCachedImage(url: SeerrImageURL.profile(path: detail?.profilePath)) { image in
+            image
+                .resizable()
+                .aspectRatio(contentMode: .fill)
+        } placeholder: {
+            ZStack {
+                Circle().fill(.ultraThinMaterial)
+                Text(initials)
                     .font(.largeTitle)
-                    .fontWeight(.bold)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .frame(width: photoSide, height: photoSide)
+        .clipShape(Circle())
 
-                if let dept = detail?.knownForDepartment, !dept.isEmpty {
-                    Text(verbatim: "\(String(localized: "person.knownFor", defaultValue: "Known for")): \(dept)")
-                        .font(.headline)
-                        .foregroundStyle(.secondary)
+        let nameBlock = VStack(alignment: .leading, spacing: 8) {
+            Text(displayName)
+                .font(.largeTitle)
+                .fontWeight(.bold)
+
+            if let dept = detail?.knownForDepartment, !dept.isEmpty {
+                Text(verbatim: "\(String(localized: "person.knownFor", defaultValue: "Known for")): \(dept)")
+                    .font(.headline)
+                    .foregroundStyle(.secondary)
+            }
+        }
+
+        return Group {
+            if hSizeClass == .compact {
+                VStack(alignment: .leading, spacing: 16) {
+                    photo
+                    nameBlock
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            } else {
+                HStack(alignment: .top, spacing: 32) {
+                    photo
+                    nameBlock
+                    Spacer(minLength: 0)
                 }
             }
-            Spacer(minLength: 0)
         }
     }
 
@@ -118,7 +143,7 @@ struct PersonDetailView: View {
                     .buttonStyle(SettingsTileButtonStyle())
                 }
             } else {
-                LazyVGrid(columns: columns, spacing: 40) {
+                LazyVGrid(columns: columns, spacing: metrics.gridSpacing) {
                     // stableKey, not Identifiable's id: a filmography mixes
                     // movie and tv credits whose TMDB ids can collide.
                     ForEach(filmography, id: \.stableKey) { media in
@@ -162,7 +187,7 @@ struct PersonDetailView: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .padding(.horizontal, 80)
+        .padding(.horizontal, hSizeClass == .compact ? metrics.gridInset : 80)
     }
 
     // MARK: - Derived

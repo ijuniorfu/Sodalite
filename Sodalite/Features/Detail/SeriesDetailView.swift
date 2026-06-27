@@ -4,6 +4,7 @@ struct SeriesDetailView: View {
     @Environment(\.appState) private var appState
     @Environment(\.dependencies) private var dependencies
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.horizontalSizeClass) private var hSizeClass
     @State private var viewModel: DetailViewModel?
     @State private var selectedEpisode: JellyfinItem?
     /// Episode IDs whose enrichedEpisode fetch settled; gates the episode-mode synopsis placeholder so an overview-less episode collapses the box instead of reserving it forever.
@@ -37,6 +38,8 @@ struct SeriesDetailView: View {
     private var canDelete: Bool {
         appState.activeUser?.canDeleteContent == true
     }
+
+    private var metrics: LayoutMetrics { LayoutMetrics.current(hSizeClass) }
 
     private func deletionSeasonOptions(from seasons: [JellyfinItem]) -> [MediaDeletionSheet.SeasonOption] {
         seasons.map { season in
@@ -129,7 +132,7 @@ struct SeriesDetailView: View {
                         glassPanel(vm: vm)
                         actionButtonRow(vm: vm)
                     }
-                    .padding(.horizontal, 50)
+                    .padding(.horizontal, metrics.rowInset)
                     // Keyed on item + load state only, NOT genre count: on an instant-paint episode deep-link the series genres land post-paint, flipping the count rebuilt the panel and broke scroll-to-top back to Play. Genres fill in via in-place diff.
                     .id("\(vm.item.id)-\(vm.isLoading)")
                     .animation(.easeInOut(duration: 0.3), value: selectedEpisode?.id)
@@ -140,18 +143,18 @@ struct SeriesDetailView: View {
                             // Navigable synopsis box, both modes; a top-level item keyed on item id renders reliably on data-land, unlike an in-panel teaser the ScrollView left blank until a scroll.
                             if let overview = displayOverview {
                                 ExpandableTextBox(text: overview)
-                                    .padding(.horizontal, 50)
+                                    .padding(.horizontal, metrics.rowInset)
                                     .id(displayItem.id)
                             } else if !isShowingEpisode && !vm.hasFullDetail {
                                 // Slim-snapshot paint, overview in flight: reserve the footprint so it doesn't pop in and shove the season row down (Sodalite#15).
                                 ExpandableTextBoxPlaceholder()
-                                    .padding(.horizontal, 50)
+                                    .padding(.horizontal, metrics.rowInset)
                             } else if isShowingEpisode, let ep = selectedEpisode,
                                       ep.mediaStreams == nil, ep.mediaSources == nil,
                                       !settledEpisodeDetailIDs.contains(ep.id) {
                                 // Episode-mode slim snapshot, overview may still land (Sodalite#15). The mediaStreams/mediaSources guard mirrors the enrichment trigger: an episode already carrying streams is fully detailed, so a missing overview is final.
                                 ExpandableTextBoxPlaceholder()
-                                    .padding(.horizontal, 50)
+                                    .padding(.horizontal, metrics.rowInset)
                             }
 
                             if !vm.seasons.isEmpty {
@@ -622,6 +625,7 @@ struct SeriesDetailView: View {
             }
         }
         .collapsesActionButtonLabel()
+        .compactScrollableRow(hSizeClass)
     }
 
     /// Patch the open episode panel's resume position when the played item is selectedEpisode (issue #24). selectedEpisode lives on the view not the VM, and playTarget prioritises it, so applyPlaybackPosition can't reach it. No-op unless the id matches.
@@ -734,7 +738,7 @@ struct SeriesDetailView: View {
                         }
                     }
                     // Focus scale 1.05 needs vertical slack or the halo clips against the scroll-view edges.
-                    .padding(.horizontal, 50)
+                    .padding(.horizontal, metrics.rowInset)
                     .padding(.vertical, 12)
                 }
                 .onChange(of: focusedSeasonID) { oldID, newID in
@@ -811,7 +815,7 @@ struct SeriesDetailView: View {
             } else if !vm.episodes.isEmpty {
                 ScrollViewReader { episodeProxy in
                     ScrollView(.horizontal, showsIndicators: false) {
-                        LazyHStack(spacing: 24) {
+                        LazyHStack(spacing: hSizeClass == .compact ? metrics.itemSpacing : 24) {
                             ForEach(vm.episodes) { episode in
                                 VStack(alignment: .leading, spacing: 10) {
                                     Button {
@@ -886,7 +890,7 @@ struct SeriesDetailView: View {
                                 .id(episode.id)
                             }
                         }
-                        .padding(.horizontal, 50)
+                        .padding(.horizontal, metrics.rowInset)
                         .padding(.vertical, 16)
                     }
                     .onChange(of: vm.selectedSeasonID) { _, _ in
@@ -945,7 +949,7 @@ struct SeriesDetailView: View {
                         .frame(width: 110, height: 52)
                 }
             }
-            .padding(.horizontal, 50)
+            .padding(.horizontal, metrics.rowInset)
             .padding(.vertical, 12)
 
             episodeSkeletonRow(vm: vm)
@@ -958,12 +962,12 @@ struct SeriesDetailView: View {
         let seasonCount = vm.seasons.first(where: { $0.id == vm.selectedSeasonID })?.childCount
         let count = min(max(seasonCount ?? 6, 3), 10)
         return ScrollView(.horizontal, showsIndicators: false) {
-            LazyHStack(spacing: 24) {
+            LazyHStack(spacing: hSizeClass == .compact ? metrics.itemSpacing : 24) {
                 ForEach(0..<count, id: \.self) { _ in
                     EpisodeSkeletonCard()
                 }
             }
-            .padding(.horizontal, 50)
+            .padding(.horizontal, metrics.rowInset)
             .padding(.vertical, 16)
         }
         .allowsHitTesting(false)

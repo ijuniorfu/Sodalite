@@ -3,6 +3,7 @@ import SwiftUI
 struct CollectionDetailView: View {
     @Environment(\.appState) private var appState
     @Environment(\.dependencies) private var dependencies
+    @Environment(\.horizontalSizeClass) private var hSizeClass
     @State private var viewModel: DetailViewModel?
     @State private var selectedItem: JellyfinItem?
     @State private var showPlayer = false
@@ -10,6 +11,8 @@ struct CollectionDetailView: View {
     @State private var playQueue: [JellyfinItem] = []
 
     let item: JellyfinItem
+
+    private var metrics: LayoutMetrics { LayoutMetrics.current(hSizeClass) }
 
     var body: some View {
         Group {
@@ -76,11 +79,11 @@ struct CollectionDetailView: View {
                     glassPanel(vm: vm)
                     actionButtonRow(vm: vm)
                 }
-                .padding(.horizontal, 50)
+                .padding(.horizontal, metrics.rowInset)
             }) {
                 if let overview = vm.item.overview, !overview.isEmpty {
                     ExpandableTextBox(text: overview)
-                        .padding(.horizontal, 50)
+                        .padding(.horizontal, metrics.rowInset)
                 }
 
                 if !vm.collectionItems.isEmpty {
@@ -148,6 +151,7 @@ struct CollectionDetailView: View {
             )
         }
         .collapsesActionButtonLabel()
+        .compactScrollableRow(hSizeClass)
     }
 
     // MARK: - Collection Items (vertical list)
@@ -157,7 +161,7 @@ struct CollectionDetailView: View {
             Text("detail.collection.items")
                 .font(.title3)
                 .fontWeight(.semibold)
-                .padding(.horizontal, 50)
+                .padding(.horizontal, metrics.rowInset)
 
             VStack(spacing: 12) {
                 ForEach(vm.collectionItems) { movie in
@@ -168,7 +172,7 @@ struct CollectionDetailView: View {
                     )
                 }
             }
-            .padding(.horizontal, 50)
+            .padding(.horizontal, metrics.rowInset)
         }
     }
 }

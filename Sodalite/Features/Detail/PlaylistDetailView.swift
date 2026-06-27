@@ -3,6 +3,7 @@ import SwiftUI
 struct PlaylistDetailView: View {
     @Environment(\.appState) private var appState
     @Environment(\.dependencies) private var dependencies
+    @Environment(\.horizontalSizeClass) private var hSizeClass
     @State private var viewModel: DetailViewModel?
     @State private var selectedItem: JellyfinItem?
     @State private var showPlayer = false
@@ -10,6 +11,8 @@ struct PlaylistDetailView: View {
     @State private var playQueue: [JellyfinItem] = []
 
     let item: JellyfinItem
+
+    private var metrics: LayoutMetrics { LayoutMetrics.current(hSizeClass) }
 
     var body: some View {
         Group {
@@ -79,11 +82,11 @@ struct PlaylistDetailView: View {
                     glassPanel(vm: vm)
                     actionButtonRow(vm: vm)
                 }
-                .padding(.horizontal, 50)
+                .padding(.horizontal, metrics.rowInset)
             }) {
                 if let overview = vm.item.overview, !overview.isEmpty {
                     ExpandableTextBox(text: overview)
-                        .padding(.horizontal, 50)
+                        .padding(.horizontal, metrics.rowInset)
                 }
 
                 if !videoItems(vm).isEmpty {
@@ -151,6 +154,7 @@ struct PlaylistDetailView: View {
             )
         }
         .collapsesActionButtonLabel()
+        .compactScrollableRow(hSizeClass)
     }
 
     // MARK: - Playlist Items (vertical list)
@@ -160,7 +164,7 @@ struct PlaylistDetailView: View {
             Text("detail.collection.items")
                 .font(.title3)
                 .fontWeight(.semibold)
-                .padding(.horizontal, 50)
+                .padding(.horizontal, metrics.rowInset)
 
             VStack(spacing: 12) {
                 ForEach(videoItems(vm)) { media in
@@ -171,7 +175,7 @@ struct PlaylistDetailView: View {
                     )
                 }
             }
-            .padding(.horizontal, 50)
+            .padding(.horizontal, metrics.rowInset)
         }
     }
 }

@@ -46,6 +46,19 @@ func jellyfinCastMembers(
     }
 }
 
+extension View {
+    /// Wraps a crowded action-button row in a horizontal scroll on compact width so it can't
+    /// clip the prominent Play button off-screen. tvOS/iPad (regular) keep the static row.
+    @ViewBuilder
+    func compactScrollableRow(_ sizeClass: UserInterfaceSizeClass?) -> some View {
+        if sizeClass == .compact {
+            ScrollView(.horizontal, showsIndicators: false) { self }
+        } else {
+            self
+        }
+    }
+}
+
 /// Two full-width baseline-aligned rows for the detail glass panels: metadata + tagline (row one), genres + studios (row two), so left/right columns sit level instead of drifting as two independent stacks (Sodalite#15 round 6 follow-up). Left cells take layout priority and never truncate; right cells get leftover width, trailing-anchored, truncate first. While detail is in flight the right cells hold skeleton bars so the panel doesn't grow when tagline/studios land. Director/writer deliberately absent (already in the cast row, and they squeezed studios out of its width).
 struct DetailInfoRows<LeftPrimary: View, LeftSecondary: View>: View {
     let item: JellyfinItem
