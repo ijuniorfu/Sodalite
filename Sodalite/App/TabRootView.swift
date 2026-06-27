@@ -107,9 +107,21 @@ struct TabRootView: View {
         .tint(iconColor)
         // Display-only active-profile badge; non-focusable, below the player cover, hidden unless the server has multiple profiles.
         .overlay(alignment: .topTrailing) {
-            HStack(spacing: 8) {
-                #if os(iOS)
-                if hSizeClass == .compact {
+            // tvOS / iPad: floating badge in the corner. iPhone moves the badge into the
+            // reserved top inset alongside the gear (below), so nothing floats over content.
+            #if os(iOS)
+            if hSizeClass != .compact { ActiveUserBadge() }
+            #else
+            ActiveUserBadge()
+            #endif
+        }
+        #if os(iOS)
+        // iPhone: a reserved top-trailing strip so the gear sits cleanly in the corner and
+        // content never slides under it (mirrors the bottom tab-bar / search chrome).
+        .safeAreaInset(edge: .top, alignment: .trailing, spacing: 0) {
+            if hSizeClass == .compact {
+                HStack(spacing: 8) {
+                    ActiveUserBadge()
                     Button { showSettings = true } label: {
                         Image(systemName: "gearshape")
                             .font(.title3)
@@ -119,11 +131,10 @@ struct TabRootView: View {
                     .buttonStyle(.plain)
                     .accessibilityLabel(Text("tab.settings"))
                 }
-                #endif
-                ActiveUserBadge()
+                .padding(.trailing, 16)
+                .padding(.top, 4)
             }
         }
-        #if os(iOS)
         .sheet(isPresented: $showSettings) {
             SettingsView()
         }
