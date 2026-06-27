@@ -9,26 +9,29 @@ struct DetailBackdrop: View {
     @Environment(\.horizontalSizeClass) private var hSizeClass
     @Environment(\.verticalSizeClass) private var vSizeClass
 
-    /// iPhone portrait prefers the portrait poster as a full-bleed hero (fills the tall screen
-    /// better than a cropped landscape backdrop). tvOS/iPad and iPhone landscape keep the backdrop.
-    private var prefersPoster: Bool {
+    /// iPhone portrait uses the portrait poster as a full-bleed hero. vSizeClass != .compact (rather
+    /// than == .regular) treats the unresolved first frame as portrait. tvOS/iPad and iPhone
+    /// landscape keep the landscape backdrop.
+    private var isPhonePortrait: Bool {
         #if os(iOS)
-        // vSizeClass != .compact (rather than == .regular) treats the unresolved first frame as
-        // portrait, so the poster is chosen immediately instead of flashing the landscape backdrop.
-        hSizeClass == .compact && vSizeClass != .compact && posterFallbackURL != nil
+        hSizeClass == .compact && vSizeClass != .compact
         #else
         false
         #endif
     }
 
     private var heroURL: URL? {
-        prefersPoster ? posterFallbackURL : (imageURL ?? posterFallbackURL)
+        // Portrait phone shows the poster ONLY, never the landscape backdrop, so a not-yet-loaded
+        // poster (e.g. an episode's series stub) shows a neutral placeholder instead of flashing a
+        // stretched 16:9 backdrop.
+        if isPhonePortrait { return posterFallbackURL }
+        return imageURL ?? posterFallbackURL
     }
 
-    /// Blur only the landscape-fallback poster (upscaled into a wide area). A real backdrop, or
-    /// the portrait poster hero, fills naturally and stays sharp.
+    /// Blur only the landscape-fallback poster (upscaled into a wide area). A real backdrop, or the
+    /// portrait poster hero, fills naturally and stays sharp.
     private var usesPosterFill: Bool {
-        imageURL == nil && posterFallbackURL != nil && !prefersPoster
+        imageURL == nil && posterFallbackURL != nil && !isPhonePortrait
     }
 
     var body: some View {

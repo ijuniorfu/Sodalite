@@ -94,11 +94,12 @@ struct DetailInfoRows<LeftPrimary: View, LeftSecondary: View>: View {
             // Phone: a single leading column with the metadata in a no-wrap horizontal scroll, so
             // values never break mid-token ("2 Std. 32 Min.") or stack vertically in the tight panel.
             VStack(alignment: .leading, spacing: 6) {
-                ScrollView(.horizontal, showsIndicators: false) {
-                    leftPrimary().fixedSize()
-                }
+                leftPrimary()
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
                 if hasLeftSecondary {
                     leftSecondary()
+                        .lineLimit(1)
                 }
                 if let studios {
                     styled(studios)

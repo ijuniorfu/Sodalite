@@ -477,6 +477,12 @@ final class DetailViewModel {
         imageService.posterURL(for: item)
     }
 
+    /// High-resolution poster for the full-bleed portrait hero. The default posterURL is 400px wide
+    /// (card-sized) and looks upscaled/pixelated filling a phone screen.
+    func heroPosterURL(for item: JellyfinItem) -> URL? {
+        imageService.posterURL(for: item, maxWidth: 1290)
+    }
+
     func backdropURL(for item: JellyfinItem) -> URL? {
         imageService.backdropURL(for: item)
     }

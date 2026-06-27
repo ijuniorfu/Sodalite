@@ -5,6 +5,7 @@ struct SeriesDetailView: View {
     @Environment(\.dependencies) private var dependencies
     @Environment(\.dismiss) private var dismiss
     @Environment(\.horizontalSizeClass) private var hSizeClass
+    @Environment(\.verticalSizeClass) private var vSizeClass
     @State private var viewModel: DetailViewModel?
     @State private var selectedEpisode: JellyfinItem?
     /// Episode IDs whose enrichedEpisode fetch settled; gates the episode-mode synopsis placeholder so an overview-less episode collapses the box instead of reserving it forever.
@@ -40,6 +41,14 @@ struct SeriesDetailView: View {
     }
 
     private var metrics: LayoutMetrics { LayoutMetrics.current(hSizeClass) }
+    /// iPhone portrait: full-width primary action over a centered secondary row.
+    private var isPhonePortrait: Bool {
+        #if os(iOS)
+        hSizeClass == .compact && vSizeClass != .compact
+        #else
+        false
+        #endif
+    }
 
     private func deletionSeasonOptions(from seasons: [JellyfinItem]) -> [MediaDeletionSheet.SeasonOption] {
         seasons.map { season in
@@ -116,7 +125,7 @@ struct SeriesDetailView: View {
             if let vm = viewModel, !vm.isLoading {
                 DetailBackdrop(
                     imageURL: backdropURL,
-                    posterFallbackURL: vm.posterURL(for: vm.item)
+                    posterFallbackURL: vm.heroPosterURL(for: vm.item)
                 )
                     .id(backdropURL?.absoluteString ?? "empty")
                     .transition(.opacity)
@@ -485,24 +494,49 @@ struct SeriesDetailView: View {
 
     /// Button row below the glass panel, outside it (Sodalite#15 round 6) so the plate stays a compact metadata card; each GlassActionButton carries its own material so the row needs no plate.
     private func actionButtonRow(vm: DetailViewModel) -> some View {
-        HStack(spacing: 16) {
-            GlassActionButton(
-                title: playTitle(vm: vm),
-                systemImage: "play.fill",
-                isProminent: true,
-                subtitle: playButtonSubtitle(vm: vm),
-                progressFraction: playProgressFraction(vm: vm),
-                // Spinner until a concrete play target: avoids the "Abspielen" → "Fortsetzen + S1E5 · 12:34" repaint when getNextUp lands a few hundred ms after appear.
-                isLoading: playTarget(vm: vm) == nil,
-                action: {
-                    let ep = playTarget(vm: vm)
-                    if let ep {
-                        requestPlay(ep, fromBeginning: false, fromPlayButton: true)
+        Group {
+            if isPhonePortrait {
+                VStack(spacing: 12) {
+                    primaryActionButton(vm: vm)
+                        .frame(maxWidth: .infinity)
+                    HStack(spacing: 16) {
+                        secondaryActionButtons(vm: vm)
                     }
+                    .collapsesActionButtonLabel()
+                    .frame(maxWidth: .infinity)
                 }
-            )
-            .focused($playButtonFocused)
+            } else {
+                HStack(spacing: 16) {
+                    primaryActionButton(vm: vm)
+                    secondaryActionButtons(vm: vm)
+                }
+                .collapsesActionButtonLabel()
+                .compactScrollableRow(hSizeClass)
+            }
+        }
+    }
 
+    private func primaryActionButton(vm: DetailViewModel) -> some View {
+        GlassActionButton(
+            title: playTitle(vm: vm),
+            systemImage: "play.fill",
+            isProminent: true,
+            subtitle: playButtonSubtitle(vm: vm),
+            progressFraction: playProgressFraction(vm: vm),
+            // Spinner until a concrete play target: avoids the "Abspielen" → "Fortsetzen + S1E5 · 12:34" repaint when getNextUp lands a few hundred ms after appear.
+            isLoading: playTarget(vm: vm) == nil,
+            action: {
+                let ep = playTarget(vm: vm)
+                if let ep {
+                    requestPlay(ep, fromBeginning: false, fromPlayButton: true)
+                }
+            }
+        )
+        .focused($playButtonFocused)
+    }
+
+    @ViewBuilder
+    private func secondaryActionButtons(vm: DetailViewModel) -> some View {
             // Shuffle whole series (server SortBy=Random scoped by series id). Hidden in the episode panel.
             if !isShowingEpisode {
                 GlassActionButton(
@@ -623,9 +657,6 @@ struct SeriesDetailView: View {
                     action: { isPresentingDeleteSheet = true }
                 )
             }
-        }
-        .collapsesActionButtonLabel()
-        .compactScrollableRow(hSizeClass)
     }
 
     /// Patch the open episode panel's resume position when the played item is selectedEpisode (issue #24). selectedEpisode lives on the view not the VM, and playTarget prioritises it, so applyPlaybackPosition can't reach it. No-op unless the id matches.

@@ -219,7 +219,7 @@ struct MovieDetailView: View {
         ZStack {
             DetailBackdrop(
                 imageURL: vm.backdropURL(for: vm.item),
-                posterFallbackURL: vm.posterURL(for: vm.item)
+                posterFallbackURL: vm.heroPosterURL(for: vm.item)
             )
                 .id(vm.item.backdropImageTags?.first ?? "empty")
 
