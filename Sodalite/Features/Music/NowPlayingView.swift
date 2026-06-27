@@ -55,6 +55,21 @@ private struct NowPlayingContent: View {
             .padding(.vertical, 60)
         }
         .ignoresSafeArea()
+        #if os(iOS)
+        // tvOS dismisses via the Menu button; iOS needs a visible touch close so playing
+        // music (which suppresses the auto-dismiss-on-stop) is never a dead-end.
+        .overlay(alignment: .topLeading) {
+            Button {
+                dismiss()
+            } label: {
+                Image(systemName: "chevron.down")
+                    .font(.title2.weight(.semibold))
+                    .padding()
+            }
+            .buttonStyle(.plain)
+            .padding(.top, 8)
+        }
+        #endif
         // Foreground, the Siri Remote play/pause arrives as a UIPress on the responder chain, NOT via
         // MPRemoteCommandCenter (that fires only from Control Center / background). Handle it here.
         .onPlayPauseCommandCompat {

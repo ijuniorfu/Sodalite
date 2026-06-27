@@ -164,6 +164,21 @@ struct AppRouter: View {
             NavigationStack {
                 DetailRouterView(item: item)
             }
+            #if os(iOS)
+            // tvOS dismisses this deep-link cover via the Menu button; iOS needs a touch
+            // close. Floating overlay (not a toolbar) because detail views hide the nav bar.
+            .overlay(alignment: .topLeading) {
+                Button {
+                    deepLinkItem = nil
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.title)
+                        .symbolRenderingMode(.hierarchical)
+                        .padding()
+                }
+                .buttonStyle(.plain)
+            }
+            #endif
         }
         .fullScreenCover(isPresented: $showNowPlaying) {
             NowPlayingView()
