@@ -10,15 +10,18 @@ struct SeerrHorizontalMediaRow: View {
     // Paginate a few items before the end so new cards land before focus reaches them.
     private let prefetchThreshold = 5
 
+    @Environment(\.horizontalSizeClass) private var hSizeClass
+    private var metrics: LayoutMetrics { LayoutMetrics.current(hSizeClass) }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text(title)
                 .font(.title3)
                 .fontWeight(.semibold)
-                .padding(.horizontal, 50)
+                .padding(.horizontal, metrics.rowInset)
 
             ScrollView(.horizontal, showsIndicators: false) {
-                LazyHStack(spacing: 30) {
+                LazyHStack(spacing: metrics.itemSpacing) {
                     // stableKey not id: TMDB ids collide across movie/tv (trending mixes both); duplicate ForEach ids cause ghost cards and focus jumps.
                     ForEach(Array(items.enumerated()), id: \.element.stableKey) { index, media in
                         FocusableCard {
@@ -35,11 +38,11 @@ struct SeerrHorizontalMediaRow: View {
 
                     if isLoadingMore {
                         ProgressView()
-                            .frame(width: 120, height: 330)
+                            .frame(width: metrics.posterSize.width, height: metrics.posterSize.height)
                     }
                 }
-                .padding(.horizontal, 50)
-                .padding(.vertical, 20)
+                .padding(.horizontal, metrics.rowInset)
+                .padding(.vertical, metrics.rowVerticalPadding)
             }
         }
     }

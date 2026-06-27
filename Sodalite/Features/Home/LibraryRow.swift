@@ -6,23 +6,26 @@ struct LibraryRow: View {
     let libraries: [JellyfinLibrary]
     let onSelect: (JellyfinLibrary) -> Void
 
+    @Environment(\.horizontalSizeClass) private var hSizeClass
+    private var metrics: LayoutMetrics { LayoutMetrics.current(hSizeClass) }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text(titleKey)
                 .font(.title3)
                 .fontWeight(.semibold)
-                .padding(.horizontal, 50)
+                .padding(.horizontal, metrics.rowInset)
 
             ScrollView(.horizontal, showsIndicators: false) {
-                LazyHStack(spacing: 30) {
+                LazyHStack(spacing: metrics.itemSpacing) {
                     ForEach(libraries) { library in
                         LibraryTile(library: library) {
                             onSelect(library)
                         }
                     }
                 }
-                .padding(.horizontal, 50)
-                .padding(.vertical, 20)
+                .padding(.horizontal, metrics.rowInset)
+                .padding(.vertical, metrics.rowVerticalPadding)
             }
         }
     }
@@ -32,9 +35,10 @@ private struct LibraryTile: View {
     let library: JellyfinLibrary
     let action: () -> Void
 
+    @Environment(\.horizontalSizeClass) private var hSizeClass
     // Match .landscape MediaCard dimensions so My Media tiles line up with the rows above.
-    private let width: CGFloat = 360
-    private let height: CGFloat = 202
+    private var width: CGFloat { LayoutMetrics.current(hSizeClass).landscapeSize.width }
+    private var height: CGFloat { LayoutMetrics.current(hSizeClass).landscapeSize.height }
 
     var body: some View {
         FocusableCard(action: action) { isFocused in

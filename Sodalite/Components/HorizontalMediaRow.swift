@@ -11,6 +11,9 @@ struct HorizontalMediaRow: View {
     var onItemSelected: ((JellyfinItem) -> Void)?
     var cardStyle: MediaCardStyle = .poster
 
+    @Environment(\.horizontalSizeClass) private var hSizeClass
+    private var metrics: LayoutMetrics { LayoutMetrics.current(hSizeClass) }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Group {
@@ -22,10 +25,10 @@ struct HorizontalMediaRow: View {
             }
             .font(.title3)
             .fontWeight(.semibold)
-            .padding(.horizontal, 50)
+            .padding(.horizontal, metrics.rowInset)
 
             ScrollView(.horizontal, showsIndicators: false) {
-                LazyHStack(spacing: 30) {
+                LazyHStack(spacing: metrics.itemSpacing) {
                     ForEach(items) { item in
                         FocusableCard {
                             onItemSelected?(item)
@@ -40,8 +43,8 @@ struct HorizontalMediaRow: View {
                         }
                     }
                 }
-                .padding(.horizontal, 50)
-                .padding(.vertical, 20)
+                .padding(.horizontal, metrics.rowInset)
+                .padding(.vertical, metrics.rowVerticalPadding)
             }
         }
     }
