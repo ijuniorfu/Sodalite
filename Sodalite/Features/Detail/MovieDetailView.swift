@@ -61,7 +61,9 @@ struct MovieDetailView: View {
             }
         }
         .animation(didSettleIn ? .easeInOut(duration: 0.25) : nil, value: viewModel?.isLoading)
-        .ignoresSafeArea()
+        // iPhone portrait respects the safe area so detail content is not clipped under the status
+        // bar; the backdrop keeps its own .ignoresSafeArea() to stay full-bleed. tvOS/iPad full-bleed.
+        .ignoresSafeArea(when: !isPhonePortrait)
         .overlay {
             if let userID = appState.activeUser?.id {
                 PlayerLauncher(
@@ -222,6 +224,7 @@ struct MovieDetailView: View {
                 posterFallbackURL: vm.heroPosterURL(for: vm.item)
             )
                 .id(vm.item.backdropImageTags?.first ?? "empty")
+                .ignoresSafeArea()
 
             DetailContentOverlay(hero: {
                 DetailHeroLogo(viewModel: vm)

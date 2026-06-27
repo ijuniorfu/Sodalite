@@ -29,8 +29,9 @@ struct ContentLogoTitle<Fallback: View>: View {
             image
                 .resizable()
                 .aspectRatio(contentMode: .fit)
-                .frame(maxHeight: maxHeight, alignment: .leading)
-                .frame(maxWidth: .infinity, alignment: .leading)
+                // One frame bounding BOTH width and height so a wide logo (e.g. "Emily in Paris")
+                // scales down to fit the available width instead of overflowing and clipping right.
+                .frame(maxWidth: .infinity, maxHeight: maxHeight, alignment: .leading)
         } placeholder: {
             fallback()
         }
