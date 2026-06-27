@@ -5,6 +5,8 @@ struct CatalogDetailView: View {
     @Environment(\.appState) private var appState
     @Environment(\.dependencies) private var dependencies
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.horizontalSizeClass) private var hSizeClass
+    @Environment(\.verticalSizeClass) private var vSizeClass
 
     @State private var movieDetail: SeerrMovieDetail?
     @State private var tvDetail: SeerrTVDetail?
@@ -57,17 +59,27 @@ struct CatalogDetailView: View {
     /// Result of the Jellyfin library cross-check. .unknown degrades to trusting Seerr; never a false .absent.
     private enum JellyfinPresence: Equatable { case unknown, present, absent }
 
+    private var metrics: LayoutMetrics { LayoutMetrics.current(hSizeClass) }
+    private var isPhonePortrait: Bool {
+        #if os(iOS)
+        hSizeClass == .compact && vSizeClass != .compact
+        #else
+        false
+        #endif
+    }
+
     var body: some View {
         ZStack {
             DetailBackdrop(
                 imageURL: SeerrImageURL.backdrop(path: backdropPath),
-                posterFallbackURL: SeerrImageURL.poster(path: media.posterPath)
+                posterFallbackURL: SeerrImageURL.poster(path: media.posterPath, size: .w780)
             )
                 .id(backdropPath ?? "empty")
+                .ignoresSafeArea()
 
             content
         }
-        .ignoresSafeArea()
+        .ignoresSafeArea(when: !isPhonePortrait)
         .hidesShellTabBar()
         .navigationDestination(item: $navigateToMedia) { media in
             CatalogDetailView(media: media)
@@ -166,7 +178,7 @@ struct CatalogDetailView: View {
             metadataBubble
             requestActionRow
         }
-        .padding(.horizontal, 50)
+        .padding(.horizontal, metrics.rowInset)
     }
 
     /// Metadata in a frosted bubble (matching Home detail views); left edge at the primary padding (50), aligned with hero title and request button.
@@ -187,7 +199,7 @@ struct CatalogDetailView: View {
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(30)
+        .padding(isPhonePortrait ? 16 : 30)
         .background(
             RoundedRectangle(cornerRadius: 20)
                 .fill(.ultraThinMaterial)
@@ -215,6 +227,7 @@ struct CatalogDetailView: View {
                 )
                 .focused($focusedField, equals: .request)
                 .disabled(isSubmitting)
+                .frame(maxWidth: isPhonePortrait ? .infinity : nil)
 
                 if let requestError {
                     Text(requestError)
@@ -296,12 +309,12 @@ struct CatalogDetailView: View {
                         selectedCastMember = member
                     }
                 }
-                .padding(.horizontal, -50)
+                .padding(.horizontal, -metrics.rowInset)
             }
 
             if !regionWatchProviders.isEmpty {
                 SeerrWatchProvidersRow(providers: regionWatchProviders)
-                    .padding(.horizontal, -50)
+                    .padding(.horizontal, -metrics.rowInset)
             }
 
             if !recommendations.isEmpty {
@@ -310,10 +323,10 @@ struct CatalogDetailView: View {
                     items: recommendations,
                     onItemSelected: { navigateToMedia = $0 }
                 )
-                .padding(.horizontal, -50)
+                .padding(.horizontal, -metrics.rowInset)
             }
         }
-        .padding(.horizontal, 50)
+        .padding(.horizontal, metrics.rowInset)
     }
 
     @ViewBuilder

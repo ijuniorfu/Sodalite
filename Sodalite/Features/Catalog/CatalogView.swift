@@ -57,6 +57,9 @@ struct CatalogView: View {
             .detailCover(item: $selectedFilter) { filter in
                 CatalogFilteredGridView(filter: filter)
             }
+            #if os(iOS)
+            .glassBackground()
+            #endif
         }
         .onAppear(perform: bootstrap)
         .onChange(of: selectedSection) { _, newValue in

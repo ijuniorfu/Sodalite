@@ -306,6 +306,9 @@ struct TabRootView: View {
         // padding reliably repositions content, including screens rooted in a NavigationStack
         // (Catalog/Search/...) which ignore a parent safeAreaInset and so would overlap.
         .padding(.top, hSizeClass == .compact ? Self.gearChromeHeight : 0)
+        // Frosted glass behind every tab screen (Home/Library/Catalog/Search/Music) so they read as
+        // glass like the secondary pages instead of dead black on the iOS root. tvOS unchanged.
+        .glassBackground()
         #endif
     }
 

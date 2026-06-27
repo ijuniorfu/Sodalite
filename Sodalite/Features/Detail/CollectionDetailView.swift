@@ -3,6 +3,8 @@ import SwiftUI
 struct CollectionDetailView: View {
     @Environment(\.appState) private var appState
     @Environment(\.dependencies) private var dependencies
+    @Environment(\.horizontalSizeClass) private var hSizeClass
+    @Environment(\.verticalSizeClass) private var vSizeClass
     @State private var viewModel: DetailViewModel?
     @State private var selectedItem: JellyfinItem?
     @State private var showPlayer = false
@@ -10,6 +12,15 @@ struct CollectionDetailView: View {
     @State private var playQueue: [JellyfinItem] = []
 
     let item: JellyfinItem
+
+    private var metrics: LayoutMetrics { LayoutMetrics.current(hSizeClass) }
+    private var isPhonePortrait: Bool {
+        #if os(iOS)
+        hSizeClass == .compact && vSizeClass != .compact
+        #else
+        false
+        #endif
+    }
 
     var body: some View {
         Group {
@@ -20,7 +31,7 @@ struct CollectionDetailView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
-        .ignoresSafeArea()
+        .ignoresSafeArea(when: !isPhonePortrait)
         .overlay {
             if let userID = appState.activeUser?.id {
                 PlayerLauncher(
@@ -67,8 +78,9 @@ struct CollectionDetailView: View {
         ZStack {
             DetailBackdrop(
                 imageURL: vm.backdropURL(for: vm.item),
-                posterFallbackURL: vm.posterURL(for: vm.item)
+                posterFallbackURL: vm.heroPosterURL(for: vm.item)
             )
+            .ignoresSafeArea()
 
             DetailContentOverlay(primary: {
                 // Glass panel + action buttons as the bottom-aligned first-page block, matching movie/series detail (Sodalite#15 round 6).
@@ -76,11 +88,11 @@ struct CollectionDetailView: View {
                     glassPanel(vm: vm)
                     actionButtonRow(vm: vm)
                 }
-                .padding(.horizontal, 50)
+                .padding(.horizontal, metrics.rowInset)
             }) {
                 if let overview = vm.item.overview, !overview.isEmpty {
                     ExpandableTextBox(text: overview)
-                        .padding(.horizontal, 50)
+                        .padding(.horizontal, metrics.rowInset)
                 }
 
                 if !vm.collectionItems.isEmpty {
@@ -104,7 +116,7 @@ struct CollectionDetailView: View {
                     .foregroundStyle(.secondary)
             }
         }
-        .padding(30)
+        .padding(isPhonePortrait ? 16 : 30)
         .background(
             RoundedRectangle(cornerRadius: 20)
                 .fill(.ultraThinMaterial)
@@ -114,40 +126,67 @@ struct CollectionDetailView: View {
     /// Button row directly below the glass panel, outside the plate,
     /// matching the movie and series detail views.
     private func actionButtonRow(vm: DetailViewModel) -> some View {
-        HStack(spacing: 16) {
-            GlassActionButton(
-                title: "detail.play",
-                systemImage: "play.fill",
-                isProminent: true,
-                action: {
-                    if let first = vm.collectionItems.first {
-                        selectedItem = first
+        Group {
+            if isPhonePortrait {
+                VStack(spacing: 12) {
+                    primaryActionButton(vm: vm)
+                        .frame(maxWidth: .infinity)
+                    ViewThatFits(in: .horizontal) {
+                        HStack(spacing: 16) { secondaryActionButtons(vm: vm) }
+                            .collapsesActionButtonLabel()
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 16) { secondaryActionButtons(vm: vm) }
+                                .collapsesActionButtonLabel()
+                        }
                     }
+                    .frame(maxWidth: .infinity)
                 }
-            )
-
-            GlassActionButton(
-                title: "action.shuffle",
-                systemImage: "shuffle",
-                action: {
-                    // Members already loaded; shuffle client-side, filtered to playable leaf types so a nested series can't seed an unplayable queue entry.
-                    let queue = vm.collectionItems
-                        .filter { $0.type == .movie || $0.type == .episode }
-                        .shuffled()
-                    guard let first = queue.first else { return }
-                    playItem = first
-                    playQueue = queue
-                    showPlayer = true
+            } else {
+                HStack(spacing: 16) {
+                    primaryActionButton(vm: vm)
+                    secondaryActionButtons(vm: vm)
                 }
-            )
-
-            GlassActionButton(
-                title: vm.isFavorite ? "detail.unfavorite" : "detail.favorite",
-                systemImage: vm.isFavorite ? "heart.fill" : "heart",
-                action: { Task { await vm.toggleFavorite() } }
-            )
+                .collapsesActionButtonLabel()
+                .compactScrollableRow(hSizeClass)
+            }
         }
-        .collapsesActionButtonLabel()
+    }
+
+    private func primaryActionButton(vm: DetailViewModel) -> some View {
+        GlassActionButton(
+            title: "detail.play",
+            systemImage: "play.fill",
+            isProminent: true,
+            action: {
+                if let first = vm.collectionItems.first {
+                    selectedItem = first
+                }
+            }
+        )
+    }
+
+    @ViewBuilder
+    private func secondaryActionButtons(vm: DetailViewModel) -> some View {
+        GlassActionButton(
+            title: "action.shuffle",
+            systemImage: "shuffle",
+            action: {
+                // Members already loaded; shuffle client-side, filtered to playable leaf types so a nested series can't seed an unplayable queue entry.
+                let queue = vm.collectionItems
+                    .filter { $0.type == .movie || $0.type == .episode }
+                    .shuffled()
+                guard let first = queue.first else { return }
+                playItem = first
+                playQueue = queue
+                showPlayer = true
+            }
+        )
+
+        GlassActionButton(
+            title: vm.isFavorite ? "detail.unfavorite" : "detail.favorite",
+            systemImage: vm.isFavorite ? "heart.fill" : "heart",
+            action: { Task { await vm.toggleFavorite() } }
+        )
     }
 
     // MARK: - Collection Items (vertical list)
@@ -157,7 +196,7 @@ struct CollectionDetailView: View {
             Text("detail.collection.items")
                 .font(.title3)
                 .fontWeight(.semibold)
-                .padding(.horizontal, 50)
+                .padding(.horizontal, metrics.rowInset)
 
             VStack(spacing: 12) {
                 ForEach(vm.collectionItems) { movie in
@@ -168,7 +207,7 @@ struct CollectionDetailView: View {
                     )
                 }
             }
-            .padding(.horizontal, 50)
+            .padding(.horizontal, metrics.rowInset)
         }
     }
 }
@@ -266,10 +305,7 @@ struct CollectionRowButtonStyle: ButtonStyle {
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .background(
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(isFocused ? .white.opacity(0.12) : .white.opacity(0.05))
-            )
+            .background(rowBackground)
             .overlay(
                 RoundedRectangle(cornerRadius: 12)
                     .strokeBorder(.tint, lineWidth: 3)
@@ -277,5 +313,19 @@ struct CollectionRowButtonStyle: ButtonStyle {
             )
             .scaleEffect(isFocused ? 1.02 : 1.0)
             .animation(.easeInOut(duration: 0.15), value: isFocused)
+    }
+
+    // iOS has no focus engine, so the faint white fill is nearly invisible over a bright poster
+    // backdrop; use a glass material for readability (matching the detail bubbles). tvOS keeps the
+    // focus-driven white fill.
+    @ViewBuilder
+    private var rowBackground: some View {
+        #if os(iOS)
+        RoundedRectangle(cornerRadius: 12)
+            .fill(.ultraThinMaterial)
+        #else
+        RoundedRectangle(cornerRadius: 12)
+            .fill(isFocused ? .white.opacity(0.12) : .white.opacity(0.05))
+        #endif
     }
 }

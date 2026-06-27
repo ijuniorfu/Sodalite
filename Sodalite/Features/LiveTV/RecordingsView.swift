@@ -4,6 +4,7 @@ import SwiftUI
 /// launch the normal VOD player.
 struct RecordingsView: View {
     @Environment(\.dependencies) private var dependencies
+    @Environment(\.horizontalSizeClass) private var hSizeClass
     let model: RecordingsViewModel
     let tint: Color
 
@@ -12,16 +13,27 @@ struct RecordingsView: View {
     @State private var recordingToDelete: JellyfinItem?
 
     private var imageService: JellyfinImageService { dependencies.jellyfinImageService }
+    private var metrics: LayoutMetrics { LayoutMetrics.current(hSizeClass) }
+
+    /// tvOS/iPad keep the fixed 4-column grid; compact goes adaptive so landscape tiles fit ~2-up
+    /// on a phone (the poster-scaled gridMinimum would pack three cramped columns).
+    private var recordingColumns: [GridItem] {
+        if hSizeClass == .compact {
+            [GridItem(.adaptive(minimum: 160), spacing: metrics.gridSpacing, alignment: .leading)]
+        } else {
+            Array(repeating: GridItem(.flexible(), spacing: 32), count: 4)
+        }
+    }
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 40) {
+            VStack(alignment: .leading, spacing: hSizeClass == .compact ? 28 : 40) {
                 recordingsSection
                 scheduledSection
                 seriesSection
             }
-            .padding(.horizontal, 80)
-            .padding(.vertical, 40)
+            .padding(.horizontal, hSizeClass == .compact ? metrics.gridInset : 80)
+            .padding(.vertical, hSizeClass == .compact ? 24 : 40)
         }
         .task { await model.load() }
         .overlay {
@@ -75,8 +87,8 @@ struct RecordingsView: View {
         if model.recordings.isEmpty && !model.isLoading {
             Text("livetv.recordings.empty").foregroundStyle(.secondary)
         } else {
-            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 32), count: 4),
-                      alignment: .leading, spacing: 32) {
+            LazyVGrid(columns: recordingColumns,
+                      alignment: .leading, spacing: hSizeClass == .compact ? metrics.gridSpacing : 32) {
                 ForEach(model.recordings) { item in
                     RecordingCard(
                         item: item,
@@ -153,8 +165,14 @@ private struct RecordingCard: View {
     let onPlay: () -> Void
     let onDelete: () -> Void
 
+    @Environment(\.horizontalSizeClass) private var hSizeClass
     @FocusState private var focused: Bool
     @FocusState private var deleteFocused: Bool
+
+    /// tvOS keeps the 180pt backdrop; compact uses the phone landscape height so tiles aren't oversized.
+    private var imageHeight: CGFloat {
+        hSizeClass == .compact ? LayoutMetrics.current(hSizeClass).landscapeSize.height : 180
+    }
 
     /// "92 min" runtime; JellyfinItem has no display-ready date (premiereDate is a raw string), so runtime stands in.
     private var runtimeLabel: String? {
@@ -172,7 +190,7 @@ private struct RecordingCard: View {
                 } placeholder: {
                     Rectangle().fill(Color.white.opacity(0.08))
                 }
-                .frame(height: 180)
+                .frame(height: imageHeight)
                 .clipShape(RoundedRectangle(cornerRadius: 10))
                 .overlay(
                     RoundedRectangle(cornerRadius: 10)

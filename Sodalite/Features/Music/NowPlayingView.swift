@@ -3,12 +3,15 @@ import SwiftUI
 // MARK: - NowPlayingView
 
 struct NowPlayingView: View {
+    /// Explicit close from the presenter (AppRouter flips its showNowPlaying binding). More reliable
+    /// than @Environment(\.dismiss) for this coordinator-driven fullScreenCover; falls back to dismiss.
+    var onClose: (() -> Void)? = nil
     @Environment(\.dismiss) private var dismiss
     @Environment(\.dependencies) private var dependencies
 
     var body: some View {
         let coordinator = dependencies.musicPlaybackCoordinator
-        NowPlayingContent(coordinator: coordinator, dismiss: dismiss)
+        NowPlayingContent(coordinator: coordinator, close: onClose ?? { dismiss() })
     }
 }
 
@@ -18,9 +21,10 @@ struct NowPlayingView: View {
 /// outlive the view tree.
 private struct NowPlayingContent: View {
     let coordinator: MusicPlaybackCoordinator
-    let dismiss: DismissAction
+    let close: () -> Void
 
     @Environment(\.dependencies) private var dependencies
+    @Environment(\.horizontalSizeClass) private var hSizeClass
 
     /// Transport-row focus, so default focus lands on Play/Pause.
     @FocusState private var transportFocus: TransportButton?
@@ -35,38 +39,26 @@ private struct NowPlayingContent: View {
 
             backgroundArt
 
-            HStack(alignment: .center, spacing: 80) {
-                VStack(spacing: 32) {
-                    albumCover
-                    transportRow
-                    progressRow
-                }
-                .frame(width: 560)
-
-                VStack(alignment: .leading, spacing: 28) {
-                    trackMetadata
-                    ScrollView(.vertical, showsIndicators: false) {
-                        queueList
-                    }
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-            }
-            .padding(.horizontal, 80)
-            .padding(.vertical, 60)
+            contentLayout
         }
-        .ignoresSafeArea()
+        // tvOS overscans behind the system safe area (manual padding handles the margin); on a phone
+        // the content must respect the safe area so the cover/transport clear the notch and home bar.
+        .modifier(FullBleedSafeArea(active: hSizeClass != .compact))
         #if os(iOS)
         // tvOS dismisses via the Menu button; iOS needs a visible touch close so playing
         // music (which suppresses the auto-dismiss-on-stop) is never a dead-end.
         .overlay(alignment: .topLeading) {
             Button {
-                dismiss()
+                close()
             } label: {
                 Image(systemName: "chevron.down")
                     .font(.title2.weight(.semibold))
-                    .padding()
+                    .padding(14)
+                    .glassEffect(.regular, in: Circle())
+                    .contentShape(Circle())
             }
             .buttonStyle(.plain)
+            .padding(.leading, 16)
             .padding(.top, 8)
         }
         #endif
@@ -78,11 +70,95 @@ private struct NowPlayingContent: View {
         }
         // Auto-dismiss when playback stops (queue cleared / video handoff)
         .onChange(of: coordinator.currentItem == nil) { _, stopped in
-            if stopped { dismiss() }
+            if stopped { close() }
         }
         .onAppear {
             transportFocus = .playPause
         }
+    }
+
+    // MARK: - Layout
+
+    /// Compact (iPhone) stacks everything in one vertical scroll so nothing is cut off; the regular
+    /// (tvOS / iPad) tier keeps the side-by-side cover + queue layout.
+    @ViewBuilder
+    private var contentLayout: some View {
+        if hSizeClass == .compact {
+            ScrollView {
+                VStack(spacing: 28) {
+                    albumCover
+                    trackMetadata
+                    progressRow
+                    transportRow
+                    queueList
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.horizontal, contentHPadding)
+                .padding(.vertical, contentVPadding)
+            }
+        } else {
+            HStack(alignment: .center, spacing: wideSpacing) {
+                VStack(spacing: 32) {
+                    albumCover
+                    transportRow
+                    progressRow
+                }
+                .frame(width: wideColumnWidth)
+
+                VStack(alignment: .leading, spacing: 28) {
+                    trackMetadata
+                    ScrollView(.vertical, showsIndicators: false) {
+                        queueList
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .padding(.horizontal, contentHPadding)
+            .padding(.vertical, contentVPadding)
+        }
+    }
+
+    private var coverSide: CGFloat {
+        if hSizeClass == .compact { return 280 }
+        #if os(tvOS)
+        return 520
+        #else
+        return 360
+        #endif
+    }
+
+    private var wideColumnWidth: CGFloat {
+        #if os(tvOS)
+        return 560
+        #else
+        return 400
+        #endif
+    }
+
+    private var wideSpacing: CGFloat {
+        #if os(tvOS)
+        return 80
+        #else
+        return 48
+        #endif
+    }
+
+    private var contentHPadding: CGFloat {
+        if hSizeClass == .compact { return 20 }
+        #if os(tvOS)
+        return 80
+        #else
+        return 40
+        #endif
+    }
+
+    private var contentVPadding: CGFloat {
+        if hSizeClass == .compact { return 24 }
+        #if os(tvOS)
+        return 60
+        #else
+        return 40
+        #endif
     }
 
     // MARK: - Background art
@@ -127,7 +203,7 @@ private struct NowPlayingContent: View {
                         .foregroundStyle(.tertiary)
                 )
         }
-        .frame(width: 520, height: 520)
+        .frame(width: coverSide, height: coverSide)
         .clipShape(RoundedRectangle(cornerRadius: 24))
         .shadow(color: .black.opacity(0.55), radius: 40, y: 16)
     }
@@ -449,6 +525,22 @@ private struct QueueTrackNameStyle: ViewModifier {
             content.foregroundStyle(.tint)
         } else {
             content.foregroundStyle(focused ? Color.white : Color.primary)
+        }
+    }
+}
+
+// MARK: - FullBleedSafeArea
+
+/// Applies `.ignoresSafeArea()` only when active, so the regular tier keeps its full-bleed overscan
+/// layout while compact lets the scroll content sit inside the safe area.
+private struct FullBleedSafeArea: ViewModifier {
+    let active: Bool
+
+    func body(content: Content) -> some View {
+        if active {
+            content.ignoresSafeArea()
+        } else {
+            content
         }
     }
 }

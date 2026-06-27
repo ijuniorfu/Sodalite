@@ -4,6 +4,8 @@ struct SeriesDetailView: View {
     @Environment(\.appState) private var appState
     @Environment(\.dependencies) private var dependencies
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.horizontalSizeClass) private var hSizeClass
+    @Environment(\.verticalSizeClass) private var vSizeClass
     @State private var viewModel: DetailViewModel?
     @State private var selectedEpisode: JellyfinItem?
     /// Episode IDs whose enrichedEpisode fetch settled; gates the episode-mode synopsis placeholder so an overview-less episode collapses the box instead of reserving it forever.
@@ -36,6 +38,16 @@ struct SeriesDetailView: View {
     /// EnableContentDeletion (or admin) on the active user; read reactively from AppState.activeUser so a profile switch updates visibility without a manual refresh.
     private var canDelete: Bool {
         appState.activeUser?.canDeleteContent == true
+    }
+
+    private var metrics: LayoutMetrics { LayoutMetrics.current(hSizeClass) }
+    /// iPhone portrait: full-width primary action over a centered secondary row.
+    private var isPhonePortrait: Bool {
+        #if os(iOS)
+        hSizeClass == .compact && vSizeClass != .compact
+        #else
+        false
+        #endif
     }
 
     private func deletionSeasonOptions(from seasons: [JellyfinItem]) -> [MediaDeletionSheet.SeasonOption] {
@@ -113,9 +125,10 @@ struct SeriesDetailView: View {
             if let vm = viewModel, !vm.isLoading {
                 DetailBackdrop(
                     imageURL: backdropURL,
-                    posterFallbackURL: vm.posterURL(for: vm.item)
+                    posterFallbackURL: vm.heroPosterURL(for: vm.item)
                 )
                     .id(backdropURL?.absoluteString ?? "empty")
+                    .ignoresSafeArea()
                     .transition(.opacity)
             }
 
@@ -129,7 +142,7 @@ struct SeriesDetailView: View {
                         glassPanel(vm: vm)
                         actionButtonRow(vm: vm)
                     }
-                    .padding(.horizontal, 50)
+                    .padding(.horizontal, metrics.rowInset)
                     // Keyed on item + load state only, NOT genre count: on an instant-paint episode deep-link the series genres land post-paint, flipping the count rebuilt the panel and broke scroll-to-top back to Play. Genres fill in via in-place diff.
                     .id("\(vm.item.id)-\(vm.isLoading)")
                     .animation(.easeInOut(duration: 0.3), value: selectedEpisode?.id)
@@ -140,18 +153,18 @@ struct SeriesDetailView: View {
                             // Navigable synopsis box, both modes; a top-level item keyed on item id renders reliably on data-land, unlike an in-panel teaser the ScrollView left blank until a scroll.
                             if let overview = displayOverview {
                                 ExpandableTextBox(text: overview)
-                                    .padding(.horizontal, 50)
+                                    .padding(.horizontal, metrics.rowInset)
                                     .id(displayItem.id)
                             } else if !isShowingEpisode && !vm.hasFullDetail {
                                 // Slim-snapshot paint, overview in flight: reserve the footprint so it doesn't pop in and shove the season row down (Sodalite#15).
                                 ExpandableTextBoxPlaceholder()
-                                    .padding(.horizontal, 50)
+                                    .padding(.horizontal, metrics.rowInset)
                             } else if isShowingEpisode, let ep = selectedEpisode,
                                       ep.mediaStreams == nil, ep.mediaSources == nil,
                                       !settledEpisodeDetailIDs.contains(ep.id) {
                                 // Episode-mode slim snapshot, overview may still land (Sodalite#15). The mediaStreams/mediaSources guard mirrors the enrichment trigger: an episode already carrying streams is fully detailed, so a missing overview is final.
                                 ExpandableTextBoxPlaceholder()
-                                    .padding(.horizontal, 50)
+                                    .padding(.horizontal, metrics.rowInset)
                             }
 
                             if !vm.seasons.isEmpty {
@@ -207,7 +220,9 @@ struct SeriesDetailView: View {
             }
         }
         .animation(didSettleIn ? .easeInOut(duration: 0.25) : nil, value: viewModel?.isLoading)
-        .ignoresSafeArea()
+        // iPhone portrait respects the safe area so detail content is not clipped under the status
+        // bar; the backdrop keeps its own .ignoresSafeArea() to stay full-bleed. tvOS/iPad full-bleed.
+        .ignoresSafeArea(when: !isPhonePortrait)
         .overlay {
             if let userID = appState.activeUser?.id {
                 PlayerLauncher(
@@ -425,6 +440,8 @@ struct SeriesDetailView: View {
                     .font(.largeTitle)
                     .fontWeight(.bold)
                     .lineLimit(2)
+                    .multilineTextAlignment(isPhonePortrait ? .center : .leading)
+                    .frame(maxWidth: .infinity, alignment: isPhonePortrait ? .center : .leading)
             }
 
             // Metadata+tagline row one, genres+credits row two, baseline-aligned so columns sit level; series-level tagline/crew/studios in both modes so the episode panel matches the root.
@@ -482,24 +499,55 @@ struct SeriesDetailView: View {
 
     /// Button row below the glass panel, outside it (Sodalite#15 round 6) so the plate stays a compact metadata card; each GlassActionButton carries its own material so the row needs no plate.
     private func actionButtonRow(vm: DetailViewModel) -> some View {
-        HStack(spacing: 16) {
-            GlassActionButton(
-                title: playTitle(vm: vm),
-                systemImage: "play.fill",
-                isProminent: true,
-                subtitle: playButtonSubtitle(vm: vm),
-                progressFraction: playProgressFraction(vm: vm),
-                // Spinner until a concrete play target: avoids the "Abspielen" → "Fortsetzen + S1E5 · 12:34" repaint when getNextUp lands a few hundred ms after appear.
-                isLoading: playTarget(vm: vm) == nil,
-                action: {
-                    let ep = playTarget(vm: vm)
-                    if let ep {
-                        requestPlay(ep, fromBeginning: false, fromPlayButton: true)
+        Group {
+            if isPhonePortrait {
+                VStack(spacing: 12) {
+                    primaryActionButton(vm: vm)
+                        .frame(maxWidth: .infinity)
+                    // Centered when the secondary buttons fit the width, horizontally scrollable when
+                    // they don't, so a button-heavy item is never clipped on both edges.
+                    ViewThatFits(in: .horizontal) {
+                        HStack(spacing: 16) { secondaryActionButtons(vm: vm) }
+                            .collapsesActionButtonLabel()
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 16) { secondaryActionButtons(vm: vm) }
+                                .collapsesActionButtonLabel()
+                        }
                     }
+                    .frame(maxWidth: .infinity)
                 }
-            )
-            .focused($playButtonFocused)
+            } else {
+                HStack(spacing: 16) {
+                    primaryActionButton(vm: vm)
+                    secondaryActionButtons(vm: vm)
+                }
+                .collapsesActionButtonLabel()
+                .compactScrollableRow(hSizeClass)
+            }
+        }
+    }
 
+    private func primaryActionButton(vm: DetailViewModel) -> some View {
+        GlassActionButton(
+            title: playTitle(vm: vm),
+            systemImage: "play.fill",
+            isProminent: true,
+            subtitle: playButtonSubtitle(vm: vm),
+            progressFraction: playProgressFraction(vm: vm),
+            // Spinner until a concrete play target: avoids the "Abspielen" → "Fortsetzen + S1E5 · 12:34" repaint when getNextUp lands a few hundred ms after appear.
+            isLoading: playTarget(vm: vm) == nil,
+            action: {
+                let ep = playTarget(vm: vm)
+                if let ep {
+                    requestPlay(ep, fromBeginning: false, fromPlayButton: true)
+                }
+            }
+        )
+        .focused($playButtonFocused)
+    }
+
+    @ViewBuilder
+    private func secondaryActionButtons(vm: DetailViewModel) -> some View {
             // Shuffle whole series (server SortBy=Random scoped by series id). Hidden in the episode panel.
             if !isShowingEpisode {
                 GlassActionButton(
@@ -620,8 +668,6 @@ struct SeriesDetailView: View {
                     action: { isPresentingDeleteSheet = true }
                 )
             }
-        }
-        .collapsesActionButtonLabel()
     }
 
     /// Patch the open episode panel's resume position when the played item is selectedEpisode (issue #24). selectedEpisode lives on the view not the VM, and playTarget prioritises it, so applyPlaybackPosition can't reach it. No-op unless the id matches.
@@ -734,7 +780,7 @@ struct SeriesDetailView: View {
                         }
                     }
                     // Focus scale 1.05 needs vertical slack or the halo clips against the scroll-view edges.
-                    .padding(.horizontal, 50)
+                    .padding(.horizontal, metrics.rowInset)
                     .padding(.vertical, 12)
                 }
                 .onChange(of: focusedSeasonID) { oldID, newID in
@@ -811,7 +857,7 @@ struct SeriesDetailView: View {
             } else if !vm.episodes.isEmpty {
                 ScrollViewReader { episodeProxy in
                     ScrollView(.horizontal, showsIndicators: false) {
-                        LazyHStack(spacing: 24) {
+                        LazyHStack(spacing: hSizeClass == .compact ? metrics.itemSpacing : 24) {
                             ForEach(vm.episodes) { episode in
                                 VStack(alignment: .leading, spacing: 10) {
                                     Button {
@@ -886,7 +932,7 @@ struct SeriesDetailView: View {
                                 .id(episode.id)
                             }
                         }
-                        .padding(.horizontal, 50)
+                        .padding(.horizontal, metrics.rowInset)
                         .padding(.vertical, 16)
                     }
                     .onChange(of: vm.selectedSeasonID) { _, _ in
@@ -945,7 +991,7 @@ struct SeriesDetailView: View {
                         .frame(width: 110, height: 52)
                 }
             }
-            .padding(.horizontal, 50)
+            .padding(.horizontal, metrics.rowInset)
             .padding(.vertical, 12)
 
             episodeSkeletonRow(vm: vm)
@@ -958,12 +1004,12 @@ struct SeriesDetailView: View {
         let seasonCount = vm.seasons.first(where: { $0.id == vm.selectedSeasonID })?.childCount
         let count = min(max(seasonCount ?? 6, 3), 10)
         return ScrollView(.horizontal, showsIndicators: false) {
-            LazyHStack(spacing: 24) {
+            LazyHStack(spacing: hSizeClass == .compact ? metrics.itemSpacing : 24) {
                 ForEach(0..<count, id: \.self) { _ in
                     EpisodeSkeletonCard()
                 }
             }
-            .padding(.horizontal, 50)
+            .padding(.horizontal, metrics.rowInset)
             .padding(.vertical, 16)
         }
         .allowsHitTesting(false)

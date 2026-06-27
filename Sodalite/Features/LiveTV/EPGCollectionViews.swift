@@ -131,7 +131,16 @@ final class EPGChannelCell: UICollectionViewCell {
     private let nameLabel = UILabel()
     private let numberLabel = UILabel()
     private let favoriteIcon = UIImageView()
+    private let hStack = UIStackView()
     private var logoToken = UUID()
+
+    // Adjustable so the cell can shrink to the compact channel-column tier (see EPGMetrics).
+    private var logoWidthConstraint: NSLayoutConstraint!
+    private var logoHeightConstraint: NSLayoutConstraint!
+    private var hStackLeadingConstraint: NSLayoutConstraint!
+    private var favoriteTrailingConstraint: NSLayoutConstraint!
+    private var favoriteWidthConstraint: NSLayoutConstraint!
+    private var favoriteHeightConstraint: NSLayoutConstraint!
 
     // The column is a passive index; focus lives on the program grid.
     override var canBecomeFocused: Bool { false }
@@ -153,7 +162,8 @@ final class EPGChannelCell: UICollectionViewCell {
         textStack.axis = .vertical
         textStack.spacing = 2
 
-        let hStack = UIStackView(arrangedSubviews: [logoView, textStack])
+        hStack.addArrangedSubview(logoView)
+        hStack.addArrangedSubview(textStack)
         hStack.axis = .horizontal
         hStack.spacing = 12
         hStack.alignment = .center
@@ -167,27 +177,48 @@ final class EPGChannelCell: UICollectionViewCell {
         favoriteIcon.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(favoriteIcon)
 
+        logoWidthConstraint = logoView.widthAnchor.constraint(equalToConstant: 56)
+        logoHeightConstraint = logoView.heightAnchor.constraint(equalToConstant: 56)
+        hStackLeadingConstraint = hStack.leadingAnchor.constraint(
+            equalTo: contentView.leadingAnchor, constant: 16)
+        favoriteTrailingConstraint = favoriteIcon.trailingAnchor.constraint(
+            equalTo: contentView.trailingAnchor, constant: -16)
+        favoriteWidthConstraint = favoriteIcon.widthAnchor.constraint(equalToConstant: 28)
+        favoriteHeightConstraint = favoriteIcon.heightAnchor.constraint(equalToConstant: 28)
+
         NSLayoutConstraint.activate([
-            logoView.widthAnchor.constraint(equalToConstant: 56),
-            logoView.heightAnchor.constraint(equalToConstant: 56),
-            hStack.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+            logoWidthConstraint,
+            logoHeightConstraint,
+            hStackLeadingConstraint,
             hStack.trailingAnchor.constraint(lessThanOrEqualTo: favoriteIcon.leadingAnchor, constant: -8),
             hStack.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
-            favoriteIcon.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
+            favoriteTrailingConstraint,
             favoriteIcon.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
-            favoriteIcon.widthAnchor.constraint(equalToConstant: 28),
-            favoriteIcon.heightAnchor.constraint(equalToConstant: 28),
+            favoriteWidthConstraint,
+            favoriteHeightConstraint,
         ])
     }
 
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
 
-    func configure(name: String, number: String?, logoURL: URL?, isFavorite: Bool) {
+    func configure(name: String, number: String?, logoURL: URL?, isFavorite: Bool,
+                   metrics: EPGMetrics = .tv) {
+        applyMetrics(metrics)
         nameLabel.text = name
         numberLabel.text = number
         numberLabel.isHidden = (number == nil)
         favoriteIcon.isHidden = !isFavorite
         loadLogo(logoURL)
+    }
+
+    private func applyMetrics(_ metrics: EPGMetrics) {
+        logoWidthConstraint.constant = metrics.channelLogoSize
+        logoHeightConstraint.constant = metrics.channelLogoSize
+        hStackLeadingConstraint.constant = metrics.channelInset
+        favoriteTrailingConstraint.constant = -metrics.channelInset
+        favoriteWidthConstraint.constant = metrics.favoriteIconSize
+        favoriteHeightConstraint.constant = metrics.favoriteIconSize
+        hStack.spacing = metrics.channelSpacing
     }
 
     /// Update only the favorite star (optimistic toggle), without re-running configure / reloading the logo.

@@ -2,6 +2,7 @@ import SwiftUI
 
 struct LiveTVTabView: View {
     @Environment(\.dependencies) private var dependencies
+    @Environment(\.horizontalSizeClass) private var hSizeClass
     // Late-bound once the active user is known, then stable across re-renders (matches MusicHomeView);
     // an inline expression would hand State a fresh throwaway vm each render.
     @State private var model: EPGGuideViewModel?
@@ -62,7 +63,8 @@ struct LiveTVTabView: View {
         .task {
             guard model == nil, let userID = dependencies.activeUserID else { return }
             model = EPGGuideViewModel(
-                service: dependencies.jellyfinLiveTvService, userID: userID)
+                service: dependencies.jellyfinLiveTvService, userID: userID,
+                metrics: EPGMetrics.current(hSizeClass))
             recordingsModel = RecordingsViewModel(
                 liveTvService: dependencies.jellyfinLiveTvService,
                 itemService: dependencies.jellyfinItemService,
@@ -104,6 +106,7 @@ struct LiveTVTabView: View {
             Text("livetv.segment.recordings").tag(LiveTVSection.recordings)
         }
         .pickerStyle(.segmented)
-        .padding(.horizontal, 80)
+        // tvOS/iPad keep the wide inset; compact uses a phone-scale margin so the control fits ~393pt.
+        .padding(.horizontal, hSizeClass == .compact ? 16 : 80)
     }
 }

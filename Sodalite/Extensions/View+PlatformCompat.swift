@@ -36,6 +36,18 @@ extension View {
         #endif
     }
 
+    /// Applies .ignoresSafeArea only when `active`. Lets a detail screen stay full-bleed on
+    /// tvOS/iPad while its scroll content respects the safe area on iPhone portrait (so the
+    /// content is not clipped under the status bar / home indicator).
+    @ViewBuilder
+    func ignoresSafeArea(when active: Bool) -> some View {
+        if active {
+            ignoresSafeArea()
+        } else {
+            self
+        }
+    }
+
     /// tvOS hides the navigation bar (it uses the Menu button to go back); iOS keeps the
     /// native bar so pushed screens get a back button and the interactive swipe-back gesture.
     @ViewBuilder

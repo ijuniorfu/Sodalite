@@ -21,7 +21,10 @@ struct StableTapModifier: ViewModifier {
             #if os(tvOS)
             .onLongPressGesture(minimumDuration: 0.01) { fireIfStable() }
             #else
-            .onTapGesture { fireIfStable() }
+            // iOS touch: fire immediately. The focus-stability gate guards Siri Remote finger
+            // drift and is meaningless on touch (and would never fire: isFocused stays false
+            // without a focus engine, so focusAcquiredAt is always nil).
+            .onTapGesture { action() }
             #endif
     }
 

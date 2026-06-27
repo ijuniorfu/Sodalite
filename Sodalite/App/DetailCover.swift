@@ -11,8 +11,34 @@ extension View {
         fullScreenCover(item: item) { value in
             NavigationStack {
                 content(value)
+                    #if os(iOS)
+                    // The iOS nav container paints an opaque system background that occludes a glass
+                    // applied outside it (backdrop-less covers like filter grids / person / album
+                    // showed black); inside the stack the glass sits behind the content and shows.
+                    .glassBackground()
+                    #endif
             }
+            #if os(tvOS)
             .glassBackground()
+            #endif
+            #if os(iOS)
+            // tvOS dismisses via the Menu button; iOS needs a touch close (a fullScreenCover
+            // has no swipe-to-dismiss), else detail / program-info covers are a dead end.
+            // Top-trailing glass circle (matching the settings gear) so it never sits on the
+            // leading page title.
+            .overlay(alignment: .topTrailing) {
+                Button { item.wrappedValue = nil } label: {
+                    Image(systemName: "xmark")
+                        .font(.title3.weight(.semibold))
+                        .padding(12)
+                        .glassEffect(.regular, in: Circle())
+                        .contentShape(Circle())
+                }
+                .buttonStyle(.plain)
+                .padding(.trailing, 16)
+                .padding(.top, 8)
+            }
+            #endif
         }
     }
 }

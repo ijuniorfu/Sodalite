@@ -10,6 +10,17 @@ struct ContentLogoTitle<Fallback: View>: View {
     @ViewBuilder let fallback: () -> Fallback
 
     @Environment(\.dependencies) private var dependencies
+    @Environment(\.horizontalSizeClass) private var hSizeClass
+    @Environment(\.verticalSizeClass) private var vSizeClass
+
+    /// iPhone portrait centers the title to match the centered primary action button.
+    private var isPhonePortrait: Bool {
+        #if os(iOS)
+        hSizeClass == .compact && vSizeClass != .compact
+        #else
+        false
+        #endif
+    }
 
     /// Logo URL by item ID only: `/Items/{id}/Images/Logo` serves the current logo tagless, so it loads on the first frame from a series stub (episode deep-link) with no imageTags round-trip, and stays stable when the stub is replaced (no reload/flash). No-logo items 404 to the text fallback. nil only when logos are off.
     private var logoURL: URL? {
@@ -29,10 +40,13 @@ struct ContentLogoTitle<Fallback: View>: View {
             image
                 .resizable()
                 .aspectRatio(contentMode: .fit)
-                .frame(maxHeight: maxHeight, alignment: .leading)
-                .frame(maxWidth: .infinity, alignment: .leading)
+                // One frame bounding BOTH width and height so a wide logo (e.g. "Emily in Paris")
+                // scales down to fit the available width instead of overflowing and clipping right.
+                .frame(maxWidth: .infinity, maxHeight: maxHeight, alignment: isPhonePortrait ? .center : .leading)
         } placeholder: {
             fallback()
+                .multilineTextAlignment(isPhonePortrait ? .center : .leading)
+                .frame(maxWidth: .infinity, alignment: isPhonePortrait ? .center : .leading)
         }
         // Light glow lifts a dark logo off a dark backdrop; dark drop shadow gives a light logo separation on a bright one. Together they keep the hero legible on any artwork.
         .shadow(color: .white.opacity(0.45), radius: 6)
@@ -42,13 +56,14 @@ struct ContentLogoTitle<Fallback: View>: View {
 
 /// Backdrop hero logo. Addressed by viewModel.item.id (the series id even for an episode-stub), so the logo loads on the first frame; reading viewModel.item keeps the text fallback in sync once the real name lands.
 struct DetailHeroLogo: View {
+    @Environment(\.horizontalSizeClass) private var hSizeClass
     let viewModel: DetailViewModel
     var maxHeight: CGFloat = 150
 
     var body: some View {
         ContentLogoTitle(
             itemID: viewModel.item.id,
-            maxHeight: maxHeight
+            maxHeight: hSizeClass == .compact ? 96 : maxHeight
         ) {
             Text(viewModel.item.name)
                 .font(.largeTitle)

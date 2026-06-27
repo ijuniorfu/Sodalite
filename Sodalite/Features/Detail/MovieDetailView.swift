@@ -4,6 +4,8 @@ struct MovieDetailView: View {
     @Environment(\.appState) private var appState
     @Environment(\.dependencies) private var dependencies
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.horizontalSizeClass) private var hSizeClass
+    @Environment(\.verticalSizeClass) private var vSizeClass
     @State private var viewModel: DetailViewModel?
     @State private var navigateToSeries: JellyfinItem?
     @State private var navigateToItem: JellyfinItem?
@@ -28,6 +30,16 @@ struct MovieDetailView: View {
         appState.activeUser?.canDeleteContent == true
     }
 
+    private var metrics: LayoutMetrics { LayoutMetrics.current(hSizeClass) }
+    /// iPhone portrait: stacked, poster-hero detail with a full-width primary action over a collapsed secondary row.
+    private var isPhonePortrait: Bool {
+        #if os(iOS)
+        hSizeClass == .compact && vSizeClass == .regular
+        #else
+        false
+        #endif
+    }
+
     var body: some View {
         ZStack {
             // Solid black under the loading state (contentView paints its own backdrop), see SeriesDetailView.
@@ -49,7 +61,9 @@ struct MovieDetailView: View {
             }
         }
         .animation(didSettleIn ? .easeInOut(duration: 0.25) : nil, value: viewModel?.isLoading)
-        .ignoresSafeArea()
+        // iPhone portrait respects the safe area so detail content is not clipped under the status
+        // bar; the backdrop keeps its own .ignoresSafeArea() to stay full-bleed. tvOS/iPad full-bleed.
+        .ignoresSafeArea(when: !isPhonePortrait)
         .overlay {
             if let userID = appState.activeUser?.id {
                 PlayerLauncher(
@@ -207,9 +221,10 @@ struct MovieDetailView: View {
         ZStack {
             DetailBackdrop(
                 imageURL: vm.backdropURL(for: vm.item),
-                posterFallbackURL: vm.posterURL(for: vm.item)
+                posterFallbackURL: vm.heroPosterURL(for: vm.item)
             )
                 .id(vm.item.backdropImageTags?.first ?? "empty")
+                .ignoresSafeArea()
 
             DetailContentOverlay(hero: {
                 DetailHeroLogo(viewModel: vm)
@@ -219,16 +234,16 @@ struct MovieDetailView: View {
                     glassPanel(vm: vm)
                     actionButtonRow(vm: vm)
                 }
-                .padding(.horizontal, 50)
+                .padding(.horizontal, metrics.rowInset)
                 .id(vm.item.genres?.first ?? vm.item.name)
             }) {
                 if let overview = vm.item.overview, !overview.isEmpty {
                     ExpandableTextBox(text: overview)
-                        .padding(.horizontal, 50)
+                        .padding(.horizontal, metrics.rowInset)
                 } else if !vm.hasFullDetail {
                     // Overview in flight after a snapshot paint: reserve the footprint (Sodalite#15).
                     ExpandableTextBoxPlaceholder()
-                        .padding(.horizontal, 50)
+                        .padding(.horizontal, metrics.rowInset)
                 }
 
                 if vm.item.mediaStreams != nil || vm.item.mediaSources != nil {
@@ -286,7 +301,7 @@ struct MovieDetailView: View {
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(30)
+        .padding(isPhonePortrait ? 16 : 30)
         .background(
             RoundedRectangle(cornerRadius: 20)
                 .fill(.ultraThinMaterial)
@@ -312,21 +327,53 @@ struct MovieDetailView: View {
     // MARK: - Action Buttons
 
     /// Button row below the glass panel, outside it (Sodalite#15 round 6); each GlassActionButton carries its own material so the row needs no plate.
+    /// iPhone portrait stacks a full-width primary action over a collapsed secondary row; other layouts keep the single scrollable row.
     private func actionButtonRow(vm: DetailViewModel) -> some View {
-        HStack(spacing: 16) {
-            GlassActionButton(
-                title: playButtonTitle(vm: vm),
-                systemImage: "play.fill",
-                isProminent: true,
-                subtitle: resumeTimestamp(vm: vm),
-                progressFraction: playProgressFraction(vm: vm),
-                action: {
-                    requestPlay(fromBeginning: false, vm: vm)
+        Group {
+            if isPhonePortrait {
+                VStack(spacing: 12) {
+                    primaryActionButton(vm: vm)
+                        .frame(maxWidth: .infinity)
+                    // Centered when the secondary buttons fit the width, horizontally scrollable when
+                    // they don't, so a button-heavy item is never clipped on both edges.
+                    ViewThatFits(in: .horizontal) {
+                        HStack(spacing: 16) { secondaryActionButtons(vm: vm) }
+                            .collapsesActionButtonLabel()
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 16) { secondaryActionButtons(vm: vm) }
+                                .collapsesActionButtonLabel()
+                        }
+                    }
+                    .frame(maxWidth: .infinity)
                 }
-            )
-            .focused($playButtonFocused)
+            } else {
+                HStack(spacing: 16) {
+                    primaryActionButton(vm: vm)
+                    secondaryActionButtons(vm: vm)
+                }
+                .collapsesActionButtonLabel()
+                .compactScrollableRow(hSizeClass)
+            }
+        }
+    }
 
-            if hasProgress(vm: vm) {
+    private func primaryActionButton(vm: DetailViewModel) -> some View {
+        GlassActionButton(
+            title: playButtonTitle(vm: vm),
+            systemImage: "play.fill",
+            isProminent: true,
+            subtitle: resumeTimestamp(vm: vm),
+            progressFraction: playProgressFraction(vm: vm),
+            action: {
+                requestPlay(fromBeginning: false, vm: vm)
+            }
+        )
+        .focused($playButtonFocused)
+    }
+
+    @ViewBuilder
+    private func secondaryActionButtons(vm: DetailViewModel) -> some View {
+        if hasProgress(vm: vm) {
                 GlassActionButton(
                     title: "detail.replay",
                     systemImage: "arrow.counterclockwise",
@@ -389,8 +436,6 @@ struct MovieDetailView: View {
                     action: { isPresentingDeleteSheet = true }
                 )
             }
-        }
-        .collapsesActionButtonLabel()
     }
 
     // MARK: - Helpers

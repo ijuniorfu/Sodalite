@@ -6,13 +6,37 @@ struct DetailBackdrop: View {
     /// Hero stand-in for items lacking backdrop art: portrait poster scaled to screen width, top-pinned so its useful upper half stays on screen. Replaced the flat grey plate, then the heavy ambient blur-fill (Sodalite#15).
     var posterFallbackURL: URL? = nil
 
+    @Environment(\.horizontalSizeClass) private var hSizeClass
+    @Environment(\.verticalSizeClass) private var vSizeClass
+
+    /// iPhone portrait uses the portrait poster as a full-bleed hero. vSizeClass != .compact (rather
+    /// than == .regular) treats the unresolved first frame as portrait. tvOS/iPad and iPhone
+    /// landscape keep the landscape backdrop.
+    private var isPhonePortrait: Bool {
+        #if os(iOS)
+        hSizeClass == .compact && vSizeClass != .compact
+        #else
+        false
+        #endif
+    }
+
+    private var heroURL: URL? {
+        // Portrait phone shows the poster ONLY, never the landscape backdrop, so a not-yet-loaded
+        // poster (e.g. an episode's series stub) shows a neutral placeholder instead of flashing a
+        // stretched 16:9 backdrop.
+        if isPhonePortrait { return posterFallbackURL }
+        return imageURL ?? posterFallbackURL
+    }
+
+    /// Blur only the landscape-fallback poster (upscaled into a wide area). A real backdrop, or the
+    /// portrait poster hero, fills naturally and stays sharp.
     private var usesPosterFill: Bool {
-        imageURL == nil && posterFallbackURL != nil
+        imageURL == nil && posterFallbackURL != nil && !isPhonePortrait
     }
 
     var body: some View {
         GeometryReader { geo in
-            AsyncCachedImage(url: imageURL ?? posterFallbackURL) { image in
+            AsyncCachedImage(url: heroURL) { image in
                 if usesPosterFill {
                     // Poster-as-hero: `.fill` scales to screen width, top-aligned to keep the useful upper half on screen. radius-8 blur (was 32 ambient, Sodalite#15) only smooths upscaling artefacts. drawingGroup bounds the blur to one Metal layer; an unbounded offscreen blur buffer broke detail-overlay sibling compositing on tvOS (glass panel + buttons vanished, nothing focusable, Back escaped the app).
                     image
@@ -52,6 +76,11 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
     /// Scroll-driven full-screen dim: 0 at top, ramps to 0.3 one hero-window deep, restoring readability over bright artwork without losing the full-bleed look.
     @State private var scrollDim: Double = 0
 
+    @Environment(\.horizontalSizeClass) private var hSizeClass
+    private var metrics: LayoutMetrics { LayoutMetrics.current(hSizeClass) }
+    /// Shorter clear hero window on a phone so content is reachable with one swipe.
+    private var heroWindow: CGFloat { hSizeClass == .compact ? 320 : 500 }
+
     init(
         @ViewBuilder hero: @escaping () -> Hero = { EmptyView() },
         @ViewBuilder primary: @escaping () -> Primary,
@@ -66,7 +95,7 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
         ScrollView(.vertical, showsIndicators: false) {
             VStack(alignment: .leading, spacing: 0) {
                 if Primary.self == EmptyView.self {
-                    Color.clear.frame(height: 500)
+                    Color.clear.frame(height: heroWindow)
                     gradientWithHero
                 } else {
                     // First page one viewport tall, hero + primary bottom-aligned; the Spacer hands leftover space to the backdrop so the button row ends flush with the fold.
@@ -87,6 +116,10 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
                 VStack(alignment: .leading, spacing: 40) {
                     content()
                 }
+                // Bound to the viewport, leading-aligned, so a wide child can't stretch the column
+                // past the screen and shove the whole content block off-center (section titles were
+                // being clipped on the left). Matches the primary slot's constraint.
+                .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.bottom, 80)
                 .background(Color.black.opacity(0.55))
 
@@ -98,8 +131,8 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
         .onScrollGeometryChange(for: Double.self) { geometry in
             geometry.contentOffset.y + geometry.contentInsets.top
         } action: { _, offset in
-            // Linear ramp over the first 500 pt (clear hero window), capped at 0.3.
-            scrollDim = min(max(offset / 500, 0), 1) * 0.3
+            // Linear ramp over the clear hero window, capped at 0.3.
+            scrollDim = min(max(offset / heroWindow, 0), 1) * 0.3
         }
     }
 
@@ -113,7 +146,7 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
         .frame(height: 200)
         .overlay(alignment: .bottomLeading) {
             hero()
-                .padding(.horizontal, 50)
+                .padding(.horizontal, metrics.rowInset)
                 .padding(.bottom, 8)
         }
     }

@@ -20,9 +20,10 @@ final class EPGCollectionViewController: UIViewController,
     private let onSelect: (JellyfinChannel, JellyfinProgram) -> Void
     private let logoURLProvider: (JellyfinChannel) -> URL?
 
-    private let columnWidth = EPGGuideViewModel.channelColumnWidth
-    private let rowHeight = EPGGuideViewModel.rowHeight
-    private let headerHeight: CGFloat = 60
+    private let metrics: EPGMetrics
+    private let columnWidth: CGFloat
+    private let rowHeight: CGFloat
+    private let headerHeight: CGFloat
 
     private let gridLayout = EPGCollectionLayout()
     private var gridView: UICollectionView!
@@ -43,6 +44,10 @@ final class EPGCollectionViewController: UIViewController,
         self.tintColor = tintColor
         self.logoURLProvider = logoURLProvider
         self.onSelect = onSelect
+        self.metrics = model.metrics
+        self.columnWidth = model.metrics.channelColumnWidth
+        self.rowHeight = model.metrics.rowHeight
+        self.headerHeight = model.metrics.headerHeight
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -424,7 +429,8 @@ final class EPGCollectionViewController: UIViewController,
                 withReuseIdentifier: EPGChannelCell.reuseID, for: indexPath) as! EPGChannelCell
             let channel = rows[indexPath.item].channel
             cell.configure(name: channel.name, number: channel.channelNumber,
-                           logoURL: logoURLProvider(channel), isFavorite: model.isFavorite(channel.id))
+                           logoURL: logoURLProvider(channel), isFavorite: model.isFavorite(channel.id),
+                           metrics: metrics)
             return cell
         }
         let cell = collectionView.dequeueReusableCell(

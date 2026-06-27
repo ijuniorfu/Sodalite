@@ -17,6 +17,7 @@ struct LiveProgramsView: View {
     var onWatchLive: ((LivePlaybackContext) -> Void)?
 
     @Environment(\.dependencies) private var dependencies
+    @Environment(\.horizontalSizeClass) private var hSizeClass
     @State private var selection: ProgramSelection?
 
     init(model: LiveProgramsViewModel,
@@ -40,7 +41,7 @@ struct LiveProgramsView: View {
                     description: Text(err))
             } else {
                 ScrollView(.vertical, showsIndicators: false) {
-                    LazyVStack(alignment: .leading, spacing: 40) {
+                    LazyVStack(alignment: .leading, spacing: hSizeClass == .compact ? 24 : 40) {
                         ForEach(LiveProgramCategory.allCases) { category in
                             if let programs = model.rows[category], !programs.isEmpty {
                                 ProgramCategoryRow(
@@ -62,7 +63,7 @@ struct LiveProgramsView: View {
                             }
                         }
                     }
-                    .padding(.vertical, 40)
+                    .padding(.vertical, hSizeClass == .compact ? 16 : 40)
                 }
             }
         }

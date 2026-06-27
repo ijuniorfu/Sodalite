@@ -11,6 +11,8 @@ private struct TechCardMaxHeightKey: PreferenceKey {
 struct TechInfoBox: View {
     let item: JellyfinItem
 
+    @Environment(\.horizontalSizeClass) private var hSizeClass
+    private var metrics: LayoutMetrics { LayoutMetrics.current(hSizeClass) }
     @State private var maxCardHeight: CGFloat = 0
 
     private var videoStream: MediaStream? {
@@ -34,7 +36,7 @@ struct TechInfoBox: View {
             Text("detail.techInfo")
                 .font(.title3)
                 .fontWeight(.semibold)
-                .padding(.horizontal, 50)
+                .padding(.horizontal, metrics.rowInset)
 
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(alignment: .top, spacing: 16) {
@@ -43,7 +45,7 @@ struct TechInfoBox: View {
                     if let source = mediaSource { fileCard(source) }
                     if !subtitleStreams.isEmpty { subtitleCard() }
                 }
-                .padding(.horizontal, 50)
+                .padding(.horizontal, metrics.rowInset)
                 .padding(.vertical, 12)
             }
         }
@@ -188,6 +190,7 @@ struct TechCard<Content: View>: View {
     @ViewBuilder let content: () -> Content
 
     @FocusState private var isFocused: Bool
+    @Environment(\.horizontalSizeClass) private var hSizeClass
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -197,8 +200,8 @@ struct TechCard<Content: View>: View {
 
             content()
         }
-        .padding(24)
-        .frame(width: 380, alignment: .topLeading)
+        .padding(hSizeClass == .compact ? 16 : 24)
+        .frame(width: hSizeClass == .compact ? 280 : 380, alignment: .topLeading)
         .background(
             GeometryReader { geo in
                 // Report natural height upward; parent feeds the max back via `height`.

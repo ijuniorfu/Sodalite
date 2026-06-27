@@ -181,7 +181,7 @@ struct AppRouter: View {
             #endif
         }
         .fullScreenCover(isPresented: $showNowPlaying) {
-            NowPlayingView()
+            NowPlayingView(onClose: { showNowPlaying = false })
         }
         .onChange(of: dependencies.musicPlaybackCoordinator.nowPlayingPresentationRequest) { _, _ in
             showNowPlaying = true

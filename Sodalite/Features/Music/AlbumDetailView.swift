@@ -23,16 +23,18 @@ struct AlbumDetailView: View {
     let album: JellyfinItem
 
     @Environment(\.dependencies) private var dependencies
+    @Environment(\.horizontalSizeClass) private var hSizeClass
     @State private var viewModel = AlbumDetailViewModel()
 
     var body: some View {
+        let metrics = LayoutMetrics.current(hSizeClass)
         ScrollView {
-            VStack(alignment: .leading, spacing: 40) {
+            VStack(alignment: .leading, spacing: hSizeClass == .compact ? 28 : 40) {
                 albumHeader
                 tracklist
             }
-            .padding(.horizontal, 60)
-            .padding(.vertical, 40)
+            .padding(.horizontal, metrics.gridInset)
+            .padding(.vertical, hSizeClass == .compact ? 24 : 40)
         }
         // Hide the top tab bar inside an album, matching movie/series/catalog detail (playlists via
         // DetailRouterView already hide it; this covers the music tab's album destination).
@@ -44,39 +46,60 @@ struct AlbumDetailView: View {
 
     // MARK: Header
 
+    @ViewBuilder
     private var albumHeader: some View {
-        HStack(alignment: .top, spacing: 48) {
-            coverImage
-
-            VStack(alignment: .leading, spacing: 16) {
-                VStack(alignment: .leading, spacing: 6) {
-                    Text(album.name)
-                        .font(.title2)
-                        .fontWeight(.bold)
-
-                    if let artist = album.albumArtist, !artist.isEmpty {
-                        Text(artist)
-                            .font(.callout)
-                            .foregroundStyle(.secondary)
-                    }
-
-                    if let year = album.productionYear {
-                        Text(String(year))
-                            .font(.caption)
-                            .foregroundStyle(.tertiary)
-                    }
-                }
-
-                if viewModel.isLoading {
-                    ProgressView()
-                        .padding(.top, 8)
-                } else {
-                    actionButtons
-                }
+        if hSizeClass == .compact {
+            // Stack vertically so the title and Play button are never clipped on a phone width.
+            VStack(alignment: .leading, spacing: 20) {
+                coverImage
+                    .frame(maxWidth: .infinity, alignment: .center)
+                titleBlock
+                headerActions
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
+        } else {
+            HStack(alignment: .top, spacing: 48) {
+                coverImage
+
+                VStack(alignment: .leading, spacing: 16) {
+                    titleBlock
+                    headerActions
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
         }
     }
+
+    private var titleBlock: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(album.name)
+                .font(.title2)
+                .fontWeight(.bold)
+
+            if let artist = album.albumArtist, !artist.isEmpty {
+                Text(artist)
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+            }
+
+            if let year = album.productionYear {
+                Text(String(year))
+                    .font(.caption)
+                    .foregroundStyle(.tertiary)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var headerActions: some View {
+        if viewModel.isLoading {
+            ProgressView()
+                .padding(.top, 8)
+        } else {
+            actionButtons
+        }
+    }
+
+    private var coverSide: CGFloat { hSizeClass == .compact ? 220 : 340 }
 
     private var coverImage: some View {
         AsyncCachedImage(url: dependencies.jellyfinImageService.posterURL(for: album)) { image in
@@ -92,7 +115,7 @@ struct AlbumDetailView: View {
                         .foregroundStyle(.tertiary)
                 )
         }
-        .frame(width: 340, height: 340)
+        .frame(width: coverSide, height: coverSide)
         .clipShape(RoundedRectangle(cornerRadius: 16))
     }
 
@@ -159,10 +182,11 @@ private struct TrackRow: View {
     let isPlaying: Bool
     let onSelect: () -> Void
 
+    @Environment(\.horizontalSizeClass) private var hSizeClass
     @FocusState private var focused: Bool
 
     var body: some View {
-        HStack(alignment: .center, spacing: 24) {
+        HStack(alignment: .center, spacing: hSizeClass == .compact ? 14 : 24) {
             Group {
                 if isCurrent {
                     NowPlayingWaveIcon(isPlaying: isPlaying, font: .body)
@@ -192,8 +216,8 @@ private struct TrackRow: View {
                     .monospacedDigit()
             }
         }
-        .padding(.horizontal, 28)
-        .padding(.vertical, 18)
+        .padding(.horizontal, hSizeClass == .compact ? 16 : 28)
+        .padding(.vertical, hSizeClass == .compact ? 12 : 18)
         .background(
             RoundedRectangle(cornerRadius: 16)
                 .fill(focused ? Color.white.opacity(0.15) : Color.white.opacity(0.04))
