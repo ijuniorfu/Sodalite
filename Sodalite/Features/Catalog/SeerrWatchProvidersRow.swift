@@ -5,12 +5,15 @@ struct SeerrWatchProvidersRow: View {
     var title: LocalizedStringKey = "catalog.watchProviders"
     let providers: [SeerrWatchProvider]
 
+    @Environment(\.horizontalSizeClass) private var hSizeClass
+    private var metrics: LayoutMetrics { LayoutMetrics.current(hSizeClass) }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text(title)
                 .font(.title3)
                 .fontWeight(.semibold)
-                .padding(.horizontal, 50)
+                .padding(.horizontal, metrics.rowInset)
 
             ScrollView(.horizontal, showsIndicators: false) {
                 LazyHStack(spacing: 16) {
@@ -35,7 +38,7 @@ struct SeerrWatchProvidersRow: View {
                         }
                     }
                 }
-                .padding(.horizontal, 50)
+                .padding(.horizontal, metrics.rowInset)
                 .padding(.vertical, 8)
             }
         }

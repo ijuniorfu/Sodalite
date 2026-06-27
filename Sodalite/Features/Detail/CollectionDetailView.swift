@@ -305,10 +305,7 @@ struct CollectionRowButtonStyle: ButtonStyle {
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .background(
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(isFocused ? .white.opacity(0.12) : .white.opacity(0.05))
-            )
+            .background(rowBackground)
             .overlay(
                 RoundedRectangle(cornerRadius: 12)
                     .strokeBorder(.tint, lineWidth: 3)
@@ -316,5 +313,19 @@ struct CollectionRowButtonStyle: ButtonStyle {
             )
             .scaleEffect(isFocused ? 1.02 : 1.0)
             .animation(.easeInOut(duration: 0.15), value: isFocused)
+    }
+
+    // iOS has no focus engine, so the faint white fill is nearly invisible over a bright poster
+    // backdrop; use a glass material for readability (matching the detail bubbles). tvOS keeps the
+    // focus-driven white fill.
+    @ViewBuilder
+    private var rowBackground: some View {
+        #if os(iOS)
+        RoundedRectangle(cornerRadius: 12)
+            .fill(.ultraThinMaterial)
+        #else
+        RoundedRectangle(cornerRadius: 12)
+            .fill(isFocused ? .white.opacity(0.12) : .white.opacity(0.05))
+        #endif
     }
 }
