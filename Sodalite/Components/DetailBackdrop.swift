@@ -52,6 +52,11 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
     /// Scroll-driven full-screen dim: 0 at top, ramps to 0.3 one hero-window deep, restoring readability over bright artwork without losing the full-bleed look.
     @State private var scrollDim: Double = 0
 
+    @Environment(\.horizontalSizeClass) private var hSizeClass
+    private var metrics: LayoutMetrics { LayoutMetrics.current(hSizeClass) }
+    /// Shorter clear hero window on a phone so content is reachable with one swipe.
+    private var heroWindow: CGFloat { hSizeClass == .compact ? 320 : 500 }
+
     init(
         @ViewBuilder hero: @escaping () -> Hero = { EmptyView() },
         @ViewBuilder primary: @escaping () -> Primary,
@@ -66,7 +71,7 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
         ScrollView(.vertical, showsIndicators: false) {
             VStack(alignment: .leading, spacing: 0) {
                 if Primary.self == EmptyView.self {
-                    Color.clear.frame(height: 500)
+                    Color.clear.frame(height: heroWindow)
                     gradientWithHero
                 } else {
                     // First page one viewport tall, hero + primary bottom-aligned; the Spacer hands leftover space to the backdrop so the button row ends flush with the fold.
@@ -98,8 +103,8 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
         .onScrollGeometryChange(for: Double.self) { geometry in
             geometry.contentOffset.y + geometry.contentInsets.top
         } action: { _, offset in
-            // Linear ramp over the first 500 pt (clear hero window), capped at 0.3.
-            scrollDim = min(max(offset / 500, 0), 1) * 0.3
+            // Linear ramp over the clear hero window, capped at 0.3.
+            scrollDim = min(max(offset / heroWindow, 0), 1) * 0.3
         }
     }
 
@@ -113,7 +118,7 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
         .frame(height: 200)
         .overlay(alignment: .bottomLeading) {
             hero()
-                .padding(.horizontal, 50)
+                .padding(.horizontal, metrics.rowInset)
                 .padding(.bottom, 8)
         }
     }

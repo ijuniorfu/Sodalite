@@ -13,6 +13,19 @@ extension View {
                 content(value)
             }
             .glassBackground()
+            #if os(iOS)
+            // tvOS dismisses via the Menu button; iOS needs a touch close (a fullScreenCover
+            // has no swipe-to-dismiss), else detail / program-info covers are a dead end.
+            .overlay(alignment: .topLeading) {
+                Button { item.wrappedValue = nil } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.title)
+                        .symbolRenderingMode(.hierarchical)
+                        .padding()
+                }
+                .buttonStyle(.plain)
+            }
+            #endif
         }
     }
 }
