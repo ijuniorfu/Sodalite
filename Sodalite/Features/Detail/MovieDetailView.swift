@@ -5,6 +5,7 @@ struct MovieDetailView: View {
     @Environment(\.dependencies) private var dependencies
     @Environment(\.dismiss) private var dismiss
     @Environment(\.horizontalSizeClass) private var hSizeClass
+    @Environment(\.verticalSizeClass) private var vSizeClass
     @State private var viewModel: DetailViewModel?
     @State private var navigateToSeries: JellyfinItem?
     @State private var navigateToItem: JellyfinItem?
@@ -30,6 +31,14 @@ struct MovieDetailView: View {
     }
 
     private var metrics: LayoutMetrics { LayoutMetrics.current(hSizeClass) }
+    /// iPhone portrait: stacked, poster-hero detail with a full-width primary action over a collapsed secondary row.
+    private var isPhonePortrait: Bool {
+        #if os(iOS)
+        hSizeClass == .compact && vSizeClass == .regular
+        #else
+        false
+        #endif
+    }
 
     var body: some View {
         ZStack {
@@ -315,21 +324,47 @@ struct MovieDetailView: View {
     // MARK: - Action Buttons
 
     /// Button row below the glass panel, outside it (Sodalite#15 round 6); each GlassActionButton carries its own material so the row needs no plate.
+    /// iPhone portrait stacks a full-width primary action over a collapsed secondary row; other layouts keep the single scrollable row.
     private func actionButtonRow(vm: DetailViewModel) -> some View {
-        HStack(spacing: 16) {
-            GlassActionButton(
-                title: playButtonTitle(vm: vm),
-                systemImage: "play.fill",
-                isProminent: true,
-                subtitle: resumeTimestamp(vm: vm),
-                progressFraction: playProgressFraction(vm: vm),
-                action: {
-                    requestPlay(fromBeginning: false, vm: vm)
+        Group {
+            if isPhonePortrait {
+                VStack(spacing: 12) {
+                    primaryActionButton(vm: vm)
+                        .frame(maxWidth: .infinity)
+                    HStack(spacing: 16) {
+                        secondaryActionButtons(vm: vm)
+                    }
+                    .collapsesActionButtonLabel()
+                    .compactScrollableRow(hSizeClass)
                 }
-            )
-            .focused($playButtonFocused)
+            } else {
+                HStack(spacing: 16) {
+                    primaryActionButton(vm: vm)
+                    secondaryActionButtons(vm: vm)
+                }
+                .collapsesActionButtonLabel()
+                .compactScrollableRow(hSizeClass)
+            }
+        }
+    }
 
-            if hasProgress(vm: vm) {
+    private func primaryActionButton(vm: DetailViewModel) -> some View {
+        GlassActionButton(
+            title: playButtonTitle(vm: vm),
+            systemImage: "play.fill",
+            isProminent: true,
+            subtitle: resumeTimestamp(vm: vm),
+            progressFraction: playProgressFraction(vm: vm),
+            action: {
+                requestPlay(fromBeginning: false, vm: vm)
+            }
+        )
+        .focused($playButtonFocused)
+    }
+
+    @ViewBuilder
+    private func secondaryActionButtons(vm: DetailViewModel) -> some View {
+        if hasProgress(vm: vm) {
                 GlassActionButton(
                     title: "detail.replay",
                     systemImage: "arrow.counterclockwise",
@@ -392,9 +427,6 @@ struct MovieDetailView: View {
                     action: { isPresentingDeleteSheet = true }
                 )
             }
-        }
-        .collapsesActionButtonLabel()
-        .compactScrollableRow(hSizeClass)
     }
 
     // MARK: - Helpers
