@@ -87,13 +87,16 @@ struct FilteredGridView: View {
         }
     }
 
+    @Environment(\.horizontalSizeClass) private var hSizeClass
+    private var metrics: LayoutMetrics { LayoutMetrics.current(hSizeClass) }
+
     var body: some View {
         ScrollView {
             Text(title)
                 .font(.title3)
                 .fontWeight(.semibold)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.horizontal, 60)
+                .padding(.horizontal, metrics.gridInset)
                 .padding(.top, 20)
 
             // Watch-status filter (Sodalite#17). Native segmented
@@ -105,7 +108,7 @@ struct FilteredGridView: View {
                 }
             }
             .pickerStyle(.segmented)
-            .padding(.horizontal, 60)
+            .padding(.horizontal, metrics.gridInset)
             .padding(.top, 8)
 
             HStack {
@@ -135,7 +138,7 @@ struct FilteredGridView: View {
                 )
                 Spacer()
             }
-            .padding(.horizontal, 60)
+            .padding(.horizontal, metrics.gridInset)
             .padding(.top, 8)
             .collapsesActionButtonLabel()
 
@@ -187,8 +190,8 @@ struct FilteredGridView: View {
                 .frame(maxWidth: .infinity, minHeight: 400)
             } else {
                 LazyVGrid(columns: [
-                    GridItem(.adaptive(minimum: 220), spacing: 40)
-                ], spacing: 50) {
+                    GridItem(.adaptive(minimum: metrics.gridMinimum), spacing: metrics.gridSpacing)
+                ], spacing: metrics.gridSpacing) {
                     ForEach(items) { item in
                         Button {
                             selectedItem = item
@@ -204,7 +207,7 @@ struct FilteredGridView: View {
                         .onAppear { loadMoreIfNeeded(after: item) }
                     }
                 }
-                .padding(.horizontal, 60)
+                .padding(.horizontal, metrics.gridInset)
                 .padding(.vertical, 40)
 
                 if isLoadingMore {

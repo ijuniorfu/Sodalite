@@ -16,10 +16,11 @@ struct CatalogFilteredGridView: View {
     @State private var errorMessage: String?
     @State private var selectedMedia: SeerrMedia?
 
-    private let columns: [GridItem] = Array(
-        repeating: GridItem(.fixed(220), spacing: 32),
-        count: 6
-    )
+    @Environment(\.horizontalSizeClass) private var hSizeClass
+    private var metrics: LayoutMetrics { LayoutMetrics.current(hSizeClass) }
+    private var columns: [GridItem] {
+        [GridItem(.adaptive(minimum: metrics.gridMinimum), spacing: metrics.gridSpacing)]
+    }
 
     init(filter: CatalogFilter) {
         self.filter = filter
@@ -41,7 +42,7 @@ struct CatalogFilteredGridView: View {
                 Text(filter.displayName)
                     .font(.largeTitle)
                     .fontWeight(.bold)
-                    .padding(.horizontal, 80)
+                    .padding(.horizontal, metrics.gridInset)
                     .padding(.top, 40)
 
                 if items.isEmpty && (isLoadingMore || isRefreshing) {
@@ -51,7 +52,7 @@ struct CatalogFilteredGridView: View {
                 } else if items.isEmpty {
                     emptyState
                 } else {
-                    LazyVGrid(columns: columns, spacing: 40) {
+                    LazyVGrid(columns: columns, spacing: metrics.gridSpacing) {
                         // stableKey not id: TMDB ids collide across movie/tv and streaming-service grids concatenate both result sets.
                         ForEach(items, id: \.stableKey) { media in
                             FocusableCard(
@@ -66,7 +67,7 @@ struct CatalogFilteredGridView: View {
                             }
                         }
                     }
-                    .padding(.horizontal, 80)
+                    .padding(.horizontal, metrics.gridInset)
                     .padding(.vertical, 16)
 
                     if isLoadingMore && !items.isEmpty {
