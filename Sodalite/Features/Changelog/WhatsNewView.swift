@@ -17,7 +17,7 @@ struct WhatsNewView: View {
             .frame(maxWidth: 1100)
             .frame(maxWidth: .infinity)
         }
-        .focusScope(focusNamespace)
+        .focusScopeCompat(focusNamespace)
         // Bottom edge-fade "scrollable" cue, only the bottom 6% so a focused edge highlight stays readable.
         .mask(
             LinearGradient(
@@ -40,7 +40,7 @@ struct WhatsNewView: View {
                 .background(Color.black.opacity(0.96).ignoresSafeArea(edges: .bottom))
         }
         // Menu button on the Siri Remote also dismisses.
-        .onExitCommand { onDismiss() }
+        .onExitCommandCompat { onDismiss() }
     }
 
     private var header: some View {
@@ -64,7 +64,7 @@ struct WhatsNewView: View {
         VStack(alignment: .leading, spacing: 28) {
             ForEach(Array(entry.highlights.enumerated()), id: \.element.id) { index, highlight in
                 HighlightRow(highlight: highlight)
-                    .prefersDefaultFocus(index == 0, in: focusNamespace)
+                    .prefersDefaultFocusCompat(index == 0, in: focusNamespace)
             }
         }
         .frame(maxWidth: 760)

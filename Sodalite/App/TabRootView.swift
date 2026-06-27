@@ -73,7 +73,7 @@ struct TabRootView: View {
             ActiveUserBadge()
         }
         // Foreground Siri Remote play/pause arrives via the responder chain (not MPRemoteCommandCenter), so toggle music here when a track is active.
-        .onPlayPauseCommand {
+        .onPlayPauseCommandCompat {
             let coordinator = dependencies.musicPlaybackCoordinator
             if coordinator.currentItem != nil {
                 LogTap.shared.note("[NowPlaying] onPlayPauseCommand (tab bar, in-app)")

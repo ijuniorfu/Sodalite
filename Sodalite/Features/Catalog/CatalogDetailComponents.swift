@@ -141,7 +141,7 @@ struct CatalogPickerSheet: View {
                 }
             }
         }
-        .onExitCommand {
+        .onExitCommandCompat {
             onCancel()
         }
         .onAppear {
@@ -213,7 +213,7 @@ struct CatalogMultiSelectSheet: View {
                 }
             }
         }
-        .onExitCommand {
+        .onExitCommandCompat {
             // Menu-button commits the selection; multi-select has no explicit Cancel state.
             onCommit(selection)
         }

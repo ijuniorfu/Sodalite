@@ -57,7 +57,7 @@ private struct NowPlayingContent: View {
         .ignoresSafeArea()
         // Foreground, the Siri Remote play/pause arrives as a UIPress on the responder chain, NOT via
         // MPRemoteCommandCenter (that fires only from Control Center / background). Handle it here.
-        .onPlayPauseCommand {
+        .onPlayPauseCommandCompat {
             LogTap.shared.note("[NowPlaying] onPlayPauseCommand (in-app remote button)")
             coordinator.togglePlayPause()
         }

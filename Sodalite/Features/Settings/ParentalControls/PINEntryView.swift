@@ -79,7 +79,7 @@ struct PINEntryView: View {
                         }
                     }
                 }
-                .focusSection()
+                .focusSectionCompat()
             }
             .padding(60)
         }
@@ -151,7 +151,7 @@ struct PINEntryView: View {
                 DigitKey(systemImage: "delete.left") { deleteLast() }
             }
         }
-        .focusSection()
+        .focusSectionCompat()
     }
 
     // MARK: Action button (matches app focus convention)

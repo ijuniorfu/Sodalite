@@ -116,7 +116,7 @@ struct ProfileSettingsView: View {
                     }
                     Spacer(minLength: 0)
                 }
-                .focusSection()
+                .focusSectionCompat()
             }
         }
     }

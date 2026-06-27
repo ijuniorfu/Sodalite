@@ -368,6 +368,7 @@ private struct EditPickerRow<Option: Identifiable & Equatable>: View {
         )
         .focusable(!options.isEmpty)
         .focused($focused)
+        #if os(tvOS)
         .onMoveCommand { direction in
             switch direction {
             case .left:  advance(by: -1)
@@ -375,6 +376,7 @@ private struct EditPickerRow<Option: Identifiable & Equatable>: View {
             default: break
             }
         }
+        #endif
         .animation(.easeInOut(duration: 0.15), value: focused)
     }
 

@@ -32,9 +32,9 @@ struct LaunchProfilePickerView: View {
                 serverSwitchButton
 
                 addProfileButton
-                    .focusSection()
+                    .focusSectionCompat()
             }
-            .focusScope(focusNamespace)
+            .focusScopeCompat(focusNamespace)
             .padding(.horizontal, 80)
             .padding(.vertical, 60)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -118,7 +118,11 @@ struct LaunchProfilePickerView: View {
             .padding(.horizontal, 20)
             .padding(.vertical, 12)
         }
+        #if os(tvOS)
         .buttonStyle(.card)
+        #else
+        .buttonStyle(.plain)
+        #endif
         .frame(maxWidth: 560)
     }
 
@@ -151,12 +155,12 @@ struct LaunchProfilePickerView: View {
                         }
                     )
                     // Pre-focus the remembered default profile (or first card) so cold launch opens with a profile highlighted (issue #25).
-                    .prefersDefaultFocus(isPreferredDefault(user), in: focusNamespace)
+                    .prefersDefaultFocusCompat(isPreferredDefault(user), in: focusNamespace)
                 }
             }
             Spacer(minLength: 0)
         }
-        .focusSection()
+        .focusSectionCompat()
     }
 
     private func isPreferredDefault(_ user: RememberedUser) -> Bool {

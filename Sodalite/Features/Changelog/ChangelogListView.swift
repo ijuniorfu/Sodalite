@@ -44,7 +44,7 @@ struct ChangelogListView: View {
         .glassBackground()
         .toolbar(.hidden, for: .navigationBar)
         // Belt and braces: catch the Menu button and pop back even if focus drifts off the focusable rows.
-        .onExitCommand { dismiss() }
+        .onExitCommandCompat { dismiss() }
     }
 }
 

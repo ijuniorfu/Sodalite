@@ -98,10 +98,10 @@ struct UserPickerView: View {
                     }
                     Spacer(minLength: 0)
                 }
-                .focusSection()
+                .focusSectionCompat()
 
                 manualLoginButton
-                    .focusSection()
+                    .focusSectionCompat()
             }
             .padding(.horizontal, 20)
             .padding(.vertical, 20)

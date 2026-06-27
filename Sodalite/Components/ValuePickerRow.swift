@@ -66,6 +66,7 @@ struct ValuePickerRow<Value: Hashable>: View {
         .focused($focused)
         .animation(.easeInOut(duration: 0.15), value: focused)
         .animation(.easeInOut(duration: 0.15), value: selection)
+        #if os(tvOS)
         .onMoveCommand { direction in
             switch direction {
             case .left:  advance(by: -1)
@@ -73,6 +74,7 @@ struct ValuePickerRow<Value: Hashable>: View {
             default: break
             }
         }
+        #endif
         // Click also advances forward for users who prefer clicking over swiping.
         .stableTap(isFocused: focused) {
             advance(by: 1)

@@ -829,11 +829,13 @@ struct SeriesDetailView: View {
                                     .buttonStyle(EpisodeCardButtonStyle())
                                     .focused($focusedEpisodeID, equals: episode.id)
                                     // Prime the season-bar target before the up-move resolves, else tvOS's geographic picker skips the bar (far-right episode outside the tabs' span) and lands on the TechInfoBox/overview above.
+                                    #if os(tvOS)
                                     .onMoveCommand { direction in
                                         if direction == .up {
                                             focusedSeasonID = vm.selectedSeasonID
                                         }
                                     }
+                                    #endif
                                     .contextMenu {
                                         Button {
                                             withAnimation(.easeInOut(duration: 0.3)) {
@@ -929,7 +931,7 @@ struct SeriesDetailView: View {
                 }
             }
         }
-        .focusSection()
+        .focusSectionCompat()
     }
 
     @ViewBuilder

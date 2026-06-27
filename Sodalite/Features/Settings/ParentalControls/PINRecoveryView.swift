@@ -64,7 +64,7 @@ struct PINRecoveryView: View {
             }
         }
         .frame(maxWidth: 700)
-        .focusSection()
+        .focusSectionCompat()
     }
 
     private var passwordEntry: some View {
@@ -82,7 +82,7 @@ struct PINRecoveryView: View {
             .buttonStyle(SettingsTileButtonStyle())
             .disabled(password.isEmpty || isValidating)
         }
-        .focusSection()
+        .focusSectionCompat()
     }
 
     private func loadCandidates() {

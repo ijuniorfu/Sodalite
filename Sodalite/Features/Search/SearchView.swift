@@ -162,7 +162,7 @@ struct SearchView: View {
                 .padding(.vertical, 20)
             }
             // .focusSection() so vertical nav crosses row boundaries when geometry doesn't line up (right-side catalog card over a one-item library row); else up-press finds nothing overhead and dies.
-            .focusSection()
+            .focusSectionCompat()
         }
     }
 
@@ -184,7 +184,7 @@ struct SearchView: View {
                 .padding(.horizontal, 50)
                 .padding(.vertical, 20)
             }
-            .focusSection()
+            .focusSectionCompat()
         }
     }
 
