@@ -49,22 +49,47 @@ struct TabRootView: View {
         ) ?? Color.accentColor
     }
 
+    @ViewBuilder
+    private func tabLabel(_ tab: AppTab) -> some View {
+        Label {
+            Text(tab.labelKey)
+        } icon: {
+            // .monochrome strips the baked white that "tv" renders hierarchically, which would override the tint and leave that icon gray.
+            Image(systemName: tab.systemImage)
+                .symbolRenderingMode(.monochrome)
+        }
+    }
+
     var body: some View {
         TabView(selection: $selectedTab) {
             ForEach(availableTabs, id: \.self) { tab in
+                #if os(iOS)
+                if tab == .search {
+                    Tab(value: tab, role: .search) {
+                        tabContent(for: tab)
+                    } label: {
+                        tabLabel(tab)
+                    }
+                } else {
+                    Tab(value: tab) {
+                        tabContent(for: tab)
+                    } label: {
+                        tabLabel(tab)
+                    }
+                }
+                #else
                 Tab(value: tab) {
                     tabContent(for: tab)
                 } label: {
-                    Label {
-                        Text(tab.labelKey)
-                    } icon: {
-                        // .monochrome strips the baked white color that "tv" (Live TV) renders hierarchically by default, which would override UITabBarItemAppearance.iconColor and leave that one icon gray while siblings tint.
-                        Image(systemName: tab.systemImage)
-                            .symbolRenderingMode(.monochrome)
-                    }
+                    tabLabel(tab)
                 }
+                #endif
             }
         }
+        #if os(iOS)
+        // iPhone -> bottom tab bar, iPad -> collapsible sidebar, from one TabView.
+        .tabViewStyle(.sidebarAdaptable)
+        #endif
         // Fresh TabView (fresh UITabBar) when the active server changes while TabRootView stays mounted (deleting the active server auto-promotes a survivor; isAuthenticated never drops, so the view isn't recreated). A fresh bar reads the tinted appearance at creation. NOT bumped on detail return: detail immersion now alpha-hides the bar instead of removing it, so the bar is never re-templated gray and never needs a rebuild.
         .id(appState.activeServer?.id)
         .tint(iconColor)
@@ -182,6 +207,7 @@ struct TabRootView: View {
 
     /// Tints tab-bar icons + titles via UITabBarAppearance.iconColor at bar creation. NOT per-item .alwaysOriginal images: tvOS re-templates mid-session-inserted items (Live TV / Music) gray and discards baked images, but iconColor tells it which color to template TO. (The gray-on-detail-RETURN is a separate tvOS 26 issue, addressed by presenting details as a full-screen cover so the bar is never hidden/removed.)
     private func configureTabBarItemAppearance() {
+        #if os(tvOS)
         let tintUIColor = UIColor(iconColor)
 
         let itemAppearance = UITabBarItemAppearance()
@@ -210,6 +236,7 @@ struct TabRootView: View {
                 Self.applyTabBarAppearance(appearance, tint: tintUIColor, in: window)
             }
         }
+        #endif
     }
 
     private static func applyTabBarAppearance(_ appearance: UITabBarAppearance, tint: UIColor, in view: UIView) {
