@@ -334,10 +334,16 @@ struct MovieDetailView: View {
                 VStack(spacing: 12) {
                     primaryActionButton(vm: vm)
                         .frame(maxWidth: .infinity)
-                    HStack(spacing: 16) {
-                        secondaryActionButtons(vm: vm)
+                    // Centered when the secondary buttons fit the width, horizontally scrollable when
+                    // they don't, so a button-heavy item is never clipped on both edges.
+                    ViewThatFits(in: .horizontal) {
+                        HStack(spacing: 16) { secondaryActionButtons(vm: vm) }
+                            .collapsesActionButtonLabel()
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 16) { secondaryActionButtons(vm: vm) }
+                                .collapsesActionButtonLabel()
+                        }
                     }
-                    .collapsesActionButtonLabel()
                     .frame(maxWidth: .infinity)
                 }
             } else {
