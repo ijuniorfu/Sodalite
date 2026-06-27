@@ -20,7 +20,7 @@
 		AA000001STEELPLAYER /* AetherEngine in Frameworks */ = {isa = PBXBuildFile; productRef = AA000002STEELPLAYER /* AetherEngine */; };
 		AA000006ASSBUILD /* SwiftAssRenderer in Frameworks */ = {isa = PBXBuildFile; productRef = AA000005ASSPROD /* SwiftAssRenderer */; };
 		D6CDFC24E2E33767EB59131B /* SeerrMediaTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 756D59BCF6F1E09889825D6E /* SeerrMediaTests.swift */; };
-		DE5C0D60D4D900000000F00B /* SodaliteTopShelf.appex in Embed Extensions */ = {isa = PBXBuildFile; fileRef = DE5C0D60D4D900000000F001 /* SodaliteTopShelf.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		DE5C0D60D4D900000000F00B /* SodaliteTopShelf.appex in Embed Extensions */ = {isa = PBXBuildFile; fileRef = DE5C0D60D4D900000000F001 /* SodaliteTopShelf.appex */; platformFilters = (tvos, ); settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		E53E078DD81B6242BD668D1D /* SRTParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51EDE94C9EB4640F5FBFA1B9 /* SRTParserTests.swift */; };
 /* End PBXBuildFile section */
 
@@ -76,11 +76,15 @@
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		9DD9136F2F8645860078D0BE /* Sodalite */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+			);
 			path = Sodalite;
 			sourceTree = "<group>";
 		};
 		DE5C0D60D4D900000000F002 /* SodaliteTopShelf */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+			);
 			path = SodaliteTopShelf;
 			sourceTree = "<group>";
 		};
@@ -368,6 +372,9 @@
 		};
 		DE5C0D60D4D900000000F00C /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
+			platformFilters = (
+				tvos,
+			);
 			target = DE5C0D60D4D900000000F003 /* SodaliteTopShelf */;
 			targetProxy = DE5C0D60D4D900000000F00D /* PBXContainerItemProxy */;
 		};
@@ -550,7 +557,9 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = "App Icon & Top Shelf Image";
+				"ASSETCATALOG_COMPILER_APPICON_NAME[sdk=iphone*]" = AppIcon;
 				ASSETCATALOG_COMPILER_BRAND_ASSETS_NAME = "App Icon & Top Shelf Image";
+				"ASSETCATALOG_COMPILER_BRAND_ASSETS_NAME[sdk=iphone*]" = "";
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = SupportingFiles/Sodalite.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
@@ -563,6 +572,7 @@
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.entertainment";
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UIUserInterfaceStyle = Automatic;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -571,13 +581,15 @@
 				PRODUCT_BUNDLE_IDENTIFIER = de.superuser404.Sodalite;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
+				SDKROOT = auto;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "appletvos appletvsimulator iphoneos iphonesimulator";
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 6.0;
-				TARGETED_DEVICE_FAMILY = 3;
+				TARGETED_DEVICE_FAMILY = "1,2,3";
 				TVOS_DEPLOYMENT_TARGET = 26.0;
 			};
 			name = Debug;
@@ -586,7 +598,9 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = "App Icon & Top Shelf Image";
+				"ASSETCATALOG_COMPILER_APPICON_NAME[sdk=iphone*]" = AppIcon;
 				ASSETCATALOG_COMPILER_BRAND_ASSETS_NAME = "App Icon & Top Shelf Image";
+				"ASSETCATALOG_COMPILER_BRAND_ASSETS_NAME[sdk=iphone*]" = "";
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = SupportingFiles/Sodalite.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
@@ -599,6 +613,7 @@
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.entertainment";
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UIUserInterfaceStyle = Automatic;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -607,13 +622,15 @@
 				PRODUCT_BUNDLE_IDENTIFIER = de.superuser404.Sodalite;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
+				SDKROOT = auto;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "appletvos appletvsimulator iphoneos iphonesimulator";
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 6.0;
-				TARGETED_DEVICE_FAMILY = 3;
+				TARGETED_DEVICE_FAMILY = "1,2,3";
 				TVOS_DEPLOYMENT_TARGET = 26.0;
 			};
 			name = Release;
@@ -643,6 +660,7 @@
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SKIP_INSTALL = YES;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "appletvos appletvsimulator";
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = nonisolated;
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -678,6 +696,7 @@
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SKIP_INSTALL = YES;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "appletvos appletvsimulator";
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = nonisolated;
 				SWIFT_EMIT_LOC_STRINGS = YES;
