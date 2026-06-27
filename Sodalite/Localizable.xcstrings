@@ -8,7 +8,7 @@
         "cs" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Tvoje historie sledování a souhrny"
+            "value": "Vaše historie sledování a souhrny"
           }
         },
         "da" : {
@@ -110,7 +110,7 @@
         "pt-PT" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "O teu histórico de visualização e totais"
+            "value": "O seu histórico de visualização e totais"
           }
         },
         "ro" : {
@@ -128,7 +128,7 @@
         "sk" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Tvoja história sledovania a súhrny"
+            "value": "Vaša história sledovania a súhrny"
           }
         },
         "sv" : {
@@ -158,7 +158,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "你的觀看歷史和總計"
+            "value": "您的觀看歷史和總計"
           }
         }
       }
@@ -338,7 +338,7 @@
         "da" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Set af bibliotek"
+            "value": "Set af biblioteket"
           }
         },
         "de" : {
@@ -398,7 +398,7 @@
         "ja" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "ライブラリ視聴率"
+            "value": "ライブラリ視聴済み"
           }
         },
         "ko" : {
@@ -920,7 +920,7 @@
         "pt-PT" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Não foi possível carregar as tuas estatísticas."
+            "value": "Não foi possível carregar as suas estatísticas."
           }
         },
         "ro" : {
@@ -968,7 +968,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "無法載入你的統計資料。"
+            "value": "無法載入您的統計資料。"
           }
         }
       }
@@ -2498,7 +2498,7 @@
         "it" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Stimato dalla durata e dal numero di riproduzioni. Inclusi i rivisionamenti."
+            "value": "Stimato dalla durata e dal numero di riproduzioni. Incluse le visioni ripetute."
           }
         },
         "ja" : {
@@ -2540,7 +2540,7 @@
         "pt-PT" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Estimado a partir da duração e do número de reproduções. Inclui revisões."
+            "value": "Estimado a partir da duração e do número de reproduções. Inclui revisualizações."
           }
         },
         "ro" : {
@@ -2606,7 +2606,7 @@
         "da" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "omkring %@ dages se"
+            "value": "omkring %@ dages se-tid"
           }
         },
         "de" : {
@@ -2678,7 +2678,7 @@
         "nb" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "omtrent %@ dager med se"
+            "value": "omtrent %@ dager med seing"
           }
         },
         "nl" : {
@@ -3616,7 +3616,7 @@
         "hr" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Zahtijevaj PIN za napuštanje zaštićenog profila"
+            "value": "Zahtijevajte PIN za napuštanje zaštićenog profila"
           }
         },
         "hu" : {
@@ -4761,7 +4761,7 @@
         "ja" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "オープン"
+            "value": "保護なし"
           }
         },
         "ko" : {
@@ -7561,7 +7561,7 @@
         "ko" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "이어서 시청"
+            "value": "계속 시청"
           }
         },
         "nb" : {
@@ -8240,7 +8240,7 @@
         "pt-PT" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Abre a app Sodalite."
+            "value": "Abra a app Sodalite."
           }
         },
         "ro" : {
@@ -8401,7 +8401,7 @@
         "pt-PT" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Continua de onde paraste no Sodalite."
+            "value": "Continue de onde parou no Sodalite."
           }
         },
         "ro" : {
@@ -9169,7 +9169,7 @@
         "hu" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Véletlenszerű"
+            "value": "Keverés"
           }
         },
         "it" : {
@@ -11209,7 +11209,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "使用快速連線"
+            "value": "使用 Quick Connect"
           }
         }
       }
@@ -11497,7 +11497,7 @@
         "ru" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Войдите в свой аккаунт"
+            "value": "Войдите в свою учётную запись"
           }
         },
         "sk" : {
@@ -11725,7 +11725,7 @@
         "el" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Καλώς όρισες, %@!"
+            "value": "Καλώς ορίσατε, %@!"
           }
         },
         "en" : {
@@ -12085,7 +12085,7 @@
         "hu" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Írja be ezt a kódot a Jellyfin irányítópultba az engedélyezéshez"
+            "value": "Írd be ezt a kódot a Jellyfin irányítópultba az engedélyezéshez"
           }
         },
         "it" : {
@@ -14885,7 +14885,7 @@
         "ro" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Refuzați cererea?"
+            "value": "Refuzi cererea?"
           }
         },
         "ru" : {
@@ -14921,7 +14921,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "拒绝请求?"
+            "value": "拒绝请求？"
           }
         },
         "zh-Hant" : {
@@ -15207,7 +15207,7 @@
         "ro" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Ștergeți cererea?"
+            "value": "Ștergi cererea?"
           }
         },
         "ru" : {
@@ -15243,7 +15243,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "删除请求?"
+            "value": "删除请求？"
           }
         },
         "zh-Hant" : {
@@ -15421,25 +15421,25 @@
         "cs" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Quality Profile"
+            "value": "Profil kvality"
           }
         },
         "da" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Quality Profile"
+            "value": "Kvalitetsprofil"
           }
         },
         "de" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Quality Profile"
+            "value": "Qualitätsprofil"
           }
         },
         "el" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Quality Profile"
+            "value": "Προφίλ ποιότητας"
           }
         },
         "en" : {
@@ -15451,127 +15451,127 @@
         "es" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Quality Profile"
+            "value": "Perfil de calidad"
           }
         },
         "fi" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Quality Profile"
+            "value": "Laatuprofiili"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Quality Profile"
+            "value": "Profil de qualité"
           }
         },
         "hr" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Quality Profile"
+            "value": "Profil kvalitete"
           }
         },
         "hu" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Quality Profile"
+            "value": "Minőségi profil"
           }
         },
         "it" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Quality Profile"
+            "value": "Profilo qualità"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Quality Profile"
+            "value": "品質プロファイル"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Quality Profile"
+            "value": "품질 프로필"
           }
         },
         "nb" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Quality Profile"
+            "value": "Kvalitetsprofil"
           }
         },
         "nl" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Quality Profile"
+            "value": "Kwaliteitsprofiel"
           }
         },
         "pl" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Quality Profile"
+            "value": "Profil jakości"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Quality Profile"
+            "value": "Perfil de qualidade"
           }
         },
         "pt-PT" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Quality Profile"
+            "value": "Perfil de qualidade"
           }
         },
         "ro" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Quality Profile"
+            "value": "Profil de calitate"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Quality Profile"
+            "value": "Профиль качества"
           }
         },
         "sk" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Quality Profile"
+            "value": "Profil kvality"
           }
         },
         "sv" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Quality Profile"
+            "value": "Kvalitetsprofil"
           }
         },
         "tr" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Quality Profile"
+            "value": "Kalite profili"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Quality Profile"
+            "value": "Профіль якості"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Quality Profile"
+            "value": "质量配置文件"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Quality Profile"
+            "value": "品質設定檔"
           }
         }
       }
@@ -15582,25 +15582,25 @@
         "cs" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Root Folder"
+            "value": "Kořenová složka"
           }
         },
         "da" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Root Folder"
+            "value": "Rodmappe"
           }
         },
         "de" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Root Folder"
+            "value": "Stammverzeichnis"
           }
         },
         "el" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Root Folder"
+            "value": "Ριζικός φάκελος"
           }
         },
         "en" : {
@@ -15612,127 +15612,127 @@
         "es" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Root Folder"
+            "value": "Carpeta raíz"
           }
         },
         "fi" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Root Folder"
+            "value": "Juurikansio"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Root Folder"
+            "value": "Dossier racine"
           }
         },
         "hr" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Root Folder"
+            "value": "Korijenska mapa"
           }
         },
         "hu" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Root Folder"
+            "value": "Gyökérmappa"
           }
         },
         "it" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Root Folder"
+            "value": "Cartella principale"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Root Folder"
+            "value": "ルートフォルダ"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Root Folder"
+            "value": "루트 폴더"
           }
         },
         "nb" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Root Folder"
+            "value": "Rotmappe"
           }
         },
         "nl" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Root Folder"
+            "value": "Hoofdmap"
           }
         },
         "pl" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Root Folder"
+            "value": "Folder główny"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Root Folder"
+            "value": "Pasta raiz"
           }
         },
         "pt-PT" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Root Folder"
+            "value": "Pasta raiz"
           }
         },
         "ro" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Root Folder"
+            "value": "Dosar rădăcină"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Root Folder"
+            "value": "Корневая папка"
           }
         },
         "sk" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Root Folder"
+            "value": "Koreňový priečinok"
           }
         },
         "sv" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Root Folder"
+            "value": "Rotmapp"
           }
         },
         "tr" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Root Folder"
+            "value": "Kök klasör"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Root Folder"
+            "value": "Коренева тека"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Root Folder"
+            "value": "根文件夹"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Root Folder"
+            "value": "根資料夾"
           }
         }
       }
@@ -17491,7 +17491,7 @@
         "uk" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Немає очікуючих запитів"
+            "value": "Немає запитів в очікуванні"
           }
         },
         "zh-Hans" : {
@@ -17705,7 +17705,7 @@
         "es" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Aprobado"
+            "value": "Aprobadas"
           }
         },
         "fi" : {
@@ -17735,7 +17735,7 @@
         "it" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Approvato"
+            "value": "Approvate"
           }
         },
         "ja" : {
@@ -17801,7 +17801,7 @@
         "sv" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Godkänt"
+            "value": "Godkänd"
           }
         },
         "tr" : {
@@ -17866,7 +17866,7 @@
         "es" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Rechazado"
+            "value": "Rechazadas"
           }
         },
         "fi" : {
@@ -17896,7 +17896,7 @@
         "it" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Rifiutato"
+            "value": "Rifiutate"
           }
         },
         "ja" : {
@@ -18027,7 +18027,7 @@
         "es" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Pendiente"
+            "value": "Pendientes"
           }
         },
         "fi" : {
@@ -18206,7 +18206,7 @@
         "hr" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Zahtijeva %@"
+            "value": "Zatražio %@"
           }
         },
         "hu" : {
@@ -19568,7 +19568,7 @@
         "sk" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Požiadať o série"
+            "value": "Požiadať o sezóny"
           }
         },
         "sv" : {
@@ -19592,7 +19592,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "请求剧集"
+            "value": "请求剧季"
           }
         },
         "zh-Hant" : {
@@ -19904,7 +19904,7 @@
         "tr" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Yeni filmlere ve dizilere göz atmak ve istekte bulunmak için Ayarlar'da Seerr'i kurun."
+            "value": "Yeni filmlere ve dizilere göz atmak ve istekte bulunmak için Ayarlar'da Seerr'i kur."
           }
         },
         "uk" : {
@@ -22564,7 +22564,7 @@
         "fr" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Terminé"
+            "value": "Terminée"
           }
         },
         "hr" : {
@@ -22756,7 +22756,7 @@
         "ko" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "거부됨"
+            "value": "거절됨"
           }
         },
         "nb" : {
@@ -22888,7 +22888,7 @@
         "fr" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Échoué"
+            "value": "Échouée"
           }
         },
         "hr" : {
@@ -23290,7 +23290,7 @@
         "sk" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Séria"
+            "value": "Sezóna"
           }
         },
         "sv" : {
@@ -23320,7 +23320,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "第"
+            "value": "季"
           }
         }
       }
@@ -23734,7 +23734,7 @@
         "nb" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Fjern alle"
+            "value": "Velg bort alle"
           }
         },
         "nl" : {
@@ -23806,7 +23806,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "全部取消"
+            "value": "取消全選"
           }
         }
       }
@@ -24586,7 +24586,7 @@
         "sk" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Vybrať série"
+            "value": "Vybrať sezóny"
           }
         },
         "sv" : {
@@ -24610,7 +24610,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "选择剧集"
+            "value": "选择季"
           }
         },
         "zh-Hant" : {
@@ -25234,7 +25234,7 @@
         "sk" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Obľúbené filmy"
+            "value": "Populárne filmy"
           }
         },
         "sv" : {
@@ -25396,7 +25396,7 @@
         "sk" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Obľúbené seriály"
+            "value": "Populárne seriály"
           }
         },
         "sv" : {
@@ -25828,7 +25828,7 @@
         "ja" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "ドラマジャンル"
+            "value": "番組ジャンル"
           }
         },
         "ko" : {
@@ -26152,7 +26152,7 @@
         "ja" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "近日公開のドラマ"
+            "value": "近日公開の番組"
           }
         },
         "ko" : {
@@ -27219,7 +27219,7 @@
         "cs" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Všechny požadavky"
+            "value": "Všechny žádosti"
           }
         },
         "da" : {
@@ -27339,7 +27339,7 @@
         "sk" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Všetky požiadavky"
+            "value": "Všetky žiadosti"
           }
         },
         "sv" : {
@@ -27813,7 +27813,7 @@
         "ro" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Unde de vizionat"
+            "value": "Unde poți viziona"
           }
         },
         "ru" : {
@@ -56069,7 +56069,7 @@
         "cs" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Radarr / Sonarr může odstranit pouze celý seriál, nikoli jednotlivé sezóny. Pro úklid v *arr stacku smaž celý seriál."
+            "value": "Radarr / Sonarr může odstranit pouze celý seriál, nikoli jednotlivé sezóny. Pro úklid v *arr stacku smažte celý seriál."
           }
         },
         "da" : {
@@ -56111,7 +56111,7 @@
         "fr" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Radarr / Sonarr ne peut supprimer que la série complète, pas des saisons individuelles. Pour nettoyer aussi la stack *arr, supprime toute la série."
+            "value": "Radarr / Sonarr ne peut supprimer que la série complète, pas des saisons individuelles. Pour nettoyer aussi la stack *arr, supprimez toute la série."
           }
         },
         "hr" : {
@@ -56183,13 +56183,13 @@
         "ru" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Radarr / Sonarr может удалить только весь сериал, а не отдельные сезоны. Чтобы также очистить стек *arr, удали сериал целиком."
+            "value": "Radarr / Sonarr может удалить только весь сериал, а не отдельные сезоны. Чтобы также очистить стек *arr, удалите сериал целиком."
           }
         },
         "sk" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Radarr / Sonarr dokáže odstrániť iba celý seriál, nie jednotlivé sezóny. Ak chceš upratať aj *arr stack, zmaž celý seriál."
+            "value": "Radarr / Sonarr dokáže odstrániť iba celý seriál, nie jednotlivé sezóny. Ak chcete upratať aj *arr stack, zmažte celý seriál."
           }
         },
         "sv" : {
@@ -56207,7 +56207,7 @@
         "uk" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Radarr / Sonarr може видалити лише весь серіал, а не окремі сезони. Щоб також очистити *arr стек, видали весь серіал."
+            "value": "Radarr / Sonarr може видалити лише весь серіал, а не окремі сезони. Щоб також очистити *arr стек, видаліть весь серіал."
           }
         },
         "zh-Hans" : {
@@ -57581,7 +57581,7 @@
         "hu" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Eltávolítva a Jellyfinből. Jelentkezzen be a Seerrbe a Beállításokban a Radarr / Sonarr bejegyzés eltávolításához is."
+            "value": "Eltávolítva a Jellyfinből. Jelentkezz be a Seerrbe a Beállításokban a Radarr / Sonarr bejegyzés eltávolításához is."
           }
         },
         "it" : {
@@ -57635,7 +57635,7 @@
         "ro" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Eliminat din Jellyfin. Conectați-vă la Seerr din Setări pentru a elimina și intrarea din Radarr / Sonarr."
+            "value": "Eliminat din Jellyfin. Conectează-te la Seerr din Setări pentru a elimina și intrarea din Radarr / Sonarr."
           }
         },
         "ru" : {
@@ -57929,7 +57929,7 @@
         "nb" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Skuespillere"
+            "value": "Medvirkende"
           }
         },
         "nl" : {
@@ -57977,7 +57977,7 @@
         "sv" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Skådespelare"
+            "value": "Medverkande"
           }
         },
         "tr" : {
@@ -57995,7 +57995,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "演员"
+            "value": "演职人员"
           }
         },
         "zh-Hant" : {
@@ -59837,7 +59837,7 @@
         "fr" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Relire"
+            "value": "Revoir"
           }
         },
         "hr" : {
@@ -59987,7 +59987,7 @@
         "es" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Pedir"
+            "value": "Solicitar"
           }
         },
         "fi" : {
@@ -61355,7 +61355,7 @@
         "pt-PT" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Audio"
+            "value": "Áudio"
           }
         },
         "ro" : {
@@ -63653,7 +63653,7 @@
         "tr" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "İzler"
+            "value": "Parçalar"
           }
         },
         "uk" : {
@@ -63785,7 +63785,7 @@
         "pt-PT" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Video"
+            "value": "Vídeo"
           }
         },
         "ro" : {
@@ -64175,13 +64175,13 @@
         "da" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Fjern"
+            "value": "Fjern favorit"
           }
         },
         "de" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Entfernen"
+            "value": "Favorit entfernen"
           }
         },
         "el" : {
@@ -64199,7 +64199,7 @@
         "es" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Quitar"
+            "value": "Quitar de favoritos"
           }
         },
         "fi" : {
@@ -64229,13 +64229,13 @@
         "it" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Rimuovi"
+            "value": "Rimuovi dai preferiti"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "削除"
+            "value": "お気に入りを解除"
           }
         },
         "ko" : {
@@ -64247,25 +64247,25 @@
         "nb" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Fjern"
+            "value": "Fjern favoritt"
           }
         },
         "nl" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Verwijderen"
+            "value": "Verwijder uit favorieten"
           }
         },
         "pl" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Usuń"
+            "value": "Usuń z ulubionych"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Remover"
+            "value": "Remover dos favoritos"
           }
         },
         "pt-PT" : {
@@ -64283,7 +64283,7 @@
         "ru" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Убрать"
+            "value": "Из избранного"
           }
         },
         "sk" : {
@@ -64295,7 +64295,7 @@
         "sv" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Ta bort"
+            "value": "Ta bort favorit"
           }
         },
         "tr" : {
@@ -64385,7 +64385,7 @@
         "hu" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Válasszon verziót"
+            "value": "Válassz verziót"
           }
         },
         "it" : {
@@ -64541,7 +64541,7 @@
         "hr" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Scenarij"
+            "value": "Scenarist"
           }
         },
         "hu" : {
@@ -64631,7 +64631,7 @@
         "uk" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Сценарій"
+            "value": "Сценарист"
           }
         },
         "zh-Hans" : {
@@ -66985,7 +66985,7 @@
         "ja" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "すべてのドラマ"
+            "value": "すべてのシリーズ"
           }
         },
         "ko" : {
@@ -68317,7 +68317,7 @@
         "pt-PT" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Mostra os episódios de A seguir na fila Continuar a ver."
+            "value": "Mostra os episódios de A seguir na linha Continuar a ver."
           }
         },
         "ro" : {
@@ -69510,7 +69510,7 @@
         "cs" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Nelze se připojit k serveru. Zkontroluj připojení a zkus to znovu."
+            "value": "Nelze se připojit k serveru. Zkontrolujte připojení a zkuste to znovu."
           }
         },
         "da" : {
@@ -69528,7 +69528,7 @@
         "el" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Αδυναμία πρόσβασης στον διακομιστή. Έλεγξε τη σύνδεση και προσπάθησε ξανά."
+            "value": "Αδυναμία πρόσβασης στον διακομιστή. Ελέγξτε τη σύνδεση και δοκιμάστε ξανά."
           }
         },
         "en" : {
@@ -69552,7 +69552,7 @@
         "fr" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Impossible de joindre votre serveur. Vérifie la connexion et réessaie."
+            "value": "Impossible de joindre votre serveur. Vérifiez la connexion et réessayez."
           }
         },
         "hr" : {
@@ -69612,7 +69612,7 @@
         "pt-PT" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Não foi possível alcançar o servidor. Verifica a ligação e tenta novamente."
+            "value": "Não foi possível alcançar o servidor. Verifique a ligação e tente novamente."
           }
         },
         "ro" : {
@@ -69630,7 +69630,7 @@
         "sk" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Nepodarilo sa pripojiť k serveru. Skontroluj pripojenie a skús to znova."
+            "value": "Nepodarilo sa pripojiť k serveru. Skontrolujte pripojenie a skúste to znova."
           }
         },
         "sv" : {
@@ -69648,7 +69648,7 @@
         "uk" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Не вдалося зв'язатися з сервером. Перевір з'єднання та спробуй знову."
+            "value": "Не вдалося зв'язатися з сервером. Перевірте з'єднання та спробуйте знову."
           }
         },
         "zh-Hans" : {
@@ -70224,7 +70224,7 @@
         "ja" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "最新のドラマ"
+            "value": "最新の番組"
           }
         },
         "ko" : {
@@ -71356,7 +71356,7 @@
         "ja" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "高評価のドラマ"
+            "value": "高評価の番組"
           }
         },
         "ko" : {
@@ -72503,7 +72503,7 @@
         "nl" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Nu bezig"
+            "value": "Nu te zien"
           }
         },
         "pl" : {
@@ -73536,7 +73536,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "收藏"
+            "value": "最愛"
           }
         }
       }
@@ -73746,7 +73746,7 @@
         "fi" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Live-TV:n lataus epäonnistui"
+            "value": "Suora-TV:n lataus epäonnistui"
           }
         },
         "fr" : {
@@ -74355,7 +74355,7 @@
         "cs" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Server nemohl naplánovat nahrávání. Zkontroluj, zda je v Jellyfinu nastavena cesta pro nahrávky."
+            "value": "Server nemohl naplánovat nahrávání. Zkontrolujte, zda je v Jellyfinu nastavena cesta pro nahrávky."
           }
         },
         "da" : {
@@ -74457,7 +74457,7 @@
         "pt-PT" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "O servidor não conseguiu agendar a gravação. Verifica se está configurado um caminho de gravação no Jellyfin."
+            "value": "O servidor não conseguiu agendar a gravação. Verifique se está configurado um caminho de gravação no Jellyfin."
           }
         },
         "ro" : {
@@ -74475,7 +74475,7 @@
         "sk" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Server nemohol naplánovať nahrávanie. Skontroluj, či je v Jellyfine nastavená cesta pre nahrávky."
+            "value": "Server nemohol naplánovať nahrávanie. Skontrolujte, či je v Jellyfine nastavená cesta pre nahrávky."
           }
         },
         "sv" : {
@@ -76922,7 +76922,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "取消收藏"
+            "value": "取消最愛"
           }
         }
       }
@@ -77202,7 +77202,7 @@
         "ro" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Codul a expirat. Solicitați unul nou."
+            "value": "Codul a expirat. Solicită unul nou."
           }
         },
         "ru" : {
@@ -79436,7 +79436,7 @@
         "pt-PT" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Gere os teus servidores Jellyfin"
+            "value": "Faça a gestão dos seus servidores Jellyfin"
           }
         },
         "ro" : {
@@ -79660,7 +79660,7 @@
         "da" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Hold et server-tile nede for at skifte, indstille som standard eller fjerne det."
+            "value": "Hold en server nede for at skifte, indstille som standard eller fjerne den."
           }
         },
         "de" : {
@@ -79702,7 +79702,7 @@
         "hr" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Dugo pritisni server da bi prebacio, postavio kao zadani ili uklonio."
+            "value": "Dugo pritisnite poslužitelj da biste se prebacili, postavili ga kao zadani ili uklonili."
           }
         },
         "hu" : {
@@ -79720,7 +79720,7 @@
         "ja" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "サーバーを長押しすると、切り替え、既定として設定、または削除できます。"
+            "value": "サーバーを長押しすると、切り替え、デフォルトとして設定、または削除できます。"
           }
         },
         "ko" : {
@@ -79756,7 +79756,7 @@
         "pt-PT" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Mantém premido um servidor para mudar, definir como predefinido ou remover."
+            "value": "Mantenha premido um servidor para mudar, definir como predefinido ou remover."
           }
         },
         "ro" : {
@@ -80082,7 +80082,7 @@
         "ro" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Conectați-vă din nou la acest server pentru a-l utiliza."
+            "value": "Conectează-te din nou la acest server pentru a-l utiliza."
           }
         },
         "ru" : {
@@ -80672,7 +80672,7 @@
         "hu" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Várólista"
+            "value": "Lejátszási sor"
           }
         },
         "it" : {
@@ -81137,7 +81137,7 @@
         "fi" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Tunnettu"
+            "value": "Tunnetuimmat"
           }
         },
         "fr" : {
@@ -81155,7 +81155,7 @@
         "hu" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Ismert"
+            "value": "Ismert munkái"
           }
         },
         "it" : {
@@ -81245,13 +81245,13 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "代表领域"
+            "value": "代表作"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "代表領域"
+            "value": "代表作品"
           }
         }
       }
@@ -81685,7 +81685,7 @@
         "pt-PT" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Audio"
+            "value": "Áudio"
           }
         },
         "ro" : {
@@ -82820,7 +82820,7 @@
         "ro" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Transmisiunea live eșuează în mod repetat. Încercați din nou canalul."
+            "value": "Transmisiunea live eșuează în mod repetat. Încearcă din nou canalul."
           }
         },
         "ru" : {
@@ -82982,7 +82982,7 @@
         "ro" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Serverul nu a putut deschide fluxul acestui canal. Sursa canalului ar putea fi offline. Încercați din nou mai târziu."
+            "value": "Serverul nu a putut deschide fluxul acestui canal. Sursa canalului ar putea fi offline. Încearcă din nou mai târziu."
           }
         },
         "ru" : {
@@ -84758,7 +84758,7 @@
         "ru" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Начнётся через %llds..."
+            "value": "Начнётся через %lld с..."
           }
         },
         "sk" : {
@@ -85521,7 +85521,7 @@
         "ko" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "A/V 격차"
+            "value": "A/V 차이"
           }
         },
         "nb" : {
@@ -85664,7 +85664,7 @@
         "hu" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Háttér"
+            "value": "Háttérrendszer"
           }
         },
         "it" : {
@@ -86624,7 +86624,7 @@
         "hr" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Izgubljeni okviri"
+            "value": "Ispuštene sličice"
           }
         },
         "hu" : {
@@ -86749,7 +86749,7 @@
         "de" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Dynamikbereich"
+            "value": "Dynamikumfang"
           }
         },
         "el" : {
@@ -87590,7 +87590,7 @@
         "hr" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Restartovanja producera"
+            "value": "Ponovna pokretanja producera"
           }
         },
         "hu" : {
@@ -88216,7 +88216,7 @@
         "es" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "En vivo"
+            "value": "En directo"
           }
         },
         "fi" : {
@@ -89063,7 +89063,7 @@
         "ko" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "오타쿠를 위한 통계"
+            "value": "마니아를 위한 통계"
           }
         },
         "nb" : {
@@ -89686,7 +89686,7 @@
         "hu" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "A felirat törlése nem sikerült. Lehet, hogy nincs jogosultsága."
+            "value": "A felirat törlése nem sikerült. Lehet, hogy nincs jogosultságod."
           }
         },
         "it" : {
@@ -89740,7 +89740,7 @@
         "ro" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Subtitrarea nu a putut fi ștearsă. Este posibil să nu aveți permisiune."
+            "value": "Subtitrarea nu a putut fi ștearsă. Este posibil să nu ai permisiune."
           }
         },
         "ru" : {
@@ -89846,7 +89846,7 @@
         "hu" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Tartsa lenyomva a törléshez"
+            "value": "Tartsd lenyomva a törléshez"
           }
         },
         "it" : {
@@ -89900,7 +89900,7 @@
         "ro" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Țineți apăsat pentru a șterge"
+            "value": "Ține apăsat pentru a șterge"
           }
         },
         "ru" : {
@@ -90006,7 +90006,7 @@
         "hu" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Törli ezt a feliratot?"
+            "value": "Törlöd ezt a feliratot?"
           }
         },
         "it" : {
@@ -90060,7 +90060,7 @@
         "ro" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Ștergeți această subtitrare?"
+            "value": "Ștergi această subtitrare?"
           }
         },
         "ru" : {
@@ -90380,7 +90380,7 @@
         "ro" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Acest subtitrare nu a putut fi descărcată. Încercați altul."
+            "value": "Această subtitrare nu a putut fi descărcată. Încearcă alta."
           }
         },
         "ru" : {
@@ -93808,7 +93808,7 @@
         "cs" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Nelze se připojit k serveru. Zkontroluj připojení a zkus to znovu."
+            "value": "Nelze se připojit k serveru. Zkontrolujte připojení a zkuste to znovu."
           }
         },
         "da" : {
@@ -93850,7 +93850,7 @@
         "fr" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Impossible de joindre votre serveur. Vérifie la connexion et réessaie."
+            "value": "Impossible de joindre votre serveur. Vérifiez la connexion et réessayez."
           }
         },
         "hr" : {
@@ -93910,7 +93910,7 @@
         "pt-PT" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Não foi possível alcançar o servidor. Verifica a ligação e tenta novamente."
+            "value": "Não foi possível alcançar o servidor. Verifique a ligação e tente novamente."
           }
         },
         "ro" : {
@@ -93928,7 +93928,7 @@
         "sk" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Nepodarilo sa pripojiť k serveru. Skontroluj pripojenie a skús to znova."
+            "value": "Nepodarilo sa pripojiť k serveru. Skontrolujte pripojenie a skúste to znova."
           }
         },
         "sv" : {
@@ -93946,7 +93946,7 @@
         "uk" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Не вдалося зв'язатися з сервером. Перевір з'єднання та спробуй знову."
+            "value": "Не вдалося зв'язатися з сервером. Перевірте з'єднання та спробуйте знову."
           }
         },
         "zh-Hans" : {
@@ -93970,7 +93970,7 @@
         "cs" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Připoj Seerr v Nastavení, abys mohl prohledávat i katalog nových filmů a seriálů."
+            "value": "Připojte Seerr v Nastavení, abyste mohli prohledávat i katalog nových filmů a seriálů."
           }
         },
         "da" : {
@@ -94012,7 +94012,7 @@
         "fr" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Connecte Seerr dans les Réglages pour rechercher aussi dans le catalogue de nouveaux films et séries."
+            "value": "Connectez Seerr dans les Réglages pour rechercher aussi dans le catalogue de nouveaux films et séries."
           }
         },
         "hr" : {
@@ -94066,13 +94066,13 @@
         "pt-BR" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Conecte o Seerr nos Ajustes para também pesquisar o catálogo por novos filmes e séries."
+            "value": "Conecte o Seerr nas Configurações para também pesquisar o catálogo por novos filmes e séries."
           }
         },
         "pt-PT" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Liga o Seerr nas Definições para pesquisares também no catálogo novos filmes e séries."
+            "value": "Ligue o Seerr nas Definições para pesquisar também novos filmes e séries no catálogo."
           }
         },
         "ro" : {
@@ -94090,7 +94090,7 @@
         "sk" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Pripoj Seerr v Nastaveniach, aby si mohol prehľadávať aj katalóg nových filmov a seriálov."
+            "value": "Pripojte Seerr v Nastaveniach, aby ste mohli prehľadávať aj katalóg nových filmov a seriálov."
           }
         },
         "sv" : {
@@ -94132,7 +94132,7 @@
         "cs" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Začni psát pro vyhledávání"
+            "value": "Začněte psát pro vyhledávání"
           }
         },
         "da" : {
@@ -94174,7 +94174,7 @@
         "fr" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Commence à taper pour rechercher"
+            "value": "Commencez à taper pour rechercher"
           }
         },
         "hr" : {
@@ -94234,7 +94234,7 @@
         "pt-PT" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Começa a escrever para pesquisar"
+            "value": "Comece a escrever para pesquisar"
           }
         },
         "ro" : {
@@ -94252,7 +94252,7 @@
         "sk" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Začni písať pre vyhľadávanie"
+            "value": "Začnite písať pre vyhľadávanie"
           }
         },
         "sv" : {
@@ -94618,7 +94618,7 @@
         "cs" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Ve tvé knihovně"
+            "value": "Ve vaší knihovně"
           }
         },
         "da" : {
@@ -94660,13 +94660,13 @@
         "fr" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Dans ta Bibliothèque"
+            "value": "Dans votre Bibliothèque"
           }
         },
         "hr" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "U tvojoj biblioteci"
+            "value": "U tvojoj knjižnici"
           }
         },
         "hu" : {
@@ -94720,7 +94720,7 @@
         "pt-PT" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Na tua Biblioteca"
+            "value": "Na sua Biblioteca"
           }
         },
         "ro" : {
@@ -94738,7 +94738,7 @@
         "sk" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "V tvojej knižnici"
+            "value": "Vo vašej knižnici"
           }
         },
         "sv" : {
@@ -94768,7 +94768,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "在你的媒體庫中"
+            "value": "在您的媒體庫中"
           }
         }
       }
@@ -95428,7 +95428,7 @@
         "cs" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Obrázek v Pokračovat v přehrávání"
+            "value": "Obrázek v řadě Pokračovat ve sledování"
           }
         },
         "da" : {
@@ -95458,7 +95458,7 @@
         "es" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Imagen en Continuar viendo"
+            "value": "Imagen en Seguir viendo"
           }
         },
         "fi" : {
@@ -95470,7 +95470,7 @@
         "fr" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Image dans Reprendre la lecture"
+            "value": "Image dans Continuer à regarder"
           }
         },
         "hr" : {
@@ -95494,13 +95494,13 @@
         "ja" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "「続きを見る」の画像"
+            "value": "「視聴を続ける」の画像"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "이어서 보기의 이미지"
+            "value": "계속 시청의 이미지"
           }
         },
         "nb" : {
@@ -95620,7 +95620,7 @@
         "es" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Backdrop"
+            "value": "Fondo"
           }
         },
         "fi" : {
@@ -95632,7 +95632,7 @@
         "fr" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Backdrop"
+            "value": "Arrière-plan"
           }
         },
         "hr" : {
@@ -95644,7 +95644,7 @@
         "hu" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Backdrop"
+            "value": "Háttérkép"
           }
         },
         "it" : {
@@ -95656,13 +95656,13 @@
         "ja" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Backdrop"
+            "value": "背景画像"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Backdrop"
+            "value": "배경 이미지"
           }
         },
         "nb" : {
@@ -95686,7 +95686,7 @@
         "pt-BR" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Backdrop"
+            "value": "Plano de fundo"
           }
         },
         "pt-PT" : {
@@ -95704,7 +95704,7 @@
         "ru" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Backdrop"
+            "value": "Фон"
           }
         },
         "sk" : {
@@ -95734,13 +95734,13 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Backdrop"
+            "value": "背景图"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Backdrop"
+            "value": "背景圖"
           }
         }
       }
@@ -95914,7 +95914,7 @@
         "cs" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Který obrázek použijí karty v Pokračovat v přehrávání a Další na řadě."
+            "value": "Který obrázek použijí karty v Pokračovat ve sledování a Další na řadě."
           }
         },
         "da" : {
@@ -95944,7 +95944,7 @@
         "es" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Qué imagen usan las tarjetas de Continuar viendo y A continuación."
+            "value": "Qué imagen usan las tarjetas de Seguir viendo y Siguiente."
           }
         },
         "fi" : {
@@ -95956,7 +95956,7 @@
         "fr" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "L'image utilisée par les cartes Reprendre la lecture et À suivre."
+            "value": "L'image utilisée par les cartes Continuer à regarder et À suivre."
           }
         },
         "hr" : {
@@ -95974,19 +95974,19 @@
         "it" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Quale immagine usano le schede Continua a guardare e Da vedere."
+            "value": "Quale immagine usano le schede Continua a guardare e Prossimo."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "「続きを見る」と「次に見る」のカードに使う画像。"
+            "value": "「視聴を続ける」と「次の再生」のカードに使う画像。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "이어서 보기와 다음 볼 콘텐츠 카드에 사용할 이미지."
+            "value": "'계속 시청'과 '다음' 카드에 사용할 이미지."
           }
         },
         "nb" : {
@@ -96028,7 +96028,7 @@
         "ru" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Какое изображение используют карточки «Продолжить просмотр» и «Дальше»."
+            "value": "Какое изображение используют карточки «Продолжить просмотр» и «Далее»."
           }
         },
         "sk" : {
@@ -96040,7 +96040,7 @@
         "sv" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Vilken bild korten i Fortsätt titta och Näst på tur använder."
+            "value": "Vilken bild korten i Fortsätt titta och Nästa använder."
           }
         },
         "tr" : {
@@ -96106,7 +96106,7 @@
         "es" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Thumb"
+            "value": "Miniatura"
           }
         },
         "fi" : {
@@ -96118,7 +96118,7 @@
         "fr" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Thumb"
+            "value": "Vignette"
           }
         },
         "hr" : {
@@ -96130,7 +96130,7 @@
         "hu" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Thumb"
+            "value": "Bélyegkép"
           }
         },
         "it" : {
@@ -96142,13 +96142,13 @@
         "ja" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Thumb"
+            "value": "サムネイル"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Thumb"
+            "value": "썸네일"
           }
         },
         "nb" : {
@@ -96172,7 +96172,7 @@
         "pt-BR" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Thumb"
+            "value": "Miniatura"
           }
         },
         "pt-PT" : {
@@ -96190,7 +96190,7 @@
         "ru" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Thumb"
+            "value": "Миниатюра"
           }
         },
         "sk" : {
@@ -96208,7 +96208,7 @@
         "tr" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Thumb"
+            "value": "Küçük resim"
           }
         },
         "uk" : {
@@ -96220,13 +96220,13 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Thumb"
+            "value": "缩略图"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Thumb"
+            "value": "縮圖"
           }
         }
       }
@@ -96628,7 +96628,7 @@
         "ja" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "開発を支援を開く"
+            "value": "「開発を支援」を開く"
           }
         },
         "ko" : {
@@ -96646,7 +96646,7 @@
         "nl" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Open Ondersteun de ontwikkeling"
+            "value": "Ondersteun de ontwikkeling openen"
           }
         },
         "pl" : {
@@ -98283,7 +98283,7 @@
         "pt-PT" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Lê sobre novas funcionalidades e melhorias"
+            "value": "Leia sobre novas funcionalidades e melhorias"
           }
         },
         "ro" : {
@@ -99180,7 +99180,7 @@
         "es" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Omite los intros detectados sin mostrar el botón."
+            "value": "Omite las intros detectadas sin mostrar el botón."
           }
         },
         "fi" : {
@@ -99312,7 +99312,7 @@
         "cs" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Outra automaticky přeskočit"
+            "value": "Automaticky přeskakovat outra"
           }
         },
         "da" : {
@@ -99342,7 +99342,7 @@
         "es" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Saltar outros automáticamente"
+            "value": "Omitir outros automáticamente"
           }
         },
         "fi" : {
@@ -99420,7 +99420,7 @@
         "ro" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Sări automat outro-urile"
+            "value": "Omite automat outro-urile"
           }
         },
         "ru" : {
@@ -99576,7 +99576,7 @@
         "pt-PT" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Saltar os créditos quando o marcador de outro for detetado."
+            "value": "Saltar os créditos quando o marcador de final for detetado."
           }
         },
         "ro" : {
@@ -100270,7 +100270,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "目前剧集結束時自動開始下一集。"
+            "value": "目前的劇集結束時自動開始下一集。"
           }
         }
       }
@@ -100359,7 +100359,7 @@
         "nb" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Motorlogg-overlegg"
+            "value": "Engine-logg-overlegg"
           }
         },
         "nl" : {
@@ -100377,7 +100377,7 @@
         "pt-BR" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Sobreposição de log do motor"
+            "value": "Sobreposição de log do engine"
           }
         },
         "pt-PT" : {
@@ -100407,7 +100407,7 @@
         "sv" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Motorloggöverlägg"
+            "value": "Engine-loggöverlägg"
           }
         },
         "tr" : {
@@ -100508,7 +100508,7 @@
         "ja" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Dolby Vision に集中"
+            "value": "Dolby Vision に絞り込む"
           }
         },
         "ko" : {
@@ -100621,7 +100621,7 @@
         "el" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Φιλτράρει την επικάλυψη σε αρχεία DV / HDR. Χρήσιμο για στιγμιότυπα υποστήριξης; απενεργοποιήστε για πλήρη καταγραφή."
+            "value": "Φιλτράρει την επικάλυψη στις καταγραφές δρομολόγησης DV / HDR. Χρήσιμο για στιγμιότυπα υποστήριξης· απενεργοποιήστε για πλήρη καταγραφή."
           }
         },
         "en" : {
@@ -100770,7 +100770,7 @@
         "da" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Vis engine-logoverlay i afspilleren. Kun i Debug- og TestFlight-bygninger."
+            "value": "Vis engine-logoverlay i afspilleren. Kun i Debug- og TestFlight-builds."
           }
         },
         "de" : {
@@ -100884,7 +100884,7 @@
         "sk" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Zobrazí prekrytie protokolu enginu v prehrávači. Iba v laděných a TestFlight buildoch."
+            "value": "Zobrazí prekrytie protokolu enginu v prehrávači. Iba v ladiacich a TestFlight buildoch."
           }
         },
         "sv" : {
@@ -103840,7 +103840,7 @@
         "da" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Hollandsk"
+            "value": "Nederlandsk"
           }
         },
         "de" : {
@@ -106110,7 +106110,7 @@
         "de" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "An"
+            "value": "Ein"
           }
         },
         "el" : {
@@ -107064,7 +107064,7 @@
         "cs" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Bezztrátové FLAC až do 7.1 kanálů. Doporučeno pro AVR s vícekanálovým LPCM přes HDMI. Vypnuto použije EAC3 5.1 pro soundbary."
+            "value": "Bezeztrátové FLAC až do 7.1 kanálů. Doporučeno pro AVR s vícekanálovým LPCM přes HDMI. Vypnuto použije EAC3 5.1 pro soundbary."
           }
         },
         "da" : {
@@ -107208,7 +107208,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "无损 FLAC,最高 7.1 声道。建议用于通过 HDMI 支持多声道 LPCM 的 AVR。关闭时使用 EAC3 5.1 以兼容音箱条。"
+            "value": "无损 FLAC,最高 7.1 声道。建议用于通过 HDMI 支持多声道 LPCM 的 AVR。关闭时使用 EAC3 5.1 以兼容条形音箱。"
           }
         },
         "zh-Hant" : {
@@ -107744,7 +107744,7 @@
         "fi" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Käynnistyy automaattisesti, jos saatavilla."
+            "value": "Otetaan käyttöön automaattisesti, jos saatavilla."
           }
         },
         "fr" : {
@@ -109885,7 +109885,7 @@
         "nl" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Oversloeg-interval"
+            "value": "Overslaaninterval"
           }
         },
         "pl" : {
@@ -110195,7 +110195,7 @@
         "ko" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "오타쿠를 위한 통계"
+            "value": "마니아를 위한 통계"
           }
         },
         "nb" : {
@@ -110858,7 +110858,7 @@
         "pl" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Tło"
+            "value": "Pole"
           }
         },
         "pt-BR" : {
@@ -112539,7 +112539,7 @@
         "cs" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Posune titulky vůči zvuku. Záporné hodnoty je zobrazí dřív."
+            "value": "Posune titulky vůči zvuku. Záporné hodnoty je zobrazí dříve, kladné později."
           }
         },
         "da" : {
@@ -113696,7 +113696,7 @@
         "es" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Por defecto"
+            "value": "Predeterminado"
           }
         },
         "fi" : {
@@ -113798,7 +113798,7 @@
         "tr" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Varsayílan"
+            "value": "Varsayılan"
           }
         },
         "uk" : {
@@ -114042,7 +114042,7 @@
         "hu" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Közép-Alacsony"
+            "value": "Közép-alacsony"
           }
         },
         "it" : {
@@ -115151,7 +115151,7 @@
         "fi" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Tekstikokoinen tekstityksen kirjasinkoko."
+            "value": "Tekstipohjaisten tekstitysten kirjasinkoko."
           }
         },
         "fr" : {
@@ -115193,7 +115193,7 @@
         "nb" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Skriftskala for teksttekster."
+            "value": "Skriftskala for tekstbaserte undertekster."
           }
         },
         "nl" : {
@@ -116135,7 +116135,7 @@
         "hu" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Szokásos"
+            "value": "Normál"
           }
         },
         "it" : {
@@ -118678,7 +118678,7 @@
         "da" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Afbryd"
+            "value": "Afbryd forbindelse"
           }
         },
         "de" : {
@@ -118912,7 +118912,7 @@
         "nb" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Logger på med din lagrede Jellyfin-passord"
+            "value": "Logger på med ditt lagrede Jellyfin-passord"
           }
         },
         "nl" : {
@@ -119104,13 +119104,13 @@
         "ro" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "V-ați autentificat în Jellyfin cu Quick Connect, așa că nu avem parola dvs. Introduceți-o pentru a vă autentifica în Seerr."
+            "value": "Te-ai autentificat în Jellyfin cu Quick Connect, așa că nu avem parola ta. Introdu-o pentru a te autentifica în Seerr."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Вы вошли в Jellyfin через Quick Connect, поэтому у нас нет вашего пароля. Введите его для входа в Seerr."
+            "value": "Вы вошли в Jellyfin через Быстрое подключение, поэтому у нас нет вашего пароля. Введите его для входа в Seerr."
           }
         },
         "sk" : {
@@ -119146,7 +119146,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "你透過 Quick Connect 登入了 Jellyfin,因此我們沒有你的密碼。請輸入密碼以登入 Seerr。"
+            "value": "您透過 Quick Connect 登入了 Jellyfin,因此我們沒有您的密碼。請輸入密碼以登入 Seerr。"
           }
         }
       }
@@ -119386,7 +119386,7 @@
         "ja" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "サーバ"
+            "value": "サーバー"
           }
         },
         "ko" : {
@@ -120502,13 +120502,13 @@
         "hr" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Koristi isti račun s kojim si se prijavio u Jellyfin"
+            "value": "Koristi isti račun s kojim ste se prijavili u Jellyfin"
           }
         },
         "hu" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Használja ugyanazt a fiókot, amellyel a Jellyfinbe bejelentkezett"
+            "value": "Használd ugyanazt a fiókot, amellyel a Jellyfinbe bejelentkeztél"
           }
         },
         "it" : {
@@ -121540,13 +121540,13 @@
         "ru" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Спасибо, что рассматриваете"
+            "value": "Спасибо, что задумались о поддержке"
           }
         },
         "sk" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Ďakujeme, že uvažuješ"
+            "value": "Ďakujeme, že zvažujete"
           }
         },
         "sv" : {
@@ -121756,7 +121756,7 @@
         "da" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Engangsoplåsning. Kosmetiske ekstras — et specielt splash-ikon, brugerdefinerede fremhævningsfarver og et supporter-badge i Indstillinger."
+            "value": "Engangsoplåsning. Kosmetiske ekstrafunktioner — et specielt splash-ikon, brugerdefinerede fremhævningsfarver og et supporter-badge i Indstillinger."
           }
         },
         "de" : {
@@ -121816,7 +121816,7 @@
         "ja" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "一回限りのアンロック。コスメティックエクストラ — 特別なスプラッシュアイコン、カスタムアクセントカラー、設定内のサポーターバッジ。"
+            "value": "一回限りのアンロック。見た目だけの追加要素 — 特別なスプラッシュアイコン、カスタムアクセントカラー、設定内のサポーターバッジ。"
           }
         },
         "ko" : {
@@ -121846,7 +121846,7 @@
         "pt-BR" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Desbloqueio único. Extras cosméticos — um ícone de abertura especial, cores de destaque personalizadas e um distintivo de apoiador nos Ajustes."
+            "value": "Desbloqueio único. Extras cosméticos — um ícone de abertura especial, cores de destaque personalizadas e um distintivo de apoiador nas Configurações."
           }
         },
         "pt-PT" : {
@@ -123694,7 +123694,7 @@
         "cs" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Nepodařilo se dosáhnout App Storu"
+            "value": "Nepodařilo se připojit k App Storu"
           }
         },
         "da" : {
@@ -125300,7 +125300,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Mono"
+            "value": "單聲道"
           }
         }
       }
@@ -125460,7 +125460,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Stereo"
+            "value": "立體聲"
           }
         }
       }
