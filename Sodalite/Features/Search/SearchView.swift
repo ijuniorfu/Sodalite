@@ -30,6 +30,9 @@ struct SearchView: View {
             .detailCover(item: $selectedSeerrMedia) { media in
                 CatalogDetailView(media: media)
             }
+            #if os(iOS)
+            .glassBackground()
+            #endif
         }
         .onAppear(perform: bootstrap)
         // Reactive Seerr hookup: bootstrap captures isSeerrConnected once, so hitting Search before restoreSession finishes the Seerr part would pin a nil service for the session. Re-sync on flag change keeps the catalog half live.
