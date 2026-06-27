@@ -8,10 +8,13 @@ struct CatalogAllRequestsView: View {
     @State private var requestBeingEdited: SeerrRequest?
     @State private var toastMessage: String?
 
+    @Environment(\.horizontalSizeClass) private var hSizeClass
+    private var metrics: LayoutMetrics { LayoutMetrics.current(hSizeClass) }
+
     var body: some View {
         VStack(spacing: 0) {
             filterChips
-                .padding(.horizontal, 50)
+                .padding(.horizontal, metrics.rowInset)
                 .padding(.top, 24)
                 .padding(.bottom, 12)
 
@@ -83,6 +86,17 @@ struct CatalogAllRequestsView: View {
     // MARK: - Filter chips
 
     private var filterChips: some View {
+        #if os(iOS)
+        Picker("", selection: Binding(
+            get: { viewModel.allRequestsFilter },
+            set: { newValue in Task { await viewModel.setAllRequestsFilter(newValue) } }
+        )) {
+            ForEach(SeerrRequestFilter.allCases) { filter in
+                Text(filterTitle(filter)).tag(filter)
+            }
+        }
+        .pickerStyle(.segmented)
+        #else
         HStack(spacing: 12) {
             ForEach(SeerrRequestFilter.allCases) { filter in
                 FilterChip(
@@ -94,6 +108,7 @@ struct CatalogAllRequestsView: View {
             }
             Spacer()
         }
+        #endif
     }
 
     private func filterTitle(_ filter: SeerrRequestFilter) -> LocalizedStringKey {

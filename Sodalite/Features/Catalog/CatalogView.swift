@@ -3,6 +3,8 @@ import SwiftUI
 struct CatalogView: View {
     @Environment(\.appState) private var appState
     @Environment(\.dependencies) private var dependencies
+    @Environment(\.horizontalSizeClass) private var hSizeClass
+    private var metrics: LayoutMetrics { LayoutMetrics.current(hSizeClass) }
     @State private var viewModel: CatalogViewModel?
     @State private var selectedMedia: SeerrMedia?
     @State private var selectedFilter: CatalogFilter?
@@ -27,7 +29,7 @@ struct CatalogView: View {
                             }
                         }
                         .pickerStyle(.segmented)
-                        .padding(.horizontal, 80)
+                        .padding(.horizontal, metrics.rowInset)
                         .padding(.top, 20)
 
                         switch selectedSection {
