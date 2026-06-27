@@ -14,18 +14,20 @@ import SwiftUI
 
 struct MusicHomeView: View {
     @Environment(\.dependencies) private var dependencies
+    @Environment(\.horizontalSizeClass) private var hSizeClass
     @State private var viewModel = MusicHomeViewModel()
     @State private var selectedAlbum: JellyfinItem?
     @FocusState private var focusedAlbumID: String?
 
     var body: some View {
+        let metrics = LayoutMetrics.current(hSizeClass)
         NavigationStack {
             ScrollView {
                 VStack(spacing: 0) {
                     if dependencies.musicPlaybackCoordinator.currentItem != nil {
                         NowPlayingCard()
-                            .padding(.horizontal, 60)
-                            .padding(.top, 40)
+                            .padding(.horizontal, metrics.gridInset)
+                            .padding(.top, hSizeClass == .compact ? 16 : 40)
                             .animation(.spring(response: 0.35, dampingFraction: 0.85),
                                        value: dependencies.musicPlaybackCoordinator.currentItem?.id)
                     }
@@ -64,9 +66,10 @@ struct MusicHomeView: View {
             .frame(maxWidth: .infinity, minHeight: 400)
             .focusable()
         } else {
+            let metrics = LayoutMetrics.current(hSizeClass)
             LazyVGrid(columns: [
-                GridItem(.adaptive(minimum: 220), spacing: 40)
-            ], spacing: 50) {
+                GridItem(.adaptive(minimum: metrics.gridMinimum), spacing: metrics.gridSpacing)
+            ], spacing: gridRowSpacing) {
                 ForEach(viewModel.albums) { album in
                     Button {
                         selectedAlbum = album
@@ -82,8 +85,17 @@ struct MusicHomeView: View {
                     .focused($focusedAlbumID, equals: album.id)
                 }
             }
-            .padding(.horizontal, 60)
-            .padding(.vertical, 40)
+            .padding(.horizontal, metrics.gridInset)
+            .padding(.vertical, hSizeClass == .compact ? 24 : 40)
         }
+    }
+
+    /// tvOS keeps its 50pt row gap (byte-identical); other tiers track the metrics grid spacing.
+    private var gridRowSpacing: CGFloat {
+        #if os(tvOS)
+        50
+        #else
+        LayoutMetrics.current(hSizeClass).gridSpacing
+        #endif
     }
 }

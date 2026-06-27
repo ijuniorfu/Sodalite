@@ -6,6 +6,7 @@ import SwiftUI
 /// transport lives, so the card has no buttons).
 struct NowPlayingCard: View {
     @Environment(\.dependencies) private var dependencies
+    @Environment(\.horizontalSizeClass) private var hSizeClass
 
     @FocusState private var cardFocused: Bool
 
@@ -23,7 +24,7 @@ struct NowPlayingCard: View {
             ? min(max(coordinator.currentTime / coordinator.duration, 0), 1)
             : 0
 
-        HStack(spacing: 24) {
+        HStack(spacing: hSizeClass == .compact ? 14 : 24) {
             coverArt(item: item)
 
             VStack(alignment: .leading, spacing: 6) {
@@ -47,7 +48,7 @@ struct NowPlayingCard: View {
                 .foregroundStyle(cardFocused ? Color.white.opacity(0.9) : Color.secondary)
                 .monospacedDigit()
         }
-        .padding(.horizontal, 28)
+        .padding(.horizontal, hSizeClass == .compact ? 18 : 28)
         .padding(.vertical, 16)
         .background(progressFill(progress))
         .overlay(
