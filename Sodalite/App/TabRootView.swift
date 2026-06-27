@@ -107,10 +107,19 @@ struct TabRootView: View {
         .tint(iconColor)
         // Display-only active-profile badge; non-focusable, below the player cover, hidden unless the server has multiple profiles.
         .overlay(alignment: .topTrailing) {
-            // tvOS / iPad: floating badge in the corner. iPhone moves the badge into the
-            // reserved top inset alongside the gear (below), so nothing floats over content.
             #if os(iOS)
-            if hSizeClass != .compact { ActiveUserBadge() }
+            if hSizeClass == .compact {
+                // Floating gear + badge in the corner; each tab page reserves space for it
+                // via .padding(.top, gearChromeHeight) so content never slides under it.
+                HStack(spacing: 8) {
+                    ActiveUserBadge()
+                    settingsGearButton
+                }
+                .padding(.trailing, 16)
+                .padding(.top, 6)
+            } else {
+                ActiveUserBadge()
+            }
             #else
             ActiveUserBadge()
             #endif
@@ -293,29 +302,25 @@ struct TabRootView: View {
             }
         }
         #if os(iOS)
-        // iPhone: reserve a top-trailing strip on the page itself (a TabView-level inset does
-        // not propagate into the pages), so content flows below the gear instead of under it.
-        .safeAreaInset(edge: .top, alignment: .trailing, spacing: 0) {
-            if hSizeClass == .compact { topChromeStrip }
-        }
+        // Reserve space for the floating settings gear so content never slides under it.
+        // padding reliably repositions content, including screens rooted in a NavigationStack
+        // (Catalog/Search/...) which ignore a parent safeAreaInset and so would overlap.
+        .padding(.top, hSizeClass == .compact ? Self.gearChromeHeight : 0)
         #endif
     }
 
     #if os(iOS)
-    private var topChromeStrip: some View {
-        HStack(spacing: 8) {
-            ActiveUserBadge()
-            Button { showSettings = true } label: {
-                Image(systemName: "gearshape")
-                    .font(.title3)
-                    .padding(12)
-                    .glassEffect(.regular, in: Circle())
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel(Text("tab.settings"))
+    static let gearChromeHeight: CGFloat = 56
+
+    private var settingsGearButton: some View {
+        Button { showSettings = true } label: {
+            Image(systemName: "gearshape")
+                .font(.title3)
+                .padding(12)
+                .glassEffect(.regular, in: Circle())
         }
-        .padding(.trailing, 16)
-        .padding(.top, 4)
+        .buttonStyle(.plain)
+        .accessibilityLabel(Text("tab.settings"))
     }
     #endif
 }
