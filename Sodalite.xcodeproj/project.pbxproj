@@ -12,6 +12,7 @@
 		2B1E261C886B695DE162D2C7 /* ServerDiscoveryURLTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 978CD708E9C5ACCED67A3F97 /* ServerDiscoveryURLTests.swift */; };
 		331EA504B8232818D894A842 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AC76FE12491CE8E6DCDD5B42 /* Foundation.framework */; };
 		53CD6B51D9123C4578E8B0A2 /* SessionRestorerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09862C8C1314699B9D2BB5B8 /* SessionRestorerTests.swift */; };
+		91374D820EED39320D3C5883 /* LayoutMetricsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 164A05A73A4B84E77F6F29AD /* LayoutMetricsTests.swift */; };
 		9B8BA45BD3090349A076C1DF /* ProbeBudgetTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED884F9F893445BCE139AAB8 /* ProbeBudgetTests.swift */; };
 		9CCDBA223FFEB4D853908DCD /* JellyfinItemTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEB609BEE54ED543FDF51101 /* JellyfinItemTests.swift */; };
 		9D491D932F8F92E600B3BE42 /* AVKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9D491D922F8F92E500B3BE42 /* AVKit.framework */; };
@@ -57,6 +58,7 @@
 
 /* Begin PBXFileReference section */
 		09862C8C1314699B9D2BB5B8 /* SessionRestorerTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SessionRestorerTests.swift; sourceTree = "<group>"; };
+		164A05A73A4B84E77F6F29AD /* LayoutMetricsTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LayoutMetricsTests.swift; sourceTree = "<group>"; };
 		2044851138A5C53DBFC678F9 /* SodaliteTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SodaliteTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		4553932DFC543AB554886993 /* TrickplayTileSetTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TrickplayTileSetTests.swift; sourceTree = "<group>"; };
 		51EDE94C9EB4640F5FBFA1B9 /* SRTParserTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SRTParserTests.swift; sourceTree = "<group>"; };
@@ -161,6 +163,7 @@
 				4553932DFC543AB554886993 /* TrickplayTileSetTests.swift */,
 				58BB91A936798EBE022F9F6F /* TrickplayScrubSourceTests.swift */,
 				ED884F9F893445BCE139AAB8 /* ProbeBudgetTests.swift */,
+				164A05A73A4B84E77F6F29AD /* LayoutMetricsTests.swift */,
 			);
 			path = SodaliteTests;
 			sourceTree = "<group>";
@@ -358,6 +361,7 @@
 				9DEB1EBCC03C245F50B5BEE9 /* TrickplayTileSetTests.swift in Sources */,
 				1BD485EF6A5DBD9C83BD8020 /* TrickplayScrubSourceTests.swift in Sources */,
 				9B8BA45BD3090349A076C1DF /* ProbeBudgetTests.swift in Sources */,
+				91374D820EED39320D3C5883 /* LayoutMetricsTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
