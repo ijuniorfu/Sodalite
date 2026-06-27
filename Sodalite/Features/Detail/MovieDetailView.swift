@@ -298,7 +298,7 @@ struct MovieDetailView: View {
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(30)
+        .padding(isPhonePortrait ? 16 : 30)
         .background(
             RoundedRectangle(cornerRadius: 20)
                 .fill(.ultraThinMaterial)
@@ -335,7 +335,7 @@ struct MovieDetailView: View {
                         secondaryActionButtons(vm: vm)
                     }
                     .collapsesActionButtonLabel()
-                    .compactScrollableRow(hSizeClass)
+                    .frame(maxWidth: .infinity)
                 }
             } else {
                 HStack(spacing: 16) {

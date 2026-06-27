@@ -68,6 +68,8 @@ struct DetailInfoRows<LeftPrimary: View, LeftSecondary: View>: View {
     @ViewBuilder let leftPrimary: () -> LeftPrimary
     @ViewBuilder let leftSecondary: () -> LeftSecondary
 
+    @Environment(\.horizontalSizeClass) private var hSizeClass
+
     /// Whether there is any tagline / studio info to show.
     static func hasContent(_ item: JellyfinItem) -> Bool {
         let hasStudios = !(item.studios?.isEmpty ?? true)
@@ -88,32 +90,50 @@ struct DetailInfoRows<LeftPrimary: View, LeftSecondary: View>: View {
         // instead of dangling alone a row below it.
         let studiosInRowOne = !hasTagline && studios != nil
 
-        VStack(alignment: .leading, spacing: 16) {
-            HStack(alignment: .firstTextBaseline) {
-                leftPrimary()
-                    .layoutPriority(1)
-                Spacer(minLength: 24)
-                if hasTagline, let tagline {
-                    Text(tagline)
-                        .font(.callout)
-                        .italic()
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
-                } else if let studios {
+        if hSizeClass == .compact {
+            // Phone: a single leading column with the metadata in a no-wrap horizontal scroll, so
+            // values never break mid-token ("2 Std. 32 Min.") or stack vertically in the tight panel.
+            VStack(alignment: .leading, spacing: 6) {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    leftPrimary().fixedSize()
+                }
+                if hasLeftSecondary {
+                    leftSecondary()
+                }
+                if let studios {
                     styled(studios)
                 } else if showPlaceholders {
-                    placeholderBar(width: 220)
+                    placeholderBar(width: 140)
                 }
             }
-            if hasLeftSecondary || (hasTagline && studios != nil) || showPlaceholders {
+        } else {
+            VStack(alignment: .leading, spacing: 16) {
                 HStack(alignment: .firstTextBaseline) {
-                    leftSecondary()
+                    leftPrimary()
                         .layoutPriority(1)
                     Spacer(minLength: 24)
-                    if !studiosInRowOne, let studios {
+                    if hasTagline, let tagline {
+                        Text(tagline)
+                            .font(.callout)
+                            .italic()
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                    } else if let studios {
                         styled(studios)
                     } else if showPlaceholders {
-                        placeholderBar(width: 140)
+                        placeholderBar(width: 220)
+                    }
+                }
+                if hasLeftSecondary || (hasTagline && studios != nil) || showPlaceholders {
+                    HStack(alignment: .firstTextBaseline) {
+                        leftSecondary()
+                            .layoutPriority(1)
+                        Spacer(minLength: 24)
+                        if !studiosInRowOne, let studios {
+                            styled(studios)
+                        } else if showPlaceholders {
+                            placeholderBar(width: 140)
+                        }
                     }
                 }
             }

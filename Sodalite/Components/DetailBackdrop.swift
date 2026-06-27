@@ -13,7 +13,9 @@ struct DetailBackdrop: View {
     /// better than a cropped landscape backdrop). tvOS/iPad and iPhone landscape keep the backdrop.
     private var prefersPoster: Bool {
         #if os(iOS)
-        hSizeClass == .compact && vSizeClass == .regular && posterFallbackURL != nil
+        // vSizeClass != .compact (rather than == .regular) treats the unresolved first frame as
+        // portrait, so the poster is chosen immediately instead of flashing the landscape backdrop.
+        hSizeClass == .compact && vSizeClass != .compact && posterFallbackURL != nil
         #else
         false
         #endif

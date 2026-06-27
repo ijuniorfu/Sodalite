@@ -17,20 +17,23 @@ struct MediaCastRow: View {
     let members: [CastMember]
     var onSelect: ((CastMember) -> Void)? = nil
 
+    @Environment(\.horizontalSizeClass) private var hSizeClass
+    private var metrics: LayoutMetrics { LayoutMetrics.current(hSizeClass) }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text(title)
                 .font(.title3)
                 .fontWeight(.semibold)
-                .padding(.horizontal, 50)
+                .padding(.horizontal, metrics.rowInset)
 
             ScrollView(.horizontal, showsIndicators: false) {
-                LazyHStack(spacing: 20) {
+                LazyHStack(spacing: metrics.itemSpacing) {
                     ForEach(members) { member in
                         MediaCastCard(member: member, onSelect: onSelect.map { cb in { cb(member) } })
                     }
                 }
-                .padding(.horizontal, 50)
+                .padding(.horizontal, metrics.rowInset)
                 .padding(.vertical, 12)
             }
         }
