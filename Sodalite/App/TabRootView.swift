@@ -41,6 +41,8 @@ struct TabRootView: View {
     @State private var loginProbeTask: Task<Void, Never>?
     @Environment(\.dependencies) private var dependencies
     @Environment(\.appState) private var appState
+    @Environment(\.horizontalSizeClass) private var hSizeClass
+    @State private var showSettings = false
 
     /// Tab-bar icon accent; falls back to the asset-catalog accent on `.system` so icons never render plain white.
     private var iconColor: Color {
@@ -60,9 +62,19 @@ struct TabRootView: View {
         }
     }
 
+    /// iPhone (compact) drops Settings from the tab bar so the 6 tabs do not overflow into
+    /// the iOS "More" tab, whose nested navigation controller skips the Settings root on back.
+    /// Settings is reached via the gear overlay instead. tvOS + iPad keep it as a tab/sidebar item.
+    private var displayedTabs: [AppTab] {
+        #if os(iOS)
+        if hSizeClass == .compact { return availableTabs.filter { $0 != .settings } }
+        #endif
+        return availableTabs
+    }
+
     var body: some View {
         TabView(selection: $selectedTab) {
-            ForEach(availableTabs, id: \.self) { tab in
+            ForEach(displayedTabs, id: \.self) { tab in
                 #if os(iOS)
                 if tab == .search {
                     Tab(value: tab, role: .search) {
@@ -95,8 +107,26 @@ struct TabRootView: View {
         .tint(iconColor)
         // Display-only active-profile badge; non-focusable, below the player cover, hidden unless the server has multiple profiles.
         .overlay(alignment: .topTrailing) {
-            ActiveUserBadge()
+            HStack(spacing: 8) {
+                #if os(iOS)
+                if hSizeClass == .compact {
+                    Button { showSettings = true } label: {
+                        Image(systemName: "gearshape")
+                            .font(.title3)
+                            .padding(12)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel(Text("tab.settings"))
+                }
+                #endif
+                ActiveUserBadge()
+            }
         }
+        #if os(iOS)
+        .sheet(isPresented: $showSettings) {
+            SettingsView()
+        }
+        #endif
         // Foreground Siri Remote play/pause arrives via the responder chain (not MPRemoteCommandCenter), so toggle music here when a track is active.
         .onPlayPauseCommandCompat {
             let coordinator = dependencies.musicPlaybackCoordinator
