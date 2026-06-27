@@ -304,7 +304,7 @@ struct PlaybackSettingsView: View {
         .frame(maxWidth: .infinity)
         .hidesShellTabBar()
         // Suppress floating tvOS nav-title; we show our own inline header (default sits behind scrolling content).
-        .toolbar(.hidden, for: .navigationBar)
+        .hidesNavigationBarChrome()
     }
 
     // MARK: - Header

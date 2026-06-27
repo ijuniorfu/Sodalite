@@ -32,7 +32,7 @@ struct AppearanceSettingsView: View {
             .padding(.horizontal, 80)
         }
         // Inline largeTitle only; floating nav-title otherwise sits behind scroll content. Matches PlaybackSettingsView.
-        .toolbar(.hidden, for: .navigationBar)
+        .hidesNavigationBarChrome()
     }
 
     // MARK: - Header

@@ -32,7 +32,7 @@ struct SupportDevelopmentView: View {
             .padding(.horizontal, 80)
         }
         // Inline largeTitle only; floating nav-title otherwise sits behind scroll content. Matches PlaybackSettingsView.
-        .toolbar(.hidden, for: .navigationBar)
+        .hidesNavigationBarChrome()
         .task {
             if !service.hasLoadedProducts {
                 await service.loadProducts()

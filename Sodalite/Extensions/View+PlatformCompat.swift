@@ -36,6 +36,17 @@ extension View {
         #endif
     }
 
+    /// tvOS hides the navigation bar (it uses the Menu button to go back); iOS keeps the
+    /// native bar so pushed screens get a back button and the interactive swipe-back gesture.
+    @ViewBuilder
+    func hidesNavigationBarChrome() -> some View {
+        #if os(tvOS)
+        toolbar(.hidden, for: .navigationBar)
+        #else
+        self
+        #endif
+    }
+
     @ViewBuilder
     func onExitCommandCompat(perform action: @escaping () -> Void) -> some View {
         #if os(tvOS)

@@ -35,7 +35,7 @@ struct ProfileSettingsView: View {
             .frame(maxWidth: 900)
             .frame(maxWidth: .infinity)
         }
-        .toolbar(.hidden, for: .navigationBar)
+        .hidesNavigationBarChrome()
         .navigationDestination(isPresented: $navigateToAddProfile) {
             if let server = appState.activeServer {
                 // UserPickerView shows public profiles with avatars, or falls back to manual sign-in if the list is disabled.

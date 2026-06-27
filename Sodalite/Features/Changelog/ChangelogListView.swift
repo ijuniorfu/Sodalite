@@ -42,7 +42,7 @@ struct ChangelogListView: View {
         )
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .glassBackground()
-        .toolbar(.hidden, for: .navigationBar)
+        .hidesNavigationBarChrome()
         // Belt and braces: catch the Menu button and pop back even if focus drifts off the focusable rows.
         .onExitCommandCompat { dismiss() }
     }
