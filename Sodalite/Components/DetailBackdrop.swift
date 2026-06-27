@@ -116,6 +116,10 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
                 VStack(alignment: .leading, spacing: 40) {
                     content()
                 }
+                // Bound to the viewport, leading-aligned, so a wide child can't stretch the column
+                // past the screen and shove the whole content block off-center (section titles were
+                // being clipped on the left). Matches the primary slot's constraint.
+                .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.bottom, 80)
                 .background(Color.black.opacity(0.55))
 
