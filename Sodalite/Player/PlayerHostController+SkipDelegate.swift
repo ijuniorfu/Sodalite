@@ -6,6 +6,9 @@ import CoreMedia
 
 /// Skip-navigation delegate plumbing for PlayerHostController.
 extension PlayerHostController: AVPlayerViewControllerDelegate {
+    // tvOS-only AVPlayerViewControllerDelegate skip/navigation hooks. iOS touch
+    // transport (Phase 3) routes seeks directly, not through these delegate calls.
+    #if os(tvOS)
     /// Device-verified: iPhone Control Center's 10s skip does NOT dispatch here
     /// (AVKit binds CC's skipForwardCommand to an internal no-op we can't
     /// override). Kept as a fallback for other AVKit skip pathways (Siri Remote
@@ -54,4 +57,5 @@ extension PlayerHostController: AVPlayerViewControllerDelegate {
     ) {
         LogTap.shared.note("[NowPlaying] delegate willResumePlayback from=\(oldTime.seconds) to=\(targetTime.seconds)")
     }
+    #endif
 }

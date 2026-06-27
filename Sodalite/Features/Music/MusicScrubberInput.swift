@@ -95,6 +95,7 @@ final class ScrubInputView: UIView {
     func installGestures(handler: MusicScrubberInput.Handler) {
         self.handler = handler
 
+        #if os(tvOS)
         let pan = UIPanGestureRecognizer(target: handler, action: #selector(MusicScrubberInput.Handler.handlePan(_:)))
         pan.allowedTouchTypes = [NSNumber(value: UITouch.TouchType.indirect.rawValue)]
         addGestureRecognizer(pan)
@@ -108,6 +109,9 @@ final class ScrubInputView: UIView {
         rightTap.require(toFail: rightHold)
 
         _ = press(.select, action: #selector(MusicScrubberInput.Handler.selectTapped), target: handler)
+        #else
+        // PORT SEAM (iOS, Phase 3): attach touch scrub gestures here.
+        #endif
     }
 
     private func press(_ type: UIPress.PressType, action: Selector, target: Any) -> UITapGestureRecognizer {

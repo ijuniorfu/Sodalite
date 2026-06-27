@@ -67,15 +67,21 @@ final class PlayerHostController: AVPlayerViewController {
         // REQUIRED on tvOS for AVKit's Now Playing session + AirPods + Atmos sync; visible chrome is suppressed separately.
         showsPlaybackControls = true
         // Kept ON so AVKit dispatches iPhone Control Center 10s skip events into our delegate (timeToSeekAfterUserNavigatedFrom / skipToNextItem); without it the press lands nowhere. Our overlay covers the visible bar.
+        #if os(tvOS)
         playbackControlsIncludeTransportBar = true
         playbackControlsIncludeInfoViews = false
+        #endif
         // Engine is sole display-criteria writer (LoadOptions.suppressDisplayCriteria = false in PlayerViewModel); AVKit-auto would race the engine pre-flight apply() + waitForSwitch, and on tvOS 26.5+ the HLS variant validator rejects items at playlist-parse if no criteria are active for the master's VIDEO-RANGE (item.failed -11868). Tech Talk 503: criteria first, THEN AVPlayerItem. Don't flip to true without also flipping suppressDisplayCriteria, or dual writers bring back late re-negotiate (DrHurt Build 170).
+        #if os(tvOS)
         appliesPreferredDisplayCriteriaAutomatically = false
         contextualActions = []
+        #endif
         allowsPictureInPicturePlayback = false
 
         // .skipItem routes AVKit skip events to delegate skipToNextItem/skipToPreviousItem instead of the default 10s seek (a no-op without track listings).
+        #if os(tvOS)
         skippingBehavior = .skipItem
+        #endif
         delegate = self
 
         // The nil case is load-bearing: the SW (dav1d/VP9) path never sets currentAVPlayer, so without `self.player = nil` AVKit keeps the old item-less player and renders its own spinner over our frames ("AV1 plays but loading never goes away").
@@ -146,6 +152,8 @@ final class PlayerHostController: AVPlayerViewController {
         hosting.didMove(toParent: self)
         overlayHostingView = hosting.view
 
+        #if os(tvOS)
+        // Siri Remote input. iOS touch transport is wired in Phase 3.
         // Short Select activates; held Select deletes the highlighted external subtitle (Feature #4). tap require(toFail:) hold so a quick click never deletes.
         let selectTap = addPressGesture(.select, action: #selector(selectPressed))
         let selectHold = addHoldGesture(.select, action: #selector(selectHeld(_:)))
@@ -166,6 +174,10 @@ final class PlayerHostController: AVPlayerViewController {
         pan.allowedTouchTypes = [NSNumber(value: UITouch.TouchType.indirect.rawValue)]
         view.addGestureRecognizer(pan)
         ourGestureRecognizers.append(pan)
+        #else
+        // PORT SEAM (iOS, Phase 3): attach touch recognizers here (tap = toggle
+        // controls, horizontal drag = scrub with preview, vertical drag = volume/brightness).
+        #endif
 
         // Foreground reloads the pipeline at current position (VT + AVIO die in suspension).
         NotificationCenter.default.addObserver(
