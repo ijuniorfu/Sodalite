@@ -5,23 +5,26 @@ struct TagRow: View {
     let tags: [TagCardData]
     var onTagSelected: ((TagCardData) -> Void)?
 
+    @Environment(\.horizontalSizeClass) private var hSizeClass
+    private var metrics: LayoutMetrics { LayoutMetrics.current(hSizeClass) }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text(title)
                 .font(.title3)
                 .fontWeight(.semibold)
-                .padding(.horizontal, 50)
+                .padding(.horizontal, metrics.rowInset)
 
             ScrollView(.horizontal, showsIndicators: false) {
-                LazyHStack(spacing: 24) {
+                LazyHStack(spacing: metrics.itemSpacing) {
                     ForEach(tags) { tag in
                         GenreCard(data: tag) {
                             onTagSelected?(tag)
                         }
                     }
                 }
-                .padding(.horizontal, 50)
-                .padding(.vertical, 16)
+                .padding(.horizontal, metrics.rowInset)
+                .padding(.vertical, metrics.rowVerticalPadding)
             }
         }
     }
@@ -36,6 +39,9 @@ struct TagCardData: Identifiable, Sendable {
 struct GenreCard: View {
     let data: TagCardData
     let action: () -> Void
+
+    @Environment(\.horizontalSizeClass) private var hSizeClass
+    private var tileSize: CGSize { LayoutMetrics.current(hSizeClass).genreTileSize }
 
     var body: some View {
         FocusableCard {
@@ -56,7 +62,7 @@ struct GenreCard: View {
                             )
                         )
                 }
-                .frame(width: 320, height: 180)
+                .frame(width: tileSize.width, height: tileSize.height)
                 .clipped()
 
                 Rectangle()
@@ -70,7 +76,7 @@ struct GenreCard: View {
                     .padding(20)
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
             }
-            .frame(width: 320, height: 180)
+            .frame(width: tileSize.width, height: tileSize.height)
             .clipShape(RoundedRectangle(cornerRadius: 16))
             .overlay(
                 RoundedRectangle(cornerRadius: 16)

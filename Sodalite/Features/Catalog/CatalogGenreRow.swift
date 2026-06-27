@@ -9,24 +9,27 @@ struct CatalogGenreRow: View {
 
     enum Kind { case movie, tv }
 
+    @Environment(\.horizontalSizeClass) private var hSizeClass
+    private var metrics: LayoutMetrics { LayoutMetrics.current(hSizeClass) }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text(titleKey)
                 .font(.title3)
                 .fontWeight(.semibold)
-                .padding(.horizontal, 50)
+                .padding(.horizontal, metrics.rowInset)
 
             ScrollView(.horizontal, showsIndicators: false) {
-                LazyHStack(spacing: 24) {
+                LazyHStack(spacing: metrics.itemSpacing) {
                     ForEach(genres) { genre in
                         GenreTile(genre: genre) {
                             onSelect(filter(for: genre))
                         }
                     }
                 }
-                .padding(.horizontal, 50)
+                .padding(.horizontal, metrics.rowInset)
                 // Match SeerrHorizontalMediaRow vertical padding so the focus halo doesn't clip adjacent rows.
-                .padding(.vertical, 16)
+                .padding(.vertical, metrics.rowVerticalPadding)
             }
         }
     }
@@ -44,9 +47,9 @@ private struct GenreTile: View {
     let action: () -> Void
 
     @Environment(\.dependencies) private var dependencies
-
-    private let width: CGFloat = 320
-    private let height: CGFloat = 180
+    @Environment(\.horizontalSizeClass) private var hSizeClass
+    private var width: CGFloat { LayoutMetrics.current(hSizeClass).genreTileSize.width }
+    private var height: CGFloat { LayoutMetrics.current(hSizeClass).genreTileSize.height }
 
     var body: some View {
         // FocusableCard not Button: tvOS layers an unsuppressable white halo on focused .plain buttons, so all cards route through this primitive (own scale + shadow + tint outline).

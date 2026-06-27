@@ -9,15 +9,18 @@ struct CatalogProviderRow: View {
     /// Per-provider sample backdrop resolver (local Jellyfin for home, Jellyseerr discover for catalog); nil falls back to the dark logo-only tile.
     var backdropFor: (CatalogProvider) -> URL? = { _ in nil }
 
+    @Environment(\.horizontalSizeClass) private var hSizeClass
+    private var metrics: LayoutMetrics { LayoutMetrics.current(hSizeClass) }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text(titleKey)
                 .font(.title3)
                 .fontWeight(.semibold)
-                .padding(.horizontal, 50)
+                .padding(.horizontal, metrics.rowInset)
 
             ScrollView(.horizontal, showsIndicators: false) {
-                LazyHStack(spacing: 24) {
+                LazyHStack(spacing: metrics.itemSpacing) {
                     ForEach(providers) { provider in
                         ProviderTile(
                             provider: provider,
@@ -27,8 +30,8 @@ struct CatalogProviderRow: View {
                         }
                     }
                 }
-                .padding(.horizontal, 50)
-                .padding(.vertical, 16)
+                .padding(.horizontal, metrics.rowInset)
+                .padding(.vertical, metrics.rowVerticalPadding)
             }
         }
     }
@@ -39,9 +42,10 @@ private struct ProviderTile: View {
     let backdropURL: URL?
     let action: () -> Void
 
+    @Environment(\.horizontalSizeClass) private var hSizeClass
     // Match genre tile dimensions so provider + genre rows line up on the same screen.
-    private let width: CGFloat = 320
-    private let height: CGFloat = 180
+    private var width: CGFloat { LayoutMetrics.current(hSizeClass).genreTileSize.width }
+    private var height: CGFloat { LayoutMetrics.current(hSizeClass).genreTileSize.height }
 
     var body: some View {
         // FocusableCard not Button: tvOS layers an unsuppressable white halo on focused buttons (as GenreTile/SeerrMediaCard).
