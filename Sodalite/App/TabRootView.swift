@@ -116,25 +116,6 @@ struct TabRootView: View {
             #endif
         }
         #if os(iOS)
-        // iPhone: a reserved top-trailing strip so the gear sits cleanly in the corner and
-        // content never slides under it (mirrors the bottom tab-bar / search chrome).
-        .safeAreaInset(edge: .top, alignment: .trailing, spacing: 0) {
-            if hSizeClass == .compact {
-                HStack(spacing: 8) {
-                    ActiveUserBadge()
-                    Button { showSettings = true } label: {
-                        Image(systemName: "gearshape")
-                            .font(.title3)
-                            .padding(12)
-                            .glassEffect(.regular, in: Circle())
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityLabel(Text("tab.settings"))
-                }
-                .padding(.trailing, 16)
-                .padding(.top, 4)
-            }
-        }
         .sheet(isPresented: $showSettings) {
             SettingsView()
         }
@@ -295,19 +276,46 @@ struct TabRootView: View {
 
     @ViewBuilder
     private func tabContent(for tab: AppTab) -> some View {
-        switch tab {
-        case .home:
-            HomeView()
-        case .liveTV:
-            LiveTVTabView()
-        case .catalog:
-            CatalogView()
-        case .search:
-            SearchView()
-        case .music:
-            MusicHomeView()
-        case .settings:
-            SettingsView()
+        Group {
+            switch tab {
+            case .home:
+                HomeView()
+            case .liveTV:
+                LiveTVTabView()
+            case .catalog:
+                CatalogView()
+            case .search:
+                SearchView()
+            case .music:
+                MusicHomeView()
+            case .settings:
+                SettingsView()
+            }
         }
+        #if os(iOS)
+        // iPhone: reserve a top-trailing strip on the page itself (a TabView-level inset does
+        // not propagate into the pages), so content flows below the gear instead of under it.
+        .safeAreaInset(edge: .top, alignment: .trailing, spacing: 0) {
+            if hSizeClass == .compact { topChromeStrip }
+        }
+        #endif
     }
+
+    #if os(iOS)
+    private var topChromeStrip: some View {
+        HStack(spacing: 8) {
+            ActiveUserBadge()
+            Button { showSettings = true } label: {
+                Image(systemName: "gearshape")
+                    .font(.title3)
+                    .padding(12)
+                    .glassEffect(.regular, in: Circle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(Text("tab.settings"))
+        }
+        .padding(.trailing, 16)
+        .padding(.top, 4)
+    }
+    #endif
 }
