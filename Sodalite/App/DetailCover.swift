@@ -16,14 +16,19 @@ extension View {
             #if os(iOS)
             // tvOS dismisses via the Menu button; iOS needs a touch close (a fullScreenCover
             // has no swipe-to-dismiss), else detail / program-info covers are a dead end.
-            .overlay(alignment: .topLeading) {
+            // Top-trailing glass circle (matching the settings gear) so it never sits on the
+            // leading page title.
+            .overlay(alignment: .topTrailing) {
                 Button { item.wrappedValue = nil } label: {
-                    Image(systemName: "xmark.circle.fill")
-                        .font(.title)
-                        .symbolRenderingMode(.hierarchical)
-                        .padding()
+                    Image(systemName: "xmark")
+                        .font(.title3.weight(.semibold))
+                        .padding(12)
+                        .glassEffect(.regular, in: Circle())
+                        .contentShape(Circle())
                 }
                 .buttonStyle(.plain)
+                .padding(.trailing, 16)
+                .padding(.top, 8)
             }
             #endif
         }

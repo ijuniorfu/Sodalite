@@ -3,12 +3,15 @@ import SwiftUI
 // MARK: - NowPlayingView
 
 struct NowPlayingView: View {
+    /// Explicit close from the presenter (AppRouter flips its showNowPlaying binding). More reliable
+    /// than @Environment(\.dismiss) for this coordinator-driven fullScreenCover; falls back to dismiss.
+    var onClose: (() -> Void)? = nil
     @Environment(\.dismiss) private var dismiss
     @Environment(\.dependencies) private var dependencies
 
     var body: some View {
         let coordinator = dependencies.musicPlaybackCoordinator
-        NowPlayingContent(coordinator: coordinator, dismiss: dismiss)
+        NowPlayingContent(coordinator: coordinator, close: onClose ?? { dismiss() })
     }
 }
 
@@ -18,7 +21,7 @@ struct NowPlayingView: View {
 /// outlive the view tree.
 private struct NowPlayingContent: View {
     let coordinator: MusicPlaybackCoordinator
-    let dismiss: DismissAction
+    let close: () -> Void
 
     @Environment(\.dependencies) private var dependencies
     @Environment(\.horizontalSizeClass) private var hSizeClass
@@ -46,13 +49,16 @@ private struct NowPlayingContent: View {
         // music (which suppresses the auto-dismiss-on-stop) is never a dead-end.
         .overlay(alignment: .topLeading) {
             Button {
-                dismiss()
+                close()
             } label: {
                 Image(systemName: "chevron.down")
                     .font(.title2.weight(.semibold))
-                    .padding()
+                    .padding(14)
+                    .glassEffect(.regular, in: Circle())
+                    .contentShape(Circle())
             }
             .buttonStyle(.plain)
+            .padding(.leading, 16)
             .padding(.top, 8)
         }
         #endif
@@ -64,7 +70,7 @@ private struct NowPlayingContent: View {
         }
         // Auto-dismiss when playback stops (queue cleared / video handoff)
         .onChange(of: coordinator.currentItem == nil) { _, stopped in
-            if stopped { dismiss() }
+            if stopped { close() }
         }
         .onAppear {
             transportFocus = .playPause
