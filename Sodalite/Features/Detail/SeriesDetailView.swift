@@ -440,6 +440,8 @@ struct SeriesDetailView: View {
                     .font(.largeTitle)
                     .fontWeight(.bold)
                     .lineLimit(2)
+                    .multilineTextAlignment(isPhonePortrait ? .center : .leading)
+                    .frame(maxWidth: .infinity, alignment: isPhonePortrait ? .center : .leading)
             }
 
             // Metadata+tagline row one, genres+credits row two, baseline-aligned so columns sit level; series-level tagline/crew/studios in both modes so the episode panel matches the root.
