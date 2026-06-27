@@ -10,7 +10,7 @@ enum SeerrImageURL {
     }
 
     enum PosterSize: String {
-        case w342, w500
+        case w342, w500, w780
     }
 
     enum BackdropSize: String {

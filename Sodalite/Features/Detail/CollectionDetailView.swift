@@ -4,6 +4,7 @@ struct CollectionDetailView: View {
     @Environment(\.appState) private var appState
     @Environment(\.dependencies) private var dependencies
     @Environment(\.horizontalSizeClass) private var hSizeClass
+    @Environment(\.verticalSizeClass) private var vSizeClass
     @State private var viewModel: DetailViewModel?
     @State private var selectedItem: JellyfinItem?
     @State private var showPlayer = false
@@ -13,6 +14,13 @@ struct CollectionDetailView: View {
     let item: JellyfinItem
 
     private var metrics: LayoutMetrics { LayoutMetrics.current(hSizeClass) }
+    private var isPhonePortrait: Bool {
+        #if os(iOS)
+        hSizeClass == .compact && vSizeClass != .compact
+        #else
+        false
+        #endif
+    }
 
     var body: some View {
         Group {
@@ -23,7 +31,7 @@ struct CollectionDetailView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
-        .ignoresSafeArea()
+        .ignoresSafeArea(when: !isPhonePortrait)
         .overlay {
             if let userID = appState.activeUser?.id {
                 PlayerLauncher(
@@ -70,8 +78,9 @@ struct CollectionDetailView: View {
         ZStack {
             DetailBackdrop(
                 imageURL: vm.backdropURL(for: vm.item),
-                posterFallbackURL: vm.posterURL(for: vm.item)
+                posterFallbackURL: vm.heroPosterURL(for: vm.item)
             )
+            .ignoresSafeArea()
 
             DetailContentOverlay(primary: {
                 // Glass panel + action buttons as the bottom-aligned first-page block, matching movie/series detail (Sodalite#15 round 6).
@@ -107,7 +116,7 @@ struct CollectionDetailView: View {
                     .foregroundStyle(.secondary)
             }
         }
-        .padding(30)
+        .padding(isPhonePortrait ? 16 : 30)
         .background(
             RoundedRectangle(cornerRadius: 20)
                 .fill(.ultraThinMaterial)
@@ -117,41 +126,67 @@ struct CollectionDetailView: View {
     /// Button row directly below the glass panel, outside the plate,
     /// matching the movie and series detail views.
     private func actionButtonRow(vm: DetailViewModel) -> some View {
-        HStack(spacing: 16) {
-            GlassActionButton(
-                title: "detail.play",
-                systemImage: "play.fill",
-                isProminent: true,
-                action: {
-                    if let first = vm.collectionItems.first {
-                        selectedItem = first
+        Group {
+            if isPhonePortrait {
+                VStack(spacing: 12) {
+                    primaryActionButton(vm: vm)
+                        .frame(maxWidth: .infinity)
+                    ViewThatFits(in: .horizontal) {
+                        HStack(spacing: 16) { secondaryActionButtons(vm: vm) }
+                            .collapsesActionButtonLabel()
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 16) { secondaryActionButtons(vm: vm) }
+                                .collapsesActionButtonLabel()
+                        }
                     }
+                    .frame(maxWidth: .infinity)
                 }
-            )
-
-            GlassActionButton(
-                title: "action.shuffle",
-                systemImage: "shuffle",
-                action: {
-                    // Members already loaded; shuffle client-side, filtered to playable leaf types so a nested series can't seed an unplayable queue entry.
-                    let queue = vm.collectionItems
-                        .filter { $0.type == .movie || $0.type == .episode }
-                        .shuffled()
-                    guard let first = queue.first else { return }
-                    playItem = first
-                    playQueue = queue
-                    showPlayer = true
+            } else {
+                HStack(spacing: 16) {
+                    primaryActionButton(vm: vm)
+                    secondaryActionButtons(vm: vm)
                 }
-            )
-
-            GlassActionButton(
-                title: vm.isFavorite ? "detail.unfavorite" : "detail.favorite",
-                systemImage: vm.isFavorite ? "heart.fill" : "heart",
-                action: { Task { await vm.toggleFavorite() } }
-            )
+                .collapsesActionButtonLabel()
+                .compactScrollableRow(hSizeClass)
+            }
         }
-        .collapsesActionButtonLabel()
-        .compactScrollableRow(hSizeClass)
+    }
+
+    private func primaryActionButton(vm: DetailViewModel) -> some View {
+        GlassActionButton(
+            title: "detail.play",
+            systemImage: "play.fill",
+            isProminent: true,
+            action: {
+                if let first = vm.collectionItems.first {
+                    selectedItem = first
+                }
+            }
+        )
+    }
+
+    @ViewBuilder
+    private func secondaryActionButtons(vm: DetailViewModel) -> some View {
+        GlassActionButton(
+            title: "action.shuffle",
+            systemImage: "shuffle",
+            action: {
+                // Members already loaded; shuffle client-side, filtered to playable leaf types so a nested series can't seed an unplayable queue entry.
+                let queue = vm.collectionItems
+                    .filter { $0.type == .movie || $0.type == .episode }
+                    .shuffled()
+                guard let first = queue.first else { return }
+                playItem = first
+                playQueue = queue
+                showPlayer = true
+            }
+        )
+
+        GlassActionButton(
+            title: vm.isFavorite ? "detail.unfavorite" : "detail.favorite",
+            systemImage: vm.isFavorite ? "heart.fill" : "heart",
+            action: { Task { await vm.toggleFavorite() } }
+        )
     }
 
     // MARK: - Collection Items (vertical list)

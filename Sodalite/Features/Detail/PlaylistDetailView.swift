@@ -4,6 +4,7 @@ struct PlaylistDetailView: View {
     @Environment(\.appState) private var appState
     @Environment(\.dependencies) private var dependencies
     @Environment(\.horizontalSizeClass) private var hSizeClass
+    @Environment(\.verticalSizeClass) private var vSizeClass
     @State private var viewModel: DetailViewModel?
     @State private var selectedItem: JellyfinItem?
     @State private var showPlayer = false
@@ -13,6 +14,13 @@ struct PlaylistDetailView: View {
     let item: JellyfinItem
 
     private var metrics: LayoutMetrics { LayoutMetrics.current(hSizeClass) }
+    private var isPhonePortrait: Bool {
+        #if os(iOS)
+        hSizeClass == .compact && vSizeClass != .compact
+        #else
+        false
+        #endif
+    }
 
     var body: some View {
         Group {
@@ -23,7 +31,7 @@ struct PlaylistDetailView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
-        .ignoresSafeArea()
+        .ignoresSafeArea(when: !isPhonePortrait)
         .overlay {
             if let userID = appState.activeUser?.id {
                 PlayerLauncher(
@@ -74,8 +82,9 @@ struct PlaylistDetailView: View {
         ZStack {
             DetailBackdrop(
                 imageURL: vm.backdropURL(for: vm.item),
-                posterFallbackURL: vm.posterURL(for: vm.item)
+                posterFallbackURL: vm.heroPosterURL(for: vm.item)
             )
+            .ignoresSafeArea()
 
             DetailContentOverlay(primary: {
                 VStack(alignment: .leading, spacing: 24) {
@@ -111,7 +120,7 @@ struct PlaylistDetailView: View {
                     .foregroundStyle(.secondary)
             }
         }
-        .padding(30)
+        .padding(isPhonePortrait ? 16 : 30)
         .background(
             RoundedRectangle(cornerRadius: 20)
                 .fill(.ultraThinMaterial)
@@ -121,40 +130,66 @@ struct PlaylistDetailView: View {
     /// Play starts direct sequential playback of the ordered queue, unlike
     /// CollectionDetailView whose Play navigates to the first item's detail.
     private func actionButtonRow(vm: DetailViewModel) -> some View {
-        HStack(spacing: 16) {
-            GlassActionButton(
-                title: "detail.play",
-                systemImage: "play.fill",
-                isProminent: true,
-                action: {
-                    let queue = videoItems(vm)
-                    guard let first = queue.first else { return }
-                    playItem = first
-                    playQueue = queue
-                    showPlayer = true
+        Group {
+            if isPhonePortrait {
+                VStack(spacing: 12) {
+                    primaryActionButton(vm: vm)
+                        .frame(maxWidth: .infinity)
+                    ViewThatFits(in: .horizontal) {
+                        HStack(spacing: 16) { secondaryActionButtons(vm: vm) }
+                            .collapsesActionButtonLabel()
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 16) { secondaryActionButtons(vm: vm) }
+                                .collapsesActionButtonLabel()
+                        }
+                    }
+                    .frame(maxWidth: .infinity)
                 }
-            )
-
-            GlassActionButton(
-                title: "action.shuffle",
-                systemImage: "shuffle",
-                action: {
-                    let queue = videoItems(vm).shuffled()
-                    guard let first = queue.first else { return }
-                    playItem = first
-                    playQueue = queue
-                    showPlayer = true
+            } else {
+                HStack(spacing: 16) {
+                    primaryActionButton(vm: vm)
+                    secondaryActionButtons(vm: vm)
                 }
-            )
-
-            GlassActionButton(
-                title: vm.isFavorite ? "detail.unfavorite" : "detail.favorite",
-                systemImage: vm.isFavorite ? "heart.fill" : "heart",
-                action: { Task { await vm.toggleFavorite() } }
-            )
+                .collapsesActionButtonLabel()
+                .compactScrollableRow(hSizeClass)
+            }
         }
-        .collapsesActionButtonLabel()
-        .compactScrollableRow(hSizeClass)
+    }
+
+    private func primaryActionButton(vm: DetailViewModel) -> some View {
+        GlassActionButton(
+            title: "detail.play",
+            systemImage: "play.fill",
+            isProminent: true,
+            action: {
+                let queue = videoItems(vm)
+                guard let first = queue.first else { return }
+                playItem = first
+                playQueue = queue
+                showPlayer = true
+            }
+        )
+    }
+
+    @ViewBuilder
+    private func secondaryActionButtons(vm: DetailViewModel) -> some View {
+        GlassActionButton(
+            title: "action.shuffle",
+            systemImage: "shuffle",
+            action: {
+                let queue = videoItems(vm).shuffled()
+                guard let first = queue.first else { return }
+                playItem = first
+                playQueue = queue
+                showPlayer = true
+            }
+        )
+
+        GlassActionButton(
+            title: vm.isFavorite ? "detail.unfavorite" : "detail.favorite",
+            systemImage: vm.isFavorite ? "heart.fill" : "heart",
+            action: { Task { await vm.toggleFavorite() } }
+        )
     }
 
     // MARK: - Playlist Items (vertical list)
