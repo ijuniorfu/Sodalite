@@ -15,6 +15,7 @@ struct ProgramInfoPopover: View {
     var onToggleSeriesRecord: (() -> Void)?
 
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.horizontalSizeClass) private var hSizeClass
     /// Local mirror for snappy feedback; the view model is source of truth and persists.
     @State private var isFavorite: Bool = false
     @State private var isRecording: Bool = false
@@ -23,72 +24,99 @@ struct ProgramInfoPopover: View {
     private var isAiring: Bool { program.isAiring(at: Date()) }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 24) {
-            Text(program.name).font(.title)
-            if let start = program.startDate, let end = program.endDate {
-                Text("\(channel.name) · \(start.formatted(date: .omitted, time: .shortened)) - \(end.formatted(date: .omitted, time: .shortened))")
-                    .font(.headline).foregroundStyle(.secondary)
+        layout
+            .onAppear {
+                isFavorite = channelIsFavorite
+                isRecording = hasTimer
+                isSeriesRecording = hasSeriesTimer
             }
-            if let genres = program.genres, !genres.isEmpty {
-                Text(genres.joined(separator: " · "))
-                    .font(.subheadline).foregroundStyle(.secondary)
+            // Resync local mirrors when model timer state changes under the open popover (rollback /
+            // reconcile); else the button kept its flipped state until reopened.
+            .onChange(of: hasTimer) { _, newValue in
+                isRecording = newValue
             }
-            if let overview = program.overview {
-                Text(overview).font(.body).lineLimit(8)
+            .onChange(of: hasSeriesTimer) { _, newValue in
+                isSeriesRecording = newValue
             }
-            HStack(spacing: 20) {
-                if isAiring {
-                    PopoverActionButton(title: "livetv.watchLive", systemImage: "play.fill", accent: tint) {
-                        dismiss()
-                        onWatchLive?(LivePlaybackContext(channel: channel, program: program))
-                    }
+    }
+
+    @ViewBuilder
+    private var layout: some View {
+        if hSizeClass == .compact {
+            // Phone: scroll so a long overview + stacked buttons never clip, and the wide action row
+            // (up to four pills) wraps to a vertical column that always fits ~393pt.
+            ScrollView {
+                VStack(alignment: .leading, spacing: 16) {
+                    infoBlock
+                    VStack(alignment: .leading, spacing: 12) { actionButtons }
+                        .padding(.top, 4)
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(24)
+            }
+        } else {
+            VStack(alignment: .leading, spacing: 24) {
+                infoBlock
+                HStack(spacing: 20) { actionButtons }
+                Spacer()
+            }
+            .padding(60)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        }
+    }
+
+    @ViewBuilder
+    private var infoBlock: some View {
+        Text(program.name).font(hSizeClass == .compact ? .title2 : .title)
+        if let start = program.startDate, let end = program.endDate {
+            Text("\(channel.name) · \(start.formatted(date: .omitted, time: .shortened)) - \(end.formatted(date: .omitted, time: .shortened))")
+                .font(.headline).foregroundStyle(.secondary)
+        }
+        if let genres = program.genres, !genres.isEmpty {
+            Text(genres.joined(separator: " · "))
+                .font(.subheadline).foregroundStyle(.secondary)
+        }
+        if let overview = program.overview {
+            Text(overview).font(.body).lineLimit(8)
+        }
+    }
+
+    @ViewBuilder
+    private var actionButtons: some View {
+        if isAiring {
+            PopoverActionButton(title: "livetv.watchLive", systemImage: "play.fill", accent: tint) {
+                dismiss()
+                onWatchLive?(LivePlaybackContext(channel: channel, program: program))
+            }
+        }
+        PopoverActionButton(
+            title: isFavorite ? "livetv.unfavorite" : "livetv.favorite",
+            systemImage: isFavorite ? "star.fill" : "star",
+            accent: isFavorite ? .yellow : tint
+        ) {
+            isFavorite.toggle()
+            onToggleFavorite?()
+        }
+        // Record affordances only for future / currently airing programs.
+        if let end = program.endDate, end > Date(), !program.isSynthesized {
+            PopoverActionButton(
+                title: isRecording ? "livetv.cancelRecording" : "livetv.record",
+                systemImage: isRecording ? "stop.circle" : "record.circle",
+                accent: isRecording ? .red : tint
+            ) {
+                isRecording.toggle()
+                onToggleRecord?()
+            }
+            if program.isSeries == true {
                 PopoverActionButton(
-                    title: isFavorite ? "livetv.unfavorite" : "livetv.favorite",
-                    systemImage: isFavorite ? "star.fill" : "star",
-                    accent: isFavorite ? .yellow : tint
+                    title: isSeriesRecording ? "livetv.cancelSeriesRecording" : "livetv.recordSeries",
+                    systemImage: isSeriesRecording ? "stop.circle.fill" : "record.circle.fill",
+                    accent: isSeriesRecording ? .red : tint
                 ) {
-                    isFavorite.toggle()
-                    onToggleFavorite?()
-                }
-                // Record affordances only for future / currently airing programs.
-                if let end = program.endDate, end > Date(), !program.isSynthesized {
-                    PopoverActionButton(
-                        title: isRecording ? "livetv.cancelRecording" : "livetv.record",
-                        systemImage: isRecording ? "stop.circle" : "record.circle",
-                        accent: isRecording ? .red : tint
-                    ) {
-                        isRecording.toggle()
-                        onToggleRecord?()
-                    }
-                    if program.isSeries == true {
-                        PopoverActionButton(
-                            title: isSeriesRecording ? "livetv.cancelSeriesRecording" : "livetv.recordSeries",
-                            systemImage: isSeriesRecording ? "stop.circle.fill" : "record.circle.fill",
-                            accent: isSeriesRecording ? .red : tint
-                        ) {
-                            isSeriesRecording.toggle()
-                            onToggleSeriesRecord?()
-                        }
-                    }
+                    isSeriesRecording.toggle()
+                    onToggleSeriesRecord?()
                 }
             }
-            Spacer()
-        }
-        .padding(60)
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .onAppear {
-            isFavorite = channelIsFavorite
-            isRecording = hasTimer
-            isSeriesRecording = hasSeriesTimer
-        }
-        // Resync local mirrors when model timer state changes under the open popover (rollback /
-        // reconcile); else the button kept its flipped state until reopened.
-        .onChange(of: hasTimer) { _, newValue in
-            isRecording = newValue
-        }
-        .onChange(of: hasSeriesTimer) { _, newValue in
-            isSeriesRecording = newValue
         }
     }
 }
