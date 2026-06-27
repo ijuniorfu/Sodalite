@@ -6,13 +6,32 @@ struct DetailBackdrop: View {
     /// Hero stand-in for items lacking backdrop art: portrait poster scaled to screen width, top-pinned so its useful upper half stays on screen. Replaced the flat grey plate, then the heavy ambient blur-fill (Sodalite#15).
     var posterFallbackURL: URL? = nil
 
+    @Environment(\.horizontalSizeClass) private var hSizeClass
+    @Environment(\.verticalSizeClass) private var vSizeClass
+
+    /// iPhone portrait prefers the portrait poster as a full-bleed hero (fills the tall screen
+    /// better than a cropped landscape backdrop). tvOS/iPad and iPhone landscape keep the backdrop.
+    private var prefersPoster: Bool {
+        #if os(iOS)
+        hSizeClass == .compact && vSizeClass == .regular && posterFallbackURL != nil
+        #else
+        false
+        #endif
+    }
+
+    private var heroURL: URL? {
+        prefersPoster ? posterFallbackURL : (imageURL ?? posterFallbackURL)
+    }
+
+    /// Blur only the landscape-fallback poster (upscaled into a wide area). A real backdrop, or
+    /// the portrait poster hero, fills naturally and stays sharp.
     private var usesPosterFill: Bool {
-        imageURL == nil && posterFallbackURL != nil
+        imageURL == nil && posterFallbackURL != nil && !prefersPoster
     }
 
     var body: some View {
         GeometryReader { geo in
-            AsyncCachedImage(url: imageURL ?? posterFallbackURL) { image in
+            AsyncCachedImage(url: heroURL) { image in
                 if usesPosterFill {
                     // Poster-as-hero: `.fill` scales to screen width, top-aligned to keep the useful upper half on screen. radius-8 blur (was 32 ambient, Sodalite#15) only smooths upscaling artefacts. drawingGroup bounds the blur to one Metal layer; an unbounded offscreen blur buffer broke detail-overlay sibling compositing on tvOS (glass panel + buttons vanished, nothing focusable, Back escaped the app).
                     image
