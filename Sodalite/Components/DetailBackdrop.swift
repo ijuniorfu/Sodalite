@@ -1,4 +1,7 @@
 import SwiftUI
+#if os(iOS)
+import UIKit
+#endif
 
 /// Shared fullscreen backdrop with gradient overlay used in all detail views.
 struct DetailBackdrop: View {
@@ -82,6 +85,27 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
     /// Shorter clear hero window on a phone so content is reachable with one swipe.
     private var heroWindow: CGFloat { hSizeClass == .compact ? 320 : 500 }
 
+    /// Per-side window safe-area insets, used to push only the CONTENT clear of the Dynamic Island while
+    /// the backdrop + scrims stay full-bleed. Read from the window (the overlay is full-bleed, so the
+    /// environment inset is gone). In landscape the island is on one side only, so only that side is
+    /// inset and the island itself covers that margin; ~0 in portrait / iPad / tvOS (no change).
+    private var safeLeading: CGFloat {
+        #if os(iOS)
+        UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }.first?.keyWindow?.safeAreaInsets.left ?? 0
+        #else
+        0
+        #endif
+    }
+    private var safeTrailing: CGFloat {
+        #if os(iOS)
+        UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }.first?.keyWindow?.safeAreaInsets.right ?? 0
+        #else
+        0
+        #endif
+    }
+
     init(
         @ViewBuilder hero: @escaping () -> Hero = { EmptyView() },
         @ViewBuilder primary: @escaping () -> Primary,
@@ -106,6 +130,10 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
                         VStack(alignment: .leading, spacing: 0) {
                             primary()
                         }
+                        // Inset the content past the island; the scrim (.frame + .background below)
+                        // stays full-width, so no gray strip / backdrop margin appears.
+                        .padding(.leading, safeLeading)
+                        .padding(.trailing, safeTrailing)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         // 24 pt, matching the panel-to-buttons gap.
                         .padding(.bottom, 24)
@@ -121,6 +149,9 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
                 VStack(alignment: .leading, spacing: 40) {
                     content()
                 }
+                // Inset the content past the island; the scrim stays full-width (no strip / margin).
+                .padding(.leading, safeLeading)
+                .padding(.trailing, safeTrailing)
                 // Bound to the viewport, leading-aligned, so a wide child can't stretch the column
                 // past the screen and shove the whole content block off-center (section titles were
                 // being clipped on the left). Matches the primary slot's constraint.
@@ -152,6 +183,8 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
         .overlay(alignment: .bottomLeading) {
             hero()
                 .padding(.horizontal, metrics.rowInset)
+                .padding(.leading, safeLeading)
+                .padding(.trailing, safeTrailing)
                 .padding(.bottom, 8)
         }
     }
