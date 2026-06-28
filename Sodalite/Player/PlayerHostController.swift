@@ -299,9 +299,12 @@ final class PlayerHostController: AVPlayerViewController {
     }
 
     #if os(iOS)
-    // The fullscreen player runs landscape on iPhone (portrait elsewhere); iPad allows all.
+    // Landscape only while the lock is engaged (during playback); when released for dismiss it widens
+    // to allButUpsideDown so the dismiss transition shares a common orientation with the portrait app
+    // and can rotate back instead of stalling on a black frame. iPad allows all.
     override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
-        UIDevice.current.userInterfaceIdiom == .pad ? .all : .landscape
+        if UIDevice.current.userInterfaceIdiom == .pad { return .all }
+        return PlayerOrientation.lockLandscape ? .landscape : .allButUpsideDown
     }
     override var preferredInterfaceOrientationForPresentation: UIInterfaceOrientation { .landscapeRight }
     override var prefersStatusBarHidden: Bool { true }
@@ -759,6 +762,11 @@ final class PlayerHostController: AVPlayerViewController {
     }
 
     private func dismissPlayer() {
+        #if os(iOS)
+        // Release the landscape lock first so the VC reports a portrait-compatible orientation for the
+        // dismiss transition (else the rotation back can stall, leaving the video black + the modal up).
+        PlayerOrientation.unlock()
+        #endif
         unmountAetherViewIfNeeded()
         player = nil
         // stopPlayback fire-and-forgets the reportStop call (DrHurt #12); called inline so synchronous teardown finishes before onDismiss and the back press hits the dismiss animation immediately.

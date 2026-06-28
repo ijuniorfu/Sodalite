@@ -59,6 +59,10 @@ struct TransportBar: View {
     /// iOS only: drives touch taps on the track buttons + dropdown rows via the view model. nil on tvOS.
     var viewModel: PlayerViewModel? = nil
 
+    @Environment(\.horizontalSizeClass) private var hSizeClass
+    /// iPhone (compact) gets smaller transport paddings, dropdown rows, and fonts; iPad + tvOS full size.
+    private var isCompact: Bool { hSizeClass == .compact }
+
     var body: some View {
         VStack(spacing: 10) {
             if isScrubbing {
@@ -212,8 +216,8 @@ struct TransportBar: View {
                     .foregroundStyle(.white.opacity(0.7))
             }
         }
-        .padding(.horizontal, 80)
-        .padding(.bottom, 60)
+        .padding(.horizontal, isCompact ? 24 : 80)
+        .padding(.bottom, isCompact ? 16 : 60)
         .animation(.easeInOut(duration: 0.2), value: isScrubbing)
         .animation(.smooth(duration: 0.32), value: controlsFocus)
         .animation(.smooth(duration: 0.32), value: trackDropdown)
@@ -241,7 +245,7 @@ struct TransportBar: View {
             .transition(.opacity)
         } else {
             Text(scrubTime)
-                .font(.system(size: 56, weight: .medium))
+                .font(.system(size: isCompact ? 34 : 56, weight: .medium))
                 .monospacedDigit()
                 .foregroundStyle(.white)
                 .transition(.opacity)
@@ -552,14 +556,14 @@ struct TransportBar: View {
         VStack(spacing: 6) {
             if isOpen {
                 let hasImages = dropdown.contains(where: { $0.image != nil })
-                let rowHeight = hasImages ? Self.episodeRowHeight : Self.dropdownItemHeight
+                let rowHeight = hasImages ? (isCompact ? 60 : Self.episodeRowHeight) : (isCompact ? 42 : Self.dropdownItemHeight)
                 // Pinned header/footer rows render outside the scroll area so they stay visible;
                 // original indices are preserved so the host-driven highlight math is unaffected.
                 let indexed = Array(dropdown.enumerated())
                 let headerIndexed = indexed.filter { $0.element.isPinnedHeader }
                 let scrollIndexed = indexed.filter { !$0.element.isPinnedFooter && !$0.element.isPinnedHeader }
                 let pinnedIndexed = indexed.filter { $0.element.isPinnedFooter }
-                let visibleCount = min(scrollIndexed.count, Self.dropdownMaxVisible)
+                let visibleCount = min(scrollIndexed.count, isCompact ? 5 : Self.dropdownMaxVisible)
                 let height = CGFloat(visibleCount) * rowHeight
 
                 VStack(spacing: 0) {
@@ -613,8 +617,8 @@ struct TransportBar: View {
                 // the column over the transport row; text-only ones get headroom so names like
                 // "Deutsch · Dolby TrueHD 7.1" don't truncate.
                 .frame(
-                    minWidth: hasImages ? 480 : 0,
-                    maxWidth: hasImages ? 720 : 800
+                    minWidth: hasImages ? (isCompact ? 320 : 480) : 0,
+                    maxWidth: hasImages ? (isCompact ? 440 : 720) : (isCompact ? 420 : 800)
                 )
                 .background(.ultraThinMaterial)
                 .clipShape(RoundedRectangle(cornerRadius: 12))
@@ -900,12 +904,16 @@ private extension TransportBar {
 
 struct PlayerTitleOverlay: View {
     let item: JellyfinItem
+    @Environment(\.horizontalSizeClass) private var hSizeClass
+    private var isCompact: Bool { hSizeClass == .compact }
+    private var titleFont: Font { isCompact ? .headline : .title3 }
+    private var subFont: Font { isCompact ? .subheadline : .body }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             if let seriesName = item.seriesName {
                 Text(seriesName)
-                    .font(.title3)
+                    .font(titleFont)
                     .fontWeight(.semibold)
                     .foregroundStyle(.white)
                     .lineLimit(1)
@@ -913,26 +921,26 @@ struct PlayerTitleOverlay: View {
                 let episodeLabel = episodeDescription
                 if !episodeLabel.isEmpty {
                     Text(episodeLabel)
-                        .font(.body)
+                        .font(subFont)
                         .foregroundStyle(.white.opacity(0.7))
                         .lineLimit(1)
                 }
             } else {
                 Text(item.name)
-                    .font(.title3)
+                    .font(titleFont)
                     .fontWeight(.semibold)
                     .foregroundStyle(.white)
                     .lineLimit(1)
 
                 if let year = item.productionYear {
                     Text(String(year))
-                        .font(.body)
+                        .font(subFont)
                         .foregroundStyle(.white.opacity(0.7))
                 }
             }
         }
-        .padding(.horizontal, 80)
-        .padding(.top, 60)
+        .padding(.horizontal, isCompact ? 24 : 80)
+        .padding(.top, isCompact ? 16 : 60)
     }
 
     private var episodeDescription: String {
