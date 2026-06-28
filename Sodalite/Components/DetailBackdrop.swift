@@ -77,9 +77,15 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
     @State private var scrollDim: Double = 0
 
     @Environment(\.horizontalSizeClass) private var hSizeClass
+    @Environment(\.verticalSizeClass) private var vSizeClass
     private var metrics: LayoutMetrics { LayoutMetrics.current(hSizeClass) }
     /// Shorter clear hero window on a phone so content is reachable with one swipe.
     private var heroWindow: CGFloat { hSizeClass == .compact ? 320 : 500 }
+
+    /// Denser content scrim in iPhone landscape (vSizeClass == .compact) so the busy landscape backdrop
+    /// does not show through behind the bare action-button row between the glass panels (it read as a
+    /// bright strip at 0.55). Portrait / iPad / tvOS keep 0.55, so the look there is unchanged.
+    private var scrimOpacity: Double { vSizeClass == .compact ? 0.78 : 0.55 }
 
     init(
         @ViewBuilder hero: @escaping () -> Hero = { EmptyView() },
@@ -108,7 +114,7 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                         // 24 pt, matching the panel-to-buttons gap.
                         .padding(.bottom, 24)
-                        .background(Color.black.opacity(0.55))
+                        .background(Color.black.opacity(scrimOpacity))
                     }
                     .containerRelativeFrame(.vertical)
                 }
@@ -121,10 +127,10 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
                 // being clipped on the left). Matches the primary slot's constraint.
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.bottom, 80)
-                .background(Color.black.opacity(0.55))
+                .background(Color.black.opacity(scrimOpacity))
 
                 // Trailing filler so a short content block doesn't end in a hard gradient edge; same scrim, sized past any 4K tvOS safe-area inset.
-                Color.black.opacity(0.55).frame(minHeight: 600)
+                Color.black.opacity(scrimOpacity).frame(minHeight: 600)
             }
         }
         .background(Color.black.opacity(scrollDim).ignoresSafeArea())
@@ -139,7 +145,9 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
     // Hero rides as a gradient overlay (not a stacked layer) to keep the sibling structure the focus engine scrolls; drawn on top so the logo stays visible. Full-bleed redesign (Sodalite#15): backdrop stays behind a scrim, text containers carry their own material.
     private var gradientWithHero: some View {
         LinearGradient(
-            colors: [.clear, .black.opacity(0.35), .black.opacity(0.55)],
+            // End matches the panel scrim (scrimOpacity) so the fade meets the panel with no step;
+            // 0.64 keeps the mid-stop proportional (0.35/0.55) so portrait reproduces the original.
+            colors: [.clear, .black.opacity(scrimOpacity * 0.64), .black.opacity(scrimOpacity)],
             startPoint: .top,
             endPoint: .bottom
         )
