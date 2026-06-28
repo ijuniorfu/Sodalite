@@ -46,6 +46,11 @@ final class PlayerHostController: AVPlayerViewController {
 
     /// True only between `didEnterBackground` and the next `didBecomeActive`; the app switcher (double Home) fires only willResignActive, so this stays false and we skip the reload-and-pause routine for it.
     private var wasFullyBackgrounded = false
+    /// Set synchronously by the AVKit PiP delegate (willStart) BEFORE PiP dismisses this VC, so
+    /// viewWillDisappear can tell a PiP handoff from a real dismiss and not stopPlayback (which would
+    /// idle the engine and immediately close PiP). nonisolated(unsafe): written from the nonisolated
+    /// delegate + read on MainActor, both on the main thread in practice (iOS only).
+    nonisolated(unsafe) var pipActive = false
 
     init(
         viewModel: PlayerViewModel,
@@ -76,11 +81,16 @@ final class PlayerHostController: AVPlayerViewController {
         appliesPreferredDisplayCriteriaAutomatically = false
         contextualActions = []
         #endif
-        // PiP is disabled until AetherEngine can sustain its loopback pipeline + decode in the
-        // background. Today VT + AVIO die on suspension (see appDidBecomeActive's reloadAtCurrentPosition),
-        // so a PiP window has nothing to render and closes immediately. Re-enable as part of the
-        // engine-side PiP/AirPlay step. tvOS does not use PiP.
+        // iOS uses AVKit-native PiP backed by the engine's background keepalive (AetherEngine
+        // backgroundPlaybackEnabled + pictureInPictureActive): allowsPictureInPicturePlayback keeps the
+        // player alive across backgrounding, canStartPictureInPictureAutomaticallyFromInline triggers PiP
+        // on swipe-Home. tvOS does not use PiP.
+        #if os(iOS)
+        allowsPictureInPicturePlayback = true
+        canStartPictureInPictureAutomaticallyFromInline = true
+        #else
         allowsPictureInPicturePlayback = false
+        #endif
 
         // .skipItem routes AVKit skip events to delegate skipToNextItem/skipToPreviousItem instead of the default 10s seek (a no-op without track listings).
         #if os(tvOS)
@@ -424,7 +434,9 @@ final class PlayerHostController: AVPlayerViewController {
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         // HDR/SDR display-mode switches fire viewWillDisappear without dismissing; only stop playback on a real dismiss.
-        guard isBeingDismissed || isMovingFromParent else { return }
+        // PiP also dismisses this VC on start (isBeingDismissed) but playback must continue in the PiP window,
+        // so skip the stop while PiP is active (else the engine idles and PiP closes instantly).
+        guard (isBeingDismissed || isMovingFromParent), !pipActive else { return }
         #if os(iOS)
         PlayerOrientation.unlock()
         #endif
@@ -443,6 +455,13 @@ final class PlayerHostController: AVPlayerViewController {
         // App switcher lands here without didEnterBackground; decoders + audio are still alive, so nothing to rebuild.
         guard wasFullyBackgrounded else { return }
         wasFullyBackgrounded = false
+
+        #if os(iOS)
+        // Background playback (PiP / background audio) kept the pipeline alive + playing, so there is nothing
+        // to reload and we must NOT force it paused (it should keep playing on return). Only the torn-down
+        // path (background disabled, or paused-in-background teardown -> .paused/.idle) needs the reload below.
+        if viewModel.player.state == .playing { return }
+        #endif
 
         // tvOS deactivates the AVAudioSession on background; without re-arming it the post-reload resume drives a synchronizer with no live session (state .playing but no audio, no frames advance).
         try? AVAudioSession.sharedInstance().setActive(true)

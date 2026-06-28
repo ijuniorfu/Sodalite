@@ -92,6 +92,11 @@ struct PlayerTouchControls: View {
                 }
             }
             Spacer()
+            // Auto-PiP (swipe-Home) is AVKit's own; no manual button (a custom AVPictureInPictureController
+            // breaks AVKit's auto-PiP and can't survive backgrounding). AirPlay button for discoverability.
+            AirPlayRouteButton(tint: .white)
+                .frame(width: 44, height: 44)
+                .background(.ultraThinMaterial, in: Circle())
         }
     }
 

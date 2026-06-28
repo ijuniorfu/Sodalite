@@ -37,6 +37,11 @@ struct ValuePickerRow<Value: Hashable>: View {
                     .font(.body)
                     .foregroundStyle(focused ? .white : Color.secondary)
                     .opacity(canMoveBackward ? 1 : 0.25)
+                    #if os(iOS)
+                    .padding(10)
+                    .contentShape(Rectangle())
+                    .onTapGesture { advance(by: -1) }
+                    #endif
                 Text(label(selection))
                     .font(.body)
                     .fontWeight(.semibold)
@@ -47,6 +52,11 @@ struct ValuePickerRow<Value: Hashable>: View {
                     .font(.body)
                     .foregroundStyle(focused ? .white : Color.secondary)
                     .opacity(canMoveForward ? 1 : 0.25)
+                    #if os(iOS)
+                    .padding(10)
+                    .contentShape(Rectangle())
+                    .onTapGesture { advance(by: 1) }
+                    #endif
             }
         }
         .padding(.horizontal, 28)
@@ -75,10 +85,13 @@ struct ValuePickerRow<Value: Hashable>: View {
             }
         }
         #endif
-        // Click also advances forward for users who prefer clicking over swiping.
+        // tvOS: Select also advances forward (focus-gated). iOS uses the tappable chevrons above (both
+        // directions); a tap-anywhere-forward can't reach a lower option or un-toggle a last-option value.
+        #if os(tvOS)
         .stableTap(isFocused: focused) {
             advance(by: 1)
         }
+        #endif
     }
 
     private var currentIndex: Int {

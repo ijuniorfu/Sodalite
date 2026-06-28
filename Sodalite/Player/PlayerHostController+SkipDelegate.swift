@@ -58,4 +58,25 @@ extension PlayerHostController: AVPlayerViewControllerDelegate {
         LogTap.shared.note("[NowPlaying] delegate willResumePlayback from=\(oldTime.seconds) to=\(targetTime.seconds)")
     }
     #endif
+
+    // iOS: PiP coordination. `pipActive` is set synchronously (before PiP dismisses this VC) so
+    // viewWillDisappear can skip stopPlayback during the PiP handoff; the engine flag (hopped to MainActor)
+    // holds the background keepalive. nonisolated to match the silently-MainActor-isolated conformance.
+    #if os(iOS)
+    // Keep the player presented when PiP starts (the default dismisses it, so returning from PiP would land
+    // on the detail view). Staying presented makes PiP-stop restore the full-screen player automatically.
+    nonisolated func playerViewControllerShouldAutomaticallyDismissAtPictureInPictureStart(_ playerViewController: AVPlayerViewController) -> Bool {
+        false
+    }
+
+    nonisolated func playerViewControllerWillStartPictureInPicture(_ playerViewController: AVPlayerViewController) {
+        self.pipActive = true
+        Task { @MainActor [weak self] in self?.viewModel.player.pictureInPictureActive = true }
+    }
+
+    nonisolated func playerViewControllerDidStopPictureInPicture(_ playerViewController: AVPlayerViewController) {
+        self.pipActive = false
+        Task { @MainActor [weak self] in self?.viewModel.player.pictureInPictureActive = false }
+    }
+    #endif
 }
