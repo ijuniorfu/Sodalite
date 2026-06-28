@@ -1,7 +1,4 @@
 import SwiftUI
-#if os(iOS)
-import UIKit
-#endif
 
 /// Shared fullscreen backdrop with gradient overlay used in all detail views.
 struct DetailBackdrop: View {
@@ -80,28 +77,9 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
     @State private var scrollDim: Double = 0
 
     @Environment(\.horizontalSizeClass) private var hSizeClass
-    @Environment(\.verticalSizeClass) private var vSizeClass
     private var metrics: LayoutMetrics { LayoutMetrics.current(hSizeClass) }
     /// Shorter clear hero window on a phone so content is reachable with one swipe.
     private var heroWindow: CGFloat { hSizeClass == .compact ? 320 : 500 }
-
-    /// iPhone-only horizontal inset for the Dynamic Island. The WHOLE overlay shifts in together so the
-    /// scrim matches the content width (no gray scrim strip beside the panels) and content clears the
-    /// island. ~0 portrait, ~59 landscape; iPad/tvOS 0.
-    private var contentSafeInset: CGFloat {
-        #if os(iOS)
-        guard hSizeClass == .compact || vSizeClass == .compact else { return 0 }
-        let insets = UIApplication.shared.connectedScenes
-            .compactMap { $0 as? UIWindowScene }.first?.keyWindow?.safeAreaInsets
-        return max(insets?.left ?? 0, insets?.right ?? 0)
-        #else
-        return 0
-        #endif
-    }
-
-    /// Denser scrim in iPhone landscape so the busy landscape backdrop does not show through between the
-    /// glass panels (the bare button band read as a backdrop strip at 0.55). Portrait / iPad / tvOS: 0.55.
-    private var scrimOpacity: Double { vSizeClass == .compact ? 0.8 : 0.55 }
 
     init(
         @ViewBuilder hero: @escaping () -> Hero = { EmptyView() },
@@ -130,7 +108,7 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                         // 24 pt, matching the panel-to-buttons gap.
                         .padding(.bottom, 24)
-                        .background(Color.black.opacity(scrimOpacity))
+                        .background(Color.black.opacity(0.55))
                     }
                     .containerRelativeFrame(.vertical)
                 }
@@ -143,14 +121,11 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
                 // being clipped on the left). Matches the primary slot's constraint.
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.bottom, 80)
-                .background(Color.black.opacity(scrimOpacity))
+                .background(Color.black.opacity(0.55))
 
                 // Trailing filler so a short content block doesn't end in a hard gradient edge; same scrim, sized past any 4K tvOS safe-area inset.
-                Color.black.opacity(scrimOpacity).frame(minHeight: 600)
+                Color.black.opacity(0.55).frame(minHeight: 600)
             }
-            // Shift the whole overlay in past the Dynamic Island (landscape iPhone) as one block, so the
-            // scrim hugs the content and the real backdrop fills the margin instead of a gray scrim strip.
-            .padding(.horizontal, contentSafeInset)
         }
         .background(Color.black.opacity(scrollDim).ignoresSafeArea())
         .onScrollGeometryChange(for: Double.self) { geometry in
@@ -164,9 +139,7 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
     // Hero rides as a gradient overlay (not a stacked layer) to keep the sibling structure the focus engine scrolls; drawn on top so the logo stays visible. Full-bleed redesign (Sodalite#15): backdrop stays behind a scrim, text containers carry their own material.
     private var gradientWithHero: some View {
         LinearGradient(
-            // End matches the panel scrim (scrimOpacity) so the fade meets the panel with no hard step;
-            // 0.64 keeps the mid-stop proportional (0.35/0.55) so portrait reproduces the original.
-            colors: [.clear, .black.opacity(scrimOpacity * 0.64), .black.opacity(scrimOpacity)],
+            colors: [.clear, .black.opacity(0.35), .black.opacity(0.55)],
             startPoint: .top,
             endPoint: .bottom
         )
