@@ -92,21 +92,6 @@ struct PlayerTouchControls: View {
                 }
             }
             Spacer()
-            // PiP only on the native AVPlayer backend (host sets isPiPAvailable); AirPlay always.
-            if viewModel.isPiPAvailable {
-                Button { viewModel.togglePiP() } label: {
-                    Image(systemName: "pip.enter")
-                        .font(.headline.weight(.semibold))
-                        .foregroundStyle(.white)
-                        .padding(11)
-                        .background(.ultraThinMaterial, in: Circle())
-                        .contentShape(Circle())
-                }
-                .buttonStyle(.plain)
-            }
-            AirPlayRouteButton(tint: .white)
-                .frame(width: 44, height: 44)
-                .background(.ultraThinMaterial, in: Circle())
         }
     }
 

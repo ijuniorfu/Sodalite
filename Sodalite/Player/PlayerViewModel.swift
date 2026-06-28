@@ -1766,12 +1766,6 @@ final class PlayerViewModel {
         volumeObservation = nil
         volumeHUDArmed = false
     }
-
-    /// PiP availability (native AVPlayer backend only); set by PlayerHostController. Drives the PiP button.
-    var isPiPAvailable = false
-    /// Wired by PlayerHostController to its PlayerPiPController.toggle(); the touch PiP button calls togglePiP().
-    @ObservationIgnored var onTogglePiP: (() -> Void)?
-    func togglePiP() { onTogglePiP?() }
     #endif
 
     func hideControls() {
