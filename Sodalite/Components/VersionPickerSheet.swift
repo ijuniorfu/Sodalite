@@ -78,19 +78,22 @@ struct VersionPickerSheet: View {
 
     @Environment(\.dismiss) private var dismiss
     @FocusState private var focusedID: String?
+    @Environment(\.horizontalSizeClass) private var hSizeClass
+    /// iPhone (compact) shrinks the tvOS-scaled padding/fonts/row heights; tvOS/iPad keep full size.
+    private var isCompact: Bool { hSizeClass == .compact }
 
     private var sorted: [MediaSource] {
         sources.sorted { $0.qualityRank > $1.qualityRank }
     }
 
     var body: some View {
-        VStack(spacing: 36) {
+        VStack(spacing: isCompact ? 20 : 36) {
             Text("detail.version.title")
-                .font(.title2)
+                .font(isCompact ? .title3 : .title2)
                 .fontWeight(.semibold)
 
             ScrollView {
-                VStack(spacing: 16) {
+                VStack(spacing: isCompact ? 12 : 16) {
                     ForEach(sorted) { source in
                         row(source)
                     }
@@ -98,16 +101,19 @@ struct VersionPickerSheet: View {
                 .frame(
                     maxWidth: 760,
                     minHeight: sorted.count > 1
-                        ? min(CGFloat(sorted.count) * 140, 720)
+                        ? min(CGFloat(sorted.count) * (isCompact ? 64 : 140), isCompact ? 360 : 720)
                         : nil
                 )
                 .padding(.vertical, 8)
             }
         }
-        .padding(80)
+        .padding(isCompact ? 24 : 80)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(.thinMaterial)
         .onAppear { focusedID = sorted.first?.id }
+        #if os(iOS)
+        .presentationDetents([.medium, .large])
+        #endif
     }
 
     private func row(_ source: MediaSource) -> some View {
@@ -121,8 +127,8 @@ struct VersionPickerSheet: View {
                 .fixedSize(horizontal: false, vertical: true)
             Spacer(minLength: 0)
         }
-        .padding(.horizontal, 32)
-        .padding(.vertical, 22)
+        .padding(.horizontal, isCompact ? 18 : 32)
+        .padding(.vertical, isCompact ? 14 : 22)
         .frame(maxWidth: .infinity)
         .background(
             RoundedRectangle(cornerRadius: 14)

@@ -76,6 +76,10 @@ final class PlayerHostController: AVPlayerViewController {
         appliesPreferredDisplayCriteriaAutomatically = false
         contextualActions = []
         #endif
+        // PiP is disabled until AetherEngine can sustain its loopback pipeline + decode in the
+        // background. Today VT + AVIO die on suspension (see appDidBecomeActive's reloadAtCurrentPosition),
+        // so a PiP window has nothing to render and closes immediately. Re-enable as part of the
+        // engine-side PiP/AirPlay step. tvOS does not use PiP.
         allowsPictureInPicturePlayback = false
 
         // .skipItem routes AVKit skip events to delegate skipToNextItem/skipToPreviousItem instead of the default 10s seek (a no-op without track listings).
@@ -92,7 +96,15 @@ final class PlayerHostController: AVPlayerViewController {
                 guard let self else { return }
                 LogTap.shared.note("[NowPlaying] vc_rebind player=\(avPlayer == nil ? "nil" : "set") items=\(avPlayer?.currentItem?.externalMetadata.count ?? -1)")
                 if let avPlayer {
+                    // AirPlay (external playback) routes the engine's localhost loopback URL, which an
+                    // Apple TV cannot reach (black screen + restricted indicator). Disable on iOS until
+                    // real Cast of the original source lands; screen mirroring still works. tvOS is the
+                    // display itself, so external playback stays on there.
+                    #if os(iOS)
+                    avPlayer.allowsExternalPlayback = false
+                    #else
                     avPlayer.allowsExternalPlayback = true
+                    #endif
                     self.player = avPlayer
                     // Each `self.player` assignment resets videoGravity to .resizeAspect, so re-apply the user's picture-mode after every rebind or an audio-switch reload silently drops fill mode.
                     self.applyVideoGravity(for: self.viewModel.pictureMode)
