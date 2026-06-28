@@ -79,7 +79,9 @@ struct CatalogDetailView: View {
 
             content
         }
-        .ignoresSafeArea(when: !isPhonePortrait)
+        // Full-bleed only on iPad/tvOS; iPhone (portrait AND landscape) respects the safe area so
+        // content never lands under the Dynamic Island. The backdrop keeps its own .ignoresSafeArea().
+        .ignoresSafeArea(when: hSizeClass != .compact && vSizeClass != .compact)
         .hidesShellTabBar()
         .navigationDestination(item: $navigateToMedia) { media in
             CatalogDetailView(media: media)
