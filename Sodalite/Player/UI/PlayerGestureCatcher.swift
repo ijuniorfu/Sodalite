@@ -2,90 +2,57 @@
 import SwiftUI
 import UIKit
 
-/// Full-screen gesture catcher for the iOS player. A real UIKit view (with reliable
-/// require(toFail:) double-tap disambiguation) placed at the bottom of the overlay z-stack: SwiftUI
-/// controls above it hit-test first, empty video taps fall through to this. Single-tap toggles
-/// controls (and closes any open dropdown via hideControls), double-tap on the left/right third
-/// skips -/+10s (middle = play/pause), a vertical drag sets brightness (left) / volume (right).
-struct PlayerGestureCatcher: UIViewRepresentable {
+/// Full-screen SwiftUI gesture catcher at the bottom of the overlay z-stack (below the controls,
+/// above the video): single-tap toggles controls (and closes a dropdown via hideControls),
+/// double-tap on the left/right third skips -/+10s (middle = play/pause), a vertical drag sets
+/// brightness (left half) / volume (right half). A plain SwiftUI layer (Color.clear) reliably
+/// receives empty-area taps in the hosting overlay; the controls render above and win their own hits.
+struct PlayerGestureCatcher: View {
     let viewModel: PlayerViewModel
 
-    func makeCoordinator() -> Coordinator { Coordinator(viewModel: viewModel) }
+    @State private var panAxis: PanAxis = .undecided
+    @State private var panStartLevel: Double = 0
+    private enum PanAxis { case undecided, vertical, horizontalIgnored }
+    private let skipInterval: Double = 10
 
-    func makeUIView(context: Context) -> UIView {
-        let view = UIView()
-        view.backgroundColor = .clear
-        let c = context.coordinator
-        let single = UITapGestureRecognizer(target: c, action: #selector(Coordinator.onSingle(_:)))
-        let double = UITapGestureRecognizer(target: c, action: #selector(Coordinator.onDouble(_:)))
-        double.numberOfTapsRequired = 2
-        single.require(toFail: double)
-        let pan = UIPanGestureRecognizer(target: c, action: #selector(Coordinator.onPan(_:)))
-        for recognizer in [single, double, pan] {
-            recognizer.delegate = c
-            view.addGestureRecognizer(recognizer)
+    var body: some View {
+        GeometryReader { geo in
+            Color.clear
+                .contentShape(Rectangle())
+                .onTapGesture(count: 2, coordinateSpace: .local) { location in
+                    if let seconds = PlayerTouchInput.skipSeconds(forTapX: location.x, width: geo.size.width, interval: skipInterval) {
+                        viewModel.skip(by: seconds)
+                    } else {
+                        viewModel.togglePlayPause()
+                    }
+                }
+                .onTapGesture {
+                    if viewModel.showControls { viewModel.hideControls() }
+                    else { viewModel.showControlsTemporarily() }
+                }
+                .simultaneousGesture(verticalPan(in: geo.size))
         }
-        return view
     }
 
-    func updateUIView(_ uiView: UIView, context: Context) {
-        context.coordinator.viewModel = viewModel
-    }
-
-    @MainActor
-    final class Coordinator: NSObject, UIGestureRecognizerDelegate {
-        var viewModel: PlayerViewModel
-        private let skipInterval: Double = 10
-        private enum PanAxis { case undecided, vertical, horizontalIgnored }
-        private var panAxis: PanAxis = .undecided
-        private var panStartLevel: Double = 0
-
-        init(viewModel: PlayerViewModel) { self.viewModel = viewModel }
-
-        @objc func onSingle(_ recognizer: UITapGestureRecognizer) {
-            if viewModel.showControls { viewModel.hideControls() }
-            else { viewModel.showControlsTemporarily() }
-        }
-
-        @objc func onDouble(_ recognizer: UITapGestureRecognizer) {
-            guard let view = recognizer.view else { return }
-            let x = recognizer.location(in: view).x
-            if let seconds = PlayerTouchInput.skipSeconds(forTapX: x, width: view.bounds.width, interval: skipInterval) {
-                viewModel.skip(by: seconds)
-            } else {
-                viewModel.togglePlayPause()
-            }
-        }
-
-        @objc func onPan(_ recognizer: UIPanGestureRecognizer) {
-            guard let view = recognizer.view else { return }
-            let t = recognizer.translation(in: view)
-            switch recognizer.state {
-            case .began:
-                panAxis = .undecided
-            case .changed:
+    private func verticalPan(in size: CGSize) -> some Gesture {
+        DragGesture(minimumDistance: 16)
+            .onChanged { value in
                 if panAxis == .undecided {
-                    guard abs(t.y) > 12 || abs(t.x) > 12 else { return }
-                    panAxis = abs(t.y) > abs(t.x) ? .vertical : .horizontalIgnored
-                    let onLeft = recognizer.location(in: view).x < view.bounds.width / 2
+                    panAxis = abs(value.translation.height) > abs(value.translation.width) ? .vertical : .horizontalIgnored
+                    let onLeft = value.startLocation.x < size.width / 2
                     panStartLevel = onLeft ? Double(Self.brightness) : Double(PlayerSystemVolume.current)
                 }
                 guard panAxis == .vertical else { return }
-                let onLeft = recognizer.location(in: view).x < view.bounds.width / 2
-                let level = panStartLevel + PlayerTouchInput.levelDelta(translationY: t.y, height: view.bounds.height)
+                let onLeft = value.startLocation.x < size.width / 2
+                let level = panStartLevel + PlayerTouchInput.levelDelta(translationY: value.translation.height, height: size.height)
                 if onLeft { viewModel.setBrightness(CGFloat(level)) } else { viewModel.setVolume(Float(level)) }
-            default:
-                panAxis = .undecided
             }
-        }
+            .onEnded { _ in panAxis = .undecided }
+    }
 
-        nonisolated func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer,
-                                           shouldRecognizeSimultaneouslyWith other: UIGestureRecognizer) -> Bool { true }
-
-        static var brightness: CGFloat {
-            UIApplication.shared.connectedScenes
-                .compactMap { $0 as? UIWindowScene }.first?.screen.brightness ?? 0.5
-        }
+    private static var brightness: CGFloat {
+        UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }.first?.screen.brightness ?? 0.5
     }
 }
 #endif
