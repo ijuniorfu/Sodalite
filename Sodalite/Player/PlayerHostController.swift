@@ -36,6 +36,11 @@ final class PlayerHostController: AVPlayerViewController {
     /// Weak ref to our overlay's hosting view so suppressAVKitChrome's class-name heuristic skips it (it sits among AVKit's chrome views).
     private weak var overlayHostingView: UIView?
 
+    #if os(iOS)
+    /// Owns the iOS screen-wide touch recognizers (tap / double-tap / vertical pan).
+    private var touchInput: PlayerTouchInput?
+    #endif
+
     /// Engine `$currentAVPlayer` (fires on every internal reload, e.g. selectAudioTrack rebuilds NativeAVPlayerHost; sink rebinds `.player`) + `$playbackBackend` (mounts aetherView for SW path).
     private var engineSubscriptions: Set<AnyCancellable> = []
 
@@ -144,7 +149,13 @@ final class PlayerHostController: AVPlayerViewController {
             .tint(tintColor)
         let hosting = UIHostingController(rootView: overlay)
         hosting.view.backgroundColor = .clear
+        #if os(iOS)
+        // iOS controls (buttons, scrubber) are SwiftUI-interactive; empty overlay regions pass touches
+        // through to the host's screen gestures. tvOS stays display-only (the press machine drives input).
+        hosting.view.isUserInteractionEnabled = true
+        #else
         hosting.view.isUserInteractionEnabled = false
+        #endif
         addChild(hosting)
         view.addSubview(hosting.view)
         hosting.view.frame = view.bounds
@@ -175,8 +186,9 @@ final class PlayerHostController: AVPlayerViewController {
         view.addGestureRecognizer(pan)
         ourGestureRecognizers.append(pan)
         #else
-        // PORT SEAM (iOS, Phase 3): attach touch recognizers here (tap = toggle
-        // controls, horizontal drag = scrub with preview, vertical drag = volume/brightness).
+        // iOS touch transport: screen-wide gestures live on the host; the SwiftUI overlay owns the
+        // control widgets + scrubber (Task 4). See PlayerTouchInput.
+        touchInput = PlayerTouchInput(host: view, viewModel: viewModel)
         #endif
 
         // Foreground reloads the pipeline at current position (VT + AVIO die in suspension).
