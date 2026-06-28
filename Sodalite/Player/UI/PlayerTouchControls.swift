@@ -299,18 +299,8 @@ struct PlayerTouchControls: View {
                 }
             }
         case .subtitle:
-            var rows: [PickerRow] = [
-                PickerRow(label: String(localized: "player.subtitles.off", defaultValue: "Off"),
-                          isActive: viewModel.activeSubtitleIndex == nil) {
-                    viewModel.selectSubtitleTrack(id: nil)
-                }
-            ]
-            rows += viewModel.displaySubtitleStreams.map { stream in
-                PickerRow(label: TrackDisplayFormatter.subtitleStreamDisplayName(for: stream),
-                          isActive: stream.index == viewModel.activeSubtitleIndex) {
-                    viewModel.selectSubtitleTrack(id: stream.index)
-                }
-            }
+            var rows: [PickerRow] = []
+            // Secondary entry at the top, matching the tvOS dropdown header.
             if !viewModel.secondarySubtitleCandidates.isEmpty {
                 let secondaryLabel: String
                 if let sidx = viewModel.activeSecondarySubtitleIndex,
@@ -323,6 +313,16 @@ struct PlayerTouchControls: View {
                 rows.append(PickerRow(label: secondaryLabel,
                                       isActive: viewModel.activeSecondarySubtitleIndex != nil,
                                       opensSubmenu: .secondarySubtitle) {})
+            }
+            rows.append(PickerRow(label: String(localized: "player.subtitles.off", defaultValue: "Off"),
+                                  isActive: viewModel.activeSubtitleIndex == nil) {
+                viewModel.selectSubtitleTrack(id: nil)
+            })
+            rows += viewModel.displaySubtitleStreams.map { stream in
+                PickerRow(label: TrackDisplayFormatter.subtitleStreamDisplayName(for: stream),
+                          isActive: stream.index == viewModel.activeSubtitleIndex) {
+                    viewModel.selectSubtitleTrack(id: stream.index)
+                }
             }
             if viewModel.supportsSubtitleSearch {
                 rows.append(PickerRow(label: String(localized: "player.subtitles.searchOnline", defaultValue: "Search online..."), isActive: false) {
