@@ -1,4 +1,7 @@
 import SwiftUI
+#if os(iOS)
+import UIKit
+#endif
 
 /// Shared fullscreen backdrop with gradient overlay used in all detail views.
 struct DetailBackdrop: View {
@@ -77,9 +80,25 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
     @State private var scrollDim: Double = 0
 
     @Environment(\.horizontalSizeClass) private var hSizeClass
+    @Environment(\.verticalSizeClass) private var vSizeClass
     private var metrics: LayoutMetrics { LayoutMetrics.current(hSizeClass) }
     /// Shorter clear hero window on a phone so content is reachable with one swipe.
     private var heroWindow: CGFloat { hSizeClass == .compact ? 320 : 500 }
+
+    /// iPhone-only horizontal content inset for the Dynamic Island. The detail view stays full-bleed
+    /// (backdrop + scrims keep covering the screen, so fades and the viewport-tall first block are
+    /// untouched); only the content rows + hero are padded by the real window safe-area inset, which is
+    /// ~0 in portrait and ~59 in landscape (the island eats the leading edge). iPad/tvOS get nothing.
+    private var contentSafeInset: CGFloat {
+        #if os(iOS)
+        guard hSizeClass == .compact || vSizeClass == .compact else { return 0 }
+        let insets = UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }.first?.keyWindow?.safeAreaInsets
+        return max(insets?.left ?? 0, insets?.right ?? 0)
+        #else
+        return 0
+        #endif
+    }
 
     init(
         @ViewBuilder hero: @escaping () -> Hero = { EmptyView() },
@@ -105,12 +124,12 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
                         VStack(alignment: .leading, spacing: 0) {
                             primary()
                         }
+                        // Inset content out of the Dynamic Island; the scrim (below) stays full-width.
+                        .padding(.horizontal, contentSafeInset)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         // 24 pt, matching the panel-to-buttons gap.
                         .padding(.bottom, 24)
-                        // ignoresSafeArea so the scrim bleeds full-width behind the safe-area-inset content;
-                // otherwise iPhone landscape shows a raw backdrop strip beside the Dynamic Island.
-                .background(Color.black.opacity(0.55).ignoresSafeArea())
+                        .background(Color.black.opacity(0.55))
                     }
                     .containerRelativeFrame(.vertical)
                 }
@@ -118,17 +137,17 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
                 VStack(alignment: .leading, spacing: 40) {
                     content()
                 }
+                // Inset content out of the Dynamic Island; the scrim (below) stays full-width.
+                .padding(.horizontal, contentSafeInset)
                 // Bound to the viewport, leading-aligned, so a wide child can't stretch the column
                 // past the screen and shove the whole content block off-center (section titles were
                 // being clipped on the left). Matches the primary slot's constraint.
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.bottom, 80)
-                // ignoresSafeArea so the scrim bleeds full-width behind the safe-area-inset content;
-                // otherwise iPhone landscape shows a raw backdrop strip beside the Dynamic Island.
-                .background(Color.black.opacity(0.55).ignoresSafeArea())
+                .background(Color.black.opacity(0.55))
 
                 // Trailing filler so a short content block doesn't end in a hard gradient edge; same scrim, sized past any 4K tvOS safe-area inset.
-                Color.black.opacity(0.55).frame(minHeight: 600).ignoresSafeArea(edges: .horizontal)
+                Color.black.opacity(0.55).frame(minHeight: 600)
             }
         }
         .background(Color.black.opacity(scrollDim).ignoresSafeArea())
@@ -151,6 +170,7 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
         .overlay(alignment: .bottomLeading) {
             hero()
                 .padding(.horizontal, metrics.rowInset)
+                .padding(.horizontal, contentSafeInset)
                 .padding(.bottom, 8)
         }
     }

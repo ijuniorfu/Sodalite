@@ -31,9 +31,7 @@ struct CollectionDetailView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
-        // Full-bleed only on iPad/tvOS; iPhone (portrait AND landscape) respects the safe area so
-        // content never lands under the Dynamic Island. The backdrop keeps its own .ignoresSafeArea().
-        .ignoresSafeArea(when: hSizeClass != .compact && vSizeClass != .compact)
+        .ignoresSafeArea(when: !isPhonePortrait)
         .overlay {
             if let userID = appState.activeUser?.id {
                 PlayerLauncher(
