@@ -167,7 +167,9 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
     // Hero rides as a gradient overlay (not a stacked layer) to keep the sibling structure the focus engine scrolls; drawn on top so the logo stays visible. Full-bleed redesign (Sodalite#15): backdrop stays behind a scrim, text containers carry their own material.
     private var gradientWithHero: some View {
         LinearGradient(
-            colors: [.clear, .black.opacity(0.35), .black.opacity(0.55)],
+            // End matches the panel scrim (scrimOpacity) so there is no hard step where the fade meets
+            // the panel; 0.64 keeps the mid-stop proportional (0.35/0.55) so portrait is unchanged.
+            colors: [.clear, .black.opacity(scrimOpacity * 0.64), .black.opacity(scrimOpacity)],
             startPoint: .top,
             endPoint: .bottom
         )
