@@ -94,6 +94,13 @@ struct PlayerOverlayView: View {
                 controlsOverlay
             }
 
+            #if os(iOS)
+            // Subtle edge affordances: a vertical swipe on the left adjusts brightness, on the right volume.
+            if viewModel.showControls && !viewModel.isScrubbing && !viewModel.isLoading && viewModel.errorMessage == nil {
+                swipeHintsOverlay
+            }
+            #endif
+
             // Stats-for-nerds panel mounted above the controls overlay so it stays readable when the transport's auto-hide fires.
             if viewModel.showStatsOverlay && viewModel.errorMessage == nil {
                 StatsOverlayView(
@@ -164,6 +171,37 @@ struct PlayerOverlayView: View {
         .animation(.easeInOut(duration: 0.3), value: viewModel.subtitleSearchVisible)
         .animation(.easeInOut(duration: 0.25), value: viewModel.isSubtitleDeletePromptVisible)
     }
+
+    #if os(iOS)
+    private var swipeHintsOverlay: some View {
+        HStack {
+            swipeHint(icon: "sun.max.fill")
+            Spacer()
+            swipeHint(icon: "speaker.wave.2.fill")
+        }
+        .padding(.horizontal, 20)
+        // Visual only; the actual swipe is handled by the gesture catcher underneath.
+        .allowsHitTesting(false)
+        .transition(.opacity)
+    }
+
+    private func swipeHint(icon: String) -> some View {
+        VStack(spacing: 6) {
+            Image(systemName: "chevron.up").font(.caption2.weight(.semibold))
+            Image(systemName: icon).font(.title3)
+            Image(systemName: "chevron.down").font(.caption2.weight(.semibold))
+        }
+        .foregroundStyle(.white.opacity(0.5))
+        .padding(.vertical, 12)
+        .padding(.horizontal, 9)
+        .background(
+            Capsule()
+                .fill(.ultraThinMaterial)
+                .environment(\.colorScheme, .dark)
+                .opacity(0.55)
+        )
+    }
+    #endif
 
     private var introSkipOverlay: some View {
         VStack {
