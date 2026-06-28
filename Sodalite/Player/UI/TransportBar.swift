@@ -192,6 +192,19 @@ struct TransportBar: View {
 
                 Spacer()
 
+                #if os(iOS)
+                Button { viewModel?.togglePlayPause() } label: {
+                    Image(systemName: (viewModel?.isPlaying ?? false) ? "pause.fill" : "play.fill")
+                        .font(.system(size: 30, weight: .semibold))
+                        .foregroundStyle(.white)
+                        .frame(width: 56, height: 44)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+
+                Spacer()
+                #endif
+
                 Text(remainingTime)
                     .font(.callout)
                     .fontWeight(.medium)
@@ -672,6 +685,17 @@ struct TransportBar: View {
                     .offset(x: knobX - knobSize / 2)
             }
             .animation(.easeInOut(duration: 0.2), value: active)
+            #if os(iOS)
+            .contentShape(Rectangle())
+            .gesture(
+                DragGesture(minimumDistance: 0)
+                    .onChanged { value in
+                        let frac = max(0, min(1, value.location.x / max(width, 1)))
+                        viewModel?.scrub(toFraction: Float(frac))
+                    }
+                    .onEnded { _ in viewModel?.commitScrub() }
+            )
+            #endif
         }
         .frame(height: 22)
     }

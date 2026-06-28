@@ -125,6 +125,29 @@ struct PlayerOverlayView: View {
                 .animation(.easeInOut(duration: 0.2), value: viewModel.hudKind)
                 .allowsHitTesting(false)
                 .zIndex(60)
+
+            // Top-leading close button, shown with the controls (a fullScreenCover has no swipe-dismiss).
+            if viewModel.showControls && viewModel.errorMessage == nil {
+                VStack {
+                    HStack {
+                        Button { onDismiss() } label: {
+                            Image(systemName: "xmark")
+                                .font(.title2.weight(.semibold))
+                                .foregroundStyle(.white)
+                                .padding(12)
+                                .background(.ultraThinMaterial, in: Circle())
+                                .contentShape(Circle())
+                        }
+                        .buttonStyle(.plain)
+                        Spacer()
+                    }
+                    Spacer()
+                }
+                .padding(.leading, 24)
+                .padding(.top, 20)
+                .transition(.opacity)
+                .zIndex(61)
+            }
             #endif
 
             // Subtitle search overlay (Feature #4); uses literal player tint so focused rows fill with the server accent, not white.
