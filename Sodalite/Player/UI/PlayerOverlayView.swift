@@ -102,7 +102,8 @@ struct PlayerOverlayView: View {
                     item: viewModel.item,
                     activeSubtitleIndex: viewModel.activeSubtitleIndex,
                     scrollSectionIndex: viewModel.statsSectionIndex,
-                    showEngineDiagnostics: viewModel.preferences.showEngineDiagnostics
+                    showEngineDiagnostics: viewModel.preferences.showEngineDiagnostics,
+                    onClose: { viewModel.showStatsOverlay = false }
                 )
             }
 

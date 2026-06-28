@@ -13,6 +13,16 @@ struct StatsOverlayView: View {
     let scrollSectionIndex: Int
     /// Renders the Engine/Buffer/Network sections; driven by `PlaybackPreferences.showEngineDiagnostics`.
     let showEngineDiagnostics: Bool
+    /// iOS touch close (X in the header); tvOS leaves it nil (dismissed via the info chip / Menu).
+    var onClose: (() -> Void)? = nil
+
+    private var panelWidth: CGFloat {
+        #if os(iOS)
+        return 380
+        #else
+        return 560
+        #endif
+    }
 
     private var videoStream: MediaStream? {
         item.mediaStreams?.first { $0.type == .video }
@@ -36,8 +46,13 @@ struct StatsOverlayView: View {
         HStack(spacing: 0) {
             Spacer()
             panel
+                #if os(iOS)
+                .padding(.trailing, 16)
+                .padding(.vertical, 16)
+                #else
                 .padding(.trailing, 40)
                 .padding(.vertical, 40)
+                #endif
         }
         .transition(.move(edge: .trailing).combined(with: .opacity))
         // Hit testing left on so the focus engine treats the overlay as a gesture-consuming layer; Up/Down routing is in PlayerHostController's @objc handlers gated on viewModel.showStatsOverlay.
@@ -50,10 +65,31 @@ struct StatsOverlayView: View {
         ScrollViewReader { proxy in
             ScrollView(showsIndicators: false) {
                 VStack(alignment: .leading, spacing: 18) {
+                    #if os(iOS)
+                    HStack {
+                        Text("player.stats.title")
+                            .font(.title3)
+                            .fontWeight(.bold)
+                            .foregroundStyle(.white)
+                        Spacer()
+                        if let onClose {
+                            Button(action: onClose) {
+                                Image(systemName: "xmark")
+                                    .font(.headline.weight(.semibold))
+                                    .foregroundStyle(.white)
+                                    .padding(8)
+                                    .background(.ultraThinMaterial, in: Circle())
+                                    .contentShape(Circle())
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+                    #else
                     Text("player.stats.title")
                         .font(.title3)
                         .fontWeight(.bold)
                         .foregroundStyle(.white)
+                    #endif
 
                     liveSection
                         .id(PlayerViewModel.statsSectionAnchors[0])
@@ -86,7 +122,7 @@ struct StatsOverlayView: View {
                     }
                 }
                 .padding(28)
-                .frame(width: 560, alignment: .topLeading)
+                .frame(width: panelWidth, alignment: .topLeading)
             }
             .onChange(of: scrollSectionIndex) { _, newIndex in
                 // Skip auto-scroll while sliding in (the mount-time index-0 reset fires here and the two animations conflict); content starts at top anyway.
@@ -100,7 +136,7 @@ struct StatsOverlayView: View {
             }
         }
         .frame(maxHeight: .infinity)
-        .frame(width: 560)
+        .frame(width: panelWidth)
         .background(.ultraThinMaterial)
         .environment(\.colorScheme, .dark)
         .clipShape(RoundedRectangle(cornerRadius: 18))
