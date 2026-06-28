@@ -81,7 +81,13 @@ final class PlayerHostController: AVPlayerViewController {
         appliesPreferredDisplayCriteriaAutomatically = false
         contextualActions = []
         #endif
+        // iOS: AVKit must keep the player alive for PiP so it survives backgrounding (the PiP window
+        // closed on minimize because AVKit tore the render layer down). tvOS does not use PiP.
+        #if os(iOS)
+        allowsPictureInPicturePlayback = true
+        #else
         allowsPictureInPicturePlayback = false
+        #endif
 
         // .skipItem routes AVKit skip events to delegate skipToNextItem/skipToPreviousItem instead of the default 10s seek (a no-op without track listings).
         #if os(tvOS)
