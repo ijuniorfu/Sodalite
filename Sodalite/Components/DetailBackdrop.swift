@@ -82,11 +82,6 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
     /// Shorter clear hero window on a phone so content is reachable with one swipe.
     private var heroWindow: CGFloat { hSizeClass == .compact ? 320 : 500 }
 
-    /// Denser content scrim in iPhone landscape (vSizeClass == .compact) so the busy landscape backdrop
-    /// does not show through behind the bare action-button row between the glass panels (it read as a
-    /// bright strip at 0.55). Portrait / iPad / tvOS keep 0.55, so the look there is unchanged.
-    private var scrimOpacity: Double { vSizeClass == .compact ? 0.78 : 0.55 }
-
     init(
         @ViewBuilder hero: @escaping () -> Hero = { EmptyView() },
         @ViewBuilder primary: @escaping () -> Primary,
@@ -114,9 +109,13 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                         // 24 pt, matching the panel-to-buttons gap.
                         .padding(.bottom, 24)
-                        .background(Color.black.opacity(scrimOpacity))
+                        .background(Color.black.opacity(0.55))
                     }
-                    .containerRelativeFrame(.vertical)
+                    // iPhone landscape: do NOT force the first page to viewport height. In the short
+                    // landscape viewport the content overflows, the panel scrim bleeds past the fold and
+                    // overlaps the content-block scrim -> a doubled-up dark strip under the buttons that
+                    // scrolls with the content. Sizing the block to its content keeps the scrims contiguous.
+                    .modifier(FirstPageViewportHeight(active: vSizeClass != .compact))
                 }
 
                 VStack(alignment: .leading, spacing: 40) {
@@ -127,10 +126,10 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
                 // being clipped on the left). Matches the primary slot's constraint.
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.bottom, 80)
-                .background(Color.black.opacity(scrimOpacity))
+                .background(Color.black.opacity(0.55))
 
                 // Trailing filler so a short content block doesn't end in a hard gradient edge; same scrim, sized past any 4K tvOS safe-area inset.
-                Color.black.opacity(scrimOpacity).frame(minHeight: 600)
+                Color.black.opacity(0.55).frame(minHeight: 600)
             }
         }
         .background(Color.black.opacity(scrollDim).ignoresSafeArea())
@@ -145,9 +144,7 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
     // Hero rides as a gradient overlay (not a stacked layer) to keep the sibling structure the focus engine scrolls; drawn on top so the logo stays visible. Full-bleed redesign (Sodalite#15): backdrop stays behind a scrim, text containers carry their own material.
     private var gradientWithHero: some View {
         LinearGradient(
-            // End matches the panel scrim (scrimOpacity) so the fade meets the panel with no step;
-            // 0.64 keeps the mid-stop proportional (0.35/0.55) so portrait reproduces the original.
-            colors: [.clear, .black.opacity(scrimOpacity * 0.64), .black.opacity(scrimOpacity)],
+            colors: [.clear, .black.opacity(0.35), .black.opacity(0.55)],
             startPoint: .top,
             endPoint: .bottom
         )
@@ -167,5 +164,20 @@ extension DetailContentOverlay where Primary == EmptyView {
         @ViewBuilder content: @escaping () -> Content
     ) {
         self.init(hero: hero, primary: { EmptyView() }, content: content)
+    }
+}
+
+/// Applies `.containerRelativeFrame(.vertical)` only when active (everywhere except iPhone landscape),
+/// so the viewport-tall first page is kept where there's room and dropped where it would overflow.
+/// File-scoped (not nested in DetailContentOverlay) to avoid colliding with that type's `Content` param.
+private struct FirstPageViewportHeight: ViewModifier {
+    let active: Bool
+    @ViewBuilder
+    func body(content: Content) -> some View {
+        if active {
+            content.containerRelativeFrame(.vertical)
+        } else {
+            content
+        }
     }
 }
