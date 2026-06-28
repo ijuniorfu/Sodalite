@@ -36,11 +36,6 @@ final class PlayerHostController: AVPlayerViewController {
     /// Weak ref to our overlay's hosting view so suppressAVKitChrome's class-name heuristic skips it (it sits among AVKit's chrome views).
     private weak var overlayHostingView: UIView?
 
-    #if os(iOS)
-    /// Owns the iOS screen-wide touch recognizers (tap / double-tap / vertical pan).
-    private var touchInput: PlayerTouchInput?
-    #endif
-
     /// Engine `$currentAVPlayer` (fires on every internal reload, e.g. selectAudioTrack rebuilds NativeAVPlayerHost; sink rebinds `.player`) + `$playbackBackend` (mounts aetherView for SW path).
     private var engineSubscriptions: Set<AnyCancellable> = []
 
@@ -186,9 +181,8 @@ final class PlayerHostController: AVPlayerViewController {
         view.addGestureRecognizer(pan)
         ourGestureRecognizers.append(pan)
         #else
-        // iOS touch transport: screen-wide gestures live on the host; the SwiftUI overlay owns the
-        // control widgets + scrubber (Task 4). See PlayerTouchInput.
-        touchInput = PlayerTouchInput(host: view, viewModel: viewModel)
+        // iOS touch transport: screen gestures live in the SwiftUI overlay (PlayerGestureCatcher),
+        // below the controls, so they coexist with the tappable widgets. Nothing to attach here.
         #endif
 
         // Foreground reloads the pipeline at current position (VT + AVIO die in suspension).

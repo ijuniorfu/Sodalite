@@ -12,6 +12,12 @@ struct PlayerOverlayView: View {
 
     var body: some View {
         ZStack {
+            #if os(iOS)
+            // Bottom gesture layer: catches taps / swipes on the empty video area; the controls and
+            // buttons render above it and win their own hits.
+            PlayerGestureCatcher(viewModel: viewModel)
+            #endif
+
             // Keep the styled ASS layer mounted even while the cue array is momentarily empty (seek resets); libass already holds the assembled script.
             if viewModel.assRenderer != nil || !viewModel.subtitleCues.isEmpty || !viewModel.secondarySubtitleCues.isEmpty {
                 SubtitleOverlayView(
