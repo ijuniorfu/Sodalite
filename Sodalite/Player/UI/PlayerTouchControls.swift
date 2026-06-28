@@ -26,13 +26,16 @@ struct PlayerTouchControls: View {
 
     var body: some View {
         ZStack {
-            // Bottom scrim so the controls stay legible over bright frames.
+            // Bottom scrim so the controls stay legible over bright frames. Decorative only: in landscape
+            // it covers the vertical center where the brightness/volume swipe happens, so it must not
+            // capture touches (they fall through to the gesture catcher below).
             VStack {
                 Spacer()
                 LinearGradient(colors: [.clear, .black.opacity(0.75)], startPoint: .top, endPoint: .bottom)
                     .frame(height: 260)
             }
             .ignoresSafeArea()
+            .allowsHitTesting(false)
 
             VStack(spacing: 0) {
                 topBar
