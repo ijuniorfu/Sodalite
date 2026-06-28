@@ -147,8 +147,15 @@ struct SubtitleOverlayView: View {
         in size: CGSize,
         safeAreaInsets: EdgeInsets
     ) -> some View {
+        #if os(iOS)
+        // 28pt is tuned for the ~1920pt-wide 10-foot tvOS screen; at iPhone/iPad sizes it reads far too
+        // large (issue #14). Scale to the actual render width, with a legibility floor and the tvOS max cap.
+        let maxWidth = max(0, size.width - 120)
+        let basePoints = min(28, max(14, size.width / 44))
+        #else
         let maxWidth = max(0, size.width - 240)
         let basePoints: CGFloat = 28
+        #endif
         let pointSize = basePoints * fontSize.scale
         let placement = textBottomPlacement(in: size, safeAreaInsets: safeAreaInsets)
         return VStack(spacing: 10) {
