@@ -1697,6 +1697,45 @@ final class PlayerViewModel {
         scheduleControlsHide()
     }
 
+    #if os(iOS)
+    enum PlayerHUDKind: Equatable { case brightness, volume, skipForward, skipBackward }
+
+    /// Transient touch HUD (brightness/volume swipe, skip ripple); the overlay observes hudKind.
+    var hudKind: PlayerHUDKind?
+    var hudLevel: Double = 0
+    @ObservationIgnored private var hudHideTask: Task<Void, Never>?
+
+    func flashHUD(_ kind: PlayerHUDKind, level: Double = 0) {
+        hudKind = kind
+        hudLevel = level
+        hudHideTask?.cancel()
+        hudHideTask = Task { [weak self] in
+            try? await Task.sleep(for: .milliseconds(900))
+            guard !Task.isCancelled else { return }
+            self?.hudKind = nil
+        }
+    }
+
+    /// Touch skip (double-tap sides). Reuses the existing seek-jump path, adds a HUD ripple.
+    func skip(by seconds: Double) {
+        seekJump(seconds: seconds)
+        flashHUD(seconds >= 0 ? .skipForward : .skipBackward)
+    }
+
+    func setBrightness(_ value: CGFloat) {
+        let clamped = min(max(value, 0), 1)
+        UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }.first?.screen.brightness = clamped
+        flashHUD(.brightness, level: Double(clamped))
+    }
+
+    func setVolume(_ value: Float) {
+        let clamped = min(max(value, 0), 1)
+        PlayerSystemVolume.set(clamped)
+        flashHUD(.volume, level: Double(clamped))
+    }
+    #endif
+
     func hideControls() {
         showControls = false
         controlsFocus = .progressBar
