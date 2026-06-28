@@ -58,4 +58,17 @@ extension PlayerHostController: AVPlayerViewControllerDelegate {
         LogTap.shared.note("[NowPlaying] delegate willResumePlayback from=\(oldTime.seconds) to=\(targetTime.seconds)")
     }
     #endif
+
+    // iOS: report PiP state to the engine so its background keepalive holds while PiP is active and the
+    // pause-while-backgrounded teardown does not fire during PiP. nonisolated + MainActor hop for the same
+    // reason as the skip hooks above (the conformance is silently MainActor-isolated under Swift 6).
+    #if os(iOS)
+    nonisolated func playerViewControllerWillStartPictureInPicture(_ playerViewController: AVPlayerViewController) {
+        Task { @MainActor [weak self] in self?.viewModel.player.pictureInPictureActive = true }
+    }
+
+    nonisolated func playerViewControllerDidStopPictureInPicture(_ playerViewController: AVPlayerViewController) {
+        Task { @MainActor [weak self] in self?.viewModel.player.pictureInPictureActive = false }
+    }
+    #endif
 }

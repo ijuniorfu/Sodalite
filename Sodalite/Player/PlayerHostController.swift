@@ -76,11 +76,16 @@ final class PlayerHostController: AVPlayerViewController {
         appliesPreferredDisplayCriteriaAutomatically = false
         contextualActions = []
         #endif
-        // PiP is disabled until AetherEngine can sustain its loopback pipeline + decode in the
-        // background. Today VT + AVIO die on suspension (see appDidBecomeActive's reloadAtCurrentPosition),
-        // so a PiP window has nothing to render and closes immediately. Re-enable as part of the
-        // engine-side PiP/AirPlay step. tvOS does not use PiP.
+        // iOS uses AVKit-native PiP backed by the engine's background keepalive (AetherEngine
+        // backgroundPlaybackEnabled + pictureInPictureActive): allowsPictureInPicturePlayback keeps the
+        // player alive across backgrounding, canStartPictureInPictureAutomaticallyFromInline triggers PiP
+        // on swipe-Home. tvOS does not use PiP.
+        #if os(iOS)
+        allowsPictureInPicturePlayback = true
+        canStartPictureInPictureAutomaticallyFromInline = true
+        #else
         allowsPictureInPicturePlayback = false
+        #endif
 
         // .skipItem routes AVKit skip events to delegate skipToNextItem/skipToPreviousItem instead of the default 10s seek (a no-op without track listings).
         #if os(tvOS)
