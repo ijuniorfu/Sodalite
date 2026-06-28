@@ -772,6 +772,11 @@ final class PlayerHostController: AVPlayerViewController {
         // stopPlayback fire-and-forgets the reportStop call (DrHurt #12); called inline so synchronous teardown finishes before onDismiss and the back press hits the dismiss animation immediately.
         viewModel.stopPlayback()
         onDismiss()
+        #if os(iOS)
+        // Fallback: if the host-driven dismiss above did not take (a stale captured host reference left
+        // the fullScreen modal up while only the stream stopped), dismiss self via its real presenter.
+        if presentingViewController != nil { dismiss(animated: false) }
+        #endif
     }
 
     // MARK: - Pan (Touchpad Scrubbing)

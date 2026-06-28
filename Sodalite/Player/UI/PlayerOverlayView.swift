@@ -298,7 +298,13 @@ struct PlayerOverlayView: View {
     @ViewBuilder
     private var controlsOverlay: some View {
         #if os(iOS)
-        PlayerTouchControls(viewModel: viewModel, onDismiss: onDismiss, tintColor: tintColor)
+        PlayerTouchControls(
+            viewModel: viewModel,
+            onDismiss: onDismiss,
+            tintColor: tintColor,
+            episodeImageURL: { episodeThumbnailURL(for: $0) },
+            chapterThumbnail: { await viewModel.chapterThumbnail(forIndex: $0) }
+        )
         #else
         tvOSControlsOverlay
         #endif
