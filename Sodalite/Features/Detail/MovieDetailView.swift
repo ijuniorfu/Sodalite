@@ -61,8 +61,6 @@ struct MovieDetailView: View {
             }
         }
         .animation(didSettleIn ? .easeInOut(duration: 0.25) : nil, value: viewModel?.isLoading)
-        // iPhone portrait respects the safe area so detail content is not clipped under the status
-        // bar; the backdrop keeps its own .ignoresSafeArea() to stay full-bleed. tvOS/iPad full-bleed.
         // Full-bleed only on iPad/tvOS; iPhone (portrait AND landscape) respects the safe area so
         // content never lands under the Dynamic Island. The backdrop keeps its own .ignoresSafeArea().
         .ignoresSafeArea(when: hSizeClass != .compact && vSizeClass != .compact)

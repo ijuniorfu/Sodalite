@@ -108,7 +108,9 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                         // 24 pt, matching the panel-to-buttons gap.
                         .padding(.bottom, 24)
-                        .background(Color.black.opacity(0.55))
+                        // ignoresSafeArea so the scrim bleeds full-width behind the safe-area-inset content;
+                // otherwise iPhone landscape shows a raw backdrop strip beside the Dynamic Island.
+                .background(Color.black.opacity(0.55).ignoresSafeArea())
                     }
                     .containerRelativeFrame(.vertical)
                 }
@@ -121,10 +123,12 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
                 // being clipped on the left). Matches the primary slot's constraint.
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.bottom, 80)
-                .background(Color.black.opacity(0.55))
+                // ignoresSafeArea so the scrim bleeds full-width behind the safe-area-inset content;
+                // otherwise iPhone landscape shows a raw backdrop strip beside the Dynamic Island.
+                .background(Color.black.opacity(0.55).ignoresSafeArea())
 
                 // Trailing filler so a short content block doesn't end in a hard gradient edge; same scrim, sized past any 4K tvOS safe-area inset.
-                Color.black.opacity(0.55).frame(minHeight: 600)
+                Color.black.opacity(0.55).frame(minHeight: 600).ignoresSafeArea(edges: .horizontal)
             }
         }
         .background(Color.black.opacity(scrollDim).ignoresSafeArea())
