@@ -92,18 +92,8 @@ struct PlayerTouchControls: View {
                 }
             }
             Spacer()
-            // PiP only on the native AVPlayer backend (host sets isPiPAvailable); AirPlay always available.
-            if viewModel.isPiPAvailable {
-                Button { viewModel.togglePiP() } label: {
-                    Image(systemName: "pip.enter")
-                        .font(.headline.weight(.semibold))
-                        .foregroundStyle(.white)
-                        .padding(11)
-                        .background(.ultraThinMaterial, in: Circle())
-                        .contentShape(Circle())
-                }
-                .buttonStyle(.plain)
-            }
+            // Auto-PiP (swipe-Home) is AVKit's own; no manual button (a custom AVPictureInPictureController
+            // breaks AVKit's auto-PiP and can't survive backgrounding). AirPlay button for discoverability.
             AirPlayRouteButton(tint: .white)
                 .frame(width: 44, height: 44)
                 .background(.ultraThinMaterial, in: Circle())
