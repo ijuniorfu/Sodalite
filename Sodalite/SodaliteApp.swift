@@ -1,8 +1,26 @@
 import SwiftUI
 import AetherEngine
 
+#if os(iOS)
+import UIKit
+
+/// Drives app orientation: portrait everywhere on iPhone except the fullscreen player (which sets
+/// PlayerOrientation.lockLandscape); iPad allows all. The delegate method overrides Info.plist at runtime.
+final class OrientationAppDelegate: NSObject, UIApplicationDelegate {
+    func application(_ application: UIApplication,
+                     supportedInterfaceOrientationsFor window: UIWindow?) -> UIInterfaceOrientationMask {
+        if UIDevice.current.userInterfaceIdiom == .pad { return .all }
+        return PlayerOrientation.lockLandscape ? .landscape : .portrait
+    }
+}
+#endif
+
 @main
 struct SodaliteApp: App {
+    #if os(iOS)
+    @UIApplicationDelegateAdaptor(OrientationAppDelegate.self) private var orientationDelegate
+    #endif
+
     // Shared singletons, NOT fresh instances: SwiftUI may build the App value and the @Environment default separately, and a fresh DependencyContainer spawns a zombie MusicPlaybackCoordinator that clears system Now-Playing on every engine state change.
     @State private var appState = AppState.shared
     @State private var dependencies = DependencyContainer.shared

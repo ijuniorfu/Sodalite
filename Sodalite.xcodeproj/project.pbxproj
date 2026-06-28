@@ -78,15 +78,11 @@
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		9DD9136F2F8645860078D0BE /* Sodalite */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-			);
 			path = Sodalite;
 			sourceTree = "<group>";
 		};
 		DE5C0D60D4D900000000F002 /* SodaliteTopShelf */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-			);
 			path = SodaliteTopShelf;
 			sourceTree = "<group>";
 		};

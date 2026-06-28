@@ -292,8 +292,21 @@ final class PlayerHostController: AVPlayerViewController {
         }
     }
 
+    #if os(iOS)
+    // The fullscreen player runs landscape on iPhone (portrait elsewhere); iPad allows all.
+    override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
+        UIDevice.current.userInterfaceIdiom == .pad ? .all : .landscape
+    }
+    override var preferredInterfaceOrientationForPresentation: UIInterfaceOrientation { .landscapeRight }
+    override var prefersStatusBarHidden: Bool { true }
+    override var prefersHomeIndicatorAutoHidden: Bool { true }
+    #endif
+
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+        #if os(iOS)
+        PlayerOrientation.lock()
+        #endif
         // Kick off playback as the modal starts appearing so network/demuxer work overlaps the present-then-layout sequence.
         guard !hasLaunched else { return }
         hasLaunched = true
@@ -390,6 +403,9 @@ final class PlayerHostController: AVPlayerViewController {
         super.viewWillDisappear(animated)
         // HDR/SDR display-mode switches fire viewWillDisappear without dismissing; only stop playback on a real dismiss.
         guard isBeingDismissed || isMovingFromParent else { return }
+        #if os(iOS)
+        PlayerOrientation.unlock()
+        #endif
         unmountAetherViewIfNeeded()
         player = nil
         viewModel.stopPlayback()
