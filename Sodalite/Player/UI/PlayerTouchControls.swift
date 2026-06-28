@@ -50,13 +50,21 @@ struct PlayerTouchControls: View {
         }
         .tint(tint)
         .foregroundStyle(.white)
+        // Keep the controls up while a picker is open; re-arm the auto-hide when it closes.
+        .onChange(of: activePicker) { _, newValue in
+            if newValue == nil { viewModel.scheduleControlsHide() }
+            else { viewModel.cancelControlsHide() }
+        }
     }
 
     // MARK: - Top bar
 
     private var topBar: some View {
         HStack(alignment: .top, spacing: 12) {
-            Button(action: onDismiss) {
+            // Defer to the next runloop: dismissing the presenting modal synchronously from inside
+            // this SwiftUI button (a child of that modal) leaves it half-closed (stream stops, modal
+            // stays). Deferring lets the tap handler return first, then the dismiss completes.
+            Button { DispatchQueue.main.async { onDismiss() } } label: {
                 Image(systemName: "xmark")
                     .font(.headline.weight(.semibold))
                     .foregroundStyle(.white)
@@ -160,7 +168,7 @@ struct PlayerTouchControls: View {
     }
 
     private func iconButton(_ systemImage: String, active: Bool = false, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
+        Button { action(); viewModel.showControlsTemporarily() } label: {
             Image(systemName: systemImage)
                 .font(.title3)
                 .foregroundStyle(active ? tint : .white)
@@ -209,35 +217,35 @@ struct PlayerTouchControls: View {
     // MARK: - Picker panel
 
     private func pickerPanel(_ picker: PickerKind) -> some View {
-        VStack {
+        let panelRows = rows(for: picker)
+        return VStack {
             Spacer()
-            VStack(spacing: 0) {
-                ScrollView {
-                    VStack(spacing: 0) {
-                        ForEach(Array(rows(for: picker).enumerated()), id: \.offset) { _, row in
-                            Button {
-                                row.action()
-                                activePicker = nil
-                            } label: {
-                                HStack {
-                                    Text(row.label)
-                                        .foregroundStyle(row.isActive ? tint : .white)
-                                        .lineLimit(1)
-                                    Spacer()
-                                    if row.isActive {
-                                        Image(systemName: "checkmark").foregroundStyle(tint)
-                                    }
+            ScrollView {
+                VStack(spacing: 0) {
+                    ForEach(Array(panelRows.enumerated()), id: \.offset) { _, row in
+                        Button {
+                            row.action()
+                            activePicker = nil
+                        } label: {
+                            HStack {
+                                Text(row.label)
+                                    .foregroundStyle(row.isActive ? tint : .white)
+                                    .lineLimit(1)
+                                Spacer()
+                                if row.isActive {
+                                    Image(systemName: "checkmark").foregroundStyle(tint)
                                 }
-                                .padding(.horizontal, 18)
-                                .frame(height: 44)
-                                .contentShape(Rectangle())
                             }
-                            .buttonStyle(.plain)
+                            .padding(.horizontal, 18)
+                            .frame(height: 44)
+                            .contentShape(Rectangle())
                         }
+                        .buttonStyle(.plain)
                     }
                 }
-                .frame(maxHeight: 264)
             }
+            // Size to content (capped) so a 2-track audio menu is not a tall empty panel.
+            .frame(maxHeight: min(CGFloat(panelRows.count) * 44, 264))
             .frame(maxWidth: isPad ? 420 : 320)
             .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 14))
             .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(.white.opacity(0.12), lineWidth: 1))
@@ -265,7 +273,7 @@ struct PlayerTouchControls: View {
                 }
             ]
             rows += viewModel.displaySubtitleStreams.map { stream in
-                PickerRow(label: TrackDisplayFormatter.subtitleShortName(for: stream),
+                PickerRow(label: TrackDisplayFormatter.subtitleStreamDisplayName(for: stream),
                           isActive: stream.index == viewModel.activeSubtitleIndex) {
                     viewModel.selectSubtitleTrack(id: stream.index)
                 }

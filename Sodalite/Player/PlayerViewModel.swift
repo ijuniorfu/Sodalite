@@ -1716,9 +1716,11 @@ final class PlayerViewModel {
         }
     }
 
-    /// Touch skip (double-tap sides). Reuses the existing seek-jump path, adds a HUD ripple.
+    /// Touch skip (double-tap sides). seekJump sets the scrub target (the tvOS model then waits for a
+    /// Select press to commit); on touch we commit immediately so it actually seeks.
     func skip(by seconds: Double) {
         seekJump(seconds: seconds)
+        commitScrub()
         flashHUD(seconds >= 0 ? .skipForward : .skipBackward)
     }
 
@@ -1750,6 +1752,11 @@ final class PlayerViewModel {
             guard !Task.isCancelled else { return }
             hideControls()
         }
+    }
+
+    /// Pause the controls auto-hide while the user is actively in a touch menu; re-arm via scheduleControlsHide().
+    func cancelControlsHide() {
+        controlsTimer?.cancel()
     }
 
     // MARK: - Transport control activation (shared by the tvOS press dispatch and iOS taps)
