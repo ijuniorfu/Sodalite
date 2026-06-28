@@ -43,6 +43,11 @@ final class PlayerHostController: AVPlayerViewController {
     private var avkitLayerObservation: NSKeyValueObservation?
     /// 1 Hz startup sampler for the audio-before-video diagnosis: isReadyForDisplay can be true seconds before audio yet show black (readiness != composition), so it also logs layer identity (AVKit may swap layers on rebind), videoRect, and clock for 30s.
     private var avkitLayerSampler: Task<Void, Never>?
+    #if os(iOS)
+    /// Manual + auto PiP over the AVKit render layer (native backend only); attached when the render
+    /// layer is found, detached on the SW-decoder path. See PlayerPiPController.
+    private let pipController = PlayerPiPController()
+    #endif
 
     /// True only between `didEnterBackground` and the next `didBecomeActive`; the app switcher (double Home) fires only willResignActive, so this stays false and we skip the reload-and-pause routine for it.
     private var wasFullyBackgrounded = false
@@ -103,6 +108,10 @@ final class PlayerHostController: AVPlayerViewController {
                     self.avkitLayerObservation = nil
                     self.avkitLayerSampler?.cancel()
                     self.avkitLayerSampler = nil
+                    #if os(iOS)
+                    self.pipController.detach()
+                    self.viewModel.isPiPAvailable = false
+                    #endif
                 }
             }
             .store(in: &engineSubscriptions)
@@ -111,6 +120,9 @@ final class PlayerHostController: AVPlayerViewController {
         viewModel.onPictureModeChanged = { [weak self] mode in
             self?.applyVideoGravity(for: mode)
         }
+        #if os(iOS)
+        viewModel.onTogglePiP = { [weak self] in self?.pipController.toggle() }
+        #endif
         // Seed initial gravity: applyPictureMode may have fired before the callback was wired, else AVKit stays at default .resizeAspect.
         applyVideoGravity(for: viewModel.pictureMode)
 
@@ -250,6 +262,11 @@ final class PlayerHostController: AVPlayerViewController {
 
         let attachedAt = Date()
         LogTap.shared.note("[AVKitLayer] observing render layer (found on attempt \(attempt), ready=\(layer.isReadyForDisplay))")
+        #if os(iOS)
+        // Native backend has a render layer -> PiP is available; bind the controller to the live layer.
+        pipController.attach(to: layer)
+        viewModel.isPiPAvailable = true
+        #endif
         avkitLayerObservation = layer.observe(
             \.isReadyForDisplay, options: [.new, .initial]
         ) { layer, change in
