@@ -319,8 +319,11 @@ struct TabRootView: View {
         Button { showSettings = true } label: {
             Image(systemName: "gearshape")
                 .font(.title3)
-                .padding(12)
+                .frame(width: 28, height: 28)
+                .padding(11)
                 .glassEffect(.regular, in: Circle())
+                // Make the whole circle the hit target, not just the rendered glyph.
+                .contentShape(Circle())
         }
         .buttonStyle(.plain)
         .accessibilityLabel(Text("tab.settings"))

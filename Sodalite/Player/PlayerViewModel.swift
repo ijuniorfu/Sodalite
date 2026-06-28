@@ -1697,6 +1697,77 @@ final class PlayerViewModel {
         scheduleControlsHide()
     }
 
+    #if os(iOS)
+    enum PlayerHUDKind: Equatable { case brightness, volume, skipForward, skipBackward }
+
+    /// Transient touch HUD (brightness/volume swipe, skip ripple); the overlay observes hudKind.
+    var hudKind: PlayerHUDKind?
+    var hudLevel: Double = 0
+    @ObservationIgnored private var hudHideTask: Task<Void, Never>?
+
+    func flashHUD(_ kind: PlayerHUDKind, level: Double = 0) {
+        hudKind = kind
+        hudLevel = level
+        hudHideTask?.cancel()
+        hudHideTask = Task { [weak self] in
+            try? await Task.sleep(for: .milliseconds(900))
+            guard !Task.isCancelled else { return }
+            self?.hudKind = nil
+        }
+    }
+
+    /// Touch skip (double-tap sides). seekJump sets the scrub target (the tvOS model then waits for a
+    /// Select press to commit); on touch we commit immediately so it actually seeks.
+    func skip(by seconds: Double) {
+        seekJump(seconds: seconds)
+        commitScrub()
+        flashHUD(seconds >= 0 ? .skipForward : .skipBackward)
+    }
+
+    func setBrightness(_ value: CGFloat) {
+        let clamped = min(max(value, 0), 1)
+        UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }.first?.screen.brightness = clamped
+        flashHUD(.brightness, level: Double(clamped))
+    }
+
+    func setVolume(_ value: Float) {
+        let clamped = min(max(value, 0), 1)
+        PlayerSystemVolume.set(clamped)
+        flashHUD(.volume, level: Double(clamped))
+    }
+
+    @ObservationIgnored private var volumeObservation: NSKeyValueObservation?
+    /// Suppresses the activation-time KVO callback so opening a video does not flash the HUD.
+    @ObservationIgnored private var volumeHUDArmed = false
+
+    /// Mirror the system volume overlay with our own HUD on hardware volume-button presses. The hidden
+    /// MPVolumeView the swipe gesture uses suppresses the native iOS overlay, so it never shows otherwise.
+    func startVolumeObservation() {
+        volumeObservation?.invalidate()
+        volumeHUDArmed = false
+        // @Sendable so the KVO callback is nonisolated (KVO fires off the main actor); it hops back via Task.
+        let handler: @Sendable (AVAudioSession, NSKeyValueObservedChange<Float>) -> Void = { [weak self] _, change in
+            guard let newValue = change.newValue else { return }
+            Task { @MainActor in
+                guard let self, self.volumeHUDArmed else { return }
+                self.flashHUD(.volume, level: Double(newValue))
+            }
+        }
+        volumeObservation = AVAudioSession.sharedInstance().observe(\.outputVolume, options: [.new], changeHandler: handler)
+        Task { @MainActor [weak self] in
+            try? await Task.sleep(for: .milliseconds(600))
+            self?.volumeHUDArmed = true
+        }
+    }
+
+    func stopVolumeObservation() {
+        volumeObservation?.invalidate()
+        volumeObservation = nil
+        volumeHUDArmed = false
+    }
+    #endif
+
     func hideControls() {
         showControls = false
         controlsFocus = .progressBar
@@ -1711,6 +1782,161 @@ final class PlayerViewModel {
             guard !Task.isCancelled else { return }
             hideControls()
         }
+    }
+
+    /// Pause the controls auto-hide while the user is actively in a touch menu; re-arm via scheduleControlsHide().
+    func cancelControlsHide() {
+        controlsTimer?.cancel()
+    }
+
+    // MARK: - Transport control activation (shared by the tvOS press dispatch and iOS taps)
+
+    /// Runs the action for a focused/tapped transport control. tvOS calls this from selectPressed;
+    /// iOS calls it directly from the SwiftUI track buttons.
+    func activateControl(_ focus: ControlsFocus) {
+        switch focus {
+        case .skipIntroButton: skipIntro()
+        case .chapterButton: openChapterDropdown()
+        case .episodeButton: openEpisodeDropdown()
+        case .audioButton: openAudioDropdown()
+        case .subtitleButton: openSubtitleDropdown()
+        case .speedButton: openSpeedDropdown()
+        case .pictureButton: openPictureDropdown()
+        case .infoButton:
+            showStatsOverlay.toggle()
+            scheduleControlsHide()
+        case .returnToLiveButton:
+            returnToLiveEdge()
+            controlsFocus = .progressBar
+            scheduleControlsHide()
+        default:
+            break
+        }
+    }
+
+    func openAudioDropdown() {
+        let tracks = displayAudioTracks
+        guard !tracks.isEmpty else { return }
+        controlsTimer?.cancel()
+        let currentIdx = tracks.firstIndex(where: { $0.id == activeAudioIndex }) ?? 0
+        trackDropdown = .audio(highlighted: currentIdx)
+    }
+
+    func openSubtitleDropdown() {
+        controlsTimer?.cancel()
+        let currentIdx: Int
+        if let activeId = activeSubtitleIndex,
+           let streamIdx = displaySubtitleStreams.firstIndex(where: { $0.index == activeId }) {
+            currentIdx = streamIdx + 1
+        } else {
+            currentIdx = 0
+        }
+        trackDropdown = .subtitle(highlighted: currentIdx)
+    }
+
+    func openSpeedDropdown() {
+        controlsTimer?.cancel()
+        trackDropdown = .speed(highlighted: activeSpeedIndex)
+    }
+
+    func openPictureDropdown() {
+        controlsTimer?.cancel()
+        let modes = PlaybackPreferences.PictureMode.allCases
+        let currentIdx = modes.firstIndex(of: pictureMode) ?? 0
+        trackDropdown = .picture(highlighted: currentIdx)
+    }
+
+    func openEpisodeDropdown() {
+        guard seasonEpisodes.count > 1 else { return }
+        controlsTimer?.cancel()
+        let currentIdx = seasonEpisodes.firstIndex(where: { $0.id == item.id }) ?? 0
+        trackDropdown = .episode(highlighted: currentIdx)
+    }
+
+    func openChapterDropdown() {
+        guard chapters.count > 1 else { return }
+        controlsTimer?.cancel()
+        // sourceTime, not currentTime: chapter marks are on the absolute source timeline.
+        let nowSeconds = player.sourceTime
+        var currentIdx = 0
+        for (i, chapter) in chapters.enumerated() {
+            if chapter.startSeconds <= nowSeconds + 0.001 { currentIdx = i } else { break }
+        }
+        trackDropdown = .chapter(highlighted: currentIdx)
+    }
+
+    func confirmDropdownSelection() {
+        switch trackDropdown {
+        case .chapter(let idx):
+            selectChapter(at: idx)
+            trackDropdown = .none
+            scheduleControlsHide()
+        case .episode(let idx):
+            trackDropdown = .none
+            Task { await selectEpisode(at: idx) }
+        case .audio(let idx):
+            let tracks = displayAudioTracks
+            if idx < tracks.count { selectAudioTrack(id: tracks[idx].id) }
+            trackDropdown = .none
+            scheduleControlsHide()
+        case .subtitle(let idx):
+            let streams = displaySubtitleStreams
+            if idx == 0 {
+                trackDropdown = .secondarySubtitle(highlighted: 0)
+            } else if idx == 1 {
+                selectSubtitleTrack(id: nil)
+                trackDropdown = .none
+                scheduleControlsHide()
+            } else if idx == streams.count + 2 {
+                trackDropdown = .none
+                presentSubtitleSearch()
+            } else {
+                let streamIdx = idx - 2
+                if streamIdx < streams.count { selectSubtitleTrack(id: streams[streamIdx].index) }
+                trackDropdown = .none
+                scheduleControlsHide()
+            }
+        case .secondarySubtitle(let idx):
+            let candidates = secondarySubtitleCandidates
+            if idx == 0 {
+                trackDropdown = .subtitle(highlighted: 0)
+            } else if idx == 1 {
+                selectSecondarySubtitleTrack(id: nil)
+                trackDropdown = .none
+                scheduleControlsHide()
+            } else {
+                let candidateIdx = idx - 2
+                if candidateIdx < candidates.count { selectSecondarySubtitleTrack(id: candidates[candidateIdx].index) }
+                trackDropdown = .none
+                scheduleControlsHide()
+            }
+        case .speed(let idx):
+            selectSpeed(index: idx)
+            trackDropdown = .none
+            scheduleControlsHide()
+        case .picture(let idx):
+            let modes = PlaybackPreferences.PictureMode.allCases
+            if modes.indices.contains(idx) { selectPictureMode(modes[idx]) }
+            trackDropdown = .none
+            scheduleControlsHide()
+        case .none:
+            break
+        }
+    }
+
+    /// iOS: a tapped dropdown row re-points the open dropdown's highlight, then confirms.
+    func selectDropdownItem(at index: Int) {
+        switch trackDropdown {
+        case .audio: trackDropdown = .audio(highlighted: index)
+        case .subtitle: trackDropdown = .subtitle(highlighted: index)
+        case .secondarySubtitle: trackDropdown = .secondarySubtitle(highlighted: index)
+        case .speed: trackDropdown = .speed(highlighted: index)
+        case .picture: trackDropdown = .picture(highlighted: index)
+        case .episode: trackDropdown = .episode(highlighted: index)
+        case .chapter: trackDropdown = .chapter(highlighted: index)
+        case .none: return
+        }
+        confirmDropdownSelection()
     }
 
     func formatSeconds(_ seconds: Double) -> String {

@@ -1,4 +1,7 @@
 import SwiftUI
+#if os(iOS)
+import UIKit
+#endif
 
 /// Shared fullscreen backdrop with gradient overlay used in all detail views.
 struct DetailBackdrop: View {
@@ -77,9 +80,31 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
     @State private var scrollDim: Double = 0
 
     @Environment(\.horizontalSizeClass) private var hSizeClass
+    @Environment(\.verticalSizeClass) private var vSizeClass
     private var metrics: LayoutMetrics { LayoutMetrics.current(hSizeClass) }
     /// Shorter clear hero window on a phone so content is reachable with one swipe.
     private var heroWindow: CGFloat { hSizeClass == .compact ? 320 : 500 }
+
+    /// Per-side window safe-area insets, used to push only the CONTENT clear of the Dynamic Island while
+    /// the backdrop + scrims stay full-bleed. Read from the window (the overlay is full-bleed, so the
+    /// environment inset is gone). In landscape the island is on one side only, so only that side is
+    /// inset and the island itself covers that margin; ~0 in portrait / iPad / tvOS (no change).
+    private var safeLeading: CGFloat {
+        #if os(iOS)
+        UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }.first?.keyWindow?.safeAreaInsets.left ?? 0
+        #else
+        0
+        #endif
+    }
+    private var safeTrailing: CGFloat {
+        #if os(iOS)
+        UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }.first?.keyWindow?.safeAreaInsets.right ?? 0
+        #else
+        0
+        #endif
+    }
 
     init(
         @ViewBuilder hero: @escaping () -> Hero = { EmptyView() },
@@ -105,17 +130,28 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
                         VStack(alignment: .leading, spacing: 0) {
                             primary()
                         }
+                        // Inset the content past the island; the scrim (.frame + .background below)
+                        // stays full-width, so no gray strip / backdrop margin appears.
+                        .padding(.leading, safeLeading)
+                        .padding(.trailing, safeTrailing)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         // 24 pt, matching the panel-to-buttons gap.
                         .padding(.bottom, 24)
                         .background(Color.black.opacity(0.55))
                     }
-                    .containerRelativeFrame(.vertical)
+                    // iPhone landscape: do NOT force the first page to viewport height. In the short
+                    // landscape viewport the content overflows, the panel scrim bleeds past the fold and
+                    // overlaps the content-block scrim -> a doubled-up dark strip under the buttons that
+                    // scrolls with the content. Sizing the block to its content keeps the scrims contiguous.
+                    .modifier(FirstPageViewportHeight(active: vSizeClass != .compact))
                 }
 
                 VStack(alignment: .leading, spacing: 40) {
                     content()
                 }
+                // Inset the content past the island; the scrim stays full-width (no strip / margin).
+                .padding(.leading, safeLeading)
+                .padding(.trailing, safeTrailing)
                 // Bound to the viewport, leading-aligned, so a wide child can't stretch the column
                 // past the screen and shove the whole content block off-center (section titles were
                 // being clipped on the left). Matches the primary slot's constraint.
@@ -147,6 +183,8 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
         .overlay(alignment: .bottomLeading) {
             hero()
                 .padding(.horizontal, metrics.rowInset)
+                .padding(.leading, safeLeading)
+                .padding(.trailing, safeTrailing)
                 .padding(.bottom, 8)
         }
     }
@@ -159,5 +197,20 @@ extension DetailContentOverlay where Primary == EmptyView {
         @ViewBuilder content: @escaping () -> Content
     ) {
         self.init(hero: hero, primary: { EmptyView() }, content: content)
+    }
+}
+
+/// Applies `.containerRelativeFrame(.vertical)` only when active (everywhere except iPhone landscape),
+/// so the viewport-tall first page is kept where there's room and dropped where it would overflow.
+/// File-scoped (not nested in DetailContentOverlay) to avoid colliding with that type's `Content` param.
+private struct FirstPageViewportHeight: ViewModifier {
+    let active: Bool
+    @ViewBuilder
+    func body(content: Content) -> some View {
+        if active {
+            content.containerRelativeFrame(.vertical)
+        } else {
+            content
+        }
     }
 }

@@ -48,6 +48,12 @@ struct PlayerLauncher: UIViewControllerRepresentable {
                 }
             )
             playerVC.modalPresentationStyle = .fullScreen
+            #if os(iOS)
+            // Engage the landscape lock BEFORE presenting: the system validates the player VC's
+            // supportedInterfaceOrientations (.landscape) against the app's allowed set at present
+            // time, so the delegate must already permit landscape or it throws "no common orientation".
+            PlayerOrientation.lock()
+            #endif
             host.present(playerVC, animated: false)
         } else if !isPresented, host.presentedViewController != nil {
             host.dismiss(animated: false)

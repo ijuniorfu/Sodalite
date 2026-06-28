@@ -68,6 +68,28 @@ extension PlayerViewModel {
         } else { updateLiveScrubPreview() }
     }
 
+    #if os(iOS)
+    /// Absolute touch scrub: drag the progress bar to a 0...1 fraction (vs the delta-based touchpad path).
+    func scrub(toFraction fraction: Float) {
+        let dur = scrubReferenceDuration
+        guard dur > 0 else { return }
+        if !isScrubbing {
+            isScrubbing = true
+            scrubStartProgress = progress
+            showControls = true
+            if !isLiveSession { scrubPreview.prewarm() } else { updateLiveScrubPreview() }
+        }
+        controlsTimer?.cancel()
+        scrubProgress = max(0, min(1, fraction))
+        if !isLiveSession {
+            scrubTime = formatSeconds(Double(scrubProgress) * dur)
+            scrubPreview.update(fraction: scrubProgress, durationSeconds: dur)
+        } else {
+            updateLiveScrubPreview()
+        }
+    }
+    #endif
+
     func scrubPanEnded() {
         guard isScrubbing else { return }
         scrubStartProgress = scrubProgress

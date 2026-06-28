@@ -7,18 +7,42 @@ struct SubtitleSearchView: View {
     @Bindable var viewModel: PlayerViewModel
     var tint: Color
 
+    @Environment(\.horizontalSizeClass) private var hSizeClass
+    /// iPhone (compact) shrinks the panel + fonts and adds a touch close button; tvOS/iPad full size.
+    private var isCompact: Bool { hSizeClass == .compact }
+
     var body: some View {
         ZStack {
             Color.black.opacity(0.75).ignoresSafeArea()
-            VStack(alignment: .leading, spacing: 28) {
-                Text("player.subtitle.search.title")
-                    .font(.title2.weight(.semibold))
+            VStack(alignment: .leading, spacing: isCompact ? 14 : 28) {
+                HStack {
+                    Text("player.subtitle.search.title")
+                        .font(isCompact ? .headline : .title2.weight(.semibold))
+                    Spacer()
+                    #if os(iOS)
+                    Button { viewModel.dismissSubtitleSearch() } label: {
+                        Image(systemName: "xmark")
+                            .font(.headline.weight(.semibold))
+                            .foregroundStyle(.white)
+                            .padding(8)
+                            .background(.ultraThinMaterial, in: Circle())
+                            .contentShape(Circle())
+                    }
+                    .buttonStyle(.plain)
+                    #endif
+                }
                 languageSwitcher
                 content
             }
-            .padding(48)
+            .padding(isCompact ? 18 : 48)
+            #if os(iOS)
+            .frame(maxWidth: 760, maxHeight: .infinity)
+            .padding(.vertical, 28)
+            .padding(.horizontal, 24)
+            #else
             .frame(width: 1000, height: 760)
-            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 28))
+            #endif
+            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: isCompact ? 18 : 28))
         }
     }
 
@@ -43,6 +67,13 @@ struct SubtitleSearchView: View {
                             )
                             .foregroundStyle(isFocused ? .black : .primary)
                             .id(idx)
+                            #if os(iOS)
+                            .contentShape(Rectangle())
+                            .onTapGesture {
+                                viewModel.subtitleSearchFocus = .language(idx)
+                                viewModel.subtitleSearchConfirm()
+                            }
+                            #endif
                     }
                 }
                 .padding(.vertical, 4)
@@ -89,6 +120,13 @@ struct SubtitleSearchView: View {
                                 .fill(isFocused ? tint : Color.white.opacity(0.12))
                         )
                         .foregroundStyle(isFocused ? .black : .primary)
+                        #if os(iOS)
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            viewModel.subtitleSearchFocus = .retry
+                            viewModel.subtitleSearchConfirm()
+                        }
+                        #endif
                 }
                 .padding(.horizontal, 24)
             }
@@ -106,6 +144,13 @@ struct SubtitleSearchView: View {
                         ForEach(Array(results.enumerated()), id: \.offset) { idx, info in
                             resultRow(info, focused: viewModel.subtitleSearchFocus == .result(idx))
                                 .id(idx)
+                                #if os(iOS)
+                                .contentShape(Rectangle())
+                                .onTapGesture {
+                                    viewModel.subtitleSearchFocus = .result(idx)
+                                    viewModel.subtitleSearchConfirm()
+                                }
+                                #endif
                         }
                     }
                     .padding(.vertical, 4)

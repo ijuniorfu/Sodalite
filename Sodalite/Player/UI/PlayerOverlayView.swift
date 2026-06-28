@@ -12,6 +12,15 @@ struct PlayerOverlayView: View {
 
     var body: some View {
         ZStack {
+            #if os(iOS)
+            // Bottom gesture layer: catches taps / swipes on the empty video area; the controls and
+            // buttons render above it and win their own hits. Explicit fill: a plain UIView has no
+            // intrinsic size and would otherwise collapse to 0x0 and receive no touches.
+            PlayerGestureCatcher(viewModel: viewModel)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .ignoresSafeArea()
+            #endif
+
             // Keep the styled ASS layer mounted even while the cue array is momentarily empty (seek resets); libass already holds the assembled script.
             if viewModel.assRenderer != nil || !viewModel.subtitleCues.isEmpty || !viewModel.secondarySubtitleCues.isEmpty {
                 SubtitleOverlayView(
@@ -85,6 +94,13 @@ struct PlayerOverlayView: View {
                 controlsOverlay
             }
 
+            #if os(iOS)
+            // Subtle edge affordances: a vertical swipe on the left adjusts brightness, on the right volume.
+            if viewModel.showControls && !viewModel.isScrubbing && !viewModel.isLoading && viewModel.errorMessage == nil {
+                swipeHintsOverlay
+            }
+            #endif
+
             // Stats-for-nerds panel mounted above the controls overlay so it stays readable when the transport's auto-hide fires.
             if viewModel.showStatsOverlay && viewModel.errorMessage == nil {
                 StatsOverlayView(
@@ -93,7 +109,8 @@ struct PlayerOverlayView: View {
                     item: viewModel.item,
                     activeSubtitleIndex: viewModel.activeSubtitleIndex,
                     scrollSectionIndex: viewModel.statsSectionIndex,
-                    showEngineDiagnostics: viewModel.preferences.showEngineDiagnostics
+                    showEngineDiagnostics: viewModel.preferences.showEngineDiagnostics,
+                    onClose: { viewModel.showStatsOverlay = false }
                 )
             }
 
@@ -116,6 +133,16 @@ struct PlayerOverlayView: View {
                let next = viewModel.nextEpisode {
                 nextEpisodeOverlay(next)
             }
+
+            #if os(iOS)
+            // Transient brightness/volume/skip HUD, centered above the controls (kept mounted so the
+            // opacity fade animates cleanly).
+            PlayerHUD(kind: viewModel.hudKind ?? .skipForward, level: viewModel.hudLevel)
+                .opacity(viewModel.hudKind == nil ? 0 : 1)
+                .animation(.easeInOut(duration: 0.2), value: viewModel.hudKind)
+                .allowsHitTesting(false)
+                .zIndex(60)
+            #endif
 
             // Subtitle search overlay (Feature #4); uses literal player tint so focused rows fill with the server accent, not white.
             if viewModel.subtitleSearchVisible {
@@ -145,39 +172,95 @@ struct PlayerOverlayView: View {
         .animation(.easeInOut(duration: 0.25), value: viewModel.isSubtitleDeletePromptVisible)
     }
 
+    #if os(iOS)
+    private var swipeHintsOverlay: some View {
+        HStack {
+            swipeHint(icon: "sun.max.fill")
+            Spacer()
+            swipeHint(icon: "speaker.wave.2.fill")
+        }
+        .padding(.horizontal, 20)
+        // Visual only; the actual swipe is handled by the gesture catcher underneath.
+        .allowsHitTesting(false)
+        .transition(.opacity)
+    }
+
+    private func swipeHint(icon: String) -> some View {
+        VStack(spacing: 6) {
+            Image(systemName: "chevron.up").font(.caption2.weight(.semibold))
+            Image(systemName: icon).font(.title3)
+            Image(systemName: "chevron.down").font(.caption2.weight(.semibold))
+        }
+        .foregroundStyle(.white.opacity(0.5))
+        .padding(.vertical, 12)
+        .padding(.horizontal, 9)
+        .background(
+            Capsule()
+                .fill(.ultraThinMaterial)
+                .environment(\.colorScheme, .dark)
+                .opacity(0.55)
+        )
+    }
+    #endif
+
     private var introSkipOverlay: some View {
         VStack {
             Spacer()
             HStack {
                 Spacer()
-                HStack(spacing: 10) {
-                    Image(systemName: "forward.end.fill")
-                        .font(.body)
-                    Text(String(localized: "player.skipIntro", defaultValue: "Skip Intro"))
-                        .font(.body)
-                        .fontWeight(.semibold)
-                }
-                .foregroundStyle(.white)
-                .padding(.horizontal, 24)
-                .padding(.vertical, 14)
-                .background(
-                    Capsule()
-                        .fill(.ultraThinMaterial)
-                        .environment(\.colorScheme, .dark)
-                )
-                .overlay(
-                    Capsule()
-                        .strokeBorder(.white.opacity(0.35), lineWidth: 1)
-                )
-                .shadow(color: .black.opacity(0.45), radius: 14, y: 6)
-                .padding(.trailing, 80)
-                .padding(.bottom, 80)
+                skipIntroHint
+                    #if os(iOS)
+                    .padding(.trailing, 24)
+                    .padding(.bottom, 28)
+                    #else
+                    .padding(.trailing, 80)
+                    .padding(.bottom, 80)
+                    #endif
             }
         }
         // ignoresSafeArea pins the hint to the true screen bottom: alpha=0 AVKit chrome (kept for the CC +10s handler via playbackControlsIncludeTransportBar) still widens contentOverlayView's bottom safe-area inset, which would shift a Spacer-anchored hint mid-screen at session start.
         .ignoresSafeArea()
         .transition(.move(edge: .bottom).combined(with: .opacity))
+        #if os(tvOS)
         .allowsHitTesting(false)
+        #endif
+    }
+
+    private var skipIntroHint: some View {
+        #if os(iOS)
+        let labelFont = Font.subheadline
+        let hPad: CGFloat = 18
+        let vPad: CGFloat = 11
+        #else
+        let labelFont = Font.body
+        let hPad: CGFloat = 24
+        let vPad: CGFloat = 14
+        #endif
+        let content = HStack(spacing: 10) {
+            Image(systemName: "forward.end.fill")
+                .font(labelFont)
+            Text(String(localized: "player.skipIntro", defaultValue: "Skip Intro"))
+                .font(labelFont)
+                .fontWeight(.semibold)
+        }
+        .foregroundStyle(.white)
+        .padding(.horizontal, hPad)
+        .padding(.vertical, vPad)
+        .background(
+            Capsule()
+                .fill(.ultraThinMaterial)
+                .environment(\.colorScheme, .dark)
+        )
+        .overlay(
+            Capsule()
+                .strokeBorder(.white.opacity(0.35), lineWidth: 1)
+        )
+        .shadow(color: .black.opacity(0.45), radius: 14, y: 6)
+        #if os(iOS)
+        return Button { viewModel.skipIntro() } label: { content }.buttonStyle(.plain)
+        #else
+        return content
+        #endif
     }
 
     private func nextEpisodeOverlay(_ episode: JellyfinItem) -> some View {
@@ -185,11 +268,18 @@ struct PlayerOverlayView: View {
         let screen = UIApplication.shared.connectedScenes
             .lazy.compactMap { $0 as? UIWindowScene }
             .first?.screen.bounds.size ?? CGSize(width: 1920, height: 1080)
+        #if os(iOS)
+        let cardW: CGFloat = 300
+        let cardH: CGFloat = 169
+        let marginX: CGFloat = 24
+        let marginY: CGFloat = viewModel.showControls ? 150 : 28
+        #else
         let cardW: CGFloat = 380
         let cardH: CGFloat = 214
         let marginX: CGFloat = viewModel.showControls ? 60 : 40
         let marginY: CGFloat = viewModel.showControls ? 300 : 40
-        return cardBody(for: episode)
+        #endif
+        return nextEpisodeCard(for: episode, width: cardW, height: cardH)
             .position(
                 x: screen.width - cardW / 2 - marginX,
                 y: screen.height - cardH / 2 - marginY
@@ -202,7 +292,20 @@ struct PlayerOverlayView: View {
             ))
     }
 
-    private func cardBody(for episode: JellyfinItem) -> some View {
+    @ViewBuilder
+    private func nextEpisodeCard(for episode: JellyfinItem, width: CGFloat, height: CGFloat) -> some View {
+        #if os(iOS)
+        // Tappable on touch; tvOS commits via the Select press machine.
+        Button { Task { await viewModel.playNextEpisode() } } label: {
+            cardBody(for: episode, width: width, height: height)
+        }
+        .buttonStyle(.plain)
+        #else
+        cardBody(for: episode, width: width, height: height)
+        #endif
+    }
+
+    private func cardBody(for episode: JellyfinItem, width: CGFloat, height: CGFloat) -> some View {
         ZStack(alignment: .topLeading) {
             // Explicit frame + clipped() required: otherwise the image's intrinsic size leaks into ZStack sizing and a portrait fallback (series poster) blows the card into a tall portrait.
             if let imageURL = episodeThumbnailURL(for: episode) {
@@ -212,7 +315,7 @@ struct PlayerOverlayView: View {
                 } placeholder: {
                     Color.clear
                 }
-                .frame(width: 380, height: 214)
+                .frame(width: width, height: height)
                 .clipped()
                 .opacity(0.4)
             }
@@ -252,10 +355,10 @@ struct PlayerOverlayView: View {
                 }
             }
             .padding(20)
-            .frame(width: 380, height: 214, alignment: .topLeading)
+            .frame(width: width, height: height, alignment: .topLeading)
         }
         // Fixed 16:9: image and content share the explicit 380x214 frame so nothing intrinsic-leaking can stretch the ZStack into a portrait.
-        .frame(width: 380, height: 214)
+        .frame(width: width, height: height)
         .background(.thinMaterial)
         .clipShape(RoundedRectangle(cornerRadius: 20))
     }
@@ -276,7 +379,22 @@ struct PlayerOverlayView: View {
         return nil
     }
 
+    @ViewBuilder
     private var controlsOverlay: some View {
+        #if os(iOS)
+        PlayerTouchControls(
+            viewModel: viewModel,
+            onDismiss: onDismiss,
+            tintColor: tintColor,
+            episodeImageURL: { episodeThumbnailURL(for: $0) },
+            chapterThumbnail: { await viewModel.chapterThumbnail(forIndex: $0) }
+        )
+        #else
+        tvOSControlsOverlay
+        #endif
+    }
+
+    private var tvOSControlsOverlay: some View {
         // Pin to scene-screen bounds (same fix as the next-episode card): an audio-track switch reloads AVKit and transiently collapses its container frame, so a Spacer/alignment-anchored controls block jumps up while fading. Absolute screen-sized frame + center position removes the dependency on the churning AVKit parent.
         let screen = UIApplication.shared.connectedScenes
             .lazy.compactMap { $0 as? UIWindowScene }

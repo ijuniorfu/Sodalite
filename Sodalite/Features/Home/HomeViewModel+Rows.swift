@@ -265,9 +265,11 @@ extension HomeViewModel {
 
             // Build cards on MainActor (image URL construction needs it)
             let itemMap = Dictionary(uniqueKeysWithValues: tagItems)
-            let cardData: [TagCardData] = tags.map { tag in
-                let item = itemMap[tag.id].flatMap { $0 }
-                let backdropURL = item.flatMap { imageService.backdropURL(for: $0) ?? imageService.posterURL(for: $0) }
+            // Only surface genres that actually have movie/series content; the per-genre probe above
+            // returns nil for empty genres, so drop those instead of rendering dead tiles.
+            let cardData: [TagCardData] = tags.compactMap { tag in
+                guard let item = itemMap[tag.id].flatMap({ $0 }) else { return nil }
+                let backdropURL = imageService.backdropURL(for: item) ?? imageService.posterURL(for: item)
                 return TagCardData(id: tag.id, name: tag.name, backdropURL: backdropURL)
             }
 
