@@ -106,15 +106,10 @@ final class PlayerHostController: AVPlayerViewController {
                 guard let self else { return }
                 LogTap.shared.note("[NowPlaying] vc_rebind player=\(avPlayer == nil ? "nil" : "set") items=\(avPlayer?.currentItem?.externalMetadata.count ?? -1)")
                 if let avPlayer {
-                    // AirPlay (external playback) routes the engine's localhost loopback URL, which an
-                    // Apple TV cannot reach (black screen + restricted indicator). Disable on iOS until
-                    // real Cast of the original source lands; screen mirroring still works. tvOS is the
-                    // display itself, so external playback stays on there.
-                    #if os(iOS)
-                    avPlayer.allowsExternalPlayback = false
-                    #else
+                    // AirPlay enabled: the engine serves the loopback HLS over the LAN WiFi IP while external
+                    // playback is active (AetherEngine #86), so the receiver reaches the engine-processed stream
+                    // (DV/Atmos/subtitles preserved). Local playback stays on 127.0.0.1.
                     avPlayer.allowsExternalPlayback = true
-                    #endif
                     self.player = avPlayer
                     // Each `self.player` assignment resets videoGravity to .resizeAspect, so re-apply the user's picture-mode after every rebind or an audio-switch reload silently drops fill mode.
                     self.applyVideoGravity(for: self.viewModel.pictureMode)
