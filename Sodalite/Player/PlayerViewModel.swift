@@ -1752,6 +1752,156 @@ final class PlayerViewModel {
         }
     }
 
+    // MARK: - Transport control activation (shared by the tvOS press dispatch and iOS taps)
+
+    /// Runs the action for a focused/tapped transport control. tvOS calls this from selectPressed;
+    /// iOS calls it directly from the SwiftUI track buttons.
+    func activateControl(_ focus: ControlsFocus) {
+        switch focus {
+        case .skipIntroButton: skipIntro()
+        case .chapterButton: openChapterDropdown()
+        case .episodeButton: openEpisodeDropdown()
+        case .audioButton: openAudioDropdown()
+        case .subtitleButton: openSubtitleDropdown()
+        case .speedButton: openSpeedDropdown()
+        case .pictureButton: openPictureDropdown()
+        case .infoButton:
+            showStatsOverlay.toggle()
+            scheduleControlsHide()
+        case .returnToLiveButton:
+            returnToLiveEdge()
+            controlsFocus = .progressBar
+            scheduleControlsHide()
+        default:
+            break
+        }
+    }
+
+    func openAudioDropdown() {
+        let tracks = displayAudioTracks
+        guard !tracks.isEmpty else { return }
+        controlsTimer?.cancel()
+        let currentIdx = tracks.firstIndex(where: { $0.id == activeAudioIndex }) ?? 0
+        trackDropdown = .audio(highlighted: currentIdx)
+    }
+
+    func openSubtitleDropdown() {
+        controlsTimer?.cancel()
+        let currentIdx: Int
+        if let activeId = activeSubtitleIndex,
+           let streamIdx = displaySubtitleStreams.firstIndex(where: { $0.index == activeId }) {
+            currentIdx = streamIdx + 1
+        } else {
+            currentIdx = 0
+        }
+        trackDropdown = .subtitle(highlighted: currentIdx)
+    }
+
+    func openSpeedDropdown() {
+        controlsTimer?.cancel()
+        trackDropdown = .speed(highlighted: activeSpeedIndex)
+    }
+
+    func openPictureDropdown() {
+        controlsTimer?.cancel()
+        let modes = PlaybackPreferences.PictureMode.allCases
+        let currentIdx = modes.firstIndex(of: pictureMode) ?? 0
+        trackDropdown = .picture(highlighted: currentIdx)
+    }
+
+    func openEpisodeDropdown() {
+        guard seasonEpisodes.count > 1 else { return }
+        controlsTimer?.cancel()
+        let currentIdx = seasonEpisodes.firstIndex(where: { $0.id == item.id }) ?? 0
+        trackDropdown = .episode(highlighted: currentIdx)
+    }
+
+    func openChapterDropdown() {
+        guard chapters.count > 1 else { return }
+        controlsTimer?.cancel()
+        // sourceTime, not currentTime: chapter marks are on the absolute source timeline.
+        let nowSeconds = player.sourceTime
+        var currentIdx = 0
+        for (i, chapter) in chapters.enumerated() {
+            if chapter.startSeconds <= nowSeconds + 0.001 { currentIdx = i } else { break }
+        }
+        trackDropdown = .chapter(highlighted: currentIdx)
+    }
+
+    func confirmDropdownSelection() {
+        switch trackDropdown {
+        case .chapter(let idx):
+            selectChapter(at: idx)
+            trackDropdown = .none
+            scheduleControlsHide()
+        case .episode(let idx):
+            trackDropdown = .none
+            Task { await selectEpisode(at: idx) }
+        case .audio(let idx):
+            let tracks = displayAudioTracks
+            if idx < tracks.count { selectAudioTrack(id: tracks[idx].id) }
+            trackDropdown = .none
+            scheduleControlsHide()
+        case .subtitle(let idx):
+            let streams = displaySubtitleStreams
+            if idx == 0 {
+                trackDropdown = .secondarySubtitle(highlighted: 0)
+            } else if idx == 1 {
+                selectSubtitleTrack(id: nil)
+                trackDropdown = .none
+                scheduleControlsHide()
+            } else if idx == streams.count + 2 {
+                trackDropdown = .none
+                presentSubtitleSearch()
+            } else {
+                let streamIdx = idx - 2
+                if streamIdx < streams.count { selectSubtitleTrack(id: streams[streamIdx].index) }
+                trackDropdown = .none
+                scheduleControlsHide()
+            }
+        case .secondarySubtitle(let idx):
+            let candidates = secondarySubtitleCandidates
+            if idx == 0 {
+                trackDropdown = .subtitle(highlighted: 0)
+            } else if idx == 1 {
+                selectSecondarySubtitleTrack(id: nil)
+                trackDropdown = .none
+                scheduleControlsHide()
+            } else {
+                let candidateIdx = idx - 2
+                if candidateIdx < candidates.count { selectSecondarySubtitleTrack(id: candidates[candidateIdx].index) }
+                trackDropdown = .none
+                scheduleControlsHide()
+            }
+        case .speed(let idx):
+            selectSpeed(index: idx)
+            trackDropdown = .none
+            scheduleControlsHide()
+        case .picture(let idx):
+            let modes = PlaybackPreferences.PictureMode.allCases
+            if modes.indices.contains(idx) { selectPictureMode(modes[idx]) }
+            trackDropdown = .none
+            scheduleControlsHide()
+        case .none:
+            break
+        }
+    }
+
+    /// iOS: a tapped dropdown row re-points the open dropdown's highlight, then confirms.
+    func selectDropdownItem(at index: Int) {
+        switch trackDropdown {
+        case .audio: trackDropdown = .audio(highlighted: index)
+        case .subtitle: trackDropdown = .subtitle(highlighted: index)
+        case .secondarySubtitle: trackDropdown = .secondarySubtitle(highlighted: index)
+        case .speed: trackDropdown = .speed(highlighted: index)
+        case .picture: trackDropdown = .picture(highlighted: index)
+        case .episode: trackDropdown = .episode(highlighted: index)
+        case .chapter: trackDropdown = .chapter(highlighted: index)
+        case .none: return
+        }
+        confirmDropdownSelection()
+    }
+
     func formatSeconds(_ seconds: Double) -> String {
         let total = Int(max(0, seconds))
         let h = total / 3600

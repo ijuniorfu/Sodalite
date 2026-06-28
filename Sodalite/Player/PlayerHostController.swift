@@ -522,26 +522,9 @@ final class PlayerHostController: AVPlayerViewController {
             }
         }
         if viewModel.isDropdownOpen {
-            confirmDropdownSelection()
+            viewModel.confirmDropdownSelection()
         } else if viewModel.showControls && viewModel.controlsFocus != .progressBar {
-            switch viewModel.controlsFocus {
-            case .skipIntroButton: viewModel.skipIntro()
-            case .chapterButton: openChapterDropdown()
-            case .episodeButton: openEpisodeDropdown()
-            case .audioButton: openAudioDropdown()
-            case .subtitleButton: openSubtitleDropdown()
-            case .speedButton: openSpeedDropdown()
-            case .pictureButton: openPictureDropdown()
-            case .infoButton:
-                viewModel.showStatsOverlay.toggle()
-                viewModel.scheduleControlsHide()
-            case .returnToLiveButton:
-                // Drop focus back to scrubber: the pill vanishes once isAtLiveEdge flips, leaving focus on it strands the user.
-                viewModel.returnToLiveEdge()
-                viewModel.controlsFocus = .progressBar
-                viewModel.scheduleControlsHide()
-            default: break
-            }
+            viewModel.activateControl(viewModel.controlsFocus)
         } else if viewModel.isScrubbing {
             viewModel.commitScrub()
         } else if viewModel.showControls {
@@ -737,65 +720,7 @@ final class PlayerHostController: AVPlayerViewController {
         }
     }
 
-    // MARK: - Dropdown Logic
-
-    private func openEpisodeDropdown() {
-        let episodes = viewModel.seasonEpisodes
-        guard episodes.count > 1 else { return }
-        viewModel.controlsTimer?.cancel()
-        let currentIdx = episodes.firstIndex(where: { $0.id == viewModel.item.id }) ?? 0
-        viewModel.trackDropdown = .episode(highlighted: currentIdx)
-    }
-
-    private func openChapterDropdown() {
-        let chapters = viewModel.chapters
-        guard chapters.count > 1 else { return }
-        viewModel.controlsTimer?.cancel()
-        // Use sourceTime, not currentTime: chapter marks are on the absolute source timeline; currentTime sits at source_pts - videoShiftPts on native HLS and highlights the previous chapter near a boundary. Same as intro/outro comparisons.
-        let nowSeconds = viewModel.player.sourceTime
-        var currentIdx = 0
-        for (i, chapter) in chapters.enumerated() {
-            if chapter.startSeconds <= nowSeconds + 0.001 {
-                currentIdx = i
-            } else {
-                break
-            }
-        }
-        viewModel.trackDropdown = .chapter(highlighted: currentIdx)
-    }
-
-    private func openAudioDropdown() {
-        let tracks = viewModel.displayAudioTracks
-        guard !tracks.isEmpty else { return }
-        viewModel.controlsTimer?.cancel()
-        let currentIdx = tracks.firstIndex(where: { $0.id == viewModel.activeAudioIndex }) ?? 0
-        viewModel.trackDropdown = .audio(highlighted: currentIdx)
-    }
-
-    private func openSubtitleDropdown() {
-        viewModel.controlsTimer?.cancel()
-        // Items: Off (index 0), then each subtitle stream (index 1...)
-        let currentIdx: Int
-        if let activeId = viewModel.activeSubtitleIndex,
-           let streamIdx = viewModel.displaySubtitleStreams.firstIndex(where: { $0.index == activeId }) {
-            currentIdx = streamIdx + 1
-        } else {
-            currentIdx = 0
-        }
-        viewModel.trackDropdown = .subtitle(highlighted: currentIdx)
-    }
-
-    private func openSpeedDropdown() {
-        viewModel.controlsTimer?.cancel()
-        viewModel.trackDropdown = .speed(highlighted: viewModel.activeSpeedIndex)
-    }
-
-    private func openPictureDropdown() {
-        viewModel.controlsTimer?.cancel()
-        let modes = PlaybackPreferences.PictureMode.allCases
-        let currentIdx = modes.firstIndex(of: viewModel.pictureMode) ?? 0
-        viewModel.trackDropdown = .picture(highlighted: currentIdx)
-    }
+    // MARK: - Dropdown highlight navigation (tvOS arrow presses)
 
     private func moveDropdownHighlight(by offset: Int) {
         switch viewModel.trackDropdown {
@@ -834,77 +759,6 @@ final class PlayerHostController: AVPlayerViewController {
             let count = PlaybackPreferences.PictureMode.allCases.count
             let newIdx = max(0, min(count - 1, idx + offset))
             viewModel.trackDropdown = .picture(highlighted: newIdx)
-        case .none:
-            break
-        }
-    }
-
-    private func confirmDropdownSelection() {
-        switch viewModel.trackDropdown {
-        case .chapter(let idx):
-            viewModel.selectChapter(at: idx)
-            viewModel.trackDropdown = .none
-            viewModel.scheduleControlsHide()
-        case .episode(let idx):
-            viewModel.trackDropdown = .none
-            // Off the main thread: selectEpisode tears down + rebuilds the session (network + decoder restart).
-            Task { await viewModel.selectEpisode(at: idx) }
-        case .audio(let idx):
-            let tracks = viewModel.displayAudioTracks
-            if idx < tracks.count {
-                viewModel.selectAudioTrack(id: tracks[idx].id)
-            }
-            viewModel.trackDropdown = .none
-            viewModel.scheduleControlsHide()
-        case .subtitle(let idx):
-            let streams = viewModel.displaySubtitleStreams
-            if idx == 0 {
-                // Header row "Secondary: ..." -> enter secondary mode.
-                viewModel.trackDropdown = .secondarySubtitle(highlighted: 0)
-            } else if idx == 1 {
-                viewModel.selectSubtitleTrack(id: nil)
-                viewModel.trackDropdown = .none
-                viewModel.scheduleControlsHide()
-            } else if idx == streams.count + 2 {
-                // "Search online..." row.
-                viewModel.trackDropdown = .none
-                viewModel.presentSubtitleSearch()
-            } else {
-                let streamIdx = idx - 2
-                if streamIdx < streams.count {
-                    viewModel.selectSubtitleTrack(id: streams[streamIdx].index)
-                }
-                viewModel.trackDropdown = .none
-                viewModel.scheduleControlsHide()
-            }
-        case .secondarySubtitle(let idx):
-            let candidates = viewModel.secondarySubtitleCandidates
-            if idx == 0 {
-                // Back row -> return to the primary subtitle list.
-                viewModel.trackDropdown = .subtitle(highlighted: 0)
-            } else if idx == 1 {
-                viewModel.selectSecondarySubtitleTrack(id: nil)
-                viewModel.trackDropdown = .none
-                viewModel.scheduleControlsHide()
-            } else {
-                let candidateIdx = idx - 2
-                if candidateIdx < candidates.count {
-                    viewModel.selectSecondarySubtitleTrack(id: candidates[candidateIdx].index)
-                }
-                viewModel.trackDropdown = .none
-                viewModel.scheduleControlsHide()
-            }
-        case .speed(let idx):
-            viewModel.selectSpeed(index: idx)
-            viewModel.trackDropdown = .none
-            viewModel.scheduleControlsHide()
-        case .picture(let idx):
-            let modes = PlaybackPreferences.PictureMode.allCases
-            if modes.indices.contains(idx) {
-                viewModel.selectPictureMode(modes[idx])
-            }
-            viewModel.trackDropdown = .none
-            viewModel.scheduleControlsHide()
         case .none:
             break
         }
