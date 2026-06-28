@@ -1736,6 +1736,36 @@ final class PlayerViewModel {
         PlayerSystemVolume.set(clamped)
         flashHUD(.volume, level: Double(clamped))
     }
+
+    @ObservationIgnored private var volumeObservation: NSKeyValueObservation?
+    /// Suppresses the activation-time KVO callback so opening a video does not flash the HUD.
+    @ObservationIgnored private var volumeHUDArmed = false
+
+    /// Mirror the system volume overlay with our own HUD on hardware volume-button presses. The hidden
+    /// MPVolumeView the swipe gesture uses suppresses the native iOS overlay, so it never shows otherwise.
+    func startVolumeObservation() {
+        volumeObservation?.invalidate()
+        volumeHUDArmed = false
+        // @Sendable so the KVO callback is nonisolated (KVO fires off the main actor); it hops back via Task.
+        let handler: @Sendable (AVAudioSession, NSKeyValueObservedChange<Float>) -> Void = { [weak self] _, change in
+            guard let newValue = change.newValue else { return }
+            Task { @MainActor in
+                guard let self, self.volumeHUDArmed else { return }
+                self.flashHUD(.volume, level: Double(newValue))
+            }
+        }
+        volumeObservation = AVAudioSession.sharedInstance().observe(\.outputVolume, options: [.new], changeHandler: handler)
+        Task { @MainActor [weak self] in
+            try? await Task.sleep(for: .milliseconds(600))
+            self?.volumeHUDArmed = true
+        }
+    }
+
+    func stopVolumeObservation() {
+        volumeObservation?.invalidate()
+        volumeObservation = nil
+        volumeHUDArmed = false
+    }
     #endif
 
     func hideControls() {

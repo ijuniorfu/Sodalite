@@ -315,6 +315,7 @@ final class PlayerHostController: AVPlayerViewController {
         super.viewWillAppear(animated)
         #if os(iOS)
         PlayerOrientation.lock()
+        viewModel.startVolumeObservation()
         #endif
         // Kick off playback as the modal starts appearing so network/demuxer work overlaps the present-then-layout sequence.
         guard !hasLaunched else { return }
@@ -766,6 +767,7 @@ final class PlayerHostController: AVPlayerViewController {
         // Release the landscape lock first so the VC reports a portrait-compatible orientation for the
         // dismiss transition (else the rotation back can stall, leaving the video black + the modal up).
         PlayerOrientation.unlock()
+        viewModel.stopVolumeObservation()
         #endif
         unmountAetherViewIfNeeded()
         player = nil
