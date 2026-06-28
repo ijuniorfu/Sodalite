@@ -372,12 +372,17 @@ final class PlayerViewModel {
     /// picker is built from Jellyfin `MediaStreams`, and bitmap tracks select through the engine's own
     /// full-budget side-demuxer by absolute container index, so a routing probe that skips a PGS track loses
     /// nothing. Transcode sessions get a clean HLS stream with no sparse-track tail, so they keep the default.
-    nonisolated static func remoteDirectPlayProbeBudget(method: PlayMethod) -> (probesize: Int64?, maxAnalyzeDuration: Int64?) {
+    nonisolated static func remoteDirectPlayProbeBudget(method: PlayMethod, source: PlaybackMediaSource) -> (probesize: Int64?, maxAnalyzeDuration: Int64?) {
         switch method {
-        case .directPlay, .directStream:
-            return (16 * 1024 * 1024, 10 * 1_000_000)
         case .transcode:
             return (nil, nil)
+        case .directPlay, .directStream:
+            // Live / infinite / external-URL sources (e.g. a remote .strm IPTV stream) have no fixed size and a
+            // continuous, often Range-ignoring body; the sparse-tail cap starves find_stream_info and the source
+            // fails or crashes the engine probe (issue #31). Only cap sized server-file remuxes (the sparse
+            // PGS / cover-art tail case the cap was added for).
+            let isStreaming = source.size == nil || (source.path?.hasPrefix("http") ?? false)
+            return isStreaming ? (nil, nil) : (16 * 1024 * 1024, 10 * 1_000_000)
         }
     }
 
@@ -673,10 +678,12 @@ final class PlayerViewModel {
             // PlayerHostController); it reads live AVPlayerItem.formatDescription (dvcC from the fMP4
             // sample entry) and writes the DV criteria, engine only GATES play() on the panel handshake
             // (AetherEngine 5d60dbb). See PlayerHostController init for full rationale.
-            // Cap the engine's open-time probe on direct-play/-stream remuxes so a sparse PGS / cover-art
-            // tail doesn't drag find_stream_info to the 50 MB default before first frame (#68). Safe because
-            // the subtitle picker is Jellyfin-sourced and selects via the engine's full-budget side-demuxer.
-            let probeBudget = Self.remoteDirectPlayProbeBudget(method: activePlayMethod)
+            // Cap the engine's open-time probe on sized server-file direct-play/-stream remuxes so a sparse PGS
+            // / cover-art tail doesn't drag find_stream_info to the 50 MB default before first frame (#68).
+            // Live/infinite/external-URL sources (remote .strm IPTV) are exempt: the cap truncates their
+            // continuous probe and crashes the load (#31). Safe: the subtitle picker selects via the engine's
+            // full-budget side-demuxer.
+            let probeBudget = Self.remoteDirectPlayProbeBudget(method: activePlayMethod, source: source)
             // Hand the language preference to the engine so it picks the audio track on the first frame
             // from its single probe (#72), instead of us reloading via selectAudioTrack after load.
             let preferredAudio = effectivePreferredAudioLanguage()
