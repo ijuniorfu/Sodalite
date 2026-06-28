@@ -56,6 +56,9 @@ struct TransportBar: View {
     /// Scrub-position preview frame; nil falls back to the time-only label.
     let previewImage: CGImage?
 
+    /// iOS only: drives touch taps on the track buttons + dropdown rows via the view model. nil on tvOS.
+    var viewModel: PlayerViewModel? = nil
+
     var body: some View {
         VStack(spacing: 10) {
             if isScrubbing {
@@ -69,6 +72,7 @@ struct TransportBar: View {
                     trackButton(
                         label: String(localized: "player.skipIntro", defaultValue: "Skip Intro"),
                         icon: "forward.end.fill",
+                        focus: .skipIntroButton,
                         isFocused: controlsFocus == .skipIntroButton,
                         persistsLabel: false,
                         dropdown: [],
@@ -80,6 +84,7 @@ struct TransportBar: View {
                     trackButton(
                         label: episodeButtonLabel,
                         icon: "list.bullet",
+                        focus: .episodeButton,
                         isFocused: controlsFocus == .episodeButton,
                         persistsLabel: true,
                         dropdown: episodeDropdownItems,
@@ -93,6 +98,7 @@ struct TransportBar: View {
                     trackButton(
                         label: chapterButtonLabel,
                         icon: "list.dash",
+                        focus: .chapterButton,
                         isFocused: controlsFocus == .chapterButton,
                         persistsLabel: false,
                         dropdown: chapterDropdownItems,
@@ -106,6 +112,7 @@ struct TransportBar: View {
                         label: activeTrack.map { TrackDisplayFormatter.shortName(for: $0) }
                             ?? String(localized: "player.audio", defaultValue: "Audio"),
                         icon: "speaker.wave.2",
+                        focus: .audioButton,
                         isFocused: controlsFocus == .audioButton,
                         persistsLabel: true,
                         dropdown: audioDropdownItems,
@@ -121,6 +128,7 @@ struct TransportBar: View {
                         label: activeStream.map { TrackDisplayFormatter.subtitleShortName(for: $0) }
                             ?? String(localized: "player.subtitles.off", defaultValue: "Off"),
                         icon: "captions.bubble",
+                        focus: .subtitleButton,
                         isFocused: controlsFocus == .subtitleButton,
                         persistsLabel: true,
                         dropdown: {
@@ -134,6 +142,7 @@ struct TransportBar: View {
                 trackButton(
                     label: TransportBar.speedLabel(for: activeSpeedIndex),
                     icon: "gauge.with.needle",
+                    focus: .speedButton,
                     isFocused: controlsFocus == .speedButton,
                     // Label persists only off 1x; at normal speed it collapses to the gauge icon.
                     persistsLabel: !TransportBar.isDefaultSpeed(activeSpeedIndex),
@@ -144,6 +153,7 @@ struct TransportBar: View {
                 trackButton(
                     label: pictureButtonLabel,
                     icon: pictureButtonIcon,
+                    focus: .pictureButton,
                     isFocused: controlsFocus == .pictureButton,
                     // Icon already swaps 16:9 vs fill glyph, so the mode reads without a pinned label.
                     persistsLabel: false,
@@ -156,6 +166,7 @@ struct TransportBar: View {
                     trackButton(
                         label: String(localized: "player.stats", defaultValue: "Stats"),
                         icon: "info.circle",
+                        focus: .infoButton,
                         isFocused: controlsFocus == .infoButton || isStatsOverlayOpen,
                         persistsLabel: false,
                         dropdown: [],
@@ -524,7 +535,7 @@ struct TransportBar: View {
     private static let episodeRowHeight: CGFloat = 84
     private static let dropdownMaxVisible: Int = 6
 
-    private func trackButton(label: String, icon: String, isFocused: Bool, persistsLabel: Bool, dropdown: [DropdownItem], isOpen: Bool) -> some View {
+    private func trackButton(label: String, icon: String, focus: PlayerViewModel.ControlsFocus, isFocused: Bool, persistsLabel: Bool, dropdown: [DropdownItem], isOpen: Bool) -> some View {
         VStack(spacing: 6) {
             if isOpen {
                 let hasImages = dropdown.contains(where: { $0.image != nil })
@@ -540,7 +551,7 @@ struct TransportBar: View {
 
                 VStack(spacing: 0) {
                     ForEach(headerIndexed, id: \.offset) { idx, item in
-                        dropdownRow(item: item, hasImages: hasImages, rowHeight: rowHeight)
+                        dropdownRowTappable(item: item, index: idx, hasImages: hasImages, rowHeight: rowHeight)
                             .id(idx)
                         if item.separatorBelow {
                             Rectangle()
@@ -553,7 +564,7 @@ struct TransportBar: View {
                         ScrollView {
                             VStack(spacing: 0) {
                                 ForEach(scrollIndexed, id: \.offset) { idx, item in
-                                    dropdownRow(item: item, hasImages: hasImages, rowHeight: rowHeight)
+                                    dropdownRowTappable(item: item, index: idx, hasImages: hasImages, rowHeight: rowHeight)
                                         .id(idx)
                                 }
                             }
@@ -581,7 +592,7 @@ struct TransportBar: View {
                                 .frame(height: 1)
                                 .padding(.horizontal, 16)
                         }
-                        dropdownRow(item: item, hasImages: hasImages, rowHeight: rowHeight)
+                        dropdownRowTappable(item: item, index: idx, hasImages: hasImages, rowHeight: rowHeight)
                             .id(idx)
                     }
                 }
@@ -598,12 +609,24 @@ struct TransportBar: View {
                 .transition(.opacity.combined(with: .move(edge: .bottom)))
             }
 
+            #if os(iOS)
+            Button { viewModel?.activateControl(focus) } label: {
+                TransportTrackLabel(
+                    label: label,
+                    icon: icon,
+                    showsLabel: persistsLabel || isFocused,
+                    isFocused: isFocused
+                )
+            }
+            .buttonStyle(.plain)
+            #else
             TransportTrackLabel(
                 label: label,
                 icon: icon,
                 showsLabel: persistsLabel || isFocused,
                 isFocused: isFocused
             )
+            #endif
         }
     }
 
@@ -785,6 +808,20 @@ private struct ChapterThumbnailView: View {
 // MARK: - Dropdown Row
 
 private extension TransportBar {
+    /// iOS wraps each dropdown row in a tap target that selects it; tvOS renders it plain (the
+    /// focus engine + Select press drive selection).
+    @ViewBuilder
+    func dropdownRowTappable(item: DropdownItem, index: Int, hasImages: Bool, rowHeight: CGFloat) -> some View {
+        #if os(iOS)
+        Button { viewModel?.selectDropdownItem(at: index) } label: {
+            dropdownRow(item: item, hasImages: hasImages, rowHeight: rowHeight)
+        }
+        .buttonStyle(.plain)
+        #else
+        dropdownRow(item: item, hasImages: hasImages, rowHeight: rowHeight)
+        #endif
+    }
+
     @ViewBuilder
     func dropdownRow(item: DropdownItem, hasImages: Bool, rowHeight: CGFloat) -> some View {
         HStack(spacing: 14) {

@@ -353,7 +353,8 @@ struct PlayerOverlayView: View {
                     pictureMode: viewModel.pictureMode,
                     showsInfoButton: viewModel.preferences.showStatsForNerds,
                     isStatsOverlayOpen: viewModel.showStatsOverlay,
-                    previewImage: viewModel.scrubPreview.previewImage
+                    previewImage: viewModel.scrubPreview.previewImage,
+                    viewModel: viewModel
                 )
                 }
             }
