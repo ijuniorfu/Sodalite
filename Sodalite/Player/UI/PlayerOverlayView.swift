@@ -134,29 +134,6 @@ struct PlayerOverlayView: View {
                 .animation(.easeInOut(duration: 0.2), value: viewModel.hudKind)
                 .allowsHitTesting(false)
                 .zIndex(60)
-
-            // Top-leading close button, shown with the controls (a fullScreenCover has no swipe-dismiss).
-            if viewModel.showControls && viewModel.errorMessage == nil {
-                VStack {
-                    HStack {
-                        Button { onDismiss() } label: {
-                            Image(systemName: "xmark")
-                                .font(.title2.weight(.semibold))
-                                .foregroundStyle(.white)
-                                .padding(12)
-                                .background(.ultraThinMaterial, in: Circle())
-                                .contentShape(Circle())
-                        }
-                        .buttonStyle(.plain)
-                        Spacer()
-                    }
-                    Spacer()
-                }
-                .padding(.leading, 24)
-                .padding(.top, 20)
-                .transition(.opacity)
-                .zIndex(61)
-            }
             #endif
 
             // Subtitle search overlay (Feature #4); uses literal player tint so focused rows fill with the server accent, not white.
@@ -318,7 +295,16 @@ struct PlayerOverlayView: View {
         return nil
     }
 
+    @ViewBuilder
     private var controlsOverlay: some View {
+        #if os(iOS)
+        PlayerTouchControls(viewModel: viewModel, onDismiss: onDismiss, tintColor: tintColor)
+        #else
+        tvOSControlsOverlay
+        #endif
+    }
+
+    private var tvOSControlsOverlay: some View {
         // Pin to scene-screen bounds (same fix as the next-episode card): an audio-track switch reloads AVKit and transiently collapses its container frame, so a Spacer/alignment-anchored controls block jumps up while fading. Absolute screen-sized frame + center position removes the dependency on the churning AVKit parent.
         let screen = UIApplication.shared.connectedScenes
             .lazy.compactMap { $0 as? UIWindowScene }
@@ -385,8 +371,7 @@ struct PlayerOverlayView: View {
                     pictureMode: viewModel.pictureMode,
                     showsInfoButton: viewModel.preferences.showStatsForNerds,
                     isStatsOverlayOpen: viewModel.showStatsOverlay,
-                    previewImage: viewModel.scrubPreview.previewImage,
-                    viewModel: viewModel
+                    previewImage: viewModel.scrubPreview.previewImage
                 )
                 }
             }
