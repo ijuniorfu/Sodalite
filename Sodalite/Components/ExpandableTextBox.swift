@@ -4,6 +4,18 @@ struct ExpandableTextBox: View {
     let text: String
     @State private var showFullText = false
     @FocusState private var isFocused: Bool
+    @Environment(\.verticalSizeClass) private var vSizeClass
+
+    /// On iPhone landscape the rounded material card's edge reads as a strip against the darker page
+    /// scrim, so drop the card there and let the text sit flat on the scrim (like the cast/similar
+    /// sections). Portrait / iPad / tvOS keep the card.
+    private var dropsCard: Bool {
+        #if os(iOS)
+        vSizeClass == .compact
+        #else
+        false
+        #endif
+    }
 
     var body: some View {
         Text(text)
@@ -16,8 +28,10 @@ struct ExpandableTextBox: View {
             .background(
                 // Material base (not a faint white tint) so body text keeps contrast over bright full-bleed artwork (Sodalite#15).
                 ZStack {
-                    RoundedRectangle(cornerRadius: 16)
-                        .fill(.ultraThinMaterial)
+                    if !dropsCard {
+                        RoundedRectangle(cornerRadius: 16)
+                            .fill(.ultraThinMaterial)
+                    }
                     RoundedRectangle(cornerRadius: 16)
                         .fill(isFocused ? .white.opacity(0.1) : .clear)
                 }
