@@ -100,6 +100,11 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
         #endif
     }
 
+    /// Denser content scrim in iPhone landscape (vSizeClass == .compact): the busy landscape backdrop
+    /// shows through the default 0.55 behind the bare action-button row, reading as a bright strip
+    /// between the metadata bubble and the overview box. Portrait / iPad / tvOS keep 0.55.
+    private var scrimOpacity: Double { vSizeClass == .compact ? 0.78 : 0.55 }
+
     init(
         @ViewBuilder hero: @escaping () -> Hero = { EmptyView() },
         @ViewBuilder primary: @escaping () -> Primary,
@@ -129,7 +134,7 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                         // 24 pt, matching the panel-to-buttons gap.
                         .padding(.bottom, 24)
-                        .background(Color.black.opacity(0.55))
+                        .background(Color.black.opacity(scrimOpacity))
                     }
                     .containerRelativeFrame(.vertical)
                 }
@@ -144,10 +149,10 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
                 // being clipped on the left). Matches the primary slot's constraint.
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.bottom, 80)
-                .background(Color.black.opacity(0.55))
+                .background(Color.black.opacity(scrimOpacity))
 
                 // Trailing filler so a short content block doesn't end in a hard gradient edge; same scrim, sized past any 4K tvOS safe-area inset.
-                Color.black.opacity(0.55).frame(minHeight: 600)
+                Color.black.opacity(scrimOpacity).frame(minHeight: 600)
             }
         }
         .background(Color.black.opacity(scrollDim).ignoresSafeArea())
