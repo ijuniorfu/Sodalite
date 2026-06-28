@@ -10,8 +10,9 @@ final class OrientationAppDelegate: NSObject, UIApplicationDelegate {
     func application(_ application: UIApplication,
                      supportedInterfaceOrientationsFor window: UIWindow?) -> UIInterfaceOrientationMask {
         if UIDevice.current.userInterfaceIdiom == .pad { return .all }
-        // The app rotates freely (portrait + landscape); only the fullscreen player forces landscape.
-        return PlayerOrientation.lockLandscape ? .landscape : .allButUpsideDown
+        // iPhone is portrait-locked everywhere except the fullscreen player, which forces landscape.
+        // (iPhone landscape browsing was dropped: the full-bleed detail design does not translate cleanly.)
+        return PlayerOrientation.lockLandscape ? .landscape : .portrait
     }
 }
 #endif
