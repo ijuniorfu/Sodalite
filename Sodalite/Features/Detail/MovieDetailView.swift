@@ -105,11 +105,10 @@ struct MovieDetailView: View {
             if didPickVersion {
                 didPickVersion = false
                 // The detail view is itself a fullScreenCover (9ac00b32), so the version-picker sheet and
-                // the player modal share its single presentedViewController slot. Presenting the player
-                // synchronously inside the sheet's dismissal transaction races that slot: the launcher
-                // churns (repeated PlaybackInfo, never a PlaybackStart) and crashes back to Home (#31).
-                // Defer the present to a later runloop so the sheet's dismissal fully clears first.
-                deferOnMain(by: 0.3) { showPlayer = true }
+                // the player modal share its single presentedViewController slot. PlayerLauncher now waits
+                // for the sheet's dismissal transition to finish before presenting (a fixed delay raced it
+                // on slow hardware, #31), so just request the player here.
+                showPlayer = true
             }
         }) { choice in
             VersionPickerSheet(
