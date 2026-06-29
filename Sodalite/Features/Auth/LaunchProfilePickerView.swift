@@ -10,6 +10,7 @@ import SwiftUI
 struct LaunchProfilePickerView: View {
     @Environment(\.appState) private var appState
     @Environment(\.dependencies) private var dependencies
+    @Environment(\.horizontalSizeClass) private var hSizeClass
 
     let server: JellyfinServer
 
@@ -35,8 +36,7 @@ struct LaunchProfilePickerView: View {
                     .focusSectionCompat()
             }
             .focusScopeCompat(focusNamespace)
-            .padding(.horizontal, 80)
-            .padding(.vertical, 60)
+            .screenContentInset()
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .glassBackground()
             .navigationDestination(isPresented: $navigateToAddProfile) {
@@ -129,15 +129,21 @@ struct LaunchProfilePickerView: View {
     // MARK: - Grid
 
     private var profileGrid: some View {
-        let columnCount = max(1, min(rememberedUsers.count, 5))
+        #if os(tvOS)
+        let maxCols = 5
+        #else
+        let maxCols = hSizeClass == .compact ? 2 : 4
+        #endif
+        let columnCount = max(1, min(rememberedUsers.count, maxCols))
+        let m = LayoutMetrics.current(hSizeClass)
         return HStack(spacing: 0) {
             Spacer(minLength: 0)
             LazyVGrid(
                 columns: Array(
-                    repeating: GridItem(.fixed(200), spacing: 32),
+                    repeating: GridItem(.fixed(m.profileCardSize.width), spacing: 28),
                     count: columnCount
                 ),
-                spacing: 40
+                spacing: 32
             ) {
                 ForEach(rememberedUsers) { user in
                     let isCurrent = user.id == activeSessionUserID

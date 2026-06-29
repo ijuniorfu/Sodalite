@@ -387,6 +387,16 @@ private struct ScrubBar: View {
     private var scrubbing: Bool { coordinator.isScrubbing }
     private var barHeight: CGFloat { scrubbing ? 10 : (isFocused ? 7 : 5) }
 
+    /// tvOS shows the knob only when focused/scrubbing (the focus ring implies interactivity); iOS has no focus
+    /// engine, so show it always to signal the bar is draggable, matching the video player's touch scrubber.
+    private var showKnob: Bool {
+        #if os(iOS)
+        return true
+        #else
+        return isFocused || scrubbing
+        #endif
+    }
+
     var body: some View {
         VStack(spacing: 12) {
             GeometryReader { geo in
@@ -399,7 +409,7 @@ private struct ScrubBar: View {
                         .fill(scrubbing ? AnyShapeStyle(.tint) : AnyShapeStyle(Color.white))
                         .frame(width: geo.size.width * fraction, height: barHeight)
 
-                    if isFocused || scrubbing {
+                    if showKnob {
                         let knob: CGFloat = scrubbing ? 24 : 16
                         Circle()
                             .fill(scrubbing ? AnyShapeStyle(.tint) : AnyShapeStyle(Color.white))
@@ -409,6 +419,17 @@ private struct ScrubBar: View {
                     }
                 }
                 .frame(maxHeight: .infinity, alignment: .center)
+                #if os(iOS)
+                .contentShape(Rectangle())
+                .gesture(
+                    DragGesture(minimumDistance: 0)
+                        .onChanged { value in
+                            coordinator.scrubBegan()
+                            coordinator.scrub(toFraction: Double(max(0, min(1, value.location.x / max(geo.size.width, 1)))))
+                        }
+                        .onEnded { _ in coordinator.commitScrub() }
+                )
+                #endif
             }
             .frame(height: 26)
 
@@ -426,9 +447,11 @@ private struct ScrubBar: View {
                     .monospacedDigit()
             }
         }
+        #if os(tvOS)
         .overlay(
             MusicScrubberInput(coordinator: coordinator, isFocused: $isFocused)
         )
+        #endif
         .scaleEffect(isFocused ? 1.02 : 1.0)
         .animation(.easeInOut(duration: 0.15), value: isFocused)
         .animation(.easeInOut(duration: 0.2), value: scrubbing)

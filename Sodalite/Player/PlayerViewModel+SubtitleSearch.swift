@@ -256,6 +256,12 @@ extension PlayerViewModel {
         }
     }
 
+    /// Touch path (iOS): confirm deletion directly, bypassing the focus-toggle dance the remote uses.
+    func subtitleDeletePromptConfirmDelete() {
+        subtitleDeleteFocus = .delete
+        subtitleDeletePromptConfirm()
+    }
+
     /// Menu/back: dismiss, ignored mid-deletion.
     func subtitleDeletePromptDismiss() {
         if case .deleting = subtitleDeleteState { return }

@@ -3,6 +3,7 @@ import SwiftUI
 /// Avatar-card picker over `/Users/Public`; carries the selected user into `LoginView`. Falls back to a manual username field when the list is rejected/empty ("Show users on login screen" off).
 struct UserPickerView: View {
     @Environment(\.dependencies) private var dependencies
+    @Environment(\.horizontalSizeClass) private var hSizeClass
 
     let server: JellyfinServer
     var addMode: Bool = false
@@ -31,8 +32,7 @@ struct UserPickerView: View {
                 userGrid
             }
         }
-        .padding(.horizontal, 80)
-        .padding(.vertical, 60)
+        .screenContentInset()
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .glassBackground()
         .task {
@@ -78,17 +78,23 @@ struct UserPickerView: View {
     private var userGrid: some View {
         // Fixed-width columns + Spacer sandwich centers the grid (.adaptive pinned a single user to the left edge).
         // Grid and manual-login button each get their own .focusSection() so the focus engine picks the grid for initial focus; without the grid's section the button stole it.
-        let columnCount = max(1, min(users.count, 5))
+        #if os(tvOS)
+        let maxCols = 5
+        #else
+        let maxCols = hSizeClass == .compact ? 2 : 4
+        #endif
+        let columnCount = max(1, min(users.count, maxCols))
+        let m = LayoutMetrics.current(hSizeClass)
         return ScrollView {
-            VStack(spacing: 120) {
+            VStack(spacing: hSizeClass == .compact ? 48 : 120) {
                 HStack(spacing: 0) {
                     Spacer(minLength: 0)
                     LazyVGrid(
                         columns: Array(
-                            repeating: GridItem(.fixed(200), spacing: 32),
+                            repeating: GridItem(.fixed(m.profileCardSize.width), spacing: 28),
                             count: columnCount
                         ),
-                        spacing: 40
+                        spacing: 32
                     ) {
                         ForEach(users) { user in
                             UserPickerCard(user: user, server: server) {
@@ -130,7 +136,7 @@ struct UserPickerView: View {
     private var emptyState: some View {
         VStack(spacing: 20) {
             Image(systemName: "person.crop.circle.badge.questionmark")
-                .font(.system(size: 60))
+                .font(.system(size: hSizeClass == .compact ? 44 : 60))
                 .foregroundStyle(.tertiary)
             Text(allProfilesAlreadyAdded
                 ? String(
@@ -163,7 +169,7 @@ struct UserPickerView: View {
     private func errorState(message: String) -> some View {
         VStack(spacing: 20) {
             Image(systemName: "exclamationmark.triangle")
-                .font(.system(size: 60))
+                .font(.system(size: hSizeClass == .compact ? 44 : 60))
                 .foregroundStyle(.tertiary)
             Text(message)
                 .foregroundStyle(.secondary)
@@ -224,9 +230,10 @@ private struct UserPickerCard: View {
     let action: () -> Void
 
     @Environment(\.dependencies) private var dependencies
+    @Environment(\.horizontalSizeClass) private var hSizeClass
     @FocusState private var isFocused: Bool
 
-    private let diameter: CGFloat = 160
+    private var diameter: CGFloat { hSizeClass == .compact ? 110 : 160 }
 
     var body: some View {
         Button(action: action) {
@@ -276,7 +283,7 @@ private struct UserPickerCard: View {
             Circle()
                 .fill(.ultraThinMaterial)
             Text(initials)
-                .font(.system(size: 52, weight: .semibold, design: .rounded))
+                .font(.system(size: hSizeClass == .compact ? 38 : 52, weight: .semibold, design: .rounded))
                 .foregroundStyle(.primary)
         }
     }

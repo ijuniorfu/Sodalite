@@ -60,6 +60,46 @@ struct PlayerTouchControls: View {
             if newValue == nil { viewModel.scheduleControlsHide() }
             else { viewModel.cancelControlsHide() }
         }
+        // External-subtitle delete (Feature #4 on touch): the tvOS hold-Select prompt has no touch analog,
+        // so a trash button in the subtitle picker arms the existing delete state machine and a native
+        // confirmation dialog drives it. Reuses the tvOS strings.
+        .confirmationDialog(
+            Text("player.subtitle.delete.title"),
+            isPresented: Binding(
+                get: { if case .confirm = viewModel.subtitleDeleteState { return true } else { return false } },
+                set: { presented in
+                    if !presented, case .confirm = viewModel.subtitleDeleteState {
+                        viewModel.subtitleDeletePromptDismiss()
+                    }
+                }
+            ),
+            titleVisibility: .visible
+        ) {
+            Button(String(localized: "player.subtitle.delete.confirm", defaultValue: "Delete"), role: .destructive) {
+                viewModel.subtitleDeletePromptConfirmDelete()
+            }
+            Button(String(localized: "common.cancel", defaultValue: "Cancel"), role: .cancel) {
+                viewModel.subtitleDeletePromptDismiss()
+            }
+        }
+        .alert(
+            subtitleDeleteErrorText,
+            isPresented: Binding(
+                get: { if case .error = viewModel.subtitleDeleteState { return true } else { return false } },
+                set: { presented in
+                    if !presented { viewModel.subtitleDeletePromptDismiss() }
+                }
+            )
+        ) {
+            Button(String(localized: "common.ok", defaultValue: "OK")) {
+                viewModel.subtitleDeletePromptDismiss()
+            }
+        }
+    }
+
+    private var subtitleDeleteErrorText: String {
+        if case .error(let message) = viewModel.subtitleDeleteState { return message }
+        return ""
     }
 
     // MARK: - Top bar
@@ -235,29 +275,44 @@ struct PlayerTouchControls: View {
             ScrollView {
                 VStack(spacing: 0) {
                     ForEach(Array(panelRows.enumerated()), id: \.offset) { _, row in
-                        Button {
-                            if let submenu = row.opensSubmenu {
-                                activePicker = submenu
-                            } else {
-                                row.action()
-                                activePicker = nil
-                            }
-                        } label: {
-                            HStack(spacing: 12) {
-                                thumbnail(for: row)
-                                Text(row.label)
-                                    .foregroundStyle(row.isActive ? tint : .white)
-                                    .lineLimit(1)
-                                Spacer()
-                                if row.isActive {
-                                    Image(systemName: "checkmark").foregroundStyle(tint)
+                        HStack(spacing: 0) {
+                            Button {
+                                if let submenu = row.opensSubmenu {
+                                    activePicker = submenu
+                                } else {
+                                    row.action()
+                                    activePicker = nil
                                 }
+                            } label: {
+                                HStack(spacing: 12) {
+                                    thumbnail(for: row)
+                                    Text(row.label)
+                                        .foregroundStyle(row.isActive ? tint : .white)
+                                        .lineLimit(1)
+                                    Spacer()
+                                    if row.isActive {
+                                        Image(systemName: "checkmark").foregroundStyle(tint)
+                                    }
+                                }
+                                .padding(.horizontal, 14)
+                                .frame(height: rowHeight)
+                                .contentShape(Rectangle())
                             }
-                            .padding(.horizontal, 14)
-                            .frame(height: rowHeight)
-                            .contentShape(Rectangle())
+                            .buttonStyle(.plain)
+
+                            if let deleteIndex = row.deleteStreamIndex {
+                                Button {
+                                    activePicker = nil
+                                    viewModel.requestSubtitleDeletion(streamIndex: deleteIndex)
+                                } label: {
+                                    Image(systemName: "trash")
+                                        .foregroundStyle(.red)
+                                        .frame(width: 44, height: rowHeight)
+                                        .contentShape(Rectangle())
+                                }
+                                .buttonStyle(.plain)
+                            }
                         }
-                        .buttonStyle(.plain)
                     }
                 }
             }
@@ -294,6 +349,8 @@ struct PlayerTouchControls: View {
         var imageURL: URL? = nil
         var chapterIndex: Int? = nil
         var opensSubmenu: PickerKind? = nil
+        /// Non-nil on a deletable (external/downloaded) subtitle row: shows a trailing trash button.
+        var deleteStreamIndex: Int? = nil
         let action: () -> Void
     }
 
@@ -328,7 +385,8 @@ struct PlayerTouchControls: View {
             })
             rows += viewModel.displaySubtitleStreams.map { stream in
                 PickerRow(label: TrackDisplayFormatter.subtitleStreamDisplayName(for: stream),
-                          isActive: stream.index == viewModel.activeSubtitleIndex) {
+                          isActive: stream.index == viewModel.activeSubtitleIndex,
+                          deleteStreamIndex: stream.isExternal == true ? stream.index : nil) {
                     viewModel.selectSubtitleTrack(id: stream.index)
                 }
             }
