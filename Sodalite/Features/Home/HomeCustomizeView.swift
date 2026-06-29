@@ -26,7 +26,7 @@ struct HomeCustomizeView: View {
             }
             .padding(.vertical, 40)
         }
-        .navigationBarHidden(true)
+        .hidesNavigationBarChrome()
         .hidesShellTabBar()
         .onAppear {
             configs = HomeRowConfig.loadFromStorage(serverID: serverID)
@@ -358,7 +358,10 @@ struct RowToggleButton: View {
     let isOn: Bool
     let action: () -> Void
 
+    @Environment(\.horizontalSizeClass) private var hSizeClass
     @FocusState private var focused: Bool
+
+    private var isCompact: Bool { hSizeClass == .compact }
 
     var body: some View {
         HStack(spacing: 8) {
@@ -372,8 +375,8 @@ struct RowToggleButton: View {
                 .contentTransition(.opacity)
         }
         .foregroundStyle(foreground)
-        .frame(minWidth: 104)
-        .padding(.horizontal, 18)
+        .frame(minWidth: isCompact ? 64 : 104)
+        .padding(.horizontal, isCompact ? 12 : 18)
         .padding(.vertical, 12)
         .background(
             Capsule().fill(background)
