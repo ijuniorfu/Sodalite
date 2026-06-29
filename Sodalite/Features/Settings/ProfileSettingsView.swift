@@ -4,6 +4,7 @@ import SwiftUI
 struct ProfileSettingsView: View {
     @Environment(\.appState) private var appState
     @Environment(\.dependencies) private var dependencies
+    @Environment(\.horizontalSizeClass) private var hSizeClass
 
     @State private var rememberedUsers: [RememberedUser] = []
     @State private var navigateToAddProfile = false
@@ -30,8 +31,7 @@ struct ProfileSettingsView: View {
 
                 launchBehaviorSection
             }
-            .padding(.vertical, 60)
-            .padding(.horizontal, 80)
+            .screenContentInset()
             .frame(maxWidth: 900)
             .frame(maxWidth: .infinity)
         }
@@ -85,12 +85,14 @@ struct ProfileSettingsView: View {
                 .frame(maxWidth: .infinity, alignment: .center)
                 .multilineTextAlignment(.center)
 
-                let columnCount = max(1, min(rememberedUsers.count, 4))
+                let maxCols = hSizeClass == .compact ? 2 : 4
+                let columnCount = max(1, min(rememberedUsers.count, maxCols))
+                let m = LayoutMetrics.current(hSizeClass)
                 HStack(spacing: 0) {
                     Spacer(minLength: 0)
                     LazyVGrid(
                         columns: Array(
-                            repeating: GridItem(.fixed(180), spacing: 28),
+                            repeating: GridItem(.fixed(m.profileCardSize.width), spacing: 28),
                             count: columnCount
                         ),
                         spacing: 32

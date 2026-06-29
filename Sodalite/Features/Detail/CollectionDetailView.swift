@@ -315,17 +315,15 @@ struct CollectionRowButtonStyle: ButtonStyle {
             .animation(.easeInOut(duration: 0.15), value: isFocused)
     }
 
-    // iOS has no focus engine, so the faint white fill is nearly invisible over a bright poster
-    // backdrop; use a glass material for readability (matching the detail bubbles). tvOS keeps the
-    // focus-driven white fill.
-    @ViewBuilder
+    // Glass material resting background on both platforms so the row text stays readable over a
+    // bright poster backdrop (matching the detail bubbles). tvOS layers the focus-driven white
+    // brighten on top; on iOS there is no focus engine so the overlay stays invisible.
     private var rowBackground: some View {
-        #if os(iOS)
         RoundedRectangle(cornerRadius: 12)
             .fill(.ultraThinMaterial)
-        #else
-        RoundedRectangle(cornerRadius: 12)
-            .fill(isFocused ? .white.opacity(0.12) : .white.opacity(0.05))
-        #endif
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(.white.opacity(isFocused ? 0.12 : 0))
+            )
     }
 }

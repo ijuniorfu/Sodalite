@@ -81,7 +81,7 @@ struct PINEntryView: View {
                 }
                 .focusSectionCompat()
             }
-            .padding(60)
+            .screenContentInset()
         }
         .onAppear { lockoutUntil = dependencies.guardianPINLockout() }
         .onReceive(ticker) { now = $0 }
@@ -227,34 +227,66 @@ struct PINEntryView: View {
     }
 }
 
-/// Digit / delete tile: tinted fill on focus, activated via stableTap.
+/// Digit / delete tile. tvOS: tinted fill on focus, activated via stableTap. iOS:
+/// a Button with a pressed-state style (the focus highlight is dead on iOS, and a
+/// 0-distance drag for press feedback would swallow the tap).
 private struct DigitKey: View {
     var label: String? = nil
     var systemImage: String? = nil
     let action: () -> Void
 
+    @Environment(\.horizontalSizeClass) private var hSizeClass
+    #if os(tvOS)
     @FocusState private var focused: Bool
+    #endif
+
+    private var keyWidth: CGFloat { hSizeClass == .compact ? 72 : 110 }
+    private var keyHeight: CGFloat { hSizeClass == .compact ? 64 : 90 }
+
+    private var content: some View {
+        ZStack {
+            if let label { Text(label).font(.system(size: hSizeClass == .compact ? 28 : 40, weight: .medium, design: .rounded)) }
+            else if let systemImage { Image(systemName: systemImage).font(.system(size: hSizeClass == .compact ? 24 : 32)) }
+        }
+        .frame(width: keyWidth, height: keyHeight)
+        .foregroundStyle(.white)
+    }
 
     var body: some View {
-        ZStack {
-            if let label { Text(label).font(.system(size: 40, weight: .medium, design: .rounded)) }
-            else if let systemImage { Image(systemName: systemImage).font(.system(size: 32)) }
-        }
-        .frame(width: 110, height: 90)
-        .background(
-            RoundedRectangle(cornerRadius: 16)
-                .fill(focused ? Color.white.opacity(0.18) : Color.white.opacity(0.06))
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 16)
-                .strokeBorder(.tint, lineWidth: 3)
-                .opacity(focused ? 1 : 0)
-        )
-        .foregroundStyle(.white)
-        .scaleEffect(focused ? 1.05 : 1.0)
-        .focusable(true)
-        .focused($focused)
-        .animation(.easeInOut(duration: 0.12), value: focused)
-        .stableTap(isFocused: focused, perform: action)
+        #if os(tvOS)
+        content
+            .background(
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(focused ? Color.white.opacity(0.18) : Color.white.opacity(0.06))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 16)
+                    .strokeBorder(.tint, lineWidth: 3)
+                    .opacity(focused ? 1 : 0)
+            )
+            .scaleEffect(focused ? 1.05 : 1.0)
+            .focusable(true)
+            .focused($focused)
+            .animation(.easeInOut(duration: 0.12), value: focused)
+            .stableTap(isFocused: focused, perform: action)
+        #else
+        Button(action: action) { content }
+            .buttonStyle(DigitKeyButtonStyle())
+        #endif
     }
 }
+
+#if !os(tvOS)
+/// iOS pressed-state fill for a PIN digit key (canonical isPressed, no gesture conflict).
+private struct DigitKeyButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .background(
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(configuration.isPressed ? Color.white.opacity(0.22) : Color.white.opacity(0.06))
+            )
+            .scaleEffect(configuration.isPressed ? 0.94 : 1.0)
+            .animation(.easeOut(duration: 0.12), value: configuration.isPressed)
+    }
+}
+#endif

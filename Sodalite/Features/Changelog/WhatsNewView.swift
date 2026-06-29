@@ -7,6 +7,9 @@ struct WhatsNewView: View {
 
     /// Focus-scope namespace so the first highlight row takes default focus, not the leading-top safeAreaInset dismiss button.
     @Namespace private var focusNamespace
+    @Environment(\.horizontalSizeClass) private var hSizeClass
+
+    private var isCompact: Bool { hSizeClass == .compact }
 
     var body: some View {
         ScrollView {
@@ -53,11 +56,11 @@ struct WhatsNewView: View {
 
             // Brand name + version verbatim across languages, no catalog entry needed.
             Text("Sodalite \(entry.version)")
-                .font(.system(size: 56, weight: .bold))
+                .font(.system(size: isCompact ? 38 : 56, weight: .bold))
                 .multilineTextAlignment(.center)
         }
-        .padding(.top, 80)
-        .padding(.bottom, 50)
+        .padding(.top, isCompact ? 40 : 80)
+        .padding(.bottom, isCompact ? 28 : 50)
     }
 
     private var highlightsList: some View {
@@ -69,7 +72,7 @@ struct WhatsNewView: View {
         }
         .frame(maxWidth: 760)
         .frame(maxWidth: .infinity)
-        .padding(.horizontal, 80)
+        .padding(.horizontal, isCompact ? 20 : 80)
         // Padding-as-margin (not a trailing spacer) so a single down-press from the last row routes to the dismiss button, not into empty scroll space.
         .padding(.bottom, 40)
     }

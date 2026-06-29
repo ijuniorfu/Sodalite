@@ -40,7 +40,7 @@ struct PINRecoveryView: View {
                 }
                 .buttonStyle(SettingsTileButtonStyle())
             }
-            .padding(60)
+            .screenContentInset()
         }
         .onAppear(perform: loadCandidates)
     }

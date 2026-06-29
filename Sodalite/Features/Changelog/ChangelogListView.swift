@@ -3,6 +3,7 @@ import SwiftUI
 /// Settings → "What's New": lists every shipped release; parallel to WhatsNewView modal by design.
 struct ChangelogListView: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.horizontalSizeClass) private var hSizeClass
 
     var body: some View {
         ScrollView {
@@ -23,7 +24,7 @@ struct ChangelogListView: View {
                     }
                 }
                 .frame(maxWidth: 900)
-                .padding(.horizontal, 80)
+                .padding(.horizontal, hSizeClass == .compact ? 16 : 80)
                 .padding(.bottom, 80)
             }
             .frame(maxWidth: .infinity)

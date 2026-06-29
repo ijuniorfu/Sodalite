@@ -3,6 +3,7 @@ import SwiftUI
 struct WatchStatsView: View {
     @Environment(\.appState) private var appState
     @Environment(\.dependencies) private var dependencies
+    @Environment(\.horizontalSizeClass) private var hSizeClass
 
     @State private var viewModel: WatchStatsViewModel?
     @State private var selectedItem: JellyfinItem?
@@ -16,8 +17,7 @@ struct WatchStatsView: View {
                     .frame(maxWidth: .infinity)
                 content
             }
-            .padding(.vertical, 60)
-            .padding(.horizontal, 80)
+            .screenContentInset()
         }
         .navigationDestination(item: $selectedItem) { item in
             DetailRouterView(item: item)
@@ -108,7 +108,7 @@ struct WatchStatsView: View {
     private func watchTimeHeadline(_ stats: WatchStats) -> some View {
         VStack(spacing: 8) {
             Text("stats.watchTime.value \(stats.estimatedHours)")
-                .font(.system(size: 48, weight: .bold, design: .rounded))
+                .font(.system(size: hSizeClass == .compact ? 30 : 48, weight: .bold, design: .rounded))
                 .monospacedDigit()
             Text("stats.watchTime.days \(stats.estimatedDays.formatted(.number.precision(.fractionLength(1))))")
                 .font(.title3)
@@ -127,8 +127,7 @@ struct WatchStatsView: View {
     }
 
     private func countGrid(_ stats: WatchStats) -> some View {
-        let columns = [GridItem(.flexible()), GridItem(.flexible()),
-                       GridItem(.flexible()), GridItem(.flexible())]
+        let columns = Array(repeating: GridItem(.flexible()), count: hSizeClass == .compact ? 2 : 4)
         let completion = (stats.completionRate * 100).formatted(.number.precision(.fractionLength(0)))
         return LazyVGrid(columns: columns, spacing: 16) {
             StatTile(icon: "film", value: "\(stats.moviesWatched)", label: "stats.movies")

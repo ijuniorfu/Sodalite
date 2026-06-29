@@ -19,7 +19,7 @@ struct ParentalControlsSettingsView: View {
                 pinSection
                 if pinIsSet { profilesSection }
             }
-            .padding(.vertical, 60).padding(.horizontal, 80)
+            .screenContentInset()
         }
         .onAppear(perform: reload)
         .fullScreenCover(isPresented: $showSetup) {

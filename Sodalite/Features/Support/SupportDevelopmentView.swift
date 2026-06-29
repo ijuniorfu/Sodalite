@@ -28,8 +28,7 @@ struct SupportDevelopmentView: View {
                 supporterPackSection
                 restoreButton
             }
-            .padding(.vertical, 60)
-            .padding(.horizontal, 80)
+            .screenContentInset()
         }
         // Inline largeTitle only; floating nav-title otherwise sits behind scroll content. Matches PlaybackSettingsView.
         .hidesNavigationBarChrome()

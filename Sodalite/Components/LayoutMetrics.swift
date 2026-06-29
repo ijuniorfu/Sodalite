@@ -14,6 +14,9 @@ struct LayoutMetrics: Equatable {
     var gridSpacing: CGFloat
     var gridInset: CGFloat
     var genreTileSize: CGSize
+    var screenHInset: CGFloat
+    var screenVInset: CGFloat
+    var profileCardSize: CGSize
 
     func size(for style: MediaCardStyle) -> CGSize {
         switch style {
@@ -30,7 +33,9 @@ struct LayoutMetrics: Equatable {
         squareSize: CGSize(width: 220, height: 220),
         rowInset: 50, itemSpacing: 30, rowVerticalPadding: 20,
         gridMinimum: 220, gridSpacing: 40, gridInset: 60,
-        genreTileSize: CGSize(width: 320, height: 180)
+        genreTileSize: CGSize(width: 320, height: 180),
+        screenHInset: 80, screenVInset: 60,
+        profileCardSize: CGSize(width: 180, height: 180)
     )
     /// iPad regular tier.
     static let regular = LayoutMetrics(
@@ -39,7 +44,9 @@ struct LayoutMetrics: Equatable {
         squareSize: CGSize(width: 160, height: 160),
         rowInset: 28, itemSpacing: 20, rowVerticalPadding: 16,
         gridMinimum: 160, gridSpacing: 28, gridInset: 24,
-        genreTileSize: CGSize(width: 240, height: 135)
+        genreTileSize: CGSize(width: 240, height: 135),
+        screenHInset: 40, screenVInset: 32,
+        profileCardSize: CGSize(width: 160, height: 160)
     )
     /// iPhone compact tier.
     static let compact = LayoutMetrics(
@@ -48,7 +55,9 @@ struct LayoutMetrics: Equatable {
         squareSize: CGSize(width: 120, height: 120),
         rowInset: 16, itemSpacing: 12, rowVerticalPadding: 12,
         gridMinimum: 108, gridSpacing: 16, gridInset: 16,
-        genreTileSize: CGSize(width: 200, height: 112)
+        genreTileSize: CGSize(width: 200, height: 112),
+        screenHInset: 16, screenVInset: 16,
+        profileCardSize: CGSize(width: 120, height: 120)
     )
 
     /// Platform-independent selector (testable on any target).
