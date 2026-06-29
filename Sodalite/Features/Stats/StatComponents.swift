@@ -6,6 +6,7 @@ struct StatTile: View {
     let value: String
     let label: LocalizedStringKey
 
+    @Environment(\.horizontalSizeClass) private var hSizeClass
     @FocusState private var focused: Bool
 
     var body: some View {
@@ -14,7 +15,7 @@ struct StatTile: View {
                 .font(.title)
                 .foregroundStyle(.tint)
             Text(value)
-                .font(.system(size: 40, weight: .bold, design: .rounded))
+                .font(.system(size: hSizeClass == .compact ? 26 : 40, weight: .bold, design: .rounded))
                 .monospacedDigit()
             Text(label)
                 .font(.caption)
@@ -22,7 +23,7 @@ struct StatTile: View {
                 .multilineTextAlignment(.center)
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 28)
+        .padding(.vertical, hSizeClass == .compact ? 16 : 28)
         .background(
             RoundedRectangle(cornerRadius: 16)
                 .fill(.white.opacity(focused ? 0.12 : 0.05))
@@ -33,8 +34,10 @@ struct StatTile: View {
                 .opacity(focused ? 1 : 0)
         )
         .scaleEffect(focused ? 1.03 : 1.0)
+        #if os(tvOS)
         .focusable(true)
         .focused($focused)
+        #endif
         .animation(.easeInOut(duration: 0.2), value: focused)
     }
 }
