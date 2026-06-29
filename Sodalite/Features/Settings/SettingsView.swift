@@ -374,25 +374,32 @@ struct GatedSettingsTile<Destination: View>: View {
 }
 
 struct SettingsTileButtonStyle: ButtonStyle {
+    #if os(tvOS)
     @Environment(\.isFocused) private var isFocused
+    #endif
     /// A custom ButtonStyle must self-dim when disabled; the default bordered style auto-dims, this one doesn't.
     @Environment(\.isEnabled) private var isEnabled
 
     func makeBody(configuration: Configuration) -> some View {
-        configuration.label
+        #if os(tvOS)
+        let active = isFocused
+        #else
+        let active = configuration.isPressed
+        #endif
+        return configuration.label
             .background(
                 RoundedRectangle(cornerRadius: 16)
-                    .fill(isFocused ? .white.opacity(0.15) : .white.opacity(0.05))
+                    .fill(active ? .white.opacity(0.15) : .white.opacity(0.05))
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 16)
                     .strokeBorder(.tint, lineWidth: 3)
-                    .opacity(isFocused ? 1 : 0)
+                    .opacity(active ? 1 : 0)
             )
-            .scaleEffect(isFocused ? 1.03 : 1.0)
-            .shadow(color: .black.opacity(isFocused ? 0.3 : 0), radius: 15, y: 8)
+            .scaleEffect(active ? 1.03 : 1.0)
+            .shadow(color: .black.opacity(active ? 0.3 : 0), radius: 15, y: 8)
             .opacity(isEnabled ? 1.0 : 0.4)
-            .animation(.easeInOut(duration: 0.2), value: isFocused)
+            .animation(.easeInOut(duration: 0.2), value: active)
     }
 }
 
@@ -407,22 +414,29 @@ struct BareButtonStyle: ButtonStyle {
 
 /// Focus stroke+scale+shadow without bg fill, for buttons that paint their own backdrop; .plain would tint the label + draw the white halo.
 struct GhostTileButtonStyle: ButtonStyle {
+    #if os(tvOS)
     @Environment(\.isFocused) private var isFocused
+    #endif
     @Environment(\.isEnabled) private var isEnabled
     /// Matches the rounded shape of the button's own label background.
     var cornerRadius: CGFloat = 16
 
     func makeBody(configuration: Configuration) -> some View {
-        configuration.label
+        #if os(tvOS)
+        let active = isFocused
+        #else
+        let active = configuration.isPressed
+        #endif
+        return configuration.label
             .overlay(
                 RoundedRectangle(cornerRadius: cornerRadius)
                     .strokeBorder(.tint, lineWidth: 3)
-                    .opacity(isFocused ? 1 : 0)
+                    .opacity(active ? 1 : 0)
             )
-            .scaleEffect(isFocused ? 1.03 : 1.0)
-            .shadow(color: .black.opacity(isFocused ? 0.3 : 0), radius: 15, y: 8)
+            .scaleEffect(active ? 1.03 : 1.0)
+            .shadow(color: .black.opacity(active ? 0.3 : 0), radius: 15, y: 8)
             .opacity(isEnabled ? 1.0 : 0.4)
-            .animation(.easeInOut(duration: 0.2), value: isFocused)
+            .animation(.easeInOut(duration: 0.2), value: active)
     }
 }
 
