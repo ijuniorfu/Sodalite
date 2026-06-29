@@ -3,6 +3,7 @@ import SwiftUI
 struct SearchView: View {
     @Environment(\.appState) private var appState
     @Environment(\.dependencies) private var dependencies
+    @Environment(\.horizontalSizeClass) private var hSizeClass
     @State private var viewModel: SearchViewModel?
     @State private var selectedJellyfinItem: JellyfinItem?
     @State private var selectedSeerrMedia: SeerrMedia?
@@ -107,7 +108,7 @@ struct SearchView: View {
                 RoundedRectangle(cornerRadius: 12)
                     .fill(.white.opacity(0.08))
             )
-            .padding(.horizontal, 80)
+            .padding(.horizontal, LayoutMetrics.current(hSizeClass).screenHInset)
             .padding(.top, 38)
             .padding(.bottom, 18)
         }

@@ -98,6 +98,7 @@ struct CatalogPickerSheet: View {
     let onSelect: (String) -> Void
     let onCancel: () -> Void
 
+    @Environment(\.horizontalSizeClass) private var hSizeClass
     @FocusState private var focusedID: String?
 
     var body: some View {
@@ -136,7 +137,7 @@ struct CatalogPickerSheet: View {
                         }
                     }
                     .frame(maxWidth: 720)
-                    .padding(.horizontal, 80)
+                    .padding(.horizontal, hSizeClass == .compact ? 20 : 80)
                     .padding(.bottom, 60)
                 }
             }
@@ -166,6 +167,7 @@ struct CatalogMultiSelectSheet: View {
     let onCommit: (Set<String>) -> Void
 
     @State private var selection: Set<String> = []
+    @Environment(\.horizontalSizeClass) private var hSizeClass
     @FocusState private var focusedID: String?
 
     var body: some View {
@@ -208,7 +210,7 @@ struct CatalogMultiSelectSheet: View {
                         }
                     }
                     .frame(maxWidth: 720)
-                    .padding(.horizontal, 80)
+                    .padding(.horizontal, hSizeClass == .compact ? 20 : 80)
                     .padding(.bottom, 60)
                 }
             }

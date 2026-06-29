@@ -122,7 +122,7 @@ struct CatalogDetailView: View {
         // tvOS Menu pops the nav level only with something focusable; a text-only error screen would exit the app instead. Retry/Back buttons claim focus and give a recovery path.
         VStack(spacing: 20) {
             Image(systemName: "exclamationmark.triangle")
-                .font(.system(size: 40))
+                .font(.system(size: hSizeClass == .compact ? 32 : 40))
                 .foregroundStyle(.secondary)
             Text(message)
                 .foregroundStyle(.secondary)
@@ -148,8 +148,7 @@ struct CatalogDetailView: View {
             }
         }
         .frame(maxWidth: .infinity)
-        .padding(.horizontal, 80)
-        .padding(.vertical, 60)
+        .screenContentInset()
     }
 
     // MARK: - Hero + primary block (first screen)
