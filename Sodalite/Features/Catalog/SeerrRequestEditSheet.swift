@@ -341,6 +341,11 @@ private struct EditPickerRow<Option: Identifiable & Equatable>: View {
                     .font(.caption)
                     .foregroundStyle(focused ? Color.white : Color.secondary)
                     .opacity(canMoveBackward ? 1 : 0.25)
+                    #if os(iOS)
+                    .padding(8)
+                    .contentShape(Rectangle())
+                    .onTapGesture { advance(by: -1) }
+                    #endif
                 Text(selected.map(label) ?? String(localized: "catalog.allRequests.edit.loading", defaultValue: "Loading..."))
                     .font(.body)
                     .fontWeight(.semibold)
@@ -351,6 +356,11 @@ private struct EditPickerRow<Option: Identifiable & Equatable>: View {
                     .font(.caption)
                     .foregroundStyle(focused ? Color.white : Color.secondary)
                     .opacity(canMoveForward ? 1 : 0.25)
+                    #if os(iOS)
+                    .padding(8)
+                    .contentShape(Rectangle())
+                    .onTapGesture { advance(by: 1) }
+                    #endif
             }
         }
         .padding(.horizontal, 24)
