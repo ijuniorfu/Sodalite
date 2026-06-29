@@ -315,9 +315,10 @@ struct RememberedProfileCard: View {
     let onLongPress: () -> Void
 
     @Environment(\.dependencies) private var dependencies
+    @Environment(\.horizontalSizeClass) private var hSizeClass
     @FocusState private var isFocused: Bool
 
-    private let diameter: CGFloat = 160
+    private var diameter: CGFloat { hSizeClass == .compact ? 110 : 160 }
 
     var body: some View {
         Button(action: onSelect) {
