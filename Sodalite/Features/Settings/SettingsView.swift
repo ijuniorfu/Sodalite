@@ -1,6 +1,10 @@
 import SwiftUI
 
 struct SettingsView: View {
+    /// Non-nil only when presented as the iPhone gear sheet; drives the top-trailing close button.
+    /// On iPad/tvOS Settings is a tab/sidebar item, so it stays nil and no close button shows.
+    var onClose: (() -> Void)? = nil
+
     @Environment(\.appState) private var appState
     @Environment(\.dependencies) private var dependencies
 
@@ -16,6 +20,16 @@ struct SettingsView: View {
                 }
                 .screenContentInset()
             }
+            #if os(iOS)
+            // The sheet has a swipe-down grabber, but an explicit close matches the gear that
+            // opened it (and the detail cover). Pinned outside the ScrollView so it never scrolls;
+            // hidden behind any pushed sub-settings screen, which carry their own back button.
+            .overlay(alignment: .topTrailing) {
+                if let onClose {
+                    closeButton(onClose)
+                }
+            }
+            #endif
         }
         // Settings is the only surface showing server version; refresh on appear so an upgrade since login is picked up.
         .task {
@@ -24,6 +38,21 @@ struct SettingsView: View {
             }
         }
     }
+
+    #if os(iOS)
+    private func closeButton(_ action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Image(systemName: "xmark")
+                .font(.title3.weight(.semibold))
+                .padding(12)
+                .glassEffect(.regular, in: Circle())
+                .contentShape(Circle())
+        }
+        .buttonStyle(.plain)
+        .padding(.trailing, 16)
+        .padding(.top, 8)
+    }
+    #endif
 
     // MARK: - Profile Header
 
