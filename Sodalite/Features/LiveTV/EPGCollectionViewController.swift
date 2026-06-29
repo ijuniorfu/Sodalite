@@ -161,13 +161,24 @@ final class EPGCollectionViewController: UIViewController,
 
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-        let w = view.bounds.width, h = view.bounds.height
-        cornerView.frame = CGRect(x: 0, y: 0, width: columnWidth, height: headerHeight)
-        timeHeaderScroll.frame = CGRect(x: columnWidth, y: 0, width: w - columnWidth, height: headerHeight)
+        // Inset the whole grid by the PER-SIDE safe area so the channel column + programs clear the
+        // Dynamic Island / rounded corners in landscape. Read the window's insets: the hosting SwiftUI
+        // view ignoresSafeArea horizontally, so the VC's own safeAreaInsets are zeroed. tvOS: no inset.
+        #if os(iOS)
+        let safe = view.window?.safeAreaInsets ?? view.safeAreaInsets
+        let leftInset = safe.left
+        let rightInset = safe.right
+        #else
+        let leftInset: CGFloat = 0
+        let rightInset: CGFloat = 0
+        #endif
+        let w = view.bounds.width - leftInset - rightInset, h = view.bounds.height
+        cornerView.frame = CGRect(x: leftInset, y: 0, width: columnWidth, height: headerHeight)
+        timeHeaderScroll.frame = CGRect(x: leftInset + columnWidth, y: 0, width: w - columnWidth, height: headerHeight)
         timeHeaderScroll.contentSize = CGSize(width: model.totalWidth, height: headerHeight)
         timeHeaderContent.frame = CGRect(x: 0, y: 0, width: model.totalWidth, height: headerHeight)
-        columnView.frame = CGRect(x: 0, y: headerHeight, width: columnWidth, height: h - headerHeight)
-        gridView.frame = CGRect(x: columnWidth, y: headerHeight, width: w - columnWidth, height: h - headerHeight)
+        columnView.frame = CGRect(x: leftInset, y: headerHeight, width: columnWidth, height: h - headerHeight)
+        gridView.frame = CGRect(x: leftInset + columnWidth, y: headerHeight, width: w - columnWidth, height: h - headerHeight)
 
         // One-shot: open with "now" near the left edge, with a little context to its left (the
         // just-ended part of the current program), clamped to the scrollable range.
