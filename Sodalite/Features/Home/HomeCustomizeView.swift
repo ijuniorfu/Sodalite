@@ -3,6 +3,7 @@ import SwiftUI
 struct HomeCustomizeView: View {
     @Environment(\.appState) private var appState
     @Environment(\.dependencies) private var dependencies
+    @Environment(\.horizontalSizeClass) private var hSizeClass
     @State private var configs: [HomeRowConfig] = []
     @State private var movingID: String?
     @State private var mergeCWNextUp = false
@@ -11,6 +12,9 @@ struct HomeCustomizeView: View {
     private var serverID: String {
         appState.activeServer?.id ?? appState.activeUser?.id ?? ""
     }
+
+    /// tvOS 10-foot row inset; iPhone compact needs phone scale or the row content overflows.
+    private var hInset: CGFloat { hSizeClass == .compact ? 16 : 50 }
 
     var body: some View {
         ScrollView {
@@ -78,7 +82,7 @@ struct HomeCustomizeView: View {
                     )
             }
         }
-        .padding(.horizontal, 50)
+        .padding(.horizontal, hInset)
     }
 
     // MARK: - Merge toggle
@@ -107,7 +111,7 @@ struct HomeCustomizeView: View {
                     : String(localized: "common.off", defaultValue: "Off")
             }
         )
-        .padding(.horizontal, 50)
+        .padding(.horizontal, hInset)
     }
 
     // MARK: - Rewatching toggle
@@ -134,7 +138,7 @@ struct HomeCustomizeView: View {
                     : String(localized: "common.off", defaultValue: "Off")
             }
         )
-        .padding(.horizontal, 50)
+        .padding(.horizontal, hInset)
     }
 
     // MARK: - Row list
@@ -165,7 +169,7 @@ struct HomeCustomizeView: View {
                 .fill(.white.opacity(0.1))
                 .frame(height: 1)
         }
-        .padding(.horizontal, 50)
+        .padding(.horizontal, hInset)
         .padding(.top, 18)
         .padding(.bottom, 2)
     }
@@ -186,7 +190,7 @@ struct HomeCustomizeView: View {
                 toggle(id: config.id)
             }
         }
-        .padding(.horizontal, 50)
+        .padding(.horizontal, hInset)
     }
 
     // MARK: - Disabled row
@@ -202,7 +206,7 @@ struct HomeCustomizeView: View {
                 toggle(id: config.id)
             }
         }
-        .padding(.horizontal, 50)
+        .padding(.horizontal, hInset)
     }
 
     /// Shared left side of a row: icon, label and the "moving" indicator.
