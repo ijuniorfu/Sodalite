@@ -76,4 +76,19 @@ extension View {
         self
         #endif
     }
+
+    /// Outer screen padding scaled by size class (tvOS 80/60, iPad 40/32, iPhone 16/16).
+    /// Replaces the hardcoded tvOS 10-foot `.padding(.vertical, 60).padding(.horizontal, 80)`
+    /// that starved content width on compact iPhone. tvOS resolves to the tv tier unchanged.
+    func screenContentInset() -> some View { modifier(ScreenContentInset()) }
+}
+
+private struct ScreenContentInset: ViewModifier {
+    @Environment(\.horizontalSizeClass) private var hSizeClass
+    func body(content: Content) -> some View {
+        let m = LayoutMetrics.current(hSizeClass)
+        return content
+            .padding(.horizontal, m.screenHInset)
+            .padding(.vertical, m.screenVInset)
+    }
 }

@@ -296,9 +296,7 @@ struct PlaybackSettingsView: View {
                 }
 
             }
-            .padding(.horizontal, 80)
-            .padding(.top, 60)
-            .padding(.bottom, 80)
+            .screenContentInset()
             .frame(maxWidth: .infinity, alignment: .leading)
         }
         .frame(maxWidth: .infinity)

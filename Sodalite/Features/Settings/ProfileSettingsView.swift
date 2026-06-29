@@ -30,8 +30,7 @@ struct ProfileSettingsView: View {
 
                 launchBehaviorSection
             }
-            .padding(.vertical, 60)
-            .padding(.horizontal, 80)
+            .screenContentInset()
             .frame(maxWidth: 900)
             .frame(maxWidth: .infinity)
         }

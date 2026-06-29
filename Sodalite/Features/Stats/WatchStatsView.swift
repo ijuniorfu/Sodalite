@@ -16,8 +16,7 @@ struct WatchStatsView: View {
                     .frame(maxWidth: .infinity)
                 content
             }
-            .padding(.vertical, 60)
-            .padding(.horizontal, 80)
+            .screenContentInset()
         }
         .navigationDestination(item: $selectedItem) { item in
             DetailRouterView(item: item)

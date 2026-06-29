@@ -41,8 +41,7 @@ struct SeerrSettingsView: View {
                 }
                 .frame(maxWidth: 720)
                 .frame(maxWidth: .infinity)
-                .padding(.vertical, 60)
-                .padding(.horizontal, 80)
+                .screenContentInset()
             }
             .animation(.easeInOut(duration: 0.3), value: discoveredServer)
             .animation(.easeInOut(duration: 0.3), value: appState.isSeerrConnected)

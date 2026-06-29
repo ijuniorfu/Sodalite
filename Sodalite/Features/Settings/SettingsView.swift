@@ -14,8 +14,7 @@ struct SettingsView: View {
                     logoutButton
                     aboutFooter
                 }
-                .padding(.vertical, 60)
-                .padding(.horizontal, 80)
+                .screenContentInset()
             }
         }
         // Settings is the only surface showing server version; refresh on appear so an upgrade since login is picked up.

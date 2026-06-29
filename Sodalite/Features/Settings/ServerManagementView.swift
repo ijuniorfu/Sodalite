@@ -42,8 +42,7 @@ struct ServerManagementView: View {
                 AddServerSettingsRow(onTap: { showAddServerFlow = true })
                     .padding(.top, 16)
             }
-            .padding(.horizontal, 80)
-            .padding(.vertical, 40)
+            .screenContentInset()
         }
         .onAppear(perform: load)
         .fullScreenCover(isPresented: $showAddServerFlow) {
