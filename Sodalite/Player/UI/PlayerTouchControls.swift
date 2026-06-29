@@ -333,7 +333,7 @@ struct PlayerTouchControls: View {
                 }
             }
             if viewModel.supportsSubtitleSearch {
-                rows.append(PickerRow(label: String(localized: "player.subtitles.searchOnline", defaultValue: "Search online..."), isActive: false) {
+                rows.append(PickerRow(label: String(localized: "player.subtitle.searchOnline", defaultValue: "Search online..."), isActive: false) {
                     viewModel.presentSubtitleSearch()
                 })
             }
