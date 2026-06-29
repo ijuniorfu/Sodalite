@@ -4,16 +4,22 @@ import UIKit
 
 /// Full-screen SwiftUI gesture catcher at the bottom of the overlay z-stack (below the controls,
 /// above the video): single-tap toggles controls (and closes a dropdown via hideControls),
-/// double-tap on the left/right third skips -/+10s (middle = play/pause), a vertical drag sets
-/// brightness (left half) / volume (right half). A plain SwiftUI layer (Color.clear) reliably
-/// receives empty-area taps in the hosting overlay; the controls render above and win their own hits.
+/// double-tap on the left/right third skips -/+10s (middle = play/pause), a vertical drag near the
+/// left/right EDGE sets brightness / volume. The wide center is a dead zone, so a minimize / swipe
+/// gesture there does not accidentally change brightness or volume. A plain SwiftUI layer (Color.clear)
+/// reliably receives empty-area taps in the hosting overlay; the controls render above and win their hits.
 struct PlayerGestureCatcher: View {
     let viewModel: PlayerViewModel
 
     @State private var panAxis: PanAxis = .undecided
+    @State private var panZone: PanZone = .none
     @State private var panStartLevel: Double = 0
     private enum PanAxis { case undecided, vertical, horizontalIgnored }
+    private enum PanZone { case brightness, volume, none }
     private let skipInterval: Double = 10
+    /// Brightness/volume vertical swipes are confined to a strip this fraction wide at each edge; the rest
+    /// of the width is a dead center so a minimize / swipe gesture there does not change brightness or volume.
+    private static let edgeZoneFraction: CGFloat = 0.30
 
     var body: some View {
         GeometryReader { geo in
@@ -38,16 +44,32 @@ struct PlayerGestureCatcher: View {
         DragGesture(minimumDistance: 16)
             .onChanged { value in
                 if panAxis == .undecided {
-                    panAxis = abs(value.translation.height) > abs(value.translation.width) ? .vertical : .horizontalIgnored
-                    let onLeft = value.startLocation.x < size.width / 2
-                    panStartLevel = onLeft ? Double(Self.brightness) : Double(PlayerSystemVolume.current)
+                    let isVertical = abs(value.translation.height) > abs(value.translation.width)
+                    let zone = Self.zone(forStartX: value.startLocation.x, width: size.width)
+                    if isVertical, zone != .none {
+                        panAxis = .vertical
+                        panZone = zone
+                        panStartLevel = zone == .brightness ? Double(Self.brightness) : Double(PlayerSystemVolume.current)
+                    } else {
+                        // Vertical drag in the dead center, or a horizontal drag: ignore so it can't change levels.
+                        panAxis = .horizontalIgnored
+                    }
                 }
                 guard panAxis == .vertical else { return }
-                let onLeft = value.startLocation.x < size.width / 2
                 let level = panStartLevel + PlayerTouchInput.levelDelta(translationY: value.translation.height, height: size.height)
-                if onLeft { viewModel.setBrightness(CGFloat(level)) } else { viewModel.setVolume(Float(level)) }
+                if panZone == .brightness { viewModel.setBrightness(CGFloat(level)) }
+                else if panZone == .volume { viewModel.setVolume(Float(level)) }
             }
-            .onEnded { _ in panAxis = .undecided }
+            .onEnded { _ in panAxis = .undecided; panZone = .none }
+    }
+
+    /// Classify a drag's start X into the left brightness strip, the right volume strip, or the dead center.
+    private static func zone(forStartX x: CGFloat, width: CGFloat) -> PanZone {
+        guard width > 0 else { return .none }
+        let edge = width * edgeZoneFraction
+        if x < edge { return .brightness }
+        if x > width - edge { return .volume }
+        return .none
     }
 
     private static var brightness: CGFloat {
