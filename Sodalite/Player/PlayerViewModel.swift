@@ -801,12 +801,13 @@ final class PlayerViewModel {
         #endif
     }
 
-    /// PROBE (Sodalite#32, DrHurt): iOS-only experiment that lets AVKit own subtitle selection + rendering
-    /// end to end so subtitles survive into the PiP window. When on, the engine serves a DEFAULT=YES WebVTT
-    /// rendition with eager readers, the host does NOT force-select or draw its own subtitle overlay for the
-    /// native path, and `PlayerHostController` leaves AVKit's native chrome (incl. the legible menu) un-
-    /// suppressed so AVKit owns selection. tvOS is unaffected (flag false). Flip to false to A/B against the
-    /// chrome-suppressed variant. Not for release.
+    /// PROBE (Sodalite#32, DrHurt): iOS-only experiment that lets AVKit auto-select + render a subtitle track
+    /// so it survives into the PiP window, WITHOUT a host force-select (the deselect/reselect re-assert that
+    /// AVSmartSubtitlesController kept disabling). The engine serves a DEFAULT=YES WebVTT rendition with eager
+    /// readers; AVKit auto-selects it via its own media-selection criteria. The host skips its own preferred-
+    /// subtitle apply so the inline overlay does not double up. The custom transport / chrome suppression are
+    /// left intact (no native-menu interaction is needed since DEFAULT=YES auto-selects). tvOS unaffected
+    /// (flag false). Not for release.
     static var nativePiPSubtitleProbe: Bool {
         #if os(iOS)
         return true
