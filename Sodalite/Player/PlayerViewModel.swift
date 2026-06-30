@@ -17,6 +17,15 @@ final class PlayerViewModel {
     // MARK: - UI State
 
     var isLoading = true
+    /// True while the host is bringing a session up (fetching playback info, calling `player.load()`, or
+    /// running a live retune), independent of the engine phase. ORed with `playbackPhase` so the pre-engine
+    /// load window still shows the spinner (AetherEngine#85). `didSet` keeps `isLoading` in sync. Not private:
+    /// the live retune path in the `+Live` extension (separate file) drives it.
+    var hostLoadActive = false {
+        didSet { recomputeLoadingIndicator() }
+    }
+    /// Guards against stacking the live cold-transcode debounce recheck.
+    private var scheduledLiveSpinnerRecheck = false
     var errorMessage: String?
     /// SF Symbol for the active error, set with `errorMessage` via `setError(from:)`.
     var errorIcon: String?
@@ -501,7 +510,7 @@ final class PlayerViewModel {
 
     func startPlayback() async {
         isTearingDown = false
-        isLoading = true
+        hostLoadActive = true
         clearError()
         // Sort chapters defensively: API documents start-position order but some legacy taggers emit out of sequence.
         let orderedChapters = (item.chapters ?? [])
@@ -532,7 +541,7 @@ final class PlayerViewModel {
                     player.stop()
                     // loadLiveStream() may have opened a tuner before cancel landed; release so server doesn't leak.
                     releaseLiveTunerIfNeeded()
-                    isLoading = false
+                    hostLoadActive = false
                     return
                 }
                 // The engine picked the preferred-language audio on the first frame (#72), so there is
@@ -540,7 +549,7 @@ final class PlayerViewModel {
                 // Das Erste, frozen frame). Read its pick to drive the matching subtitle.
                 let chosenAudio = player.audioTracks.first(where: { $0.id == player.activeAudioTrackIndex })
                 applyPreferredSubtitle(forAudioLanguage: chosenAudio?.language)
-                isLoading = false
+                hostLoadActive = false
                 isPlaying = true
                 startObserving()
                 Task { [weak self] in await self?.refreshExternalMetadataWithArtwork() }
@@ -662,7 +671,7 @@ final class PlayerViewModel {
             // this in-flight task calls player.load() AFTER stopPlayback's player.stop() and restarts
             // playback with no UI to dismiss it (audio runs until app restart).
             if Task.isCancelled || isTearingDown {
-                isLoading = false
+                hostLoadActive = false
                 return
             }
 
@@ -707,7 +716,7 @@ final class PlayerViewModel {
             // asset opened); stop the engine we just started so nothing plays behind a dismissed player.
             if Task.isCancelled || isTearingDown {
                 player.stop()
-                isLoading = false
+                hostLoadActive = false
                 return
             }
 
@@ -717,7 +726,7 @@ final class PlayerViewModel {
             let chosenAudio = player.audioTracks.first(where: { $0.id == player.activeAudioTrackIndex })
             applyPreferredSubtitle(forAudioLanguage: chosenAudio?.language)
 
-            isLoading = false
+            hostLoadActive = false
             isPlaying = true
 
             startObserving()
@@ -746,7 +755,7 @@ final class PlayerViewModel {
             } else {
                 setError(from: error)
             }
-            isLoading = false
+            hostLoadActive = false
         }
     }
 
@@ -857,6 +866,28 @@ final class PlayerViewModel {
         }
     }
 
+    /// Single owner of `isLoading` at runtime (AetherEngine#85): ORs the host-load flag with the engine's
+    /// `playbackPhase`. `.seeking` is left to the scrub UI. The live cold-transcode first `.playing` is
+    /// premature (a stall follows ~700ms later), so a would-be clear inside that window is held and a
+    /// delayed recompute settles it, preserving the old debounce without the former 15s heuristic.
+    private func recomputeLoadingIndicator() {
+        let wantsSpinner = PlayerLoadingIndicator.showsSpinner(hostLoadActive: hostLoadActive, phase: player.playbackPhase)
+        if !wantsSpinner, isLiveSession, let firstPlay = liveFirstPlayingAt,
+           Date().timeIntervalSince(firstPlay) < 0.7 {
+            if !scheduledLiveSpinnerRecheck {
+                scheduledLiveSpinnerRecheck = true
+                Task { @MainActor [weak self] in
+                    try? await Task.sleep(nanoseconds: 700_000_000)
+                    guard let self else { return }
+                    self.scheduledLiveSpinnerRecheck = false
+                    self.recomputeLoadingIndicator()
+                }
+            }
+            return
+        }
+        isLoading = wantsSpinner
+    }
+
     // MARK: - State Observation (Combine)
 
     private func startObserving() {
@@ -870,22 +901,13 @@ final class PlayerViewModel {
                     self.hasStartedPlaying = true
                     self.isPlaying = true
                     if self.isLiveSession, firstPlay {
-                        // Cold live transcodes flip to .playing ~1s before the start segment arrives, stall,
-                        // then resume; clearing the spinner on that flicker shows a frozen frame, so debounce 700ms.
+                        // Marks the cold-transcode window; recomputeLoadingIndicator() debounces the spinner
+                        // clear against it (the first .playing flips ~1s before the start segment lands, stalls,
+                        // then resumes, so clearing immediately would reveal a frozen frame).
                         self.liveFirstPlayingAt = Date()
-                        Task { @MainActor [weak self] in
-                            try? await Task.sleep(nanoseconds: 700_000_000)
-                            // Gate on engine state, not isPlaying: a stall flips state to .loading but leaves
-                            // isPlaying true; the spinner must stay until the NEXT .playing.
-                            guard let self, case .playing = self.player.state else { return }
-                            self.isLoading = false
-                        }
-                    } else {
-                        self.isLoading = false
                     }
                     if self.showControls { self.scheduleControlsHide() }
                 case .paused:
-                    self.isLoading = false
                     self.isPlaying = false
                 case .ended:
                     // End-of-media on any backend: the engine surfaces .ended for native / software / audio
@@ -911,15 +933,9 @@ final class PlayerViewModel {
                     // Pure teardown (stop / new load); end-of-media is .ended now, so no next-episode trigger here.
                     self.isPlaying = false
                 case .loading:
-                    if !self.hasStartedPlaying {
-                        self.isLoading = true
-                    } else if self.isLiveSession,
-                              let firstPlay = self.liveFirstPlayingAt,
-                              Date().timeIntervalSince(firstPlay) < 15 {
-                        // Early live re-buffer (cold transcode catching up): surface the spinner instead of a
-                        // frozen frame. Bounded to the startup window so mid-session blips don't flash it.
-                        self.isLoading = true
-                    }
+                    // Spinner is driven by playbackPhase (.loading / .rebuffering / .stalled) in
+                    // recomputeLoadingIndicator(); nothing state-specific to do here now (AetherEngine#85).
+                    break
                 case .seeking:
                     break
                 case .error(let msg):
@@ -933,7 +949,6 @@ final class PlayerViewModel {
                         // Live channel died before ever playing: friendly "unavailable" message ("Playback
                         // stopped" + raw text is for sessions that actually ran).
                         self.setLiveChannelUnavailableError()
-                        self.isLoading = false
                     } else if self.isLiveSession {
                         // Mid-session live error: retune (recoverable like a source reset); the retune guard
                         // surfaces a friendly error once attempts are exhausted.
@@ -941,10 +956,14 @@ final class PlayerViewModel {
                         self.handleLiveSourceReset()
                     } else {
                         self.setEnginePlaybackError(message: msg)
-                        self.isLoading = false
                     }
                 }
             }
+            .store(in: &cancellables)
+
+        player.$playbackPhase
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in self?.recomputeLoadingIndicator() }
             .store(in: &cancellables)
 
         player.clock.$sourceTime

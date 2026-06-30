@@ -20,6 +20,7 @@
 		A99103ECA91C496739871989 /* SeerrDecodingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57CF00E5C87F92A3DAF35F27 /* SeerrDecodingTests.swift */; };
 		AA000001STEELPLAYER /* AetherEngine in Frameworks */ = {isa = PBXBuildFile; productRef = AA000002STEELPLAYER /* AetherEngine */; };
 		AA000006ASSBUILD /* SwiftAssRenderer in Frameworks */ = {isa = PBXBuildFile; productRef = AA000005ASSPROD /* SwiftAssRenderer */; };
+		BA338612776FCE10A5D2E71C /* PlayerLoadingIndicatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C84D67DB8237A2D0FBC8AADA /* PlayerLoadingIndicatorTests.swift */; };
 		CE4628D88D87B1C2A8F4B761 /* PlayerTouchInputTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D95A0828E585360E7CA7CF76 /* PlayerTouchInputTests.swift */; };
 		D6CDFC24E2E33767EB59131B /* SeerrMediaTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 756D59BCF6F1E09889825D6E /* SeerrMediaTests.swift */; };
 		DE5C0D60D4D900000000F00B /* SodaliteTopShelf.appex in Embed Extensions */ = {isa = PBXBuildFile; fileRef = DE5C0D60D4D900000000F001 /* SodaliteTopShelf.appex */; platformFilters = (tvos, ); settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -72,6 +73,7 @@
 		9DD9136D2F8645860078D0BE /* Sodalite.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Sodalite.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		AC76FE12491CE8E6DCDD5B42 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/AppleTVOS.platform/Developer/SDKs/AppleTVOS18.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
 		BEB609BEE54ED543FDF51101 /* JellyfinItemTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = JellyfinItemTests.swift; sourceTree = "<group>"; };
+		C84D67DB8237A2D0FBC8AADA /* PlayerLoadingIndicatorTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PlayerLoadingIndicatorTests.swift; sourceTree = "<group>"; };
 		D95A0828E585360E7CA7CF76 /* PlayerTouchInputTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PlayerTouchInputTests.swift; sourceTree = "<group>"; };
 		DE5C0D60D4D900000000F001 /* SodaliteTopShelf.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = SodaliteTopShelf.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		ED884F9F893445BCE139AAB8 /* ProbeBudgetTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ProbeBudgetTests.swift; sourceTree = "<group>"; };
@@ -80,11 +82,15 @@
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		9DD9136F2F8645860078D0BE /* Sodalite */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+			);
 			path = Sodalite;
 			sourceTree = "<group>";
 		};
 		DE5C0D60D4D900000000F002 /* SodaliteTopShelf */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+			);
 			path = SodaliteTopShelf;
 			sourceTree = "<group>";
 		};
@@ -163,6 +169,7 @@
 				ED884F9F893445BCE139AAB8 /* ProbeBudgetTests.swift */,
 				164A05A73A4B84E77F6F29AD /* LayoutMetricsTests.swift */,
 				D95A0828E585360E7CA7CF76 /* PlayerTouchInputTests.swift */,
+				C84D67DB8237A2D0FBC8AADA /* PlayerLoadingIndicatorTests.swift */,
 			);
 			path = SodaliteTests;
 			sourceTree = "<group>";
@@ -362,6 +369,7 @@
 				9B8BA45BD3090349A076C1DF /* ProbeBudgetTests.swift in Sources */,
 				91374D820EED39320D3C5883 /* LayoutMetricsTests.swift in Sources */,
 				CE4628D88D87B1C2A8F4B761 /* PlayerTouchInputTests.swift in Sources */,
+				BA338612776FCE10A5D2E71C /* PlayerLoadingIndicatorTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -287,7 +287,7 @@ extension PlayerViewModel {
             LogTap.shared.note(
                 "[Live] retune EXHAUSTED (count=\(liveRetuneCount) tooSoon=\(tooSoon)); surfacing error"
             )
-            isLoading = false
+            hostLoadActive = false
             setEnginePlaybackError(message: String(
                 localized: "player.error.liveRetuneExhausted",
                 defaultValue: "The live stream keeps failing. Please try the channel again."
@@ -306,7 +306,7 @@ extension PlayerViewModel {
         liveRetuneInFlight = true
         liveRetuneCount += 1
         lastLiveRetuneAt = Date()
-        isLoading = true
+        hostLoadActive = true
         Task { [weak self] in
             guard let self else { return }
             await self.retuneLiveStream()
@@ -332,7 +332,7 @@ extension PlayerViewModel {
         } catch is CancellationError {
             // Superseded by a newer load; nothing to clean up.
         } catch {
-            isLoading = false
+            hostLoadActive = false
             setEnginePlaybackError(message: error.localizedDescription)
         }
     }
