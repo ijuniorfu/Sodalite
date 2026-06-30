@@ -117,8 +117,9 @@ struct PlayerOverlayView: View {
             topRightInfoColumn
 
             // Two-gate: diagnostic build (DEBUG/TestFlight) AND showDiagnosticOverlay (defaults off so it isn't over every TestFlight session).
-            if LogTap.isDiagnosticBuild && viewModel.preferences.showDiagnosticOverlay {
-                DiagnosticLogOverlay(focusOnDV: viewModel.preferences.focusDiagnosticOverlayOnDV)
+            // PROBE (Sodalite#32): force the overlay on (focused) so the [PiPDiag] chain is visible on-device without toggling a setting.
+            if LogTap.isDiagnosticBuild && (viewModel.preferences.showDiagnosticOverlay || PlayerViewModel.nativePiPSubtitleProbe) {
+                DiagnosticLogOverlay(focusOnDV: viewModel.preferences.focusDiagnosticOverlayOnDV || PlayerViewModel.nativePiPSubtitleProbe)
             }
 
             // Floating Skip Intro hint, only while controls are hidden; once they open, the skip action is a focusable button inside TransportBar instead.
@@ -564,6 +565,8 @@ private struct DiagnosticLogOverlay: View {
 
     /// DV/HDR focus matchers: a line is kept if it contains ANY of these. Tuned so the support-thread diagnostic chain (dispatch, HLS routing, tracks, audio route, display criteria, panel signaling) stays in frame while per-segment cache/muxer chatter falls off.
     private static let focusSubstrings: [String] = [
+        "[PiPDiag]",
+        "[PiPSubsDiag]",
         "[HLSVideoEngine]",
         "[NativeAVPlayerHost]",
         "[DisplayCriteria]",
