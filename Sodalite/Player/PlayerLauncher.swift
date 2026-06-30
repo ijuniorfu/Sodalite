@@ -27,14 +27,10 @@ struct PlayerLauncher: UIViewControllerRepresentable {
     }
 
     func updateUIViewController(_ host: PlayerLauncherHostVC, context: Context) {
-        if isPresented, let item, host.presentedViewController == nil, !host.isLaunching {
+        if isPresented, let item, host.presentedPlayer == nil, !host.isLaunching {
             // Latch the launch so a re-render while we wait for the presentation
             // context to settle can't build a second PlayerViewModel (each one
-            // re-requests PlaybackInfo). This is what crashed #31: the version
-            // picker is a sheet on the detail fullScreenCover, and presenting the
-            // player before that sheet finished dismissing left presentedViewController
-            // nil, so every re-render rebuilt the VM and churned PlaybackInfo until a
-            // presentation assertion killed the app back to Home.
+            // re-requests PlaybackInfo) -- the churn that crashed #31.
             host.isLaunching = true
             let isPresentedBinding = _isPresented
             host.presentWhenContextIsFree {
@@ -51,11 +47,14 @@ struct PlayerLauncher: UIViewControllerRepresentable {
                 let playerVC = PlayerHostController(
                     viewModel: vm,
                     tintColor: tintColor,
-                    onDismiss: {
-                        host.dismiss(animated: false) {
-                            host.isLaunching = false
-                            isPresentedBinding.wrappedValue = false
-                        }
+                    onDismiss: { [weak host] in
+                        // Reset the trigger unconditionally and synchronously.
+                        // PlayerHostController also self-dismisses on iOS, so a reset
+                        // gated on the dismiss completion gets dropped -- leaving
+                        // showPlayer stuck true, which a rotation / re-render then
+                        // relaunches into a fresh launcher host (#31 reopen-on-rotate).
+                        isPresentedBinding.wrappedValue = false
+                        host?.tearDownPlayer(nil)
                     }
                 )
                 playerVC.modalPresentationStyle = .fullScreen
@@ -68,24 +67,32 @@ struct PlayerLauncher: UIViewControllerRepresentable {
                 return playerVC
             }
         } else if !isPresented {
-            // User backed out. Cancel any present still waiting on a busy context,
-            // then tear down a live player if one is up.
+            // User backed out / programmatic dismissal. Cancel a queued present and
+            // tear down a live player if one is up.
             host.cancelPendingLaunch()
-            if host.presentedViewController != nil {
-                host.dismiss(animated: false)
+            if host.presentedPlayer != nil {
+                host.tearDownPlayer(nil)
             }
         }
     }
 }
 
-/// Invisible host VC: sits in the window hierarchy so UIKit present() works.
+/// Invisible host VC: anchors the launcher in the SwiftUI tree but does NOT
+/// present the player itself. The overlay this lives in can be detached from
+/// the window by SwiftUI mid-launch (its `view.window` goes nil), so the player
+/// is presented from the scene's top-most settled view controller instead and
+/// tracked here for teardown.
 final class PlayerLauncherHostVC: UIViewController {
     /// Guards the live-player present retry loop against duplicate launches.
     var pendingLivePresent = false
-    /// A launch is in flight (player VC built and/or waiting on a free
-    /// presentation context). Blocks `updateUIViewController` from starting a
-    /// second one, which would re-request PlaybackInfo (#31).
+    /// A launch is in flight (waiting for a free presentation context). Blocks
+    /// `updateUIViewController` from starting a second one, which would
+    /// re-request PlaybackInfo (#31).
     var isLaunching = false
+    /// The currently presented player, presented from the scene top-most VC (not
+    /// from `self`). Held so teardown can dismiss it regardless of where `self`
+    /// sits in the hierarchy.
+    weak var presentedPlayer: UIViewController?
     /// Bumped on every launch request and on cancel so a stale, queued present
     /// attempt bails instead of presenting a player the user no longer wants.
     private var launchGeneration = 0
@@ -95,15 +102,14 @@ final class PlayerLauncherHostVC: UIViewController {
         view.backgroundColor = .clear
     }
 
-    /// Presents the player only once the window's presentation chain is settled.
+    /// Presents the player once the scene's presentation chain is settled.
     ///
-    /// The detail screen is a fullScreenCover and the version-picker sheet shares
-    /// its presentation context. Presenting the player while that sheet is still
-    /// dismissing silently fails (presentedViewController stays nil), so the launcher
-    /// would rebuild the VM and churn PlaybackInfo on every re-render until the app
-    /// crashed to Home (#31). The previous fix waited a fixed 0.3s, which is too
-    /// short on slower hardware (e.g. the 2015 Apple TV). This waits on the actual
-    /// in-flight transition instead of guessing a delay.
+    /// The version-picker sheet shares the detail screen's presentation context.
+    /// Presenting the player while that sheet is still dismissing crashed the app
+    /// back to Home on slower hardware (#31). The earlier fixes either guessed a
+    /// fixed delay (lost the race on a 2015 Apple TV) or gated on `self.view.window`
+    /// (which goes nil mid-launch on iOS, so the player never appeared). This waits
+    /// on the scene's top-most view controller settling, then presents from it.
     func presentWhenContextIsFree(_ build: @escaping () -> UIViewController) {
         launchGeneration &+= 1
         attemptPresent(generation: launchGeneration, build: build, attempts: 0)
@@ -115,52 +121,90 @@ final class PlayerLauncherHostVC: UIViewController {
         isLaunching = false
     }
 
-    private func attemptPresent(generation: Int, build: @escaping () -> UIViewController, attempts: Int) {
-        // Superseded by a newer request, cancelled, or already presented.
-        guard generation == launchGeneration, isLaunching, presentedViewController == nil else { return }
+    /// Dismisses the presented player (from whatever VC presented it) and clears
+    /// the launch latch.
+    func tearDownPlayer(_ completion: (() -> Void)?) {
+        isLaunching = false
+        guard let player = presentedPlayer else {
+            completion?()
+            return
+        }
+        presentedPlayer = nil
+        let presenter = player.presentingViewController ?? player
+        presenter.dismiss(animated: false, completion: completion)
+    }
 
-        if let transitioning = transitioningChainVC() {
-            // Prefer the event-driven path: resume exactly when the in-flight
-            // transition (the sheet dismissal) completes, no polling guesswork.
-            if let coordinator = transitioning.transitionCoordinator {
-                coordinator.animate(alongsideTransition: nil) { [weak self] _ in
-                    self?.attemptPresent(generation: generation, build: build, attempts: attempts + 1)
-                }
-                return
-            }
-            // Busy without a coordinator (e.g. host not yet in a window): poll the
-            // next runloop, bounded to ~3s so a wedged chain can't spin forever.
-            guard attempts < 180 else {
+    private func attemptPresent(generation: Int, build: @escaping () -> UIViewController, attempts: Int) {
+        // Superseded by a newer request or cancelled.
+        guard generation == launchGeneration, isLaunching, presentedPlayer == nil else { return }
+
+        // App-wide single-player guard. Multiple launcher hosts can be mid-launch
+        // at once (a host can be orphaned from the window while a sibling launches),
+        // and presenting from the scene top-most VC means an orphan could otherwise
+        // stack a second player. If any player is already on screen, bail for good
+        // instead of polling -- else this host would present again the moment the
+        // first player is dismissed.
+        if sceneHasPlayer() {
+            isLaunching = false
+            return
+        }
+
+        guard let presenter = settledTopPresenter() else {
+            // Chain busy (a sheet is presenting/dismissing) or no window yet. Poll,
+            // bounded to ~3s so a wedged chain can't spin forever.
+            guard attempts < 60 else {
                 isLaunching = false
                 return
             }
-            DispatchQueue.main.async { [weak self] in
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { [weak self] in
                 self?.attemptPresent(generation: generation, build: build, attempts: attempts + 1)
             }
             return
         }
 
-        present(build(), animated: false)
+        let playerVC = build()
+        presentedPlayer = playerVC
+        presenter.present(playerVC, animated: false)
     }
 
-    /// The nearest VC in the window's presentation chain that is mid-transition
-    /// (a sheet presenting or dismissing), or nil when the chain is settled and a
-    /// present from here will land cleanly.
-    private func transitioningChainVC() -> UIViewController? {
-        guard let window = view.window, let root = window.rootViewController else {
-            // Not in a window yet: treat as busy so we retry once attached.
-            return self
-        }
-        var node: UIViewController? = root
-        while let current = node {
-            if current.transitionCoordinator != nil { return current }
-            if let presented = current.presentedViewController {
-                if presented.isBeingDismissed || presented.isBeingPresented { return presented }
-                node = presented
-            } else {
-                node = nil
+    /// The scene key window's top-most presented view controller, but only when
+    /// the whole chain is settled (nothing presenting/dismissing/transitioning).
+    /// Returns nil while busy so the caller polls. Presenting from this VC (rather
+    /// than from `self`) survives `self` being detached from the window mid-launch.
+    private func settledTopPresenter() -> UIViewController? {
+        let window = (view.window?.windowScene ?? activeWindowScene())?
+            .windows.first(where: { $0.isKeyWindow })
+            ?? view.window
+        guard var top = window?.rootViewController else { return nil }
+        if top.transitionCoordinator != nil { return nil }
+        while let presented = top.presentedViewController {
+            if presented.isBeingDismissed || presented.isBeingPresented || presented.transitionCoordinator != nil {
+                return nil
             }
+            top = presented
         }
-        return nil
+        // A player is already up here -- don't stack a second one.
+        if top is PlayerHostController { return nil }
+        return top
+    }
+
+    /// True if a player is already presented anywhere in the key window's chain.
+    private func sceneHasPlayer() -> Bool {
+        let window = (view.window?.windowScene ?? activeWindowScene())?
+            .windows.first(where: { $0.isKeyWindow })
+            ?? view.window
+        var vc = window?.rootViewController
+        while let current = vc {
+            if current is PlayerHostController { return true }
+            vc = current.presentedViewController
+        }
+        return false
+    }
+
+    private func activeWindowScene() -> UIWindowScene? {
+        UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .first(where: { $0.activationState == .foregroundActive })
+            ?? UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first
     }
 }
