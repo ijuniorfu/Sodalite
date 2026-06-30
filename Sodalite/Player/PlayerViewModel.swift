@@ -706,10 +706,14 @@ final class PlayerViewModel {
                     audioBridgeMode: preferences.audioBridgeMode,
                     // Raw ASS event lines for the styled path; only affects ASS/SSA cue content.
                     preserveASSMarkup: true,
-                    // PROBE (Sodalite#32): serve a DEFAULT=YES WebVTT rendition with eager readers so AVKit
-                    // auto-selects + renders subtitles into the PiP window without host force-selection.
+                    // PROBE (Sodalite#32): serve a WebVTT rendition with eager readers; the engine marks the
+                    // rendition matching nativeSubtitlePreferredLanguages DEFAULT=YES (required for a host-
+                    // selected legible track to render) and exposes it as nativeSubtitleDefaultOrdinal.
                     prepareNativeSubtitles: Self.nativePiPSubtitleProbe,
                     eagerNativeSubtitleReaders: Self.nativePiPSubtitleProbe,
+                    nativeSubtitlePreferredLanguages: Self.nativePiPSubtitleProbe
+                        ? (preferences.preferredSubtitleLanguage.map { [$0] } ?? [])
+                        : [],
                     probesize: probeBudget.probesize,
                     maxAnalyzeDuration: probeBudget.maxAnalyzeDuration,
                     preferredAudioLanguages: preferredAudio.map { [$0] } ?? []
@@ -729,12 +733,11 @@ final class PlayerViewModel {
             // selectAudioTrack reload here; read what it picked to drive the matching subtitle.
             let chosenAudio = player.audioTracks.first(where: { $0.id == player.activeAudioTrackIndex })
             if Self.nativePiPSubtitleProbe {
-                // PROBE (Sodalite#32): device-confirmed AVKit does NOT auto-select the DEFAULT=YES legible
-                // rendition over our loopback (it never fetches subs_N.m3u8; AVFoundation's auto media-selection
-                // suppresses subtitles unless the user enabled captions). Select the rendition matching the
-                // user's preferred subtitle language explicitly; the engine pins
-                // appliesMediaSelectionCriteriaAutomatically=false + re-asserts + pre-fills the prefetch burst.
-                let ordinal = preferredNativeSubtitleOrdinal(forAudioLanguage: chosenAudio?.language) ?? 0
+                // PROBE (Sodalite#32): device-confirmed AVKit does NOT auto-select a legible rendition over our
+                // loopback (AVFoundation's auto media-selection suppresses subtitles unless the user enabled
+                // captions), and a selected NON-default rendition is fetched but hidden as mute-only. So select
+                // exactly the ordinal the engine marked DEFAULT=YES (resolved from the preferred language).
+                let ordinal = player.nativeSubtitleDefaultOrdinal
                 probeNativeOrdinal = ordinal
                 LogTap.shared.note("[PiPDiag] host: setNativeSubtitleSelected(\(ordinal)) currentItem=\(player.currentAVPlayer?.currentItem != nil) nativeTracks=\(player.nativeSubtitleTracks.map { $0.language ?? "?" })")
                 player.setNativeSubtitleSelected(track: ordinal)
@@ -1364,27 +1367,6 @@ final class PlayerViewModel {
         if let match = bestSubtitleMatch(forLanguage: preferredAudio) {
             selectSubtitleTrack(id: match.index)
         }
-    }
-
-    /// PROBE (Sodalite#32): the engine's native legible ordinal whose language matches the user's preferred
-    /// subtitle (explicit preference, else the foreign-audio convention). `player.nativeSubtitleTracks` is the
-    /// ordinal-aligned text-track list the engine serves as WebVTT renditions. nil when no preference or no
-    /// language match (caller falls back).
-    private func preferredNativeSubtitleOrdinal(forAudioLanguage audioLanguage: String?) -> Int? {
-        let tracks = player.nativeSubtitleTracks
-        guard !tracks.isEmpty else { return nil }
-        let wanted: String?
-        if let explicit = preferences.preferredSubtitleLanguage {
-            wanted = explicit
-        } else if preferences.autoSubtitleForForeignAudio,
-                  let preferredAudio = effectivePreferredAudioLanguage(),
-                  !Self.languagesMatch(audioLanguage, preferredAudio) {
-            wanted = preferredAudio
-        } else {
-            wanted = nil
-        }
-        guard let wanted else { return nil }
-        return tracks.first(where: { Self.languagesMatch($0.language, wanted) })?.ordinal
     }
 
     /// PROBE (Sodalite#32): the native legible ordinal currently selected, remembered so the selection can be
