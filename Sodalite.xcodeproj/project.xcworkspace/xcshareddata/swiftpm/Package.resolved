@@ -6,8 +6,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/superuser404notfound/AetherEngine",
       "state" : {
-        "branch" : "main",
-        "revision" : "ab93219a6b7c24394a7d802e6819756f12963496"
+        "branch" : "probe/pip-subs-native-default",
+        "revision" : "1ee421b89993ef637c9490ea73d76e8cf9a2baca"
       }
     },
     {

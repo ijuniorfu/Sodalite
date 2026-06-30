@@ -706,6 +706,10 @@ final class PlayerViewModel {
                     audioBridgeMode: preferences.audioBridgeMode,
                     // Raw ASS event lines for the styled path; only affects ASS/SSA cue content.
                     preserveASSMarkup: true,
+                    // PROBE (Sodalite#32): serve a DEFAULT=YES WebVTT rendition with eager readers so AVKit
+                    // auto-selects + renders subtitles into the PiP window without host force-selection.
+                    prepareNativeSubtitles: Self.nativePiPSubtitleProbe,
+                    eagerNativeSubtitleReaders: Self.nativePiPSubtitleProbe,
                     probesize: probeBudget.probesize,
                     maxAnalyzeDuration: probeBudget.maxAnalyzeDuration,
                     preferredAudioLanguages: preferredAudio.map { [$0] } ?? []
@@ -724,7 +728,12 @@ final class PlayerViewModel {
             // The engine resolved the preferred-language audio on the first frame (#72), so there is no
             // selectAudioTrack reload here; read what it picked to drive the matching subtitle.
             let chosenAudio = player.audioTracks.first(where: { $0.id == player.activeAudioTrackIndex })
-            applyPreferredSubtitle(forAudioLanguage: chosenAudio?.language)
+            // PROBE (Sodalite#32): on the native path AVKit owns subtitle selection (DEFAULT=YES rendition),
+            // so the host does not drive its own pick here (which would also populate the inline overlay cues
+            // and double up with AVKit's render).
+            if !Self.nativePiPSubtitleProbe {
+                applyPreferredSubtitle(forAudioLanguage: chosenAudio?.language)
+            }
 
             hostLoadActive = false
             isPlaying = true
@@ -787,6 +796,20 @@ final class PlayerViewModel {
         else { return false }
         // Headroom 1.0 = SDR, > 1.0 = HDR active; epsilon dodges a boundary float-comparison glitch.
         return win.screen.currentEDRHeadroom > 1.001
+        #else
+        return false
+        #endif
+    }
+
+    /// PROBE (Sodalite#32, DrHurt): iOS-only experiment that lets AVKit own subtitle selection + rendering
+    /// end to end so subtitles survive into the PiP window. When on, the engine serves a DEFAULT=YES WebVTT
+    /// rendition with eager readers, the host does NOT force-select or draw its own subtitle overlay for the
+    /// native path, and `PlayerHostController` leaves AVKit's native chrome (incl. the legible menu) un-
+    /// suppressed so AVKit owns selection. tvOS is unaffected (flag false). Flip to false to A/B against the
+    /// chrome-suppressed variant. Not for release.
+    static var nativePiPSubtitleProbe: Bool {
+        #if os(iOS)
+        return true
         #else
         return false
         #endif
