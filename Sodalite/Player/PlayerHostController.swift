@@ -455,7 +455,12 @@ final class PlayerHostController: AVPlayerViewController {
         // Background playback (PiP / background audio) kept the pipeline alive + playing, so there is nothing
         // to reload and we must NOT force it paused (it should keep playing on return). Only the torn-down
         // path (background disabled, or paused-in-background teardown -> .paused/.idle) needs the reload below.
-        if viewModel.player.state == .playing { return }
+        if viewModel.player.state == .playing {
+            // PROBE (Sodalite#32): AVKit drops the native legible selection on the PiP->fullscreen restore even
+            // though the same player kept playing; re-assert it.
+            viewModel.reassertNativeSubtitleProbe(reason: "foreground-stillPlaying")
+            return
+        }
         #endif
 
         // tvOS deactivates the AVAudioSession on background; without re-arming it the post-reload resume drives a synchronizer with no live session (state .playing but no audio, no frames advance).
@@ -466,6 +471,8 @@ final class PlayerHostController: AVPlayerViewController {
         Task { @MainActor in
             try? await viewModel.player.reloadAtCurrentPosition()
             viewModel.finishBackgroundReload()
+            // PROBE (Sodalite#32): the reload rebuilt the AVPlayer item, dropping the native legible selection.
+            viewModel.reassertNativeSubtitleProbe(reason: "foreground-reload")
         }
     }
 
