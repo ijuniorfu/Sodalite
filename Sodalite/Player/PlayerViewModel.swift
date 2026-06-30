@@ -728,10 +728,16 @@ final class PlayerViewModel {
             // The engine resolved the preferred-language audio on the first frame (#72), so there is no
             // selectAudioTrack reload here; read what it picked to drive the matching subtitle.
             let chosenAudio = player.audioTracks.first(where: { $0.id == player.activeAudioTrackIndex })
-            // PROBE (Sodalite#32): on the native path AVKit owns subtitle selection (DEFAULT=YES rendition),
-            // so the host does not drive its own pick here (which would also populate the inline overlay cues
-            // and double up with AVKit's render).
-            if !Self.nativePiPSubtitleProbe {
+            if Self.nativePiPSubtitleProbe {
+                // PROBE (Sodalite#32): device-confirmed AVKit does NOT auto-select the DEFAULT=YES legible
+                // rendition over our loopback (it never fetches subs_N.m3u8; AVFoundation's auto media-selection
+                // suppresses subtitles unless the user enabled captions). Select the DEFAULT rendition (ordinal
+                // 0) explicitly; the engine pins appliesMediaSelectionCriteriaAutomatically=false + re-asserts.
+                // NEW vs the prior wall: the rendition is now DEFAULT=YES, so AVSmartSubtitlesController may keep
+                // it instead of disabling a DEFAULT=NO programmatic selection.
+                LogTap.shared.note("[PiPDiag] host: setNativeSubtitleSelected(0) currentItem=\(player.currentAVPlayer?.currentItem != nil)")
+                player.setNativeSubtitleSelected(track: 0)
+            } else {
                 applyPreferredSubtitle(forAudioLanguage: chosenAudio?.language)
             }
 
