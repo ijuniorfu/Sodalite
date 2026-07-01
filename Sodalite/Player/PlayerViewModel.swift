@@ -1392,11 +1392,13 @@ final class PlayerViewModel {
         guard Self.nativePiPSubtitleProbe,
               let item = player.currentAVPlayer?.currentItem,
               let group = try? await item.asset.loadMediaSelectionGroup(for: .legible),
-              let selected = item.currentMediaSelection.selectedMediaOption(in: group) else { return }
-        LogTap.shared.note("[PiPDiag] host: legible pre-active, re-assert renderer for \(selected.displayName)")
-        item.select(nil, in: group)
-        try? await Task.sleep(nanoseconds: 120_000_000)
-        item.select(selected, in: group)
+              item.currentMediaSelection.selectedMediaOption(in: group) != nil else { return }
+        // A clean engine seek to the current position re-establishes the rendering pipeline (what the user's
+        // manual seek does), which is what actually attaches AVKit's legible renderer for a selection that was
+        // auto-selected at load. A programmatic deselect/reselect and a raw AVPlayer micro-seek did NOT.
+        let t = player.sourceTime
+        LogTap.shared.note("[PiPDiag] host: legible pre-active, engine-seek kick to \(String(format: "%.2f", t))s")
+        await player.seek(to: t)
     }
 
     /// Picks the most useful subtitle in a language for following dialog: full > SDH/CC > forced;
