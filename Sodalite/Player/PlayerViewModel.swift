@@ -1384,18 +1384,19 @@ final class PlayerViewModel {
     }
 
     /// PROBE (Sodalite#32): on a resume with a persisted/auto-selected native subtitle, AVKit selects the legible
-    /// option but its renderer only attaches once the rendering pipeline is re-established. Toggling the track
-    /// off/on does NOT fix it (device-confirmed); a seek does. A precise micro-seek to (currentTime - ~1 frame)
-    /// within the already-buffered range kicks the renderer without a producer restart.
+    /// option but its renderer only attaches once re-asserted. A menu toggle does NOT fix it, and a seek causes a
+    /// producer restart (visible reload + black frame). Instead re-assert the SAME already-selected option
+    /// (deselect -> runloop hop -> reselect), the documented way to force the legible renderer to attach; no
+    /// producer restart, no playhead move.
     func kickLegibleRendererIfActive() async {
         guard Self.nativePiPSubtitleProbe,
-              let av = player.currentAVPlayer, let item = av.currentItem,
+              let item = player.currentAVPlayer?.currentItem,
               let group = try? await item.asset.loadMediaSelectionGroup(for: .legible),
-              item.currentMediaSelection.selectedMediaOption(in: group) != nil else { return }
-        let now = av.currentTime()
-        let target = CMTimeMaximum(.zero, CMTimeSubtract(now, CMTime(seconds: 0.05, preferredTimescale: 600)))
-        LogTap.shared.note("[PiPDiag] host: legible pre-active, micro-seek kick at \(String(format: "%.2f", CMTimeGetSeconds(now)))s")
-        _ = await av.seek(to: target, toleranceBefore: .zero, toleranceAfter: .zero)
+              let selected = item.currentMediaSelection.selectedMediaOption(in: group) else { return }
+        LogTap.shared.note("[PiPDiag] host: legible pre-active, re-assert renderer for \(selected.displayName)")
+        item.select(nil, in: group)
+        try? await Task.sleep(nanoseconds: 120_000_000)
+        item.select(selected, in: group)
     }
 
     /// Picks the most useful subtitle in a language for following dialog: full > SDH/CC > forced;
