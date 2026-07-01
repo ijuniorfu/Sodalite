@@ -735,6 +735,7 @@ final class PlayerViewModel {
             // Fullscreen uses the custom on-frame overlay for subtitles (the user's pick). The native WebVTT
             // rendition is served but stays UNSELECTED here; it is selected only on PiP entry (#32), so the two
             // never double up. Fullscreen behaviour is identical to main.
+            resetNativePiPSubtitleSelection()
             applyPreferredSubtitle(forAudioLanguage: chosenAudio?.language)
 
             hostLoadActive = false
@@ -1361,6 +1362,49 @@ final class PlayerViewModel {
         }
     }
 
+    /// #32: toggle the native PiP subtitle rendition's VISIBILITY via textStyleRules instead of deselecting it.
+    /// A deselect detaches AVKit's legible renderer and it does NOT re-attach on a later PiP entry after a
+    /// seek/producer-restart (device-confirmed). Keeping the rendition selected + rendering (transparent in
+    /// fullscreen, where the on-frame overlay draws instead) keeps the renderer continuously attached, so it
+    /// survives fullscreen<->PiP and seeks. `nil` = default AVKit legible styling (visible, for PiP).
+    func setNativePiPSubtitleVisible(_ visible: Bool) {
+        guard Self.nativePiPSubtitleProbe, let item = player.currentAVPlayer?.currentItem else { return }
+        if visible {
+            item.textStyleRules = nil
+        } else if let transparent = AVTextStyleRule(textMarkupAttributes: [
+            kCMTextMarkupAttribute_ForegroundColorARGB as String: [0.0, 0.0, 0.0, 0.0],
+            kCMTextMarkupAttribute_CharacterBackgroundColorARGB as String: [0.0, 0.0, 0.0, 0.0]
+        ]) {
+            item.textStyleRules = [transparent]
+        }
+    }
+
+    /// #32: true once the native PiP rendition has been selected this session. The select (deselect/reselect
+    /// dance) must run ONCE to attach the renderer; re-running it on a later PiP entry would detach it and not
+    /// re-attach after a seek. Reset when the item is rebuilt (load) or the user changes subtitle.
+    private var nativePiPSubtitleSelected = false
+
+    /// PiP entry: select the native rendition ONCE (attach renderer), then only make it visible on re-entry.
+    func enterPiPSubtitle() {
+        guard Self.nativePiPSubtitleProbe else { return }
+        if !nativePiPSubtitleSelected {
+            player.setNativeSubtitleForPiP(true)
+            nativePiPSubtitleSelected = true
+        }
+        setNativePiPSubtitleVisible(true)
+    }
+
+    /// PiP exit: keep the rendition SELECTED (renderer stays attached) but hidden in fullscreen.
+    func exitPiPSubtitle() {
+        guard Self.nativePiPSubtitleProbe else { return }
+        setNativePiPSubtitleVisible(false)
+    }
+
+    /// Drop the native PiP selection state so the next PiP entry re-selects (item rebuilt, or subtitle changed).
+    func resetNativePiPSubtitleSelection() {
+        nativePiPSubtitleSelected = false
+    }
+
     /// Picks the most useful subtitle in a language for following dialog: full > SDH/CC > forced;
     /// signs/songs/commentary excluded. `min(by:)` is stable so ties keep source order.
     private func bestSubtitleMatch(forLanguage language: String) -> MediaStream? {
@@ -1539,6 +1583,10 @@ final class PlayerViewModel {
     }
 
     func selectSubtitleTrack(id: Int?) {
+        // #32: the active subtitle changed, so the native PiP rendition selection is stale; re-select on the
+        // next PiP entry (also hides any currently-shown native track so it can't linger from a prior pick).
+        resetNativePiPSubtitleSelection()
+        setNativePiPSubtitleVisible(false)
         // Cancel any in-flight transcode-path load so a slow earlier extraction can't overwrite the
         // cues for the track the user just selected (or disabled).
         subtitleLoadTask?.cancel()
