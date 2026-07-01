@@ -16,12 +16,9 @@ struct PlayerOverlayView: View {
             // Bottom gesture layer: catches taps / swipes on the empty video area; the controls and
             // buttons render above it and win their own hits. Explicit fill: a plain UIView has no
             // intrinsic size and would otherwise collapse to 0x0 and receive no touches.
-            // PROBE (Sodalite#32): omitted in native-UI mode; AVKit's own controls own gestures.
-            if !PlayerViewModel.nativePiPSubtitleProbe {
-                PlayerGestureCatcher(viewModel: viewModel)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .ignoresSafeArea()
-            }
+            PlayerGestureCatcher(viewModel: viewModel)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .ignoresSafeArea()
             #endif
 
             // Keep the styled ASS layer mounted even while the cue array is momentarily empty (seek resets); libass already holds the assembled script.
@@ -93,9 +90,7 @@ struct PlayerOverlayView: View {
                 .transition(.opacity)
             }
 
-            // PROBE (Sodalite#32): native-UI mode hides the custom transport; AVKit's own controls take over on iOS.
-            if viewModel.showControls && !viewModel.isLoading && viewModel.errorMessage == nil
-                && !PlayerViewModel.nativePiPSubtitleProbe {
+            if viewModel.showControls && !viewModel.isLoading && viewModel.errorMessage == nil {
                 controlsOverlay
             }
 

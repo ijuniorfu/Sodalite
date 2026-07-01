@@ -732,25 +732,10 @@ final class PlayerViewModel {
             // The engine resolved the preferred-language audio on the first frame (#72), so there is no
             // selectAudioTrack reload here; read what it picked to drive the matching subtitle.
             let chosenAudio = player.audioTracks.first(where: { $0.id == player.activeAudioTrackIndex })
-            if Self.nativePiPSubtitleProbe {
-                // PROBE (Sodalite#32): iOS uses native AVKit player UI; the USER selects the subtitle via AVKit's
-                // native CC menu. A deliberate user selection is NOT reconciled away by AVSmartSubtitlesController
-                // (unlike our programmatic select, which it disabled as mute-only over the loopback). We only
-                // serve the WebVTT renditions + eager readers so the menu lists them and cues are ready.
-                LogTap.shared.note("[PiPDiag] host: native-UI mode, user picks via AVKit CC menu; nativeTracks=\(player.nativeSubtitleTracks.map { $0.language ?? "?" })")
-                // AVKit auto-selects a persisted subtitle at load, but its legible renderer does NOT attach for a
-                // selection made before the view/pipeline is established (device: renders nothing until a seek,
-                // and a seek over our loopback is a disruptive producer restart -> black frame). A programmatic
-                // deselect/reselect does not attach it either. So DON'T let AVKit auto-select at load: start subs
-                // off and let the user turn them on during playback via the CC menu (that DOES attach the
-                // renderer -> the working common case). Reliable rendering without a disruptive seek.
-                Task { [weak self] in
-                    try? await Task.sleep(nanoseconds: 300_000_000)
-                    await self?.disablePersistedLegibleAtLoad()
-                }
-            } else {
-                applyPreferredSubtitle(forAudioLanguage: chosenAudio?.language)
-            }
+            // Fullscreen uses the custom on-frame overlay for subtitles (the user's pick). The native WebVTT
+            // rendition is served but stays UNSELECTED here; it is selected only on PiP entry (#32), so the two
+            // never double up. Fullscreen behaviour is identical to main.
+            applyPreferredSubtitle(forAudioLanguage: chosenAudio?.language)
 
             hostLoadActive = false
             isPlaying = true
@@ -1374,32 +1359,6 @@ final class PlayerViewModel {
         if let match = bestSubtitleMatch(forLanguage: preferredAudio) {
             selectSubtitleTrack(id: match.index)
         }
-    }
-
-    /// PROBE (Sodalite#32): the native legible ordinal currently selected, remembered so the selection can be
-    /// re-asserted after a background/foreground rebuild or a PiP->fullscreen restore (AVKit drops it).
-    private var probeNativeOrdinal: Int?
-
-    /// Re-assert the native legible selection (e.g. on foreground after AVKit reconciled it away). No-op off the probe.
-    func reassertNativeSubtitleProbe(reason: String) {
-        guard Self.nativePiPSubtitleProbe, let ord = probeNativeOrdinal else { return }
-        LogTap.shared.note("[PiPDiag] host: re-assert(\(reason)) setNativeSubtitleSelected(\(ord)) currentItem=\(player.currentAVPlayer?.currentItem != nil)")
-        player.setNativeSubtitleSelected(track: ord)
-    }
-
-    /// PROBE (Sodalite#32): stop AVKit from auto-selecting a persisted subtitle at load. Its legible renderer
-    /// won't attach for a selection made before the view is established (device: nothing renders until a seek,
-    /// which is a disruptive producer restart over our loopback), and a programmatic re-assert does not attach it
-    /// either. Starting subs OFF and letting the user pick during playback (which DOES attach) is the reliable,
-    /// non-disruptive path. Deselect + criteria-off so AVKit doesn't immediately re-auto-select.
-    func disablePersistedLegibleAtLoad() async {
-        guard Self.nativePiPSubtitleProbe,
-              let av = player.currentAVPlayer, let item = av.currentItem,
-              let group = try? await item.asset.loadMediaSelectionGroup(for: .legible) else { return }
-        av.appliesMediaSelectionCriteriaAutomatically = false
-        let had = item.currentMediaSelection.selectedMediaOption(in: group) != nil
-        item.select(nil, in: group)
-        LogTap.shared.note("[PiPDiag] host: cleared auto-selected legible at load (hadSelection=\(had)); user picks during playback")
     }
 
     /// Picks the most useful subtitle in a language for following dialog: full > SDH/CC > forced;

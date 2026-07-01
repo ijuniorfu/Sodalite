@@ -74,9 +74,21 @@ extension PlayerHostController: AVPlayerViewControllerDelegate {
         Task { @MainActor [weak self] in self?.viewModel.player.pictureInPictureActive = true }
     }
 
+    // #32: the on-frame overlay isn't in the PiP layer, so PiP needs a real legible track. Select the native
+    // WebVTT rendition matching the user's active subtitle once the PiP window is up (which re-establishes the
+    // rendering pipeline so AVKit's legible renderer attaches). Fullscreen keeps the overlay; the native
+    // rendition is deselected again on PiP stop so the two never double up.
+    nonisolated func playerViewControllerDidStartPictureInPicture(_ playerViewController: AVPlayerViewController) {
+        guard PlayerViewModel.nativePiPSubtitleProbe else { return }
+        Task { @MainActor [weak self] in self?.viewModel.player.setNativeSubtitleForPiP(true) }
+    }
+
     nonisolated func playerViewControllerDidStopPictureInPicture(_ playerViewController: AVPlayerViewController) {
         self.pipActive = false
-        Task { @MainActor [weak self] in self?.viewModel.player.pictureInPictureActive = false }
+        Task { @MainActor [weak self] in
+            self?.viewModel.player.pictureInPictureActive = false
+            if PlayerViewModel.nativePiPSubtitleProbe { self?.viewModel.player.setNativeSubtitleForPiP(false) }
+        }
     }
     #endif
 }
