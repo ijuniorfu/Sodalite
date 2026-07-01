@@ -737,13 +737,6 @@ final class PlayerViewModel {
             // never double up. Fullscreen behaviour is identical to main.
             resetNativePiPSubtitleSelection()
             applyPreferredSubtitle(forAudioLanguage: chosenAudio?.language)
-            // #32: select the native PiP rendition now (transparent, invisible in fullscreen) so AVKit's legible
-            // renderer attaches to the fresh pipeline and stays attached across later seeks/producer-restarts;
-            // PiP only flips it visible. Delayed so the item + first frame + the subtitle selection have settled.
-            Task { [weak self] in
-                try? await Task.sleep(nanoseconds: 2_500_000_000)
-                self?.activateNativePiPSubtitle()
-            }
 
             hostLoadActive = false
             isPlaying = true
@@ -1391,29 +1384,20 @@ final class PlayerViewModel {
     /// re-attach after a seek. Reset when the item is rebuilt (load) or the user changes subtitle.
     private var nativePiPSubtitleSelected = false
 
-    /// #32: select the native rendition matching the user's active subtitle and keep it selected FROM the
-    /// fullscreen pick (rendered transparent, so the on-frame overlay owns fullscreen). Staying selected means
-    /// the selection is active during any seek/producer-restart, so AVKit's legible renderer re-attaches on the
-    /// restart instead of detaching (a deselect leaves no selection during the restart -> renderer never
-    /// re-attaches on a later PiP entry). No-op when the active subtitle has no native text equivalent.
-    func activateNativePiPSubtitle() {
+    /// PiP entry: select the native rendition (matching the user's active subtitle) so it renders in the PiP
+    /// window, and make it visible (default styling).
+    func enterPiPSubtitle() {
         guard Self.nativePiPSubtitleProbe else { return }
+        setNativePiPSubtitleVisible(true)
         player.setNativeSubtitleForPiP(true)
-        setNativePiPSubtitleVisible(false)
         nativePiPSubtitleSelected = true
     }
 
-    /// PiP entry: just make the (already-selected) native rendition visible.
-    func enterPiPSubtitle() {
-        guard Self.nativePiPSubtitleProbe else { return }
-        if !nativePiPSubtitleSelected { activateNativePiPSubtitle() }
-        setNativePiPSubtitleVisible(true)
-    }
-
-    /// PiP exit: hide it again (keep it SELECTED so the renderer stays attached across seeks).
+    /// PiP exit: deselect the native rendition so it does not render in fullscreen; the on-frame overlay owns it.
     func exitPiPSubtitle() {
         guard Self.nativePiPSubtitleProbe else { return }
-        setNativePiPSubtitleVisible(false)
+        player.setNativeSubtitleForPiP(false)
+        nativePiPSubtitleSelected = false
     }
 
     /// Drop the native PiP selection state so the next PiP entry re-selects (item rebuilt, or subtitle changed).
