@@ -739,9 +739,10 @@ final class PlayerViewModel {
                 // serve the WebVTT renditions + eager readers so the menu lists them and cues are ready.
                 LogTap.shared.note("[PiPDiag] host: native-UI mode, user picks via AVKit CC menu; nativeTracks=\(player.nativeSubtitleTracks.map { $0.language ?? "?" })")
                 // On a resume, AVKit auto-selects the persisted subtitle but its renderer doesn't attach until
-                // the pipeline is re-established (a seek). Toggling off/on doesn't fix it; a seek does. Kick it.
+                // the pipeline is re-established (a seek). Toggling off/on doesn't fix it; a seek does. Fire late
+                // enough that the resume seek has landed (else we'd seek to 0 and restart from the beginning).
                 Task { [weak self] in
-                    try? await Task.sleep(nanoseconds: 1_500_000_000)
+                    try? await Task.sleep(nanoseconds: 4_000_000_000)
                     await self?.kickLegibleRendererIfActive()
                 }
             } else {
@@ -1390,15 +1391,17 @@ final class PlayerViewModel {
     /// producer restart, no playhead move.
     func kickLegibleRendererIfActive() async {
         guard Self.nativePiPSubtitleProbe,
-              let item = player.currentAVPlayer?.currentItem,
+              let av = player.currentAVPlayer, let item = av.currentItem,
               let group = try? await item.asset.loadMediaSelectionGroup(for: .legible),
               item.currentMediaSelection.selectedMediaOption(in: group) != nil else { return }
         // A clean engine seek to the current position re-establishes the rendering pipeline (what the user's
         // manual seek does), which is what actually attaches AVKit's legible renderer for a selection that was
-        // auto-selected at load. A programmatic deselect/reselect and a raw AVPlayer micro-seek did NOT.
-        let t = player.sourceTime
-        LogTap.shared.note("[PiPDiag] host: legible pre-active, engine-seek kick to \(String(format: "%.2f", t))s")
-        await player.seek(to: t)
+        // auto-selected at load. Read the ACTUAL AVPlayer position (not player.sourceTime, which can still be 0
+        // before the resume seek lands -> would restart from the beginning). Skip if not yet a sane position.
+        let now = CMTimeGetSeconds(av.currentTime())
+        guard now.isFinite, now >= 0 else { return }
+        LogTap.shared.note("[PiPDiag] host: legible pre-active, engine-seek kick to \(String(format: "%.2f", now))s")
+        await player.seek(to: now)
     }
 
     /// Picks the most useful subtitle in a language for following dialog: full > SDH/CC > forced;
