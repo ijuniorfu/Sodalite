@@ -1395,7 +1395,7 @@ final class PlayerViewModel {
         let now = av.currentTime()
         let target = CMTimeMaximum(.zero, CMTimeSubtract(now, CMTime(seconds: 0.05, preferredTimescale: 600)))
         LogTap.shared.note("[PiPDiag] host: legible pre-active, micro-seek kick at \(String(format: "%.2f", CMTimeGetSeconds(now)))s")
-        av.seek(to: target, toleranceBefore: .zero, toleranceAfter: .zero)
+        _ = await av.seek(to: target, toleranceBefore: .zero, toleranceAfter: .zero)
     }
 
     /// Picks the most useful subtitle in a language for following dialog: full > SDH/CC > forced;
