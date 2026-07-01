@@ -1384,20 +1384,21 @@ final class PlayerViewModel {
     /// re-attach after a seek. Reset when the item is rebuilt (load) or the user changes subtitle.
     private var nativePiPSubtitleSelected = false
 
-    /// PiP entry: select the native rendition ONCE (attach renderer), then only make it visible on re-entry.
+    /// PiP entry: select the native rendition (matching the user's active subtitle) so it renders in the PiP
+    /// window; make it visible (default styling).
     func enterPiPSubtitle() {
         guard Self.nativePiPSubtitleProbe else { return }
-        if !nativePiPSubtitleSelected {
-            player.setNativeSubtitleForPiP(true)
-            nativePiPSubtitleSelected = true
-        }
         setNativePiPSubtitleVisible(true)
+        player.setNativeSubtitleForPiP(true)
+        nativePiPSubtitleSelected = true
     }
 
-    /// PiP exit: keep the rendition SELECTED (renderer stays attached) but hidden in fullscreen.
+    /// PiP exit: deselect the native rendition so it does not render (empty box) in fullscreen; the on-frame
+    /// overlay owns fullscreen subtitles.
     func exitPiPSubtitle() {
         guard Self.nativePiPSubtitleProbe else { return }
-        setNativePiPSubtitleVisible(false)
+        player.setNativeSubtitleForPiP(false)
+        nativePiPSubtitleSelected = false
     }
 
     /// Drop the native PiP selection state so the next PiP entry re-selects (item rebuilt, or subtitle changed).
