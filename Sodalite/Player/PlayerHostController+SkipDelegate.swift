@@ -79,8 +79,10 @@ extension PlayerHostController: AVPlayerViewControllerDelegate {
     // rendering pipeline so AVKit's legible renderer attaches). Fullscreen keeps the overlay; the native
     // rendition is deselected again on PiP stop so the two never double up.
     nonisolated func playerViewControllerDidStartPictureInPicture(_ playerViewController: AVPlayerViewController) {
-        guard PlayerViewModel.nativePiPSubtitleProbe else { return }
-        Task { @MainActor [weak self] in self?.viewModel.player.setNativeSubtitleForPiP(true) }
+        Task { @MainActor [weak self] in
+            guard PlayerViewModel.nativePiPSubtitleProbe else { return }
+            self?.viewModel.player.setNativeSubtitleForPiP(true)
+        }
     }
 
     nonisolated func playerViewControllerDidStopPictureInPicture(_ playerViewController: AVPlayerViewController) {
