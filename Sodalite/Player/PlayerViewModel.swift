@@ -733,14 +733,11 @@ final class PlayerViewModel {
             // selectAudioTrack reload here; read what it picked to drive the matching subtitle.
             let chosenAudio = player.audioTracks.first(where: { $0.id == player.activeAudioTrackIndex })
             if Self.nativePiPSubtitleProbe {
-                // PROBE (Sodalite#32): device-confirmed AVKit does NOT auto-select a legible rendition over our
-                // loopback (AVFoundation's auto media-selection suppresses subtitles unless the user enabled
-                // captions), and a selected NON-default rendition is fetched but hidden as mute-only. So select
-                // exactly the ordinal the engine marked DEFAULT=YES (resolved from the preferred language).
-                let ordinal = player.nativeSubtitleDefaultOrdinal
-                probeNativeOrdinal = ordinal
-                LogTap.shared.note("[PiPDiag] host: setNativeSubtitleSelected(\(ordinal)) currentItem=\(player.currentAVPlayer?.currentItem != nil) nativeTracks=\(player.nativeSubtitleTracks.map { $0.language ?? "?" })")
-                player.setNativeSubtitleSelected(track: ordinal)
+                // PROBE (Sodalite#32): iOS uses native AVKit player UI; the USER selects the subtitle via AVKit's
+                // native CC menu. A deliberate user selection is NOT reconciled away by AVSmartSubtitlesController
+                // (unlike our programmatic select, which it disabled as mute-only over the loopback). We only
+                // serve the WebVTT renditions + eager readers so the menu lists them and cues are ready.
+                LogTap.shared.note("[PiPDiag] host: native-UI mode, user picks via AVKit CC menu; nativeTracks=\(player.nativeSubtitleTracks.map { $0.language ?? "?" })")
             } else {
                 applyPreferredSubtitle(forAudioLanguage: chosenAudio?.language)
             }

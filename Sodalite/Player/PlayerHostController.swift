@@ -415,16 +415,58 @@ final class PlayerHostController: AVPlayerViewController {
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
+        #if os(iOS)
+        if PlayerViewModel.nativePiPSubtitleProbe {
+            enterNativeUIProbeMode()
+            return
+        }
+        #endif
         suppressAVKitGestures()
         suppressAVKitChrome()
     }
 
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
+        #if os(iOS)
+        if PlayerViewModel.nativePiPSubtitleProbe {
+            enterNativeUIProbeMode()
+            return
+        }
+        #endif
         // AVKit re-attaches recognizers and fades chrome back in on layout passes; re-suppress every pass.
         suppressAVKitGestures()
         suppressAVKitChrome()
     }
+
+    #if os(iOS)
+    private weak var probeCloseButton: UIButton?
+
+    /// PROBE (Sodalite#32): iOS native-UI mode. Leave AVKit's native chrome (controls + CC/legible menu)
+    /// intact so the user selects subtitles via AVKit itself, make our display-only overlay non-interactive so
+    /// touches reach the native chrome (the overlay is mounted full-bounds ABOVE it and the iOS design routes
+    /// all input through it), and keep a self-owned close button above everything so the player stays exitable.
+    /// Idempotent; re-applied each layout pass since AVKit re-stacks its chrome.
+    private func enterNativeUIProbeMode() {
+        overlayHostingView?.isUserInteractionEnabled = false
+        if let existing = probeCloseButton {
+            view.bringSubviewToFront(existing)
+            return
+        }
+        var config = UIButton.Configuration.gray()
+        config.image = UIImage(systemName: "xmark")
+        config.cornerStyle = .capsule
+        let button = UIButton(configuration: config, primaryAction: UIAction { [weak self] _ in
+            self?.onDismiss()
+        })
+        button.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(button)
+        NSLayoutConstraint.activate([
+            button.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 16),
+            button.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 16)
+        ])
+        probeCloseButton = button
+    }
+    #endif
 
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
