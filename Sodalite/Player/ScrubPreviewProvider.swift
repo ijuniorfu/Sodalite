@@ -109,6 +109,19 @@ final class ScrubPreviewProvider {
         }
     }
 
+    /// Minimum engine forward buffer before a warm-seed extraction may run. The warm decode
+    /// pulls megabytes over the same link the segment producer needs; during startup and
+    /// recovery that contention tipped the first segment past CoreMedia's ~4 s loader timeout
+    /// (plays 1-2 s, loader dies, item reload; #93 startup). nil telemetry counts as unhealthy,
+    /// which also covers the cold pre-telemetry startup window.
+    nonisolated static let warmMinForwardBufferSeconds: Double = 3.0
+
+    /// Warm-seed gate: the invisible playhead warm may only spend bandwidth when playback has
+    /// a healthy forward buffer. Visible scrub previews (update/prewarm) are never gated.
+    nonisolated static func shouldWarm(forwardBufferSeconds: Double?) -> Bool {
+        (forwardBufferSeconds ?? 0) >= warmMinForwardBufferSeconds
+    }
+
     /// Keep one frame warm at the current playback position so the first scrub
     /// frame is on screen instantly (card is gated on isScrubbing, so invisible
     /// during playback). Driven from currentTime while not scrubbing; throttled

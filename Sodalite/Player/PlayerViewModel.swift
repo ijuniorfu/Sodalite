@@ -1073,7 +1073,12 @@ final class PlayerViewModel {
                     self.progress = dur > 0 ? Float(time / dur) : 0
                 }
                 // Keep one frame warm at the playhead so the first scrub frame is on screen instantly.
-                self.scrubPreview.warm(toSeconds: time)
+                // Gated on a healthy forward buffer: the warm extraction's link traffic during
+                // startup/recovery tipped the first segment past CoreMedia's loader timeout (#93).
+                if ScrubPreviewProvider.shouldWarm(
+                    forwardBufferSeconds: self.player.liveTelemetry?.forwardBufferSeconds) {
+                    self.scrubPreview.warm(toSeconds: time)
+                }
             }
             .store(in: &cancellables)
 
