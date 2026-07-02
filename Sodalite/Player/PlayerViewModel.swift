@@ -436,6 +436,10 @@ final class PlayerViewModel {
     /// In-flight transcode-path SRT load (server extraction can take up to 120s). Cancelled when the
     /// user switches or disables the subtitle track so a stale load can't clobber the new selection.
     @ObservationIgnored private var subtitleLoadTask: Task<Void, Never>?
+
+    /// AE#88: Jellyfin stream index -> engine external track id, rebuilt per load; late downloads
+    /// register lazily on first select.
+    @ObservationIgnored var externalEngineTrackIDs: [Int: Int] = [:]
     /// Coordinator reload pre-announcements; the overlay's frame view subscribes so reload-induced
     /// transient nil frames never blank a visible subtitle. Stable for the VM lifetime.
     var assReloadSignal: PassthroughSubject<Void, Never> { assCoordinator.reloadSignal }
@@ -696,6 +700,14 @@ final class PlayerViewModel {
             // Hand the language preference to the engine so it picks the audio track on the first frame
             // from its single probe (#72), instead of us reloading via selectAudioTrack after load.
             let preferredAudio = effectivePreferredAudioLanguage()
+            // AE#88: declare external Jellyfin subs at load so they list in engine.subtitleTracks
+            // and join the native WebVTT renditions (PiP); the map routes UI selections to engine ids.
+            let externalSubs = Self.externalSubtitleDescriptors(streams: subtitleStreams) { stream in
+                playbackService.buildSubtitleURL(
+                    itemID: item.id, mediaSourceID: mediaSourceID,
+                    streamIndex: stream.index, format: stream.codec ?? "srt")
+            }
+            externalEngineTrackIDs = externalSubs.mapping
             try await player.load(
                 url: url,
                 startPosition: startPos,
@@ -716,7 +728,8 @@ final class PlayerViewModel {
                         : [],
                     probesize: probeBudget.probesize,
                     maxAnalyzeDuration: probeBudget.maxAnalyzeDuration,
-                    preferredAudioLanguages: preferredAudio.map { [$0] } ?? []
+                    preferredAudioLanguages: preferredAudio.map { [$0] } ?? [],
+                    externalSubtitles: externalSubs.descriptors
                 )
             )
 
@@ -1341,6 +1354,28 @@ final class PlayerViewModel {
         }
     }
 
+    /// AE#88: external Jellyfin subtitle streams as engine load declarations plus the
+    /// streamIndex -> engine-track-id map. Engine guarantee: LoadOptions.externalSubtitles[i]
+    /// gets id externalSubtitleTrackIDBase + i.
+    static func externalSubtitleDescriptors(
+        streams: [MediaStream],
+        urlBuilder: (MediaStream) -> URL?
+    ) -> (descriptors: [ExternalSubtitleTrack], mapping: [Int: Int]) {
+        var descriptors: [ExternalSubtitleTrack] = []
+        var mapping: [Int: Int] = [:]
+        for stream in streams where stream.isExternal == true {
+            guard let url = urlBuilder(stream) else { continue }
+            mapping[stream.index] = AetherEngine.externalSubtitleTrackIDBase + descriptors.count
+            descriptors.append(ExternalSubtitleTrack(
+                url: url,
+                name: stream.title ?? stream.displayTitle,
+                language: stream.language,
+                isForced: stream.isForced == true,
+                formatHint: stream.codec))
+        }
+        return (descriptors, mapping)
+    }
+
     /// Resolves which subtitle to surface for the active audio language:
     /// 1. Explicit `preferredSubtitleLanguage` always wins.
     /// 2. Else if `autoSubtitleForForeignAudio` and audio isn't the preferred language, surface subs
@@ -1610,15 +1645,11 @@ final class PlayerViewModel {
 
         if isExternal {
             deactivateASSRendering()
-            // Sidecar file: hand the URL to the engine (FFmpeg decode, no host SRTParser); cues land on
-            // engine.subtitleCues and the mirror sink picks them up.
-            if let url = playbackService.buildSubtitleURL(
-                itemID: item.id,
-                mediaSourceID: mediaSourceID,
-                streamIndex: id,
-                format: stream?.codec ?? "srt"
-            ) {
-                player.selectSidecarSubtitle(url: url)
+            // AE#88: external streams are engine-registered tracks; the unified select lists them,
+            // publishes activeSubtitleTrackIndex, and (load-declared) maps them into the PiP
+            // rendition. Cues land on engine.subtitleCues and the mirror sink picks them up.
+            if let engineID = engineTrackID(forExternalStream: stream, jellyfinIndex: id) {
+                player.selectSubtitleTrack(index: engineID)
                 subtitleCues = []
                 // Styled ASS for external .ass/.ssa: wait for the async engine.sidecarASSHeader, then
                 // activate the coordinator like the embedded path (AetherEngine#48).
@@ -1674,13 +1705,8 @@ final class PlayerViewModel {
         let isExternal = stream?.isExternal == true
 
         if isExternal {
-            if let url = playbackService.buildSubtitleURL(
-                itemID: item.id,
-                mediaSourceID: mediaSourceID,
-                streamIndex: id,
-                format: stream?.codec ?? "srt"
-            ) {
-                player.selectSecondarySidecarSubtitle(url: url)
+            if let engineID = engineTrackID(forExternalStream: stream, jellyfinIndex: id) {
+                player.selectSecondarySubtitleTrack(index: engineID)
                 secondarySubtitleCues = []
             } else {
                 player.clearSecondarySubtitle()
@@ -1696,6 +1722,22 @@ final class PlayerViewModel {
             secondarySubtitleCues = []
             activeSecondarySubtitleIndex = nil
         }
+    }
+
+    /// AE#88: engine track id for an external Jellyfin stream: the load-time map, else register now
+    /// (post-download tracks from the subtitle search; overlay-only until the next load, matching
+    /// the engine's hybrid rule).
+    private func engineTrackID(forExternalStream stream: MediaStream?, jellyfinIndex id: Int) -> Int? {
+        if let mapped = externalEngineTrackIDs[id] { return mapped }
+        guard let url = playbackService.buildSubtitleURL(
+            itemID: item.id, mediaSourceID: mediaSourceID,
+            streamIndex: id, format: stream?.codec ?? "srt") else { return nil }
+        let info = player.addExternalSubtitleTrack(ExternalSubtitleTrack(
+            url: url, name: stream?.title ?? stream?.displayTitle,
+            language: stream?.language, isForced: stream?.isForced == true,
+            formatHint: stream?.codec))
+        externalEngineTrackIDs[id] = info.id
+        return info.id
     }
 
     /// Activate styled ASS for an external sidecar once the engine publishes its (async) header:

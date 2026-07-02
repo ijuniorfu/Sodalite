@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		06B7BF9FC868BB4ECFC42010 /* ExternalSubtitleMappingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F7127156B666CE24AD8DB4E /* ExternalSubtitleMappingTests.swift */; };
 		1BD485EF6A5DBD9C83BD8020 /* TrickplayScrubSourceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58BB91A936798EBE022F9F6F /* TrickplayScrubSourceTests.swift */; };
 		2013375022BB486CA4862DC8 /* ProviderMatchMergingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 874D726F6CCC65E84AABB258 /* ProviderMatchMergingTests.swift */; };
 		2B1E261C886B695DE162D2C7 /* ServerDiscoveryURLTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 978CD708E9C5ACCED67A3F97 /* ServerDiscoveryURLTests.swift */; };
@@ -63,6 +64,7 @@
 		164A05A73A4B84E77F6F29AD /* LayoutMetricsTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LayoutMetricsTests.swift; sourceTree = "<group>"; };
 		2044851138A5C53DBFC678F9 /* SodaliteTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SodaliteTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		4553932DFC543AB554886993 /* TrickplayTileSetTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TrickplayTileSetTests.swift; sourceTree = "<group>"; };
+		4F7127156B666CE24AD8DB4E /* ExternalSubtitleMappingTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ExternalSubtitleMappingTests.swift; sourceTree = "<group>"; };
 		51EDE94C9EB4640F5FBFA1B9 /* SRTParserTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SRTParserTests.swift; sourceTree = "<group>"; };
 		57CF00E5C87F92A3DAF35F27 /* SeerrDecodingTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SeerrDecodingTests.swift; sourceTree = "<group>"; };
 		58BB91A936798EBE022F9F6F /* TrickplayScrubSourceTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TrickplayScrubSourceTests.swift; sourceTree = "<group>"; };
@@ -170,6 +172,7 @@
 				164A05A73A4B84E77F6F29AD /* LayoutMetricsTests.swift */,
 				D95A0828E585360E7CA7CF76 /* PlayerTouchInputTests.swift */,
 				C84D67DB8237A2D0FBC8AADA /* PlayerLoadingIndicatorTests.swift */,
+				4F7127156B666CE24AD8DB4E /* ExternalSubtitleMappingTests.swift */,
 			);
 			path = SodaliteTests;
 			sourceTree = "<group>";
@@ -370,6 +373,7 @@
 				91374D820EED39320D3C5883 /* LayoutMetricsTests.swift in Sources */,
 				CE4628D88D87B1C2A8F4B761 /* PlayerTouchInputTests.swift in Sources */,
 				BA338612776FCE10A5D2E71C /* PlayerLoadingIndicatorTests.swift in Sources */,
+				06B7BF9FC868BB4ECFC42010 /* ExternalSubtitleMappingTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -773,7 +777,7 @@
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/superuser404notfound/AetherEngine";
 			requirement = {
-				branch = main;
+				branch = "feat/external-subtitle-tracks";
 				kind = branch;
 			};
 		};
