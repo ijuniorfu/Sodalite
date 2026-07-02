@@ -564,6 +564,8 @@ private struct DiagnosticLogOverlay: View {
 
     /// DV/HDR focus matchers: a line is kept if it contains ANY of these. Tuned so the support-thread diagnostic chain (dispatch, HLS routing, tracks, audio route, display criteria, panel signaling) stays in frame while per-segment cache/muxer chatter falls off.
     private static let focusSubstrings: [String] = [
+        "[PiPDiag]",
+        "[PiPSubsDiag]",
         "[HLSVideoEngine]",
         "[NativeAVPlayerHost]",
         "[DisplayCriteria]",

@@ -38186,6 +38186,972 @@
         }
       }
     },
+    "changelog.0_13_0.instantSubtitles.body" : {
+      "extractionState": "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Vestavěné titulky se zapnou okamžitě, i na vzdálených nebo pomalých serverech."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Indlejrede undertekster slås til med det samme, selv på fjerne eller langsomme servere."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Eingebettete Untertitel schalten sich sofort ein, auch auf entfernten oder langsamen Servern."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Οι ενσωματωμένοι υπότιτλοι ενεργοποιούνται άμεσα, ακόμη και σε απομακρυσμένους ή αργούς διακομιστές."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Embedded subtitles turn on instantly, even on remote or slow servers."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Los subtítulos integrados se activan al instante, incluso en servidores remotos o lentos."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Upotetut tekstitykset käynnistyvät heti myös etä- tai hitailla palvelimilla."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Les sous-titres intégrés s'activent instantanément, même sur des serveurs distants ou lents."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Ugrađeni titlovi uključuju se odmah, čak i na udaljenim ili sporim poslužiteljima."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "A beágyazott feliratok azonnal bekapcsolnak, még távoli vagy lassú szervereken is."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "I sottotitoli incorporati si attivano immediatamente, anche su server remoti o lenti."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "内蔵字幕は、リモートや低速のサーバーでも瞬時にオンになります。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "내장 자막이 원격 서버나 느린 서버에서도 즉시 켜집니다."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Innebygde undertekster slås på umiddelbart, selv på eksterne eller trege servere."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Ingesloten ondertitels schakelen direct in, zelfs op externe of trage servers."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Wbudowane napisy włączają się natychmiast, nawet na zdalnych lub wolnych serwerach."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "As legendas incorporadas são ativadas na hora, mesmo em servidores remotos ou lentos."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "As legendas incorporadas são ativadas de imediato, mesmo em servidores remotos ou lentos."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Subtitrările încorporate se activează instantaneu, chiar și pe servere la distanță sau lente."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Встроенные субтитры включаются мгновенно даже на удалённых или медленных серверах."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Vstavané titulky sa zapnú okamžite aj na vzdialených alebo pomalých serveroch."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Inbäddade undertexter slås på direkt, även på fjärranslutna eller långsamma servrar."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Gömülü altyazılar uzak veya yavaş sunucularda bile anında açılır."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Вбудовані субтитри вмикаються миттєво навіть на віддалених або повільних серверах."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "内嵌字幕即开即用，即使在远程或较慢的服务器上也是如此。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "內嵌字幕即開即用，即使在遠端或較慢的伺服器上也是如此。"
+          }
+        }
+      }
+    },
+    "changelog.0_13_0.instantSubtitles.title" : {
+      "extractionState": "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Okamžité titulky"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Øjeblikkelige undertekster"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Untertitel ohne Wartezeit"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Άμεσοι υπότιτλοι"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Instant subtitles"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Subtítulos al instante"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Välittömät tekstitykset"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Sous-titres instantanés"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Trenutačni titlovi"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Azonnali feliratok"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Sottotitoli istantanei"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "字幕を瞬時に表示"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "즉시 표시되는 자막"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Umiddelbare undertekster"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Directe ondertitels"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Natychmiastowe napisy"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Legendas instantâneas"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Legendas instantâneas"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Subtitrări instantanee"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Мгновенные субтитры"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Okamžité titulky"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Omedelbara undertexter"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Anında altyazılar"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Миттєві субтитри"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "字幕即时加载"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "字幕即時載入"
+          }
+        }
+      }
+    },
+    "changelog.0_13_0.pipSubtitles.body" : {
+      "extractionState": "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Titulky se nyní zobrazují v okně obrazu v obraze a fungují i po přetáčení."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Undertekster vises nu i billede i billede-vinduet og virker fortsat efter spoling."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Untertitel erscheinen jetzt im Bild-in-Bild-Fenster und funktionieren auch nach dem Spulen."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Οι υπότιτλοι εμφανίζονται πλέον στο παράθυρο εικόνας σε εικόνα και συνεχίζουν να λειτουργούν μετά την αναζήτηση."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Subtitles now appear inside the PiP window and keep working after seeking."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Los subtítulos ahora aparecen en la ventana de imagen dentro de imagen y siguen funcionando después de avanzar o retroceder."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Tekstitykset näkyvät nyt kuva kuvassa -ikkunassa ja toimivat myös kelauksen jälkeen."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Les sous-titres apparaissent désormais dans la fenêtre image dans l'image et continuent de fonctionner après une avance ou un retour rapide."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Titlovi se sada prikazuju u prozoru slike u slici i rade i nakon premotavanja."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "A feliratok mostantól megjelennek a kép a képben ablakban, és tekerés után is működnek."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "I sottotitoli ora vengono mostrati nella finestra picture in picture e continuano a funzionare dopo lo scorrimento."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "ピクチャインピクチャのウインドウに字幕が表示され、シーク後も機能し続けます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "이제 화면 속 화면 창에 자막이 표시되며 탐색 후에도 계속 작동합니다."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Undertekster vises nå i bilde-i-bilde-vinduet og fungerer også etter spoling."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Ondertitels verschijnen nu in het beeld-in-beeld-venster en blijven werken na het spoelen."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Napisy pojawiają się teraz w oknie obrazu w obrazie i działają także po przewijaniu."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "As legendas agora aparecem na janela de picture in picture e continuam funcionando após avançar ou retroceder."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "As legendas aparecem agora na janela de imagem na imagem e continuam a funcionar depois de avançar ou recuar."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Subtitrările apar acum în fereastra imagine în imagine și continuă să funcționeze după derulare."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Субтитры теперь отображаются в окне «картинка в картинке» и продолжают работать после перемотки."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Titulky sa teraz zobrazujú v okne obrazu v obraze a fungujú aj po pretáčaní."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Undertexter visas nu i bild-i-bild-fönstret och fortsätter fungera efter spolning."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Altyazılar artık resim içinde resim penceresinde görünüyor ve ileri geri sarmadan sonra da çalışmaya devam ediyor."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Субтитри тепер відображаються у вікні «картинка в картинці» та продовжують працювати після перемотування."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "字幕现在会显示在画中画窗口中，快进快退后仍可正常显示。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "字幕現在會顯示在畫中畫視窗中，快轉倒轉後仍可正常顯示。"
+          }
+        }
+      }
+    },
+    "changelog.0_13_0.pipSubtitles.title" : {
+      "extractionState": "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Titulky v obraze v obraze"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Undertekster i billede i billede"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Untertitel in Bild in Bild"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Υπότιτλοι σε εικόνα σε εικόνα"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Subtitles in Picture in Picture"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Subtítulos en imagen dentro de imagen"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Tekstitykset kuva kuvassa -tilassa"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Sous-titres en image dans l'image"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Titlovi u slici u slici"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Feliratok kép a képben módban"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Sottotitoli in picture in picture"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "ピクチャインピクチャの字幕"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "화면 속 화면 자막"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Undertekster i bilde-i-bilde"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Ondertitels in beeld-in-beeld"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Napisy w trybie obraz w obrazie"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Legendas em picture in picture"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Legendas em imagem na imagem"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Subtitrări în imagine în imagine"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Субтитры в режиме «картинка в картинке»"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Titulky v obraze v obraze"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Undertexter i bild-i-bild"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Resim içinde resim modunda altyazılar"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Субтитри в режимі «картинка в картинці»"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "画中画字幕"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "畫中畫字幕"
+          }
+        }
+      }
+    },
+    "changelog.0_13_0.smoothSeeking.body" : {
+      "extractionState": "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Skok zpět ve videu je nyní okamžitý a zvuk zůstává po přetočení synchronní."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Spring tilbage i en video sker nu øjeblikkeligt, og lyden forbliver synkron efter spoling."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Zurückspringen im Video geht jetzt sofort, und der Ton bleibt nach dem Spulen synchron."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Η μετάβαση προς τα πίσω σε ένα βίντεο είναι πλέον άμεση και ο ήχος παραμένει συγχρονισμένος μετά την αναζήτηση."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Jumping back in a video is now instant, and audio stays in sync after seeking."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Retroceder en un vídeo ahora es instantáneo y el audio se mantiene sincronizado después de desplazarse."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Taaksepäin hyppääminen videossa on nyt välitöntä, ja ääni pysyy synkronoituna kelauksen jälkeen."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Revenir en arrière dans une vidéo est désormais instantané et le son reste synchronisé après la navigation."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Skok unatrag u videozapisu sada je trenutačan, a zvuk ostaje sinkroniziran nakon premotavanja."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "A videóban való visszaugrás mostantól azonnali, és a hang tekerés után is szinkronban marad."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Tornare indietro in un video ora è istantaneo e l'audio resta sincronizzato dopo lo scorrimento."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "ビデオ内の巻き戻しが瞬時になり、シーク後も音声が同期したままになります。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "이제 비디오에서 뒤로 이동이 즉시 이루어지며 탐색 후에도 오디오가 동기화된 상태로 유지됩니다."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Å hoppe tilbake i en video skjer nå umiddelbart, og lyden forblir synkronisert etter spoling."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Terugspringen in een video gaat nu direct en het geluid blijft synchroon na het spoelen."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Przeskakiwanie wstecz w wideo jest teraz natychmiastowe, a dźwięk pozostaje zsynchronizowany po przewijaniu."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Voltar em um vídeo agora é instantâneo e o áudio permanece sincronizado após a navegação."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Recuar num vídeo é agora instantâneo e o áudio mantém-se sincronizado depois de navegar."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Saltul înapoi într-un videoclip este acum instantaneu, iar sunetul rămâne sincronizat după derulare."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Переход назад в видео теперь мгновенный, а звук остаётся синхронизированным после перемотки."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Skok späť vo videu je teraz okamžitý a zvuk zostáva po pretočení synchronizovaný."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Att hoppa bakåt i en video sker nu direkt och ljudet förblir synkat efter spolning."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Videoda geri atlama artık anında gerçekleşiyor ve sarmadan sonra ses senkronize kalıyor."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Перехід назад у відео тепер миттєвий, а звук залишається синхронізованим після перемотування."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "视频回跳现在即刻完成，快进快退后音画保持同步。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "影片回跳現在即刻完成，快轉倒轉後音畫保持同步。"
+          }
+        }
+      }
+    },
+    "changelog.0_13_0.smoothSeeking.title" : {
+      "extractionState": "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Plynulejší přetáčení"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Mere flydende spoling"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Flüssigeres Spulen"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Πιο ομαλή αναζήτηση"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Smoother seeking"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Desplazamiento más fluido"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Sujuvampi kelaus"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Navigation plus fluide"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Glađe premotavanje"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Simább tekerés"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Scorrimento più fluido"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "よりスムーズなシーク"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "더 부드러운 탐색"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Jevnere spoling"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Soepeler spoelen"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Płynniejsze przewijanie"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Navegação mais fluida"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Navegação mais fluida"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Derulare mai fluidă"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Более плавная перемотка"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Plynulejšie pretáčanie"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Smidigare spolning"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Daha akıcı sarma"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Плавніше перемотування"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "更流畅的快进快退"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "更流暢的快轉倒轉"
+          }
+        }
+      }
+    },
     "changelog.0_4_0.cardHeights.body" : {
       "extractionState": "manual",
       "localizations" : {
