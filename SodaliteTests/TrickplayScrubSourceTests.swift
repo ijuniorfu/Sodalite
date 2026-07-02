@@ -16,17 +16,3 @@ struct TrickplayScrubSourceTests {
         #expect(PlayerViewModel.shouldUseServerTrickplay(preferServer: false, tileSet: nil) == false)
     }
 }
-
-/// #93 startup: the warm-seed extraction pulls megabytes over the same link the producer
-/// needs; during startup/recovery that contention tipped the first segment past CoreMedia's
-/// ~4 s loader timeout (plays 1-2 s, loader dies, item reload). Warm only on a healthy buffer.
-struct WarmSeedGateTests {
-    @Test("warm-seed requires a healthy forward buffer")
-    func warmSeedGate() {
-        #expect(!ScrubPreviewProvider.shouldWarm(forwardBufferSeconds: nil))
-        #expect(!ScrubPreviewProvider.shouldWarm(forwardBufferSeconds: 0.0))
-        #expect(!ScrubPreviewProvider.shouldWarm(forwardBufferSeconds: 2.9))
-        #expect(ScrubPreviewProvider.shouldWarm(forwardBufferSeconds: 3.0))
-        #expect(ScrubPreviewProvider.shouldWarm(forwardBufferSeconds: 7.5))
-    }
-}

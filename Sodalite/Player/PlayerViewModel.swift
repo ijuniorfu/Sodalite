@@ -628,7 +628,9 @@ final class PlayerViewModel {
                 itemID: item.id, mediaSourceID: source.id,
                 container: source.container, isStatic: true
             ) {
-                frameExtractor = FrameExtractor(url: previewURL, httpHeaders: [:])
+                // Session-coupled: elective thumbnail decodes yield while the engine's playback
+                // pipeline is starved (startup, restarts), instead of competing for the link.
+                frameExtractor = player.makeFrameExtractor(url: previewURL)
             } else {
                 frameExtractor = nil
             }
@@ -1072,13 +1074,9 @@ final class PlayerViewModel {
                 if !self.isLiveSession {
                     self.progress = dur > 0 ? Float(time / dur) : 0
                 }
-                // Keep one frame warm at the playhead so the first scrub frame is on screen instantly.
-                // Gated on a healthy forward buffer: the warm extraction's link traffic during
-                // startup/recovery tipped the first segment past CoreMedia's loader timeout (#93).
-                if ScrubPreviewProvider.shouldWarm(
-                    forwardBufferSeconds: self.player.liveTelemetry?.forwardBufferSeconds) {
-                    self.scrubPreview.warm(toSeconds: time)
-                }
+                // Keep one frame warm at the playhead so the first scrub frame is on screen
+                // instantly. The engine-coupled extractor yields on a starved pipeline itself.
+                self.scrubPreview.warm(toSeconds: time)
             }
             .store(in: &cancellables)
 
