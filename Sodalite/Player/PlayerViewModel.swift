@@ -799,24 +799,21 @@ final class PlayerViewModel {
         #endif
     }
 
-    /// Whether the panel presents HDR for routing purposes. Feeds the engine's master-vs-media
-    /// routing as the strong signal that master routing is safe even with Match Dynamic Range off
-    /// (AetherEngine#4). tvOS reads the CURRENT headroom (the external display chain must actually
-    /// be in HDR mode); iOS reads the POTENTIAL headroom, because the built-in panel engages EDR on
-    /// demand once HDR content renders, while currentEDRHeadroom is still 1.0 at player launch from
-    /// the SDR browsing UI (a current-headroom check kept every HDR/DV film media-direct, which has
-    /// no SUBTITLES renditions in the playlist and therefore no PiP subtitles).
+    /// Snapshot of whether the connected panel is currently presenting
+    /// Whether the panel is presenting in HDR now (`UIScreen.currentEDRHeadroom` > 1.0). Feeds the
+    /// engine's master-vs-media routing as the strong signal that master routing is safe even with
+    /// Match Dynamic Range off (AetherEngine#4).
     static var panelIsInHDRMode: Bool {
+        #if os(tvOS)
         guard let win = UIApplication.shared.connectedScenes
             .compactMap({ $0 as? UIWindowScene })
             .flatMap({ $0.windows })
             .first
         else { return false }
-        // Headroom 1.0 = SDR, > 1.0 = HDR; epsilon dodges a boundary float-comparison glitch.
-        #if os(tvOS)
+        // Headroom 1.0 = SDR, > 1.0 = HDR active; epsilon dodges a boundary float-comparison glitch.
         return win.screen.currentEDRHeadroom > 1.001
         #else
-        return win.screen.potentialEDRHeadroom > 1.001
+        return false
         #endif
     }
 
