@@ -34,12 +34,9 @@ struct SodaliteApp: App {
         IntentBridge.bind(appState: appState, dependencies: dependencies)
 
         // Wire AetherEngine diagnostics into the in-app log overlay; diagnostic builds (DEBUG/TestFlight) only, App Store leaves it nil (OSLog only).
-        // Probe: also mirror to stdout so `devicectl device process launch --console` streams the
-        // engine log live to an attached Mac (#32 tfdt-continuity device pass).
         if LogTap.isDiagnosticBuild {
             EngineLog.handler = { line in
                 LogTap.shared.note(line)
-                print(line)
             }
         }
 
