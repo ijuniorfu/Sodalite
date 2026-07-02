@@ -70,8 +70,18 @@ extension PlayerHostController: AVPlayerViewControllerDelegate {
     }
 
     nonisolated func playerViewControllerWillStartPictureInPicture(_ playerViewController: AVPlayerViewController) {
+        LogTap.shared.note("[PiP] willStart")
         self.pipActive = true
         Task { @MainActor [weak self] in self?.viewModel.player.pictureInPictureActive = true }
+    }
+
+    // Diagnostic: AVKit reports the concrete reason when PiP cannot start (#93 recovery-reload
+    // PiP lifecycle); without this hook a failed start is indistinguishable from a user close.
+    nonisolated func playerViewController(
+        _ playerViewController: AVPlayerViewController,
+        failedToStartPictureInPictureWithError error: Error
+    ) {
+        LogTap.shared.note("[PiP] failedToStart: \(error.localizedDescription)")
     }
 
     // #32: the on-frame overlay isn't in the PiP layer, so PiP needs a real legible track. Select the native
@@ -79,10 +89,16 @@ extension PlayerHostController: AVPlayerViewControllerDelegate {
     // It is NOT deselected on PiP stop (only hidden via textStyleRules), so the legible renderer stays attached
     // and survives fullscreen<->PiP + seeks; fullscreen shows the on-frame overlay instead.
     nonisolated func playerViewControllerDidStartPictureInPicture(_ playerViewController: AVPlayerViewController) {
+        LogTap.shared.note("[PiP] didStart")
         Task { @MainActor [weak self] in self?.viewModel.enterPiPSubtitle() }
     }
 
+    nonisolated func playerViewControllerWillStopPictureInPicture(_ playerViewController: AVPlayerViewController) {
+        LogTap.shared.note("[PiP] willStop")
+    }
+
     nonisolated func playerViewControllerDidStopPictureInPicture(_ playerViewController: AVPlayerViewController) {
+        LogTap.shared.note("[PiP] didStop")
         self.pipActive = false
         Task { @MainActor [weak self] in
             self?.viewModel.player.pictureInPictureActive = false
