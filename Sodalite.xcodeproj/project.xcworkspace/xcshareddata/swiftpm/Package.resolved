@@ -6,8 +6,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/superuser404notfound/AetherEngine",
       "state" : {
-        "branch" : "main",
-        "revision" : "dd13c96de9e7e6ef7c45864bea14fd49d0b5afbe"
+        "branch" : "fix/issue93-restart-latency",
+        "revision" : "88109c9cc67004b0f0f16ee724904f4097f5f647"
       }
     },
     {
