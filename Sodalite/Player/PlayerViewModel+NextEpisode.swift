@@ -183,6 +183,7 @@ extension PlayerViewModel {
         videoFormat = .sdr
         subtitleCues = []
         subtitleStreams = []
+        externalEngineTrackIDs = [:]
         activeSubtitleIndex = nil
         activeAudioIndex = nil
         // The in-place AVPlayer reload (issue #15) resumes the next item at 1.0x; reset to the
