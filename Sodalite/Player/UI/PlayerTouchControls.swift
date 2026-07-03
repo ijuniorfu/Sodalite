@@ -151,9 +151,12 @@ struct PlayerTouchControls: View {
 
     /// System-rotation-lock style toggle: open = follow device rotation, closed = pin the orientation
     /// the user is holding. Remembered across sessions (PlaybackPreferences.playerRotationLocked).
+    /// The engaged lock fills the circle with the tint (Control Center pattern); the two padlock
+    /// glyphs alone are too similar to read as an on/off state.
     private var rotationLockButton: some View {
-        Button {
-            if viewModel.preferences.playerRotationLocked {
+        let locked = viewModel.preferences.playerRotationLocked
+        return Button {
+            if locked {
                 viewModel.preferences.playerRotationLocked = false
                 PlayerOrientation.follow()
             } else {
@@ -161,11 +164,13 @@ struct PlayerTouchControls: View {
                 PlayerOrientation.lockToCurrent()
             }
         } label: {
-            Image(systemName: viewModel.preferences.playerRotationLocked ? "lock.rotation" : "lock.open.rotation")
+            Image(systemName: locked ? "lock.rotation" : "lock.open.rotation")
                 .font(.headline.weight(.semibold))
                 .foregroundStyle(.white)
                 .frame(width: 44, height: 44)
-                .background(.ultraThinMaterial, in: Circle())
+                .background(
+                    Circle().fill(locked ? AnyShapeStyle(tint) : AnyShapeStyle(.ultraThinMaterial))
+                )
                 .contentShape(Circle())
         }
         .buttonStyle(.plain)

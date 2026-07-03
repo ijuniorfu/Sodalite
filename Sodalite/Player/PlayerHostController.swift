@@ -427,6 +427,12 @@ final class PlayerHostController: AVPlayerViewController {
         // AVKit re-attaches recognizers and fades chrome back in on layout passes; re-suppress every pass.
         suppressAVKitGestures()
         suppressAVKitChrome()
+        // Re-pin the overlay to the final bounds: autoresizing alone can inherit a transitional size
+        // when the modal presents mid-rotation (follow-rotation mode presents in whatever orientation
+        // the user holds), leaving the controls a few points wider than the screen in portrait.
+        if let host = overlayHostingView, host.frame != view.bounds {
+            host.frame = view.bounds
+        }
     }
 
     override func viewWillDisappear(_ animated: Bool) {
