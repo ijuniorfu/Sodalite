@@ -316,14 +316,17 @@ final class PlayerHostController: AVPlayerViewController {
     }
 
     #if os(iOS)
-    // Landscape only while the lock is engaged (during playback); when released for dismiss it widens
-    // to allButUpsideDown so the dismiss transition shares a common orientation with the portrait app
-    // and can rotate back instead of stalling on a black frame. iPad allows all.
+    // The session mask applies only while a lock is engaged (during playback); when released for
+    // dismiss it widens to allButUpsideDown so the dismiss transition shares a common orientation
+    // with the portrait app and can rotate back instead of stalling on a black frame. Follow mode
+    // (mask nil) rotates freely the whole session. iPad allows all.
     override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
         if UIDevice.current.userInterfaceIdiom == .pad { return .all }
-        return PlayerOrientation.lockLandscape ? .landscape : .allButUpsideDown
+        return PlayerOrientation.playerMask ?? .allButUpsideDown
     }
-    override var preferredInterfaceOrientationForPresentation: UIInterfaceOrientation { .landscapeRight }
+    override var preferredInterfaceOrientationForPresentation: UIInterfaceOrientation {
+        PlayerOrientation.presentationOrientation
+    }
     override var prefersStatusBarHidden: Bool { true }
     override var prefersHomeIndicatorAutoHidden: Bool { true }
     #endif
@@ -331,7 +334,7 @@ final class PlayerHostController: AVPlayerViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         #if os(iOS)
-        PlayerOrientation.lock()
+        PlayerOrientation.engage(locked: viewModel.preferences.playerRotationLocked)
         viewModel.startVolumeObservation()
         #endif
         // Kick off playback as the modal starts appearing so network/demuxer work overlaps the present-then-layout sequence.

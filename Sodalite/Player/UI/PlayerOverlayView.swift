@@ -186,14 +186,14 @@ struct PlayerOverlayView: View {
     }
 
     private func swipeHint(icon: String) -> some View {
-        VStack(spacing: 6) {
+        VStack(spacing: 4) {
             Image(systemName: "chevron.up").font(.caption2.weight(.semibold))
-            Image(systemName: icon).font(.title3)
+            Image(systemName: icon).font(.subheadline)
             Image(systemName: "chevron.down").font(.caption2.weight(.semibold))
         }
         .foregroundStyle(.white.opacity(0.5))
-        .padding(.vertical, 12)
-        .padding(.horizontal, 9)
+        .padding(.vertical, 9)
+        .padding(.horizontal, 7)
         .background(
             Capsule()
                 .fill(.ultraThinMaterial)
@@ -477,15 +477,17 @@ struct PlayerOverlayView: View {
 // MARK: - Top-Right Info Column
 
 private extension PlayerOverlayView {
-    /// Top-right informational badges: HDR follows transport visibility (matches Apple TV's player); speed badge persists whenever rate != 1.0x so a user who set 1.5x then hid the transport isn't silently at the wrong speed.
+    /// Top-right informational badges: the format badge follows transport visibility (matches Apple TV's player) on tvOS only, on iOS it sits inside the touch top bar instead; speed badge persists whenever rate != 1.0x so a user who set 1.5x then hid the transport isn't silently at the wrong speed.
     var topRightInfoColumn: some View {
         VStack {
             HStack(alignment: .top) {
                 Spacer()
                 VStack(alignment: .trailing, spacing: 10) {
+                    #if os(tvOS)
                     if viewModel.showControls && viewModel.videoFormat != .sdr {
                         VideoFormatBadge(format: viewModel.videoFormat)
                     }
+                    #endif
                     if PlayerViewModel.speedOptions.indices.contains(viewModel.activeSpeedIndex),
                        PlayerViewModel.speedOptions[viewModel.activeSpeedIndex] != 1.0 {
                         SpeedBadge(index: viewModel.activeSpeedIndex)
@@ -525,15 +527,17 @@ private struct SpeedBadge: View {
 
 // MARK: - Video Format Badge
 
-private struct VideoFormatBadge: View {
+struct VideoFormatBadge: View {
     let format: VideoFormat
+    /// Compact pill for the iOS touch top bar (flush with its 44pt buttons); full size for the tvOS top-right column.
+    var compact = false
 
     var body: some View {
         Text(label)
-            .font(.system(size: 18, weight: .bold, design: .rounded))
+            .font(.system(size: compact ? 13 : 18, weight: .bold, design: .rounded))
             .foregroundStyle(.white)
-            .padding(.horizontal, 14)
-            .padding(.vertical, 6)
+            .padding(.horizontal, compact ? 10 : 14)
+            .padding(.vertical, compact ? 5 : 6)
             .background(
                 Capsule()
                     .fill(.ultraThinMaterial)
