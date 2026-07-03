@@ -19,7 +19,8 @@ struct PlayerGestureCatcher: View {
     private let skipInterval: Double = 10
     /// Brightness/volume vertical swipes are confined to a strip this fraction wide at each edge; the rest
     /// of the width is a dead center so a minimize / swipe gesture there does not change brightness or volume.
-    private static let edgeZoneFraction: CGFloat = 0.25
+    /// 0.18 keeps the strip ~70pt in iPhone portrait, still comfortably above a 44pt touch target.
+    private static let edgeZoneFraction: CGFloat = 0.18
 
     var body: some View {
         GeometryReader { geo in
