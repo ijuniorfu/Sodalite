@@ -39,6 +39,7 @@ final class PlaybackPreferences {
         static let preferLosslessAudioBridge = "playback.preferLosslessAudioBridge"
         static let showScrubPreview = "playback.showScrubPreview"
         static let preferServerTrickplay = "playback.preferServerTrickplay"
+        static let playerRotationLocked = "playback.playerRotationLocked"
     }
 
     // MARK: - Allowed Values
@@ -284,6 +285,13 @@ final class PlaybackPreferences {
         didSet { store.set(preferServerTrickplay, forKey: Keys.preferServerTrickplay) }
     }
 
+    /// iPhone player orientation (the in-player lock icon's remembered state): true pins the session
+    /// (landscape at launch, current orientation when re-locked mid-play), false follows device rotation.
+    /// iPad ignores it (never locked).
+    var playerRotationLocked: Bool {
+        didSet { store.set(playerRotationLocked, forKey: Keys.playerRotationLocked) }
+    }
+
     var audioBridgeMode: AudioBridgeMode {
         preferLosslessAudioBridge ? .lossless : .surroundCompat
     }
@@ -341,5 +349,6 @@ final class PlaybackPreferences {
         self.preferLosslessAudioBridge = store.object(forKey: Keys.preferLosslessAudioBridge) as? Bool ?? false
         self.showScrubPreview = store.object(forKey: Keys.showScrubPreview) as? Bool ?? true
         self.preferServerTrickplay = store.object(forKey: Keys.preferServerTrickplay) as? Bool ?? false
+        self.playerRotationLocked = store.object(forKey: Keys.playerRotationLocked) as? Bool ?? true
     }
 }

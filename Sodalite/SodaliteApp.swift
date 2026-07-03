@@ -4,14 +4,14 @@ import AetherEngine
 #if os(iOS)
 import UIKit
 
-/// Drives app orientation: portrait everywhere on iPhone except the fullscreen player (which sets
-/// PlayerOrientation.lockLandscape); iPad allows all. The delegate method overrides Info.plist at runtime.
+/// Drives app orientation: the app rotates freely on iPhone; a fullscreen player session narrows it
+/// via PlayerOrientation.playerMask (nil in follow mode = free rotation); iPad allows all. The
+/// delegate method overrides Info.plist at runtime.
 final class OrientationAppDelegate: NSObject, UIApplicationDelegate {
     func application(_ application: UIApplication,
                      supportedInterfaceOrientationsFor window: UIWindow?) -> UIInterfaceOrientationMask {
         if UIDevice.current.userInterfaceIdiom == .pad { return .all }
-        // The app rotates freely (portrait + landscape); only the fullscreen player forces landscape.
-        return PlayerOrientation.lockLandscape ? .landscape : .allButUpsideDown
+        return PlayerOrientation.playerMask ?? .allButUpsideDown
     }
 }
 #endif

@@ -59,10 +59,10 @@ struct PlayerLauncher: UIViewControllerRepresentable {
                 )
                 playerVC.modalPresentationStyle = .fullScreen
                 #if os(iOS)
-                // Engage the landscape lock BEFORE presenting: the system validates the player VC's
-                // supportedInterfaceOrientations (.landscape) against the app's allowed set at present
-                // time, so the delegate must already permit landscape or it throws "no common orientation".
-                PlayerOrientation.lock()
+                // Engage the orientation mode BEFORE presenting: the system validates the player VC's
+                // supportedInterfaceOrientations against the app's allowed set at present time, so in
+                // locked mode the delegate must already permit landscape or it throws "no common orientation".
+                PlayerOrientation.engage(locked: preferences.playerRotationLocked)
                 #endif
                 return playerVC
             }

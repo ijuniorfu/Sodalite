@@ -132,12 +132,43 @@ struct PlayerTouchControls: View {
                 }
             }
             Spacer()
+            // Format badge lives up here on touch, flush with the top-bar buttons (tvOS keeps the
+            // free-floating top-right column, which has no bar to align with).
+            if viewModel.videoFormat != .sdr {
+                VideoFormatBadge(format: viewModel.videoFormat, compact: true)
+                    .frame(height: 44)
+            }
+            if PlayerOrientation.isPhone {
+                rotationLockButton
+            }
             // Auto-PiP (swipe-Home) is AVKit's own; no manual button (a custom AVPictureInPictureController
             // breaks AVKit's auto-PiP and can't survive backgrounding). AirPlay button for discoverability.
             AirPlayRouteButton(tint: .white)
                 .frame(width: 44, height: 44)
                 .background(.ultraThinMaterial, in: Circle())
         }
+    }
+
+    /// System-rotation-lock style toggle: open = follow device rotation, closed = pin the orientation
+    /// the user is holding. Remembered across sessions (PlaybackPreferences.playerRotationLocked).
+    private var rotationLockButton: some View {
+        Button {
+            if viewModel.preferences.playerRotationLocked {
+                viewModel.preferences.playerRotationLocked = false
+                PlayerOrientation.follow()
+            } else {
+                viewModel.preferences.playerRotationLocked = true
+                PlayerOrientation.lockToCurrent()
+            }
+        } label: {
+            Image(systemName: viewModel.preferences.playerRotationLocked ? "lock.rotation" : "lock.open.rotation")
+                .font(.headline.weight(.semibold))
+                .foregroundStyle(.white)
+                .frame(width: 44, height: 44)
+                .background(.ultraThinMaterial, in: Circle())
+                .contentShape(Circle())
+        }
+        .buttonStyle(.plain)
     }
 
     private var titleText: String {
