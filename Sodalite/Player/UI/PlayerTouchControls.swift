@@ -24,31 +24,44 @@ struct PlayerTouchControls: View {
 
     private var tint: Color { tintColor ?? .accentColor }
 
-    var body: some View {
-        ZStack {
-            // Bottom scrim so the controls stay legible over bright frames. Decorative only: in landscape
-            // it covers the vertical center where the brightness/volume swipe happens, so it must not
-            // capture touches (they fall through to the gesture catcher below).
-            VStack {
-                Spacer()
-                LinearGradient(colors: [.clear, .black.opacity(0.75)], startPoint: .top, endPoint: .bottom)
-                    .frame(height: 260)
-            }
-            .ignoresSafeArea()
-            .allowsHitTesting(false)
+    /// Window-safe content width minus the given horizontal margin per side; UIKit truth, immune to
+    /// the corrupt SwiftUI safe rect (see the fixed-width comment in body). nil (no window yet) lets
+    /// .frame(width:) fall through to flexible layout.
+    static func chromeContentWidth(margin: CGFloat) -> CGFloat? {
+        let window = UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .flatMap(\.windows)
+            .first(where: \.isKeyWindow)
+            ?? UIApplication.shared.connectedScenes
+                .compactMap { ($0 as? UIWindowScene)?.windows.first }
+                .first
+        guard let window else { return nil }
+        let insets = window.safeAreaInsets
+        return max(0, window.bounds.width - insets.left - insets.right - margin * 2)
+    }
 
+    var body: some View {
+        // No safe-area-aware constructs anywhere in here: this subtree sits in controlsOverlay's
+        // absolute-geometry wrapper, which applies the window insets as plain padding, because the
+        // AVKit hosting pipeline serves corrupt insets in portrait (Sodalite#15 portrait clip). The
+        // bottom scrim lives in that wrapper for the same reason (it needs to full-bleed).
+        ZStack {
             VStack(spacing: 0) {
                 topBar
                 Spacer()
                 bottomBlock
             }
-            .padding(.horizontal, isPad ? 40 : 20)
+            // FIXED width instead of horizontal padding (Sodalite#15 portrait clip): inside AVKit,
+            // flexible children balloon symmetrically into a corrupt safe rect for the first seconds
+            // after open/rotation in portrait, regardless of node type (measured at every level).
+            // The balloon stays centered on the screen, so a fixed-width child computed from UIKit
+            // truth lands correctly in both the corrupt and the healthy state.
+            .frame(width: Self.chromeContentWidth(margin: isPad ? 40 : 20))
             .padding(.vertical, isPad ? 28 : 14)
 
             if let picker = activePicker {
                 // Tap-catching scrim that closes only the picker.
                 Color.black.opacity(0.001)
-                    .ignoresSafeArea()
                     .onTapGesture { activePicker = nil }
                 pickerPanel(picker)
             }
@@ -60,46 +73,9 @@ struct PlayerTouchControls: View {
             if newValue == nil { viewModel.scheduleControlsHide() }
             else { viewModel.cancelControlsHide() }
         }
-        // External-subtitle delete (Feature #4 on touch): the tvOS hold-Select prompt has no touch analog,
-        // so a trash button in the subtitle picker arms the existing delete state machine and a native
-        // confirmation dialog drives it. Reuses the tvOS strings.
-        .confirmationDialog(
-            Text("player.subtitle.delete.title"),
-            isPresented: Binding(
-                get: { if case .confirm = viewModel.subtitleDeleteState { return true } else { return false } },
-                set: { presented in
-                    if !presented, case .confirm = viewModel.subtitleDeleteState {
-                        viewModel.subtitleDeletePromptDismiss()
-                    }
-                }
-            ),
-            titleVisibility: .visible
-        ) {
-            Button(String(localized: "player.subtitle.delete.confirm", defaultValue: "Delete"), role: .destructive) {
-                viewModel.subtitleDeletePromptConfirmDelete()
-            }
-            Button(String(localized: "common.cancel", defaultValue: "Cancel"), role: .cancel) {
-                viewModel.subtitleDeletePromptDismiss()
-            }
-        }
-        .alert(
-            subtitleDeleteErrorText,
-            isPresented: Binding(
-                get: { if case .error = viewModel.subtitleDeleteState { return true } else { return false } },
-                set: { presented in
-                    if !presented { viewModel.subtitleDeletePromptDismiss() }
-                }
-            )
-        ) {
-            Button(String(localized: "common.ok", defaultValue: "OK")) {
-                viewModel.subtitleDeletePromptDismiss()
-            }
-        }
-    }
-
-    private var subtitleDeleteErrorText: String {
-        if case .error(let message) = viewModel.subtitleDeleteState { return message }
-        return ""
+        // The subtitle-delete confirmation dialog + error alert live on PlayerOverlayView's root, NOT
+        // here: presentation modifiers are safe-area-aware, and any such node in this subtree re-applies
+        // the corrupt portrait insets AVKit's hosting serves (Sodalite#15 portrait clip).
     }
 
     // MARK: - Top bar

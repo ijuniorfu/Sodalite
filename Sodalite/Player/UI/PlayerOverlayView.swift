@@ -91,15 +91,9 @@ struct PlayerOverlayView: View {
             }
 
             if viewModel.showControls && !viewModel.isLoading && viewModel.errorMessage == nil {
+                // iOS swipe hints live INSIDE controlsOverlay's absolute-geometry wrapper (Sodalite#15 portrait clip).
                 controlsOverlay
             }
-
-            #if os(iOS)
-            // Subtle edge affordances: a vertical swipe on the left adjusts brightness, on the right volume.
-            if viewModel.showControls && !viewModel.isScrubbing && !viewModel.isLoading && viewModel.errorMessage == nil {
-                swipeHintsOverlay
-            }
-            #endif
 
             // Stats-for-nerds panel mounted above the controls overlay so it stays readable when the transport's auto-hide fires.
             if viewModel.showStatsOverlay && viewModel.errorMessage == nil {
@@ -170,19 +164,72 @@ struct PlayerOverlayView: View {
         .animation(.easeInOut(duration: 0.25), value: viewModel.showStatsOverlay)
         .animation(.easeInOut(duration: 0.3), value: viewModel.subtitleSearchVisible)
         .animation(.easeInOut(duration: 0.25), value: viewModel.isSubtitleDeletePromptVisible)
+        #if os(iOS)
+        // External-subtitle delete (Feature #4 on touch): confirmation dialog + error alert for the
+        // trash button in PlayerTouchControls' subtitle picker. Hoisted OUT of the touch-controls
+        // subtree because presentation modifiers are safe-area-aware and re-apply the corrupt portrait
+        // insets AVKit's hosting serves for the first seconds after open/rotation (Sodalite#15
+        // portrait clip); on the root they can't displace the controls. State machine lives in the VM.
+        .confirmationDialog(
+            Text("player.subtitle.delete.title"),
+            isPresented: Binding(
+                get: { if case .confirm = viewModel.subtitleDeleteState { return true } else { return false } },
+                set: { presented in
+                    if !presented, case .confirm = viewModel.subtitleDeleteState {
+                        viewModel.subtitleDeletePromptDismiss()
+                    }
+                }
+            ),
+            titleVisibility: .visible
+        ) {
+            Button(String(localized: "player.subtitle.delete.confirm", defaultValue: "Delete"), role: .destructive) {
+                viewModel.subtitleDeletePromptConfirmDelete()
+            }
+            Button(String(localized: "common.cancel", defaultValue: "Cancel"), role: .cancel) {
+                viewModel.subtitleDeletePromptDismiss()
+            }
+        }
+        .alert(
+            subtitleDeleteErrorText,
+            isPresented: Binding(
+                get: { if case .error = viewModel.subtitleDeleteState { return true } else { return false } },
+                set: { presented in
+                    if !presented { viewModel.subtitleDeletePromptDismiss() }
+                }
+            )
+        ) {
+            Button(String(localized: "common.ok", defaultValue: "OK")) {
+                viewModel.subtitleDeletePromptDismiss()
+            }
+        }
+        #endif
     }
 
     #if os(iOS)
+    private var subtitleDeleteErrorText: String {
+        if case .error(let message) = viewModel.subtitleDeleteState { return message }
+        return ""
+    }
+    #endif
+
+    #if os(iOS)
     private var swipeHintsOverlay: some View {
+        swipeHintsRow
+            // FIXED width instead of horizontal padding, same rationale as PlayerTouchControls'
+            // fixed-width chrome (Sodalite#15 portrait clip): the corrupt safe rect balloons flexible
+            // children symmetrically, a UIKit-derived fixed width stays centered and correct.
+            .frame(width: PlayerTouchControls.chromeContentWidth(margin: 20))
+            // Visual only; the actual swipe is handled by the gesture catcher underneath.
+            .allowsHitTesting(false)
+            .transition(.opacity)
+    }
+
+    private var swipeHintsRow: some View {
         HStack {
             swipeHint(icon: "sun.max.fill")
             Spacer()
             swipeHint(icon: "speaker.wave.2.fill")
         }
-        .padding(.horizontal, 20)
-        // Visual only; the actual swipe is handled by the gesture catcher underneath.
-        .allowsHitTesting(false)
-        .transition(.opacity)
     }
 
     private func swipeHint(icon: String) -> some View {
@@ -382,17 +429,71 @@ struct PlayerOverlayView: View {
     @ViewBuilder
     private var controlsOverlay: some View {
         #if os(iOS)
-        PlayerTouchControls(
-            viewModel: viewModel,
-            onDismiss: onDismiss,
-            tintColor: tintColor,
-            episodeImageURL: { episodeThumbnailURL(for: $0) },
-            chapterThumbnail: { await viewModel.chapterThumbnail(forIndex: $0) }
-        )
+        // Absolute-geometry chrome mount (same pattern as nextEpisodeOverlay's scene-screen position):
+        // inside AVKit, the SwiftUI hosting pipeline serves corrupt NEGATIVE horizontal safe-area
+        // insets in portrait for the first seconds after open and after each rotation, while AVKit's
+        // invisible chrome counts as visible (SDR content only; HDR's display-mode switch resets it
+        // during load). Every public UIKit inset API reads clean meanwhile, and the corrupt values
+        // re-apply at every safe-area-aware SwiftUI node, so the chrome subtree avoids them entirely:
+        // the GeometryReader measures the (symmetric) corrupt region in global space, a fixed
+        // window-sized frame is pinned back over the real screen, and the window's safe-area insets
+        // are applied as PLAIN padding. Nothing inside this wrapper may use .ignoresSafeArea or
+        // .safeAreaPadding, or the corruption re-enters (measured; see project memory).
+        GeometryReader { geo in
+            let allotted = geo.frame(in: .global)
+            let (screen, insets) = Self.windowGeometry(fallback: geo.size)
+            let insetPadding = EdgeInsets(top: insets.top, leading: insets.left, bottom: insets.bottom, trailing: insets.right)
+            ZStack {
+                // Bottom scrim at the true screen bottom; lives here (not in PlayerTouchControls) so
+                // it can full-bleed without .ignoresSafeArea. Decorative only: in landscape it covers
+                // the vertical center where the brightness/volume swipe happens, so it must not
+                // capture touches (they fall through to the gesture catcher below).
+                VStack {
+                    Spacer()
+                    LinearGradient(colors: [.clear, .black.opacity(0.75)], startPoint: .top, endPoint: .bottom)
+                        .frame(height: 260)
+                }
+                .allowsHitTesting(false)
+
+                PlayerTouchControls(
+                    viewModel: viewModel,
+                    onDismiss: onDismiss,
+                    tintColor: tintColor,
+                    episodeImageURL: { episodeThumbnailURL(for: $0) },
+                    chapterThumbnail: { await viewModel.chapterThumbnail(forIndex: $0) }
+                )
+                .padding(insetPadding)
+
+                // Subtle edge affordances: a vertical swipe on the left adjusts brightness, on the right volume.
+                if !viewModel.isScrubbing {
+                    swipeHintsOverlay
+                        .padding(insetPadding)
+                }
+            }
+            .frame(width: screen.width, height: screen.height)
+            .position(x: screen.width / 2 - allotted.minX, y: screen.height / 2 - allotted.minY)
+        }
         #else
         tvOSControlsOverlay
         #endif
     }
+
+    #if os(iOS)
+    /// The window's UIKit-truth geometry; the hosting pipeline's safe area is untrustworthy here.
+    /// Tolerates scene/key churn during the modal transition (scene order is undefined and keyWindow
+    /// can be transiently nil).
+    private static func windowGeometry(fallback: CGSize) -> (CGRect, UIEdgeInsets) {
+        let window = UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .flatMap(\.windows)
+            .first(where: \.isKeyWindow)
+            ?? UIApplication.shared.connectedScenes
+                .compactMap { ($0 as? UIWindowScene)?.windows.first }
+                .first
+        guard let window else { return (CGRect(origin: .zero, size: fallback), .zero) }
+        return (window.bounds, window.safeAreaInsets)
+    }
+    #endif
 
     private var tvOSControlsOverlay: some View {
         // Pin to scene-screen bounds (same fix as the next-episode card): an audio-track switch reloads AVKit and transiently collapses its container frame, so a Spacer/alignment-anchored controls block jumps up while fading. Absolute screen-sized frame + center position removes the dependency on the churning AVKit parent.
