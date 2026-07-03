@@ -239,7 +239,6 @@ struct MovieDetailView: View {
                     actionButtonRow(vm: vm)
                 }
                 .padding(.horizontal, metrics.rowInset)
-                .id(vm.item.genres?.first ?? vm.item.name)
             }) {
                 if let overview = vm.item.overview, !overview.isEmpty {
                     ExpandableTextBox(text: overview)
@@ -292,7 +291,8 @@ struct MovieDetailView: View {
             DetailInfoRows(
                 item: vm.item,
                 hasFullDetail: vm.hasFullDetail,
-                hasLeftSecondary: !(vm.item.genres?.isEmpty ?? true)
+                hasLeftSecondary: !(vm.item.genres?.isEmpty ?? true),
+                leftSecondaryPending: !vm.hasFullDetail && vm.item.genres == nil
             ) {
                 ItemMetadataRow(item: vm.item)
             } leftSecondary: {
