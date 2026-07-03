@@ -65,6 +65,8 @@ struct DetailInfoRows<LeftPrimary: View, LeftSecondary: View>: View {
     let hasFullDetail: Bool
     /// Whether leftSecondary (the genres line) produces anything; gates the second row so an episode panel with no genres carries no invisible row spacing.
     var hasLeftSecondary: Bool = true
+    /// Genres still unknown (slim row item, detail fetch in flight): reserve the genre line's height so the panel doesn't grow and push the buttons down when it lands. The skeleton bars below only cover the right column.
+    var leftSecondaryPending: Bool = false
     @ViewBuilder let leftPrimary: () -> LeftPrimary
     @ViewBuilder let leftSecondary: () -> LeftSecondary
 
@@ -100,6 +102,8 @@ struct DetailInfoRows<LeftPrimary: View, LeftSecondary: View>: View {
                 if hasLeftSecondary {
                     leftSecondary()
                         .lineLimit(1)
+                } else if leftSecondaryPending {
+                    genreLinePlaceholder
                 }
                 if let studios {
                     styled(studios)
@@ -125,10 +129,13 @@ struct DetailInfoRows<LeftPrimary: View, LeftSecondary: View>: View {
                         placeholderBar(width: 220)
                     }
                 }
-                if hasLeftSecondary || (hasTagline && studios != nil) || showPlaceholders {
+                if hasLeftSecondary || leftSecondaryPending || (hasTagline && studios != nil) || showPlaceholders {
                     HStack(alignment: .firstTextBaseline) {
                         leftSecondary()
                             .layoutPriority(1)
+                        if !hasLeftSecondary && leftSecondaryPending {
+                            genreLinePlaceholder
+                        }
                         Spacer(minLength: 24)
                         if !studiosInRowOne, let studios {
                             styled(studios)
@@ -146,6 +153,15 @@ struct DetailInfoRows<LeftPrimary: View, LeftSecondary: View>: View {
             .font(.caption)
             .foregroundStyle(.secondary)
             .lineLimit(1)
+    }
+
+    /// Skeleton for the genre line itself: a blank subheadline Text supplies the exact line height and baseline the real genre Text will have, the bar just draws over it.
+    private var genreLinePlaceholder: some View {
+        Text(verbatim: " ")
+            .font(.subheadline)
+            .lineLimit(1)
+            .frame(width: 180, alignment: .leading)
+            .overlay(alignment: .leading) { placeholderBar(width: 180) }
     }
 
     private func placeholderBar(width: CGFloat) -> some View {

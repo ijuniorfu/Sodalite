@@ -452,7 +452,8 @@ struct SeriesDetailView: View {
             DetailInfoRows(
                 item: vm.item,
                 hasFullDetail: vm.hasFullDetail,
-                hasLeftSecondary: !isShowingEpisode && !(vm.item.genres?.isEmpty ?? true)
+                hasLeftSecondary: !isShowingEpisode && !(vm.item.genres?.isEmpty ?? true),
+                leftSecondaryPending: !isShowingEpisode && !vm.hasFullDetail && vm.item.genres == nil
             ) {
                 if isShowingEpisode {
                     // Single metadata line (runtime + series genres). S/E pair left the panel (Sodalite#15 round 6) since the play-button subtitle already carries it; keeps the episode panel at title + one line.
