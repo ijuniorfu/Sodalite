@@ -64,12 +64,12 @@ The high-value areas, what we most want feedback on:
 - An ASS / SSA subtitle track with heavy styling (anime fansubs are ideal): do fonts, colors and positions look right? Try the styled / plain toggle in Playback settings
 - Resume from where you stopped, on multiple devices
 - Auto-play next episode for series
+- The 10-second skip buttons in the system Now Playing controls (Control Center on iPhone / iPad, the Now Playing panel on Apple TV)
 
 ### On iPhone & iPad
 - Rotate the device during playback: does the video follow, and does the rotation-lock toggle pin it where you want?
 - Picture in Picture: start PiP, leave the app, come back. Do text subtitles show in the PiP window and stay in sync when you seek both directions?
 - AirPlay: send a title to an AirPlay display, does it start, and do HDR / surround survive?
-- Control Center: the 10-second forward / backward skip buttons in the Now Playing widget
 - Portrait and landscape: are the player controls fully visible, nothing clipped behind the notch or home indicator?
 - iPad multitasking (Split View / Slide Over) if you use it
 

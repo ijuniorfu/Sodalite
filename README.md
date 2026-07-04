@@ -86,7 +86,6 @@ Almost everything is identical across devices, it's one codebase. A handful of c
 | Picture in Picture | – | ✓ |
 | AirPlay to another display | – | ✓ |
 | Rotation lock &amp; portrait player | – | ✓ |
-| Control Center 10s skip | – | ✓ |
 | Top Shelf &amp; Siri Remote focus UX | ✓ | – |
 
 ## Open source, end to end
@@ -137,6 +136,7 @@ The Seerr integration isn't a tacked-on link to a web view. It's a first-class p
 - **Audio track switcher**: pick the language or surround mix you want, mid-playback
 - **Scrub preview**: thumbnails of the exact frame as you scrub, floating above the playhead, generated on-device by AetherEngine straight from the video so they land on the precise frame and work even when your server has no trickplay images prepared. An optional setting lets you prefer your server's pre-generated trickplay images instead (decode-free, lighter on older devices), falling back to on-device when the server has none
 - **Custom player UI**: a hand-built transport bar and info panel on top of our own video engine, matching the gestures and feel of Apple's own player without using the system player
+- **Now Playing skip**: the 10-second forward and backward buttons in the system Now Playing controls (Control Center on iPhone and iPad, the Now Playing panel on Apple TV) route through to the engine via `MPRemoteCommandCenter`, App Store compliant, no private API
 - **Stats for Nerds overlay**: optional info panel during playback. Static section shows container, video codec / range / framerate / bitrate / decoder, audio codec / channels / bitrate / decoder, subtitle codec. Live section refreshes at 1 Hz with instant + average bitrate from the demuxer, forward buffer + cached MB, network throughput, dropped frames (native AVPlayer) or observed FPS (software AV1), plus a colour-coded A/V sync gap. A second toggle adds an Engine Diagnostics deep-dive (producer restarts, RSS, demuxer / muxer / audio-bridge bytes, server traffic) for troubleshooting. Enable in Settings → Playback → Advanced.
 
 ### 📱 On iPhone & iPad
@@ -145,7 +145,6 @@ The Seerr integration isn't a tacked-on link to a web view. It's a first-class p
 - **Rotation lock**: a one-tap toggle in the player pins landscape (or lets it follow the device), with a lock indicator so you always know which mode you're in
 - **Format badge**: the top bar surfaces the live format (Dolby Vision, HDR10+, Atmos and friends) so you can confirm at a glance what's actually playing
 - **Portrait-safe chrome**: player controls stay correctly placed in portrait and landscape, no clipped buttons behind the notch or home indicator
-- **Control Center skip**: the 10-second forward and backward buttons in the Now Playing widget route through to the engine via `MPRemoteCommandCenter`, App Store compliant (no private API), handy when your hands are busy
 - **Touch-native throughout**: swipe to scrub, tap to play/pause, drag the grids, the whole app is built for touch as a first-class input, not a ported remote UI
 
 ### 📺 Live TV & DVR
