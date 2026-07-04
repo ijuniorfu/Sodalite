@@ -4,24 +4,23 @@ Thanks for testing Sodalite. This page tells you how to get the build, what to l
 
 ## What Sodalite is
 
-A native Apple TV media player for your own Jellyfin server, with built-in [Seerr](https://github.com/Fallenbagel/jellyseerr) browse + request flow. Direct Play, live TV with DVR, real HDR10 / Dolby Vision, real Dolby Atmos. Open source ([GPL-3.0 with App Store Exception](LICENSE)), no telemetry.
+A native media player for your own Jellyfin server, one universal app for **Apple TV, iPhone and iPad**, with built-in [Seerr](https://github.com/Fallenbagel/jellyseerr) browse + request flow. Direct Play, live TV with DVR, real HDR10 / Dolby Vision, real Dolby Atmos. On iPhone and iPad you also get AirPlay and Picture in Picture. Open source ([GPL-3.0 with App Store Exception](LICENSE)), no telemetry.
 
 For the long pitch see the [README](README.md).
 
 ## What you need
 
-- **Apple TV 4K** (any generation) running **tvOS 26.0 or later**
-- A **Jellyfin server** you can reach from the Apple TV (10.9+ recommended)
+- **An Apple TV 4K (tvOS 26+), an iPhone (iOS 26+), or an iPad (iPadOS 26+)**. The same app runs on all three, test on as many as you have
+- A **Jellyfin server** you can reach from the device (10.9+ recommended)
 - *Optional:* a **Seerr / Jellyseerr** instance (2.0+) if you want to test the request flow
-- An **Apple ID** signed in on your Apple TV (no invite required, this is a public beta)
+- An **Apple ID** signed in on the device (no invite required, this is a public beta)
 
 ## Install the build
 
 1. On any device signed in with your Apple ID, open the public TestFlight link: **https://testflight.apple.com/join/nWeQzmBX**
-2. Tap **Accept** and **Install**, TestFlight handles the rest
-3. On your Apple TV, install the **TestFlight** app from the App Store if it isn't already there
-4. Sign in with the same Apple ID; **Sodalite** appears in the list, tap **Install**
-5. Open it from the home screen
+2. Tap **Accept**, then **Install** on whichever devices you want to test. iPhone, iPad and Apple TV all install from the same link
+3. On Apple TV, first install the **TestFlight** app from the App Store if it isn't already there, sign in with the same Apple ID, then install **Sodalite** from the list
+4. Open it from the home screen
 
 If it tells you "this beta has expired", revisit the join link above to grab the current build. TestFlight builds expire after 90 days.
 
@@ -66,6 +65,14 @@ The high-value areas, what we most want feedback on:
 - Resume from where you stopped, on multiple devices
 - Auto-play next episode for series
 
+### On iPhone & iPad
+- Rotate the device during playback: does the video follow, and does the rotation-lock toggle pin it where you want?
+- Picture in Picture: start PiP, leave the app, come back. Do text subtitles show in the PiP window and stay in sync when you seek both directions?
+- AirPlay: send a title to an AirPlay display, does it start, and do HDR / surround survive?
+- Control Center: the 10-second forward / backward skip buttons in the Now Playing widget
+- Portrait and landscape: are the player controls fully visible, nothing clipped behind the notch or home indicator?
+- iPad multitasking (Split View / Slide Over) if you use it
+
 ### Seerr integration
 - Browse trending / popular
 - Request a movie or series
@@ -86,16 +93,16 @@ Please include:
 2. **What you expected**
 3. **What actually happened**
 4. **Build version**: Settings, scroll to the bottom, e.g. `0.12.0 (1)`
-5. **tvOS version**: Settings on the Apple TV, System, About
+5. **Device & OS version**: which device, and its tvOS / iOS / iPadOS version (System, About on Apple TV; Settings, General, About on iPhone / iPad)
 6. **Jellyfin server version** if relevant
-7. **A photo of the screen** if it's a visual bug. Taking a screenshot from the Siri Remote (`TV` + `Play/Pause`) lands the file on your Mac via Photos.
+7. **A screenshot** if it's a visual bug. On iPhone / iPad use the usual shortcut (side + volume-up, or top + home on older models). On Apple TV press `TV` + `Play/Pause` on the Siri Remote and the screenshot lands on your Mac via Photos.
 8. *Optional:* TestFlight Feedback (long-press in the TestFlight app) attaches a screenshot + system info automatically, also fine
 
 Bugs already known live in the [open issues](https://github.com/superuser404notfound/Sodalite/issues). Search before filing a duplicate.
 
 ## What you should NOT expect from a beta
 
-- **Crashes are possible.** Apple TV won't be damaged, but you may have to relaunch.
+- **Crashes are possible.** Your device won't be damaged, but you may have to relaunch.
 - **Some features may be incomplete.** For example, HDR display switching depends on TV model and the Match Content setting.
 - **TestFlight builds expire after 90 days.** You'll get a new invite when a fresh build lands.
 - **Your watch progress is stored on your Jellyfin server**, not in the app. If you reinstall you keep all your progress.
