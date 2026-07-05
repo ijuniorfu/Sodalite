@@ -14446,7 +14446,7 @@
       }
     },
     "auth.users.empty" : {
-      "comment": "Shown when /Users/Public returns empty — admin disabled the user list",
+      "comment": "Shown when /Users/Public returns empty, admin disabled the user list",
       "extractionState": "manual",
       "localizations" : {
         "cs" : {
@@ -14932,7 +14932,7 @@
       }
     },
     "auth.users.title" : {
-      "comment": "Header on the UserPicker screen — same tone as Netflix/Disney profile pickers",
+      "comment": "Header on the UserPicker screen, same tone as Netflix/Disney profile pickers",
       "extractionState": "manual",
       "localizations" : {
         "cs" : {
@@ -42563,7 +42563,7 @@
         "en" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Movies and series open in one shot — every section fetched in parallel, no mid-render flicker."
+            "value": "Movies and series open in one shot, every section fetched in parallel, no mid-render flicker."
           }
         },
         "es" : {
@@ -43207,7 +43207,7 @@
         "en" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Jump to any episode of the current season without leaving the player — thumbnail preview per row."
+            "value": "Jump to any episode of the current season without leaving the player, thumbnail preview per row."
           }
         },
         "es" : {
@@ -45461,7 +45461,7 @@
         "en" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Coming back from background lands on the actual resumed frame instead of a black flash — the engine now waits for the first decoded frame before pausing."
+            "value": "Coming back from background lands on the actual resumed frame instead of a black flash. The engine now waits for the first decoded frame before pausing."
           }
         },
         "es" : {
@@ -46749,7 +46749,7 @@
         "en" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Every subtitle format — including bitmap formats like PGS, DVB and HDMV — now decodes inside the app instead of going through server-side extraction. Customise text colour, background style, font size, and dial in a per-track delay when audio is out of sync."
+            "value": "Every subtitle format (including bitmap formats like PGS, DVB and HDMV) now decodes inside the app instead of going through server-side extraction. Customise text colour, background style, font size, and dial in a per-track delay when audio is out of sync."
           }
         },
         "es" : {
@@ -101399,7 +101399,7 @@
       }
     },
     "settings.playback.autoSkipOutro" : {
-      "comment": "Playback preference — automatically seek past the outro segment",
+      "comment": "Playback preference: automatically seek past the outro segment",
       "extractionState": "manual",
       "localizations" : {
         "cs" : {
@@ -108859,7 +108859,7 @@
         "en" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "How the video fills the screen — preserve aspect or zoom and crop."
+            "value": "How the video fills the screen: preserve aspect or zoom and crop."
           }
         },
         "es" : {
@@ -123381,7 +123381,7 @@
         "en" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Sodalite is a one-person passion project. Everything in the app is and stays free. Tips and the Supporter Pack are optional — they help cover the Apple Developer fee and show that the work is appreciated."
+            "value": "Sodalite is a one-person passion project. Everything in the app is and stays free. Tips and the Supporter Pack are optional. They help cover the Apple Developer fee and show that the work is appreciated."
           }
         },
         "es" : {
@@ -123867,7 +123867,7 @@
         "en" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "One-time unlock. Cosmetic extras — a special splash icon, custom accent colors, and a supporter badge in Settings."
+            "value": "One-time unlock. Cosmetic extras: a special splash icon, custom accent colors, and a supporter badge in Settings."
           }
         },
         "es" : {
