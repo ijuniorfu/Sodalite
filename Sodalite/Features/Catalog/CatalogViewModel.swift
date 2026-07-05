@@ -455,6 +455,18 @@ final class CatalogViewModel {
 
     // MARK: - Admin requests
 
+    /// Jellyseerr exposes no server-side "declined" request filter (its filters are all/pending/approved/
+    /// available/processing/unavailable/failed); declined requests only come back under `all`. So the
+    /// Declined tab queries `all` on the server and keeps status == .declined client-side. Works
+    /// regardless of the server's filter support.
+    private func serverFilter(for filter: SeerrRequestFilter) -> SeerrRequestFilter {
+        filter == .declined ? .all : filter
+    }
+
+    private func applyClientFilter(_ requests: [SeerrRequest], for filter: SeerrRequestFilter) -> [SeerrRequest] {
+        filter == .declined ? requests.filter { $0.status == .declined } : requests
+    }
+
     func loadAllRequests() async {
         // Supersede via generation, not an `!isLoadingAllRequests` guard: a chip tap during the initial load otherwise no-op'd the new filter and the in-flight response self-dropped, leaving an empty list.
         allRequestsGeneration &+= 1
@@ -468,17 +480,25 @@ final class CatalogViewModel {
         }
 
         let filter = allRequestsFilter
+        let server = serverFilter(for: filter)
         do {
-            let result = try await requestService.allRequests(
-                filter: filter,
-                take: allRequestsPageSize,
-                skip: allRequestsSkip
-            )
-            guard generation == allRequestsGeneration else { return }
-            allRequests = result.results
-            allRequestsTotal = result.pageInfo.results
-            allRequestsSkip = result.results.count
-            Task { await enrichRequestMetadata(for: result.results) }
+            // Client-side filters (declined) may find no match on the first raw page, so keep pulling
+            // raw pages until at least one match lands or the source is exhausted. `allRequestsSkip`
+            // (raw cursor) drives has-more; `allRequests` holds only the matches.
+            repeat {
+                let result = try await requestService.allRequests(
+                    filter: server,
+                    take: allRequestsPageSize,
+                    skip: allRequestsSkip
+                )
+                guard generation == allRequestsGeneration else { return }
+                let matches = applyClientFilter(result.results, for: filter)
+                allRequests.append(contentsOf: matches)
+                allRequestsTotal = result.pageInfo.results
+                allRequestsSkip += result.results.count
+                Task { await enrichRequestMetadata(for: matches) }
+                if result.results.isEmpty { break }
+            } while filter == .declined && allRequests.isEmpty && allRequestsSkip < allRequestsTotal
         } catch {
             guard generation == allRequestsGeneration else { return }
             errorMessage = error.localizedDescription
@@ -486,7 +506,10 @@ final class CatalogViewModel {
     }
 
     func loadMoreAllRequests() async {
-        guard allRequests.count < allRequestsTotal,
+        // Has-more is driven by the raw cursor vs the server total, not the visible count: with a
+        // client-side filter (declined) the visible list stays smaller than the raw total, and dedupe
+        // can shrink it below the cursor for normal filters too.
+        guard allRequestsSkip < allRequestsTotal,
               !isLoadingMoreAllRequests,
               !isLoadingAllRequests else { return }
         isLoadingMoreAllRequests = true
@@ -495,20 +518,27 @@ final class CatalogViewModel {
         // Generation snapshot: a reload (filter switch or refresh) can reset the list mid-flight (separate loading flags), so this page's response must not append.
         let generation = allRequestsGeneration
         let filter = allRequestsFilter
+        let server = serverFilter(for: filter)
         do {
-            let result = try await requestService.allRequests(
-                filter: filter,
-                take: allRequestsPageSize,
-                skip: allRequestsSkip
-            )
-            guard generation == allRequestsGeneration else { return }
-            // Dedupe against the visible list: Seerr repeats records across adjacent pages when status counts shift between fetches.
-            let existing = Set(allRequests.map(\.id))
-            let additions = result.results.filter { !existing.contains($0.id) }
-            allRequests.append(contentsOf: additions)
-            allRequestsTotal = result.pageInfo.results
-            allRequestsSkip += result.results.count
-            Task { await enrichRequestMetadata(for: additions) }
+            // For a client-side filter, keep pulling raw pages until this call adds at least one new
+            // match or the source is exhausted, so a scroll-triggered load never appears to do nothing.
+            repeat {
+                let result = try await requestService.allRequests(
+                    filter: server,
+                    take: allRequestsPageSize,
+                    skip: allRequestsSkip
+                )
+                guard generation == allRequestsGeneration else { return }
+                if result.results.isEmpty { break }
+                // Dedupe against the visible list: Seerr repeats records across adjacent pages when status counts shift between fetches.
+                let existing = Set(allRequests.map(\.id))
+                let additions = applyClientFilter(result.results, for: filter).filter { !existing.contains($0.id) }
+                allRequests.append(contentsOf: additions)
+                allRequestsTotal = result.pageInfo.results
+                allRequestsSkip += result.results.count
+                Task { await enrichRequestMetadata(for: additions) }
+                if !additions.isEmpty { break }
+            } while filter == .declined && allRequestsSkip < allRequestsTotal
         } catch {
             // Mid-scroll error stays silent; visible page remains, retry by switching filters.
         }
@@ -522,15 +552,16 @@ final class CatalogViewModel {
 
     /// Per-filter `pageInfo.results` counts via `take=0` (no array transferred) for the chip badges; failures keep existing values (stale over blanked).
     func refreshAllRequestsCounts() async {
+        // No `declined` count: Jellyseerr has no server-side declined filter, so a take=0 count query
+        // is unreliable. The chip shows no number rather than a wrong one (deriving it would mean
+        // scanning the whole `all` list client-side).
         async let pending  = try? requestService.allRequests(filter: .pending,  take: 0, skip: 0)
         async let approved = try? requestService.allRequests(filter: .approved, take: 0, skip: 0)
-        async let declined = try? requestService.allRequests(filter: .declined, take: 0, skip: 0)
         async let all      = try? requestService.allRequests(filter: .all,      take: 0, skip: 0)
-        let results = await (pending, approved, declined, all)
+        let results = await (pending, approved, all)
         if let p = results.0 { allRequestsCounts[.pending]  = p.pageInfo.results }
         if let a = results.1 { allRequestsCounts[.approved] = a.pageInfo.results }
-        if let d = results.2 { allRequestsCounts[.declined] = d.pageInfo.results }
-        if let x = results.3 { allRequestsCounts[.all]      = x.pageInfo.results }
+        if let x = results.2 { allRequestsCounts[.all]      = x.pageInfo.results }
         // Nudge the Catalog tab badge: this runs on queue load and after every admin mutation.
         NotificationCenter.default.post(name: .seerrPendingRequestsShouldRefresh, object: nil)
     }
