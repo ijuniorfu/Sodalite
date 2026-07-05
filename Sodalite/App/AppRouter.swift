@@ -38,6 +38,18 @@ struct AppRouter: View {
     /// Edge-triggered active flag: keys a `.task` so the monitor refreshes on foreground, not on every phase change.
     private var scenePhaseIsActive: Bool { scenePhase == .active }
 
+    /// Refresh the pending-approval count and, on iOS, keep the app-icon badge + notifications in sync.
+    private func refreshPending() async {
+        #if os(iOS)
+        await PendingRequestsSync.refreshAndSync(
+            monitor: dependencies.pendingRequestsMonitor,
+            preferences: dependencies.seerrNotificationPreferences
+        )
+        #else
+        await dependencies.pendingRequestsMonitor.refresh()
+        #endif
+    }
+
     var body: some View {
         ZStack {
             if appState.isAuthenticated {
@@ -72,17 +84,20 @@ struct AppRouter: View {
         // Keep the Catalog pending-requests badge fresh: recompute when the app comes forward, when the
         // Seerr connection flips, and on the admin-queue change signal. iOS/iPadOS badge; inert on tvOS.
         .task(id: scenePhaseIsActive) {
-            if scenePhaseIsActive { await dependencies.pendingRequestsMonitor.refresh() }
+            if scenePhaseIsActive { await refreshPending() }
         }
         .task(id: appState.isSeerrConnected) {
             if appState.isSeerrConnected {
-                await dependencies.pendingRequestsMonitor.refresh()
+                await refreshPending()
             } else {
                 dependencies.pendingRequestsMonitor.reset()
             }
         }
         .onReceive(NotificationCenter.default.publisher(for: .seerrPendingRequestsShouldRefresh)) { _ in
-            Task { await dependencies.pendingRequestsMonitor.refresh() }
+            Task { await refreshPending() }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .seerrRequestDidSubmit)) { _ in
+            Task { await refreshPending() }
         }
         #if os(iOS)
         .onChange(of: scenePhase) { _, phase in

@@ -38,15 +38,12 @@ struct SodaliteApp: App {
         let deps = dependencies
         PendingRequestsBackgroundRefresh.register {
             let prefs = deps.seerrNotificationPreferences
-            guard prefs.notifyPendingRequests, deps.pendingRequestsMonitor.isEligible() else { return false }
-            guard let current = try? await deps.pendingRequestsMonitor.fetchPendingCount() else { return true }
-            if PendingRequestsMonitor.shouldNotify(current: current, lastSeen: prefs.lastSeenPendingCount) {
-                await PendingRequestsNotifier.notifyPendingIncrease(count: current)
-            }
-            await PendingRequestsNotifier.setBadgeCount(current)
-            prefs.lastSeenPendingCount = current
+            guard prefs.notifyPendingRequests else { return false }
+            await PendingRequestsSync.refreshAndSync(monitor: deps.pendingRequestsMonitor, preferences: prefs)
             return true
         }
+        // Show notifications as banners even while the app is foregrounded.
+        PendingRequestsNotifier.configureForegroundPresentation()
         #endif
 
         // Hand the live AppState/DependencyContainer to the intent layer so AppIntent.perform() drives navigation without rebuilding its own DI graph.

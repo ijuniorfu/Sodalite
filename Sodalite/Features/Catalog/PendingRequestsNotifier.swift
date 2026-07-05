@@ -33,5 +33,43 @@ enum PendingRequestsNotifier {
     static func setBadgeCount(_ count: Int) async {
         try? await UNUserNotificationCenter.current().setBadgeCount(count)
     }
+
+    /// Install the delegate so notifications also present as a banner while the app is foregrounded
+    /// (iOS suppresses foreground notifications by default).
+    static func configureForegroundPresentation() {
+        UNUserNotificationCenter.current().delegate = foregroundDelegate
+    }
+
+    private static let foregroundDelegate = ForegroundPresentationDelegate()
+}
+
+/// Presents notifications as banners even when the app is in the foreground.
+private final class ForegroundPresentationDelegate: NSObject, UNUserNotificationCenterDelegate {
+    func userNotificationCenter(
+        _ center: UNUserNotificationCenter,
+        willPresent notification: UNNotification
+    ) async -> UNNotificationPresentationOptions {
+        [.banner, .list, .sound, .badge]
+    }
+}
+
+/// Orchestrates a monitor refresh with its notification side effects: keeps the app-icon badge in
+/// sync with the live count and fires a local notification when the count rose since the last-seen
+/// value. Foreground and background both funnel through here so the behavior is identical.
+enum PendingRequestsSync {
+    @MainActor
+    static func refreshAndSync(
+        monitor: PendingRequestsMonitor,
+        preferences: SeerrNotificationPreferences
+    ) async {
+        await monitor.refresh()
+        // Notifications off: the tab badge (monitor) still updated above; leave the app-icon badge alone.
+        guard preferences.notifyPendingRequests, let count = monitor.pendingApprovalCount else { return }
+        if PendingRequestsMonitor.shouldNotify(current: count, lastSeen: preferences.lastSeenPendingCount) {
+            await PendingRequestsNotifier.notifyPendingIncrease(count: count)
+        }
+        await PendingRequestsNotifier.setBadgeCount(count)
+        preferences.lastSeenPendingCount = count
+    }
 }
 #endif

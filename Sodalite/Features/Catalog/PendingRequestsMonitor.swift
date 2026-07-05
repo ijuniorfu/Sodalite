@@ -15,19 +15,15 @@ final class PendingRequestsMonitor {
     /// Fetches the current pending-approval count from Jellyseerr.
     @ObservationIgnored var fetchPendingCount: () async throws -> Int = { 0 }
 
-    @ObservationIgnored private let preferences: SeerrNotificationPreferences
-
-    init(preferences: SeerrNotificationPreferences) {
-        self.preferences = preferences
-    }
+    init() {}
 
     /// Fetch + publish the pending count. No-op unless eligible. On failure the prior value stands.
+    /// This owns only the live count (the Catalog tab badge). The notification baseline
+    /// (`lastSeenPendingCount`) is the notification path's concern, not the monitor's.
     func refresh() async {
         guard isEligible() else { return }
         do {
-            let count = try await fetchPendingCount()
-            pendingApprovalCount = count
-            preferences.lastSeenPendingCount = count
+            pendingApprovalCount = try await fetchPendingCount()
         } catch {
             // Keep the previous value; never clobber to nil/0 on a transient failure.
         }

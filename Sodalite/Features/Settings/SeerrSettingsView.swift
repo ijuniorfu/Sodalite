@@ -405,9 +405,10 @@ struct SeerrSettingsView: View {
             prefs.notifyPendingRequests = true
             PendingRequestsBackgroundRefresh.schedule()
             await dependencies.pendingRequestsMonitor.refresh()
-            await PendingRequestsNotifier.setBadgeCount(
-                dependencies.pendingRequestsMonitor.pendingApprovalCount ?? 0
-            )
+            let count = dependencies.pendingRequestsMonitor.pendingApprovalCount ?? 0
+            // Baseline so enabling never retro-notifies about already-pending requests; only future rises fire.
+            prefs.lastSeenPendingCount = count
+            await PendingRequestsNotifier.setBadgeCount(count)
         } else {
             prefs.notifyPendingRequests = false
             PendingRequestsBackgroundRefresh.cancel()

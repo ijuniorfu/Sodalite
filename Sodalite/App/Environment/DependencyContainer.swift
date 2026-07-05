@@ -96,9 +96,8 @@ final class DependencyContainer {
         self.seerrServiceConfigService = SeerrServiceConfigService(client: seerrClient)
         self.seerrSearchService = SeerrSearchService(client: seerrClient)
 
-        let seerrNotificationPreferences = SeerrNotificationPreferences()
-        self.seerrNotificationPreferences = seerrNotificationPreferences
-        self.pendingRequestsMonitor = PendingRequestsMonitor(preferences: seerrNotificationPreferences)
+        self.seerrNotificationPreferences = SeerrNotificationPreferences()
+        self.pendingRequestsMonitor = PendingRequestsMonitor()
 
         self.mediaDeletionService = MediaDeletionService(
             jellyfinItems: self.jellyfinItemService,
