@@ -40,6 +40,7 @@ final class PlaybackPreferences {
         static let showScrubPreview = "playback.showScrubPreview"
         static let preferServerTrickplay = "playback.preferServerTrickplay"
         static let playerRotationLocked = "playback.playerRotationLocked"
+        static let networkBufferDepth = "playback.networkBufferDepth"
     }
 
     // MARK: - Allowed Values
@@ -176,6 +177,23 @@ final class PlaybackPreferences {
         var titleKey: String { "settings.playback.picture.\(rawValue)" }
     }
 
+    /// VOD forward read-ahead window (Issue #33), passed to the engine as LoadOptions.forwardBufferSegments
+    /// (engine clamp 4...150 at 4 s/segment). nil = engine default (10 seg / ~40 s). Deeper buffers help slow
+    /// network mounts but trade away rewind depth on fast servers (shared 2 GiB budget).
+    enum NetworkBufferDepth: String, CaseIterable, Sendable, Identifiable {
+        case system, oneMinute, fiveMinutes, maximum
+        var id: String { rawValue }
+        var titleKey: String { "settings.playback.buffer.\(rawValue)" }
+        var forwardBufferSegments: Int? {
+            switch self {
+            case .system:      return nil
+            case .oneMinute:   return 15   // ~60 s
+            case .fiveMinutes: return 75   // ~300 s
+            case .maximum:     return 150  // ~600 s, engine clamp ceiling
+            }
+        }
+    }
+
     // MARK: - Properties
 
     var autoplayNextEpisode: Bool {
@@ -292,6 +310,11 @@ final class PlaybackPreferences {
         didSet { store.set(playerRotationLocked, forKey: Keys.playerRotationLocked) }
     }
 
+    /// Default forward-buffer depth for new VOD sessions (Issue #33); read into LoadOptions at load.
+    var networkBufferDepth: NetworkBufferDepth {
+        didSet { store.set(networkBufferDepth.rawValue, forKey: Keys.networkBufferDepth) }
+    }
+
     var audioBridgeMode: AudioBridgeMode {
         preferLosslessAudioBridge ? .lossless : .surroundCompat
     }
@@ -350,5 +373,7 @@ final class PlaybackPreferences {
         self.showScrubPreview = store.object(forKey: Keys.showScrubPreview) as? Bool ?? true
         self.preferServerTrickplay = store.object(forKey: Keys.preferServerTrickplay) as? Bool ?? false
         self.playerRotationLocked = store.object(forKey: Keys.playerRotationLocked) as? Bool ?? true
+        self.networkBufferDepth = (store.string(forKey: Keys.networkBufferDepth))
+            .flatMap(NetworkBufferDepth.init(rawValue:)) ?? .system
     }
 }

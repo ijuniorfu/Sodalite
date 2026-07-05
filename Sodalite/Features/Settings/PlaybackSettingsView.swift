@@ -82,6 +82,20 @@ struct PlaybackSettingsView: View {
                     )
                 }
 
+                sectionHeader("settings.playback.section.streaming")
+
+                ValuePickerRow(
+                    icon: "arrow.down.circle",
+                    title: "settings.playback.buffer",
+                    subtitle: "settings.playback.buffer.subtitle",
+                    options: PlaybackPreferences.NetworkBufferDepth.allCases,
+                    selection: Binding(
+                        get: { prefs.networkBufferDepth },
+                        set: { prefs.networkBufferDepth = $0 }
+                    ),
+                    label: { String(localized: String.LocalizationValue($0.titleKey)) }
+                )
+
                 sectionHeader("settings.playback.section.languages")
 
                 languageRow(
