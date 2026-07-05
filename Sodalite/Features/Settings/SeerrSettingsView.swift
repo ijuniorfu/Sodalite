@@ -339,6 +339,13 @@ struct SeerrSettingsView: View {
                     .fill(.white.opacity(0.05))
             )
 
+            #if os(iOS)
+            // Admins can approve requests, so only they benefit from a pending-approval notification.
+            if appState.activeSeerrUser?.canManageRequests == true {
+                notificationsToggle
+            }
+            #endif
+
             Button {
                 Task { await logout() }
             } label: {
@@ -351,6 +358,63 @@ struct SeerrSettingsView: View {
             .buttonStyle(SettingsTileButtonStyle())
         }
     }
+
+    #if os(iOS)
+    @State private var notifyDenied = false
+
+    /// Setter kicks off the async permission flow and does NOT persist until granted, so the row only
+    /// flips to On once iOS grants permission (and stays Off on denial).
+    private var notifyBinding: Binding<Bool> {
+        Binding(
+            get: { dependencies.seerrNotificationPreferences.notifyPendingRequests },
+            set: { newValue in Task { await setNotifications(newValue) } }
+        )
+    }
+
+    private var notificationsToggle: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            ValuePickerRow(
+                icon: "bell.badge",
+                title: "catalog.notify.toggle.title",
+                subtitle: "catalog.notify.toggle.subtitle",
+                options: [true, false],
+                selection: notifyBinding,
+                label: { $0
+                    ? String(localized: "common.on", defaultValue: "On")
+                    : String(localized: "common.off", defaultValue: "Off") }
+            )
+            if notifyDenied {
+                Text("catalog.notify.denied.hint")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+        }
+    }
+
+    private func setNotifications(_ enabled: Bool) async {
+        let prefs = dependencies.seerrNotificationPreferences
+        if enabled {
+            let granted = await PendingRequestsNotifier.requestAuthorization()
+            guard granted else {
+                notifyDenied = true
+                prefs.notifyPendingRequests = false
+                return
+            }
+            notifyDenied = false
+            prefs.notifyPendingRequests = true
+            PendingRequestsBackgroundRefresh.schedule()
+            await dependencies.pendingRequestsMonitor.refresh()
+            await PendingRequestsNotifier.setBadgeCount(
+                dependencies.pendingRequestsMonitor.pendingApprovalCount ?? 0
+            )
+        } else {
+            prefs.notifyPendingRequests = false
+            PendingRequestsBackgroundRefresh.cancel()
+            await PendingRequestsNotifier.setBadgeCount(0)
+        }
+    }
+    #endif
 
     private var successOverlay: some View {
         VStack(spacing: 24) {
