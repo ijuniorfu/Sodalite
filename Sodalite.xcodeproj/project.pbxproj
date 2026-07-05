@@ -21,6 +21,7 @@
 		A99103ECA91C496739871989 /* SeerrDecodingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57CF00E5C87F92A3DAF35F27 /* SeerrDecodingTests.swift */; };
 		AA000001STEELPLAYER /* AetherEngine in Frameworks */ = {isa = PBXBuildFile; productRef = AA000002STEELPLAYER /* AetherEngine */; };
 		AA000006ASSBUILD /* SwiftAssRenderer in Frameworks */ = {isa = PBXBuildFile; productRef = AA000005ASSPROD /* SwiftAssRenderer */; };
+		ADE3948B08B94429D5207C44 /* NetworkBufferDepthTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02054C056059248ABDB1F9F6 /* NetworkBufferDepthTests.swift */; };
 		BA338612776FCE10A5D2E71C /* PlayerLoadingIndicatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C84D67DB8237A2D0FBC8AADA /* PlayerLoadingIndicatorTests.swift */; };
 		CE4628D88D87B1C2A8F4B761 /* PlayerTouchInputTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D95A0828E585360E7CA7CF76 /* PlayerTouchInputTests.swift */; };
 		D6CDFC24E2E33767EB59131B /* SeerrMediaTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 756D59BCF6F1E09889825D6E /* SeerrMediaTests.swift */; };
@@ -60,6 +61,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		02054C056059248ABDB1F9F6 /* NetworkBufferDepthTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NetworkBufferDepthTests.swift; sourceTree = "<group>"; };
 		09862C8C1314699B9D2BB5B8 /* SessionRestorerTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SessionRestorerTests.swift; sourceTree = "<group>"; };
 		164A05A73A4B84E77F6F29AD /* LayoutMetricsTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LayoutMetricsTests.swift; sourceTree = "<group>"; };
 		2044851138A5C53DBFC678F9 /* SodaliteTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SodaliteTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -173,6 +175,7 @@
 				D95A0828E585360E7CA7CF76 /* PlayerTouchInputTests.swift */,
 				C84D67DB8237A2D0FBC8AADA /* PlayerLoadingIndicatorTests.swift */,
 				4F7127156B666CE24AD8DB4E /* ExternalSubtitleMappingTests.swift */,
+				02054C056059248ABDB1F9F6 /* NetworkBufferDepthTests.swift */,
 			);
 			path = SodaliteTests;
 			sourceTree = "<group>";
@@ -374,6 +377,7 @@
 				CE4628D88D87B1C2A8F4B761 /* PlayerTouchInputTests.swift in Sources */,
 				BA338612776FCE10A5D2E71C /* PlayerLoadingIndicatorTests.swift in Sources */,
 				06B7BF9FC868BB4ECFC42010 /* ExternalSubtitleMappingTests.swift in Sources */,
+				ADE3948B08B94429D5207C44 /* NetworkBufferDepthTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
