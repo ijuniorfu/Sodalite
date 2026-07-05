@@ -43,6 +43,9 @@ struct SeerrRequestAdminRow: View {
                         .foregroundStyle(.tertiary)
                         .monospacedDigit()
                 }
+                // Keep each token on one line; without it the narrow phone column breaks numbers
+                // mid-digit ("202\n6", "#6\n7").
+                .lineLimit(1)
 
                 if let requester = request.requestedBy {
                     Text(String(
@@ -164,19 +167,32 @@ private struct AdminActionButton: View {
     var isDestructive: Bool = false
     let action: () -> Void
 
+    @Environment(\.horizontalSizeClass) private var hSizeClass
     @FocusState private var focused: Bool
 
+    /// The labelled buttons don't fit four-up on a phone and wrap to one glyph per line (a tall
+    /// vertical bar). Compact width collapses each to an icon-only square touch target.
+    private var isCompact: Bool { hSizeClass == .compact }
+
     var body: some View {
-        HStack(spacing: 8) {
-            Image(systemName: systemImage)
-                .font(.caption)
-            Text(title)
-                .font(.callout)
-                .fontWeight(.medium)
+        Group {
+            if isCompact {
+                Image(systemName: systemImage)
+                    .font(.body.weight(.semibold))
+                    .frame(width: 44, height: 44)
+            } else {
+                HStack(spacing: 8) {
+                    Image(systemName: systemImage)
+                        .font(.caption)
+                    Text(title)
+                        .font(.callout)
+                        .fontWeight(.medium)
+                }
+                .padding(.horizontal, 14)
+                .padding(.vertical, 10)
+            }
         }
         .foregroundStyle(.white)
-        .padding(.horizontal, 14)
-        .padding(.vertical, 10)
         .background(
             RoundedRectangle(cornerRadius: 12)
                 .fill(backgroundStyle)
@@ -190,6 +206,7 @@ private struct AdminActionButton: View {
         .focusable(true)
         .focused($focused)
         .stableTap(isFocused: focused) { action() }
+        .accessibilityLabel(Text(title))
         .animation(.easeInOut(duration: 0.15), value: focused)
     }
 

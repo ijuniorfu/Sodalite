@@ -33,8 +33,9 @@ struct PersonDetailView: View {
     var body: some View {
         content
             // No hero backdrop, so the shared grey-glass page background, not flat black.
+            // glassBackground already bleeds its material past the safe area; the content itself must
+            // respect it, else the header photo starts under the status bar / notch and gets clipped.
             .glassBackground()
-            .ignoresSafeArea()
             .hidesShellTabBar()
         .navigationDestination(item: $navigateToJellyfinItem) { item in
             DetailRouterView(item: item)
