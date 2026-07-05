@@ -52,6 +52,9 @@ struct SeerrSettingsView: View {
             }
         }
         .animation(.easeInOut(duration: 0.3), value: showSuccess)
+        // Own grey-glass backdrop: pushed from the Catalog tab there's no sheet behind it, so without
+        // this the page reads as dead black instead of frosted glass like every other full-screen page.
+        .glassBackground()
         .hidesShellTabBar()
         // Inline header only; floating tvOS nav-title sits behind scrolling content. Matches PlaybackSettingsView.
         .hidesNavigationBarChrome()

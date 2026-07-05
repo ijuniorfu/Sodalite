@@ -62,19 +62,19 @@ struct SettingsView: View {
                 .frame(width: 120, height: 120)
 
             HStack(spacing: 10) {
+                // Mirror the badge's width on the leading side so the name stays optically centered
+                // while the visible badge sits just to its right, never shifting the name off-center.
+                if dependencies.storeKitService.isSupporter {
+                    premiumBadge.hidden()
+                }
+
                 Text(appState.activeUser?.name ?? "")
                     .font(.title3)
                     .fontWeight(.semibold)
+                    .multilineTextAlignment(.center)
 
                 if dependencies.storeKitService.isSupporter {
-                    Image("PremiumBadge")
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(width: 64, height: 64)
-                        .accessibilityLabel(Text(String(
-                            localized: "support.pack.unlocked",
-                            defaultValue: "Unlocked"
-                        )))
+                    premiumBadge
                 }
             }
 
@@ -83,6 +83,17 @@ struct SettingsView: View {
                 .foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity)
+    }
+
+    private var premiumBadge: some View {
+        Image("PremiumBadge")
+            .resizable()
+            .aspectRatio(contentMode: .fit)
+            .frame(width: 64, height: 64)
+            .accessibilityLabel(Text(String(
+                localized: "support.pack.unlocked",
+                defaultValue: "Unlocked"
+            )))
     }
 
     /// Loads from the server when `primaryImageTag` is set, else initials.
@@ -228,7 +239,9 @@ struct SettingsView: View {
     // MARK: - Server Info
 
     private var serverInfo: some View {
-        HStack(spacing: 40) {
+        // Each column takes an equal share of the width, so the middle item's centre sits on the
+        // screen centre regardless of the columns' differing text widths.
+        HStack(alignment: .top, spacing: 16) {
             infoItem(label: "settings.about.version", value: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0")
 
             if let server = appState.activeServer, let version = server.version {
@@ -248,10 +261,13 @@ struct SettingsView: View {
             Text(value)
                 .font(.subheadline)
                 .fontWeight(.medium)
+                .multilineTextAlignment(.center)
             Text(label)
                 .font(.caption2)
                 .foregroundStyle(.tertiary)
+                .multilineTextAlignment(.center)
         }
+        .frame(maxWidth: .infinity)
     }
 
     // MARK: - About

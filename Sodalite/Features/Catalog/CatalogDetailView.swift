@@ -153,11 +153,36 @@ struct CatalogDetailView: View {
 
     // MARK: - Hero + primary block (first screen)
 
+    @ViewBuilder
     private var heroTitle: some View {
+        if isPhonePortrait {
+            // On the narrow phone the year + status badge would steal the title's line and squeeze it
+            // into a sliver that hard-wraps and truncates. Give the title the full width and drop the
+            // year/badge onto their own row beneath it.
+            VStack(alignment: .leading, spacing: 8) {
+                Text(displayTitle)
+                    .font(.largeTitle)
+                    .fontWeight(.bold)
+                    .fixedSize(horizontal: false, vertical: true)
+                heroTitleMeta
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        } else {
+            HStack(alignment: .firstTextBaseline, spacing: 16) {
+                Text(displayTitle)
+                    .font(.largeTitle)
+                    .fontWeight(.bold)
+                heroTitleMeta
+                Spacer(minLength: 0)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        // No extra horizontal padding: DetailContentOverlay's hero slot already insets by 50, lining up with the bubble and request button.
+    }
+
+    @ViewBuilder
+    private var heroTitleMeta: some View {
         HStack(alignment: .firstTextBaseline, spacing: 16) {
-            Text(displayTitle)
-                .font(.largeTitle)
-                .fontWeight(.bold)
             if let year = displayYear {
                 Text(year)
                     .font(.title3)
@@ -166,10 +191,7 @@ struct CatalogDetailView: View {
             if let status = mediaStatus, status != .unknown {
                 SeerrStatusBadge(status: status)
             }
-            Spacer(minLength: 0)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        // No extra horizontal padding: DetailContentOverlay's hero slot already insets by 50, lining up with the bubble and request button.
     }
 
     private var primaryBlock: some View {
