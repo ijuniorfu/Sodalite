@@ -731,7 +731,8 @@ final class PlayerViewModel {
                     probesize: probeBudget.probesize,
                     maxAnalyzeDuration: probeBudget.maxAnalyzeDuration,
                     preferredAudioLanguages: preferredAudio.map { [$0] } ?? [],
-                    externalSubtitles: externalSubs.descriptors
+                    externalSubtitles: externalSubs.descriptors,
+                    forwardBufferSegments: preferences.networkBufferDepth.forwardBufferSegments
                 )
             )
 
