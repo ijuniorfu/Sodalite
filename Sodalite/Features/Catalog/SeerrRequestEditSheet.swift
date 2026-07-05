@@ -327,67 +327,91 @@ private struct EditPickerRow<Option: Identifiable & Equatable>: View {
     let label: (Option) -> String
     let onSelect: (Option) -> Void
 
+    @Environment(\.horizontalSizeClass) private var hSizeClass
     @FocusState private var focused: Bool
 
-    var body: some View {
-        HStack(spacing: 20) {
-            Text(title)
-                .font(.body)
-                .fontWeight(.medium)
-                .frame(maxWidth: .infinity, alignment: .leading)
+    /// The phone is too narrow for the tvOS side-by-side label + stepper: the stepper's minWidth
+    /// starves the label, which then wraps to one glyph per line. Compact stacks label over stepper.
+    private var isCompact: Bool { hSizeClass == .compact }
 
-            HStack(spacing: 12) {
-                Image(systemName: "chevron.left")
-                    .font(.caption)
-                    .foregroundStyle(focused ? Color.white : Color.secondary)
-                    .opacity(canMoveBackward ? 1 : 0.25)
-                    #if os(iOS)
-                    .padding(8)
-                    .contentShape(Rectangle())
-                    .onTapGesture { advance(by: -1) }
-                    #endif
-                Text(selected.map(label) ?? String(localized: "catalog.allRequests.edit.loading", defaultValue: "Loading..."))
-                    .font(.body)
-                    .fontWeight(.semibold)
-                    .foregroundStyle(.white)
-                    .frame(minWidth: 180, alignment: .center)
-                    .lineLimit(1)
-                Image(systemName: "chevron.right")
-                    .font(.caption)
-                    .foregroundStyle(focused ? Color.white : Color.secondary)
-                    .opacity(canMoveForward ? 1 : 0.25)
-                    #if os(iOS)
-                    .padding(8)
-                    .contentShape(Rectangle())
-                    .onTapGesture { advance(by: 1) }
-                    #endif
+    var body: some View {
+        rowContent
+            .padding(.horizontal, 24)
+            .padding(.vertical, 16)
+            .background(
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(focused
+                          ? AnyShapeStyle(TintShapeStyle.tint.opacity(0.18))
+                          : AnyShapeStyle(Color.white.opacity(0.08)))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 16)
+                    .strokeBorder(.tint, lineWidth: 3)
+                    .opacity(focused ? 1 : 0)
+            )
+            .focusable(!options.isEmpty)
+            .focused($focused)
+            #if os(tvOS)
+            .onMoveCommand { direction in
+                switch direction {
+                case .left:  advance(by: -1)
+                case .right: advance(by: 1)
+                default: break
+                }
+            }
+            #endif
+            .animation(.easeInOut(duration: 0.15), value: focused)
+    }
+
+    @ViewBuilder
+    private var rowContent: some View {
+        if isCompact {
+            VStack(alignment: .leading, spacing: 12) {
+                titleLabel
+                stepper
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        } else {
+            HStack(spacing: 20) {
+                titleLabel
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                stepper
             }
         }
-        .padding(.horizontal, 24)
-        .padding(.vertical, 16)
-        .background(
-            RoundedRectangle(cornerRadius: 16)
-                .fill(focused
-                      ? AnyShapeStyle(TintShapeStyle.tint.opacity(0.18))
-                      : AnyShapeStyle(Color.white.opacity(0.08)))
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 16)
-                .strokeBorder(.tint, lineWidth: 3)
-                .opacity(focused ? 1 : 0)
-        )
-        .focusable(!options.isEmpty)
-        .focused($focused)
-        #if os(tvOS)
-        .onMoveCommand { direction in
-            switch direction {
-            case .left:  advance(by: -1)
-            case .right: advance(by: 1)
-            default: break
-            }
+    }
+
+    private var titleLabel: some View {
+        Text(title)
+            .font(.body)
+            .fontWeight(.medium)
+    }
+
+    private var stepper: some View {
+        HStack(spacing: 12) {
+            chevron("chevron.left", enabled: canMoveBackward, step: -1)
+            Text(selected.map(label) ?? String(localized: "catalog.allRequests.edit.loading", defaultValue: "Loading..."))
+                .font(.body)
+                .fontWeight(.semibold)
+                .foregroundStyle(.white)
+                .frame(minWidth: isCompact ? 0 : 180, maxWidth: isCompact ? .infinity : nil, alignment: .center)
+                .lineLimit(1)
+                .truncationMode(.tail)
+            chevron("chevron.right", enabled: canMoveForward, step: 1)
         }
-        #endif
-        .animation(.easeInOut(duration: 0.15), value: focused)
+        .frame(maxWidth: isCompact ? .infinity : nil)
+    }
+
+    @ViewBuilder
+    private func chevron(_ system: String, enabled: Bool, step: Int) -> some View {
+        Image(systemName: system)
+            .font(.caption)
+            .foregroundStyle(focused ? Color.white : Color.secondary)
+            .opacity(enabled ? 1 : 0.25)
+            #if os(iOS)
+            .padding(8)
+            .contentShape(Rectangle())
+            .onTapGesture { advance(by: step) }
+            #endif
     }
 
     private var currentIndex: Int? { options.firstIndex(where: { $0 == selected }) }
