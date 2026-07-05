@@ -84,6 +84,14 @@ struct AppRouter: View {
         .onReceive(NotificationCenter.default.publisher(for: .seerrPendingRequestsShouldRefresh)) { _ in
             Task { await dependencies.pendingRequestsMonitor.refresh() }
         }
+        #if os(iOS)
+        .onChange(of: scenePhase) { _, phase in
+            // Queue the next background poll when leaving the foreground, only while opted in.
+            if phase == .background, dependencies.seerrNotificationPreferences.notifyPendingRequests {
+                PendingRequestsBackgroundRefresh.schedule()
+            }
+        }
+        #endif
         .task {
             guard !hasRestored else { return }
             hasRestored = true

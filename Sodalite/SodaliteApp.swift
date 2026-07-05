@@ -33,6 +33,22 @@ struct SodaliteApp: App {
         // Now that appState is wired, connect the pending-requests monitor (reads appState + Seerr service).
         dependencies.wirePendingRequestsMonitor()
 
+        #if os(iOS)
+        // Register the background refresh that fires a local notification when new requests await approval.
+        let deps = dependencies
+        PendingRequestsBackgroundRefresh.register {
+            let prefs = deps.seerrNotificationPreferences
+            guard prefs.notifyPendingRequests, deps.pendingRequestsMonitor.isEligible() else { return false }
+            guard let current = try? await deps.pendingRequestsMonitor.fetchPendingCount() else { return true }
+            if PendingRequestsMonitor.shouldNotify(current: current, lastSeen: prefs.lastSeenPendingCount) {
+                await PendingRequestsNotifier.notifyPendingIncrease(count: current)
+            }
+            await PendingRequestsNotifier.setBadgeCount(current)
+            prefs.lastSeenPendingCount = current
+            return true
+        }
+        #endif
+
         // Hand the live AppState/DependencyContainer to the intent layer so AppIntent.perform() drives navigation without rebuilding its own DI graph.
         IntentBridge.bind(appState: appState, dependencies: dependencies)
 
