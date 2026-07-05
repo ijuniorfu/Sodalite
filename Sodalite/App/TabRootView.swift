@@ -62,6 +62,18 @@ struct TabRootView: View {
         }
     }
 
+    /// Pending-approval count for the Catalog tab badge; nil for other tabs, tvOS, or a zero count
+    /// (a `.badge(0)` renders nothing).
+    private func catalogBadgeCount(_ tab: AppTab) -> Int? {
+        #if os(iOS)
+        guard tab == .catalog else { return nil }
+        let count = dependencies.pendingRequestsMonitor.pendingApprovalCount ?? 0
+        return count > 0 ? count : nil
+        #else
+        return nil
+        #endif
+    }
+
     /// iPhone (compact) drops Settings from the tab bar so the 6 tabs do not overflow into
     /// the iOS "More" tab, whose nested navigation controller skips the Settings root on back.
     /// Settings is reached via the gear overlay instead. tvOS + iPad keep it as a tab/sidebar item.
@@ -88,6 +100,7 @@ struct TabRootView: View {
                     } label: {
                         tabLabel(tab)
                     }
+                    .badge(catalogBadgeCount(tab) ?? 0)
                 }
                 #else
                 Tab(value: tab) {
