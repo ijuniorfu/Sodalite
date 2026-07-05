@@ -64,8 +64,10 @@ struct SeerrRequestAdminRow: View {
                 actionRow
                     .padding(.top, 4)
             }
-
-            Spacer()
+            // Claim the full remaining width. A trailing Spacer() instead fought the text column for
+            // space and squeezed it, truncating the metadata line while the rigid buttons overflowed
+            // past the squeezed bounds (visible room to the right, yet "Film . 20... . #...").
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
         .padding(16)
         .background(
