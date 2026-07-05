@@ -15,15 +15,12 @@ enum PendingRequestsNotifier {
         return settings.authorizationStatus == .authorized || settings.authorizationStatus == .provisional
     }
 
-    /// Fire a local notification announcing `count` requests awaiting approval. Plural handled by the
-    /// xcstrings variations of `catalog.notify.pending.body`.
+    /// Fire a local notification that new requests await approval. The exact count is carried by the
+    /// app-icon badge, so the text stays count-agnostic (no per-locale plural handling needed).
     static func notifyPendingIncrease(count: Int) async {
         let content = UNMutableNotificationContent()
         content.title = String(localized: "catalog.notify.pending.title", defaultValue: "Requests awaiting approval")
-        content.body = String(
-            format: String(localized: "catalog.notify.pending.body", defaultValue: "%d requests are waiting for approval."),
-            count
-        )
+        content.body = String(localized: "catalog.notify.pending.body", defaultValue: "New requests are waiting for your approval.")
         content.badge = NSNumber(value: count)
         let request = UNNotificationRequest(
             identifier: "seerr.pendingRequests",
