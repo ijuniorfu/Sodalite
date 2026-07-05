@@ -36,6 +36,11 @@ final class DependencyContainer {
     let seerrServiceConfigService: SeerrServiceConfigServiceProtocol
     let seerrSearchService: SeerrSearchServiceProtocol
 
+    /// Opt-in + baseline for the pending-requests notification feature (iOS/iPadOS).
+    let seerrNotificationPreferences: SeerrNotificationPreferences
+    /// Count of requests pending approval (admin only); feeds the Catalog tab badge + background refresh.
+    let pendingRequestsMonitor: PendingRequestsMonitor
+
     /// File-deletion service fronting Jellyfin + Seerr; gated on JellyfinUser.canDeleteContent.
     let mediaDeletionService: any MediaDeletionServiceProtocol
 
@@ -91,6 +96,10 @@ final class DependencyContainer {
         self.seerrServiceConfigService = SeerrServiceConfigService(client: seerrClient)
         self.seerrSearchService = SeerrSearchService(client: seerrClient)
 
+        let seerrNotificationPreferences = SeerrNotificationPreferences()
+        self.seerrNotificationPreferences = seerrNotificationPreferences
+        self.pendingRequestsMonitor = PendingRequestsMonitor(preferences: seerrNotificationPreferences)
+
         self.mediaDeletionService = MediaDeletionService(
             jellyfinItems: self.jellyfinItemService,
             seerrMedia: self.seerrMediaService,
@@ -112,6 +121,20 @@ final class DependencyContainer {
                 return try? capturedKeychain.loadString(for: KeychainKeys.userID(serverID: serverID))
             }
         )
+    }
+
+    /// Connect the pending-requests monitor to the live session. Called once from SodaliteApp.init
+    /// right after `appState` is back-wired, so the closures capture the fully-initialized container.
+    func wirePendingRequestsMonitor() {
+        pendingRequestsMonitor.isEligible = { [weak self] in
+            guard let self, let user = self.appState?.activeSeerrUser else { return false }
+            return (self.appState?.isSeerrConnected ?? false) && user.canManageRequests
+        }
+        pendingRequestsMonitor.fetchPendingCount = { [weak self] in
+            guard let self else { return 0 }
+            let result = try await self.seerrRequestService.allRequests(filter: .pending, take: 0, skip: 0)
+            return result.pageInfo.results
+        }
     }
 
     /// Probes /Users/Me against the active server. Returns the user on success; on 401 drops the remembered entry + token slot and returns nil (caller routes to picker); throws on transport errors (caller keeps previous server active).

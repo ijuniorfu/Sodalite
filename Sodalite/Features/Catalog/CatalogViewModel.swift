@@ -531,6 +531,8 @@ final class CatalogViewModel {
         if let a = results.1 { allRequestsCounts[.approved] = a.pageInfo.results }
         if let d = results.2 { allRequestsCounts[.declined] = d.pageInfo.results }
         if let x = results.3 { allRequestsCounts[.all]      = x.pageInfo.results }
+        // Nudge the Catalog tab badge: this runs on queue load and after every admin mutation.
+        NotificationCenter.default.post(name: .seerrPendingRequestsShouldRefresh, object: nil)
     }
 
     // MARK: - Admin mutations

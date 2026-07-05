@@ -13,6 +13,10 @@ extension Notification.Name {
     static let loginDidComplete = Notification.Name("loginDidComplete")
     /// Posted by CatalogDetailView after a Seerr request so CatalogView refreshes loaded request lists, else a new request doesn't appear until restart.
     static let seerrRequestDidSubmit = Notification.Name("seerrRequestDidSubmit")
+
+    /// Posted after an admin approves/declines/deletes a request or the admin queue reloads its counts,
+    /// so the pending-requests monitor recomputes the Catalog tab badge.
+    static let seerrPendingRequestsShouldRefresh = Notification.Name("seerrPendingRequestsShouldRefresh")
 }
 
 /// userInfo keys for `.playbackProgressDidChange`.

@@ -30,6 +30,9 @@ struct SodaliteApp: App {
         // Back-wire so switchServer/removeServer can bump serverDidSwitch; must run before any switch fires.
         dependencies.appState = appState
 
+        // Now that appState is wired, connect the pending-requests monitor (reads appState + Seerr service).
+        dependencies.wirePendingRequestsMonitor()
+
         // Hand the live AppState/DependencyContainer to the intent layer so AppIntent.perform() drives navigation without rebuilding its own DI graph.
         IntentBridge.bind(appState: appState, dependencies: dependencies)
 

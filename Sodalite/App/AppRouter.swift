@@ -35,6 +35,9 @@ struct AppRouter: View {
         "\(appState.activeServer?.id ?? "none")|\(appState.activeUser?.id ?? "none")"
     }
 
+    /// Edge-triggered active flag: keys a `.task` so the monitor refreshes on foreground, not on every phase change.
+    private var scenePhaseIsActive: Bool { scenePhase == .active }
+
     var body: some View {
         ZStack {
             if appState.isAuthenticated {
@@ -66,6 +69,21 @@ struct AppRouter: View {
         }
         .animation(.easeOut(duration: 0.4), value: appState.isLoading)
         .animation(.easeInOut(duration: 0.2), value: appState.isResolvingDeepLink)
+        // Keep the Catalog pending-requests badge fresh: recompute when the app comes forward, when the
+        // Seerr connection flips, and on the admin-queue change signal. iOS/iPadOS badge; inert on tvOS.
+        .task(id: scenePhaseIsActive) {
+            if scenePhaseIsActive { await dependencies.pendingRequestsMonitor.refresh() }
+        }
+        .task(id: appState.isSeerrConnected) {
+            if appState.isSeerrConnected {
+                await dependencies.pendingRequestsMonitor.refresh()
+            } else {
+                dependencies.pendingRequestsMonitor.reset()
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .seerrPendingRequestsShouldRefresh)) { _ in
+            Task { await dependencies.pendingRequestsMonitor.refresh() }
+        }
         .task {
             guard !hasRestored else { return }
             hasRestored = true
