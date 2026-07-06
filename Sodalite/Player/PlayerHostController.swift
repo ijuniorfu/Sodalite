@@ -110,6 +110,15 @@ final class PlayerHostController: AVPlayerViewController {
                     // playback is active (AetherEngine #86), so the receiver reaches the engine-processed stream
                     // (DV/Atmos/subtitles preserved). Local playback stays on 127.0.0.1.
                     avPlayer.allowsExternalPlayback = true
+                    // iOS wired HDMI (Sodalite#34): while a mirrored external screen is active AVPlayer stays in the
+                    // small mirror window unless this is set, so the video renders in "Mirror Mode" instead of filling
+                    // the TV. Setting it makes AVPlayer switch to external playback (full-screen out) on connect. This
+                    // also flips isExternalPlaybackActive, so the engine's #86 handler reloads onto the LAN IP + MEDIA
+                    // playlist exactly like wireless AirPlay: harmless here (127.0.0.1 fallback if no WiFi) but it drops
+                    // the DV/HDR master signaling, so DV over a wired adapter comes out through the MEDIA playlist.
+                    #if os(iOS)
+                    avPlayer.usesExternalPlaybackWhileExternalScreenIsActive = true
+                    #endif
                     self.player = avPlayer
                     // Each `self.player` assignment resets videoGravity to .resizeAspect, so re-apply the user's picture-mode after every rebind or an audio-switch reload silently drops fill mode.
                     self.applyVideoGravity(for: self.viewModel.pictureMode)

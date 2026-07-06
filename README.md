@@ -85,6 +85,7 @@ Almost everything is identical across devices, it's one codebase. A handful of c
 | Watch Stats, parental controls, 26 languages | ✓ | ✓ |
 | Picture in Picture | – | ✓ |
 | AirPlay to another display | – | ✓ |
+| Full-screen video out over a wired HDMI adapter | – | ✓ |
 | Rotation lock &amp; portrait player | – | ✓ |
 | Top Shelf &amp; Siri Remote focus UX | ✓ | – |
 
@@ -142,6 +143,7 @@ The Seerr integration isn't a tacked-on link to a web view. It's a first-class p
 ### 📱 On iPhone & iPad
 - **Picture in Picture**: shrink playback into a floating window and keep browsing, or leave the app entirely; text subtitles render inside the PiP window and survive seeking in both directions
 - **AirPlay**: send any title to an AirPlay display, with HDR and surround metadata preserved
+- **Wired HDMI out**: plug in a USB-C to HDMI adapter and playback fills the connected screen instead of showing the mirrored phone window
 - **Rotation lock**: a one-tap toggle in the player pins landscape (or lets it follow the device), with a lock indicator so you always know which mode you're in
 - **Format badge**: the top bar surfaces the live format (Dolby Vision, HDR10+, Atmos and friends) so you can confirm at a glance what's actually playing
 - **Portrait-safe chrome**: player controls stay correctly placed in portrait and landscape, no clipped buttons behind the notch or home indicator
