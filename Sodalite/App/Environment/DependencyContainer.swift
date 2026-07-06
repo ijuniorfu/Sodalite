@@ -12,6 +12,7 @@ final class DependencyContainer {
     let httpClient: HTTPClientProtocol
     let jellyfinClient: JellyfinClient
     let serverDiscoveryService: ServerDiscoveryServiceProtocol
+    let serverDiscovery: JellyfinServerDiscoveryProtocol
     let jellyfinAuthService: JellyfinAuthServiceProtocol
     let jellyfinLibraryService: JellyfinLibraryServiceProtocol
     let jellyfinLiveTvService: JellyfinLiveTvServiceProtocol
@@ -60,6 +61,7 @@ final class DependencyContainer {
         self.httpClient = httpClient
         self.jellyfinClient = JellyfinClient(httpClient: httpClient)
         self.serverDiscoveryService = ServerDiscoveryService(httpClient: httpClient)
+        self.serverDiscovery = JellyfinServerDiscovery()
         self.jellyfinAuthService = JellyfinAuthService(client: jellyfinClient)
         self.jellyfinLibraryService = JellyfinLibraryService(client: jellyfinClient)
         self.jellyfinLiveTvService = JellyfinLiveTvService(client: jellyfinClient)
