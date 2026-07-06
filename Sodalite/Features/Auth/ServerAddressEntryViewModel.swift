@@ -2,7 +2,7 @@ import Foundation
 import Observation
 
 @Observable
-final class ServerDiscoveryViewModel {
+final class ServerAddressEntryViewModel {
     var serverAddress = ""
     var isLoading = false
     var errorMessage: String?
