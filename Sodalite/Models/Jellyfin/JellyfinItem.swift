@@ -414,6 +414,27 @@ struct MediaSource: Codable, Sendable, Equatable, Identifiable {
     }
 }
 
+extension JellyfinItem {
+    /// The `MediaSource` actually playing, resolved from the engine-picked id (`PlayerViewModel.mediaSourceID`).
+    /// Multi-version items carry several `mediaSources`; consumers that show per-version detail (Stats overlay,
+    /// issue #37) must reflect the picked version, not the primary/first one. Falls back to the first source when
+    /// the id is nil, empty, or unmatched.
+    func effectiveMediaSource(id sourceID: String?) -> MediaSource? {
+        guard let sources = mediaSources, !sources.isEmpty else { return nil }
+        if let sourceID, !sourceID.isEmpty,
+           let match = sources.first(where: { $0.id == sourceID }) {
+            return match
+        }
+        return sources.first
+    }
+
+    /// Container `MediaStream`s for the playing version. Falls back to the item-level `mediaStreams` (which mirror
+    /// the primary source) when the matched source carries none.
+    func effectiveMediaStreams(id sourceID: String?) -> [MediaStream]? {
+        effectiveMediaSource(id: sourceID)?.mediaStreams ?? mediaStreams
+    }
+}
+
 struct PersonInfo: Codable, Sendable, Equatable {
     let id: String
     let name: String

@@ -101,6 +101,7 @@ struct PlayerOverlayView: View {
                     player: viewModel.player,
                     diagnostics: viewModel.player.diagnostics,
                     item: viewModel.item,
+                    selectedMediaSourceID: viewModel.mediaSourceID,
                     activeSubtitleIndex: viewModel.activeSubtitleIndex,
                     scrollSectionIndex: viewModel.statsSectionIndex,
                     showEngineDiagnostics: viewModel.preferences.showEngineDiagnostics,

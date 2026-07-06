@@ -55,6 +55,56 @@ struct JellyfinItemTests {
         #expect(ChapterInfo(startPositionTicks: 10_000_000, name: nil, imageTag: nil).startSeconds == 1.0)
     }
 
+    // MARK: - Multi-version source resolution (issue #37)
+
+    /// Two versions: primary (item-level + first source) is AV1, second is HEVC/x265.
+    private static let multiVersionJSON = #"""
+    {"Id":"m","Name":"TRON","Type":"Movie",
+     "MediaStreams":[{"Index":0,"Type":"Video","Codec":"av1"}],
+     "MediaSources":[
+       {"Id":"srcAV1","Name":"AV1","Container":"mp4","MediaStreams":[{"Index":0,"Type":"Video","Codec":"av1"}]},
+       {"Id":"srcX265","Name":"x265","Container":"mkv","MediaStreams":[{"Index":0,"Type":"Video","Codec":"hevc"}]}
+     ]}
+    """#
+
+    @Test func effectiveSourceResolvesPickedVersionNotFirst() throws {
+        let item = try decodeItem(Self.multiVersionJSON)
+        let source = try #require(item.effectiveMediaSource(id: "srcX265"))
+        #expect(source.id == "srcX265")
+        #expect(source.primaryVideoStream?.codec == "hevc")
+    }
+
+    @Test func effectiveSourceFallsBackToFirstForNilEmptyOrUnmatchedID() throws {
+        let item = try decodeItem(Self.multiVersionJSON)
+        for id in [nil, "", "does-not-exist"] as [String?] {
+            #expect(item.effectiveMediaSource(id: id)?.id == "srcAV1")
+        }
+    }
+
+    @Test func effectiveStreamsReflectPickedVersion() throws {
+        let item = try decodeItem(Self.multiVersionJSON)
+        let streams = try #require(item.effectiveMediaStreams(id: "srcX265"))
+        #expect(streams.first(where: { $0.type == .video })?.codec == "hevc")
+    }
+
+    @Test func effectiveStreamsFallBackToItemLevelWhenSourceCarriesNone() throws {
+        let item = try decodeItem(#"""
+        {"Id":"m","Name":"M","Type":"Movie",
+         "MediaStreams":[{"Index":0,"Type":"Video","Codec":"av1"}],
+         "MediaSources":[{"Id":"only","Name":"Only"}]}
+        """#)
+        let streams = try #require(item.effectiveMediaStreams(id: "only"))
+        #expect(streams.first(where: { $0.type == .video })?.codec == "av1")
+    }
+
+    @Test func effectiveSourceReturnsLoneSourceRegardlessOfID() throws {
+        let item = try decodeItem(#"""
+        {"Id":"m","Name":"M","Type":"Movie",
+         "MediaSources":[{"Id":"only","Name":"Only","MediaStreams":[{"Index":0,"Type":"Video","Codec":"hevc"}]}]}
+        """#)
+        #expect(item.effectiveMediaSource(id: "whatever")?.id == "only")
+    }
+
     @Test func decodesTrickplayManifest() throws {
         let item = try decodeItem(#"""
         {"Id":"abc","Name":"X","Type":"Movie",

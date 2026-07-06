@@ -1,12 +1,16 @@
 import SwiftUI
 import AetherEngine
 
-/// Right-anchored read-only "stats for nerds" panel; visible when `PlaybackPreferences.showStatsForNerds` is on and the transport's info chip is pressed. Data is split for honesty: Playback (backend, decoder, runtime HDR) from `AetherEngine`'s @Published surface (observed live so an audio-track-switch reload updates it in place); container metadata (codec/resolution/fps/bitrate/size/filename) from `item.mediaStreams`/`mediaSources`.
+/// Right-anchored read-only "stats for nerds" panel; visible when `PlaybackPreferences.showStatsForNerds` is on and the transport's info chip is pressed. Data is split for honesty: Playback (backend, decoder, runtime HDR) from `AetherEngine`'s @Published surface (observed live so an audio-track-switch reload updates it in place); container metadata (codec/resolution/fps/bitrate/size/filename) from the playing version's `MediaSource.mediaStreams`, resolved via `selectedMediaSourceID` so multi-version items show the picked version, not the primary source (issue #37).
 struct StatsOverlayView: View {
     @ObservedObject var player: AetherEngine
     /// Timer-sampled telemetry observed separately since the engine.diagnostics split (engine's objectWillChange no longer fires on 1 Hz samples). Mounted only while the panel is open, scoping the 1 Hz re-render to this view.
     @ObservedObject var diagnostics: EngineDiagnostics
     let item: JellyfinItem
+    /// The engine-picked version's id (`PlayerViewModel.mediaSourceID`). Multi-version items expose several
+    /// `mediaSources`; without this the panel would read the primary/first source's streams even when a
+    /// different version is playing (issue #37). Empty/unmatched falls back to the first source.
+    let selectedMediaSourceID: String?
     /// Active subtitle stream's container index (matches `MediaStream.index`), or `nil` when off.
     let activeSubtitleIndex: Int?
     /// Cursor into `PlayerViewModel.statsSectionAnchors`, written by PlayerView's press handlers to drive the ScrollViewReader to the Up/Down-navigated section.
@@ -24,22 +28,27 @@ struct StatsOverlayView: View {
         #endif
     }
 
+    /// Streams for the version actually playing, not the item's primary/first source (issue #37).
+    private var sourceStreams: [MediaStream]? {
+        item.effectiveMediaStreams(id: selectedMediaSourceID)
+    }
+
     private var videoStream: MediaStream? {
-        item.mediaStreams?.first { $0.type == .video }
+        sourceStreams?.first { $0.type == .video }
     }
 
     private var activeAudioStream: MediaStream? {
         guard let id = player.activeAudioTrackIndex else { return nil }
-        return item.mediaStreams?.first { $0.type == .audio && $0.index == id }
+        return sourceStreams?.first { $0.type == .audio && $0.index == id }
     }
 
     private var activeSubtitleStream: MediaStream? {
         guard let id = activeSubtitleIndex else { return nil }
-        return item.mediaStreams?.first { $0.type == .subtitle && $0.index == id }
+        return sourceStreams?.first { $0.type == .subtitle && $0.index == id }
     }
 
     private var mediaSource: MediaSource? {
-        item.mediaSources?.first
+        item.effectiveMediaSource(id: selectedMediaSourceID)
     }
 
     var body: some View {
