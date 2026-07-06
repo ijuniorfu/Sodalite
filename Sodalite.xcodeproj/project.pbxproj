@@ -12,6 +12,7 @@
 		1BD485EF6A5DBD9C83BD8020 /* TrickplayScrubSourceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58BB91A936798EBE022F9F6F /* TrickplayScrubSourceTests.swift */; };
 		2013375022BB486CA4862DC8 /* ProviderMatchMergingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 874D726F6CCC65E84AABB258 /* ProviderMatchMergingTests.swift */; };
 		2B1E261C886B695DE162D2C7 /* ServerDiscoveryURLTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 978CD708E9C5ACCED67A3F97 /* ServerDiscoveryURLTests.swift */; };
+		9C25EDE83DFB443685F86399 /* ServerDiscoveryViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92A2B780CFC54205B36BBE03 /* ServerDiscoveryViewModelTests.swift */; };
 		9D44D322404D43539756F8AB /* JellyfinServerDiscoveryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD7EED999D96468199F5C91E /* JellyfinServerDiscoveryTests.swift */; };
 		331EA504B8232818D894A842 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AC76FE12491CE8E6DCDD5B42 /* Foundation.framework */; };
 		53CD6B51D9123C4578E8B0A2 /* SessionRestorerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09862C8C1314699B9D2BB5B8 /* SessionRestorerTests.swift */; };
@@ -78,6 +79,7 @@
 		7B43E68557F96AC762BB106D /* PendingRequestsMonitorTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PendingRequestsMonitorTests.swift; sourceTree = "<group>"; };
 		874D726F6CCC65E84AABB258 /* ProviderMatchMergingTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ProviderMatchMergingTests.swift; sourceTree = "<group>"; };
 		978CD708E9C5ACCED67A3F97 /* ServerDiscoveryURLTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ServerDiscoveryURLTests.swift; sourceTree = "<group>"; };
+		92A2B780CFC54205B36BBE03 /* ServerDiscoveryViewModelTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ServerDiscoveryViewModelTests.swift; sourceTree = "<group>"; };
 		AD7EED999D96468199F5C91E /* JellyfinServerDiscoveryTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = JellyfinServerDiscoveryTests.swift; sourceTree = "<group>"; };
 		9D491D922F8F92E500B3BE42 /* AVKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVKit.framework; path = System/Library/Frameworks/AVKit.framework; sourceTree = SDKROOT; };
 		9DD9136D2F8645860078D0BE /* Sodalite.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Sodalite.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -173,6 +175,7 @@
 				57CF00E5C87F92A3DAF35F27 /* SeerrDecodingTests.swift */,
 				756D59BCF6F1E09889825D6E /* SeerrMediaTests.swift */,
 				978CD708E9C5ACCED67A3F97 /* ServerDiscoveryURLTests.swift */,
+				92A2B780CFC54205B36BBE03 /* ServerDiscoveryViewModelTests.swift */,
 				AD7EED999D96468199F5C91E /* JellyfinServerDiscoveryTests.swift */,
 				09862C8C1314699B9D2BB5B8 /* SessionRestorerTests.swift */,
 				4553932DFC543AB554886993 /* TrickplayTileSetTests.swift */,
@@ -378,6 +381,7 @@
 				A99103ECA91C496739871989 /* SeerrDecodingTests.swift in Sources */,
 				D6CDFC24E2E33767EB59131B /* SeerrMediaTests.swift in Sources */,
 				2B1E261C886B695DE162D2C7 /* ServerDiscoveryURLTests.swift in Sources */,
+				9C25EDE83DFB443685F86399 /* ServerDiscoveryViewModelTests.swift in Sources */,
 				9D44D322404D43539756F8AB /* JellyfinServerDiscoveryTests.swift in Sources */,
 				53CD6B51D9123C4578E8B0A2 /* SessionRestorerTests.swift in Sources */,
 				9DEB1EBCC03C245F50B5BEE9 /* TrickplayTileSetTests.swift in Sources */,
