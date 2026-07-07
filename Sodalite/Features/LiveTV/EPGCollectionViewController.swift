@@ -483,18 +483,23 @@ final class EPGCollectionViewController: UIViewController,
 
     // MARK: - Helpers
 
-    private func timeRange(_ program: JellyfinProgram) -> String? {
-        guard let start = program.startDate, let end = program.endDate else { return nil }
+    // One shared formatter; DateFormatter allocation/config is costly and this ran per program cell.
+    // Main-thread only (cell config + tick layout), so no thread-safety concern.
+    private static let shortTimeFormatter: DateFormatter = {
         let f = DateFormatter()
         f.timeStyle = .short
         f.dateStyle = .none
+        return f
+    }()
+
+    private func timeRange(_ program: JellyfinProgram) -> String? {
+        guard let start = program.startDate, let end = program.endDate else { return nil }
+        let f = Self.shortTimeFormatter
         return "\(f.string(from: start)) - \(f.string(from: end))"
     }
 
     private func timeTicks() -> [(x: CGFloat, text: String)] {
-        let f = DateFormatter()
-        f.timeStyle = .short
-        f.dateStyle = .none
+        let f = Self.shortTimeFormatter
         return model.timeTicks.map { (model.xOffset(for: $0), f.string(from: $0)) }
     }
 

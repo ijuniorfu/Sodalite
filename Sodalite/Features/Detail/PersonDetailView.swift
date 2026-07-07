@@ -12,7 +12,8 @@ struct PersonDetailView: View {
     @Environment(\.horizontalSizeClass) private var hSizeClass
 
     @State private var detail: SeerrPersonDetail?
-    @State private var credits: SeerrPersonCredits?
+    /// Deduped/sorted filmography, computed once from the person credits in `load()`.
+    @State private var filmography: [SeerrMedia] = []
     @State private var isLoading = true
     @State private var errorMessage: String?
 
@@ -205,8 +206,9 @@ struct PersonDetailView: View {
         return String(displayName.prefix(2)).uppercased()
     }
 
-    /// cast + crew, deduped by stableKey, poster-only, newest first.
-    private var filmography: [SeerrMedia] {
+    /// cast + crew, deduped by stableKey, poster-only, newest first. Computed once when credits load
+    /// (see `load()`) and cached in `filmography`, rather than re-deduped/re-sorted on every body pass.
+    private static func computeFilmography(from credits: SeerrPersonCredits?) -> [SeerrMedia] {
         let all = (credits?.cast ?? []) + (credits?.crew ?? [])
         var seen = Set<String>()
         let deduped = all.filter { seen.insert($0.stableKey).inserted }
@@ -235,7 +237,7 @@ struct PersonDetailView: View {
             async let d = dependencies.seerrMediaService.personDetail(tmdbID: personID)
             async let c = dependencies.seerrMediaService.personCredits(tmdbID: personID)
             detail = try await d
-            credits = try await c
+            filmography = Self.computeFilmography(from: try await c)
         } catch {
             errorMessage = error.localizedDescription
         }

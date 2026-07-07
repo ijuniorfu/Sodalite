@@ -92,7 +92,7 @@ extension HomeViewModel {
             // Backfill the backdrop only if the fast studio pass didn't set one; this resolver includes watch-provider matches, so it finds a sample for studio-tag-less tiles (Paramount+).
             if providerBackdrops[providerID] == nil,
                let sample = items.first,
-               let url = imageService.backdropURL(for: sample)
+               let url = imageService.backdropURL(for: sample, maxWidth: 640)
                    ?? imageService.posterURL(for: sample) {
                 providerBackdrops[providerID] = url
             }
@@ -243,7 +243,7 @@ extension HomeViewModel {
             return collected
         }
         for (id, item) in pairs {
-            if let url = imageService.backdropURL(for: item) ?? imageService.posterURL(for: item) {
+            if let url = imageService.backdropURL(for: item, maxWidth: 640) ?? imageService.posterURL(for: item) {
                 providerBackdrops[id] = url
             }
         }

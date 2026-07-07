@@ -16,11 +16,15 @@ import AetherEngine
 /// 00:12:34                        -01:23:45
 /// ```
 struct TransportBar: View {
-    let progress: Float
-    let currentTime: String
-    let remainingTime: String
-    let isScrubbing: Bool
-    let scrubTime: String
+    // The ~10 Hz clock values are read from the view model INSIDE this body (via the shims below) rather
+    // than passed down as scalars, so the parent PlayerOverlayView body does not re-evaluate every tick
+    // while the controls are visible; only this transport bar does. (perf: observation altitude)
+    let viewModel: PlayerViewModel
+    private var progress: Float { viewModel.displayedProgress }
+    private var currentTime: String { viewModel.currentTime }
+    private var remainingTime: String { viewModel.remainingTime }
+    private var isScrubbing: Bool { viewModel.isScrubbing }
+    private var scrubTime: String { viewModel.scrubTime }
     let audioTracks: [TrackInfo]
     let subtitleStreams: [MediaStream]
     let activeAudioIndex: Int?

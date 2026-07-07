@@ -246,9 +246,11 @@ final class HomeViewModel {
             if item.type == .episode {
                 return imageService.episodeThumbnailURL(for: item)
             }
-            return imageService.backdropURL(for: item) ?? imageService.posterURL(for: item)
+            // Landscape card is ~360pt (~720px @2x); request that, not the 1920 default,
+            // to avoid decoding an 8MB backdrop into a small cell and thrashing the cache.
+            return imageService.backdropURL(for: item, maxWidth: 720) ?? imageService.posterURL(for: item)
         case .backdrop:
-            return imageService.backdropURL(for: item)
+            return imageService.backdropURL(for: item, maxWidth: 720)
                 ?? imageService.episodeThumbnailURL(for: item)
                 ?? imageService.posterURL(for: item)
         case .thumb:

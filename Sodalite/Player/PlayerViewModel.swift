@@ -258,6 +258,11 @@ final class PlayerViewModel {
     /// overlay resets; without it the show-logic is one-way and the overlay sticks on screen.
     var lastPlaybackTimeForNextEpisode: Double = 0
 
+    /// Whole source-second last written to the `currentTime`/`remainingTime` labels. The clock ticks
+    /// at 10 Hz but the labels are second-resolution, so we only re-format/re-publish when the second
+    /// changes, cutting ~9/10 redundant string allocations and label invalidations per second.
+    @ObservationIgnored private var lastDisplayedSecond: Int = -1
+
     // Intro + outro markers, both from Jellyfin Media Segments / intro-skipper plugin in one call.
     var introSegment: MediaSegment?
     var outroSegment: MediaSegment?
@@ -1065,10 +1070,15 @@ final class PlayerViewModel {
                     }
                 }
                 // Time labels track the live playhead even while scrubbing (playback keeps running); the
-                // scrub target previews separately in the scrub bubble (`scrubTime`).
-                self.currentTime = self.formatSeconds(time)
-                let rem = dur - time
-                self.remainingTime = rem > 0 ? "-\(self.formatSeconds(rem))" : "-00:00"
+                // scrub target previews separately in the scrub bubble (`scrubTime`). Labels are second-
+                // resolution, so only re-format/re-publish when the whole second changes (clock is 10 Hz).
+                let whole = Int(max(0, time))
+                if whole != self.lastDisplayedSecond {
+                    self.lastDisplayedSecond = whole
+                    self.currentTime = self.formatSeconds(time)
+                    let rem = dur - time
+                    self.remainingTime = rem > 0 ? "-\(self.formatSeconds(rem))" : "-00:00"
+                }
                 // Progress bar + warmed frame must NOT follow the live clock during a scrub (would fight scrubProgress).
                 guard !self.isScrubbing else { return }
                 // Live owns `progress` via the DVR baseline in observeLiveEdge (live duration is 0). Leave VOD untouched.
@@ -1086,6 +1096,9 @@ final class PlayerViewModel {
             .sink { [weak self] dur in
                 guard let self else { return }
                 self.totalTime = dur > 0 ? self.formatSeconds(dur) : "00:00"
+                // remainingTime is gated on the whole-second change in the clock sink; force a refresh
+                // on the next tick so a late-resolving duration updates the label without a ~1s lag.
+                self.lastDisplayedSecond = -1
             }
             .store(in: &cancellables)
 

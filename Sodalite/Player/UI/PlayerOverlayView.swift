@@ -21,28 +21,10 @@ struct PlayerOverlayView: View {
                 .ignoresSafeArea()
             #endif
 
-            // Keep the styled ASS layer mounted even while the cue array is momentarily empty (seek resets); libass already holds the assembled script.
-            if viewModel.assRenderer != nil || !viewModel.subtitleCues.isEmpty || !viewModel.secondarySubtitleCues.isEmpty {
-                SubtitleOverlayView(
-                    cues: viewModel.subtitleCues,
-                    currentTime: viewModel.subtitleTime,
-                    maxCueDuration: viewModel.subtitleMaxCueDuration,
-                    secondaryCues: viewModel.secondarySubtitleCues,
-                    secondaryMaxCueDuration: viewModel.secondarySubtitleMaxCueDuration,
-                    fontSize: viewModel.preferences.subtitleFontSize,
-                    textColor: viewModel.preferences.subtitleColor,
-                    background: viewModel.preferences.subtitleBackground,
-                    delaySeconds: viewModel.preferences.subtitleDelaySeconds,
-                    verticalPosition: viewModel.preferences.subtitleVerticalPosition,
-                    font: viewModel.preferences.subtitleFont,
-                    weight: viewModel.preferences.subtitleWeight,
-                    controlsVisible: viewModel.showControls,
-                    assRenderer: viewModel.assRenderer,
-                    assReloadSignal: viewModel.assReloadSignal,
-                    activeSubtitleCodec: viewModel.activeSubtitleCodec,
-                    hasSecondaryTrack: viewModel.activeSecondarySubtitleIndex != nil
-                )
-            }
+            // Subtitle rendering (incl. the ~10 Hz subtitleTime clock) is observed inside SubtitleLayer,
+            // not here, so this top-level overlay body does not re-evaluate its whole ZStack every tick
+            // while subtitles are active. (perf: observation altitude)
+            SubtitleLayer(viewModel: viewModel)
 
             if viewModel.isLoading {
                 // Inner ZStack + whole-stack ignoresSafeArea so the spinner shares the backdrop's coord space; centering on Color.black's layout bounds (which respect safe-area) drifted the spinner top-half when an outgoing next-episode card shifted the parent's insets.
@@ -538,11 +520,9 @@ struct PlayerOverlayView: View {
                     LiveTransportBar(viewModel: viewModel)
                 } else {
                 TransportBar(
-                    progress: viewModel.displayedProgress,
-                    currentTime: viewModel.currentTime,
-                    remainingTime: viewModel.remainingTime,
-                    isScrubbing: viewModel.isScrubbing,
-                    scrubTime: viewModel.scrubTime,
+                    // Clock values (progress/currentTime/remainingTime/isScrubbing/scrubTime) are read
+                    // inside TransportBar from this view model, so they don't re-evaluate the parent body.
+                    viewModel: viewModel,
                     audioTracks: viewModel.displayAudioTracks,
                     subtitleStreams: viewModel.displaySubtitleStreams,
                     activeAudioIndex: viewModel.activeAudioIndex,
@@ -719,5 +699,38 @@ private struct DiagnosticLogOverlay: View {
             Spacer()
         }
         .allowsHitTesting(false)
+    }
+}
+
+/// Confines the subtitle inputs, including the ~10 Hz `subtitleTime` clock, to their own leaf body so
+/// PlayerOverlayView (the hosting root) does not re-evaluate its entire ZStack on every clock tick while
+/// subtitles are active. When no cues or ASS renderer are present the body reads no clock at all, so idle
+/// playback with subtitles off establishes no per-tick dependency. (perf: observation altitude)
+private struct SubtitleLayer: View {
+    let viewModel: PlayerViewModel
+
+    var body: some View {
+        // Keep the styled ASS layer mounted even while the cue array is momentarily empty (seek resets); libass already holds the assembled script.
+        if viewModel.assRenderer != nil || !viewModel.subtitleCues.isEmpty || !viewModel.secondarySubtitleCues.isEmpty {
+            SubtitleOverlayView(
+                cues: viewModel.subtitleCues,
+                currentTime: viewModel.subtitleTime,
+                maxCueDuration: viewModel.subtitleMaxCueDuration,
+                secondaryCues: viewModel.secondarySubtitleCues,
+                secondaryMaxCueDuration: viewModel.secondarySubtitleMaxCueDuration,
+                fontSize: viewModel.preferences.subtitleFontSize,
+                textColor: viewModel.preferences.subtitleColor,
+                background: viewModel.preferences.subtitleBackground,
+                delaySeconds: viewModel.preferences.subtitleDelaySeconds,
+                verticalPosition: viewModel.preferences.subtitleVerticalPosition,
+                font: viewModel.preferences.subtitleFont,
+                weight: viewModel.preferences.subtitleWeight,
+                controlsVisible: viewModel.showControls,
+                assRenderer: viewModel.assRenderer,
+                assReloadSignal: viewModel.assReloadSignal,
+                activeSubtitleCodec: viewModel.activeSubtitleCodec,
+                hasSecondaryTrack: viewModel.activeSecondarySubtitleIndex != nil
+            )
+        }
     }
 }
