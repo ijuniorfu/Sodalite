@@ -62,7 +62,7 @@ enum PlayerOrientation {
     }
 
     private static var currentOrientation: UIInterfaceOrientation {
-        scene?.interfaceOrientation ?? .landscapeRight
+        scene?.effectiveGeometry.interfaceOrientation ?? .landscapeRight
     }
 
     private static func mask(for orientation: UIInterfaceOrientation) -> UIInterfaceOrientationMask {
