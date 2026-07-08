@@ -104,7 +104,7 @@ Bugs already known live in the [open issues](https://github.com/superuser404notf
 ## What you should NOT expect from a beta
 
 - **Crashes are possible.** Your device won't be damaged, but you may have to relaunch.
-- **Some features may be incomplete.** For example, HDR display switching depends on TV model and the Match Content setting. HDR or Dolby Vision content sent to an SDR external display plays without subtitles on that external screen (an AVKit limitation); the subtitles still render on the device's own screen. Bringing subtitles to a wired external display is planned.
+- **Some features may be incomplete.** For example, HDR display switching depends on TV model and the Match Content setting. On a wired external display, subtitles for HDR or Dolby Vision content that the platform cannot carry natively are now drawn by the app on the external screen; this is new and being verified. AirPlay keeps its native subtitle path.
 - **TestFlight builds expire after 90 days.** You'll get a new invite when a fresh build lands.
 - **Your watch progress is stored on your Jellyfin server**, not in the app. If you reinstall you keep all your progress.
 
