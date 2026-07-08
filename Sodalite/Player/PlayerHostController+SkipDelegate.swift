@@ -90,7 +90,9 @@ extension PlayerHostController: AVPlayerViewControllerDelegate {
     // and survives fullscreen<->PiP + seeks; fullscreen shows the on-frame overlay instead.
     nonisolated func playerViewControllerDidStartPictureInPicture(_ playerViewController: AVPlayerViewController) {
         LogTap.shared.note("[PiP] didStart")
-        Task { @MainActor [weak self] in self?.viewModel.enterPiPSubtitle() }
+        // pipActive was set true in willStart; funnel through the combined switch so a concurrent external
+        // screen (Sodalite#34) doesn't get its native-subtitle-rendering state clobbered.
+        Task { @MainActor [weak self] in self?.syncNativeSubtitleRendering() }
     }
 
     nonisolated func playerViewControllerWillStopPictureInPicture(_ playerViewController: AVPlayerViewController) {
@@ -102,7 +104,7 @@ extension PlayerHostController: AVPlayerViewControllerDelegate {
         self.pipActive = false
         Task { @MainActor [weak self] in
             self?.viewModel.player.pictureInPictureActive = false
-            self?.viewModel.exitPiPSubtitle()
+            self?.syncNativeSubtitleRendering()
         }
     }
     #endif
