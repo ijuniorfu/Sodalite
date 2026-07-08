@@ -1085,9 +1085,16 @@ final class PlayerViewModel {
                 if !self.isLiveSession {
                     self.progress = dur > 0 ? Float(time / dur) : 0
                 }
-                // Keep one frame warm at the playhead so the first scrub frame is on screen
-                // instantly. The engine-coupled extractor yields on a starved pipeline itself.
-                self.scrubPreview.warm(toSeconds: time)
+                // Keep one frame warm at the playhead so the first scrub frame is instant.
+                // Skip while the spinner is up (startup / rebuffer / stall): for DV/4K sources
+                // with no server trickplay, warm() spins up a second demuxer + a full software
+                // HEVC decode that needlessly competes with the pipeline for CPU and I/O during
+                // the exact window playback is trying to become ready. (The DV "loads forever"
+                // hang itself was an engine backpressure wedge, fixed separately; this only
+                // removes the contention.) Scrub-start prewarm() still covers cold-start latency.
+                if !self.isLoading {
+                    self.scrubPreview.warm(toSeconds: time)
+                }
             }
             .store(in: &cancellables)
 
