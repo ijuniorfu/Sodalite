@@ -63,6 +63,7 @@ The high-value areas, what we most want feedback on:
 - Dual subtitles: pick a secondary track from the Secondary section at the top of the subtitle menu and confirm two lines render (try an SRT and an ASS track). Switching the secondary track and turning it off should work, and seeking should keep both lines in sync
 - An ASS / SSA subtitle track with heavy styling (anime fansubs are ideal): do fonts, colors and positions look right? Try the styled / plain toggle in Playback settings
 - Resume from where you stopped, on multiple devices
+- Network Buffer (Settings > Playback > Streaming): on a slow WebDAV / rclone-backed server, raise the level and watch the lighter buffered-ahead band on the scrub bar grow as the on-disk buffer fills. It applies to direct play; a server-transcoded title shows no band
 - Auto-play next episode for series
 - The 10-second skip buttons in the system Now Playing controls (Control Center on iPhone / iPad, the Now Playing panel on Apple TV)
 
