@@ -25,6 +25,7 @@ struct TransportBar: View {
     private var remainingTime: String { viewModel.remainingTime }
     private var isScrubbing: Bool { viewModel.isScrubbing }
     private var scrubTime: String { viewModel.scrubTime }
+    private var bufferedProgress: Float { viewModel.bufferedProgress }
     let audioTracks: [TrackInfo]
     let subtitleStreams: [MediaStream]
     let activeAudioIndex: Int?
@@ -617,6 +618,7 @@ struct TransportBar: View {
         GeometryReader { geo in
             let width = geo.size.width
             let knobX = max(0, min(width, width * CGFloat(progress)))
+            let bufferedX = max(0, min(width, width * CGFloat(bufferedProgress)))
             let active = isScrubbing || controlsFocus == .progressBar
             let trackHeight: CGFloat = active ? 10 : 6
             let knobSize: CGFloat = active ? 22 : 14
@@ -626,6 +628,15 @@ struct TransportBar: View {
                 Capsule()
                     .fill(.white.opacity(0.2))
                     .frame(height: trackHeight)
+
+                // Buffered-ahead (disk cache read-ahead) sits above the unplayed track and below the
+                // played tint, lighter than the tint so the played portion still reads as primary. Only
+                // when it actually leads the playhead, so it collapses when the frontier is at the knob.
+                if bufferedX > knobX {
+                    Capsule()
+                        .fill(.white.opacity(0.4))
+                        .frame(width: bufferedX, height: trackHeight)
+                }
 
                 // Chapter ticks, drawn above the unplayed track and below the played portion so
                 // they melt into the tint behind the playhead. Skip the first (at 0:00, edge collision).

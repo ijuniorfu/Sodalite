@@ -254,8 +254,12 @@ struct PlayerTouchControls: View {
             let width = geo.size.width
             let frac = CGFloat(viewModel.displayedProgress)
             let knobX = max(0, min(width, width * frac))
+            let bufferedX = max(0, min(width, width * CGFloat(viewModel.bufferedProgress)))
             ZStack(alignment: .leading) {
                 Capsule().fill(.white.opacity(0.25)).frame(height: 6)
+                if bufferedX > knobX {
+                    Capsule().fill(.white.opacity(0.4)).frame(width: bufferedX, height: 6)
+                }
                 Capsule().fill(tint).frame(width: knobX, height: 6)
                 Circle().fill(tint)
                     .frame(width: viewModel.isScrubbing ? 22 : 16, height: viewModel.isScrubbing ? 22 : 16)
