@@ -39,6 +39,11 @@ final class PlayerViewModel {
     var remainingTime: String = "-00:00"
     var progress: Float = 0
 
+    /// Fraction of the timeline whose content is cached ahead of the playhead (disk SegmentCache
+    /// read-ahead on native direct play, demux frontier on the software path). Drives the buffered
+    /// layer on the scrub bar. 0 on live and until a duration resolves.
+    var bufferedProgress: Float = 0
+
     var playbackTime: Double = 0
 
     /// source-PTS of displayed frame, mirrored from `AetherEngine.sourceTime`; native-path
@@ -1110,6 +1115,15 @@ final class PlayerViewModel {
             }
             .store(in: &cancellables)
 
+        player.clock.$bufferedPosition
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] pos in
+                guard let self else { return }
+                self.bufferedProgress = Self.bufferedProgressValue(
+                    bufferedPosition: pos, duration: self.effectiveDuration, isLive: self.isLiveSession)
+            }
+            .store(in: &cancellables)
+
         player.$videoFormat
             .receive(on: DispatchQueue.main)
             .sink { [weak self] format in
@@ -2107,6 +2121,11 @@ final class PlayerViewModel {
         case .none: return
         }
         confirmDropdownSelection()
+    }
+
+    static func bufferedProgressValue(bufferedPosition: Double, duration: Double, isLive: Bool) -> Float {
+        guard !isLive, duration > 0 else { return 0 }
+        return Float(min(max(bufferedPosition / duration, 0), 1))
     }
 
     func formatSeconds(_ seconds: Double) -> String {
