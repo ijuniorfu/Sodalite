@@ -104,7 +104,7 @@ Bugs already known live in the [open issues](https://github.com/superuser404notf
 ## What you should NOT expect from a beta
 
 - **Crashes are possible.** Your device won't be damaged, but you may have to relaunch.
-- **Some features may be incomplete.** For example, HDR display switching depends on TV model and the Match Content setting.
+- **Some features may be incomplete.** For example, HDR display switching depends on TV model and the Match Content setting. HDR content on an SDR external display keeps subtitles where the platform accepts the reduced master; Dolby Vision Profile 5 may play fullscreen without subtitles on the external display (subtitles still render on the device screen).
 - **TestFlight builds expire after 90 days.** You'll get a new invite when a fresh build lands.
 - **Your watch progress is stored on your Jellyfin server**, not in the app. If you reinstall you keep all your progress.
 
