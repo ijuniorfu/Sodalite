@@ -52,6 +52,19 @@ final class PlayerHostController: AVPlayerViewController {
     /// delegate + read on MainActor, both on the main thread in practice (iOS only).
     nonisolated(unsafe) var pipActive = false
 
+    /// Sodalite#34: true while AVPlayer pushes video to an external screen (a wired HDMI adapter via
+    /// usesExternalPlaybackWhileExternalScreenIsActive, or an AirPlay receiver). Set from the
+    /// isExternalPlaybackActive KVO, combined with pipActive to decide native-subtitle rendering.
+    private var externalPlaybackActive = false
+    /// Applied state of the native WebVTT rendering switch, so syncNativeSubtitleRendering only calls the VM on a
+    /// real transition of the combined "video left the app's view hierarchy" state (PiP or external playback).
+    private var nativeSubtitleRenderingApplied = false
+    #if os(iOS)
+    /// KVO on the AVPlayer's isExternalPlaybackActive (Sodalite#34); like PiP, external playback moves the video
+    /// off-screen where the on-frame subtitle overlay can't draw, so it drives the same native-rendering switch.
+    private var externalPlaybackObservation: NSKeyValueObservation?
+    #endif
+
     init(
         viewModel: PlayerViewModel,
         tintColor: Color? = nil,
@@ -123,12 +136,21 @@ final class PlayerHostController: AVPlayerViewController {
                     // Each `self.player` assignment resets videoGravity to .resizeAspect, so re-apply the user's picture-mode after every rebind or an audio-switch reload silently drops fill mode.
                     self.applyVideoGravity(for: self.viewModel.pictureMode)
                     self.observeAVKitRenderLayer(for: avPlayer)
+                    #if os(iOS)
+                    self.observeExternalPlayback(for: avPlayer)
+                    #endif
                 } else {
                     self.player = nil
                     self.avkitLayerObservation?.invalidate()
                     self.avkitLayerObservation = nil
                     self.avkitLayerSampler?.cancel()
                     self.avkitLayerSampler = nil
+                    #if os(iOS)
+                    self.externalPlaybackObservation?.invalidate()
+                    self.externalPlaybackObservation = nil
+                    self.externalPlaybackActive = false
+                    self.syncNativeSubtitleRendering()
+                    #endif
                 }
             }
             .store(in: &engineSubscriptions)
@@ -250,6 +272,43 @@ final class PlayerHostController: AVPlayerViewController {
     }
 
     /// Audio-before-video diagnostic: KVO `isReadyForDisplay` on the AVPlayerLayer bound to `avPlayer` (walked from the tree; AVKit creates it async after `self.player`, so retry). Diff against engine `timeControlStatus=playing` stamps = black-screen-with-audio window.
+    /// Sodalite#34: the native WebVTT rendition is needed whenever the video leaves this VC's own view
+    /// hierarchy, where the on-frame subtitle overlay can't draw: a PiP window (pipActive) or an external screen
+    /// (externalPlaybackActive, wired HDMI adapter or AirPlay). Both sources funnel through here so deactivating
+    /// one while the other is still active doesn't hand subtitles back to the invisible overlay; the overlay
+    /// takes back over only once BOTH are inactive.
+    func syncNativeSubtitleRendering() {
+        let shouldRenderNatively = pipActive || externalPlaybackActive
+        guard shouldRenderNatively != nativeSubtitleRenderingApplied else { return }
+        nativeSubtitleRenderingApplied = shouldRenderNatively
+        if shouldRenderNatively {
+            viewModel.enterNativeSubtitleRendering()
+        } else {
+            viewModel.exitNativeSubtitleRendering()
+        }
+    }
+
+    #if os(iOS)
+    /// Sodalite#34: wired HDMI (via usesExternalPlaybackWhileExternalScreenIsActive) and AirPlay both flip
+    /// isExternalPlaybackActive, moving the video onto an external screen where the on-frame overlay isn't
+    /// visible, exactly like PiP. Route it through the same native-rendering switch. `.initial` re-syncs after a
+    /// player rebind (audio switch) that may land with an already-active external screen.
+    private func observeExternalPlayback(for avPlayer: AVPlayer) {
+        externalPlaybackObservation?.invalidate()
+        externalPlaybackObservation = avPlayer.observe(
+            \.isExternalPlaybackActive, options: [.new, .initial]
+        ) { [weak self] player, _ in
+            let active = player.isExternalPlaybackActive
+            LogTap.shared.note("[AirPlay] external playback active=\(active)")
+            Task { @MainActor [weak self] in
+                guard let self else { return }
+                self.externalPlaybackActive = active
+                self.syncNativeSubtitleRendering()
+            }
+        }
+    }
+    #endif
+
     private func observeAVKitRenderLayer(for avPlayer: AVPlayer, attempt: Int = 0) {
         avkitLayerObservation?.invalidate()
         avkitLayerObservation = nil

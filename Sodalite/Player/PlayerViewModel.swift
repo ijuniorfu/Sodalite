@@ -708,7 +708,7 @@ final class PlayerViewModel {
             // from its single probe (#72), instead of us reloading via selectAudioTrack after load.
             let preferredAudio = effectivePreferredAudioLanguage()
             // AE#88: declare external Jellyfin subs at load so they list in engine.subtitleTracks
-            // and join the native WebVTT renditions (PiP); the map routes UI selections to engine ids.
+            // and join the native WebVTT renditions (PiP / external display); the map routes UI selections to engine ids.
             let externalSubs = Self.externalSubtitleDescriptors(streams: subtitleStreams) { stream in
                 playbackService.buildSubtitleURL(
                     itemID: item.id, mediaSourceID: mediaSourceID,
@@ -725,12 +725,14 @@ final class PlayerViewModel {
                     audioBridgeMode: preferences.audioBridgeMode,
                     // Raw ASS event lines for the styled path; only affects ASS/SSA cue content.
                     preserveASSMarkup: true,
-                    // PROBE (Sodalite#32): serve a WebVTT rendition with eager readers; the engine marks the
-                    // rendition matching nativeSubtitlePreferredLanguages DEFAULT=YES (required for a host-
-                    // selected legible track to render) and exposes it as nativeSubtitleDefaultOrdinal.
-                    prepareNativeSubtitles: Self.nativePiPSubtitleProbe,
-                    eagerNativeSubtitleReaders: Self.nativePiPSubtitleProbe,
-                    nativeSubtitlePreferredLanguages: Self.nativePiPSubtitleProbe
+                    // Sodalite#32 / #34: serve a WebVTT rendition with eager readers so a real legible track
+                    // exists for the moments the video leaves the app's view hierarchy (PiP, AirPlay, wired
+                    // external display), where the on-frame overlay can't draw. The engine marks the rendition
+                    // matching nativeSubtitlePreferredLanguages DEFAULT=YES (required for a host-selected legible
+                    // track to render) and exposes it as nativeSubtitleDefaultOrdinal.
+                    prepareNativeSubtitles: Self.nativeSubtitleRenditionEnabled,
+                    eagerNativeSubtitleReaders: Self.nativeSubtitleRenditionEnabled,
+                    nativeSubtitlePreferredLanguages: Self.nativeSubtitleRenditionEnabled
                         ? (preferences.preferredSubtitleLanguage.map { [$0] } ?? [])
                         : [],
                     probesize: probeBudget.probesize,
@@ -754,9 +756,9 @@ final class PlayerViewModel {
             // selectAudioTrack reload here; read what it picked to drive the matching subtitle.
             let chosenAudio = player.audioTracks.first(where: { $0.id == player.activeAudioTrackIndex })
             // Fullscreen uses the custom on-frame overlay for subtitles (the user's pick). The native WebVTT
-            // rendition is served but stays UNSELECTED here; it is selected only on PiP entry (#32), so the two
-            // never double up. Fullscreen behaviour is identical to main.
-            resetNativePiPSubtitleSelection()
+            // rendition is served but stays UNSELECTED here; it is selected only when the video leaves the app
+            // (PiP / external display, #32 / #34), so the two never double up. Fullscreen behaviour is identical to main.
+            resetNativeSubtitleRenderingState()
             applyPreferredSubtitle(forAudioLanguage: chosenAudio?.language)
 
             hostLoadActive = false
@@ -825,14 +827,13 @@ final class PlayerViewModel {
         #endif
     }
 
-    /// PROBE (Sodalite#32, DrHurt): iOS-only experiment that lets AVKit auto-select + render a subtitle track
-    /// so it survives into the PiP window, WITHOUT a host force-select (the deselect/reselect re-assert that
-    /// AVSmartSubtitlesController kept disabling). The engine serves a DEFAULT=YES WebVTT rendition with eager
-    /// readers; AVKit auto-selects it via its own media-selection criteria. The host skips its own preferred-
-    /// subtitle apply so the inline overlay does not double up. The custom transport / chrome suppression are
-    /// left intact (no native-menu interaction is needed since DEFAULT=YES auto-selects). tvOS unaffected
-    /// (flag false). Not for release.
-    static var nativePiPSubtitleProbe: Bool {
+    /// Sodalite#32 / #34 (iOS-only): gates serving the native WebVTT legible rendition. It exists so AVKit can
+    /// render a real subtitle track itself whenever the video leaves the app's own view hierarchy (a PiP window,
+    /// an AirPlay receiver, or a wired external display), where the host's on-frame overlay cannot draw. The
+    /// engine serves a DEFAULT=YES rendition with eager readers; the host selects it on those transitions and
+    /// deselects it back in fullscreen, where the on-frame overlay owns subtitles. tvOS is overlay-only (flag
+    /// false).
+    static var nativeSubtitleRenditionEnabled: Bool {
         #if os(iOS)
         return true
         #else
@@ -1421,13 +1422,13 @@ final class PlayerViewModel {
         }
     }
 
-    /// #32: toggle the native PiP subtitle rendition's VISIBILITY via textStyleRules instead of deselecting it.
-    /// A deselect detaches AVKit's legible renderer and it does NOT re-attach on a later PiP entry after a
+    /// #32 / #34: toggle the native subtitle rendition's VISIBILITY via textStyleRules instead of deselecting it.
+    /// A deselect detaches AVKit's legible renderer and it does NOT re-attach on a later entry after a
     /// seek/producer-restart (device-confirmed). Keeping the rendition selected + rendering (transparent in
     /// fullscreen, where the on-frame overlay draws instead) keeps the renderer continuously attached, so it
-    /// survives fullscreen<->PiP and seeks. `nil` = default AVKit legible styling (visible, for PiP).
-    func setNativePiPSubtitleVisible(_ visible: Bool) {
-        guard Self.nativePiPSubtitleProbe, let item = player.currentAVPlayer?.currentItem else { return }
+    /// survives fullscreen<->PiP/external and seeks. `nil` = default AVKit legible styling (visible).
+    func setNativeSubtitleRenditionVisible(_ visible: Bool) {
+        guard Self.nativeSubtitleRenditionEnabled, let item = player.currentAVPlayer?.currentItem else { return }
         if visible {
             item.textStyleRules = nil
         } else if let transparent = AVTextStyleRule(textMarkupAttributes: [
@@ -1438,30 +1439,32 @@ final class PlayerViewModel {
         }
     }
 
-    /// #32: true once the native PiP rendition has been selected this session. The select (deselect/reselect
-    /// dance) must run ONCE to attach the renderer; re-running it on a later PiP entry would detach it and not
-    /// re-attach after a seek. Reset when the item is rebuilt (load) or the user changes subtitle.
-    private var nativePiPSubtitleSelected = false
+    /// #32: true once the native rendition has been selected this session. The select (deselect/reselect dance)
+    /// must run ONCE to attach the renderer; re-running it on a later entry would detach it and not re-attach
+    /// after a seek. Reset when the item is rebuilt (load) or the user changes subtitle.
+    private var nativeSubtitleRenderingActive = false
 
-    /// PiP entry: select the native rendition (matching the user's active subtitle) so it renders in the PiP
-    /// window, and make it visible (default styling).
-    func enterPiPSubtitle() {
-        guard Self.nativePiPSubtitleProbe else { return }
-        setNativePiPSubtitleVisible(true)
-        player.setNativeSubtitleForPiP(true)
-        nativePiPSubtitleSelected = true
+    /// Video left the app's view hierarchy (a PiP window, an AirPlay receiver, or a wired external display):
+    /// select the native rendition matching the user's active subtitle so AVKit renders it itself, and make it
+    /// visible (default styling).
+    func enterNativeSubtitleRendering() {
+        guard Self.nativeSubtitleRenditionEnabled else { return }
+        setNativeSubtitleRenditionVisible(true)
+        player.setNativeSubtitleRendering(true)
+        nativeSubtitleRenderingActive = true
     }
 
-    /// PiP exit: deselect the native rendition so it does not render in fullscreen; the on-frame overlay owns it.
-    func exitPiPSubtitle() {
-        guard Self.nativePiPSubtitleProbe else { return }
-        player.setNativeSubtitleForPiP(false)
-        nativePiPSubtitleSelected = false
+    /// Video returned to fullscreen inside the app: deselect the native rendition so it does not render; the
+    /// on-frame overlay owns subtitles again.
+    func exitNativeSubtitleRendering() {
+        guard Self.nativeSubtitleRenditionEnabled else { return }
+        player.setNativeSubtitleRendering(false)
+        nativeSubtitleRenderingActive = false
     }
 
-    /// Drop the native PiP selection state so the next PiP entry re-selects (item rebuilt, or subtitle changed).
-    func resetNativePiPSubtitleSelection() {
-        nativePiPSubtitleSelected = false
+    /// Drop the native rendering selection state so the next entry re-selects (item rebuilt, or subtitle changed).
+    func resetNativeSubtitleRenderingState() {
+        nativeSubtitleRenderingActive = false
     }
 
     /// Picks the most useful subtitle in a language for following dialog: full > SDH/CC > forced;
@@ -1642,10 +1645,11 @@ final class PlayerViewModel {
     }
 
     func selectSubtitleTrack(id: Int?) {
-        // #32: the active subtitle changed, so the native PiP rendition selection is stale; re-select on the
-        // next PiP entry (also hides any currently-shown native track so it can't linger from a prior pick).
-        resetNativePiPSubtitleSelection()
-        setNativePiPSubtitleVisible(false)
+        // #32: the active subtitle changed, so the native rendition selection is stale; re-select on the next
+        // PiP/external-display entry (also hides any currently-shown native track so it can't linger from a
+        // prior pick).
+        resetNativeSubtitleRenderingState()
+        setNativeSubtitleRenditionVisible(false)
         // Cancel any in-flight transcode-path load so a slow earlier extraction can't overwrite the
         // cues for the track the user just selected (or disabled).
         subtitleLoadTask?.cancel()
@@ -1670,7 +1674,7 @@ final class PlayerViewModel {
         if isExternal {
             deactivateASSRendering()
             // AE#88: external streams are engine-registered tracks; the unified select lists them,
-            // publishes activeSubtitleTrackIndex, and (load-declared) maps them into the PiP
+            // publishes activeSubtitleTrackIndex, and (load-declared) maps them into the native
             // rendition. Cues land on engine.subtitleCues and the mirror sink picks them up.
             if let engineID = engineTrackID(forExternalStream: stream, jellyfinIndex: id) {
                 player.selectSubtitleTrack(index: engineID)
