@@ -63,6 +63,10 @@ final class PlayerHostController: AVPlayerViewController {
     /// KVO on the AVPlayer's isExternalPlaybackActive (Sodalite#34); like PiP, external playback moves the video
     /// off-screen where the on-frame subtitle overlay can't draw, so it drives the same native-rendering switch.
     private var externalPlaybackObservation: NSKeyValueObservation?
+    /// Sodalite#98: draws subtitles on a wired external screen when native renditions do not reach it.
+    private let externalSubtitleWindow = ExternalSubtitleWindowController()
+    /// UIScreen connect/disconnect observer tokens, registered once per player bind (idempotent).
+    private var externalScreenObservers: [NSObjectProtocol] = []
     #endif
 
     init(
@@ -138,6 +142,7 @@ final class PlayerHostController: AVPlayerViewController {
                     self.observeAVKitRenderLayer(for: avPlayer)
                     #if os(iOS)
                     self.observeExternalPlayback(for: avPlayer)
+                    self.registerExternalScreenObservers()
                     #endif
                 } else {
                     self.player = nil
@@ -150,10 +155,24 @@ final class PlayerHostController: AVPlayerViewController {
                     self.externalPlaybackObservation = nil
                     self.externalPlaybackActive = false
                     self.syncNativeSubtitleRendering()
+                    self.externalSubtitleWindow.tearDown()
+                    self.externalScreenObservers.forEach(NotificationCenter.default.removeObserver)
+                    self.externalScreenObservers.removeAll()
                     #endif
                 }
             }
             .store(in: &engineSubscriptions)
+
+        #if os(iOS)
+        // Sodalite#98: the external-subtitle window reacts to the engine's master-vs-media serving state
+        // (native renditions reach an HDR external display; not an SDR one). Set up once (not per player
+        // bind) so rebinds don't stack duplicate subscriptions. Screen connect/disconnect observers are
+        // tied to the bound-player lifecycle instead (registered on bind, removed on unbind, both here).
+        engine.$nativeSubtitleRenditionsServed
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in self?.updateExternalSubtitleWindow() }
+            .store(in: &engineSubscriptions)
+        #endif
 
         // Applied to AVPlayerViewController directly because AVKit's internal layer renders the native path; engine.videoGravity's layer is never mounted here.
         viewModel.onPictureModeChanged = { [weak self] mode in
@@ -304,7 +323,30 @@ final class PlayerHostController: AVPlayerViewController {
                 guard let self else { return }
                 self.externalPlaybackActive = active
                 self.syncNativeSubtitleRendering()
+                self.updateExternalSubtitleWindow()
             }
+        }
+    }
+
+    /// Sodalite#98: draw the subtitle overlay on a wired external screen when native renditions do not
+    /// reach it (media-direct SDR external / DV P5). Recomputed on external-playback changes, screen
+    /// connect/disconnect, and the engine's nativeSubtitleRenditionsServed signal.
+    func updateExternalSubtitleWindow() {
+        externalSubtitleWindow.update(
+            externalScreenPresent: ExternalSubtitleWindowController.currentExternalScreen() != nil,
+            subtitleSelected: viewModel.activeSubtitleIndex != nil,
+            nativeRenditionsServed: viewModel.player.nativeSubtitleRenditionsServed,
+            viewModel: viewModel)
+    }
+
+    private func registerExternalScreenObservers() {
+        guard externalScreenObservers.isEmpty else { return }
+        let center = NotificationCenter.default
+        for name in [UIScreen.didConnectNotification, UIScreen.didDisconnectNotification] {
+            let token = center.addObserver(forName: name, object: nil, queue: .main) { [weak self] _ in
+                MainActor.assumeIsolated { self?.updateExternalSubtitleWindow() }
+            }
+            externalScreenObservers.append(token)
         }
     }
     #endif
