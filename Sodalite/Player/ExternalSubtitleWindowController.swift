@@ -60,7 +60,7 @@ final class ExternalSubtitleWindowController {
         newWindow.rootViewController = host
         newWindow.isHidden = false
         window = newWindow
-        LogTap.shared.note("[ExternalSubs] window up on external scene \(scene.coordinateSpace.bounds.size)")
+        LogTap.shared.note("[ExternalSubs] window up on external scene \(scene.effectiveGeometry.coordinateSpace.bounds.size)")
     }
 
     func tearDown() {
