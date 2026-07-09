@@ -65,7 +65,7 @@ final class PlayerHostController: AVPlayerViewController {
     private var externalPlaybackObservation: NSKeyValueObservation?
     /// Sodalite#98: draws subtitles on a wired external screen when native renditions do not reach it.
     private let externalSubtitleWindow = ExternalSubtitleWindowController()
-    /// UIScreen connect/disconnect observer tokens, registered once per player bind (idempotent).
+    /// UIScene connect/disconnect observer tokens, registered once per player bind (idempotent).
     private var externalScreenObservers: [NSObjectProtocol] = []
     #endif
 
@@ -333,7 +333,7 @@ final class PlayerHostController: AVPlayerViewController {
     /// connect/disconnect, and the engine's nativeSubtitleRenditionsServed signal.
     func updateExternalSubtitleWindow() {
         externalSubtitleWindow.update(
-            externalScreenPresent: ExternalSubtitleWindowController.currentExternalScreen() != nil,
+            externalScreenPresent: ExternalSubtitleWindowController.currentExternalScene() != nil,
             subtitleSelected: viewModel.activeSubtitleIndex != nil,
             nativeRenditionsServed: viewModel.player.nativeSubtitleRenditionsServed,
             viewModel: viewModel)
@@ -342,7 +342,7 @@ final class PlayerHostController: AVPlayerViewController {
     private func registerExternalScreenObservers() {
         guard externalScreenObservers.isEmpty else { return }
         let center = NotificationCenter.default
-        for name in [UIScreen.didConnectNotification, UIScreen.didDisconnectNotification] {
+        for name in [UIScene.willConnectNotification, UIScene.didDisconnectNotification] {
             let token = center.addObserver(forName: name, object: nil, queue: .main) { [weak self] _ in
                 MainActor.assumeIsolated { self?.updateExternalSubtitleWindow() }
             }
