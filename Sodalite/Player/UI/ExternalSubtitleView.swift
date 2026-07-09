@@ -28,7 +28,8 @@ struct ExternalSubtitleView: View {
                     assRenderer: nil,
                     assReloadSignal: viewModel.assReloadSignal,
                     activeSubtitleCodec: viewModel.activeSubtitleCodec,
-                    hasSecondaryTrack: viewModel.activeSecondarySubtitleIndex != nil
+                    hasSecondaryTrack: viewModel.activeSecondarySubtitleIndex != nil,
+                    videoSize: viewModel.videoSize
                 )
             }
         }

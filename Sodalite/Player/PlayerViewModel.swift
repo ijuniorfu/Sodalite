@@ -290,6 +290,11 @@ final class PlayerViewModel {
     var item: JellyfinItem
     let player: AetherEngine
 
+    /// Coded video dims for the overlay's bitmap-canvas mapping (.zero before load).
+    var videoSize: CGSize {
+        CGSize(width: Int(player.sourceVideoWidth), height: Int(player.sourceVideoHeight))
+    }
+
     let playbackService: JellyfinPlaybackServiceProtocol
     let userID: String
     var startFromBeginning: Bool
