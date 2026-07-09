@@ -690,6 +690,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
+				LM_SKIP_METADATA_EXTRACTION = YES;
 				MARKETING_VERSION = 0.13.0;
 				OTHER_LDFLAGS = (
 					"-e",
@@ -726,6 +727,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
+				LM_SKIP_METADATA_EXTRACTION = YES;
 				MARKETING_VERSION = 0.13.0;
 				OTHER_LDFLAGS = (
 					"-e",
