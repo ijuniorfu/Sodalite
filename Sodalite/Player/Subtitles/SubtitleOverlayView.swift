@@ -44,6 +44,8 @@ struct SubtitleOverlayView: View {
     /// (not libass) so both lines stack without overlap; libass positions ASS primaries opaquely
     /// so the secondary cannot reliably go above it (issue #47). Full ASS styling returns when off.
     let hasSecondaryTrack: Bool
+    /// Coded video dims for bitmap-canvas mapping; .zero falls back to full-bounds layout.
+    var videoSize: CGSize = .zero
 
     /// Fixed bottom inset for text cues while controls are visible, above the 300 pt gradient band.
     private static let controlsVisibleBottomInset: CGFloat = 280
@@ -278,18 +280,51 @@ struct SubtitleOverlayView: View {
     // MARK: - Image branch
 
     private func imageOverlay(_ image: SubtitleImage, in size: CGSize) -> some View {
-        // Normalised position in source-video coords; .topLeading alignment makes an
-        // .offset of (x,y) px place the image's top-left at (x,y) on the video.
-        let frameW = image.position.width * size.width
-        let frameH = image.position.height * size.height
-        let originX = image.position.minX * size.width
-        let originY = image.position.minY * size.height + bitmapVerticalShift(in: size)
+        // Bitmap cue positions are normalized to the subtitle CANVAS (PGS/DVB composition
+        // canvas, often 16:9 even when the video is cropped to scope). Map the canvas onto
+        // the aspect-fit video rect: width-aligned in coded pixels, center-anchored, so
+        // cues land where the disc authored them, including the lower letterbox bar. On a
+        // 16:9 screen with a 16:9 canvas this reduces to the previous full-bounds layout;
+        // on iPhone portrait it pins cues to the video band instead of the screen bottom.
+        let videoRect = Self.aspectFitRect(videoSize: videoSize, in: size)
+        let canvas = image.canvasSize
+        let canvasRect: CGRect
+        if videoRect.width > 0, canvas.width > 0, canvas.height > 0, videoSize.width > 0 {
+            let scale = videoRect.width / videoSize.width
+            let w = canvas.width * scale
+            let h = canvas.height * scale
+            canvasRect = CGRect(x: videoRect.midX - w / 2, y: videoRect.midY - h / 2,
+                                width: w, height: h)
+        } else {
+            canvasRect = CGRect(origin: .zero, size: size)
+        }
+        let frameW = image.position.width * canvasRect.width
+        let frameH = image.position.height * canvasRect.height
+        let originX = canvasRect.minX + image.position.minX * canvasRect.width
+        let originY = canvasRect.minY + image.position.minY * canvasRect.height + bitmapVerticalShift(in: size)
 
         return Image(decorative: image.cgImage, scale: 1, orientation: .up)
             .resizable()
             .interpolation(.high)
             .frame(width: frameW, height: frameH)
             .offset(x: originX, y: originY)
+    }
+
+    /// Aspect-fit rect of the video plane within the overlay bounds. Full bounds when the
+    /// video dims are unknown (pre-load or older engine cues).
+    private static func aspectFitRect(videoSize: CGSize, in bounds: CGSize) -> CGRect {
+        guard videoSize.width > 0, videoSize.height > 0, bounds.width > 0, bounds.height > 0 else {
+            return CGRect(origin: .zero, size: bounds)
+        }
+        let videoAspect = videoSize.width / videoSize.height
+        let boundsAspect = bounds.width / bounds.height
+        if boundsAspect > videoAspect {
+            let w = bounds.height * videoAspect
+            return CGRect(x: (bounds.width - w) / 2, y: 0, width: w, height: bounds.height)
+        } else {
+            let h = bounds.width / videoAspect
+            return CGRect(x: 0, y: (bounds.height - h) / 2, width: bounds.width, height: h)
+        }
     }
 
     /// Vertical shift so the active vertical-position step also moves bitmap cues. `default`
