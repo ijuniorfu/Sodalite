@@ -4,7 +4,12 @@ import BackgroundTasks
 
 /// iOS-only BGAppRefreshTask wrapper: polls the pending-approval count in the background and fires a
 /// local notification (via PendingRequestsNotifier) when it rose since the last observation.
-enum PendingRequestsBackgroundRefresh {
+///
+/// `nonisolated`: BGTaskScheduler invokes the launch handler (and the expiration handler) on its own
+/// background queue. Under the target's MainActor default isolation the handler closures would
+/// otherwise compile MainActor-isolated and trap in the runtime executor check before their bodies
+/// run (_dispatch_assert_queue_fail on background app launch, TestFlight crash 2026-07-10).
+nonisolated enum PendingRequestsBackgroundRefresh {
     static let identifier = "de.superuser404.Sodalite.pendingRequestsRefresh"
     /// iOS throttles refresh anyway; ask for no sooner than ~30 min.
     private static let earliestInterval: TimeInterval = 30 * 60
