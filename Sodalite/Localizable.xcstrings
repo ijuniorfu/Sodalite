@@ -8880,6 +8880,816 @@
         }
       }
     },
+    "auth.discovery.title" : {
+      "comment": "Title on the automatic server discovery screen",
+      "extractionState": "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Najděte svůj server"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Find din server"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Server finden"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Βρείτε τον διακομιστή σας"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Find your server"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Encuentra tu servidor"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Etsi palvelimesi"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Trouvez votre serveur"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Pronađite svoj server"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Keresse meg a szervert"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Trova il tuo server"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "サーバーを探す"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "서버 찾기"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Finn serveren din"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Vind je server"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Znajdź swój serwer"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Encontre seu servidor"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Encontre o seu servidor"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Găsește-ți serverul"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Найдите свой сервер"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Nájdite svoj server"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Hitta din server"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Sunucunu bul"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Знайдіть свій сервер"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "查找您的服务器"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "尋找您的伺服器"
+          }
+        }
+      }
+    },
+    "auth.discovery.scanning" : {
+      "comment": "Status shown while scanning the local network for servers",
+      "extractionState": "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Prohledávání sítě…"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Søger på dit netværk…"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Netzwerk wird durchsucht…"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Αναζήτηση στο δίκτυό σας…"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Searching your network…"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Buscando en tu red…"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Etsitään verkostasi…"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Recherche sur votre réseau…"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Pretraživanje vaše mreže…"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Hálózat keresése…"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Ricerca nella rete…"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "ネットワークを検索中…"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "네트워크 검색 중…"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Søker i nettverket…"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Netwerk doorzoeken…"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Przeszukiwanie sieci…"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Procurando na sua rede…"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "A procurar na sua rede…"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Se caută în rețea…"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Поиск в сети…"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Prehľadávanie siete…"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Söker i nätverket…"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Ağınız taranıyor…"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Пошук у мережі…"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "正在搜索您的网络…"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "正在搜尋您的網路…"
+          }
+        }
+      }
+    },
+    "auth.discovery.empty.title" : {
+      "comment": "Empty state when no servers are discovered on the network",
+      "extractionState": "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Nebyly nalezeny žádné servery. Zadejte adresu serveru ručně."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Ingen servere fundet. Indtast din serveradresse manuelt."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Keine Server gefunden. Gib die Serveradresse manuell ein."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Δεν βρέθηκαν διακομιστές. Εισαγάγετε τη διεύθυνση χειροκίνητα."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "No servers found. Enter your server address manually."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "No se encontraron servidores. Introduce la dirección del servidor manualmente."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Palvelimia ei löytynyt. Anna palvelimen osoite käsin."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Aucun serveur trouvé. Saisissez l'adresse du serveur manuellement."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Nema pronađenih servera. Unesite adresu servera ručno."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Nem található szerver. Adja meg a szerver címét kézzel."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Nessun server trovato. Inserisci manualmente l'indirizzo del server."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "サーバーが見つかりません。サーバーアドレスを手動で入力してください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "서버를 찾을 수 없습니다. 서버 주소를 직접 입력하세요."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Ingen servere funnet. Skriv inn serveradressen manuelt."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Geen servers gevonden. Voer het serveradres handmatig in."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Nie znaleziono serwerów. Wprowadź adres serwera ręcznie."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Nenhum servidor encontrado. Digite o endereço do servidor manualmente."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Nenhum servidor encontrado. Introduza o endereço do servidor manualmente."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Niciun server găsit. Introdu manual adresa serverului."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Серверы не найдены. Введите адрес сервера вручную."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Nenašli sa žiadne servery. Zadajte adresu servera ručne."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Inga servrar hittades. Ange serveradressen manuellt."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Sunucu bulunamadı. Sunucu adresini elle girin."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Серверів не знайдено. Введіть адресу сервера вручну."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "未找到服务器。请手动输入服务器地址。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "找不到伺服器。請手動輸入伺服器位址。"
+          }
+        }
+      }
+    },
+    "auth.discovery.manual" : {
+      "comment": "Button to switch to manual server address entry",
+      "extractionState": "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Zadat adresu ručně"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Indtast adresse manuelt"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Adresse manuell eingeben"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Χειροκίνητη εισαγωγή διεύθυνσης"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Enter address manually"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Introducir dirección manualmente"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Anna osoite käsin"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Saisir l'adresse manuellement"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Ručni unos adrese"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Cím megadása kézzel"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Inserisci indirizzo manualmente"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "アドレスを手動で入力"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "주소 직접 입력"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Skriv inn adresse manuelt"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Adres handmatig invoeren"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Wprowadź adres ręcznie"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Inserir endereço manualmente"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Introduzir endereço manualmente"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Introdu adresa manual"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Ввести адрес вручную"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Zadať adresu ručne"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Ange adress manuellt"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Adresi elle gir"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Ввести адресу вручну"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "手动输入地址"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "手動輸入位址"
+          }
+        }
+      }
+    },
+    "auth.discovery.alreadyAdded" : {
+      "comment": "Badge on a discovered server already in the user's server list",
+      "extractionState": "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Již přidáno"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Allerede tilføjet"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Bereits hinzugefügt"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Ήδη προστέθηκε"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Already added"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Ya añadido"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Jo lisätty"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Déjà ajouté"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Već dodano"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Már hozzáadva"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Già aggiunto"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "追加済み"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "이미 추가됨"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Allerede lagt til"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Al toegevoegd"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Już dodano"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Já adicionado"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Já adicionado"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Deja adăugat"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Уже добавлен"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Už pridané"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Redan tillagd"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Zaten eklendi"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Вже додано"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "已添加"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "已加入"
+          }
+        }
+      }
+    },
     "auth.password.placeholder" : {
       "extractionState": "manual",
       "localizations" : {

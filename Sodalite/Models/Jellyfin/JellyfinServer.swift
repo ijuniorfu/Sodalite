@@ -1,6 +1,6 @@
 import Foundation
 
-struct JellyfinServer: Codable, Sendable, Identifiable, Equatable {
+struct JellyfinServer: Codable, Sendable, Identifiable, Equatable, Hashable {
     let id: String
     let name: String
     let url: URL
