@@ -668,8 +668,22 @@ final class PlayerViewModel {
                     enabled: preferences.showScrubPreview
                 )
             } else {
+                // Cache-first: resident loopback segments decode with no second connection;
+                // the extractor is the fallback for non-resident positions. supportsCacheBackedStills
+                // is false on the software-decode path (no HLSVideoEngine) so it degrades to the
+                // extractor. Disc titles keep the extractor: scrubThumbnail wants playlist/output
+                // seconds while our value is the display axis, and a disc shift would return a wrong
+                // (not nil) frame; the extractor is correct by construction there.
+                let engine = player
+                let cacheThumbnail: (Double, Int) async -> CGImage? = { [weak engine] seconds, maxWidth in
+                    guard let engine, engine.supportsCacheBackedStills, engine.discTitles.isEmpty else {
+                        return nil
+                    }
+                    return await engine.scrubThumbnail(atSeconds: seconds, maxWidth: maxWidth)
+                }
                 scrubPreview.configure(
                     extractor: frameExtractor,
+                    cacheThumbnail: cacheThumbnail,
                     enabled: preferences.showScrubPreview
                 )
             }
