@@ -29,7 +29,7 @@ If it tells you "this beta has expired", revisit the join link above to grab the
 The high-value areas, what we most want feedback on:
 
 ### Setup & connection
-- Server discovery (auto + manual)
+- Server discovery (auto + manual). Auto-discovery needs the server reachable by LAN broadcast (bare-metal, or Docker with host networking). A bridge-networked Docker server won't be found, that's expected, use manual entry
 - Login with username + password, with and without Quick Connect
 - Reconnecting after the app comes back from background
 - Parental controls: set a Guardian PIN, lock a profile, confirm gated actions ask for it, and try recovery via your Jellyfin password
