@@ -274,6 +274,11 @@ struct CollectionItemRow: View {
                             }
                         }
                     }
+                    // Values must stay atomic on the narrow phone row: without this the metadata
+                    // Texts wrap mid-token ("7.0" -> "7."/"0", "74 %" -> "74"/"%"). Matches the
+                    // compact treatment in DetailSecondaryInfo: scale down before truncating.
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
 
                     if let overview = item.overview {
                         Text(overview)
