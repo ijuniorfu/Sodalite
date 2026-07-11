@@ -15,6 +15,9 @@ final class ScrubPreviewProvider {
 
     @ObservationIgnored private var enabled = false
     @ObservationIgnored private var extractor: FrameExtractor?
+    /// Cache-backed VOD still source (engine SegmentCache, no second connection).
+    /// Tried before `extractor`; nil when not resident so the extractor fallback runs.
+    @ObservationIgnored private var cacheThumbnail: ((Double, Int) async -> CGImage?)?
     /// Live mode: thumbnails from the engine's DVR segment cache (seconds,
     /// maxWidth) instead of a session FrameExtractor.
     @ObservationIgnored private var liveThumbnail: ((Double, Int) async -> CGImage?)?
@@ -33,10 +36,14 @@ final class ScrubPreviewProvider {
     init() {}
 
     /// Set up for a new session. `enabled` = Settings toggle (false = no-op);
-    /// `extractor` nil if the source URL couldn't be built.
-    func configure(extractor: FrameExtractor?, enabled: Bool) {
+    /// `extractor` nil if the source URL couldn't be built. `cacheThumbnail` (if set)
+    /// is tried before the extractor: a resident segment decodes with no second connection.
+    func configure(extractor: FrameExtractor?,
+                   cacheThumbnail: ((Double, Int) async -> CGImage?)? = nil,
+                   enabled: Bool) {
         reset()
         self.extractor = extractor
+        self.cacheThumbnail = cacheThumbnail
         self.enabled = enabled
     }
 
@@ -81,14 +88,22 @@ final class ScrubPreviewProvider {
         Task { await extractor.prewarm() }
     }
 
+    /// Resolve one preview frame at `seconds`. Order: server-trickplay (already
+    /// instant) then cache-backed still (resident segment, no second connection)
+    /// then FrameExtractor second demuxer (network seek). Non-private for unit tests.
+    func resolveThumbnail(seconds: Double) async -> CGImage? {
+        if let server = serverThumbnail { return await server(seconds) }
+        if let cache = cacheThumbnail, let img = await cache(seconds, 320) { return img }
+        if let ext = extractor { return await ext.thumbnail(at: seconds, maxWidth: 320) }
+        return nil
+    }
+
     /// Drive the preview to a scrub position (`fraction` 0...1). Debounced so a
     /// fast swipe doesn't decode per frame; `generation` guard drops stale results.
     func update(fraction: Float, durationSeconds: Double) {
         guard enabled, durationSeconds > 0 else { return }
         let seconds = Double(max(0, min(1, fraction))) * durationSeconds
-        let server = serverThumbnail
-        let ext = extractor
-        guard server != nil || ext != nil else { return }
+        guard serverThumbnail != nil || cacheThumbnail != nil || extractor != nil else { return }
 
         generation += 1
         let gen = generation
@@ -96,15 +111,8 @@ final class ScrubPreviewProvider {
         loadTask = Task { [weak self] in
             try? await Task.sleep(for: .milliseconds(60))
             if Task.isCancelled { return }
-            let image: CGImage?
-            if let server {
-                image = await server(seconds)
-            } else if let ext {
-                image = await ext.thumbnail(at: seconds, maxWidth: 320)
-            } else {
-                image = nil
-            }
             guard let self else { return }
+            let image = await self.resolveThumbnail(seconds: seconds)
             if gen == self.generation { self.previewImage = image }
         }
     }
@@ -114,26 +122,18 @@ final class ScrubPreviewProvider {
     /// during playback). Driven from currentTime while not scrubbing; throttled
     /// to ~keyframe spacing; shares the `generation` guard with update(fraction:).
     func warm(toSeconds seconds: Double) {
-        guard enabled, seconds >= 0, (extractor != nil || serverThumbnail != nil) else { return }
+        guard enabled, seconds >= 0,
+              (extractor != nil || cacheThumbnail != nil || serverThumbnail != nil) else { return }
         guard abs(seconds - lastWarmedSeconds) >= warmThresholdSeconds else { return }
         lastWarmedSeconds = seconds
 
         generation += 1
         let gen = generation
         loadTask?.cancel()
-        let server = serverThumbnail
-        let ext = extractor
         loadTask = Task { [weak self] in
-            let image: CGImage?
-            if let server {
-                image = await server(seconds)
-            } else if let ext {
-                image = await ext.thumbnail(at: seconds, maxWidth: 320)
-            } else {
-                image = nil
-            }
-            guard let self, gen == self.generation else { return }
-            self.previewImage = image
+            guard let self else { return }
+            let image = await self.resolveThumbnail(seconds: seconds)
+            if gen == self.generation { self.previewImage = image }
         }
     }
 
@@ -155,6 +155,7 @@ final class ScrubPreviewProvider {
         loadTask = nil
         previewImage = nil
         extractor = nil
+        cacheThumbnail = nil
         liveThumbnail = nil
         serverThumbnail = nil
         enabled = false
