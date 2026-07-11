@@ -127,9 +127,11 @@ private struct ServerManagementRow: View {
     var body: some View {
         HStack(spacing: 24) {
             VStack(alignment: .leading, spacing: 6) {
-                HStack(spacing: 12) {
+                HStack(spacing: 8) {
                     Text(server.name)
                         .font(.headline)
+                        .lineLimit(1)
+                        .truncationMode(.tail)
                     if isActive {
                         Text("multiServer.row.active", bundle: .main)
                             .font(.caption.bold())
@@ -137,6 +139,7 @@ private struct ServerManagementRow: View {
                             .padding(.horizontal, 10)
                             .padding(.vertical, 4)
                             .background(.tint.opacity(0.18), in: Capsule())
+                            .fixedSize()
                     }
                     if isDefault {
                         Text("multiServer.row.default", bundle: .main)
@@ -145,6 +148,7 @@ private struct ServerManagementRow: View {
                             .padding(.horizontal, 10)
                             .padding(.vertical, 4)
                             .background(.tint.opacity(0.18), in: Capsule())
+                            .fixedSize()
                     }
                 }
                 Text(server.url.host() ?? server.url.absoluteString)
@@ -154,6 +158,7 @@ private struct ServerManagementRow: View {
                     .font(.caption)
                     .foregroundStyle(.tertiary)
             }
+            Spacer(minLength: 12)
             if !rememberedUsers.isEmpty {
                 HStack(spacing: -10) {
                     ForEach(rememberedUsers.prefix(3)) { user in
@@ -171,9 +176,7 @@ private struct ServerManagementRow: View {
                         }
                     }
                 }
-                .padding(.trailing, 12)
             }
-            Spacer()
         }
         .padding(.horizontal, 24)
         .padding(.vertical, 20)
