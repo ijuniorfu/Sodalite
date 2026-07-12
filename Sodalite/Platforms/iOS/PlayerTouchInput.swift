@@ -1,4 +1,3 @@
-#if os(iOS)
 import CoreGraphics
 
 /// Pure gesture-to-intent mappers for the iOS touch player, shared by the SwiftUI gesture catcher
@@ -19,4 +18,3 @@ enum PlayerTouchInput {
         return Double(-translationY / height)
     }
 }
-#endif

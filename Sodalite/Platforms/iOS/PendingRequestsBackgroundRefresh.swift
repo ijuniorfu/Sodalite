@@ -1,4 +1,3 @@
-#if os(iOS)
 import Foundation
 import BackgroundTasks
 
@@ -40,4 +39,3 @@ nonisolated enum PendingRequestsBackgroundRefresh {
         BGTaskScheduler.shared.cancel(taskRequestWithIdentifier: identifier)
     }
 }
-#endif

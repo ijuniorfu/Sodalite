@@ -1,4 +1,3 @@
-#if os(iOS)
 import SwiftUI
 import UIKit
 
@@ -78,4 +77,3 @@ struct PlayerGestureCatcher: View {
             .compactMap { $0 as? UIWindowScene }.first?.screen.brightness ?? 0.5
     }
 }
-#endif

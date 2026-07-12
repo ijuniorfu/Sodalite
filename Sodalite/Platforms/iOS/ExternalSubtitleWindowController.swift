@@ -12,7 +12,6 @@ enum ExternalSubtitleWindowDecision {
     }
 }
 
-#if os(iOS)
 import UIKit
 import SwiftUI
 
@@ -71,4 +70,3 @@ final class ExternalSubtitleWindowController {
         LogTap.shared.note("[ExternalSubs] window torn down")
     }
 }
-#endif

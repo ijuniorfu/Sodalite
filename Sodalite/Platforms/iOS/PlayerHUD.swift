@@ -1,4 +1,3 @@
-#if os(iOS)
 import SwiftUI
 
 /// Transient HUD for brightness/volume swipes and skip ripples. Reads the view model's hud state
@@ -31,4 +30,3 @@ struct PlayerHUD: View {
         }
     }
 }
-#endif

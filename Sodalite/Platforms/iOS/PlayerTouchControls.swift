@@ -1,4 +1,3 @@
-#if os(iOS)
 import SwiftUI
 import AetherEngine
 
@@ -473,4 +472,3 @@ private struct ChapterThumb: View {
         .task(id: index) { image = await load(index) }
     }
 }
-#endif

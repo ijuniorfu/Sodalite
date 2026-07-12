@@ -1,6 +1,5 @@
 import SwiftUI
 
-#if os(iOS)
 /// Subtitle overlay for a wired external display (Sodalite#98). Reads the same cue state as the
 /// on-frame `SubtitleLayer`, but rendered for a TV: no player chrome, plain-text (no second-window ASS
 /// host), transparent background so AVPlayer's external-playback video shows through underneath.
@@ -36,4 +35,3 @@ struct ExternalSubtitleView: View {
         .ignoresSafeArea()
     }
 }
-#endif
