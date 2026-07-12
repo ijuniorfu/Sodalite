@@ -55,6 +55,8 @@ targets:
     platform: tvOS
     sources:
       - path: Sodalite
+        excludes:
+          - "Platforms/iOS/**"
     settings:
       groups:
         - app
@@ -78,6 +80,8 @@ targets:
     platform: iOS
     sources:
       - path: Sodalite
+        excludes:
+          - "Platforms/tvOS/**"
     settings:
       groups:
         - app

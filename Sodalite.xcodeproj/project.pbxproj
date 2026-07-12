@@ -710,6 +710,7 @@
 		701C10265C5C32AA946482DC /* AsyncCachedImage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AsyncCachedImage.swift; sourceTree = "<group>"; };
 		71D7377FE2EE2770A0460BA8 /* StableTap.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StableTap.swift; sourceTree = "<group>"; };
 		7279B6C934F14AEABE549641 /* ParentalControlsSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParentalControlsSettingsView.swift; sourceTree = "<group>"; };
+		72B78F9681DA1F214A788494 /* .gitkeep */ = {isa = PBXFileReference; path = .gitkeep; sourceTree = "<group>"; };
 		730C8FB986E1263A255832CC /* RecordingsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordingsViewModel.swift; sourceTree = "<group>"; };
 		73C70C69CE2B4D51320E884C /* SeerrMediaCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeerrMediaCard.swift; sourceTree = "<group>"; };
 		741F6735F2BBBAF0C5648BFB /* NetworkBufferDepthTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkBufferDepthTests.swift; sourceTree = "<group>"; };
@@ -781,6 +782,7 @@
 		A6270886F062176C760AA833 /* ExternalSubtitleWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExternalSubtitleWindowController.swift; sourceTree = "<group>"; };
 		A6F5CE78EAB9F5BC71D0CF0B /* LiveTransportBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveTransportBar.swift; sourceTree = "<group>"; };
 		A8915E7229A24538FA098A0D /* TransportBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransportBar.swift; sourceTree = "<group>"; };
+		A8CA384FE492804EF1782A65 /* .gitkeep */ = {isa = PBXFileReference; path = .gitkeep; sourceTree = "<group>"; };
 		A8F9685F48162E2D506B820B /* HTTPMethod.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HTTPMethod.swift; sourceTree = "<group>"; };
 		A918155231B658FE1659325E /* SeerrMetadataRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeerrMetadataRow.swift; sourceTree = "<group>"; };
 		A92CDCD030CB23D499C7658D /* ExternalSubtitleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExternalSubtitleView.swift; sourceTree = "<group>"; };
@@ -1151,6 +1153,15 @@
 			path = Seerr;
 			sourceTree = "<group>";
 		};
+		7A332ADCCF6C434B5C0B48E4 /* Platforms */ = {
+			isa = PBXGroup;
+			children = (
+				8A07DF225047CC4DC2482BC7 /* iOS */,
+				E874B9369B700E72FE1B9DAC /* tvOS */,
+			);
+			path = Platforms;
+			sourceTree = "<group>";
+		};
 		7CC735FF02F13B96DECE93F0 /* Seerr */ = {
 			isa = PBXGroup;
 			children = (
@@ -1176,6 +1187,7 @@
 				9E7CF111B147486559A53E12 /* Extensions */,
 				03355E6540496BA1D91E17FF /* Features */,
 				A9BD821CE515C05237B0693C /* Models */,
+				7A332ADCCF6C434B5C0B48E4 /* Platforms */,
 				11573615FA4361B09122E3D0 /* Player */,
 				4A5045F3BD8450CAE9D87A17 /* Resources */,
 				F6C269F3870018B59E05E790 /* Services */,
@@ -1194,6 +1206,14 @@
 				1021036298773AF91C95F8C2 /* GlassActionButton.swift */,
 			);
 			path = LiquidGlass;
+			sourceTree = "<group>";
+		};
+		8A07DF225047CC4DC2482BC7 /* iOS */ = {
+			isa = PBXGroup;
+			children = (
+				72B78F9681DA1F214A788494 /* .gitkeep */,
+			);
+			path = iOS;
 			sourceTree = "<group>";
 		};
 		8E7F89712C8B11F0452FE86F /* Diagnostics */ = {
@@ -1465,6 +1485,14 @@
 				5DCCDE639EE071B54BD03C8B /* SupportDevelopmentView.swift */,
 			);
 			path = Support;
+			sourceTree = "<group>";
+		};
+		E874B9369B700E72FE1B9DAC /* tvOS */ = {
+			isa = PBXGroup;
+			children = (
+				A8CA384FE492804EF1782A65 /* .gitkeep */,
+			);
+			path = tvOS;
 			sourceTree = "<group>";
 		};
 		F005338722F85E3224E64848 /* Detail */ = {
