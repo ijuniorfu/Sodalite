@@ -2,6 +2,11 @@ Pods/
 Vendor/FFmpeg/build/
 build/
 
+# Xcode per-user state. The .xcodeproj itself is generated from project.yml
+# (XcodeGen) and committed; only per-user state is ignored.
+*.xcodeproj/xcuserdata/
+*.xcodeproj/project.xcworkspace/xcuserdata/
+
 # Marketing materials, screenshot drafts, logo source files,
 # kept locally only, not published to the public repo.
 Marketing/
