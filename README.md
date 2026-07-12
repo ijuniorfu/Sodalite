@@ -214,7 +214,7 @@ cd Sodalite
 open Sodalite.xcodeproj
 ```
 
-Pick the `Sodalite` scheme, then an Apple TV, iPhone or iPad destination, and run. It's one universal target, the same scheme builds for all three. AetherEngine is referenced as a remote Swift Package pinned by commit SHA in `Package.resolved`, so Xcode resolves and fetches it from GitHub automatically. No local clone is required to build Sodalite.
+Pick the `Sodalite-tvOS` scheme for Apple TV, or `Sodalite-iOS` for iPhone and iPad, choose a matching destination, and run. AetherEngine is referenced as a remote Swift Package pinned by commit SHA in `project.yml`, so Xcode resolves and fetches it from GitHub automatically. No local clone is required to build Sodalite.
 
 If you also want to work on the engine, clone it next to this repo and switch the package reference to your local copy in Xcode:
 
@@ -224,7 +224,7 @@ If you also want to work on the engine, clone it next to this repo and switch th
 └── AetherEngine/
 ```
 
-Xcode 26+ and Swift 6.0+ are required.
+Xcode 26+ and Swift 6.0+ are required. The Xcode project is generated from `project.yml` with [XcodeGen](https://github.com/yonaskolb/XcodeGen) (`brew install xcodegen`); the generated `Sodalite.xcodeproj` is committed, so a plain checkout builds without extra tooling. If you change targets or build settings, edit `project.yml` and regenerate with `Scripts/generate-project.sh`.
 
 For engine-level debugging without a device in the loop, AetherEngine ships a standalone macOS CLI (`aetherctl probe / serve / validate <url>`). See [AetherEngine's CLI docs](https://github.com/superuser404notfound/AetherEngine/blob/main/docs/cli.md) for usage.
 
