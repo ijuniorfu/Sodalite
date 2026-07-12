@@ -1,9 +1,15 @@
 #!/bin/bash
 #
-# bump-engine.sh - bump the pinned AetherEngine revision in
-# Package.resolved to whatever sits at the tip of origin/main, run
-# `xcodebuild -resolvePackageDependencies` so the new commit is
-# actually pulled, then commit + push the bump.
+# bump-engine.sh - bump the pinned AetherEngine revision in project.yml
+# to whatever sits at the tip of origin/main, regenerate the Xcode
+# project (Scripts/generate-project.sh), run
+# `xcodebuild -resolvePackageDependencies` so the new commit is actually
+# pulled, then commit + push the bump.
+#
+# The Xcode project is generated from project.yml (XcodeGen), so the pin
+# lives there, not in Package.resolved. This script rewrites project.yml,
+# regenerates, and lets the resolve update Package.resolved; the
+# transitive cascade (FFmpegBuild) still operates on Package.resolved.
 #
 # Usage:  Scripts/bump-engine.sh
 #
@@ -15,10 +21,11 @@ ENGINE_REPO="https://github.com/superuser404notfound/AetherEngine.git"
 ENGINE_API="https://api.github.com/repos/superuser404notfound/AetherEngine/commits"
 
 PROJECT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+PROJECT_YML="$PROJECT_DIR/project.yml"
 RESOLVED="$PROJECT_DIR/Sodalite.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved"
 
-if [ ! -f "$RESOLVED" ]; then
-    echo "❌ Package.resolved not found at $RESOLVED"
+if [ ! -f "$PROJECT_YML" ]; then
+    echo "❌ project.yml not found at $PROJECT_YML"
     exit 1
 fi
 
@@ -29,21 +36,12 @@ if [ -z "$LATEST_SHA" ]; then
     exit 1
 fi
 
-# Current pinned SHA, parsed out of the JSON. Python keeps this robust
-# against future formatting changes from Xcode.
-CURRENT_SHA=$(python3 -c "
-import json, sys
-with open('$RESOLVED') as f:
-    data = json.load(f)
-for pin in data['pins']:
-    if pin['identity'] == 'aetherengine':
-        print(pin['state']['revision'])
-        sys.exit(0)
-sys.exit(1)
-")
+# Current pinned SHA, read from project.yml's AetherEngine package block
+# (the source of truth for the pin under XcodeGen).
+CURRENT_SHA=$(grep -A3 '^  AetherEngine:' "$PROJECT_YML" | awk '/revision:/{print $2; exit}')
 
 if [ -z "$CURRENT_SHA" ]; then
-    echo "❌ AetherEngine pin not found in Package.resolved"
+    echo "❌ AetherEngine revision not found in project.yml"
     exit 1
 fi
 
@@ -71,10 +69,13 @@ if [ -z "$HUMAN_SUBJECT" ]; then
     HUMAN_SUBJECT="latest main"
 fi
 
-# Replace the AetherEngine SHA in-place. Substituting on the literal
-# current SHA scopes the change to the AetherEngine pin (SHAs are
-# unique per repo).
-sed -i '' "s/$CURRENT_SHA/$LATEST_SHA/" "$RESOLVED"
+# Rewrite the AetherEngine revision in project.yml (the pin source of
+# truth under XcodeGen), then regenerate the Xcode project so the package
+# reference picks up the new SHA. generate-project.sh preserves
+# Package.resolved, so the transitive pins below stay put until the
+# resolve reconciles them.
+sed -i '' "s/revision: $CURRENT_SHA/revision: $LATEST_SHA/" "$PROJECT_YML"
+"$PROJECT_DIR/Scripts/generate-project.sh" > /dev/null
 
 # Cascade transitive deps. AetherEngine's own Package.resolved pins
 # FFmpegBuild to a specific commit; if the engine bumped that pin (new
@@ -116,11 +117,10 @@ done
 cd "$PROJECT_DIR"
 
 echo "→ Resolving packages…"
-xcodebuild -project Sodalite.xcodeproj -scheme Sodalite \
-    -destination 'generic/platform=tvOS' \
+xcodebuild -project Sodalite.xcodeproj \
     -resolvePackageDependencies > /dev/null
 
-git add "$RESOLVED"
+git add "$PROJECT_YML" "$RESOLVED" Sodalite.xcodeproj
 git commit -m "chore(deps): bump AetherEngine to $SHORT_SHA - $HUMAN_SUBJECT"
 git push
 
