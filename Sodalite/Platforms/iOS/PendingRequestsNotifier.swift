@@ -1,4 +1,3 @@
-#if os(iOS)
 import Foundation
 import UserNotifications
 
@@ -72,4 +71,3 @@ enum PendingRequestsSync {
         preferences.lastSeenPendingCount = count
     }
 }
-#endif

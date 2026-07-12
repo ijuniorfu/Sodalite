@@ -1,4 +1,3 @@
-#if os(iOS)
 import SwiftUI
 import AVKit
 
@@ -22,4 +21,3 @@ struct AirPlayRouteButton: UIViewRepresentable {
         view.activeTintColor = tint
     }
 }
-#endif

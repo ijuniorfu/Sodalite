@@ -1,4 +1,3 @@
-#if os(iOS)
 import UIKit
 
 /// Process-wide orientation policy for the fullscreen player. `OrientationAppDelegate` reads
@@ -91,4 +90,3 @@ enum PlayerOrientation {
         if top !== root { root.setNeedsUpdateOfSupportedInterfaceOrientations() }
     }
 }
-#endif

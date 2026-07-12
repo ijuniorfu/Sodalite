@@ -1,4 +1,3 @@
-#if os(iOS)
 import UIKit
 import MediaPlayer
 import AVFoundation
@@ -30,4 +29,3 @@ enum PlayerSystemVolume {
         AVAudioSession.sharedInstance().outputVolume
     }
 }
-#endif
