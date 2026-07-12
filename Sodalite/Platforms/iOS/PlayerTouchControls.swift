@@ -373,7 +373,7 @@ struct PlayerTouchControls: View {
         switch picker {
         case .audio:
             return viewModel.displayAudioTracks.map { track in
-                PickerRow(label: TrackDisplayFormatter.shortName(for: track),
+                PickerRow(label: TrackDisplayFormatter.audioDisplayName(for: track),
                           isActive: track.id == viewModel.activeAudioIndex) {
                     viewModel.selectAudioTrack(id: track.id)
                 }

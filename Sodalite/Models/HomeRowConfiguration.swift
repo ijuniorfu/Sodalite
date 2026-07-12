@@ -147,7 +147,7 @@ extension HomeRowConfig {
     /// Library types that get their own per-library "Latest" row.
     static let perLibraryLatestTypes: Set<String> = ["movies", "tvshows"]
 
-    /// Merge `stored` with server `libraries`: existing rows keep enabled/sortOrder, add a `.libraryLatest` per movies/tvshows lib (refresh name/type), drop vanished ones. Adaptive default: per-library rows start enabled only on multi-library servers, and on first such reconcile the aggregated latestMovies/latestShows start disabled.
+    /// Merge `stored` with server `libraries`: existing rows keep enabled/sortOrder, add a `.libraryLatest` per movies/tvshows lib (refresh name/type), drop vanished ones. Per-library rows are opt-in: they are appended disabled so a fresh install matches `resetToDefault` (aggregated latestMovies/latestShows on, per-library rows off) regardless of library count.
     static func reconciled(
         stored: [HomeRowConfig],
         libraries: [JellyfinLibrary]
@@ -155,11 +155,7 @@ extension HomeRowConfig {
         let latestLibs = libraries.filter {
             perLibraryLatestTypes.contains($0.collectionType ?? "")
         }
-        let multiLibrary = latestLibs.count > 1
         let liveIDs = Set(latestLibs.map(\.id))
-
-        // Any stored libraryLatest means the adaptive-default decision was already made; never re-flip the aggregated rows.
-        let firstReconcile = !stored.contains { $0.type == .libraryLatest }
 
         var result = stored.filter { config in
             // Drop dynamic rows whose library vanished.
@@ -177,7 +173,7 @@ extension HomeRowConfig {
             }
         }
 
-        // Append rows for libraries not yet represented.
+        // Append rows for libraries not yet represented, disabled by default (opt-in via Customize).
         var nextOrder = (result.map(\.sortOrder).max() ?? -1) + 1
         // Track appended ids: duplicate library ids would yield colliding composite ids and break SwiftUI Identifiable/ForEach.
         var knownIDs = Set(result.compactMap { $0.type == .libraryLatest ? $0.libraryID : nil })
@@ -185,7 +181,7 @@ extension HomeRowConfig {
             result.append(
                 HomeRowConfig(
                     type: .libraryLatest,
-                    isEnabled: multiLibrary,
+                    isEnabled: false,
                     sortOrder: nextOrder,
                     libraryID: lib.id,
                     libraryName: lib.name,
@@ -194,17 +190,6 @@ extension HomeRowConfig {
             )
             knownIDs.insert(lib.id)
             nextOrder += 1
-        }
-
-        // On the very first reconcile for a multi-library server, turn
-        // the aggregated Latest rows off so the per-library rows are
-        // what the user sees out of the box.
-        if firstReconcile && multiLibrary {
-            for i in result.indices {
-                if result[i].type == .latestMovies || result[i].type == .latestShows {
-                    result[i].isEnabled = false
-                }
-            }
         }
 
         return result
