@@ -114,7 +114,7 @@ struct PlayerOverlayView: View {
             #if os(iOS)
             // Transient brightness/volume/skip HUD, centered above the controls (kept mounted so the
             // opacity fade animates cleanly).
-            PlayerHUD(kind: viewModel.hudKind ?? .skipForward, level: viewModel.hudLevel)
+            PlayerHUD(kind: viewModel.hudKind ?? viewModel.lastHudKind, level: viewModel.hudLevel)
                 .opacity(viewModel.hudKind == nil ? 0 : 1)
                 .animation(.easeInOut(duration: 0.2), value: viewModel.hudKind)
                 .allowsHitTesting(false)
