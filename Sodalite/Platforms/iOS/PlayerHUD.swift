@@ -10,6 +10,10 @@ struct PlayerHUD: View {
         VStack(spacing: 8) {
             Image(systemName: icon)
                 .font(.system(size: 34, weight: .semibold))
+                // Swap the glyph instantly instead of cross-morphing it: the overlay fades in via opacity,
+                // and without this the symbol would animate from the previous kind (the skip glyph) into
+                // the new one as it appears.
+                .contentTransition(.identity)
             if kind == .brightness || kind == .volume {
                 ProgressView(value: min(max(level, 0), 1))
                     .frame(width: 120)

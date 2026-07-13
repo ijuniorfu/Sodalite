@@ -973,6 +973,11 @@ final class PlayerViewModel {
                     let firstPlay = !self.hasStartedPlaying
                     self.hasStartedPlaying = true
                     self.isPlaying = true
+                    #if os(iOS)
+                    // Take over the native volume overlay only now that playback is up; during load the
+                    // native overlay stays visible so hardware volume presses always show an indicator.
+                    PlayerSystemVolume.activate()
+                    #endif
                     if self.isLiveSession, firstPlay {
                         // Marks the cold-transcode window; recomputeLoadingIndicator() debounces the spinner
                         // clear against it (the first .playing flips ~1s before the start segment lands, stalls,
@@ -1906,10 +1911,15 @@ final class PlayerViewModel {
     /// Transient touch HUD (brightness/volume swipe, skip ripple); the overlay observes hudKind.
     var hudKind: PlayerHUDKind?
     var hudLevel: Double = 0
+    /// The last shown kind, kept while the HUD is hidden. The overlay is permanently mounted and falls
+    /// back to this when hudKind is nil, so it fades out on the same glyph it showed and never reveals
+    /// an unrelated icon (the skip symbol) on the way in or out.
+    var lastHudKind: PlayerHUDKind = .volume
     @ObservationIgnored private var hudHideTask: Task<Void, Never>?
 
     func flashHUD(_ kind: PlayerHUDKind, level: Double = 0) {
         hudKind = kind
+        lastHudKind = kind
         hudLevel = level
         hudHideTask?.cancel()
         hudHideTask = Task { [weak self] in
@@ -1941,33 +1951,30 @@ final class PlayerViewModel {
     }
 
     @ObservationIgnored private var volumeObservation: NSKeyValueObservation?
-    /// Suppresses the activation-time KVO callback so opening a video does not flash the HUD.
-    @ObservationIgnored private var volumeHUDArmed = false
 
-    /// Mirror the system volume overlay with our own HUD on hardware volume-button presses. The hidden
-    /// MPVolumeView the swipe gesture uses suppresses the native iOS overlay, so it never shows otherwise.
+    /// Mirror the system volume overlay with our own HUD on hardware volume-button presses, but only once
+    /// we have taken over the native overlay (PlayerSystemVolume.isActive, i.e. the hidden MPVolumeView is
+    /// parked, which happens at first `.playing` or on a volume swipe). While the video is still loading,
+    /// or anywhere outside the player, the host is not parked, so the native iOS overlay shows and this
+    /// stays silent. Gating on isActive also swallows the activation-time settle callback without a timer.
     func startVolumeObservation() {
         volumeObservation?.invalidate()
-        volumeHUDArmed = false
         // @Sendable so the KVO callback is nonisolated (KVO fires off the main actor); it hops back via Task.
         let handler: @Sendable (AVAudioSession, NSKeyValueObservedChange<Float>) -> Void = { [weak self] _, change in
             guard let newValue = change.newValue else { return }
             Task { @MainActor in
-                guard let self, self.volumeHUDArmed else { return }
+                guard let self, PlayerSystemVolume.isActive else { return }
                 self.flashHUD(.volume, level: Double(newValue))
             }
         }
         volumeObservation = AVAudioSession.sharedInstance().observe(\.outputVolume, options: [.new], changeHandler: handler)
-        Task { @MainActor [weak self] in
-            try? await Task.sleep(for: .milliseconds(600))
-            self?.volumeHUDArmed = true
-        }
     }
 
     func stopVolumeObservation() {
         volumeObservation?.invalidate()
         volumeObservation = nil
-        volumeHUDArmed = false
+        // Restore the native volume overlay for the rest of the app now that the player is gone.
+        PlayerSystemVolume.deactivate()
     }
     #endif
 
