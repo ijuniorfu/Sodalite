@@ -103713,7 +103713,7 @@
         "hr" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Ukloni sve sinkronizirane podatke iz iClouda i isključi sinkronizaciju"
+            "value": "Uklonite sve sinkronizirane podatke iz iClouda i isključite sinkronizaciju"
           }
         },
         "hu" : {
@@ -104840,7 +104840,7 @@
         "hr" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Postavi postavke ovog uređaja kao trenutačno stanje na svim uređajima"
+            "value": "Primijenite postavke ovog uređaja kao trenutačno stanje na svim uređajima"
           }
         },
         "hu" : {
