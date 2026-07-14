@@ -87,7 +87,7 @@ Almost everything is identical across devices, it's one codebase. A handful of c
 
 ## Open source, end to end
 
-Sodalite is open from end to end. Every byte that touches your server is in this repo, your auth tokens stay in your Keychain, and there's no telemetry, no analytics, no third-party SDK phoning home.
+Sodalite is open from end to end. Every byte that touches your server is in this repo, your credentials live in your device's Keychain and sync between your devices only through your private iCloud, end-to-end encrypted so not even Apple can read them (turn iCloud Sync off and they never leave the device), and there's no telemetry, no analytics, no third-party SDK phoning home.
 
 Licensed under **GPL-3.0 with an Apple Store / DRM Exception**. Fork it, study it, build your own version, but no one can take it private. Modifications must stay open. The exception clause in the LICENSE keeps the App Store and TestFlight distribution paths legally clean. The video stack underneath ([AetherEngine](https://github.com/superuser404notfound/AetherEngine)) is **LGPL-3.0** with the same Apple Store exception, so the engine can be reused in other apps while engine-level improvements flow back to the community. Both are auditable, buildable from source, and free of any vendor lock-in. Self-host the server, self-build the client, the whole loop is yours.
 
