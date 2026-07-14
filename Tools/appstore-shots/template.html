@@ -1,0 +1,21 @@
+<meta charset="utf-8">
+<title>appstore-shot</title>
+<link rel="stylesheet" href="styles.css">
+<div class="canvas portrait">
+  <div class="copyblock">
+    <p class="kick"></p>
+    <h2 class="headline-text"></h2>
+  </div>
+  <div class="shotwrap"><img class="shot-img" alt=""></div>
+</div>
+<script>
+  window.applyConfig = function (cfg) {
+    var c = document.querySelector('.canvas');
+    c.className = 'canvas ' + cfg.layout;
+    c.style.width = cfg.canvasW + 'px';
+    c.style.height = cfg.canvasH + 'px';
+    document.querySelector('.kick').textContent = cfg.kicker;
+    document.querySelector('.headline-text').textContent = cfg.headline;
+    document.querySelector('.shot-img').src = cfg.shot;
+  };
+</script>

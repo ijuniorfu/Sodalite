@@ -228,6 +228,8 @@ Xcode 26+ and Swift 6.0+ are required. The Xcode project is generated from `proj
 
 For engine-level debugging without a device in the loop, AetherEngine ships a standalone macOS CLI (`aetherctl probe / serve / validate <url>`). See [AetherEngine's CLI docs](https://github.com/superuser404notfound/AetherEngine/blob/main/docs/cli.md) for usage.
 
+The App Store marketing screenshots are generated from raw device shots by a small Node + Playwright pipeline in `Tools/appstore-shots/` (real screenshots on a designed background, localized headlines in 26 languages). See its [README](Tools/appstore-shots/README.md).
+
 ## Roadmap
 
 - [x] Public TestFlight beta

@@ -1,0 +1,1490 @@
+{
+  "portrait": {
+    "home": {
+      "en": {
+        "kicker": "A native Jellyfin client",
+        "headline": "Your whole library, beautiful."
+      },
+      "de": {
+        "kicker": "Ein nativer Jellyfin-Client",
+        "headline": "Deine ganze Mediathek, wunderschön."
+      },
+      "cs": {
+        "kicker": "Nativní klient pro Jellyfin",
+        "headline": "Celá tvá knihovna, krásně."
+      },
+      "da": {
+        "kicker": "En native Jellyfin-klient",
+        "headline": "Hele dit bibliotek, smukt."
+      },
+      "el": {
+        "kicker": "Εγγενές πρόγραμμα Jellyfin",
+        "headline": "Όλη η βιβλιοθήκη σου, πανέμορφη."
+      },
+      "es": {
+        "kicker": "Un cliente nativo de Jellyfin",
+        "headline": "Toda tu biblioteca, preciosa."
+      },
+      "fi": {
+        "kicker": "Natiivi Jellyfin-sovellus",
+        "headline": "Koko kirjastosi, kauniisti."
+      },
+      "fr": {
+        "kicker": "Un client Jellyfin natif",
+        "headline": "Toute ta médiathèque, sublime."
+      },
+      "hr": {
+        "kicker": "Izvorni Jellyfin klijent",
+        "headline": "Cijela tvoja biblioteka, prekrasno."
+      },
+      "hu": {
+        "kicker": "Natív Jellyfin-kliens",
+        "headline": "A teljes gyűjteményed, gyönyörűen."
+      },
+      "it": {
+        "kicker": "Un client Jellyfin nativo",
+        "headline": "Tutta la tua libreria, bellissima."
+      },
+      "ja": {
+        "kicker": "ネイティブな Jellyfin クライアント",
+        "headline": "ライブラリすべてを、美しく。"
+      },
+      "ko": {
+        "kicker": "네이티브 Jellyfin 클라이언트",
+        "headline": "라이브러리 전체를 아름답게."
+      },
+      "nb": {
+        "kicker": "En native Jellyfin-klient",
+        "headline": "Hele biblioteket ditt, vakkert."
+      },
+      "nl": {
+        "kicker": "Een native Jellyfin-client",
+        "headline": "Je hele bibliotheek, prachtig."
+      },
+      "pl": {
+        "kicker": "Natywny klient Jellyfin",
+        "headline": "Cała biblioteka, pięknie."
+      },
+      "pt-BR": {
+        "kicker": "Um cliente Jellyfin nativo",
+        "headline": "Toda a sua biblioteca, linda."
+      },
+      "pt-PT": {
+        "kicker": "Um cliente Jellyfin nativo",
+        "headline": "Toda a tua biblioteca, linda."
+      },
+      "ro": {
+        "kicker": "Un client Jellyfin nativ",
+        "headline": "Toată biblioteca ta, superbă."
+      },
+      "ru": {
+        "kicker": "Нативный клиент Jellyfin",
+        "headline": "Вся ваша библиотека, красиво."
+      },
+      "sk": {
+        "kicker": "Natívny klient Jellyfin",
+        "headline": "Celá tvoja knižnica, krásne."
+      },
+      "sv": {
+        "kicker": "En native Jellyfin-klient",
+        "headline": "Hela ditt bibliotek, vackert."
+      },
+      "tr": {
+        "kicker": "Yerel bir Jellyfin istemcisi",
+        "headline": "Tüm kütüphanen, göz alıcı."
+      },
+      "uk": {
+        "kicker": "Нативний клієнт Jellyfin",
+        "headline": "Уся ваша бібліотека, красиво."
+      },
+      "zh-Hans": {
+        "kicker": "原生 Jellyfin 客户端",
+        "headline": "你的整个媒体库，尽显精致。"
+      },
+      "zh-Hant": {
+        "kicker": "原生 Jellyfin 用戶端",
+        "headline": "你的整個媒體庫，盡顯精緻。"
+      }
+    },
+    "detail": {
+      "en": {
+        "kicker": "Movies & shows",
+        "headline": "Every detail, gorgeous."
+      },
+      "de": {
+        "kicker": "Filme & Serien",
+        "headline": "Jedes Detail, wunderschön."
+      },
+      "cs": {
+        "kicker": "Filmy a seriály",
+        "headline": "Každý detail, nádherně."
+      },
+      "da": {
+        "kicker": "Film og serier",
+        "headline": "Hver detalje, smuk."
+      },
+      "el": {
+        "kicker": "Ταινίες & σειρές",
+        "headline": "Κάθε λεπτομέρεια, εντυπωσιακή."
+      },
+      "es": {
+        "kicker": "Películas y series",
+        "headline": "Cada detalle, precioso."
+      },
+      "fi": {
+        "kicker": "Elokuvat ja sarjat",
+        "headline": "Jokainen yksityiskohta, upeasti."
+      },
+      "fr": {
+        "kicker": "Films et séries",
+        "headline": "Chaque détail, sublime."
+      },
+      "hr": {
+        "kicker": "Filmovi i serije",
+        "headline": "Svaki detalj, predivno."
+      },
+      "hu": {
+        "kicker": "Filmek és sorozatok",
+        "headline": "Minden részlet, lenyűgöző."
+      },
+      "it": {
+        "kicker": "Film e serie TV",
+        "headline": "Ogni dettaglio, splendido."
+      },
+      "ja": {
+        "kicker": "映画も番組も",
+        "headline": "どのディテールも、美しく。"
+      },
+      "ko": {
+        "kicker": "영화와 시리즈",
+        "headline": "모든 디테일까지 아름답게."
+      },
+      "nb": {
+        "kicker": "Filmer og serier",
+        "headline": "Hver detalj, nydelig."
+      },
+      "nl": {
+        "kicker": "Films en series",
+        "headline": "Elk detail, prachtig."
+      },
+      "pl": {
+        "kicker": "Filmy i seriale",
+        "headline": "Każdy szczegół, wspaniale."
+      },
+      "pt-BR": {
+        "kicker": "Filmes e séries",
+        "headline": "Cada detalhe, deslumbrante."
+      },
+      "pt-PT": {
+        "kicker": "Filmes e séries",
+        "headline": "Cada detalhe, deslumbrante."
+      },
+      "ro": {
+        "kicker": "Filme și seriale",
+        "headline": "Fiecare detaliu, superb."
+      },
+      "ru": {
+        "kicker": "Фильмы и сериалы",
+        "headline": "Каждая деталь, великолепно."
+      },
+      "sk": {
+        "kicker": "Filmy a seriály",
+        "headline": "Každý detail, nádherne."
+      },
+      "sv": {
+        "kicker": "Filmer och serier",
+        "headline": "Varje detalj, magnifik."
+      },
+      "tr": {
+        "kicker": "Filmler ve diziler",
+        "headline": "Her detay, kusursuz."
+      },
+      "uk": {
+        "kicker": "Фільми та серіали",
+        "headline": "Кожна деталь, чудово."
+      },
+      "zh-Hans": {
+        "kicker": "电影与剧集",
+        "headline": "每处细节，尽显精美。"
+      },
+      "zh-Hant": {
+        "kicker": "電影與劇集",
+        "headline": "每處細節，盡顯精美。"
+      }
+    },
+    "catalog": {
+      "en": {
+        "kicker": "Powered by Jellyseerr",
+        "headline": "Discover. Then request."
+      },
+      "de": {
+        "kicker": "Mit Jellyseerr",
+        "headline": "Entdecken. Dann anfragen."
+      },
+      "cs": {
+        "kicker": "Využívá Jellyseerr",
+        "headline": "Objevuj. Pak požádej."
+      },
+      "da": {
+        "kicker": "Drevet af Jellyseerr",
+        "headline": "Opdag. Og anmod."
+      },
+      "el": {
+        "kicker": "Με τεχνολογία Jellyseerr",
+        "headline": "Ανακάλυψε. Και ζήτησε."
+      },
+      "es": {
+        "kicker": "Con tecnología Jellyseerr",
+        "headline": "Descubre. Y solicita."
+      },
+      "fi": {
+        "kicker": "Jellyseerrin voimin",
+        "headline": "Löydä. Ja pyydä."
+      },
+      "fr": {
+        "kicker": "Propulsé par Jellyseerr",
+        "headline": "Découvre. Puis demande."
+      },
+      "hr": {
+        "kicker": "Uz Jellyseerr",
+        "headline": "Otkrij. Zatim zatraži."
+      },
+      "hu": {
+        "kicker": "Jellyseerr alapokon",
+        "headline": "Fedezd fel. Aztán kérd."
+      },
+      "it": {
+        "kicker": "Con Jellyseerr",
+        "headline": "Scopri. Poi richiedi."
+      },
+      "ja": {
+        "kicker": "Jellyseerr 連携",
+        "headline": "見つけて、リクエスト。"
+      },
+      "ko": {
+        "kicker": "Jellyseerr 연동",
+        "headline": "발견하고, 요청하세요."
+      },
+      "nb": {
+        "kicker": "Drevet av Jellyseerr",
+        "headline": "Oppdag. Og be om."
+      },
+      "nl": {
+        "kicker": "Mogelijk gemaakt door Jellyseerr",
+        "headline": "Ontdek. En vraag aan."
+      },
+      "pl": {
+        "kicker": "Napędzane przez Jellyseerr",
+        "headline": "Odkrywaj. I poproś."
+      },
+      "pt-BR": {
+        "kicker": "Com tecnologia Jellyseerr",
+        "headline": "Descubra. E solicite."
+      },
+      "pt-PT": {
+        "kicker": "Com tecnologia Jellyseerr",
+        "headline": "Descobre. E pede."
+      },
+      "ro": {
+        "kicker": "Cu Jellyseerr",
+        "headline": "Descoperă. Apoi cere."
+      },
+      "ru": {
+        "kicker": "На базе Jellyseerr",
+        "headline": "Находите. И запрашивайте."
+      },
+      "sk": {
+        "kicker": "S technológiou Jellyseerr",
+        "headline": "Objav. Potom požiadaj."
+      },
+      "sv": {
+        "kicker": "Drivs av Jellyseerr",
+        "headline": "Upptäck. Och begär."
+      },
+      "tr": {
+        "kicker": "Jellyseerr ile",
+        "headline": "Keşfet. Sonra iste."
+      },
+      "uk": {
+        "kicker": "На основі Jellyseerr",
+        "headline": "Відкривайте. Та запитуйте."
+      },
+      "zh-Hans": {
+        "kicker": "由 Jellyseerr 驱动",
+        "headline": "发现，然后请求。"
+      },
+      "zh-Hant": {
+        "kicker": "由 Jellyseerr 驅動",
+        "headline": "探索，然後請求。"
+      }
+    },
+    "search": {
+      "en": {
+        "kicker": "Instant search",
+        "headline": "Find anything, fast."
+      },
+      "de": {
+        "kicker": "Sofortsuche",
+        "headline": "Finde alles, sofort."
+      },
+      "cs": {
+        "kicker": "Okamžité hledání",
+        "headline": "Najdi cokoli, hned."
+      },
+      "da": {
+        "kicker": "Øjeblikkelig søgning",
+        "headline": "Find alt, hurtigt."
+      },
+      "el": {
+        "kicker": "Άμεση αναζήτηση",
+        "headline": "Βρες τα πάντα, γρήγορα."
+      },
+      "es": {
+        "kicker": "Búsqueda instantánea",
+        "headline": "Encuentra todo, rápido."
+      },
+      "fi": {
+        "kicker": "Pikahaku",
+        "headline": "Löydä mitä vain, heti."
+      },
+      "fr": {
+        "kicker": "Recherche instantanée",
+        "headline": "Trouve tout, vite."
+      },
+      "hr": {
+        "kicker": "Trenutačna pretraga",
+        "headline": "Pronađi sve, brzo."
+      },
+      "hu": {
+        "kicker": "Azonnali keresés",
+        "headline": "Találj meg bármit, gyorsan."
+      },
+      "it": {
+        "kicker": "Ricerca istantanea",
+        "headline": "Trova tutto, subito."
+      },
+      "ja": {
+        "kicker": "瞬時に検索",
+        "headline": "何でも、すぐに見つかる。"
+      },
+      "ko": {
+        "kicker": "즉시 검색",
+        "headline": "무엇이든 빠르게 찾기."
+      },
+      "nb": {
+        "kicker": "Umiddelbart søk",
+        "headline": "Finn alt, raskt."
+      },
+      "nl": {
+        "kicker": "Direct zoeken",
+        "headline": "Vind alles, snel."
+      },
+      "pl": {
+        "kicker": "Błyskawiczne wyszukiwanie",
+        "headline": "Znajdź wszystko, szybko."
+      },
+      "pt-BR": {
+        "kicker": "Busca instantânea",
+        "headline": "Encontre tudo, rápido."
+      },
+      "pt-PT": {
+        "kicker": "Pesquisa instantânea",
+        "headline": "Encontra tudo, depressa."
+      },
+      "ro": {
+        "kicker": "Căutare instantanee",
+        "headline": "Găsește orice, rapid."
+      },
+      "ru": {
+        "kicker": "Мгновенный поиск",
+        "headline": "Найдите всё, быстро."
+      },
+      "sk": {
+        "kicker": "Okamžité hľadanie",
+        "headline": "Nájdi čokoľvek, hneď."
+      },
+      "sv": {
+        "kicker": "Direkt sökning",
+        "headline": "Hitta allt, snabbt."
+      },
+      "tr": {
+        "kicker": "Anında arama",
+        "headline": "Her şeyi hızlıca bul."
+      },
+      "uk": {
+        "kicker": "Миттєвий пошук",
+        "headline": "Знайдіть усе, швидко."
+      },
+      "zh-Hans": {
+        "kicker": "即时搜索",
+        "headline": "任何内容，秒速找到。"
+      },
+      "zh-Hant": {
+        "kicker": "即時搜尋",
+        "headline": "任何內容，秒速找到。"
+      }
+    },
+    "livetv": {
+      "en": {
+        "kicker": "Live TV & guide",
+        "headline": "Live TV, built in."
+      },
+      "de": {
+        "kicker": "Live-TV & Guide",
+        "headline": "Live-TV, direkt dabei."
+      },
+      "cs": {
+        "kicker": "Živé TV a program",
+        "headline": "Živé TV, rovnou uvnitř."
+      },
+      "da": {
+        "kicker": "Live-tv og guide",
+        "headline": "Live-tv, indbygget."
+      },
+      "el": {
+        "kicker": "Ζωντανή TV & οδηγός",
+        "headline": "Ζωντανή TV, ενσωματωμένη."
+      },
+      "es": {
+        "kicker": "TV en directo y guía",
+        "headline": "TV en directo, integrada."
+      },
+      "fi": {
+        "kicker": "Suora-TV ja opas",
+        "headline": "Suora-TV, sisäänrakennettuna."
+      },
+      "fr": {
+        "kicker": "TV en direct et guide",
+        "headline": "La TV en direct, intégrée."
+      },
+      "hr": {
+        "kicker": "Live TV i vodič",
+        "headline": "Live TV, odmah ugrađen."
+      },
+      "hu": {
+        "kicker": "Élő TV és műsorújság",
+        "headline": "Élő TV, beépítve."
+      },
+      "it": {
+        "kicker": "TV in diretta e guida",
+        "headline": "TV in diretta, integrata."
+      },
+      "ja": {
+        "kicker": "ライブ TV と番組表",
+        "headline": "ライブ TV を、そのまま。"
+      },
+      "ko": {
+        "kicker": "라이브 TV와 편성표",
+        "headline": "라이브 TV, 그대로 내장."
+      },
+      "nb": {
+        "kicker": "Direkte-TV og guide",
+        "headline": "Direkte-TV, innebygd."
+      },
+      "nl": {
+        "kicker": "Live-tv en gids",
+        "headline": "Live-tv, ingebouwd."
+      },
+      "pl": {
+        "kicker": "Telewizja na żywo i program",
+        "headline": "TV na żywo, wbudowana."
+      },
+      "pt-BR": {
+        "kicker": "TV ao vivo e guia",
+        "headline": "TV ao vivo, integrada."
+      },
+      "pt-PT": {
+        "kicker": "TV em direto e guia",
+        "headline": "TV em direto, integrada."
+      },
+      "ro": {
+        "kicker": "TV live și ghid",
+        "headline": "TV live, inclus."
+      },
+      "ru": {
+        "kicker": "Эфирное ТВ и программа",
+        "headline": "Эфирное ТВ, уже внутри."
+      },
+      "sk": {
+        "kicker": "Živé TV a program",
+        "headline": "Živé TV, rovno vnútri."
+      },
+      "sv": {
+        "kicker": "Live-TV och guide",
+        "headline": "Live-TV, inbyggt."
+      },
+      "tr": {
+        "kicker": "Canlı TV ve rehber",
+        "headline": "Canlı TV, içinde hazır."
+      },
+      "uk": {
+        "kicker": "Ефірне ТБ і програма",
+        "headline": "Ефірне ТБ, уже всередині."
+      },
+      "zh-Hans": {
+        "kicker": "直播电视与节目单",
+        "headline": "直播电视，内置即用。"
+      },
+      "zh-Hant": {
+        "kicker": "直播電視與節目表",
+        "headline": "直播電視，內建即用。"
+      }
+    },
+    "music": {
+      "en": {
+        "kicker": "Your music, too",
+        "headline": "Your soundtrack, anywhere."
+      },
+      "de": {
+        "kicker": "Auch deine Musik",
+        "headline": "Dein Soundtrack, überall."
+      },
+      "cs": {
+        "kicker": "I tvá hudba",
+        "headline": "Tvůj soundtrack, kdekoli."
+      },
+      "da": {
+        "kicker": "Også din musik",
+        "headline": "Dit soundtrack, overalt."
+      },
+      "el": {
+        "kicker": "Και η μουσική σου",
+        "headline": "Το soundtrack σου, παντού."
+      },
+      "es": {
+        "kicker": "También tu música",
+        "headline": "Tu banda sonora, donde sea."
+      },
+      "fi": {
+        "kicker": "Myös musiikkisi",
+        "headline": "Soundtrackisi, missä vain."
+      },
+      "fr": {
+        "kicker": "Ta musique aussi",
+        "headline": "Ta bande-son, partout."
+      },
+      "hr": {
+        "kicker": "I tvoja glazba",
+        "headline": "Tvoja glazba, bilo gdje."
+      },
+      "hu": {
+        "kicker": "A zenéd is",
+        "headline": "A zenéd, bárhol."
+      },
+      "it": {
+        "kicker": "Anche la tua musica",
+        "headline": "La tua colonna sonora, ovunque."
+      },
+      "ja": {
+        "kicker": "音楽も、ここに",
+        "headline": "あなたの音楽を、どこでも。"
+      },
+      "ko": {
+        "kicker": "음악까지 함께",
+        "headline": "당신의 사운드트랙, 어디서나."
+      },
+      "nb": {
+        "kicker": "Også musikken din",
+        "headline": "Lydsporet ditt, overalt."
+      },
+      "nl": {
+        "kicker": "Ook je muziek",
+        "headline": "Je soundtrack, overal."
+      },
+      "pl": {
+        "kicker": "Także twoja muzyka",
+        "headline": "Twoja ścieżka dźwiękowa, wszędzie."
+      },
+      "pt-BR": {
+        "kicker": "Sua música também",
+        "headline": "Sua trilha sonora, em qualquer lugar."
+      },
+      "pt-PT": {
+        "kicker": "Também a tua música",
+        "headline": "A tua banda sonora, em qualquer lado."
+      },
+      "ro": {
+        "kicker": "Și muzica ta",
+        "headline": "Coloana ta sonoră, oriunde."
+      },
+      "ru": {
+        "kicker": "И ваша музыка",
+        "headline": "Ваш саундтрек, где угодно."
+      },
+      "sk": {
+        "kicker": "Aj tvoja hudba",
+        "headline": "Tvoj soundtrack, kdekoľvek."
+      },
+      "sv": {
+        "kicker": "Även din musik",
+        "headline": "Ditt soundtrack, överallt."
+      },
+      "tr": {
+        "kicker": "Müziğin de burada",
+        "headline": "Müziğin, her yerde."
+      },
+      "uk": {
+        "kicker": "І ваша музика",
+        "headline": "Ваш саундтрек, будь-де."
+      },
+      "zh-Hans": {
+        "kicker": "音乐也在",
+        "headline": "你的原声，随身随行。"
+      },
+      "zh-Hant": {
+        "kicker": "音樂也在",
+        "headline": "你的原聲，隨身隨行。"
+      }
+    },
+    "settings": {
+      "en": {
+        "kicker": "Yours to tune",
+        "headline": "Made exactly yours."
+      },
+      "de": {
+        "kicker": "Ganz nach dir",
+        "headline": "Genau so, wie du willst."
+      },
+      "cs": {
+        "kicker": "Doladíš si to",
+        "headline": "Přesně podle tebe."
+      },
+      "da": {
+        "kicker": "Din at justere",
+        "headline": "Præcis som du vil."
+      },
+      "el": {
+        "kicker": "Ρύθμισέ το όπως θες",
+        "headline": "Ακριβώς όπως το θες."
+      },
+      "es": {
+        "kicker": "Ajústalo a ti",
+        "headline": "Exactamente a tu gusto."
+      },
+      "fi": {
+        "kicker": "Säädä omaksesi",
+        "headline": "Juuri sinun näköiseksi."
+      },
+      "fr": {
+        "kicker": "À toi de régler",
+        "headline": "Exactement comme tu veux."
+      },
+      "hr": {
+        "kicker": "Prilagodi po svom",
+        "headline": "Točno onako kako želiš."
+      },
+      "hu": {
+        "kicker": "Állítsd magadhoz",
+        "headline": "Pontosan a te ízlésedre."
+      },
+      "it": {
+        "kicker": "Personalizzalo tu",
+        "headline": "Esattamente come vuoi."
+      },
+      "ja": {
+        "kicker": "自分好みに",
+        "headline": "思いのままに調整。"
+      },
+      "ko": {
+        "kicker": "취향대로 조정",
+        "headline": "딱 당신에게 맞게."
+      },
+      "nb": {
+        "kicker": "Din å justere",
+        "headline": "Akkurat som du vil."
+      },
+      "nl": {
+        "kicker": "Stel het naar wens in",
+        "headline": "Precies zoals jij wilt."
+      },
+      "pl": {
+        "kicker": "Dostrój po swojemu",
+        "headline": "Dokładnie po twojemu."
+      },
+      "pt-BR": {
+        "kicker": "Ajuste do seu jeito",
+        "headline": "Exatamente como você quer."
+      },
+      "pt-PT": {
+        "kicker": "Ajusta a teu gosto",
+        "headline": "Exatamente como queres."
+      },
+      "ro": {
+        "kicker": "Reglează-l cum vrei",
+        "headline": "Exact pe gustul tău."
+      },
+      "ru": {
+        "kicker": "Настройте под себя",
+        "headline": "Точно как вам нужно."
+      },
+      "sk": {
+        "kicker": "Nalaď si to",
+        "headline": "Presne podľa teba."
+      },
+      "sv": {
+        "kicker": "Din att justera",
+        "headline": "Precis som du vill."
+      },
+      "tr": {
+        "kicker": "Sana göre ayarla",
+        "headline": "Tam istediğin gibi."
+      },
+      "uk": {
+        "kicker": "Налаштуйте під себе",
+        "headline": "Саме так, як хочете."
+      },
+      "zh-Hans": {
+        "kicker": "随你调校",
+        "headline": "完全合你心意。"
+      },
+      "zh-Hant": {
+        "kicker": "隨你調校",
+        "headline": "完全合你心意。"
+      }
+    }
+  },
+  "tv": {
+    "home": {
+      "en": {
+        "kicker": "Made for the living room",
+        "headline": "Your cinema, at home."
+      },
+      "de": {
+        "kicker": "Fürs Wohnzimmer gemacht",
+        "headline": "Dein Kino, zu Hause."
+      },
+      "cs": {
+        "kicker": "Stvořeno pro obývák",
+        "headline": "Tvé kino, doma."
+      },
+      "da": {
+        "kicker": "Skabt til stuen",
+        "headline": "Din biograf, hjemme."
+      },
+      "el": {
+        "kicker": "Φτιαγμένο για το σαλόνι",
+        "headline": "Ο κινηματογράφος σου, στο σπίτι."
+      },
+      "es": {
+        "kicker": "Hecho para el salón",
+        "headline": "Tu cine, en casa."
+      },
+      "fi": {
+        "kicker": "Tehty olohuoneeseen",
+        "headline": "Oma elokuvateatterisi, kotona."
+      },
+      "fr": {
+        "kicker": "Pensé pour le salon",
+        "headline": "Ton cinéma, à la maison."
+      },
+      "hr": {
+        "kicker": "Stvoreno za dnevni boravak",
+        "headline": "Tvoj kino, kod kuće."
+      },
+      "hu": {
+        "kicker": "A nappaliba tervezve",
+        "headline": "A mozid, otthon."
+      },
+      "it": {
+        "kicker": "Fatto per il salotto",
+        "headline": "Il tuo cinema, a casa."
+      },
+      "ja": {
+        "kicker": "リビングのために",
+        "headline": "あなたの映画館を、自宅に。"
+      },
+      "ko": {
+        "kicker": "거실을 위한 설계",
+        "headline": "나만의 극장, 집에서."
+      },
+      "nb": {
+        "kicker": "Laget for stua",
+        "headline": "Din kino, hjemme."
+      },
+      "nl": {
+        "kicker": "Gemaakt voor de woonkamer",
+        "headline": "Jouw bioscoop, thuis."
+      },
+      "pl": {
+        "kicker": "Stworzone do salonu",
+        "headline": "Twoje kino, w domu."
+      },
+      "pt-BR": {
+        "kicker": "Feito para a sala",
+        "headline": "Seu cinema, em casa."
+      },
+      "pt-PT": {
+        "kicker": "Feito para a sala",
+        "headline": "O teu cinema, em casa."
+      },
+      "ro": {
+        "kicker": "Creat pentru living",
+        "headline": "Cinematograful tău, acasă."
+      },
+      "ru": {
+        "kicker": "Создано для гостиной",
+        "headline": "Ваш кинозал, дома."
+      },
+      "sk": {
+        "kicker": "Stvorené pre obývačku",
+        "headline": "Tvoje kino, doma."
+      },
+      "sv": {
+        "kicker": "Gjord för vardagsrummet",
+        "headline": "Din biograf, hemma."
+      },
+      "tr": {
+        "kicker": "Oturma odası için",
+        "headline": "Sinemanız, evinizde."
+      },
+      "uk": {
+        "kicker": "Створено для вітальні",
+        "headline": "Ваш кінотеатр, удома."
+      },
+      "zh-Hans": {
+        "kicker": "为客厅而生",
+        "headline": "你的影院，就在家里。"
+      },
+      "zh-Hant": {
+        "kicker": "為客廳而生",
+        "headline": "你的影院，就在家裡。"
+      }
+    },
+    "detail": {
+      "en": {
+        "kicker": "Dolby Vision & Atmos",
+        "headline": "Cinema-grade, every frame."
+      },
+      "de": {
+        "kicker": "Dolby Vision & Atmos",
+        "headline": "Kinoqualität, Bild für Bild."
+      },
+      "cs": {
+        "kicker": "Dolby Vision & Atmos",
+        "headline": "Kinokvalita, každý snímek."
+      },
+      "da": {
+        "kicker": "Dolby Vision & Atmos",
+        "headline": "Biografkvalitet, hvert billede."
+      },
+      "el": {
+        "kicker": "Dolby Vision & Atmos",
+        "headline": "Ποιότητα σινεμά, σε κάθε καρέ."
+      },
+      "es": {
+        "kicker": "Dolby Vision & Atmos",
+        "headline": "Calidad de cine, cada fotograma."
+      },
+      "fi": {
+        "kicker": "Dolby Vision & Atmos",
+        "headline": "Elokuvatasoa, joka ruudussa."
+      },
+      "fr": {
+        "kicker": "Dolby Vision & Atmos",
+        "headline": "Qualité cinéma, image par image."
+      },
+      "hr": {
+        "kicker": "Dolby Vision & Atmos",
+        "headline": "Kinokvaliteta, svaki kadar."
+      },
+      "hu": {
+        "kicker": "Dolby Vision & Atmos",
+        "headline": "Mozielmény, minden kockán."
+      },
+      "it": {
+        "kicker": "Dolby Vision & Atmos",
+        "headline": "Qualità cinema, ogni fotogramma."
+      },
+      "ja": {
+        "kicker": "Dolby Vision & Atmos",
+        "headline": "映画品質を、全フレームに。"
+      },
+      "ko": {
+        "kicker": "Dolby Vision & Atmos",
+        "headline": "모든 프레임이 영화급."
+      },
+      "nb": {
+        "kicker": "Dolby Vision & Atmos",
+        "headline": "Kinokvalitet, hver ramme."
+      },
+      "nl": {
+        "kicker": "Dolby Vision & Atmos",
+        "headline": "Bioscoopkwaliteit, elk beeld."
+      },
+      "pl": {
+        "kicker": "Dolby Vision & Atmos",
+        "headline": "Jakość kina, każda klatka."
+      },
+      "pt-BR": {
+        "kicker": "Dolby Vision & Atmos",
+        "headline": "Qualidade de cinema, cada quadro."
+      },
+      "pt-PT": {
+        "kicker": "Dolby Vision & Atmos",
+        "headline": "Qualidade de cinema, cada fotograma."
+      },
+      "ro": {
+        "kicker": "Dolby Vision & Atmos",
+        "headline": "Calitate de cinema, fiecare cadru."
+      },
+      "ru": {
+        "kicker": "Dolby Vision и Atmos",
+        "headline": "Кинокачество в каждом кадре."
+      },
+      "sk": {
+        "kicker": "Dolby Vision & Atmos",
+        "headline": "Kinokvalita, každý snímok."
+      },
+      "sv": {
+        "kicker": "Dolby Vision & Atmos",
+        "headline": "Biografkvalitet, varje bildruta."
+      },
+      "tr": {
+        "kicker": "Dolby Vision & Atmos",
+        "headline": "Her karede sinema kalitesi."
+      },
+      "uk": {
+        "kicker": "Dolby Vision і Atmos",
+        "headline": "Кіноякість у кожному кадрі."
+      },
+      "zh-Hans": {
+        "kicker": "Dolby Vision 与 Atmos",
+        "headline": "每一帧都是影院级。"
+      },
+      "zh-Hant": {
+        "kicker": "Dolby Vision 與 Atmos",
+        "headline": "每一格都是影院級。"
+      }
+    },
+    "catalog": {
+      "en": {
+        "kicker": "Powered by Jellyseerr",
+        "headline": "Discover from the couch."
+      },
+      "de": {
+        "kicker": "Mit Jellyseerr",
+        "headline": "Entdecken vom Sofa aus."
+      },
+      "cs": {
+        "kicker": "Využívá Jellyseerr",
+        "headline": "Objevuj z pohovky."
+      },
+      "da": {
+        "kicker": "Drevet af Jellyseerr",
+        "headline": "Opdag fra sofaen."
+      },
+      "el": {
+        "kicker": "Με τεχνολογία Jellyseerr",
+        "headline": "Ανακάλυψε από τον καναπέ."
+      },
+      "es": {
+        "kicker": "Con tecnología Jellyseerr",
+        "headline": "Descubre desde el sofá."
+      },
+      "fi": {
+        "kicker": "Jellyseerrin voimin",
+        "headline": "Löydä sohvalta käsin."
+      },
+      "fr": {
+        "kicker": "Propulsé par Jellyseerr",
+        "headline": "Découvre depuis le canapé."
+      },
+      "hr": {
+        "kicker": "Uz Jellyseerr",
+        "headline": "Otkrivaj s kauča."
+      },
+      "hu": {
+        "kicker": "Jellyseerr alapokon",
+        "headline": "Fedezd fel a kanapéról."
+      },
+      "it": {
+        "kicker": "Con Jellyseerr",
+        "headline": "Scopri dal divano."
+      },
+      "ja": {
+        "kicker": "Jellyseerr 連携",
+        "headline": "ソファから、見つけよう。"
+      },
+      "ko": {
+        "kicker": "Jellyseerr 연동",
+        "headline": "소파에서 발견하세요."
+      },
+      "nb": {
+        "kicker": "Drevet av Jellyseerr",
+        "headline": "Oppdag fra sofaen."
+      },
+      "nl": {
+        "kicker": "Mogelijk gemaakt door Jellyseerr",
+        "headline": "Ontdek vanaf de bank."
+      },
+      "pl": {
+        "kicker": "Napędzane przez Jellyseerr",
+        "headline": "Odkrywaj z kanapy."
+      },
+      "pt-BR": {
+        "kicker": "Com tecnologia Jellyseerr",
+        "headline": "Descubra do sofá."
+      },
+      "pt-PT": {
+        "kicker": "Com tecnologia Jellyseerr",
+        "headline": "Descobre do sofá."
+      },
+      "ro": {
+        "kicker": "Cu Jellyseerr",
+        "headline": "Descoperă de pe canapea."
+      },
+      "ru": {
+        "kicker": "На базе Jellyseerr",
+        "headline": "Открывайте прямо с дивана."
+      },
+      "sk": {
+        "kicker": "S technológiou Jellyseerr",
+        "headline": "Objavuj z pohovky."
+      },
+      "sv": {
+        "kicker": "Drivs av Jellyseerr",
+        "headline": "Upptäck från soffan."
+      },
+      "tr": {
+        "kicker": "Jellyseerr ile",
+        "headline": "Koltuktan keşfet."
+      },
+      "uk": {
+        "kicker": "На основі Jellyseerr",
+        "headline": "Відкривайте з дивана."
+      },
+      "zh-Hans": {
+        "kicker": "由 Jellyseerr 驱动",
+        "headline": "躺在沙发上发现好片。"
+      },
+      "zh-Hant": {
+        "kicker": "由 Jellyseerr 驅動",
+        "headline": "躺在沙發上探索好片。"
+      }
+    },
+    "search": {
+      "en": {
+        "kicker": "Instant search",
+        "headline": "Find it in seconds."
+      },
+      "de": {
+        "kicker": "Sofortsuche",
+        "headline": "In Sekunden gefunden."
+      },
+      "cs": {
+        "kicker": "Okamžité hledání",
+        "headline": "Najdeš to za pár vteřin."
+      },
+      "da": {
+        "kicker": "Øjeblikkelig søgning",
+        "headline": "Find det på sekunder."
+      },
+      "el": {
+        "kicker": "Άμεση αναζήτηση",
+        "headline": "Βρες το σε δευτερόλεπτα."
+      },
+      "es": {
+        "kicker": "Búsqueda instantánea",
+        "headline": "Encuéntralo en segundos."
+      },
+      "fi": {
+        "kicker": "Pikahaku",
+        "headline": "Löydä se sekunneissa."
+      },
+      "fr": {
+        "kicker": "Recherche instantanée",
+        "headline": "Trouve-le en quelques secondes."
+      },
+      "hr": {
+        "kicker": "Trenutačna pretraga",
+        "headline": "Pronađi u nekoliko sekundi."
+      },
+      "hu": {
+        "kicker": "Azonnali keresés",
+        "headline": "Másodpercek alatt meglesz."
+      },
+      "it": {
+        "kicker": "Ricerca istantanea",
+        "headline": "Trovalo in pochi secondi."
+      },
+      "ja": {
+        "kicker": "瞬時に検索",
+        "headline": "数秒で見つかる。"
+      },
+      "ko": {
+        "kicker": "즉시 검색",
+        "headline": "몇 초 만에 찾기."
+      },
+      "nb": {
+        "kicker": "Umiddelbart søk",
+        "headline": "Finn det på sekunder."
+      },
+      "nl": {
+        "kicker": "Direct zoeken",
+        "headline": "Vind het in seconden."
+      },
+      "pl": {
+        "kicker": "Błyskawiczne wyszukiwanie",
+        "headline": "Znajdź w kilka sekund."
+      },
+      "pt-BR": {
+        "kicker": "Busca instantânea",
+        "headline": "Encontre em segundos."
+      },
+      "pt-PT": {
+        "kicker": "Pesquisa instantânea",
+        "headline": "Encontra em segundos."
+      },
+      "ro": {
+        "kicker": "Căutare instantanee",
+        "headline": "Găsește în câteva secunde."
+      },
+      "ru": {
+        "kicker": "Мгновенный поиск",
+        "headline": "Найдите за секунды."
+      },
+      "sk": {
+        "kicker": "Okamžité hľadanie",
+        "headline": "Nájdeš to za pár sekúnd."
+      },
+      "sv": {
+        "kicker": "Direkt sökning",
+        "headline": "Hitta det på sekunder."
+      },
+      "tr": {
+        "kicker": "Anında arama",
+        "headline": "Saniyeler içinde bul."
+      },
+      "uk": {
+        "kicker": "Миттєвий пошук",
+        "headline": "Знайдіть за секунди."
+      },
+      "zh-Hans": {
+        "kicker": "即时搜索",
+        "headline": "几秒钟就能找到。"
+      },
+      "zh-Hant": {
+        "kicker": "即時搜尋",
+        "headline": "幾秒鐘就能找到。"
+      }
+    },
+    "livetv": {
+      "en": {
+        "kicker": "Live TV & guide",
+        "headline": "Live TV on the big screen."
+      },
+      "de": {
+        "kicker": "Live-TV & Guide",
+        "headline": "Live-TV auf dem großen Schirm."
+      },
+      "cs": {
+        "kicker": "Živé TV a program",
+        "headline": "Živé TV na velké obrazovce."
+      },
+      "da": {
+        "kicker": "Live-tv og guide",
+        "headline": "Live-tv på det store lærred."
+      },
+      "el": {
+        "kicker": "Ζωντανή TV & οδηγός",
+        "headline": "Ζωντανή TV στη μεγάλη οθόνη."
+      },
+      "es": {
+        "kicker": "TV en directo y guía",
+        "headline": "TV en directo en la pantalla grande."
+      },
+      "fi": {
+        "kicker": "Suora-TV ja opas",
+        "headline": "Suora-TV isolla ruudulla."
+      },
+      "fr": {
+        "kicker": "TV en direct et guide",
+        "headline": "La TV en direct sur grand écran."
+      },
+      "hr": {
+        "kicker": "Live TV i vodič",
+        "headline": "Live TV na velikom ekranu."
+      },
+      "hu": {
+        "kicker": "Élő TV és műsorújság",
+        "headline": "Élő TV a nagy képernyőn."
+      },
+      "it": {
+        "kicker": "TV in diretta e guida",
+        "headline": "TV in diretta sul grande schermo."
+      },
+      "ja": {
+        "kicker": "ライブ TV と番組表",
+        "headline": "大画面で、ライブ TV。"
+      },
+      "ko": {
+        "kicker": "라이브 TV와 편성표",
+        "headline": "큰 화면으로 보는 라이브 TV."
+      },
+      "nb": {
+        "kicker": "Direkte-TV og guide",
+        "headline": "Direkte-TV på storskjerm."
+      },
+      "nl": {
+        "kicker": "Live-tv en gids",
+        "headline": "Live-tv op het grote scherm."
+      },
+      "pl": {
+        "kicker": "Telewizja na żywo i program",
+        "headline": "TV na żywo na dużym ekranie."
+      },
+      "pt-BR": {
+        "kicker": "TV ao vivo e guia",
+        "headline": "TV ao vivo na tela grande."
+      },
+      "pt-PT": {
+        "kicker": "TV em direto e guia",
+        "headline": "TV em direto no ecrã grande."
+      },
+      "ro": {
+        "kicker": "TV live și ghid",
+        "headline": "TV live pe ecranul mare."
+      },
+      "ru": {
+        "kicker": "Эфирное ТВ и программа",
+        "headline": "Эфирное ТВ на большом экране."
+      },
+      "sk": {
+        "kicker": "Živé TV a program",
+        "headline": "Živé TV na veľkej obrazovke."
+      },
+      "sv": {
+        "kicker": "Live-TV och guide",
+        "headline": "Live-TV på storbild."
+      },
+      "tr": {
+        "kicker": "Canlı TV ve rehber",
+        "headline": "Büyük ekranda canlı TV."
+      },
+      "uk": {
+        "kicker": "Ефірне ТБ і програма",
+        "headline": "Ефірне ТБ на великому екрані."
+      },
+      "zh-Hans": {
+        "kicker": "直播电视与节目单",
+        "headline": "大屏上看直播电视。"
+      },
+      "zh-Hant": {
+        "kicker": "直播電視與節目表",
+        "headline": "大螢幕上看直播電視。"
+      }
+    },
+    "music": {
+      "en": {
+        "kicker": "Your music library",
+        "headline": "Fill the whole room."
+      },
+      "de": {
+        "kicker": "Deine Musikbibliothek",
+        "headline": "Erfülle den ganzen Raum."
+      },
+      "cs": {
+        "kicker": "Tvá hudební knihovna",
+        "headline": "Rozezni celý pokoj."
+      },
+      "da": {
+        "kicker": "Dit musikbibliotek",
+        "headline": "Fyld hele rummet."
+      },
+      "el": {
+        "kicker": "Η μουσική σου βιβλιοθήκη",
+        "headline": "Γέμισε όλο το δωμάτιο."
+      },
+      "es": {
+        "kicker": "Tu biblioteca musical",
+        "headline": "Llena toda la sala."
+      },
+      "fi": {
+        "kicker": "Musiikkikirjastosi",
+        "headline": "Täytä koko huone."
+      },
+      "fr": {
+        "kicker": "Ta bibliothèque musicale",
+        "headline": "Remplis toute la pièce."
+      },
+      "hr": {
+        "kicker": "Tvoja glazbena biblioteka",
+        "headline": "Ispuni cijelu sobu."
+      },
+      "hu": {
+        "kicker": "A zenei gyűjteményed",
+        "headline": "Töltsd be az egész szobát."
+      },
+      "it": {
+        "kicker": "La tua libreria musicale",
+        "headline": "Riempi tutta la stanza."
+      },
+      "ja": {
+        "kicker": "あなたの音楽ライブラリ",
+        "headline": "部屋いっぱいに、音を。"
+      },
+      "ko": {
+        "kicker": "나의 음악 라이브러리",
+        "headline": "온 방을 가득 채우세요."
+      },
+      "nb": {
+        "kicker": "Musikkbiblioteket ditt",
+        "headline": "Fyll hele rommet."
+      },
+      "nl": {
+        "kicker": "Je muziekbibliotheek",
+        "headline": "Vul de hele kamer."
+      },
+      "pl": {
+        "kicker": "Twoja biblioteka muzyki",
+        "headline": "Wypełnij cały pokój."
+      },
+      "pt-BR": {
+        "kicker": "Sua biblioteca musical",
+        "headline": "Encha o ambiente todo."
+      },
+      "pt-PT": {
+        "kicker": "A tua biblioteca musical",
+        "headline": "Enche a sala toda."
+      },
+      "ro": {
+        "kicker": "Biblioteca ta muzicală",
+        "headline": "Umple toată camera."
+      },
+      "ru": {
+        "kicker": "Ваша музыкальная коллекция",
+        "headline": "Наполните всю комнату."
+      },
+      "sk": {
+        "kicker": "Tvoja hudobná knižnica",
+        "headline": "Rozozvuč celú miestnosť."
+      },
+      "sv": {
+        "kicker": "Ditt musikbibliotek",
+        "headline": "Fyll hela rummet."
+      },
+      "tr": {
+        "kicker": "Müzik kütüphanen",
+        "headline": "Tüm odayı doldur."
+      },
+      "uk": {
+        "kicker": "Ваша музична бібліотека",
+        "headline": "Наповніть усю кімнату."
+      },
+      "zh-Hans": {
+        "kicker": "你的音乐库",
+        "headline": "让整个房间充满声音。"
+      },
+      "zh-Hant": {
+        "kicker": "你的音樂庫",
+        "headline": "讓整個房間充滿聲音。"
+      }
+    },
+    "settings": {
+      "en": {
+        "kicker": "Yours to tune",
+        "headline": "Tuned to your setup."
+      },
+      "de": {
+        "kicker": "Ganz nach dir",
+        "headline": "Auf dein Setup abgestimmt."
+      },
+      "cs": {
+        "kicker": "Doladíš si to",
+        "headline": "Vyladěno na tvou sestavu."
+      },
+      "da": {
+        "kicker": "Din at justere",
+        "headline": "Tilpasset dit opsæt."
+      },
+      "el": {
+        "kicker": "Ρύθμισέ το όπως θες",
+        "headline": "Στα μέτρα του εξοπλισμού σου."
+      },
+      "es": {
+        "kicker": "Ajústalo a ti",
+        "headline": "A la medida de tu equipo."
+      },
+      "fi": {
+        "kicker": "Säädä omaksesi",
+        "headline": "Viritetty laitteistoosi."
+      },
+      "fr": {
+        "kicker": "À toi de régler",
+        "headline": "Adapté à ton installation."
+      },
+      "hr": {
+        "kicker": "Prilagodi po svom",
+        "headline": "Ugođeno tvojoj opremi."
+      },
+      "hu": {
+        "kicker": "Állítsd magadhoz",
+        "headline": "A rendszeredhez hangolva."
+      },
+      "it": {
+        "kicker": "Personalizzalo tu",
+        "headline": "Su misura per il tuo impianto."
+      },
+      "ja": {
+        "kicker": "自分好みに",
+        "headline": "あなたの環境に合わせて。"
+      },
+      "ko": {
+        "kicker": "취향대로 조정",
+        "headline": "당신의 환경에 맞게."
+      },
+      "nb": {
+        "kicker": "Din å justere",
+        "headline": "Tilpasset ditt oppsett."
+      },
+      "nl": {
+        "kicker": "Stel het naar wens in",
+        "headline": "Afgestemd op jouw setup."
+      },
+      "pl": {
+        "kicker": "Dostrój po swojemu",
+        "headline": "Dopasowane do twojego zestawu."
+      },
+      "pt-BR": {
+        "kicker": "Ajuste do seu jeito",
+        "headline": "Sob medida para o seu setup."
+      },
+      "pt-PT": {
+        "kicker": "Ajusta a teu gosto",
+        "headline": "À medida do teu equipamento."
+      },
+      "ro": {
+        "kicker": "Reglează-l cum vrei",
+        "headline": "Adaptat configurației tale."
+      },
+      "ru": {
+        "kicker": "Настройте под себя",
+        "headline": "Под вашу систему."
+      },
+      "sk": {
+        "kicker": "Nalaď si to",
+        "headline": "Vyladené na tvoju zostavu."
+      },
+      "sv": {
+        "kicker": "Din att justera",
+        "headline": "Anpassad efter din setup."
+      },
+      "tr": {
+        "kicker": "Sana göre ayarla",
+        "headline": "Kurulumuna göre ayarlı."
+      },
+      "uk": {
+        "kicker": "Налаштуйте під себе",
+        "headline": "Під вашу систему."
+      },
+      "zh-Hans": {
+        "kicker": "随你调校",
+        "headline": "为你的设备而调。"
+      },
+      "zh-Hant": {
+        "kicker": "隨你調校",
+        "headline": "為你的設備而調。"
+      }
+    }
+  }
+}

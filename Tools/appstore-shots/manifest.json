@@ -1,0 +1,12 @@
+{
+  "shotOrder": ["home", "detail", "catalog", "search", "livetv", "music", "settings"],
+  "locales": ["cs","da","de","el","en","es","fi","fr","hr","hu","it","ja","ko","nb","nl","pl","pt-BR","pt-PT","ro","ru","sk","sv","tr","uk","zh-Hans","zh-Hant"],
+  "targets": [
+    { "platform": "iphone", "canvas": [1320, 2868], "layout": "portrait", "copySet": "portrait",
+      "shots": ["home","detail","catalog","search","livetv","music","settings"] },
+    { "platform": "ipad", "canvas": [2064, 2752], "layout": "portrait", "copySet": "portrait",
+      "shots": ["home","detail","catalog","search","livetv","music","settings"] },
+    { "platform": "tvos", "canvas": [3840, 2160], "layout": "tv", "copySet": "tv",
+      "shots": ["home","detail","catalog","search","livetv","music","settings"] }
+  ]
+}
