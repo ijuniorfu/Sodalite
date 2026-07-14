@@ -87,6 +87,32 @@ struct CloudSyncLocalStoreTests {
         #expect(container.listRememberedUsers(serverID: "srv1").isEmpty)
     }
 
+    @Test("collect backfills password owner for pre-feature installs")
+    func passwordOwnerBackfill() throws {
+        let container = makeContainer()
+        try container.addServer(sampleServer)
+        try container.keychainService.save("pw", for: KeychainKeys.jellyfinPassword(serverID: "srv1"))
+        try container.keychainService.save("u1", for: KeychainKeys.userID(serverID: "srv1"))
+        let payload = try #require(container.collectServerPayload(serverID: "srv1", stamp: Date()))
+        #expect(payload.jellyfinPassword == "pw")
+        #expect(payload.passwordUserID == "u1")
+    }
+
+    @Test("apply forgets seerr sessions of users dropped from the payload")
+    func applyForgetsDroppedUsersSessions() throws {
+        let container = makeContainer()
+        try container.addServer(sampleServer)
+        try container.rememberUser(RememberedUser(id: "u2", serverID: "srv1", name: "old", imageTag: nil, token: "t2"))
+        let session = RememberedSeerrSession(jellyfinUserID: "u2", jellyfinServerID: "srv1",
+                                             seerrServer: SeerrServer(id: "se", url: URL(string: "https://se.example")!), cookie: "c")
+        try container.keychainService.save(try JSONEncoder().encode(session),
+                                           for: KeychainKeys.rememberedSeerr(jellyfinServerID: "srv1", jellyfinUserID: "u2"))
+        let payload = ServerSyncPayload(updatedAt: Date(), server: sampleServer, rememberedUsers: [],
+                                        jellyfinPassword: nil, passwordUserID: nil, seerrSessions: [], homeRows: nil)
+        container.applyServerPayload(payload)
+        #expect(try container.keychainService.loadData(for: KeychainKeys.rememberedSeerr(jellyfinServerID: "srv1", jellyfinUserID: "u2")) == nil)
+    }
+
     @Test("settings payloads round-trip through the stores")
     func settingsRoundTrip() {
         let source = makeContainer()

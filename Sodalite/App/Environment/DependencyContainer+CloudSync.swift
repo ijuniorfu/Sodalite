@@ -22,12 +22,20 @@ extension DependencyContainer {
             mergeCWNextUp: HomeRowConfig.mergeContinueWatchingNextUp(serverID: serverID),
             rewatchNextUp: HomeRowConfig.enableRewatchingNextUp(serverID: serverID)
         )
+        let password = try? keychainService.loadString(for: KeychainKeys.jellyfinPassword(serverID: serverID))
+        // Pre-feature installs stored the password without an owner entry. switchToUser
+        // deletes the password on every profile switch, so an existing password can only
+        // belong to the server's current user; backfill the owner from that.
+        var passwordUserID = try? keychainService.loadString(for: KeychainKeys.jellyfinPasswordUserID(serverID: serverID))
+        if password != nil, passwordUserID == nil {
+            passwordUserID = try? keychainService.loadString(for: KeychainKeys.userID(serverID: serverID))
+        }
         return ServerSyncPayload(
             updatedAt: stamp,
             server: server,
             rememberedUsers: users,
-            jellyfinPassword: try? keychainService.loadString(for: KeychainKeys.jellyfinPassword(serverID: serverID)),
-            passwordUserID: try? keychainService.loadString(for: KeychainKeys.jellyfinPasswordUserID(serverID: serverID)),
+            jellyfinPassword: password,
+            passwordUserID: passwordUserID,
             seerrSessions: sessions,
             homeRows: homeRows
         )
@@ -49,6 +57,9 @@ extension DependencyContainer {
             try? keychainService.save(data, for: KeychainKeys.knownServers)
         }
 
+        // Snapshot before the blob overwrite: users dropped by the payload still
+        // need their scoped Seerr sessions purged below.
+        let previousUsers = listRememberedUsers(serverID: serverID)
         if let data = try? JSONEncoder().encode(payload.rememberedUsers) {
             try? keychainService.save(data, for: KeychainKeys.rememberedUsers(serverID: serverID))
         }
@@ -61,10 +72,13 @@ extension DependencyContainer {
             try? keychainService.delete(for: KeychainKeys.jellyfinPasswordUserID(serverID: serverID))
         }
 
-        // Seerr sessions: payload is authoritative for this server's users.
+        // Seerr sessions: payload is authoritative for this server's users. Sweep the
+        // union of previous + payload users so a user dropped from the payload does not
+        // leave a dangling rememberedSeerr_* entry behind.
         let sessionUserIDs = Set(payload.seerrSessions.map(\.jellyfinUserID))
-        for user in payload.rememberedUsers where !sessionUserIDs.contains(user.id) {
-            forgetRememberedSeerr(forJellyfinUserID: user.id, jellyfinServerID: serverID)
+        let sweepUserIDs = Set(previousUsers.map(\.id)).union(payload.rememberedUsers.map(\.id))
+        for userID in sweepUserIDs where !sessionUserIDs.contains(userID) {
+            forgetRememberedSeerr(forJellyfinUserID: userID, jellyfinServerID: serverID)
         }
         for session in payload.seerrSessions {
             if let data = try? JSONEncoder().encode(session) {
