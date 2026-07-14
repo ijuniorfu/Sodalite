@@ -137,7 +137,7 @@ struct SettingsView: View {
     // MARK: - Settings List
 
     private var settingsList: some View {
-        // Ordered by reach frequency: Profile, Home, Playback, Appearance (supporter-gated), Seerr, Support.
+        // Ordered by reach frequency: Profile, Home, Playback, Appearance (supporter-gated), iCloud Sync, Seerr, Support.
         VStack(spacing: 4) {
             GatedSettingsTile(
                 icon: "person.2",
@@ -191,6 +191,16 @@ struct SettingsView: View {
                 subtitle: "settings.appearance.subtitle.short"
             ) {
                 AppearanceSettingsView()
+            }
+
+            GatedSettingsTile(
+                icon: "icloud",
+                title: "settings.cloudSync.title",
+                subtitle: "settings.cloudSync.subtitle",
+                reason: .serverManagement,
+                requiresPIN: { dependencies.parentalGateRequiredForSessionAction() }
+            ) {
+                CloudSyncSettingsView()
             }
 
             GatedSettingsTile(

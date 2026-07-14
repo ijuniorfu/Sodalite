@@ -48,6 +48,7 @@
 		170787E57091B604031DA94A /* ActiveUserBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE687783643BAC165016644A /* ActiveUserBadge.swift */; };
 		17B4816C897BAD6C66C7EBE2 /* SeerrServerDiscoveryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D5797F7ED34779D8AACE30D /* SeerrServerDiscoveryService.swift */; };
 		1850F56524FF34FE989BE56D /* HomeRowConfigTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5AB5D7618DDA0234AD98A97 /* HomeRowConfigTests.swift */; };
+		191E0BBCF974305E422CDAD7 /* CloudSyncSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05912347F7F8EF15E83E5645 /* CloudSyncSettingsView.swift */; };
 		1A1312208911D80DF1239BAC /* AsyncCachedImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 701C10265C5C32AA946482DC /* AsyncCachedImage.swift */; };
 		1A2302E0B16B633B5C6E63A1 /* PlayerViewModel+Scrubbing.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0B281014661348826CF938E /* PlayerViewModel+Scrubbing.swift */; };
 		1A258231407BFFA4097EDC12 /* PlayerModalDismisser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2866E3279048E699E940339D /* PlayerModalDismisser.swift */; };
@@ -409,6 +410,7 @@
 		BCF130B463CEF6CF7F5FAF9E /* TVProfileMappings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 206185A89433535F64E95035 /* TVProfileMappings.swift */; };
 		BCF41ABDEF163E228DB258EB /* CatalogFilter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51A8283C9A660B2731DC9B99 /* CatalogFilter.swift */; };
 		BCF9EE372817B92790492026 /* SeerrDiscoverService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 453749D3E8ADA040F6D60D56 /* SeerrDiscoverService.swift */; };
+		BD208407B3842C9FFF15BBBD /* CloudSyncSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05912347F7F8EF15E83E5645 /* CloudSyncSettingsView.swift */; };
 		BE73E1EE330DCEC644D332AB /* MediaDeletionSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84A366A9666BD16A484E1F50 /* MediaDeletionSheet.swift */; };
 		BF8CC8ECCD4897A67371670B /* ServerManagementView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD92F70D67DC2DE192A24567 /* ServerManagementView.swift */; };
 		C08F5CD24CB50248F8785969 /* CatalogDiscoverView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AD9ABED7A1DFC74DB2CBB3A /* CatalogDiscoverView.swift */; };
@@ -596,6 +598,7 @@
 		04547B5AAA8453CDCBF40F1B /* SeerrMediaService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeerrMediaService.swift; sourceTree = "<group>"; };
 		04CA12E8C584EE67B0FB35C7 /* NowPlayingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NowPlayingView.swift; sourceTree = "<group>"; };
 		0543077939A1E2E1060E5B08 /* PlayerLauncher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerLauncher.swift; sourceTree = "<group>"; };
+		05912347F7F8EF15E83E5645 /* CloudSyncSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudSyncSettingsView.swift; sourceTree = "<group>"; };
 		0608D8ACFF463F8E0B6556B8 /* LoginViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginViewModel.swift; sourceTree = "<group>"; };
 		0657296E1509D1C8F510E948 /* SodaliteTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = SodaliteTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		07F38638757BED26968F0D0E /* CatalogMyRequestsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CatalogMyRequestsView.swift; sourceTree = "<group>"; };
@@ -1461,6 +1464,7 @@
 			isa = PBXGroup;
 			children = (
 				66C9CD2E63EB8F3E976288C8 /* ParentalControls */,
+				05912347F7F8EF15E83E5645 /* CloudSyncSettingsView.swift */,
 				57DC6498B2FB8855EAD8A759 /* PlaybackPreferences.swift */,
 				A4703CB0FED4DACCE7A447A6 /* PlaybackSettingsView.swift */,
 				466C8906B6D1952207FC6730 /* ProfileSettingsView.swift */,
@@ -1814,6 +1818,7 @@
 				29AA8EBE3B0D172A829FBE9F /* CloudSyncPayloads.swift in Sources */,
 				5DB47B4E42E718BAC552EF51 /* CloudSyncPreferences.swift in Sources */,
 				B6CF01CD872CC9399B061668 /* CloudSyncService.swift in Sources */,
+				BD208407B3842C9FFF15BBBD /* CloudSyncSettingsView.swift in Sources */,
 				78E05E6F51C7F5D9C122B8B1 /* CollectionDetailView.swift in Sources */,
 				588843BE91C735C672414477 /* Color+Theme.swift in Sources */,
 				566A6533F1235493C7543F70 /* ContentLogoTitle.swift in Sources */,
@@ -2115,6 +2120,7 @@
 				691D8C2E9E427963B9FC273F /* CloudSyncPayloads.swift in Sources */,
 				CD411C46A7BEE41CD81E0C39 /* CloudSyncPreferences.swift in Sources */,
 				2DE6F0506D368A3967CFDB73 /* CloudSyncService.swift in Sources */,
+				191E0BBCF974305E422CDAD7 /* CloudSyncSettingsView.swift in Sources */,
 				C275910D6BCE13DA464EF2E0 /* CollectionDetailView.swift in Sources */,
 				65C04C74FFF2A2FCBE25F1DF /* Color+Theme.swift in Sources */,
 				258594188526B3858EA556EB /* ContentLogoTitle.swift in Sources */,
