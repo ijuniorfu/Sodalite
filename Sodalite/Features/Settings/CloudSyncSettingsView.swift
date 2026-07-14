@@ -99,6 +99,7 @@ struct CloudSyncSettingsView: View {
                 .font(.title2)
                 .frame(width: 56, alignment: .center)
                 .foregroundStyle(.tint)
+                .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 2) {
                 Text("settings.cloudSync.status.title", bundle: .main)
                     .font(.body)
@@ -110,6 +111,7 @@ struct CloudSyncSettingsView: View {
             Spacer()
         }
         .padding(20)
+        .accessibilityElement(children: .combine)
     }
 
     private var statusSymbol: String {
