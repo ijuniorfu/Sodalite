@@ -166,6 +166,7 @@ The Seerr integration isn't a tacked-on link to a web view. It's a first-class p
 - **Admin view**: with Jellyseerr admin permissions, approve, decline, edit, or delete any user's request right from the All Requests tab
 
 ### 🌍 Personal
+- **iCloud Sync**: servers, logins and settings sync automatically across every device signed into the same iCloud account, end-to-end encrypted so only your devices can read the secrets (tokens, passwords, Seerr sessions, your Guardian PIN); on by default, manage it from Settings → iCloud Sync with a live status, a manual "push this device's settings" action, and the option to delete your iCloud data entirely
 - **Parental controls**: set a Guardian PIN to protect profiles and lock changes to settings, servers and profiles; a locked device returns to the profile picker on a cold start and gated actions ask for the PIN first, with recovery via your Jellyfin password
 - **Watch Stats**: a Settings screen with your viewing totals, movies and episodes watched, completion rate, estimated hours, top genres, most-rewatched and recently-watched titles, all aggregated client-side from standard Jellyfin data
 - **26 languages**: German, English, Spanish, French, Italian, Japanese, Korean, Norwegian, Dutch, Polish, Portuguese (BR + PT), Russian, Swedish, Simplified + Traditional Chinese, Turkish, Ukrainian, Czech, Slovak, Croatian, Finnish, Greek, Hungarian, Romanian, Danish
