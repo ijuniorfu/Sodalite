@@ -55,6 +55,24 @@ final class DependencyContainer {
     /// CloudSyncService's settings observation.
     var isApplyingCloudChanges = false
 
+    /// Cloud sync engine; attached from SodaliteApp.init after the container is
+    /// fully built (the service needs a back-reference to the container).
+    var cloudSync: CloudSyncServiceProtocol?
+
+    /// Attach + start cloud sync. Idempotent.
+    func attachCloudSync() {
+        guard cloudSync == nil else { return }
+        let service = CloudSyncService(dependencies: self)
+        cloudSync = service
+        service.start()
+    }
+
+    /// Mutation hook: mark a server record dirty unless the write came FROM the cloud.
+    private func cloudSyncMarkServer(_ serverID: String) {
+        guard !isApplyingCloudChanges else { return }
+        cloudSync?.markServerDirty(serverID: serverID)
+    }
+
     init(
         keychainService: KeychainServiceProtocol = KeychainService(),
         httpClient: HTTPClientProtocol = HTTPClient()
@@ -158,6 +176,19 @@ final class DependencyContainer {
             let user = try await jellyfinAuthService.getCurrentUser()
             return user
         } catch APIError.unauthorized {
+            // Cloud-synced (or locally stored) password: mint a fresh device-own
+            // token instead of dropping the profile. Only for the user the
+            // password belongs to.
+            if let password = try? keychainService.loadString(for: KeychainKeys.jellyfinPassword(serverID: server.id)),
+               let owner = try? keychainService.loadString(for: KeychainKeys.jellyfinPasswordUserID(serverID: server.id)),
+               owner == userID,
+               let name = listRememberedUsers(serverID: server.id).first(where: { $0.id == userID })?.name,
+               let auth = try? await jellyfinAuthService.login(username: name, password: password),
+               auth.user.id == userID {
+                try? saveSession(server: server, user: auth.user, token: auth.accessToken, password: password)
+                return auth.user
+            }
+
             try? keychainService.delete(for: KeychainKeys.accessToken(serverID: server.id))
             try? keychainService.delete(for: KeychainKeys.userID(serverID: server.id))
 
@@ -173,6 +204,7 @@ final class DependencyContainer {
                 forJellyfinUserID: userID,
                 jellyfinServerID: server.id
             )
+            cloudSyncMarkServer(server.id)
             return nil
         }
     }
@@ -232,6 +264,7 @@ final class DependencyContainer {
 
         if let password, !password.isEmpty {
             try keychainService.save(password, for: KeychainKeys.jellyfinPassword(serverID: server.id))
+            try keychainService.save(user.id, for: KeychainKeys.jellyfinPasswordUserID(serverID: server.id))
         }
 
         jellyfinClient.baseURL = server.url
@@ -261,6 +294,8 @@ final class DependencyContainer {
                 for: tvUserID
             )
         }
+
+        cloudSyncMarkServer(server.id)
     }
 
     // MARK: - Known Servers
@@ -278,6 +313,7 @@ final class DependencyContainer {
         servers.insert(server, at: 0)
         let data = try JSONEncoder().encode(servers)
         try keychainService.save(data, for: KeychainKeys.knownServers)
+        cloudSyncMarkServer(server.id)
     }
 
     /// In-place update preserving list order (unlike addServer) so a background version refresh doesn't reshuffle the picker. No-op if id unknown.
@@ -395,6 +431,7 @@ final class DependencyContainer {
 
         try? keychainService.delete(for: KeychainKeys.accessToken(serverID: serverID))
         try? keychainService.delete(for: KeychainKeys.jellyfinPassword(serverID: serverID))
+        try? keychainService.delete(for: KeychainKeys.jellyfinPasswordUserID(serverID: serverID))
         try? keychainService.delete(for: KeychainKeys.userID(serverID: serverID))
         try? keychainService.delete(for: KeychainKeys.rememberedUsers(serverID: serverID))
 
@@ -433,6 +470,8 @@ final class DependencyContainer {
                 self.appState?.serverDidSwitch &+= 1
             }
         }
+
+        if !isApplyingCloudChanges { cloudSync?.markServerDeleted(serverID: serverID) }
     }
 
     /// Rolls the active-server pointer back after a transport-error probe failure. Named alias for switchServer (restores pointer + client + mirror, one bump) so call sites read as rollbacks.
@@ -463,6 +502,7 @@ final class DependencyContainer {
             data,
             for: KeychainKeys.rememberedUsers(serverID: user.serverID)
         )
+        cloudSyncMarkServer(user.serverID)
     }
 
     /// Drop one profile from the remembered list. Called from the
@@ -486,6 +526,7 @@ final class DependencyContainer {
         // user doesn't leave a dangling Seerr cookie in the keychain.
         forgetRememberedSeerr(forJellyfinUserID: id, jellyfinServerID: serverID)
         tvProfileMappings.removeMapping(forUser: id, on: serverID)
+        cloudSyncMarkServer(serverID)
     }
 
     /// Swaps to a remembered profile: reuses cached token, updates active-session keychain, reconfigures client. Drops the cached Jellyfin password (per-server, not per-user) so Seerr auto-fill doesn't carry the previous user's password.
@@ -509,6 +550,7 @@ final class DependencyContainer {
         }
 
         try? keychainService.delete(for: KeychainKeys.jellyfinPassword(serverID: server.id))
+        try? keychainService.delete(for: KeychainKeys.jellyfinPasswordUserID(serverID: server.id))
 
         jellyfinClient.baseURL = server.url
         jellyfinClient.accessToken = remembered.token
@@ -527,6 +569,8 @@ final class DependencyContainer {
                 for: tvUserID
             )
         }
+
+        cloudSyncMarkServer(server.id)
     }
 
     /// Refreshes active-user details after a profile switch. /Users/Me supplies the Policy block (canDeleteContent gate, else stuck on the keychain stub with policy: nil); /Users/Public is the imageTag-only fallback backfilling a nil/stale RememberedUser tag. `expectedUserID` discards the result if a racing switch changed the active profile. Persists tag to keychain + remembered entry, returns the fresh user; nil on guard trip / no change.
@@ -601,6 +645,11 @@ final class DependencyContainer {
     }
 
     func clearSession() throws {
+        // Full logout is local-only per spec; disabling cloud sync first means the
+        // per-server deletes below never mark (else a device-local logout would
+        // propagate as a server deletion to every other synced device).
+        cloudSync?.handleFullLogout()
+
         // Full logout: scrub every server's per-server entries, then the multi-server pointers + global active-user keys + client state + SharedSessionMirror.
         for known in listKnownServers() {
             for remembered in listRememberedUsers(serverID: known.id) {
@@ -611,6 +660,7 @@ final class DependencyContainer {
             }
             try? keychainService.delete(for: KeychainKeys.accessToken(serverID: known.id))
             try? keychainService.delete(for: KeychainKeys.jellyfinPassword(serverID: known.id))
+            try? keychainService.delete(for: KeychainKeys.jellyfinPasswordUserID(serverID: known.id))
             try? keychainService.delete(for: KeychainKeys.userID(serverID: known.id))
             try? keychainService.delete(for: KeychainKeys.rememberedUsers(serverID: known.id))
         }
@@ -659,11 +709,13 @@ final class DependencyContainer {
         try keychainService.save(data, for: KeychainKeys.guardianPINBlob)
         // A freshly set PIN starts with a clean slate.
         try? keychainService.delete(for: KeychainKeys.guardianPINThrottle)
+        if !isApplyingCloudChanges { cloudSync?.markSecurityDirty() }
     }
 
     func clearGuardianPIN() throws {
         try keychainService.delete(for: KeychainKeys.guardianPINBlob)
         try? keychainService.delete(for: KeychainKeys.guardianPINThrottle)
+        if !isApplyingCloudChanges { cloudSync?.markSecurityDeleted() }
     }
 
     private func loadThrottle() -> GuardianPINThrottle {
@@ -804,6 +856,7 @@ final class DependencyContainer {
                     jellyfinUserID: jellyfinUserID
                 )
             )
+            cloudSyncMarkServer(jellyfinServerID)
         } else if jellyfinUserID == nil || jellyfinServerID == nil {
             // Login outside any Jellyfin-user context: the global entry is the only place to persist. Not reached when a profile context exists (that would refresh the deprecated legacy entry).
             let serverData = try JSONEncoder().encode(server)
@@ -843,6 +896,7 @@ final class DependencyContainer {
                 jellyfinUserID: jellyfinUserID
             )
         )
+        cloudSyncMarkServer(jellyfinServerID)
     }
 
     /// Drops the in-memory Seerr identity without touching keychain. Used on tvOS-user change: the previous user's persisted session must survive, but the live client must stop acting as them immediately.

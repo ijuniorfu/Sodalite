@@ -1,9 +1,8 @@
 import SwiftUI
 import AetherEngine
-
-#if os(iOS)
 import UIKit
 
+#if os(iOS)
 /// Drives app orientation: the app rotates freely on iPhone; a fullscreen player session narrows it
 /// via PlayerOrientation.playerMask (nil in follow mode = free rotation); iPad allows all. The
 /// delegate method overrides Info.plist at runtime.
@@ -48,6 +47,13 @@ struct SodaliteApp: App {
 
         // Hand the live AppState/DependencyContainer to the intent layer so AppIntent.perform() drives navigation without rebuilding its own DI graph.
         IntentBridge.bind(appState: appState, dependencies: dependencies)
+
+        // Cloud sync: attach after the container is fully built, then register
+        // for the silent CloudKit pushes that drive near-real-time propagation.
+        dependencies.attachCloudSync()
+        Task { @MainActor in
+            UIApplication.shared.registerForRemoteNotifications()
+        }
 
         // Wire AetherEngine diagnostics into the in-app log overlay; diagnostic builds (DEBUG/TestFlight) only, App Store leaves it nil (OSLog only).
         if LogTap.isDiagnosticBuild {

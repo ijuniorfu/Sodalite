@@ -84,7 +84,10 @@ struct AppRouter: View {
         // Keep the Catalog pending-requests badge fresh: recompute when the app comes forward, when the
         // Seerr connection flips, and on the admin-queue change signal. iOS/iPadOS badge; inert on tvOS.
         .task(id: scenePhaseIsActive) {
-            if scenePhaseIsActive { await refreshPending() }
+            if scenePhaseIsActive {
+                await refreshPending()
+                await dependencies.cloudSync?.fetchNow()
+            }
         }
         .task(id: appState.isSeerrConnected) {
             if appState.isSeerrConnected {
