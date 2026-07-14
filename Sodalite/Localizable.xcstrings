@@ -58643,6 +58643,972 @@
         }
       }
     },
+    "changelog.1_0_0.everyScreen.body" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vyladěno pro Apple TV, iPhone i iPad, plně přeloženo do 26 jazyků."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Finpudset til Apple TV, iPhone og iPad, fuldt oversat til 26 sprog."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Feingeschliffen auf Apple TV, iPhone und iPad, vollständig in 26 Sprachen übersetzt."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Βελτιωμένο για Apple TV, iPhone και iPad, πλήρως μεταφρασμένο σε 26 γλώσσες."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Polished across Apple TV, iPhone and iPad, fully localized in 26 languages."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pulido en Apple TV, iPhone y iPad, totalmente traducido a 26 idiomas."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Viimeistelty Apple TV:lle, iPhonelle ja iPadille, käännetty kokonaan 26 kielelle."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Peaufiné sur Apple TV, iPhone et iPad, entièrement traduit en 26 langues."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dotjerano za Apple TV, iPhone i iPad, potpuno prevedeno na 26 jezika."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kifinomult Apple TV-n, iPhone-on és iPaden, teljesen lefordítva 26 nyelvre."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rifinito su Apple TV, iPhone e iPad, completamente tradotto in 26 lingue."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple TV、iPhone、iPad で磨き上げ、26 の言語に完全対応。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple TV, iPhone, iPad에서 다듬었고 26개 언어로 완전히 번역되었습니다."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Finpusset for Apple TV, iPhone og iPad, fullstendig oversatt til 26 språk."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verfijnd op Apple TV, iPhone en iPad, volledig vertaald in 26 talen."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dopracowane na Apple TV, iPhonie i iPadzie, w pełni przetłumaczone na 26 języków."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aprimorado no Apple TV, iPhone e iPad, totalmente traduzido em 26 idiomas."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aperfeiçoado no Apple TV, iPhone e iPad, totalmente traduzido em 26 idiomas."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rafinat pe Apple TV, iPhone și iPad, tradus complet în 26 de limbi."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Отполировано на Apple TV, iPhone и iPad, полностью переведено на 26 языков."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vyladené pre Apple TV, iPhone a iPad, plne preložené do 26 jazykov."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Finslipat på Apple TV, iPhone och iPad, fullständigt översatt till 26 språk."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple TV, iPhone ve iPad'de özenle işlendi, 26 dile tam olarak çevrildi."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Відшліфовано на Apple TV, iPhone та iPad, повністю перекладено 26 мовами."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在 Apple TV、iPhone 和 iPad 上悉心打磨，完整支持 26 种语言。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在 Apple TV、iPhone 和 iPad 上悉心打磨，完整支援 26 種語言。"
+          }
+        }
+      }
+    },
+    "changelog.1_0_0.everyScreen.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vylepšeno na každé obrazovce"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Forfinet på alle skærme"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Auf jedem Bildschirm verfeinert"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Βελτιωμένο σε κάθε οθόνη"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Refined on every screen"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Perfeccionado en cada pantalla"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hiottu jokaisella näytöllä"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Peaufiné sur chaque écran"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dotjerano na svakom zaslonu"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Csiszolva minden képernyőn"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Perfezionato su ogni schermo"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "あらゆる画面で洗練"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "모든 화면에서 다듬어짐"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Forfinet på hver skjerm"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verfijnd op elk scherm"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dopracowane na każdym ekranie"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aprimorado em cada tela"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aperfeiçoado em cada ecrã"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rafinat pe fiecare ecran"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Отточено на каждом экране"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vyladené na každej obrazovke"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Förfinat på varje skärm"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Her ekranda inceltildi"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Відшліфовано на кожному екрані"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在每块屏幕上精雕细琢"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在每個螢幕上精雕細琢"
+          }
+        }
+      }
+    },
+    "changelog.1_0_0.milestone.body" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Konec beta verze, připraveno pro všechny. Díky všem testerům, kteří ho pomohli utvářet."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ude af beta og klar til alle. Tak til alle testere, der har været med til at forme det."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Raus aus der Beta und bereit für alle. Danke an alle Tester, die dabei geholfen haben."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Τέλος στη beta, έτοιμο για όλους. Ευχαριστούμε κάθε δοκιμαστή που βοήθησε να διαμορφωθεί."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Out of beta and ready for everyone. Thank you to every tester who helped shape it."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fuera de la beta y listo para todos. Gracias a cada tester que ayudó a darle forma."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Beta on ohi ja sovellus on valmis kaikille. Kiitos jokaiselle testaajalle, joka auttoi muokkaamaan sitä."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fini la bêta, prêt pour tous. Merci à tous les testeurs qui ont contribué à le façonner."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gotovo s betom i spremno za sve. Hvala svakom testeru koji je pomogao u oblikovanju."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vége a bétának, mindenki számára készen áll. Köszönet minden tesztelőnek, aki alakította."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fuori dalla beta e pronto per tutti. Grazie a ogni tester che ha contribuito a plasmarlo."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ベータを卒業し、みなさんの手元へ。形にしてくれたすべてのテスターに感謝します。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "베타를 마치고 모두에게 준비되었습니다. 다듬는 데 도움을 준 모든 테스터에게 감사드립니다."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ute av beta og klar for alle. Takk til alle testere som var med å forme den."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uit de beta en klaar voor iedereen. Dank aan elke tester die heeft geholpen het vorm te geven."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Koniec bety, gotowe dla wszystkich. Dzięki każdemu testerowi, który pomógł to ukształtować."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fora da beta e pronto para todos. Obrigado a cada testador que ajudou a moldá-lo."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fora da beta e pronto para todos. Obrigado a cada testador que ajudou a moldá-lo."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gata cu beta, pregătit pentru toată lumea. Mulțumim fiecărui tester care a ajutat să prindă contur."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Бета позади, приложение готово для всех. Спасибо каждому тестировщику, кто помог его создать."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Koniec bety, pripravené pre všetkých. Ďakujeme každému testerovi, ktorý ho pomohol formovať."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ute ur betan och redo för alla. Tack till alla testare som hjälpte till att forma den."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Beta bitti, herkes için hazır. Şekillenmesine yardım eden her test kullanıcısına teşekkürler."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Бета позаду, застосунок готовий для всіх. Дякуємо кожному тестувальнику, який допоміг його створити."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "结束测试版，为每个人准备就绪。感谢每一位帮助打磨它的测试者。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "結束測試版，為每個人準備就緒。感謝每一位協助打磨它的測試者。"
+          }
+        }
+      }
+    },
+    "changelog.1_0_0.milestone.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sodalite 1.0 je tady"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sodalite 1.0 er her"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sodalite 1.0 ist da"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Το Sodalite 1.0 είναι εδώ"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sodalite 1.0 is here"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sodalite 1.0 ya está aquí"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sodalite 1.0 on täällä"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sodalite 1.0 est là"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sodalite 1.0 je stigao"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Itt a Sodalite 1.0"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sodalite 1.0 è qui"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sodalite 1.0 が登場"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sodalite 1.0 출시"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sodalite 1.0 er her"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sodalite 1.0 is er"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sodalite 1.0 już jest"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sodalite 1.0 chegou"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O Sodalite 1.0 chegou"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sodalite 1.0 a sosit"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sodalite 1.0 уже здесь"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sodalite 1.0 je tu"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sodalite 1.0 är här"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sodalite 1.0 burada"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sodalite 1.0 вже тут"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sodalite 1.0 现已推出"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sodalite 1.0 正式登場"
+          }
+        }
+      }
+    },
+    "changelog.1_0_0.playback.body" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Řada oprav posouvání, titulků, Dolby Vision a načítání dělá z této verze nejspolehlivější dosud."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En stribe rettelser til spoling, undertekster, Dolby Vision og buffering gør dette til den mest stabile udgave hidtil."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zahlreiche Verbesserungen bei Spulen, Untertiteln, Dolby Vision und Puffern machen dies zur bisher zuverlässigsten Version."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Πλήθος διορθώσεων σε αναζήτηση, υπότιτλους, Dolby Vision και προφόρτωση κάνουν αυτή την έκδοση την πιο αξιόπιστη μέχρι τώρα."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A wave of fixes to seeking, subtitles, Dolby Vision and buffering makes this the most reliable release yet."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Multitud de correcciones en el avance, los subtítulos, Dolby Vision y el almacenamiento en búfer hacen de esta la versión más fiable hasta ahora."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lukuisat korjaukset kelaukseen, tekstityksiin, Dolby Visioniin ja puskurointiin tekevät tästä luotettavimman version tähän mennessä."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "De nombreux correctifs sur la navigation, les sous-titres, le Dolby Vision et la mise en mémoire tampon en font la version la plus fiable à ce jour."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Niz ispravaka za premotavanje, titlove, Dolby Vision i međuspremanje čini ovo dosad najpouzdanijim izdanjem."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Számos javítás a tekerésben, feliratokban, Dolby Visionben és pufferelésben teszi ezt a valaha volt legmegbízhatóbb kiadássá."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Una serie di correzioni per lo scorrimento, i sottotitoli, il Dolby Vision e il buffering rendono questa la versione più affidabile di sempre."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "シーク、字幕、Dolby Vision、バッファリングへの数々の改善で、これまでで最も安定したリリースになりました。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "탐색, 자막, Dolby Vision, 버퍼링에 대한 다양한 개선으로 지금까지 가장 안정적인 버전이 되었습니다."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En rekke rettelser for spoling, undertekster, Dolby Vision og bufring gjør dette til den mest pålitelige utgaven så langt."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Talloze verbeteringen aan spoelen, ondertitels, Dolby Vision en bufferen maken dit de betrouwbaarste versie tot nu toe."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mnóstwo poprawek przewijania, napisów, Dolby Vision i buforowania sprawia, że to najbardziej niezawodna wersja w historii."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uma série de correções na busca, legendas, Dolby Vision e no buffer torna esta a versão mais confiável até agora."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uma série de correções na navegação, legendas, Dolby Vision e no buffer torna esta a versão mais fiável até agora."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O serie de remedieri pentru derulare, subtitrări, Dolby Vision și stocare în buffer fac din aceasta cea mai fiabilă versiune de până acum."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Множество исправлений перемотки, субтитров, Dolby Vision и буферизации делают эту версию самой стабильной на сегодня."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Množstvo opráv pri posúvaní, titulkoch, Dolby Vision a načítavaní robí z tejto verzie doteraz najspoľahlivejšiu."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En rad förbättringar av spolning, undertexter, Dolby Vision och buffring gör detta till den mest pålitliga versionen hittills."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sarma, altyazılar, Dolby Vision ve arabelleğe almadaki çok sayıda düzeltme, bunu şimdiye kadarki en kararlı sürüm yapıyor."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Багато виправлень перемотування, субтитрів, Dolby Vision і буферизації роблять цю версію найнадійнішою досі."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "针对快进、字幕、Dolby Vision 和缓冲的大量修复，让这成为迄今最稳定的版本。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "針對快轉、字幕、Dolby Vision 和緩衝的大量修復，讓這成為迄今最穩定的版本。"
+          }
+        }
+      }
+    },
+    "changelog.1_0_0.playback.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stabilnější a plynulejší přehrávání"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mere stabil og jævn afspilning"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stabilere, flüssigere Wiedergabe"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Πιο σταθερή, πιο ομαλή αναπαραγωγή"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Steadier, smoother playback"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reproducción más estable y fluida"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vakaampi ja sulavampi toisto"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lecture plus stable et plus fluide"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stabilnija i glatkija reprodukcija"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stabilabb, gördülékenyebb lejátszás"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Riproduzione più stabile e fluida"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "より安定して滑らかな再生"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "더 안정적이고 부드러운 재생"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stødigere og jevnere avspilling"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stabielere, vloeiendere weergave"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stabilniejsze i płynniejsze odtwarzanie"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reprodução mais estável e fluida"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reprodução mais estável e fluida"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Redare mai stabilă și mai fluidă"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Более стабильное и плавное воспроизведение"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stabilnejšie a plynulejšie prehrávanie"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stabilare och jämnare uppspelning"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Daha kararlı, daha akıcı oynatma"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Стабільніше й плавніше відтворення"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更稳定、更流畅的播放"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更穩定、更流暢的播放"
+          }
+        }
+      }
+    },
     "changelog.modal.dismiss" : {
       "extractionState": "manual",
       "localizations" : {
