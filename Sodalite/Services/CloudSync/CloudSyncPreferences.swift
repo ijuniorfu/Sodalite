@@ -110,8 +110,10 @@ final class CloudSyncPreferences {
     // MARK: Pending changes stashed while the engine is unavailable
 
     func stashPendingSave(_ recordName: String) {
+        pendingDeleteNames.removeAll { $0 == recordName }
         if !pendingSaveNames.contains(recordName) { pendingSaveNames.append(recordName) }
         store.set(pendingSaveNames, forKey: Keys.pendingSaves)
+        store.set(pendingDeleteNames, forKey: Keys.pendingDeletes)
     }
 
     func stashPendingDelete(_ recordName: String) {

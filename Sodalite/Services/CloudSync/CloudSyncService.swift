@@ -87,6 +87,9 @@ final class CloudSyncService: CloudSyncServiceProtocol {
         startInFlight = false
         for task in debounceTasks.values { task.cancel() }
         debounceTasks = [:]
+        // A delete queued under one account must not block adoption of the same
+        // record name under the next account.
+        recentLocalDeletes = []
     }
 
     private func removeObservers() {
@@ -96,6 +99,7 @@ final class CloudSyncService: CloudSyncServiceProtocol {
 
     private func startEngine() async {
         defer { startInFlight = false }
+        var stash: (saves: [String], deletes: [String]) = ([], [])
         do {
             let container = CKContainer(identifier: Self.containerID)
             guard try await container.accountStatus() == .available else {
@@ -121,7 +125,7 @@ final class CloudSyncService: CloudSyncServiceProtocol {
 
             // Replay anything queued while the engine was unavailable (signed out,
             // failed start, or before this start() completed) so it isn't lost.
-            let stash = preferences.drainPendingChanges()
+            stash = preferences.drainPendingChanges()
             recentLocalDeletes.formUnion(stash.deletes)
             for name in stash.deletes {
                 engine.state.add(pendingRecordZoneChanges: [.deleteRecord(recordID(name))])
@@ -137,6 +141,11 @@ final class CloudSyncService: CloudSyncServiceProtocol {
         } catch {
             status = .error(error.localizedDescription)
             LogTap.shared.note("[CloudSync] start failed: \(error)")
+            // A failed adoption fetch must not lose the drained stash: put it back
+            // (both stash methods are idempotent) so a relaunch still replays it.
+            stash.saves.forEach(preferences.stashPendingSave)
+            stash.deletes.forEach(preferences.stashPendingDelete)
+            recentLocalDeletes.subtract(stash.deletes)
             // A failed adoption fetch must not leave a half-started engine syncing
             // in cloud-wins posture forever; drop it so the next start() retries cleanly.
             if !preferences.adoptionCompleted { engine = nil }

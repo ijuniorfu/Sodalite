@@ -53,16 +53,19 @@ struct CloudSyncPreferencesTests {
         #expect(prefs.accountID == nil)
     }
 
-    @Test("pending stash persists, dedupes, delete supersedes save, drain clears")
+    @Test("pending stash persists, dedupes, supersedes both ways, drain clears")
     func pendingStash() {
         let prefs = makePrefs()
         prefs.stashPendingSave("server-a")
         prefs.stashPendingSave("server-a")
         prefs.stashPendingSave("settings-playback")
         prefs.stashPendingDelete("server-a")
+        prefs.stashPendingSave("server-a")
         let drained = prefs.drainPendingChanges()
-        #expect(drained.saves == ["settings-playback"])
-        #expect(drained.deletes == ["server-a"])
+        // server-a trails settings-playback: the delete removed the original save
+        // entry, then the re-save appended it fresh and cleared the delete.
+        #expect(drained.saves == ["settings-playback", "server-a"])
+        #expect(drained.deletes.isEmpty)
         let empty = prefs.drainPendingChanges()
         #expect(empty.saves.isEmpty && empty.deletes.isEmpty)
     }
