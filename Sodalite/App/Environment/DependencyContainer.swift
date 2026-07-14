@@ -50,6 +50,11 @@ final class DependencyContainer {
     /// Back-reference so switchServer / removeServer can bump serverDidSwitch. Weak: AppState does not own the container.
     weak var appState: AppState?
 
+    /// True while cloud sync applies remote changes, so the mutation hooks below
+    /// do not echo those writes back to CloudKit. Also consulted by
+    /// CloudSyncService's settings observation.
+    var isApplyingCloudChanges = false
+
     init(
         keychainService: KeychainServiceProtocol = KeychainService(),
         httpClient: HTTPClientProtocol = HTTPClient()

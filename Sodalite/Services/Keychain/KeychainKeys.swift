@@ -15,6 +15,12 @@ enum KeychainKeys {
         "jellyfinPassword_\(serverID)"
     }
 
+    /// The user id `jellyfinPassword_<serverID>` belongs to. Written beside every
+    /// password save so cloud sync's silent re-login only fires for that profile.
+    static func jellyfinPasswordUserID(serverID: String) -> String {
+        "jellyfinPasswordUserID_\(serverID)"
+    }
+
     /// JSON `[RememberedUser]` for one server, single blob so profile add/remove is an atomic write.
     static func rememberedUsers(serverID: String) -> String {
         "rememberedUsers_\(serverID)"

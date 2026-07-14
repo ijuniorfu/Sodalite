@@ -65,6 +65,7 @@
 		1F6AE771CDD3C9E30ADA22CF /* SeerrDecodingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0385E1379FFACA0B7CD56111 /* SeerrDecodingTests.swift */; };
 		1F89ED247DA1BC5AD65BC18F /* LiveTransportBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6F5CE78EAB9F5BC71D0CF0B /* LiveTransportBar.swift */; };
 		1F8A39DC7F36195835BBBE7F /* SearchTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D429621806EC6D71F260770 /* SearchTextField.swift */; };
+		1FADF4FA7B03398CB589B083 /* CloudSyncLocalStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FED4924C59BA61D242DD445D /* CloudSyncLocalStoreTests.swift */; };
 		1FBE20CC3C28F935D90A7FCE /* CloudSyncMergeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0AC027922382F10B2A84DD1 /* CloudSyncMergeTests.swift */; };
 		20BE98904C5EE8F95DF336E6 /* LiveTvModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEB91D87EC2D7981F4D8D0D2 /* LiveTvModels.swift */; };
 		2146F6513432146603A266CB /* FilterCacheKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79858A2D4C0C7A75FDD55200 /* FilterCacheKey.swift */; };
@@ -237,6 +238,7 @@
 		70C14BE0E7A47CD315165CB7 /* PlaylistDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECB2F471C812F74E010AFA5F /* PlaylistDetailView.swift */; };
 		70EB61F4ED279226FCB2866C /* SeerrPerson.swift in Sources */ = {isa = PBXBuildFile; fileRef = A25219B214ACC7583A8F9CC2 /* SeerrPerson.swift */; };
 		7170EDC2AB1D4A2E12C9390C /* AppShortcuts.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 30BAB0577F927E6DE70315F7 /* AppShortcuts.xcstrings */; };
+		71C9EEA30D2FFD720A45CB54 /* DependencyContainer+CloudSync.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2EF7DDFE86971C0AA32E4085 /* DependencyContainer+CloudSync.swift */; };
 		71D85B1C5CDD5E0F21709E08 /* RememberedSeerrSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E97880F967A329D4C748338 /* RememberedSeerrSession.swift */; };
 		7274808DC432A2B3640FA453 /* IntentBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4189A046FB58ED940B4C2A7B /* IntentBridge.swift */; };
 		7278EC59CB5A676B9AD32699 /* UserPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAD2BDE70B795F2AD5A8BBF0 /* UserPickerView.swift */; };
@@ -366,6 +368,7 @@
 		A6A16197D3D7B5656FE0D583 /* NowPlayingCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D67C0E479E49AEC10441E52 /* NowPlayingCard.swift */; };
 		A7A9E7812D63FBF7323C0E70 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 96DEE022060CA00DACCEFDD6 /* Assets.xcassets */; };
 		AA66517F0E9AB1705D786F2C /* SeerrAuthResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5B88E8CE251D5B15713F56E /* SeerrAuthResponse.swift */; };
+		AA993FFC8F0F4F7CD32FADF7 /* DependencyContainer+CloudSync.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2EF7DDFE86971C0AA32E4085 /* DependencyContainer+CloudSync.swift */; };
 		AAFEE9AC082DE2080F12F781 /* MusicPlaybackCoordinator+NowPlaying.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92C38FEA18079E81D8B4C567 /* MusicPlaybackCoordinator+NowPlaying.swift */; };
 		AB7BA0AC30A273DCF170A80C /* TimeInterval+Display.swift in Sources */ = {isa = PBXBuildFile; fileRef = A089A5DDC3559865D5A99B3D /* TimeInterval+Display.swift */; };
 		ABB2C8E6996D9DF42B73E59B /* NamedItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B739FE6FBF942CA19A33B3F /* NamedItem.swift */; };
@@ -637,6 +640,7 @@
 		2B72371460030EB19A5DC39F /* HomeViewModel+Rows.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HomeViewModel+Rows.swift"; sourceTree = "<group>"; };
 		2C63899F5939722A0956E039 /* Sodalite-tvOS.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = "Sodalite-tvOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		2D429621806EC6D71F260770 /* SearchTextField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchTextField.swift; sourceTree = "<group>"; };
+		2EF7DDFE86971C0AA32E4085 /* DependencyContainer+CloudSync.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DependencyContainer+CloudSync.swift"; sourceTree = "<group>"; };
 		306295C10371A4A926588650 /* CloudSyncPreferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudSyncPreferences.swift; sourceTree = "<group>"; };
 		30BAB0577F927E6DE70315F7 /* AppShortcuts.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = AppShortcuts.xcstrings; sourceTree = "<group>"; };
 		3118800CEC44D1F94EBBFCF7 /* APIEndpoint.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIEndpoint.swift; sourceTree = "<group>"; };
@@ -875,6 +879,7 @@
 		FA3BB5EFEF275EE874D6DD3E /* ProgramInfoPopover.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgramInfoPopover.swift; sourceTree = "<group>"; };
 		FA4E2D3105F03481EC52A653 /* TrackDisplayFormatter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackDisplayFormatter.swift; sourceTree = "<group>"; };
 		FAFA36C8B038D0E76AB2717B /* SeerrRequestAdminRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeerrRequestAdminRow.swift; sourceTree = "<group>"; };
+		FED4924C59BA61D242DD445D /* CloudSyncLocalStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudSyncLocalStoreTests.swift; sourceTree = "<group>"; };
 		FF76354814B374060E8AE5C2 /* AsyncSemaphore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AsyncSemaphore.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -1019,6 +1024,7 @@
 			isa = PBXGroup;
 			children = (
 				0B0D6DF76D26CB39C5D10E0A /* DependencyContainer.swift */,
+				2EF7DDFE86971C0AA32E4085 /* DependencyContainer+CloudSync.swift */,
 				58AF29A659F51ED292CF8D58 /* EnvironmentKeys.swift */,
 				E34B48C22ADA9876864D8093 /* SessionRestoreEnvironment.swift */,
 				368B32F98097EE977BFBB373 /* SessionRestorer.swift */,
@@ -1031,6 +1037,7 @@
 			isa = PBXGroup;
 			children = (
 				55F3667ADD69A9E32E9CF83B /* BufferedProgressTests.swift */,
+				FED4924C59BA61D242DD445D /* CloudSyncLocalStoreTests.swift */,
 				F0AC027922382F10B2A84DD1 /* CloudSyncMergeTests.swift */,
 				15D7F74A9A6EF41AB0AAD09C /* CloudSyncPayloadsTests.swift */,
 				EE3D6C7CCA64C8BDECE6C729 /* CloudSyncPreferencesTests.swift */,
@@ -1805,6 +1812,7 @@
 				78E05E6F51C7F5D9C122B8B1 /* CollectionDetailView.swift in Sources */,
 				588843BE91C735C672414477 /* Color+Theme.swift in Sources */,
 				566A6533F1235493C7543F70 /* ContentLogoTitle.swift in Sources */,
+				71C9EEA30D2FFD720A45CB54 /* DependencyContainer+CloudSync.swift in Sources */,
 				91D2C8DA8F6C9BBCC2795742 /* DependencyContainer.swift in Sources */,
 				09BA45A637714EBC8D078981 /* DetailBackdrop.swift in Sources */,
 				7CCA4F310D16A175FED988DE /* DetailCover.swift in Sources */,
@@ -2038,6 +2046,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				4C1CFA98092A985FCF100E60 /* BufferedProgressTests.swift in Sources */,
+				1FADF4FA7B03398CB589B083 /* CloudSyncLocalStoreTests.swift in Sources */,
 				1FBE20CC3C28F935D90A7FCE /* CloudSyncMergeTests.swift in Sources */,
 				545BB21DEEC05B0CCA7EE9CD /* CloudSyncPayloadsTests.swift in Sources */,
 				775BBAF5D41A64C724329161 /* CloudSyncPreferencesTests.swift in Sources */,
@@ -2103,6 +2112,7 @@
 				C275910D6BCE13DA464EF2E0 /* CollectionDetailView.swift in Sources */,
 				65C04C74FFF2A2FCBE25F1DF /* Color+Theme.swift in Sources */,
 				258594188526B3858EA556EB /* ContentLogoTitle.swift in Sources */,
+				AA993FFC8F0F4F7CD32FADF7 /* DependencyContainer+CloudSync.swift in Sources */,
 				769EE5E5BA6E963852C08B12 /* DependencyContainer.swift in Sources */,
 				87458510518378A90609D16F /* DetailBackdrop.swift in Sources */,
 				CA94C16ECC7A49B1479BFE23 /* DetailCover.swift in Sources */,

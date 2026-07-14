@@ -459,6 +459,16 @@ extension HomeRowConfig {
         UserDefaults.standard.set(data, forKey: storageKey(serverID: serverID))
     }
 
+    /// Raw stored JSON for cloud sync; kept opaque so the lossy-decode
+    /// forward compatibility in loadFromStorage is preserved end to end.
+    static func rawConfigData(serverID: String) -> Data? {
+        UserDefaults.standard.data(forKey: storageKey(serverID: serverID))
+    }
+
+    static func setRawConfigData(_ data: Data, serverID: String) {
+        UserDefaults.standard.set(data, forKey: storageKey(serverID: serverID))
+    }
+
     // MARK: Merge Continue Watching + Up Next
 
     private static func mergeKey(serverID: String) -> String {
