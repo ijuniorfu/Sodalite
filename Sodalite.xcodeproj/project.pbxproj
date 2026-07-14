@@ -195,6 +195,7 @@
 		5C9B1927478341433BDBEF31 /* RememberedUser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 287E31101A6E454F2B09BEF9 /* RememberedUser.swift */; };
 		5CC1AD49C00E8D6893898AE2 /* RecordingsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 730C8FB986E1263A255832CC /* RecordingsViewModel.swift */; };
 		5D251B26E974680A9A2D4E26 /* SeerrUser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C5DC5A520828B9C0565934A /* SeerrUser.swift */; };
+		5DB47B4E42E718BAC552EF51 /* CloudSyncPreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = 306295C10371A4A926588650 /* CloudSyncPreferences.swift */; };
 		5DE471BFC36CDF3243D989E0 /* HomeRowData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 949228FF4210420390D3B76D /* HomeRowData.swift */; };
 		5E14654E7CB5C77AE52B037F /* PlaybackSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4703CB0FED4DACCE7A447A6 /* PlaybackSettingsView.swift */; };
 		5E230A2751756A44ED76BE20 /* SeerrAuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE35BB1636B33A37F1CE90F5 /* SeerrAuthService.swift */; };
@@ -255,6 +256,7 @@
 		7697F3AFA448A1EE03EC4225 /* MusicHomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 466FF1007CC23C8934BA9FD7 /* MusicHomeView.swift */; };
 		769EE5E5BA6E963852C08B12 /* DependencyContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B0D6DF76D26CB39C5D10E0A /* DependencyContainer.swift */; };
 		77031B52AEEFCB596CF64DE7 /* RecordingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25FF2C59F162B68CC0D9F82B /* RecordingsView.swift */; };
+		775BBAF5D41A64C724329161 /* CloudSyncPreferencesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE3D6C7CCA64C8BDECE6C729 /* CloudSyncPreferencesTests.swift */; };
 		77D8F9D6494F41AE4EB9FD5A /* StoreProducts.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2D94C696BD816FE0622F904 /* StoreProducts.swift */; };
 		781B95A3B0450C882D073616 /* AppearancePreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22DBDEEBE73D05D216A079E1 /* AppearancePreferences.swift */; };
 		782234557E66892E08CDC2E0 /* SeerrMediaService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04547B5AAA8453CDCBF40F1B /* SeerrMediaService.swift */; };
@@ -437,6 +439,7 @@
 		CC1A36A3D81BF3B3D00E0096 /* MusicTimeFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E41472FF5A78B0C4F640829 /* MusicTimeFormatter.swift */; };
 		CC727F5E3B76B9525CE934D0 /* OFL.txt in Resources */ = {isa = PBXBuildFile; fileRef = 58BD2D49CE8AB49360409981 /* OFL.txt */; };
 		CCC7638709A326D61D876104 /* PINEntryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C576CF181E723BDEB11605F /* PINEntryView.swift */; };
+		CD411C46A7BEE41CD81E0C39 /* CloudSyncPreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = 306295C10371A4A926588650 /* CloudSyncPreferences.swift */; };
 		CD452D30CACB03AFE784063C /* TVProfileMappings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 206185A89433535F64E95035 /* TVProfileMappings.swift */; };
 		CEE4F399F4267AB60982F85B /* PlayerOrientation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65078FEBC5D0CDB0C24799C4 /* PlayerOrientation.swift */; };
 		CF8ED7254A05D0364D2774DB /* JellyfinAuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 477BA4C25F579EBD37469D21 /* JellyfinAuthService.swift */; };
@@ -634,6 +637,7 @@
 		2B72371460030EB19A5DC39F /* HomeViewModel+Rows.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HomeViewModel+Rows.swift"; sourceTree = "<group>"; };
 		2C63899F5939722A0956E039 /* Sodalite-tvOS.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = "Sodalite-tvOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		2D429621806EC6D71F260770 /* SearchTextField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchTextField.swift; sourceTree = "<group>"; };
+		306295C10371A4A926588650 /* CloudSyncPreferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudSyncPreferences.swift; sourceTree = "<group>"; };
 		30BAB0577F927E6DE70315F7 /* AppShortcuts.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = AppShortcuts.xcstrings; sourceTree = "<group>"; };
 		3118800CEC44D1F94EBBFCF7 /* APIEndpoint.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIEndpoint.swift; sourceTree = "<group>"; };
 		330F8013CF2D5BFB7DD3C3FF /* ExternalSubtitleMappingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExternalSubtitleMappingTests.swift; sourceTree = "<group>"; };
@@ -853,6 +857,7 @@
 		EBFD66C8435155A3FFF29632 /* SeerrServiceConfigService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeerrServiceConfigService.swift; sourceTree = "<group>"; };
 		ECB2F471C812F74E010AFA5F /* PlaylistDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaylistDetailView.swift; sourceTree = "<group>"; };
 		ED26D171BB677217D8F106D4 /* PlayerViewModel+NextEpisode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PlayerViewModel+NextEpisode.swift"; sourceTree = "<group>"; };
+		EE3D6C7CCA64C8BDECE6C729 /* CloudSyncPreferencesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudSyncPreferencesTests.swift; sourceTree = "<group>"; };
 		EF911AAFCD4B1D1F6C7A903A /* KeychainKeys.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainKeys.swift; sourceTree = "<group>"; };
 		F02176F860C385FC701EC46A /* SeerrRequestUpdateBody.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeerrRequestUpdateBody.swift; sourceTree = "<group>"; };
 		F0AC027922382F10B2A84DD1 /* CloudSyncMergeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudSyncMergeTests.swift; sourceTree = "<group>"; };
@@ -1028,6 +1033,7 @@
 				55F3667ADD69A9E32E9CF83B /* BufferedProgressTests.swift */,
 				F0AC027922382F10B2A84DD1 /* CloudSyncMergeTests.swift */,
 				15D7F74A9A6EF41AB0AAD09C /* CloudSyncPayloadsTests.swift */,
+				EE3D6C7CCA64C8BDECE6C729 /* CloudSyncPreferencesTests.swift */,
 				330F8013CF2D5BFB7DD3C3FF /* ExternalSubtitleMappingTests.swift */,
 				E5AB5D7618DDA0234AD98A97 /* HomeRowConfigTests.swift */,
 				C7D12A1E28286856D9BCD249 /* JellyfinItemTests.swift */,
@@ -1111,6 +1117,7 @@
 			children = (
 				B0ADC46D81A9CF7F465A5A05 /* CloudSyncMerge.swift */,
 				726923509DF667EA95ED1733 /* CloudSyncPayloads.swift */,
+				306295C10371A4A926588650 /* CloudSyncPreferences.swift */,
 			);
 			path = CloudSync;
 			sourceTree = "<group>";
@@ -1794,6 +1801,7 @@
 				3982B4B94872D1437AF93345 /* CheckmarkAnimation.swift in Sources */,
 				D8B12B81603F12CAAC620B56 /* CloudSyncMerge.swift in Sources */,
 				29AA8EBE3B0D172A829FBE9F /* CloudSyncPayloads.swift in Sources */,
+				5DB47B4E42E718BAC552EF51 /* CloudSyncPreferences.swift in Sources */,
 				78E05E6F51C7F5D9C122B8B1 /* CollectionDetailView.swift in Sources */,
 				588843BE91C735C672414477 /* Color+Theme.swift in Sources */,
 				566A6533F1235493C7543F70 /* ContentLogoTitle.swift in Sources */,
@@ -2032,6 +2040,7 @@
 				4C1CFA98092A985FCF100E60 /* BufferedProgressTests.swift in Sources */,
 				1FBE20CC3C28F935D90A7FCE /* CloudSyncMergeTests.swift in Sources */,
 				545BB21DEEC05B0CCA7EE9CD /* CloudSyncPayloadsTests.swift in Sources */,
+				775BBAF5D41A64C724329161 /* CloudSyncPreferencesTests.swift in Sources */,
 				CB2E9781EF364F0DFF5CF252 /* ExternalSubtitleMappingTests.swift in Sources */,
 				1850F56524FF34FE989BE56D /* HomeRowConfigTests.swift in Sources */,
 				3C6E101361ED5F9E62FBEDD8 /* JellyfinItemTests.swift in Sources */,
@@ -2090,6 +2099,7 @@
 				127D4243ADD0CA6DB4B02BC5 /* CheckmarkAnimation.swift in Sources */,
 				8B1BC7345386B60F07AA5191 /* CloudSyncMerge.swift in Sources */,
 				691D8C2E9E427963B9FC273F /* CloudSyncPayloads.swift in Sources */,
+				CD411C46A7BEE41CD81E0C39 /* CloudSyncPreferences.swift in Sources */,
 				C275910D6BCE13DA464EF2E0 /* CollectionDetailView.swift in Sources */,
 				65C04C74FFF2A2FCBE25F1DF /* Color+Theme.swift in Sources */,
 				258594188526B3858EA556EB /* ContentLogoTitle.swift in Sources */,
