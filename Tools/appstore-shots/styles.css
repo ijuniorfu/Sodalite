@@ -1,0 +1,82 @@
+:root {
+  --ground: #05070F;
+  --ground-2: #0B1226;
+  --glow: rgba(60, 82, 235, 0.42);
+  --glow-soft: rgba(60, 82, 235, 0.18);
+  --accent-br: #7E93FF;
+  --hair: rgba(126, 147, 255, 0.20);
+  --shot-radius: 7.5%;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { background: #000; }
+.canvas {
+  position: relative;
+  overflow: hidden;
+  font-family: "SF Pro Display", "SF Pro Text", -apple-system, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  color: var(--text, #F3F5FF);
+}
+
+/* ---------- Portrait (iPhone / iPad) ---------- */
+.canvas.portrait {
+  display: flex; flex-direction: column; align-items: center;
+  background:
+    radial-gradient(74% 46% at 50% 92%, var(--glow) 0%, var(--glow-soft) 36%, transparent 64%),
+    radial-gradient(130% 90% at 50% 0%, var(--ground-2) 0%, var(--ground) 60%);
+}
+.canvas.portrait .copyblock {
+  flex: 0 0 22%;
+  display: flex; flex-direction: column; justify-content: flex-end; align-items: center;
+  text-align: center; padding: 0 8% 5.5%;
+}
+.canvas.portrait .kick {
+  color: var(--accent-br); font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.2em; font-size: 2.7vw; margin-bottom: 1.5vw;
+}
+.canvas.portrait .headline-text {
+  font-weight: 800; letter-spacing: -0.02em; line-height: 1.08; text-wrap: balance;
+  font-size: 6.2vw;
+  background: linear-gradient(180deg, #FFFFFF 0%, #C9D2FF 128%);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.canvas.portrait .shotwrap {
+  width: 76%; position: relative; flex: 0 0 auto;
+  display: flex; justify-content: center; align-items: flex-start;
+}
+.canvas.portrait .shotwrap::before {
+  content: ""; position: absolute; inset: 4% 4% -4%;
+  background: var(--glow); filter: blur(3.5vw); opacity: 0.6; border-radius: 6vw;
+}
+.canvas.portrait .shot-img {
+  position: relative; z-index: 1; display: block; width: 100%;
+  border-radius: var(--shot-radius);
+  box-shadow: 0 1.4vw 3.4vw -1.2vw rgba(0,0,0,0.9), 0 0 0 1px rgba(255,255,255,0.07);
+}
+
+/* ---------- TV (Apple TV) ---------- */
+.canvas.tv {
+  display: flex; align-items: center; padding-left: 4.4vw;
+  background:
+    radial-gradient(70% 120% at 12% 55%, var(--glow-soft) 0%, transparent 55%),
+    radial-gradient(120% 130% at 8% 50%, var(--ground-2) 0%, var(--ground) 62%);
+}
+.canvas.tv .copyblock { flex: 0 0 31%; z-index: 2; }
+.canvas.tv .kick {
+  color: var(--accent-br); font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.22em; font-size: 1.15vw; margin-bottom: 0.9vw;
+}
+.canvas.tv .headline-text {
+  font-weight: 800; letter-spacing: -0.02em; line-height: 1.05; text-wrap: balance;
+  font-size: 3.4vw;
+  background: linear-gradient(180deg, #FFFFFF, #C9D2FF);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.canvas.tv .shotwrap { flex: 1 1 auto; position: relative; height: 76%; margin-left: 3.2vw; }
+.canvas.tv .shotwrap::before {
+  content: ""; position: absolute; inset: 8% 20% 8% 2%;
+  background: var(--glow); filter: blur(4vw); opacity: 0.55; border-radius: 4vw;
+}
+.canvas.tv .shot-img {
+  position: absolute; left: 0; top: 0; height: 100%; width: auto; border-radius: 0.8vw;
+  box-shadow: 0 1.8vw 4vw -1.4vw rgba(0,0,0,0.9), 0 0 0 1px rgba(255,255,255,0.07);
+}
