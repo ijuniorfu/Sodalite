@@ -44,9 +44,12 @@ struct CloudSyncPreferencesTests {
 
         prefs.adoptionCompleted = true
         prefs.setLocalStamp(stamp, for: "settings-playback")
+        prefs.engineState = Data([9])
+        prefs.accountID = "acct-1"
         prefs.resetForAccountChange()
         #expect(prefs.adoptionCompleted == false)
         #expect(prefs.localStamp(for: "settings-playback") == nil)
         #expect(prefs.engineState == nil)
+        #expect(prefs.accountID == nil)
     }
 }
