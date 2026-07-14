@@ -53,24 +53,20 @@ It brings **Jellyfin and Seerr together in the same UI**. Watch what's already o
   </tr>
 </table>
 
-<!--
-  iPhone & iPad screenshots: drop four files into .github/media/, then uncomment this block.
-  Suggested shots: iPhone Home portrait, iPhone player in landscape (with format badge),
-  iPad Library grid, iPad detail page.
-
 <table>
   <tr>
-    <td width="25%"><a href=".github/media/ios-home.jpg"><img src=".github/media/ios-home.jpg" alt="iPhone: Home in portrait"></a></td>
-    <td width="25%"><a href=".github/media/ios-player.jpg"><img src=".github/media/ios-player.jpg" alt="iPhone: player in landscape with format badge"></a></td>
-    <td width="50%"><a href=".github/media/ipad-library.jpg"><img src=".github/media/ipad-library.jpg" alt="iPad: Library poster grid"></a></td>
+    <td width="19%"><a href=".github/media/ios-home.jpg"><img src=".github/media/ios-home.jpg" alt="iPhone: Home with Continue Watching in portrait"></a></td>
+    <td width="19%"><a href=".github/media/ios-detail.jpg"><img src=".github/media/ios-detail.jpg" alt="iPhone: movie detail page"></a></td>
+    <td width="31%"><a href=".github/media/ipad-home.jpg"><img src=".github/media/ipad-home.jpg" alt="iPad: Home with Continue Watching and Next Up"></a></td>
+    <td width="31%"><a href=".github/media/ipad-catalog.jpg"><img src=".github/media/ipad-catalog.jpg" alt="iPad: Seerr Catalog with Discover rows"></a></td>
   </tr>
   <tr>
     <td align="center"><b>Home</b> (iPhone)</td>
-    <td align="center"><b>Player</b> (iPhone)</td>
-    <td align="center"><b>Library</b> (iPad)</td>
+    <td align="center"><b>Detail</b> (iPhone)</td>
+    <td align="center"><b>Home</b> (iPad)</td>
+    <td align="center"><b>Catalog</b> (iPad)</td>
   </tr>
 </table>
--->
 
 ## What runs where
 
