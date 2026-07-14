@@ -52,4 +52,28 @@ struct CloudSyncPreferencesTests {
         #expect(prefs.engineState == nil)
         #expect(prefs.accountID == nil)
     }
+
+    @Test("pending stash persists, dedupes, delete supersedes save, drain clears")
+    func pendingStash() {
+        let prefs = makePrefs()
+        prefs.stashPendingSave("server-a")
+        prefs.stashPendingSave("server-a")
+        prefs.stashPendingSave("settings-playback")
+        prefs.stashPendingDelete("server-a")
+        let drained = prefs.drainPendingChanges()
+        #expect(drained.saves == ["settings-playback"])
+        #expect(drained.deletes == ["server-a"])
+        let empty = prefs.drainPendingChanges()
+        #expect(empty.saves.isEmpty && empty.deletes.isEmpty)
+    }
+
+    @Test("account change reset clears the pending stash")
+    func resetClearsStash() {
+        let prefs = makePrefs()
+        prefs.stashPendingSave("server-a")
+        prefs.stashPendingDelete("security")
+        prefs.resetForAccountChange()
+        let drained = prefs.drainPendingChanges()
+        #expect(drained.saves.isEmpty && drained.deletes.isEmpty)
+    }
 }

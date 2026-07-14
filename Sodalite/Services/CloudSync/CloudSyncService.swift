@@ -47,6 +47,9 @@ final class CloudSyncService: CloudSyncServiceProtocol {
     private var observers: [NSObjectProtocol] = []
     /// Bumped on every teardown/start so stale withObservationTracking re-arm loops die.
     private var observationGeneration = 0
+    /// Records queued for local deletion but not yet confirmed sent, so a remote
+    /// fetch racing the delete cannot resurrect them via applyRemoteRecord.
+    private var recentLocalDeletes: Set<String> = []
 
     init(dependencies: DependencyContainer, preferences: CloudSyncPreferences = CloudSyncPreferences()) {
         self.dependencies = dependencies
@@ -116,6 +119,17 @@ final class CloudSyncService: CloudSyncServiceProtocol {
             engine.state.add(pendingDatabaseChanges: [.saveZone(CKRecordZone(zoneID: Self.zoneID))])
             status = .active(lastSyncAt: preferences.lastSyncAt)
 
+            // Replay anything queued while the engine was unavailable (signed out,
+            // failed start, or before this start() completed) so it isn't lost.
+            let stash = preferences.drainPendingChanges()
+            recentLocalDeletes.formUnion(stash.deletes)
+            for name in stash.deletes {
+                engine.state.add(pendingRecordZoneChanges: [.deleteRecord(recordID(name))])
+            }
+            for name in stash.saves {
+                engine.state.add(pendingRecordZoneChanges: [.saveRecord(recordID(name))])
+            }
+
             if !preferences.adoptionCompleted {
                 try await engine.fetchChanges()
                 completeAdoption()
@@ -150,6 +164,12 @@ final class CloudSyncService: CloudSyncServiceProtocol {
     }
 
     func fetchNow() async {
+        if engine == nil {
+            // A failed or skipped start (offline launch, signed-out account) must be
+            // retryable in-session; foregrounding is the natural retry point.
+            if preferences.isEnabled, !startInFlight { start() }
+            return
+        }
         guard let engine else { return }
         try? await engine.fetchChanges()
     }
@@ -167,7 +187,11 @@ final class CloudSyncService: CloudSyncServiceProtocol {
         guard preferences.isEnabled else { return }
         let name = CloudSyncRecordName.server(id: serverID)
         preferences.removeRecordCaches(for: name)
-        engine?.state.add(pendingRecordZoneChanges: [.deleteRecord(recordID(name))])
+        guard let engine else {
+            preferences.stashPendingDelete(name)
+            return
+        }
+        engine.state.add(pendingRecordZoneChanges: [.deleteRecord(recordID(name))])
     }
 
     func markSettingsDirty(_ key: CloudSyncStoreKey) {
@@ -185,8 +209,13 @@ final class CloudSyncService: CloudSyncServiceProtocol {
 
     func markSecurityDeleted() {
         guard preferences.isEnabled else { return }
-        preferences.removeRecordCaches(for: CloudSyncRecordName.securitySingleton)
-        engine?.state.add(pendingRecordZoneChanges: [.deleteRecord(recordID(CloudSyncRecordName.securitySingleton))])
+        let name = CloudSyncRecordName.securitySingleton
+        preferences.removeRecordCaches(for: name)
+        guard let engine else {
+            preferences.stashPendingDelete(name)
+            return
+        }
+        engine.state.add(pendingRecordZoneChanges: [.deleteRecord(recordID(name))])
     }
 
     /// Manual push: re-stamp every settings store so THIS device wins LWW
@@ -239,8 +268,11 @@ final class CloudSyncService: CloudSyncServiceProtocol {
     private func observeHomeConfigChanges() {
         let observer = NotificationCenter.default.addObserver(
             forName: .homeConfigDidChange, object: nil, queue: .main
-        ) { _ in
-            Task { @MainActor [weak self] in
+        ) { [weak self] _ in
+            // Synchronous check: the apply paths post this while isApplyingCloudChanges
+            // is still true; deferring into a Task would read the flag after its
+            // defer-reset and echo every cloud-applied change back as an upload.
+            MainActor.assumeIsolated {
                 guard let self, !self.dependencies.isApplyingCloudChanges else { return }
                 if let serverID = self.dependencies.activeServer?.id {
                     self.markServerDirty(serverID: serverID)
@@ -298,7 +330,11 @@ final class CloudSyncService: CloudSyncServiceProtocol {
     }
 
     private func addPendingSave(recordName: String) {
-        engine?.state.add(pendingRecordZoneChanges: [.saveRecord(recordID(recordName))])
+        guard let engine else {
+            preferences.stashPendingSave(recordName)
+            return
+        }
+        engine.state.add(pendingRecordZoneChanges: [.saveRecord(recordID(recordName))])
     }
 
     private func collectPayloadData(recordName: String) -> Data? {
@@ -332,6 +368,9 @@ final class CloudSyncService: CloudSyncServiceProtocol {
     }
 
     private func applyRemoteRecord(_ record: CKRecord) {
+        // A record we are about to delete (or have queued a delete for while the
+        // engine was unavailable) must not resurrect locally via the adoption fetch.
+        guard !recentLocalDeletes.contains(record.recordID.recordName) else { return }
         guard let data = record.encryptedValues[Self.payloadKey] as? Data else { return }
         let name = record.recordID.recordName
         preferences.setSystemFields(Self.encodeSystemFields(record), for: name)
@@ -456,6 +495,8 @@ extension CloudSyncService: CKSyncEngineDelegate {
             for failure in sent.failedRecordSaves {
                 handleSaveFailure(failure, syncEngine: syncEngine)
             }
+            // Deletes actually confirmed sent no longer need resurrection protection.
+            recentLocalDeletes.subtract(sent.deletedRecordIDs.map(\.recordName))
             if !sent.savedRecords.isEmpty {
                 preferences.lastSyncAt = Date()
                 status = .active(lastSyncAt: preferences.lastSyncAt)
@@ -503,6 +544,9 @@ extension CloudSyncService: CKSyncEngineDelegate {
             addPendingSave(recordName: recordName)
         case .networkFailure, .networkUnavailable, .serviceUnavailable, .requestRateLimited, .zoneBusy:
             addPendingSave(recordName: recordName)
+        case .quotaExceeded:
+            status = .error(ckError.localizedDescription)
+            LogTap.shared.note("[CloudSync] iCloud quota exceeded, save deferred: \(recordName)")
         default:
             LogTap.shared.note("[CloudSync] save failed \(recordName): \(ckError.code.rawValue)")
         }

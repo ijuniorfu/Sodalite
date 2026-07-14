@@ -15,6 +15,8 @@ final class CloudSyncPreferences {
         static let highestSeenStamp = "cloudSync.highestSeenStamp"
         static let localStamps = "cloudSync.localStamps"
         static let systemFields = "cloudSync.systemFields"
+        static let pendingSaves = "cloudSync.pendingSaves"
+        static let pendingDeletes = "cloudSync.pendingDeletes"
     }
 
     private let store: UserDefaults
@@ -43,6 +45,8 @@ final class CloudSyncPreferences {
     private var highestSeenStamp: Date?
     private var localStamps: [String: Double]
     private var systemFieldsByRecord: [String: Data]
+    private var pendingSaveNames: [String]
+    private var pendingDeleteNames: [String]
 
     init(store: UserDefaults = .standard) {
         self.store = store
@@ -54,6 +58,8 @@ final class CloudSyncPreferences {
         self.highestSeenStamp = (store.object(forKey: Keys.highestSeenStamp) as? Double).map(Date.init(timeIntervalSince1970:))
         self.localStamps = (store.dictionary(forKey: Keys.localStamps) as? [String: Double]) ?? [:]
         self.systemFieldsByRecord = (store.dictionary(forKey: Keys.systemFields) as? [String: Data]) ?? [:]
+        self.pendingSaveNames = store.stringArray(forKey: Keys.pendingSaves) ?? []
+        self.pendingDeleteNames = store.stringArray(forKey: Keys.pendingDeletes) ?? []
     }
 
     // MARK: Stamps
@@ -101,6 +107,29 @@ final class CloudSyncPreferences {
         store.set(systemFieldsByRecord, forKey: Keys.systemFields)
     }
 
+    // MARK: Pending changes stashed while the engine is unavailable
+
+    func stashPendingSave(_ recordName: String) {
+        if !pendingSaveNames.contains(recordName) { pendingSaveNames.append(recordName) }
+        store.set(pendingSaveNames, forKey: Keys.pendingSaves)
+    }
+
+    func stashPendingDelete(_ recordName: String) {
+        pendingSaveNames.removeAll { $0 == recordName }
+        if !pendingDeleteNames.contains(recordName) { pendingDeleteNames.append(recordName) }
+        store.set(pendingSaveNames, forKey: Keys.pendingSaves)
+        store.set(pendingDeleteNames, forKey: Keys.pendingDeletes)
+    }
+
+    func drainPendingChanges() -> (saves: [String], deletes: [String]) {
+        let result = (saves: pendingSaveNames, deletes: pendingDeleteNames)
+        pendingSaveNames = []
+        pendingDeleteNames = []
+        store.removeObject(forKey: Keys.pendingSaves)
+        store.removeObject(forKey: Keys.pendingDeletes)
+        return result
+    }
+
     // MARK: Resets
 
     /// iCloud account switched (or full logout): drop everything tied to the old
@@ -112,8 +141,12 @@ final class CloudSyncPreferences {
         lastSyncAt = nil
         localStamps = [:]
         systemFieldsByRecord = [:]
+        pendingSaveNames = []
+        pendingDeleteNames = []
         store.removeObject(forKey: Keys.localStamps)
         store.removeObject(forKey: Keys.systemFields)
+        store.removeObject(forKey: Keys.pendingSaves)
+        store.removeObject(forKey: Keys.pendingDeletes)
     }
 
     /// User deleted the cloud zone from Settings: same wipe, but keep accountID.
