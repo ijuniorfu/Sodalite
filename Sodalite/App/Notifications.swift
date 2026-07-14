@@ -17,6 +17,10 @@ extension Notification.Name {
     /// Posted after an admin approves/declines/deletes a request or the admin queue reloads its counts,
     /// so the pending-requests monitor recomputes the Catalog tab badge.
     static let seerrPendingRequestsShouldRefresh = Notification.Name("seerrPendingRequestsShouldRefresh")
+
+    /// Posted by CloudSyncService after remote changes were applied locally, so
+    /// server lists, pickers, and settings screens refresh.
+    static let cloudSyncDidApplyChanges = Notification.Name("cloudSyncDidApplyChanges")
 }
 
 /// userInfo keys for `.playbackProgressDidChange`.
