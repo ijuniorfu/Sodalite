@@ -1,0 +1,12 @@
+{
+  "name": "appstore-shots",
+  "private": true,
+  "type": "module",
+  "description": "Renders Sodalite App Store marketing screenshots from raw device shots.",
+  "scripts": {
+    "render": "node render.mjs"
+  },
+  "dependencies": {
+    "playwright": "^1.48.0"
+  }
+}

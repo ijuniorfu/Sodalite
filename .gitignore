@@ -21,3 +21,8 @@ docs/superpowers/
 
 # Local screenshots, not for the repo
 Bilder neu/
+
+# App Store screenshot pipeline (large binaries + deps regenerated locally)
+Tools/appstore-shots/node_modules/
+Tools/appstore-shots/input/
+Tools/appstore-shots/out/
