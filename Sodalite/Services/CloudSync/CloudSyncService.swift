@@ -45,6 +45,8 @@ final class CloudSyncService: CloudSyncServiceProtocol {
     /// Last snapshot uploaded or applied per store, to skip observation echoes.
     private var lastSettingsSnapshot: [CloudSyncStoreKey: SettingsSyncPayload] = [:]
     private var observers: [NSObjectProtocol] = []
+    /// Bumped on every teardown/start so stale withObservationTracking re-arm loops die.
+    private var observationGeneration = 0
 
     init(dependencies: DependencyContainer, preferences: CloudSyncPreferences = CloudSyncPreferences()) {
         self.dependencies = dependencies
@@ -57,6 +59,8 @@ final class CloudSyncService: CloudSyncServiceProtocol {
         guard preferences.isEnabled else { status = .disabled; return }
         guard engine == nil, !startInFlight else { return }
         startInFlight = true
+        removeObservers()
+        observationGeneration += 1
         observeAccountChanges()
         observeSettingsStores()
         observeHomeConfigChanges()
@@ -74,10 +78,17 @@ final class CloudSyncService: CloudSyncServiceProtocol {
     }
 
     private func teardownEngine() {
+        observationGeneration += 1
+        removeObservers()
         engine = nil
         startInFlight = false
         for task in debounceTasks.values { task.cancel() }
         debounceTasks = [:]
+    }
+
+    private func removeObservers() {
+        for observer in observers { NotificationCenter.default.removeObserver(observer) }
+        observers = []
     }
 
     private func startEngine() async {
@@ -112,6 +123,9 @@ final class CloudSyncService: CloudSyncServiceProtocol {
         } catch {
             status = .error(error.localizedDescription)
             LogTap.shared.note("[CloudSync] start failed: \(error)")
+            // A failed adoption fetch must not leave a half-started engine syncing
+            // in cloud-wins posture forever; drop it so the next start() retries cleanly.
+            if !preferences.adoptionCompleted { engine = nil }
         }
     }
 
@@ -241,12 +255,13 @@ final class CloudSyncService: CloudSyncServiceProtocol {
     }
 
     private func armObservation(for key: CloudSyncStoreKey) {
+        let generation = observationGeneration
         withObservationTracking {
             // Touch every synced property so any change re-arms us.
             _ = dependencies.collectSettingsPayload(key, stamp: .distantPast)
         } onChange: { [weak self] in
             Task { @MainActor [weak self] in
-                guard let self else { return }
+                guard let self, self.observationGeneration == generation else { return }
                 self.scheduleSettingsUpload(key)
                 self.armObservation(for: key)
             }
