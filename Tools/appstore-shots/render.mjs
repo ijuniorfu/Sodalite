@@ -50,3 +50,37 @@ export async function renderOne(browser, job) {
   await page.close();
   return { outPath, shrunk };
 }
+
+function resolveCopy(headlines, copySet, shot, locale) {
+  const set = headlines[copySet]?.[shot] || {};
+  if (set[locale]) return { entry: set[locale], fellBack: false };
+  return { entry: set.en, fellBack: true };
+}
+
+async function main() {
+  const manifest = JSON.parse(readFileSync('manifest.json', 'utf8'));
+  const headlines = JSON.parse(readFileSync('headlines.json', 'utf8'));
+  const browser = await chromium.launch();
+  let count = 0, fallbacks = 0, shrinks = 0;
+  for (const locale of manifest.locales) {
+    for (const target of manifest.targets) {
+      for (const shot of target.shots) {
+        const { entry, fellBack } = resolveCopy(headlines, target.copySet, shot, locale);
+        if (!entry) { console.log('NO COPY (skipped):', target.copySet, shot, locale); continue; }
+        if (fellBack) { console.log('FALLBACK en ->', locale, target.platform, shot); fallbacks++; }
+        const { shrunk } = await renderOne(browser, {
+          target, shot, locale, kicker: entry.kicker, headline: entry.headline,
+        });
+        if (shrunk) { console.log('SHRUNK:', locale, target.platform, shot); shrinks++; }
+        count++;
+      }
+    }
+  }
+  await browser.close();
+  console.log(`\nDONE: ${count} PNGs written to out/  |  ${fallbacks} en-fallbacks  |  ${shrinks} shrunk headlines`);
+}
+
+// Nur ausfuehren, wenn direkt gestartet (nicht bei import).
+if (import.meta.url === pathToFileURL(process.argv[1]).href) {
+  main();
+}
