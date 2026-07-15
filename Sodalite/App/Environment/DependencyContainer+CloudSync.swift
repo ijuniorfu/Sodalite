@@ -57,6 +57,13 @@ extension DependencyContainer {
             try? keychainService.save(data, for: KeychainKeys.knownServers)
         }
 
+        // A synced URL edit to the active server must reach the live client without a relaunch
+        // (an Apple TV picks up edits made on the iPhone). scheduleRouteResolve only reads + probes,
+        // so it is safe inside the apply path and does not echo a cloud write back.
+        if payload.server.id == activeServer?.id {
+            scheduleRouteResolve()
+        }
+
         // Snapshot before the blob overwrite: users dropped by the payload still
         // need their scoped Seerr sessions purged below.
         let previousUsers = listRememberedUsers(serverID: serverID)

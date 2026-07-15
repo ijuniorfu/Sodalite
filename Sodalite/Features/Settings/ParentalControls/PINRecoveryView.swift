@@ -102,7 +102,7 @@ struct PINRecoveryView: View {
         defer { isValidating = false }
         // login() is a pure REST call; does not mutate stored session/token. Restore previous baseURL on failure (tidiness, not a leak; active token unchanged).
         let previousBaseURL = dependencies.jellyfinClient.baseURL
-        dependencies.jellyfinClient.baseURL = server.url
+        dependencies.jellyfinClient.baseURL = dependencies.preferredURL(for: server)
         do {
             _ = try await dependencies.jellyfinAuthService.login(
                 username: user.name, password: password

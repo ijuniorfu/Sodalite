@@ -28,6 +28,10 @@ struct AppRouter: View {
     /// Drives the NowPlaying fullScreenCover off the coordinator's nowPlayingPresentationRequest bump.
     @State private var showNowPlaying = false
 
+    #if os(iOS)
+    @State private var pathObserver = NetworkPathObserver()
+    #endif
+
     /// (server, user) identity of the active session. Background music is scoped to it and must stop when it
     /// changes: server switch, same-server profile switch (switchToUser, which does NOT bump serverDidSwitch),
     /// active-server removal, logout (activeServer/activeUser -> nil), and tvOS-user change all land here.
@@ -87,6 +91,9 @@ struct AppRouter: View {
             if scenePhaseIsActive {
                 await refreshPending()
                 await dependencies.cloudSync?.fetchNow()
+                #if os(iOS)
+                dependencies.scheduleRouteResolve()
+                #endif
             }
         }
         .task(id: appState.isSeerrConnected) {
@@ -122,6 +129,12 @@ struct AppRouter: View {
             guard !hasRestored else { return }
             hasRestored = true
             await restoreSession()
+        }
+        .task {
+            #if os(iOS)
+            pathObserver.onPathChange = { dependencies.scheduleRouteResolve() }
+            pathObserver.start()
+            #endif
         }
         .task(id: appState.pendingDeepLinkItemID) {
             await resolvePendingDeepLink()
@@ -191,6 +204,7 @@ struct AppRouter: View {
                     guard !Task.isCancelled else { return }
                     if case .connected(let seerrServer, let seerrUser) = outcome {
                         appState.setSeerrConnected(server: seerrServer, user: seerrUser)
+                        dependencies.scheduleRouteResolve()
                     } else {
                         appState.disconnectSeerr()
                     }
@@ -476,6 +490,7 @@ struct AppRouter: View {
         )
         if case .connected(let seerrServer, let seerrUser) = seerrOutcome {
             appState.setSeerrConnected(server: seerrServer, user: seerrUser)
+            dependencies.scheduleRouteResolve()
         }
     }
 

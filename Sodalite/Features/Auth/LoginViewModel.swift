@@ -39,7 +39,7 @@ final class LoginViewModel {
         if let preSelectedUser {
             self.username = preSelectedUser.name
         }
-        dependencies.jellyfinClient.baseURL = server.url
+        dependencies.jellyfinClient.baseURL = dependencies.preferredURL(for: server)
     }
 
     func login() async {

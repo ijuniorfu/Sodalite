@@ -62,6 +62,12 @@ final class AppState {
         activeServer = server
     }
 
+    /// Same id-guarded replace as updateActiveServer, for the Seerr server (URL slot edits).
+    func updateActiveSeerrServer(_ server: SeerrServer) {
+        guard activeSeerrServer?.id == server.id else { return }
+        activeSeerrServer = server
+    }
+
     func logout() {
         activeServer = nil
         activeUser = nil

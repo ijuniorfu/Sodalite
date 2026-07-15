@@ -11,6 +11,9 @@ struct ServerManagementView: View {
     @State private var showAddServerFlow = false
     @State private var pendingRemoval: JellyfinServer?
     @State private var showSwitchFailed = false
+    #if os(iOS)
+    @State private var editingURLsFor: JellyfinServer?
+    #endif
 
     var body: some View {
         ScrollView {
@@ -30,7 +33,12 @@ struct ServerManagementView: View {
                         rememberedUsers: remembered,
                         onSwitch: { switchTo(server) },
                         onRemove: { pendingRemoval = server },
-                        onToggleDefault: { toggleDefault(server) }
+                        onToggleDefault: { toggleDefault(server) },
+                        onEditURLs: {
+                            #if os(iOS)
+                            editingURLsFor = server
+                            #endif
+                        }
                     )
                 }
 
@@ -51,6 +59,24 @@ struct ServerManagementView: View {
                 load()
             })
         }
+        #if os(iOS)
+        .sheet(item: $editingURLsFor) { server in
+            DualURLEditSheet(
+                title: "multiServer.urls.title",
+                initialInternalURL: server.internalURL,
+                initialExternalURL: server.externalURL,
+                probe: { await ServerProbe.jellyfin($0) },
+                onSave: { internalURL, externalURL in
+                    try? dependencies.updateServerURLs(
+                        serverID: server.id,
+                        internalURL: internalURL,
+                        externalURL: externalURL
+                    )
+                    load()
+                }
+            )
+        }
+        #endif
         .alert(
             Text("multiServer.remove.confirm.title", bundle: .main),
             isPresented: Binding(
@@ -124,36 +150,35 @@ private struct ServerManagementRow: View {
     let onSwitch: () -> Void
     let onRemove: () -> Void
     let onToggleDefault: () -> Void
+    let onEditURLs: () -> Void
     @FocusState private var focused: Bool
     @Environment(\.dependencies) private var dependencies
 
     var body: some View {
         HStack(spacing: 24) {
             VStack(alignment: .leading, spacing: 6) {
+                #if os(iOS)
+                // Phone width cannot fit name + pills + avatars + edit button in one line
+                // (the fixedSize pills forced the row past the screen edges); the name gets
+                // its own line and the pills a scroll-safe chip row.
+                Text(server.name)
+                    .font(.headline)
+                    .lineLimit(1)
+                    .truncationMode(.tail)
+                if isActive || isDefault {
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 8) { badges }
+                    }
+                }
+                #else
                 HStack(spacing: 8) {
                     Text(server.name)
                         .font(.headline)
                         .lineLimit(1)
                         .truncationMode(.tail)
-                    if isActive {
-                        Text("multiServer.row.active", bundle: .main)
-                            .font(.caption.bold())
-                            .foregroundStyle(.tint)
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 4)
-                            .background(.tint.opacity(0.18), in: Capsule())
-                            .fixedSize()
-                    }
-                    if isDefault {
-                        Text("multiServer.row.default", bundle: .main)
-                            .font(.caption.bold())
-                            .foregroundStyle(.tint)
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 4)
-                            .background(.tint.opacity(0.18), in: Capsule())
-                            .fixedSize()
-                    }
+                    badges
                 }
+                #endif
                 Text(server.url.host() ?? server.url.absoluteString)
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
@@ -180,6 +205,19 @@ private struct ServerManagementRow: View {
                     }
                 }
             }
+            #if os(iOS)
+            Button {
+                onEditURLs()
+            } label: {
+                Image(systemName: "pencil")
+                    .font(.headline)
+                    .foregroundStyle(.tint)
+                    .padding(10)
+                    .background(.tint.opacity(0.12), in: Circle())
+            }
+            .buttonStyle(.borderless)
+            .accessibilityLabel(Text("multiServer.urls.edit", bundle: .main))
+            #endif
         }
         .padding(.horizontal, 24)
         .padding(.vertical, 20)
@@ -222,6 +260,17 @@ private struct ServerManagementRow: View {
                     }
                 }
             }
+            #if os(iOS)
+            Button {
+                onEditURLs()
+            } label: {
+                Label {
+                    Text("multiServer.urls.edit", bundle: .main)
+                } icon: {
+                    Image(systemName: "link.badge.plus")
+                }
+            }
+            #endif
             Button(role: .destructive) {
                 onRemove()
             } label: {
@@ -232,6 +281,39 @@ private struct ServerManagementRow: View {
                 }
             }
         }
+    }
+
+    @ViewBuilder
+    private var badges: some View {
+        if isActive {
+            Text("multiServer.row.active", bundle: .main)
+                .font(.caption.bold())
+                .foregroundStyle(.tint)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 4)
+                .background(.tint.opacity(0.18), in: Capsule())
+                .fixedSize()
+        }
+        if isDefault {
+            Text("multiServer.row.default", bundle: .main)
+                .font(.caption.bold())
+                .foregroundStyle(.tint)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 4)
+                .background(.tint.opacity(0.18), in: Capsule())
+                .fixedSize()
+        }
+        #if os(iOS)
+        if isActive, let route = dependencies.activeJellyfinRoute {
+            Text(route == .internal ? "multiServer.route.internal" : "multiServer.route.external", bundle: .main)
+                .font(.caption.bold())
+                .foregroundStyle(.secondary)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 4)
+                .background(.secondary.opacity(0.15), in: Capsule())
+                .fixedSize()
+        }
+        #endif
     }
 
     @ViewBuilder

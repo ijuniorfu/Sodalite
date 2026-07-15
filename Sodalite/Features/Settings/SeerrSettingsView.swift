@@ -19,6 +19,10 @@ struct SeerrSettingsView: View {
 
     @State private var showSuccess = false
 
+    #if os(iOS)
+    @State private var showEditURLs = false
+    #endif
+
     var body: some View {
         ZStack {
             ScrollView {
@@ -346,6 +350,23 @@ struct SeerrSettingsView: View {
             }
             #endif
 
+            #if os(iOS)
+            Button {
+                showEditURLs = true
+            } label: {
+                Label {
+                    Text("multiServer.urls.edit", bundle: .main)
+                } icon: {
+                    Image(systemName: "link.badge.plus")
+                }
+                .font(.body)
+                .fontWeight(.medium)
+                .padding(.horizontal, 24)
+                .padding(.vertical, 12)
+            }
+            .buttonStyle(SettingsTileButtonStyle())
+            #endif
+
             Button {
                 Task { await logout() }
             } label: {
@@ -357,6 +378,24 @@ struct SeerrSettingsView: View {
             }
             .buttonStyle(SettingsTileButtonStyle())
         }
+        #if os(iOS)
+        .sheet(isPresented: $showEditURLs) {
+            if let server = appState.activeSeerrServer {
+                DualURLEditSheet(
+                    title: "multiServer.urls.title",
+                    initialInternalURL: server.internalURL,
+                    initialExternalURL: server.externalURL,
+                    probe: { await ServerProbe.seerr($0) },
+                    onSave: { internalURL, externalURL in
+                        try? dependencies.updateSeerrServerURLs(
+                            internalURL: internalURL,
+                            externalURL: externalURL
+                        )
+                    }
+                )
+            }
+        }
+        #endif
     }
 
     #if os(iOS)
@@ -516,6 +555,7 @@ struct SeerrSettingsView: View {
 
             try? await Task.sleep(for: .seconds(1.5))
             appState.setSeerrConnected(server: server, user: user)
+            dependencies.scheduleRouteResolve()
             showSuccess = false
         } catch {
             // Drop the cookie only, keep baseURL: full clearSeerrSession wipes baseURL -> next attempt fails on invalid URL.

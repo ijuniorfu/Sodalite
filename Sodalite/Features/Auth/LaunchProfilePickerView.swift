@@ -282,6 +282,7 @@ struct LaunchProfilePickerView: View {
         )
         if case .connected(let server, let user) = outcome {
             appState.setSeerrConnected(server: server, user: user)
+            dependencies.scheduleRouteResolve()
         } else {
             appState.disconnectSeerr()
         }

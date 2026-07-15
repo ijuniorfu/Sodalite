@@ -47,8 +47,8 @@ struct SessionRestorer {
             }
 
             guard let target else { return .discovery }
-            // Point the client at the known host so the picker's avatar fetches + any LoginView hit the right server (token unrecoverable here, host URL is enough).
-            env.setClientBaseURL(target.url)
+            // Point the client at the known host so the picker's avatar fetches + any LoginView hit the right server (token unrecoverable here, host URL is enough). Route-aware so a dual-slot server lands on its last-known route, not the internal slot.
+            env.setClientBaseURL(env.preferredURL(for: target))
             return .picker(server: target, syncSeerr: false)
         }
 

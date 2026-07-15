@@ -206,7 +206,7 @@ struct UserPickerView: View {
         isLoading = true
         errorMessage = nil
         // Scope JellyfinClient to this server: discovery leaves baseURL stale, and /Users/Public needs the right host.
-        dependencies.jellyfinClient.baseURL = server.url
+        dependencies.jellyfinClient.baseURL = dependencies.preferredURL(for: server)
         do {
             let fetched = try await dependencies.jellyfinAuthService.getPublicUsers()
             // Hide already-remembered profiles (re-adding overwrites the same entry). No-op on first login; re-auth a stale token by forgetting first (long-press).
