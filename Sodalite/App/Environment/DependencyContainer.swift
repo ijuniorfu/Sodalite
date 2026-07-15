@@ -912,6 +912,41 @@ final class DependencyContainer {
         scheduleRouteResolve()
     }
 
+    /// Rewrites the connected Seerr server's URL slots (iOS edit sheet):
+    /// updates the profile-scoped remembered session (keeping the cookie),
+    /// mirrors to cloud sync, refreshes AppState, and re-resolves the route.
+    func updateSeerrServerURLs(internalURL: URL?, externalURL: URL?) throws {
+        guard internalURL != nil || externalURL != nil,
+              let current = appState?.activeSeerrServer else { return }
+        let updated = SeerrServer(id: current.id, internalURL: internalURL, externalURL: externalURL)
+
+        if let userID = activeUserID, let serverID = activeServer?.id {
+            let key = KeychainKeys.rememberedSeerr(jellyfinServerID: serverID, jellyfinUserID: userID)
+            if let data = try? keychainService.loadData(for: key),
+               let remembered = try? JSONDecoder().decode(RememberedSeerrSession.self, from: data) {
+                let rewritten = RememberedSeerrSession(
+                    jellyfinUserID: remembered.jellyfinUserID,
+                    jellyfinServerID: remembered.jellyfinServerID,
+                    seerrServer: updated,
+                    cookie: remembered.cookie
+                )
+                try keychainService.save(JSONEncoder().encode(rewritten), for: key)
+                cloudSyncMarkServer(serverID)
+            }
+        }
+
+        // Legacy global entry (pre-0.3.0 fallback): keep it in step when it points at the same server.
+        if let data = try? keychainService.loadData(for: KeychainKeys.seerrServer),
+           let globalServer = try? JSONDecoder().decode(SeerrServer.self, from: data),
+           globalServer.id == updated.id {
+            try? keychainService.save(JSONEncoder().encode(updated), for: KeychainKeys.seerrServer)
+        }
+
+        seerrClient.baseURL = preferredSeerrURL(for: updated)
+        appState?.updateActiveSeerrServer(updated)
+        scheduleRouteResolve()
+    }
+
     /// Restores a specific profile's Seerr session. Returns the SeerrServer so the caller can probe currentUser(); nil when the profile has none (caller clears Seerr state).
     func restoreSeerrSession(
         forJellyfinUserID jellyfinUserID: String,
