@@ -336,6 +336,32 @@ final class DependencyContainer {
         try keychainService.save(data, for: KeychainKeys.knownServers)
     }
 
+    /// Rewrites a known server's URL slots (iOS edit sheet). Order-preserving,
+    /// mirrors to cloud sync, and re-resolves immediately when it is the
+    /// active server so the session moves without a restart.
+    func updateServerURLs(serverID: String, internalURL: URL?, externalURL: URL?) throws {
+        guard internalURL != nil || externalURL != nil else { return }
+        var servers = listKnownServers()
+        guard let idx = servers.firstIndex(where: { $0.id == serverID }) else { return }
+        let current = servers[idx]
+        let updated = JellyfinServer(
+            id: current.id,
+            name: current.name,
+            internalURL: internalURL,
+            externalURL: externalURL,
+            version: current.version
+        )
+        servers[idx] = updated
+        let data = try JSONEncoder().encode(servers)
+        try keychainService.save(data, for: KeychainKeys.knownServers)
+        cloudSyncMarkServer(serverID)
+        appState?.updateActiveServer(updated)
+        if activeServer?.id == serverID {
+            jellyfinClient.baseURL = preferredURL(for: updated)
+            scheduleRouteResolve()
+        }
+    }
+
     /// Refreshes the cached server version (captured once at discovery, else stale in Settings until logout/login) via the unauthenticated discovery probe; updates knownServers in place. Returns the refreshed server only if the version changed; nil otherwise. id guard rejects a different server answering at the URL.
     func refreshActiveServerVersion() async -> JellyfinServer? {
         guard let server = activeServer else { return nil }

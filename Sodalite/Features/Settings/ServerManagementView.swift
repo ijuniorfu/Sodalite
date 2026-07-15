@@ -11,6 +11,9 @@ struct ServerManagementView: View {
     @State private var showAddServerFlow = false
     @State private var pendingRemoval: JellyfinServer?
     @State private var showSwitchFailed = false
+    #if os(iOS)
+    @State private var editingURLsFor: JellyfinServer?
+    #endif
 
     var body: some View {
         ScrollView {
@@ -30,7 +33,12 @@ struct ServerManagementView: View {
                         rememberedUsers: remembered,
                         onSwitch: { switchTo(server) },
                         onRemove: { pendingRemoval = server },
-                        onToggleDefault: { toggleDefault(server) }
+                        onToggleDefault: { toggleDefault(server) },
+                        onEditURLs: {
+                            #if os(iOS)
+                            editingURLsFor = server
+                            #endif
+                        }
                     )
                 }
 
@@ -51,6 +59,24 @@ struct ServerManagementView: View {
                 load()
             })
         }
+        #if os(iOS)
+        .sheet(item: $editingURLsFor) { server in
+            DualURLEditSheet(
+                title: "multiServer.urls.title",
+                initialInternalURL: server.internalURL,
+                initialExternalURL: server.externalURL,
+                probe: { await ServerProbe.jellyfin($0) },
+                onSave: { internalURL, externalURL in
+                    try? dependencies.updateServerURLs(
+                        serverID: server.id,
+                        internalURL: internalURL,
+                        externalURL: externalURL
+                    )
+                    load()
+                }
+            )
+        }
+        #endif
         .alert(
             Text("multiServer.remove.confirm.title", bundle: .main),
             isPresented: Binding(
@@ -124,6 +150,7 @@ private struct ServerManagementRow: View {
     let onSwitch: () -> Void
     let onRemove: () -> Void
     let onToggleDefault: () -> Void
+    let onEditURLs: () -> Void
     @FocusState private var focused: Bool
     @Environment(\.dependencies) private var dependencies
 
@@ -153,6 +180,17 @@ private struct ServerManagementRow: View {
                             .background(.tint.opacity(0.18), in: Capsule())
                             .fixedSize()
                     }
+                    #if os(iOS)
+                    if isActive, let route = dependencies.activeJellyfinRoute {
+                        Text(route == .internal ? "multiServer.route.internal" : "multiServer.route.external", bundle: .main)
+                            .font(.caption.bold())
+                            .foregroundStyle(.secondary)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 4)
+                            .background(.secondary.opacity(0.15), in: Capsule())
+                            .fixedSize()
+                    }
+                    #endif
                 }
                 Text(server.url.host() ?? server.url.absoluteString)
                     .font(.subheadline)
@@ -222,6 +260,17 @@ private struct ServerManagementRow: View {
                     }
                 }
             }
+            #if os(iOS)
+            Button {
+                onEditURLs()
+            } label: {
+                Label {
+                    Text("multiServer.urls.edit", bundle: .main)
+                } icon: {
+                    Image(systemName: "link.badge.plus")
+                }
+            }
+            #endif
             Button(role: .destructive) {
                 onRemove()
             } label: {
