@@ -60,6 +60,9 @@ struct LaunchProfilePickerView: View {
             .onAppear {
                 rememberedUsers = dependencies.listRememberedUsers(serverID: server.id)
             }
+            .onReceive(NotificationCenter.default.publisher(for: .cloudSyncDidApplyChanges)) { _ in
+                rememberedUsers = dependencies.listRememberedUsers(serverID: server.id)
+            }
             .sheet(isPresented: $showServerSwitchSheet) {
                 ServerSwitchSheet(
                     onAddServer: {

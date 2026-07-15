@@ -10,7 +10,12 @@ struct AsyncCachedImage<Content: View, Placeholder: View>: View {
     @ViewBuilder let placeholder: () -> Placeholder
 
     @Environment(\.dependencies) private var dependencies
+    @Environment(\.scenePhase) private var scenePhase
     @State private var loaded: UIImage?
+    /// Connection-level failures (offline blip, iOS local-network permission prompt
+    /// still unanswered) must not latch the placeholder forever. Retry on the next
+    /// scene activation: a dismissed permission alert flips the phase back to active.
+    @State private var retryOnActivate = false
 
     var body: some View {
         ZStack {
@@ -24,27 +29,36 @@ struct AsyncCachedImage<Content: View, Placeholder: View>: View {
         .task(id: "\(url?.absoluteString ?? "")|\(fallbackURL?.absoluteString ?? "")") {
             await load()
         }
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .active, retryOnActivate, loaded == nil {
+                Task { await load() }
+            }
+        }
     }
 
     @MainActor
     private func load() async {
         // Reset on URL change so a stale image from the previous profile doesn't flash while the new one loads.
         loaded = nil
-        if let image = await loadImage(from: url) {
-            loaded = image
-            return
+        retryOnActivate = false
+        var sawTransientFailure = false
+        for candidate in [url, fallbackURL] {
+            let result = await loadImage(from: candidate)
+            if let image = result.image {
+                loaded = image
+                return
+            }
+            sawTransientFailure = sawTransientFailure || result.transientFailure
         }
-        if let image = await loadImage(from: fallbackURL) {
-            loaded = image
-        }
+        retryOnActivate = sawTransientFailure
     }
 
     @MainActor
-    private func loadImage(from url: URL?) async -> UIImage? {
-        guard let url else { return nil }
+    private func loadImage(from url: URL?) async -> (image: UIImage?, transientFailure: Bool) {
+        guard let url else { return (nil, false) }
 
         if let cached = ImageCache.shared.image(for: url) {
-            return cached
+            return (cached, false)
         }
 
         // Request built on MainActor to read the MainActor-isolated token; attach auth only for the active Jellyfin host so external URLs (TMDB/CDN posters) don't see our token.
@@ -57,25 +71,31 @@ struct AsyncCachedImage<Content: View, Placeholder: View>: View {
             request.setValue(token, forHTTPHeaderField: "X-Emby-Token")
         }
 
-        let prepared = await Self.fetchAndDecode(request: request)
-        guard let prepared else { return nil }
+        let result = await Self.fetchAndDecode(request: request)
+        guard let prepared = result.image else { return (nil, result.transientFailure) }
         // Cache before the cancellation check: a `.task(id:)` invalidation may cancel between decode and @State write, but the bytes are already in memory, so skipping the store would re-pay bandwidth+decode on next mount.
         ImageCache.shared.store(prepared, for: url)
-        guard !Task.isCancelled else { return nil }
-        return prepared
+        guard !Task.isCancelled else { return (nil, false) }
+        return (prepared, false)
     }
 
     /// Network + decode + force-decompress off the MainActor. `preparingForDisplay()` runs the pixel decode now so the first draw isn't a scroll frame-drop; static + `nonisolated` keeps it on the cooperative pool. Cancellation propagates from the enclosing `.task(id:)`.
-    nonisolated private static func fetchAndDecode(request: URLRequest) async -> UIImage? {
+    /// transientFailure marks connection-level errors (worth retrying on scene activation), never HTTP errors or undecodable payloads.
+    nonisolated private static func fetchAndDecode(request: URLRequest) async -> (image: UIImage?, transientFailure: Bool) {
         do {
             let (data, response) = try await URLSession.shared.data(for: request)
             guard let http = response as? HTTPURLResponse,
                   (200...299).contains(http.statusCode),
                   let image = UIImage(data: data)
-            else { return nil }
-            return image.preparingForDisplay() ?? image
+            else { return (nil, false) }
+            return (image.preparingForDisplay() ?? image, false)
+        } catch is CancellationError {
+            return (nil, false)
+        } catch let error as URLError where error.code == .cancelled {
+            return (nil, false)
         } catch {
-            return nil
+            LogTap.shared.note("[Image] fetch failed \(request.url?.absoluteString ?? ""): \(error)")
+            return (nil, true)
         }
     }
 }

@@ -84,7 +84,10 @@ struct AppRouter: View {
         // Keep the Catalog pending-requests badge fresh: recompute when the app comes forward, when the
         // Seerr connection flips, and on the admin-queue change signal. iOS/iPadOS badge; inert on tvOS.
         .task(id: scenePhaseIsActive) {
-            if scenePhaseIsActive { await refreshPending() }
+            if scenePhaseIsActive {
+                await refreshPending()
+                await dependencies.cloudSync?.fetchNow()
+            }
         }
         .task(id: appState.isSeerrConnected) {
             if appState.isSeerrConnected {
@@ -98,6 +101,14 @@ struct AppRouter: View {
         }
         .onReceive(NotificationCenter.default.publisher(for: .seerrRequestDidSubmit)) { _ in
             Task { await refreshPending() }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .cloudSyncDidApplyChanges)) { _ in
+            // Fresh install: the initial restore finishes on an empty keychain and
+            // routes to discovery before the first cloud-sync fetch lands. Re-run
+            // the restore when synced data arrives so the profile picker appears
+            // without an app relaunch.
+            guard !appState.isAuthenticated, !appState.isLoading else { return }
+            Task { await restoreSession() }
         }
         #if os(iOS)
         .onChange(of: scenePhase) { _, phase in
@@ -405,6 +416,16 @@ struct AppRouter: View {
         markTVUserResolved()
         appState.isLoading = true
         let splashStart = Date()
+
+        // Fresh install: give the first iCloud fetch a bounded head start so a
+        // synced household lands on the profile picker instead of discovery.
+        if dependencies.listKnownServers().isEmpty,
+           dependencies.cloudSync?.isEnabled == true {
+            appState.isCloudSyncProbing = true
+            await dependencies.cloudSync?.waitForInitialSync(timeout: 6)
+            appState.isCloudSyncProbing = false
+        }
+
         await performRestore()
 
         // Hold the splash for at least the minimum so the brand moment

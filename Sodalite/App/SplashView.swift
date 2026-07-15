@@ -4,6 +4,7 @@ import SwiftUI
 struct SplashView: View {
 
     @Environment(\.dependencies) private var dependencies
+    @Environment(\.appState) private var appState
 
     private let appearDuration: Double = 0.6
 
@@ -14,11 +15,23 @@ struct SplashView: View {
             Color.black
                 .ignoresSafeArea()
 
-            logo
-                .aspectRatio(contentMode: .fit)
-                .frame(width: 280, height: 280)
-                .scaleEffect(hasAppeared ? 1.0 : 0.8)
-                .opacity(hasAppeared ? 1.0 : 0.0)
+            VStack(spacing: 16) {
+                logo
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 280, height: 280)
+                    .scaleEffect(hasAppeared ? 1.0 : 0.8)
+                    .opacity(hasAppeared ? 1.0 : 0.0)
+
+                if appState.isCloudSyncProbing {
+                    HStack(spacing: 8) {
+                        ProgressView()
+                            .tint(.white)
+                        Text("cloudSync.launch.loading", bundle: .main)
+                            .font(.callout)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
         }
         .onAppear {
             withAnimation(.easeOut(duration: appearDuration)) {

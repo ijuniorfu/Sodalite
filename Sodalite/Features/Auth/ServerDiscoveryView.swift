@@ -4,6 +4,7 @@ struct ServerDiscoveryView: View {
     @Environment(\.dependencies) private var dependencies
     @State private var viewModel: ServerDiscoveryViewModel?
     @State private var path = NavigationPath()
+    @State private var cloudLoadState: CloudLoadState = .idle
 
     var addMode: Bool = false
     var onCompletion: (() -> Void)? = nil
@@ -11,6 +12,10 @@ struct ServerDiscoveryView: View {
     private enum Route: Hashable {
         case login(JellyfinServer)
         case manual
+    }
+
+    private enum CloudLoadState {
+        case idle, loading, nothingFound, noAccount
     }
 
     var body: some View {
@@ -31,6 +36,8 @@ struct ServerDiscoveryView: View {
 
                 manualButton
                     .padding(.top, 8)
+
+                cloudLoadButton
 
                 Spacer(minLength: 0)
             }
@@ -130,6 +137,62 @@ struct ServerDiscoveryView: View {
                 .padding(.vertical, 12)
         }
         .buttonStyle(SettingsTileButtonStyle())
+    }
+
+    @ViewBuilder
+    private var cloudLoadButton: some View {
+        VStack(spacing: 8) {
+            Button {
+                loadFromCloud()
+            } label: {
+                HStack(spacing: 10) {
+                    if cloudLoadState == .loading {
+                        ProgressView()
+                    }
+                    Text("cloudSync.discovery.load")
+                        .font(.body)
+                        .fontWeight(.semibold)
+                }
+                .padding(.horizontal, 32)
+                .padding(.vertical, 12)
+            }
+            .buttonStyle(SettingsTileButtonStyle())
+            .disabled(cloudLoadState == .loading)
+
+            switch cloudLoadState {
+            case .nothingFound:
+                Text("cloudSync.discovery.nothingFound")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            case .noAccount:
+                Text("settings.cloudSync.status.noAccount")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            case .idle, .loading:
+                EmptyView()
+            }
+        }
+        .padding(.top, 4)
+    }
+
+    private func loadFromCloud() {
+        guard let cloudSync = dependencies.cloudSync else { return }
+        cloudLoadState = .loading
+        Task {
+            await cloudSync.fetchNow()
+            await cloudSync.waitForInitialSync(timeout: 8)
+            // If data arrived, AppRouter's .cloudSyncDidApplyChanges restore flips
+            // the screen away; reaching here with servers still empty means no data.
+            if dependencies.listKnownServers().isEmpty {
+                if case .noAccount = cloudSync.status {
+                    cloudLoadState = .noAccount
+                } else {
+                    cloudLoadState = .nothingFound
+                }
+            } else {
+                cloudLoadState = .idle
+            }
+        }
     }
 }
 

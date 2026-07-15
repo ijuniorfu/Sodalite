@@ -74,6 +74,9 @@ struct ServerManagementView: View {
         } message: {
             Text("multiServer.switch.failed.message", bundle: .main)
         }
+        .onReceive(NotificationCenter.default.publisher(for: .cloudSyncDidApplyChanges)) { _ in
+            load()
+        }
     }
 
     private func load() {

@@ -87,7 +87,7 @@ Almost everything is identical across devices, it's one codebase. A handful of c
 
 ## Open source, end to end
 
-Sodalite is open from end to end. Every byte that touches your server is in this repo, your auth tokens stay in your Keychain, and there's no telemetry, no analytics, no third-party SDK phoning home.
+Sodalite is open from end to end. Every byte that touches your server is in this repo, your credentials live in your device's Keychain and sync between your devices only through your private iCloud, end-to-end encrypted so not even Apple can read them (turn iCloud Sync off and they never leave the device), and there's no telemetry, no analytics, no third-party SDK phoning home.
 
 Licensed under **GPL-3.0 with an Apple Store / DRM Exception**. Fork it, study it, build your own version, but no one can take it private. Modifications must stay open. The exception clause in the LICENSE keeps the App Store and TestFlight distribution paths legally clean. The video stack underneath ([AetherEngine](https://github.com/superuser404notfound/AetherEngine)) is **LGPL-3.0** with the same Apple Store exception, so the engine can be reused in other apps while engine-level improvements flow back to the community. Both are auditable, buildable from source, and free of any vendor lock-in. Self-host the server, self-build the client, the whole loop is yours.
 
@@ -166,6 +166,7 @@ The Seerr integration isn't a tacked-on link to a web view. It's a first-class p
 - **Admin view**: with Jellyseerr admin permissions, approve, decline, edit, or delete any user's request right from the All Requests tab
 
 ### 🌍 Personal
+- **iCloud Sync**: servers, logins and settings sync automatically across every device signed into the same iCloud account, end-to-end encrypted so only your devices can read the secrets (tokens, passwords, Seerr sessions, your Guardian PIN); on by default, manage it from Settings → iCloud Sync with a live status, a manual "push this device's settings" action, and the option to delete your iCloud data entirely
 - **Parental controls**: set a Guardian PIN to protect profiles and lock changes to settings, servers and profiles; a locked device returns to the profile picker on a cold start and gated actions ask for the PIN first, with recovery via your Jellyfin password
 - **Watch Stats**: a Settings screen with your viewing totals, movies and episodes watched, completion rate, estimated hours, top genres, most-rewatched and recently-watched titles, all aggregated client-side from standard Jellyfin data
 - **26 languages**: German, English, Spanish, French, Italian, Japanese, Korean, Norwegian, Dutch, Polish, Portuguese (BR + PT), Russian, Swedish, Simplified + Traditional Chinese, Turkish, Ukrainian, Czech, Slovak, Croatian, Finnish, Greek, Hungarian, Romanian, Danish
