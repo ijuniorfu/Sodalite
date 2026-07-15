@@ -8,8 +8,8 @@ import Foundation
 struct JellyfinServer: Codable, Sendable, Identifiable, Equatable, Hashable {
     let id: String
     let name: String
-    var internalURL: URL?
-    var externalURL: URL?
+    let internalURL: URL?
+    let externalURL: URL?
     let version: String?
 
     /// Primary URL for display and single-URL call sites; live routing goes

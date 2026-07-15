@@ -3,8 +3,8 @@ import Foundation
 /// Same dual-URL shape as JellyfinServer (see there for the Codable migration rationale).
 struct SeerrServer: Codable, Sendable, Identifiable, Equatable {
     let id: String
-    var internalURL: URL?
-    var externalURL: URL?
+    let internalURL: URL?
+    let externalURL: URL?
 
     var url: URL { internalURL ?? externalURL! }
 
