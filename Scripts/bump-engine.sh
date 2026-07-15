@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # bump-engine.sh - bump the pinned AetherEngine revision in project.yml
-# to whatever sits at the tip of origin/main, regenerate the Xcode
+# to the latest RELEASE tag (semver, e.g. 5.0.6), regenerate the Xcode
 # project (Scripts/generate-project.sh), run
 # `xcodebuild -resolvePackageDependencies` so the new commit is actually
 # pulled, then commit + push the bump.
@@ -29,10 +29,23 @@ if [ ! -f "$PROJECT_YML" ]; then
     exit 1
 fi
 
-# Latest SHA on origin/main.
-LATEST_SHA=$(git ls-remote "$ENGINE_REPO" main | awk '{print $1}')
+# Latest release tag (semver-sorted) and the commit it points at.
+# Consumers pin releases, not main tips (Vincent, 2026-07-15); unreleased
+# engine commits are tested via a local uncommitted pin instead.
+LATEST_TAG=$(git ls-remote --tags --refs "$ENGINE_REPO" \
+    | awk -F/ '{print $NF}' \
+    | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' \
+    | sort -V | tail -1)
+if [ -z "$LATEST_TAG" ]; then
+    echo "❌ Couldn't fetch latest AetherEngine release tag from $ENGINE_REPO"
+    exit 1
+fi
+# The ^{} ref dereferences an annotated tag to its commit; lightweight tags
+# only emit the plain ref. tail -1 picks the peeled line when present.
+LATEST_SHA=$(git ls-remote "$ENGINE_REPO" "refs/tags/$LATEST_TAG" "refs/tags/$LATEST_TAG^{}" \
+    | awk '{print $1}' | tail -1)
 if [ -z "$LATEST_SHA" ]; then
-    echo "❌ Couldn't fetch latest AetherEngine SHA from $ENGINE_REPO"
+    echo "❌ Couldn't resolve tag $LATEST_TAG to a commit"
     exit 1
 fi
 
@@ -46,7 +59,7 @@ if [ -z "$CURRENT_SHA" ]; then
 fi
 
 if [ "$LATEST_SHA" = "$CURRENT_SHA" ]; then
-    echo "✓ Already at latest AetherEngine (${CURRENT_SHA:0:7})"
+    echo "✓ Already at latest AetherEngine release $LATEST_TAG (${CURRENT_SHA:0:7})"
     exit 0
 fi
 
@@ -121,7 +134,7 @@ xcodebuild -project Sodalite.xcodeproj \
     -resolvePackageDependencies > /dev/null
 
 git add "$PROJECT_YML" "$RESOLVED" Sodalite.xcodeproj
-git commit -m "chore(deps): bump AetherEngine to $SHORT_SHA - $HUMAN_SUBJECT"
+git commit -m "chore(deps): bump AetherEngine to $LATEST_TAG ($SHORT_SHA) - $HUMAN_SUBJECT"
 git push
 
-echo "✓ Bumped AetherEngine ${CURRENT_SHA:0:7} → $SHORT_SHA"
+echo "✓ Bumped AetherEngine ${CURRENT_SHA:0:7} → $LATEST_TAG ($SHORT_SHA)"
