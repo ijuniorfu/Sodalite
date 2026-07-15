@@ -60,6 +60,7 @@
 		1CA21DD248027041C1F4AAD6 /* PlayerHostController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14BCB912099E52F189D68C89 /* PlayerHostController.swift */; };
 		1D454A8E08C7FF6F0073DEC4 /* PersonDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AC4D951D87C80695C4546AF /* PersonDetailView.swift */; };
 		1D668B8BC67E800AC12F1AEB /* ParentalControlsPreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BBB8E5E9C80E873A883AAC3 /* ParentalControlsPreferences.swift */; };
+		1D88EA17130F5EDAAA133AD0 /* ServerRouteResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C0E521708A7EBC3D396F706 /* ServerRouteResolver.swift */; };
 		1DD9EBCAB06E334496CE11C8 /* CatalogProviderRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58ABF4558D8BC04D3D114DBB /* CatalogProviderRow.swift */; };
 		1F05ABE6B65D09D3CD84BF58 /* APIEndpoint.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3118800CEC44D1F94EBBFCF7 /* APIEndpoint.swift */; };
 		1F069BF8E9280E25499C2FFB /* AsyncSemaphore.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF76354814B374060E8AE5C2 /* AsyncSemaphore.swift */; };
@@ -200,6 +201,7 @@
 		5C9B1927478341433BDBEF31 /* RememberedUser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 287E31101A6E454F2B09BEF9 /* RememberedUser.swift */; };
 		5CC1AD49C00E8D6893898AE2 /* RecordingsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 730C8FB986E1263A255832CC /* RecordingsViewModel.swift */; };
 		5D251B26E974680A9A2D4E26 /* SeerrUser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C5DC5A520828B9C0565934A /* SeerrUser.swift */; };
+		5D6FF869455188BA8DE18E2A /* ServerRouteResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C0E521708A7EBC3D396F706 /* ServerRouteResolver.swift */; };
 		5DB47B4E42E718BAC552EF51 /* CloudSyncPreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = 306295C10371A4A926588650 /* CloudSyncPreferences.swift */; };
 		5DE471BFC36CDF3243D989E0 /* HomeRowData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 949228FF4210420390D3B76D /* HomeRowData.swift */; };
 		5E14654E7CB5C77AE52B037F /* PlaybackSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4703CB0FED4DACCE7A447A6 /* PlaybackSettingsView.swift */; };
@@ -475,6 +477,7 @@
 		D601261EBA6F4571F9D2B138 /* GlassBackground.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FAE153258CB34980ED7C41A /* GlassBackground.swift */; };
 		D6B01E38987661EC63A78A33 /* JellyfinModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BBA139659DE4EBEB784F07F /* JellyfinModels.swift */; };
 		D6C39A13A306A727E2BDD921 /* LiveTVTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 973120A7DD065FCEB8706D3D /* LiveTVTabView.swift */; };
+		D6D380009555CAF59F83E944 /* ServerRouteResolverTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B09C69F6B6E796BCEBB4B402 /* ServerRouteResolverTests.swift */; };
 		D6EC3E5A9DFA562392F1D968 /* MusicPlaybackCoordinator+Scrubbing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74FBF5F7692C791B5FFC8AFE /* MusicPlaybackCoordinator+Scrubbing.swift */; };
 		D6EE06D0D90A271FFD352571 /* NowPlayingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04CA12E8C584EE67B0FB35C7 /* NowPlayingView.swift */; };
 		D7515B499AD1C256FC43DBE1 /* SeerrHorizontalMediaRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = B62519BD37E62A4F9FF64DFC /* SeerrHorizontalMediaRow.swift */; };
@@ -711,6 +714,7 @@
 		58AF29A659F51ED292CF8D58 /* EnvironmentKeys.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnvironmentKeys.swift; sourceTree = "<group>"; };
 		58BD2D49CE8AB49360409981 /* OFL.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = OFL.txt; sourceTree = "<group>"; };
 		5B7F000B8D8677EF0C3F7C73 /* PlayerSystemVolume.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerSystemVolume.swift; sourceTree = "<group>"; };
+		5C0E521708A7EBC3D396F706 /* ServerRouteResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServerRouteResolver.swift; sourceTree = "<group>"; };
 		5C2FBEBB8926214D1253EA10 /* Color+Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Color+Theme.swift"; sourceTree = "<group>"; };
 		5D67C0E479E49AEC10441E52 /* NowPlayingCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NowPlayingCard.swift; sourceTree = "<group>"; };
 		5DC9442A4D4AD7B3F96516B3 /* ViewConditional.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewConditional.swift; sourceTree = "<group>"; };
@@ -812,6 +816,7 @@
 		AE687783643BAC165016644A /* ActiveUserBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActiveUserBadge.swift; sourceTree = "<group>"; };
 		AEAABD2FB5B0BD5670877864 /* PendingRequestsMonitorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PendingRequestsMonitorTests.swift; sourceTree = "<group>"; };
 		AF726D36DBBC4684F872D139 /* KeychainMigrator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainMigrator.swift; sourceTree = "<group>"; };
+		B09C69F6B6E796BCEBB4B402 /* ServerRouteResolverTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServerRouteResolverTests.swift; sourceTree = "<group>"; };
 		B0ADC46D81A9CF7F465A5A05 /* CloudSyncMerge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudSyncMerge.swift; sourceTree = "<group>"; };
 		B0B281014661348826CF938E /* PlayerViewModel+Scrubbing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PlayerViewModel+Scrubbing.swift"; sourceTree = "<group>"; };
 		B211E0C4ACD1D88E8763E7CC /* SodaliteShortcuts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SodaliteShortcuts.swift; sourceTree = "<group>"; };
@@ -1074,6 +1079,7 @@
 				D8D959C518992C4AB3C9E570 /* ServerDiscoveryURLTests.swift */,
 				0049820D32E9F8F26AE51AB4 /* ServerDiscoveryViewModelTests.swift */,
 				143748079A977513B9EDF771 /* ServerDualURLCodableTests.swift */,
+				B09C69F6B6E796BCEBB4B402 /* ServerRouteResolverTests.swift */,
 				2D7691E9CE22321AB0996192 /* ServerURLClassifierTests.swift */,
 				34D5B3810DDB2AD91CD7A5CD /* SessionRestorerTests.swift */,
 				20F0563DC3B9E955AE59349F /* SRTParserTests.swift */,
@@ -1497,6 +1503,7 @@
 				545F0A25E3B7C1295647548F /* HTTPClient.swift */,
 				A8F9685F48162E2D506B820B /* HTTPMethod.swift */,
 				37069EBB512D8095D5F68CED /* ServerRoute.swift */,
+				5C0E521708A7EBC3D396F706 /* ServerRouteResolver.swift */,
 				F6BDE8AC81E42D549C5C602E /* ServerURLClassifier.swift */,
 			);
 			path = Networking;
@@ -2014,6 +2021,7 @@
 				088B3263C65332EE39D5EECB /* ServerDiscoveryViewModel.swift in Sources */,
 				008E7FDF9FB52DE6FA162617 /* ServerManagementView.swift in Sources */,
 				23DAECE18EEC4DE2A55DC21E /* ServerRoute.swift in Sources */,
+				1D88EA17130F5EDAAA133AD0 /* ServerRouteResolver.swift in Sources */,
 				7A7646C002A956AE9BA1D608 /* ServerSwitchSheet.swift in Sources */,
 				604D021DBE845146A1EBF634 /* ServerURLClassifier.swift in Sources */,
 				EC4C33C0E5DE0EF375B8ECAD /* SessionRestoreEnvironment.swift in Sources */,
@@ -2094,6 +2102,7 @@
 				9210CAE033E96E8F9145A6D2 /* ServerDiscoveryURLTests.swift in Sources */,
 				3C70F7FB93B4BF67FBD80F02 /* ServerDiscoveryViewModelTests.swift in Sources */,
 				B3B3AC1A390FCE7F81AB539C /* ServerDualURLCodableTests.swift in Sources */,
+				D6D380009555CAF59F83E944 /* ServerRouteResolverTests.swift in Sources */,
 				C46B3F125E18CBAD3C030347 /* ServerURLClassifierTests.swift in Sources */,
 				7E6A5602AAE2EB1189151A70 /* SessionRestorerTests.swift in Sources */,
 				234FD6BF76C34011FC978A38 /* TrickplayScrubSourceTests.swift in Sources */,
@@ -2310,6 +2319,7 @@
 				F1F47A5227AF2814A2417C33 /* ServerDiscoveryViewModel.swift in Sources */,
 				BF8CC8ECCD4897A67371670B /* ServerManagementView.swift in Sources */,
 				D310E84B0CD2F359189C4C2C /* ServerRoute.swift in Sources */,
+				5D6FF869455188BA8DE18E2A /* ServerRouteResolver.swift in Sources */,
 				476DB8CF76458A339BE1E371 /* ServerSwitchSheet.swift in Sources */,
 				54F470BF65D1060F75165393 /* ServerURLClassifier.swift in Sources */,
 				E555E8826A44AB1367C7D31E /* SessionRestoreEnvironment.swift in Sources */,
