@@ -31,6 +31,7 @@ final class FakeRestoreEnv: SessionRestoreEnvironment {
 
     func listKnownServers() -> [JellyfinServer] { knownServers }
     func listRememberedUsers(serverID: String) -> [RememberedUser] { remembered.filter { $0.serverID == serverID } }
+    func preferredURL(for server: JellyfinServer) -> URL { server.url }  // single-slot fallback, matches production's server.url default
     func loadActiveServerID() -> String? { activeServerIDStored }
     func loadUserID(serverID: String) -> String? { userIDByServer[serverID] }
     func loadActiveUserName() -> String? { activeUserName }

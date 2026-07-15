@@ -12,6 +12,8 @@ protocol SessionRestoreEnvironment {
 
     func listKnownServers() -> [JellyfinServer]
     func listRememberedUsers(serverID: String) -> [RememberedUser]
+    /// Route-aware best guess for a server's base URL: the persisted last-known route, else server.url. Satisfied by DependencyContainer's existing member.
+    func preferredURL(for server: JellyfinServer) -> URL
 
     func loadActiveServerID() -> String?
     func loadUserID(serverID: String) -> String?
