@@ -555,6 +555,7 @@ struct SeerrSettingsView: View {
 
             try? await Task.sleep(for: .seconds(1.5))
             appState.setSeerrConnected(server: server, user: user)
+            dependencies.scheduleRouteResolve()
             showSuccess = false
         } catch {
             // Drop the cookie only, keep baseURL: full clearSeerrSession wipes baseURL -> next attempt fails on invalid URL.

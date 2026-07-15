@@ -204,6 +204,7 @@ struct AppRouter: View {
                     guard !Task.isCancelled else { return }
                     if case .connected(let seerrServer, let seerrUser) = outcome {
                         appState.setSeerrConnected(server: seerrServer, user: seerrUser)
+                        dependencies.scheduleRouteResolve()
                     } else {
                         appState.disconnectSeerr()
                     }
@@ -489,6 +490,7 @@ struct AppRouter: View {
         )
         if case .connected(let seerrServer, let seerrUser) = seerrOutcome {
             appState.setSeerrConnected(server: seerrServer, user: seerrUser)
+            dependencies.scheduleRouteResolve()
         }
     }
 
