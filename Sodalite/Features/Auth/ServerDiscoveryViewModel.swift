@@ -44,7 +44,8 @@ final class ServerDiscoveryViewModel {
         let result = await discoveryService.discoverServer(input: discovered.address.absoluteString)
         switch result {
         case .success(let url, let info):
-            return JellyfinServer(id: info.id, name: info.serverName, url: url, version: info.version)
+            // Found on the local network: pin to the internal slot regardless of hostname shape.
+            return JellyfinServer(id: info.id, name: info.serverName, internalURL: url, externalURL: nil, version: info.version)
         case .failure(let error):
             errorMessage = error.localizedDescription
             return nil

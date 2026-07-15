@@ -335,7 +335,8 @@ final class DependencyContainer {
         let updated = JellyfinServer(
             id: server.id,
             name: server.name,
-            url: server.url,
+            internalURL: server.internalURL,
+            externalURL: server.externalURL,
             version: info.version
         )
         try? updateKnownServer(updated)
