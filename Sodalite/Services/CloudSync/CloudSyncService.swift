@@ -179,6 +179,10 @@ final class CloudSyncService: CloudSyncServiceProtocol {
     func waitForInitialSync(timeout: TimeInterval) async {
         let deadline = Date().addingTimeInterval(timeout)
         while Date() < deadline {
+            // Cancelled callers must exit immediately: a cancelled Task.sleep throws
+            // right away (swallowed by try?), so continuing would busy-spin the
+            // MainActor until the deadline.
+            if Task.isCancelled { return }
             if preferences.adoptionCompleted { return }
             switch status {
             case .noAccount, .disabled, .error: return
