@@ -102,6 +102,14 @@ struct AppRouter: View {
         .onReceive(NotificationCenter.default.publisher(for: .seerrRequestDidSubmit)) { _ in
             Task { await refreshPending() }
         }
+        .onReceive(NotificationCenter.default.publisher(for: .cloudSyncDidApplyChanges)) { _ in
+            // Fresh install: the initial restore finishes on an empty keychain and
+            // routes to discovery before the first cloud-sync fetch lands. Re-run
+            // the restore when synced data arrives so the profile picker appears
+            // without an app relaunch.
+            guard !appState.isAuthenticated, !appState.isLoading else { return }
+            Task { await restoreSession() }
+        }
         #if os(iOS)
         .onChange(of: scenePhase) { _, phase in
             // Queue the next background poll when leaving the foreground, only while opted in.
