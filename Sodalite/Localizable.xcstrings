@@ -86540,7 +86540,7 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sodalite подключается через внутренний URL, когда сервер доступен в текущей сети, и переключается на внешний URL, когда вы не в сети."
+            "value" : "Sodalite подключается через внутренний URL, когда сервер доступен в текущей сети, и переключается на внешний URL, когда вы вне сети."
           }
         },
         "sk" : {
@@ -86817,7 +86817,7 @@
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Inserisci URL validi incluso lo schema (http:// o https://)."
+            "value" : "Inserisci URL validi compreso lo schema (http:// o https://)."
           }
         },
         "ja" : {
