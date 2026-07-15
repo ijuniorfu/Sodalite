@@ -16,6 +16,12 @@ enum Changelog {
                 ),
                 ChangelogHighlight(
                     .new,
+                    "changelog.1_0_0.dualUrl.title",
+                    "changelog.1_0_0.dualUrl.body",
+                    icon: "network"
+                ),
+                ChangelogHighlight(
+                    .new,
                     "changelog.1_0_0.milestone.title",
                     "changelog.1_0_0.milestone.body",
                     icon: "party.popper.fill"

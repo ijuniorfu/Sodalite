@@ -58965,6 +58965,328 @@
         }
       }
     },
+    "changelog.1_0_0.dualUrl.body" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Přiřaďte každému serveru interní a externí adresu. Sodalite obě vyzkouší a připojí se přes tu, která odpoví, doma, na cestách i přes VPN."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Giv hver server en intern og en ekstern adresse. Sodalite tester begge og forbinder via den, der svarer, hjemme, på farten eller over VPN."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gib jedem Server eine interne und eine externe Adresse. Sodalite prüft beide und verbindet sich über die, die antwortet, zu Hause, unterwegs oder per VPN."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Δώστε σε κάθε διακομιστή μια εσωτερική και μια εξωτερική διεύθυνση. Το Sodalite δοκιμάζει και τις δύο και συνδέεται μέσω όποιας αποκριθεί, στο σπίτι, εν κινήσει ή μέσω VPN."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Give each server an internal and an external address. Sodalite probes both and connects through whichever answers, at home, on the go, or over VPN."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Asigna a cada servidor una dirección interna y una externa. Sodalite prueba ambas y se conecta a través de la que responda, en casa, fuera o por VPN."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anna jokaiselle palvelimelle sisäinen ja ulkoinen osoite. Sodalite kokeilee molempia ja yhdistää siihen, joka vastaa, kotona, liikkeellä tai VPN:n kautta."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Attribuez à chaque serveur une adresse interne et une adresse externe. Sodalite teste les deux et se connecte via celle qui répond, à la maison, en déplacement ou via VPN."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dodijelite svakom poslužitelju internu i vanjsku adresu. Sodalite provjerava obje i povezuje se putem one koja odgovori, kod kuće, u pokretu ili preko VPN-a."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Adj meg minden szerverhez egy belső és egy külső címet. A Sodalite mindkettőt kipróbálja, és azon keresztül csatlakozik, amelyik válaszol, otthon, útközben vagy VPN-en át."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Assegna a ogni server un indirizzo interno e uno esterno. Sodalite li prova entrambi e si connette tramite quello che risponde, a casa, in giro o via VPN."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "各サーバーに内部アドレスと外部アドレスを設定できます。Sodalite は両方を確認し、応答した方を通じて接続します。自宅でも、外出先でも、VPN 経由でも。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "각 서버에 내부 주소와 외부 주소를 지정하세요. Sodalite가 둘 다 확인하고 응답하는 쪽으로 연결합니다. 집에서도, 이동 중에도, VPN에서도."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gi hver server en intern og en ekstern adresse. Sodalite tester begge og kobler til via den som svarer, hjemme, på farten eller over VPN."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Geef elke server een intern en een extern adres. Sodalite probeert beide en verbindt via het adres dat antwoordt, thuis, onderweg of via VPN."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nadaj każdemu serwerowi wewnętrzny i zewnętrzny adres. Sodalite sprawdza oba i łączy się przez ten, który odpowie, w domu, w podróży lub przez VPN."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dê a cada servidor um endereço interno e um externo. O Sodalite testa os dois e conecta pelo que responder, em casa, fora ou por VPN."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Atribua a cada servidor um endereço interno e um externo. O Sodalite testa os dois e liga-se através do que responder, em casa, fora ou por VPN."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Atribuie fiecărui server o adresă internă și una externă. Sodalite le verifică pe ambele și se conectează prin cea care răspunde, acasă, în deplasare sau prin VPN."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Задайте каждому серверу внутренний и внешний адрес. Sodalite проверяет оба и подключается через тот, который отвечает, дома, в пути или через VPN."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Priraďte každému serveru internú a externú adresu. Sodalite vyskúša obe a pripojí sa cez tú, ktorá odpovie, doma, na cestách aj cez VPN."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ge varje server en intern och en extern adress. Sodalite testar båda och ansluter via den som svarar, hemma, på språng eller över VPN."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Her sunucuya bir dahili ve bir harici adres verin. Sodalite ikisini de dener ve yanıt veren adres üzerinden bağlanır; evde, yolda veya VPN ile."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Задайте кожному серверу внутрішню та зовнішню адресу. Sodalite перевіряє обидві та підключається через ту, яка відповідає, вдома, у дорозі чи через VPN."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "为每个服务器设置内部和外部地址。Sodalite 会探测两者，并通过响应的地址连接，无论在家、外出还是通过 VPN。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "為每部伺服器設定內部與外部位址。Sodalite 會偵測兩者，並透過有回應的位址連線，無論在家、外出或透過 VPN。"
+          }
+        }
+      }
+    },
+    "changelog.1_0_0.dualUrl.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Automatické přepínání serverů"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Automatisk serverskift"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Automatischer Serverwechsel"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Αυτόματη εναλλαγή διακομιστή"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Automatic Server Switching"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cambio automático de servidor"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Automaattinen palvelimen vaihto"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Changement de serveur automatique"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Automatsko prebacivanje poslužitelja"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Automatikus szerverváltás"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cambio automatico del server"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "サーバーの自動切り替え"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "자동 서버 전환"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Automatisk serverbytte"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Automatisch wisselen van server"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Automatyczne przełączanie serwerów"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Troca automática de servidor"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mudança automática de servidor"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Comutare automată a serverului"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Автоматическое переключение серверов"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Automatické prepínanie serverov"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Automatiskt serverbyte"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Otomatik Sunucu Geçişi"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Автоматичне перемикання серверів"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "自动服务器切换"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "自動伺服器切換"
+          }
+        }
+      }
+    },
     "changelog.1_0_0.everyScreen.body" : {
       "extractionState" : "manual",
       "localizations" : {
