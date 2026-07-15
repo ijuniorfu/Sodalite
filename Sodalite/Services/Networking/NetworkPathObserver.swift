@@ -12,8 +12,13 @@ final class NetworkPathObserver {
     private let monitor = NWPathMonitor()
     private var debounceTask: Task<Void, Never>?
     private var didSeeInitialPath = false
+    private var isStarted = false
 
     func start() {
+        // AppRouter's .task re-fires on modal dismissal; a second
+        // NWPathMonitor.start() asserts in libnetwork, so latch.
+        guard !isStarted else { return }
+        isStarted = true
         monitor.pathUpdateHandler = { [weak self] _ in
             Task { @MainActor [weak self] in
                 self?.pathDidUpdate()
