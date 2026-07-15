@@ -21,6 +21,10 @@ extension Notification.Name {
     /// Posted by CloudSyncService after remote changes were applied locally, so
     /// server lists, pickers, and settings screens refresh.
     static let cloudSyncDidApplyChanges = Notification.Name("cloudSyncDidApplyChanges")
+
+    /// Posted by DependencyContainer after the route resolver moved the active
+    /// session to the other URL slot (internal <-> external).
+    static let serverRouteDidChange = Notification.Name("serverRouteDidChange")
 }
 
 /// userInfo keys for `.playbackProgressDidChange`.

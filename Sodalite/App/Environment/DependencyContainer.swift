@@ -59,6 +59,13 @@ final class DependencyContainer {
     /// fully built (the service needs a back-reference to the container).
     var cloudSync: CloudSyncServiceProtocol?
 
+    /// Dual-URL routing state. Routes are per active session; nil when the
+    /// active server has no resolved route yet.
+    let serverRouteStore = ServerRouteStore()
+    var activeJellyfinRoute: ServerRoute?
+    var activeSeerrRoute: ServerRoute?
+    var routeResolveTask: Task<Void, Never>?
+
     /// Attach + start cloud sync. Idempotent.
     func attachCloudSync() {
         guard cloudSync == nil else { return }
@@ -228,18 +235,20 @@ final class DependencyContainer {
             return false
         }
 
-        jellyfinClient.baseURL = server.url
+        let sessionURL = preferredURL(for: server)
+        jellyfinClient.baseURL = sessionURL
         jellyfinClient.accessToken = token
 
         // Re-project SharedSessionMirror every cold launch so TopShelf stays in lockstep even if a prior version never wrote it or the shelf's bucket was wiped.
         if let userID = try? keychainService.loadString(for: KeychainKeys.userID(serverID: server.id)) {
             SharedSessionMirror.write(
                 tvUserID: TVUserContext.currentUserID,
-                serverURL: server.url,
+                serverURL: sessionURL,
                 userID: userID,
                 accessToken: token
             )
         }
+        scheduleRouteResolve()
         return true
     }
 
@@ -267,12 +276,13 @@ final class DependencyContainer {
             try keychainService.save(user.id, for: KeychainKeys.jellyfinPasswordUserID(serverID: server.id))
         }
 
-        jellyfinClient.baseURL = server.url
+        let sessionURL = preferredURL(for: server)
+        jellyfinClient.baseURL = sessionURL
         jellyfinClient.accessToken = token
 
         SharedSessionMirror.write(
             tvUserID: TVUserContext.currentUserID,
-            serverURL: server.url,
+            serverURL: sessionURL,
             userID: user.id,
             accessToken: token
         )
@@ -296,6 +306,7 @@ final class DependencyContainer {
         }
 
         cloudSyncMarkServer(server.id)
+        scheduleRouteResolve()
     }
 
     // MARK: - Known Servers
@@ -391,8 +402,10 @@ final class DependencyContainer {
             loaded = nil
         }
 
+        let sessionURL = preferredURL(for: server)
+
         guard let token = loaded else {
-            jellyfinClient.baseURL = server.url
+            jellyfinClient.baseURL = sessionURL
             jellyfinClient.accessToken = nil
             SharedSessionMirror.clear(tvUserID: TVUserContext.currentUserID)
             throw ServerSwitchError.missingToken
@@ -400,19 +413,21 @@ final class DependencyContainer {
 
         let userID = try? keychainService.loadString(for: KeychainKeys.userID(serverID: serverID))
 
-        jellyfinClient.baseURL = server.url
+        jellyfinClient.baseURL = sessionURL
         jellyfinClient.accessToken = token
 
         if let userID {
             SharedSessionMirror.write(
                 tvUserID: TVUserContext.currentUserID,
-                serverURL: server.url,
+                serverURL: sessionURL,
                 userID: userID,
                 accessToken: token
             )
         } else {
             SharedSessionMirror.clear(tvUserID: TVUserContext.currentUserID)
         }
+
+        scheduleRouteResolve()
 
         // Seerr (per server+user) is left to the caller's post-switch restore path so callers can route to a picker first when userID is nil.
         Task { @MainActor in
@@ -553,12 +568,13 @@ final class DependencyContainer {
         try? keychainService.delete(for: KeychainKeys.jellyfinPassword(serverID: server.id))
         try? keychainService.delete(for: KeychainKeys.jellyfinPasswordUserID(serverID: server.id))
 
-        jellyfinClient.baseURL = server.url
+        let sessionURL = preferredURL(for: server)
+        jellyfinClient.baseURL = sessionURL
         jellyfinClient.accessToken = remembered.token
 
         SharedSessionMirror.write(
             tvUserID: TVUserContext.currentUserID,
-            serverURL: server.url,
+            serverURL: sessionURL,
             userID: remembered.id,
             accessToken: remembered.token
         )
@@ -572,6 +588,7 @@ final class DependencyContainer {
         }
 
         cloudSyncMarkServer(server.id)
+        scheduleRouteResolve()
     }
 
     /// Refreshes active-user details after a profile switch. /Users/Me supplies the Policy block (canDeleteContent gate, else stuck on the keychain stub with policy: nil); /Users/Public is the imageTag-only fallback backfilling a nil/stale RememberedUser tag. `expectedUserID` discards the result if a racing switch changed the active profile. Persists tag to keychain + remembered entry, returns the fresh user; nil on guard trip / no change.
@@ -829,7 +846,7 @@ final class DependencyContainer {
             return nil
         }
 
-        seerrClient.baseURL = server.url
+        seerrClient.baseURL = preferredSeerrURL(for: server)
         seerrClient.sessionCookie = cookie
         return server
     }
@@ -839,7 +856,7 @@ final class DependencyContainer {
         forJellyfinUserID jellyfinUserID: String? = nil,
         jellyfinServerID: String? = nil
     ) throws {
-        seerrClient.baseURL = server.url
+        seerrClient.baseURL = preferredSeerrURL(for: server)
 
         if let jellyfinUserID, let jellyfinServerID, let cookie = seerrClient.sessionCookie {
             // Profile-scoped persistence. The global (pre-0.3.0) entry is NOT refreshed here: rewriting it kept the legacy fallback live and let a scopeless profile inherit whoever last logged in. Global keys are read-only legacy now (see syncSeerrSession).
@@ -866,6 +883,7 @@ final class DependencyContainer {
                 try keychainService.save(cookie, for: KeychainKeys.seerrSession(serverID: server.id))
             }
         }
+        scheduleRouteResolve()
     }
 
     /// Restores a specific profile's Seerr session. Returns the SeerrServer so the caller can probe currentUser(); nil when the profile has none (caller clears Seerr state).
@@ -882,7 +900,7 @@ final class DependencyContainer {
         else {
             return nil
         }
-        seerrClient.baseURL = remembered.seerrServer.url
+        seerrClient.baseURL = preferredSeerrURL(for: remembered.seerrServer)
         seerrClient.sessionCookie = remembered.cookie
         return remembered.seerrServer
     }
