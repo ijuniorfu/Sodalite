@@ -28,6 +28,7 @@ struct DualURLEditSheet: View {
                         .keyboardType(.URL)
                         .textInputAutocapitalization(.never)
                         .autocorrectionDisabled()
+                        .disabled(isValidating)
                 } header: {
                     Text("multiServer.urls.internal", bundle: .main)
                 }
@@ -36,6 +37,7 @@ struct DualURLEditSheet: View {
                         .keyboardType(.URL)
                         .textInputAutocapitalization(.never)
                         .autocorrectionDisabled()
+                        .disabled(isValidating)
                 } header: {
                     Text("multiServer.urls.external", bundle: .main)
                 } footer: {
