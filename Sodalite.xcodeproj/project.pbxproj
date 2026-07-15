@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0001CDE344911930777F1A10 /* NetworkPathObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4FCC0AD2AA3F895C4DE7EE5F /* NetworkPathObserver.swift */; };
 		008E7FDF9FB52DE6FA162617 /* ServerManagementView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD92F70D67DC2DE192A24567 /* ServerManagementView.swift */; };
 		00A483F5B94D674A8668163A /* PINRecoveryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F32D566B3DFE9143E274085A /* PINRecoveryView.swift */; };
 		00DD3D12E55D19315473DAE6 /* PINEntryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C576CF181E723BDEB11605F /* PINEntryView.swift */; };
@@ -181,6 +182,7 @@
 		54BD7CC18171A72D174427BA /* Changelog.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF85D7F0021838472DCD2F72 /* Changelog.swift */; };
 		54F470BF65D1060F75165393 /* ServerURLClassifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6BDE8AC81E42D549C5C602E /* ServerURLClassifier.swift */; };
 		5508504F0EB3C65C9859E8AC /* PendingRequestsMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E46636B059F74492348E235 /* PendingRequestsMonitor.swift */; };
+		558F3B89F98A6B7C3A9804D1 /* NetworkPathObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4FCC0AD2AA3F895C4DE7EE5F /* NetworkPathObserver.swift */; };
 		561BCFDFE49D966D069D6FC9 /* PlayerViewModel+NextEpisode.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED26D171BB677217D8F106D4 /* PlayerViewModel+NextEpisode.swift */; };
 		5660BB884247FC00820E5B0E /* GlassActionButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1021036298773AF91C95F8C2 /* GlassActionButton.swift */; };
 		566A6533F1235493C7543F70 /* ContentLogoTitle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 896F7D4A24F4824487750AC9 /* ContentLogoTitle.swift */; };
@@ -702,6 +704,7 @@
 		4E1FB527AFBC2EF233653E73 /* ChangelogListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChangelogListView.swift; sourceTree = "<group>"; };
 		4E46636B059F74492348E235 /* PendingRequestsMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PendingRequestsMonitor.swift; sourceTree = "<group>"; };
 		4EFC87C79D77AB6C13405B06 /* EPGCollectionLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EPGCollectionLayout.swift; sourceTree = "<group>"; };
+		4FCC0AD2AA3F895C4DE7EE5F /* NetworkPathObserver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkPathObserver.swift; sourceTree = "<group>"; };
 		50D44D64EE3E9EBE69B65698 /* SeerrMediaStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeerrMediaStatus.swift; sourceTree = "<group>"; };
 		51A8283C9A660B2731DC9B99 /* CatalogFilter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CatalogFilter.swift; sourceTree = "<group>"; };
 		540616280719D6E5695E427C /* SeriesDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeriesDetailView.swift; sourceTree = "<group>"; };
@@ -1506,6 +1509,7 @@
 				FF76354814B374060E8AE5C2 /* AsyncSemaphore.swift */,
 				545F0A25E3B7C1295647548F /* HTTPClient.swift */,
 				A8F9685F48162E2D506B820B /* HTTPMethod.swift */,
+				4FCC0AD2AA3F895C4DE7EE5F /* NetworkPathObserver.swift */,
 				37069EBB512D8095D5F68CED /* ServerRoute.swift */,
 				5C0E521708A7EBC3D396F706 /* ServerRouteResolver.swift */,
 				F6BDE8AC81E42D549C5C602E /* ServerURLClassifier.swift */,
@@ -1933,6 +1937,7 @@
 				9EA3FEA6E0D2F8BDC9424074 /* MusicScrubberInput.swift in Sources */,
 				CC1A36A3D81BF3B3D00E0096 /* MusicTimeFormatter.swift in Sources */,
 				ABB2C8E6996D9DF42B73E59B /* NamedItem.swift in Sources */,
+				558F3B89F98A6B7C3A9804D1 /* NetworkPathObserver.swift in Sources */,
 				E6FAED89AD61AA5A2D4D648B /* Notifications.swift in Sources */,
 				EB93240173A2C3FF74947753 /* NowPlayingCard.swift in Sources */,
 				29E613B14463FAE38A55FFB8 /* NowPlayingView.swift in Sources */,
@@ -2240,6 +2245,7 @@
 				CFAE64CD92C74114C9C65085 /* MusicScrubberInput.swift in Sources */,
 				FB9B0A48DC7CC3BC88C45436 /* MusicTimeFormatter.swift in Sources */,
 				3C7F41B3F092F8D6752BF2B3 /* NamedItem.swift in Sources */,
+				0001CDE344911930777F1A10 /* NetworkPathObserver.swift in Sources */,
 				F649B0D283FEDB9D1C1A6B47 /* Notifications.swift in Sources */,
 				A6A16197D3D7B5656FE0D583 /* NowPlayingCard.swift in Sources */,
 				D6EE06D0D90A271FFD352571 /* NowPlayingView.swift in Sources */,
