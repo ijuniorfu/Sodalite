@@ -76,6 +76,7 @@
 		2335E7F547AA09125FE5DB98 /* LiveTransportBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6F5CE78EAB9F5BC71D0CF0B /* LiveTransportBar.swift */; };
 		234FD6BF76C34011FC978A38 /* TrickplayScrubSourceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F65790C4F34A9AB07D29DAE /* TrickplayScrubSourceTests.swift */; };
 		23B467018C2F36BF380F4189 /* SeerrMediaDetail.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0890FF7654C1CDB8D2A8A71A /* SeerrMediaDetail.swift */; };
+		23DAECE18EEC4DE2A55DC21E /* ServerRoute.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37069EBB512D8095D5F68CED /* ServerRoute.swift */; };
 		2469B83FF8F460D17A21F9FF /* SeerrMedia.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D8F02ACD2153F7A0D898E74 /* SeerrMedia.swift */; };
 		248679675CF7B4C617B19C4A /* ViewConditional.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DC9442A4D4AD7B3F96516B3 /* ViewConditional.swift */; };
 		24DD8A1A57FADDE14E0D3343 /* HorizontalMediaRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7501601A2864C83A34FEEB88 /* HorizontalMediaRow.swift */; };
@@ -177,6 +178,7 @@
 		53E3287086366B0482F81334 /* SodaliteShortcuts.swift in Sources */ = {isa = PBXBuildFile; fileRef = B211E0C4ACD1D88E8763E7CC /* SodaliteShortcuts.swift */; };
 		545BB21DEEC05B0CCA7EE9CD /* CloudSyncPayloadsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15D7F74A9A6EF41AB0AAD09C /* CloudSyncPayloadsTests.swift */; };
 		54BD7CC18171A72D174427BA /* Changelog.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF85D7F0021838472DCD2F72 /* Changelog.swift */; };
+		54F470BF65D1060F75165393 /* ServerURLClassifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6BDE8AC81E42D549C5C602E /* ServerURLClassifier.swift */; };
 		5508504F0EB3C65C9859E8AC /* PendingRequestsMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E46636B059F74492348E235 /* PendingRequestsMonitor.swift */; };
 		561BCFDFE49D966D069D6FC9 /* PlayerViewModel+NextEpisode.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED26D171BB677217D8F106D4 /* PlayerViewModel+NextEpisode.swift */; };
 		5660BB884247FC00820E5B0E /* GlassActionButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1021036298773AF91C95F8C2 /* GlassActionButton.swift */; };
@@ -205,6 +207,7 @@
 		5EF958F5DB51CD16F8988868 /* SeerrServiceConfigService.swift in Sources */ = {isa = PBXBuildFile; fileRef = EBFD66C8435155A3FFF29632 /* SeerrServiceConfigService.swift */; };
 		5F28C6C12E832EF8DE68A1B9 /* MediaCastRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1118E47E5B52924CC5C4CBF /* MediaCastRow.swift */; };
 		5F3336B11EDE4E4E8650DB6A /* SeerrSearchService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D46B1FA9CC0A907B9DA0E2A1 /* SeerrSearchService.swift */; };
+		604D021DBE845146A1EBF634 /* ServerURLClassifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6BDE8AC81E42D549C5C602E /* ServerURLClassifier.swift */; };
 		6085881CAE1F0C11FF57087B /* PlayerHostController+SkipDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88577784DD91D770319A3349 /* PlayerHostController+SkipDelegate.swift */; };
 		60A3FFF539B9940F9B9F7C2F /* SharedSessionMirror.swift in Sources */ = {isa = PBXBuildFile; fileRef = 786B359C3F0DB004141A34F1 /* SharedSessionMirror.swift */; };
 		62A7CA6B0DE5753F0DF10A08 /* AppearanceSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0A3049205841D55FB3F382F /* AppearanceSettingsView.swift */; };
@@ -425,6 +428,7 @@
 		C2AA2648B026DBDA971034A7 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 8E42282B53DB27A96F9718CA /* PrivacyInfo.xcprivacy */; };
 		C2C90FEC633A50A26D5B77E3 /* MusicPlaybackCoordinator+NowPlaying.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92C38FEA18079E81D8B4C567 /* MusicPlaybackCoordinator+NowPlaying.swift */; };
 		C33E7F480220826B0CB1F17A /* AtkinsonHyperlegible-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = D0DB7BDD0D155B9EAB4D58A8 /* AtkinsonHyperlegible-Bold.ttf */; };
+		C46B3F125E18CBAD3C030347 /* ServerURLClassifierTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D7691E9CE22321AB0996192 /* ServerURLClassifierTests.swift */; };
 		C5AC44AEA594828A35F6A7DA /* AppShortcuts.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 30BAB0577F927E6DE70315F7 /* AppShortcuts.xcstrings */; };
 		C5E95A33808D1B34EEF4E1BB /* ActiveUserBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE687783643BAC165016644A /* ActiveUserBadge.swift */; };
 		C628C9EE150187F76C251E45 /* HTTPClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 545F0A25E3B7C1295647548F /* HTTPClient.swift */; };
@@ -460,6 +464,7 @@
 		D1F50FC2F7A6631F52B07D8D /* EPGGuideViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F89447C8C03E545E093583E /* EPGGuideViewModel.swift */; };
 		D22B52A7471C7AB924B4B5A6 /* GlassBackground.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FAE153258CB34980ED7C41A /* GlassBackground.swift */; };
 		D2FE87556ABCB8212FBDC68B /* HomeViewModel+Rows.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B72371460030EB19A5DC39F /* HomeViewModel+Rows.swift */; };
+		D310E84B0CD2F359189C4C2C /* ServerRoute.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37069EBB512D8095D5F68CED /* ServerRoute.swift */; };
 		D36F4A87CC36115958693DD5 /* GuardianPINCrypto.swift in Sources */ = {isa = PBXBuildFile; fileRef = A215171E4C39FDCBB7719619 /* GuardianPINCrypto.swift */; };
 		D3962583893888366DD7ECEB /* MovieDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4181D40E9EA28EA46C7DF639 /* MovieDetailView.swift */; };
 		D3D4D6CF1AFD4C2D649E05E7 /* MainQueueDefer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2009D3A6B35520280B2E8329 /* MainQueueDefer.swift */; };
@@ -645,6 +650,7 @@
 		2B72371460030EB19A5DC39F /* HomeViewModel+Rows.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HomeViewModel+Rows.swift"; sourceTree = "<group>"; };
 		2C63899F5939722A0956E039 /* Sodalite-tvOS.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = "Sodalite-tvOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		2D429621806EC6D71F260770 /* SearchTextField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchTextField.swift; sourceTree = "<group>"; };
+		2D7691E9CE22321AB0996192 /* ServerURLClassifierTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServerURLClassifierTests.swift; sourceTree = "<group>"; };
 		2EF7DDFE86971C0AA32E4085 /* DependencyContainer+CloudSync.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DependencyContainer+CloudSync.swift"; sourceTree = "<group>"; };
 		306295C10371A4A926588650 /* CloudSyncPreferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudSyncPreferences.swift; sourceTree = "<group>"; };
 		30BAB0577F927E6DE70315F7 /* AppShortcuts.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = AppShortcuts.xcstrings; sourceTree = "<group>"; };
@@ -653,6 +659,7 @@
 		34D5B3810DDB2AD91CD7A5CD /* SessionRestorerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionRestorerTests.swift; sourceTree = "<group>"; };
 		3558FABE54073F78BABEF9DD /* SRTParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SRTParser.swift; sourceTree = "<group>"; };
 		368B32F98097EE977BFBB373 /* SessionRestorer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionRestorer.swift; sourceTree = "<group>"; };
+		37069EBB512D8095D5F68CED /* ServerRoute.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServerRoute.swift; sourceTree = "<group>"; };
 		37F20293DC3BAA83586C3058 /* HomeCustomizeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeCustomizeView.swift; sourceTree = "<group>"; };
 		386C9D9EA47F538A39B30949 /* KeychainService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainService.swift; sourceTree = "<group>"; };
 		3922C20A201F47D136223B20 /* JellyfinImageService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JellyfinImageService.swift; sourceTree = "<group>"; };
@@ -876,6 +883,7 @@
 		F2D94C696BD816FE0622F904 /* StoreProducts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreProducts.swift; sourceTree = "<group>"; };
 		F32D566B3DFE9143E274085A /* PINRecoveryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PINRecoveryView.swift; sourceTree = "<group>"; };
 		F4FD1A34E31C2A28C00C1939 /* ServerDiscoveryViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServerDiscoveryViewModel.swift; sourceTree = "<group>"; };
+		F6BDE8AC81E42D549C5C602E /* ServerURLClassifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServerURLClassifier.swift; sourceTree = "<group>"; };
 		F6EDE0D3AF30D46C46DE8DFA /* SeerrPermissions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeerrPermissions.swift; sourceTree = "<group>"; };
 		F7AFC9D69550F3562E83D486 /* PlayerTouchInputTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerTouchInputTests.swift; sourceTree = "<group>"; };
 		F8AFD18467EFC7535B275979 /* JellyfinServerDiscovery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JellyfinServerDiscovery.swift; sourceTree = "<group>"; };
@@ -1063,6 +1071,7 @@
 				DBF59220491892D96D7C7ECB /* SeerrNotificationPreferencesTests.swift */,
 				D8D959C518992C4AB3C9E570 /* ServerDiscoveryURLTests.swift */,
 				0049820D32E9F8F26AE51AB4 /* ServerDiscoveryViewModelTests.swift */,
+				2D7691E9CE22321AB0996192 /* ServerURLClassifierTests.swift */,
 				34D5B3810DDB2AD91CD7A5CD /* SessionRestorerTests.swift */,
 				20F0563DC3B9E955AE59349F /* SRTParserTests.swift */,
 				8F65790C4F34A9AB07D29DAE /* TrickplayScrubSourceTests.swift */,
@@ -1484,6 +1493,8 @@
 				FF76354814B374060E8AE5C2 /* AsyncSemaphore.swift */,
 				545F0A25E3B7C1295647548F /* HTTPClient.swift */,
 				A8F9685F48162E2D506B820B /* HTTPMethod.swift */,
+				37069EBB512D8095D5F68CED /* ServerRoute.swift */,
+				F6BDE8AC81E42D549C5C602E /* ServerURLClassifier.swift */,
 			);
 			path = Networking;
 			sourceTree = "<group>";
@@ -1999,7 +2010,9 @@
 				FDB314297ACFCD6E71CB6159 /* ServerDiscoveryView.swift in Sources */,
 				088B3263C65332EE39D5EECB /* ServerDiscoveryViewModel.swift in Sources */,
 				008E7FDF9FB52DE6FA162617 /* ServerManagementView.swift in Sources */,
+				23DAECE18EEC4DE2A55DC21E /* ServerRoute.swift in Sources */,
 				7A7646C002A956AE9BA1D608 /* ServerSwitchSheet.swift in Sources */,
+				604D021DBE845146A1EBF634 /* ServerURLClassifier.swift in Sources */,
 				EC4C33C0E5DE0EF375B8ECAD /* SessionRestoreEnvironment.swift in Sources */,
 				49E87C6DD53780FE23243F69 /* SessionRestorer.swift in Sources */,
 				26B9667EB72514B1BD400DFF /* SettingsView.swift in Sources */,
@@ -2077,6 +2090,7 @@
 				7ACE7F6103BCEB73D7F6E8DE /* SeerrNotificationPreferencesTests.swift in Sources */,
 				9210CAE033E96E8F9145A6D2 /* ServerDiscoveryURLTests.swift in Sources */,
 				3C70F7FB93B4BF67FBD80F02 /* ServerDiscoveryViewModelTests.swift in Sources */,
+				C46B3F125E18CBAD3C030347 /* ServerURLClassifierTests.swift in Sources */,
 				7E6A5602AAE2EB1189151A70 /* SessionRestorerTests.swift in Sources */,
 				234FD6BF76C34011FC978A38 /* TrickplayScrubSourceTests.swift in Sources */,
 				ACBD1C0414C2A351FF486D36 /* TrickplayTileSetTests.swift in Sources */,
@@ -2291,7 +2305,9 @@
 				959BD8EA8F6EB4FCA790011B /* ServerDiscoveryView.swift in Sources */,
 				F1F47A5227AF2814A2417C33 /* ServerDiscoveryViewModel.swift in Sources */,
 				BF8CC8ECCD4897A67371670B /* ServerManagementView.swift in Sources */,
+				D310E84B0CD2F359189C4C2C /* ServerRoute.swift in Sources */,
 				476DB8CF76458A339BE1E371 /* ServerSwitchSheet.swift in Sources */,
+				54F470BF65D1060F75165393 /* ServerURLClassifier.swift in Sources */,
 				E555E8826A44AB1367C7D31E /* SessionRestoreEnvironment.swift in Sources */,
 				93CB08BD8BDCA634E0CFF328 /* SessionRestorer.swift in Sources */,
 				9981B6E3FE935337DA60E438 /* SettingsView.swift in Sources */,
