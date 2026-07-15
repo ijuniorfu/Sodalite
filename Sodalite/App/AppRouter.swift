@@ -416,6 +416,16 @@ struct AppRouter: View {
         markTVUserResolved()
         appState.isLoading = true
         let splashStart = Date()
+
+        // Fresh install: give the first iCloud fetch a bounded head start so a
+        // synced household lands on the profile picker instead of discovery.
+        if dependencies.listKnownServers().isEmpty,
+           dependencies.cloudSync?.isEnabled == true {
+            appState.isCloudSyncProbing = true
+            await dependencies.cloudSync?.waitForInitialSync(timeout: 6)
+            appState.isCloudSyncProbing = false
+        }
+
         await performRestore()
 
         // Hold the splash for at least the minimum so the brand moment

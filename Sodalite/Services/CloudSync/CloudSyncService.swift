@@ -15,6 +15,7 @@ protocol CloudSyncServiceProtocol: AnyObject {
     func start()
     func setEnabled(_ enabled: Bool)
     func fetchNow() async
+    func waitForInitialSync(timeout: TimeInterval) async
     func markServerDirty(serverID: String)
     func markServerDeleted(serverID: String)
     func markSettingsDirty(_ key: CloudSyncStoreKey)
@@ -170,6 +171,21 @@ final class CloudSyncService: CloudSyncServiceProtocol {
         }
         preferences.adoptionCompleted = true
         LogTap.shared.note("[CloudSync] adoption complete")
+    }
+
+    /// Blocks (yielding) until the first adoption fetch has completed, a terminal
+    /// state makes waiting pointless, or the timeout expires. Used to gate the
+    /// fresh-install launch so synced servers surface before the discovery screen.
+    func waitForInitialSync(timeout: TimeInterval) async {
+        let deadline = Date().addingTimeInterval(timeout)
+        while Date() < deadline {
+            if preferences.adoptionCompleted { return }
+            switch status {
+            case .noAccount, .disabled, .error: return
+            case .active: break
+            }
+            try? await Task.sleep(for: .milliseconds(200))
+        }
     }
 
     func fetchNow() async {
@@ -455,6 +471,12 @@ final class CloudSyncService: CloudSyncServiceProtocol {
         guard let data = preferences.engineState else { return nil }
         return try? JSONDecoder().decode(CKSyncEngine.State.Serialization.self, from: data)
     }
+
+    #if DEBUG
+    /// Test-only seam: lets unit tests drive waitForInitialSync's polling branch
+    /// without spinning up a real CKSyncEngine (start() touches CloudKit).
+    func setStatusForTesting(_ status: CloudSyncStatus) { self.status = status }
+    #endif
 }
 
 // MARK: - CKSyncEngineDelegate

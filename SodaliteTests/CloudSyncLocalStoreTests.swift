@@ -153,4 +153,41 @@ struct CloudSyncLocalStoreTests {
         target.applyRemoteSecurityDeletion()
         #expect(!target.isGuardianPINSet())
     }
+
+    private func makePreferences() -> CloudSyncPreferences {
+        CloudSyncPreferences(store: UserDefaults(suiteName: "CloudSyncLocalStoreTests-\(UUID().uuidString)")!)
+    }
+
+    @Test("waitForInitialSync returns immediately once adoption has completed")
+    func waitForInitialSyncAdoptionCompleted() async {
+        let prefs = makePreferences()
+        prefs.adoptionCompleted = true
+        let service = CloudSyncService(dependencies: makeContainer(), preferences: prefs)
+        let start = Date()
+        await service.waitForInitialSync(timeout: 5)
+        #expect(Date().timeIntervalSince(start) < 1)
+    }
+
+    @Test("waitForInitialSync returns immediately for a never-started, disabled service")
+    func waitForInitialSyncDisabledStatus() async {
+        let prefs = makePreferences()
+        prefs.isEnabled = false
+        // Never call start(): status stays at its .disabled default without touching CloudKit.
+        let service = CloudSyncService(dependencies: makeContainer(), preferences: prefs)
+        let start = Date()
+        await service.waitForInitialSync(timeout: 5)
+        #expect(Date().timeIntervalSince(start) < 1)
+    }
+
+    @Test("waitForInitialSync polls until the timeout when neither adoption nor a terminal status holds")
+    func waitForInitialSyncTimesOut() async {
+        let prefs = makePreferences()
+        let service = CloudSyncService(dependencies: makeContainer(), preferences: prefs)
+        service.setStatusForTesting(.active(lastSyncAt: nil))
+        let start = Date()
+        await service.waitForInitialSync(timeout: 0.5)
+        let elapsed = Date().timeIntervalSince(start)
+        #expect(elapsed >= 0.4)
+        #expect(elapsed < 3)
+    }
 }

@@ -30,6 +30,9 @@ final class AppState {
     /// True while a deep-link is in flight; AppRouter overlays a loading view so the prior detail view doesn't flash.
     var isResolvingDeepLink: Bool = false
 
+    /// True while the fresh-install launch gate is waiting on the first iCloud fetch; SplashView surfaces a status line.
+    var isCloudSyncProbing = false
+
     var isSeerrConnected: Bool {
         activeSeerrServer != nil && activeSeerrUser != nil
     }
