@@ -218,6 +218,19 @@ private struct ServerManagementRow: View {
                     }
                 }
             }
+            #if os(iOS)
+            Button {
+                onEditURLs()
+            } label: {
+                Image(systemName: "pencil")
+                    .font(.headline)
+                    .foregroundStyle(.tint)
+                    .padding(10)
+                    .background(.tint.opacity(0.12), in: Circle())
+            }
+            .buttonStyle(.borderless)
+            .accessibilityLabel(Text("multiServer.urls.edit", bundle: .main))
+            #endif
         }
         .padding(.horizontal, 24)
         .padding(.vertical, 20)
