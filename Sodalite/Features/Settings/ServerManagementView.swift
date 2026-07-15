@@ -157,41 +157,28 @@ private struct ServerManagementRow: View {
     var body: some View {
         HStack(spacing: 24) {
             VStack(alignment: .leading, spacing: 6) {
+                #if os(iOS)
+                // Phone width cannot fit name + pills + avatars + edit button in one line
+                // (the fixedSize pills forced the row past the screen edges); the name gets
+                // its own line and the pills a scroll-safe chip row.
+                Text(server.name)
+                    .font(.headline)
+                    .lineLimit(1)
+                    .truncationMode(.tail)
+                if isActive || isDefault {
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 8) { badges }
+                    }
+                }
+                #else
                 HStack(spacing: 8) {
                     Text(server.name)
                         .font(.headline)
                         .lineLimit(1)
                         .truncationMode(.tail)
-                    if isActive {
-                        Text("multiServer.row.active", bundle: .main)
-                            .font(.caption.bold())
-                            .foregroundStyle(.tint)
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 4)
-                            .background(.tint.opacity(0.18), in: Capsule())
-                            .fixedSize()
-                    }
-                    if isDefault {
-                        Text("multiServer.row.default", bundle: .main)
-                            .font(.caption.bold())
-                            .foregroundStyle(.tint)
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 4)
-                            .background(.tint.opacity(0.18), in: Capsule())
-                            .fixedSize()
-                    }
-                    #if os(iOS)
-                    if isActive, let route = dependencies.activeJellyfinRoute {
-                        Text(route == .internal ? "multiServer.route.internal" : "multiServer.route.external", bundle: .main)
-                            .font(.caption.bold())
-                            .foregroundStyle(.secondary)
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 4)
-                            .background(.secondary.opacity(0.15), in: Capsule())
-                            .fixedSize()
-                    }
-                    #endif
+                    badges
                 }
+                #endif
                 Text(server.url.host() ?? server.url.absoluteString)
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
@@ -294,6 +281,39 @@ private struct ServerManagementRow: View {
                 }
             }
         }
+    }
+
+    @ViewBuilder
+    private var badges: some View {
+        if isActive {
+            Text("multiServer.row.active", bundle: .main)
+                .font(.caption.bold())
+                .foregroundStyle(.tint)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 4)
+                .background(.tint.opacity(0.18), in: Capsule())
+                .fixedSize()
+        }
+        if isDefault {
+            Text("multiServer.row.default", bundle: .main)
+                .font(.caption.bold())
+                .foregroundStyle(.tint)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 4)
+                .background(.tint.opacity(0.18), in: Capsule())
+                .fixedSize()
+        }
+        #if os(iOS)
+        if isActive, let route = dependencies.activeJellyfinRoute {
+            Text(route == .internal ? "multiServer.route.internal" : "multiServer.route.external", bundle: .main)
+                .font(.caption.bold())
+                .foregroundStyle(.secondary)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 4)
+                .background(.secondary.opacity(0.15), in: Capsule())
+                .fixedSize()
+        }
+        #endif
     }
 
     @ViewBuilder
