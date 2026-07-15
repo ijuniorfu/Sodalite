@@ -58643,6 +58643,328 @@
         }
       }
     },
+    "changelog.1_0_0.cloudSync.body" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Servery, přihlášení a nastavení zůstávají synchronizované na všech vašich zařízeních, s koncovým šifrováním."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Servere, logins og indstillinger holdes synkroniseret på tværs af alle dine enheder, end-to-end-krypteret."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Server, Anmeldungen und Einstellungen bleiben auf all deinen Geräten synchron, Ende-zu-Ende-verschlüsselt."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Οι διακομιστές, οι συνδέσεις και οι ρυθμίσεις παραμένουν συγχρονισμένα σε όλες τις συσκευές σας, με κρυπτογράφηση από άκρο σε άκρο."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Servers, logins, and settings stay in sync across all your devices, end-to-end encrypted."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Los servidores, los inicios de sesión y los ajustes se mantienen sincronizados en todos tus dispositivos, con cifrado de extremo a extremo."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Palvelimet, kirjautumiset ja asetukset pysyvät synkronoituina kaikilla laitteillasi, päästä päähän salattuna."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vos serveurs, identifiants et réglages restent synchronisés sur tous vos appareils, avec un chiffrement de bout en bout."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Poslužitelji, prijave i postavke ostaju sinkronizirani na svim vašim uređajima, uz end-to-end šifriranje."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A kiszolgálók, a bejelentkezések és a beállítások szinkronban maradnak minden eszközödön, végpontok közötti titkosítással."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Server, accessi e impostazioni restano sincronizzati su tutti i tuoi dispositivi, con crittografia end-to-end."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "サーバー、ログイン、設定がすべてのデバイス間で同期され、エンドツーエンドで暗号化されます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "서버, 로그인, 설정이 모든 기기에서 동기화되며 종단 간 암호화됩니다."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Servere, innlogginger og innstillinger holdes synkronisert på tvers av alle enhetene dine, ende-til-ende-kryptert."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Servers, aanmeldingen en instellingen blijven gesynchroniseerd op al je apparaten, end-to-end-versleuteld."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Serwery, logowania i ustawienia pozostają zsynchronizowane na wszystkich Twoich urządzeniach, szyfrowane end-to-end."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Servidores, logins e ajustes ficam sincronizados em todos os seus dispositivos, com criptografia de ponta a ponta."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Servidores, inícios de sessão e definições mantêm-se sincronizados em todos os seus dispositivos, com encriptação de ponta a ponta."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Serverele, autentificările și setările rămân sincronizate pe toate dispozitivele tale, criptate cap la cap."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Серверы, входы и настройки остаются синхронизированными на всех ваших устройствах, со сквозным шифрованием."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Servery, prihlásenia a nastavenia zostávajú synchronizované na všetkých vašich zariadeniach, so šifrovaním end-to-end."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Servrar, inloggningar och inställningar hålls synkroniserade på alla dina enheter, end-to-end-krypterat."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sunucular, oturum açma bilgileri ve ayarlar tüm cihazlarınızda eşitlenmiş kalır, uçtan uca şifreli."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сервери, входи та налаштування залишаються синхронізованими на всіх ваших пристроях, із наскрізним шифруванням."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "服务器、登录和设置在你的所有设备间保持同步，并采用端到端加密。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "伺服器、登入與設定在你的所有裝置間保持同步，並採用端對端加密。"
+          }
+        }
+      }
+    },
+    "changelog.1_0_0.cloudSync.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Synchronizace iCloud"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iCloud-synkronisering"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iCloud-Sync"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Συγχρονισμός iCloud"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iCloud Sync"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sincronización de iCloud"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iCloud-synkronointi"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Synchronisation iCloud"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iCloud sinkronizacija"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iCloud-szinkronizálás"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sincronizzazione iCloud"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iCloud同期"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iCloud 동기화"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iCloud-synkronisering"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iCloud-synchronisatie"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Synchronizacja iCloud"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sincronização do iCloud"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sincronização do iCloud"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sincronizare iCloud"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Синхронизация iCloud"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Synchronizácia iCloud"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iCloud-synkronisering"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iCloud Eşitleme"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Синхронізація iCloud"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iCloud 同步"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iCloud 同步"
+          }
+        }
+      }
+    },
     "changelog.1_0_0.everyScreen.body" : {
       "extractionState" : "manual",
       "localizations" : {

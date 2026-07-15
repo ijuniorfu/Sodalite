@@ -10,6 +10,12 @@ enum Changelog {
             highlights: [
                 ChangelogHighlight(
                     .new,
+                    "changelog.1_0_0.cloudSync.title",
+                    "changelog.1_0_0.cloudSync.body",
+                    icon: "icloud"
+                ),
+                ChangelogHighlight(
+                    .new,
                     "changelog.1_0_0.milestone.title",
                     "changelog.1_0_0.milestone.body",
                     icon: "party.popper.fill"
