@@ -563,6 +563,13 @@ final class PlayerHostController: AVPlayerViewController {
         wasFullyBackgrounded = true
     }
 
+    /// AetherEngine #127 host adoption: the engine's paused-background grace window (and PiP keepalive)
+    /// can hold the pipeline alive across a real backgrounding; only a torn-down session (backend .none)
+    /// pays the reload. Reloading a live pipeline would throw away exactly the rebuild the window avoided.
+    nonisolated static func foregroundReturnNeedsReload(state: PlaybackState, backend: PlaybackBackend) -> Bool {
+        state != .playing && backend == .none
+    }
+
     @objc private func appDidBecomeActive() {
         guard viewModel.hasStartedPlaying else { return }
 
@@ -571,10 +578,12 @@ final class PlayerHostController: AVPlayerViewController {
         wasFullyBackgrounded = false
 
         #if os(iOS)
-        // Background playback (PiP / background audio) kept the pipeline alive + playing, so there is nothing
-        // to reload and we must NOT force it paused (it should keep playing on return). Only the torn-down
-        // path (background disabled, or paused-in-background teardown -> .paused/.idle) needs the reload below.
-        if viewModel.player.state == .playing { return }
+        // Background playback (PiP / background audio) kept the pipeline alive + playing (nothing to
+        // reload, must NOT force it paused), and a paused pipeline can survive a quick app switch inside
+        // the engine's grace window (backend stays non-.none). Only the torn-down path (background
+        // disabled, or the paused-in-background teardown after the window) needs the reload below.
+        if !Self.foregroundReturnNeedsReload(state: viewModel.player.state,
+                                             backend: viewModel.player.playbackBackend) { return }
         #endif
 
         // tvOS deactivates the AVAudioSession on background; without re-arming it the post-reload resume drives a synchronizer with no live session (state .playing but no audio, no frames advance).
