@@ -1,5 +1,27 @@
 import Foundation
 
+/// Jellyseerr's POST /request signals some failures inside the 2xx range: NoSeasonsAvailableError comes back as 202 + `{status, message}` when every selected season is already requested, processing, or available. Without dedicated handling those bodies die in the SeerrRequest decode as a generic "could not process server response".
+enum SeerrRequestError: LocalizedError, Equatable {
+    case noSeasonsAvailable
+    case serverRejected(message: String)
+
+    var errorDescription: String? {
+        switch self {
+        case .noSeasonsAvailable:
+            String(
+                localized: "error.seerr.noSeasonsAvailable",
+                defaultValue: "All selected seasons have already been requested or are already available"
+            )
+        case .serverRejected(let message):
+            message
+        }
+    }
+}
+
+private struct SeerrErrorBody: Decodable {
+    let message: String?
+}
+
 protocol SeerrRequestServiceProtocol: Sendable {
     func createRequest(
         mediaType: SeerrMediaType,
@@ -64,10 +86,21 @@ final class SeerrRequestService: SeerrRequestServiceProtocol {
             languageProfileId: languageProfileID,
             tags: tags
         )
-        return try await client.request(
-            endpoint: SeerrEndpoint.createRequest(body: body),
-            responseType: SeerrRequest.self
+        let (data, response) = try await client.requestData(
+            endpoint: SeerrEndpoint.createRequest(body: body)
         )
+        if response.statusCode == 202 {
+            throw SeerrRequestError.noSeasonsAvailable
+        }
+        do {
+            return try client.decode(SeerrRequest.self, from: data)
+        } catch {
+            // Unknown 2xx error variant: show the server's own message over a generic decode failure.
+            if let message = (try? client.decode(SeerrErrorBody.self, from: data))?.message {
+                throw SeerrRequestError.serverRejected(message: message)
+            }
+            throw error
+        }
     }
 
     func myRequests(userID: Int, take: Int = 50, skip: Int = 0) async throws -> SeerrRequestsResult {

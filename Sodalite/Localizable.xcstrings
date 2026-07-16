@@ -71747,6 +71747,168 @@
         }
       }
     },
+    "error.seerr.noSeasonsAvailable" : {
+      "comment" : "Seerr answers a TV request with 202 when every selected season is already requested, processing, or available",
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O všechny vybrané sezóny už bylo požádáno nebo jsou už dostupné"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alle valgte sæsoner er allerede anmodet om eller allerede tilgængelige"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alle ausgewählten Staffeln wurden bereits angefragt oder sind bereits verfügbar"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Όλες οι επιλεγμένες σεζόν έχουν ήδη ζητηθεί ή είναι ήδη διαθέσιμες"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "All selected seasons have already been requested or are already available"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Todas las temporadas seleccionadas ya han sido solicitadas o ya están disponibles"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kaikki valitut kaudet on jo pyydetty tai ne ovat jo saatavilla"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toutes les saisons sélectionnées ont déjà été demandées ou sont déjà disponibles"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sve odabrane sezone već su zatražene ili su već dostupne"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Minden kiválasztott évad már kérés alatt áll, vagy már elérhető"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tutte le stagioni selezionate sono già state richieste o sono già disponibili"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "選択したシーズンはすべてリクエスト済みか、すでに利用可能です"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "선택한 모든 시즌이 이미 요청되었거나 이미 이용 가능합니다"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alle valgte sesonger er allerede forespurt eller allerede tilgjengelige"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alle geselecteerde seizoenen zijn al aangevraagd of al beschikbaar"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O wszystkie wybrane sezony już poproszono lub są one już dostępne"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Todas as temporadas selecionadas já foram solicitadas ou já estão disponíveis"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Todas as temporadas selecionadas já foram pedidas ou já estão disponíveis"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toate sezoanele selectate au fost deja solicitate sau sunt deja disponibile"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Все выбранные сезоны уже запрошены или уже доступны"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O všetky vybrané sezóny už bolo požiadané alebo sú už dostupné"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alla valda säsonger har redan begärts eller är redan tillgängliga"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seçilen tüm sezonlar zaten istendi veya zaten mevcut"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Усі вибрані сезони вже запитані або вже доступні"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "所选剧季均已请求或已可用"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "所選季集均已請求或已可用"
+          }
+        }
+      }
+    },
     "error.serverUnreachable" : {
       "comment": "Error when server cannot be reached",
       "extractionState": "manual",
