@@ -85,6 +85,17 @@ struct SeerrRequestServiceTests {
         }
     }
 
+    /// Captured in the field: Jellyseerr auto-approves, fails the Sonarr handover (series has no TVDB id yet), removes the just-created request, and still serializes the removed entity as 201; TypeORM's remove() strips the id.
+    @Test func requestBodyWithoutIDSurfacesDiscarded() async {
+        let service = makeService(
+            statusCode: 201,
+            body: #"{"type":"tv","media":{"tmdbId":328735,"tvdbId":null,"status":2,"mediaType":"tv","id":103},"status":2,"is4k":false,"seasons":[{"seasonNumber":1,"status":2,"id":76}]}"#
+        )
+        await #expect(throws: SeerrRequestError.requestDiscarded) {
+            try await service.createRequest(mediaType: .tv, tmdbID: 328735, seasons: [1])
+        }
+    }
+
     @Test func createdRequestStillDecodes() async throws {
         let service = makeService(
             statusCode: 201,

@@ -3,6 +3,8 @@ import Foundation
 /// Jellyseerr's POST /request signals some failures inside the 2xx range: NoSeasonsAvailableError comes back as 202 + `{status, message}` when every selected season is already requested, processing, or available. Without dedicated handling those bodies die in the SeerrRequest decode as a generic "could not process server response".
 enum SeerrRequestError: LocalizedError, Equatable {
     case noSeasonsAvailable
+    /// 201 whose body is a request object without a top-level `id`: Jellyseerr auto-approved, failed the Sonarr/Radarr handover (e.g. the series has no TVDB entry yet), and removed the just-created request before serializing it (TypeORM's remove() strips the id).
+    case requestDiscarded
     case serverRejected(message: String)
 
     var errorDescription: String? {
@@ -12,6 +14,11 @@ enum SeerrRequestError: LocalizedError, Equatable {
                 localized: "error.seerr.noSeasonsAvailable",
                 defaultValue: "All selected seasons have already been requested or are already available"
             )
+        case .requestDiscarded:
+            String(
+                localized: "error.seerr.requestDiscarded",
+                defaultValue: "The server discarded the request because it could not be handed over to Sonarr/Radarr. Very new titles are often not requestable yet."
+            )
         case .serverRejected(let message):
             message
         }
@@ -20,6 +27,13 @@ enum SeerrRequestError: LocalizedError, Equatable {
 
 private struct SeerrErrorBody: Decodable {
     let message: String?
+}
+
+private struct SeerrDiscardedRequestProbe: Decodable {
+    struct AnyObjectStub: Decodable {}
+    let id: Int?
+    let type: SeerrMediaType?
+    let media: AnyObjectStub?
 }
 
 protocol SeerrRequestServiceProtocol: Sendable {
@@ -97,11 +111,18 @@ final class SeerrRequestService: SeerrRequestServiceProtocol {
         } catch {
             // Field-debuggable via the Support log: a 2xx that is neither a request object nor a {message} error body is otherwise invisible.
             LogTap.shared.note(
-                "[seerr] createRequest undecodable: HTTP \(response.statusCode), \(data.count) bytes: \(String(decoding: data.prefix(600), as: UTF8.self))"
+                "[seerr] createRequest undecodable: HTTP \(response.statusCode), \(data.count) bytes, error: \(error)"
+            )
+            LogTap.shared.note(
+                "[seerr] createRequest body: \(String(decoding: data.prefix(4096), as: UTF8.self))"
             )
             // Unknown 2xx error variant: show the server's own message over a generic decode failure.
             if let message = (try? client.decode(SeerrErrorBody.self, from: data))?.message {
                 throw SeerrRequestError.serverRejected(message: message)
+            }
+            if let probe = try? client.decode(SeerrDiscardedRequestProbe.self, from: data),
+               probe.id == nil, probe.type != nil, probe.media != nil {
+                throw SeerrRequestError.requestDiscarded
             }
             throw error
         }
