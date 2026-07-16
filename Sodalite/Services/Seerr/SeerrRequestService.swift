@@ -95,6 +95,10 @@ final class SeerrRequestService: SeerrRequestServiceProtocol {
         do {
             return try client.decode(SeerrRequest.self, from: data)
         } catch {
+            // Field-debuggable via the Support log: a 2xx that is neither a request object nor a {message} error body is otherwise invisible.
+            LogTap.shared.note(
+                "[seerr] createRequest undecodable: HTTP \(response.statusCode), \(data.count) bytes: \(String(decoding: data.prefix(600), as: UTF8.self))"
+            )
             // Unknown 2xx error variant: show the server's own message over a generic decode failure.
             if let message = (try? client.decode(SeerrErrorBody.self, from: data))?.message {
                 throw SeerrRequestError.serverRejected(message: message)
