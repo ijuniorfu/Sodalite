@@ -46,6 +46,25 @@ final class SeerrClient {
         )
     }
 
+    /// Raw variant for endpoints whose 2xx responses aren't always the expected payload (POST /request answers 202 + error JSON when nothing is requestable); caller checks the status before decoding via `decode(_:from:)`.
+    func requestData(endpoint: APIEndpoint) async throws -> (Data, HTTPURLResponse) {
+        guard let baseURL else { throw APIError.invalidURL }
+        let headers = buildHeaders(requiresAuth: endpoint.requiresAuth)
+        return try await httpClient.requestData(
+            baseURL: baseURL,
+            endpoint: endpoint,
+            headers: headers
+        )
+    }
+
+    func decode<T: Decodable>(_ type: T.Type, from data: Data) throws -> T {
+        do {
+            return try decoder.decode(T.self, from: data)
+        } catch {
+            throw APIError.decodingError(error)
+        }
+    }
+
     func requestWithResponse<T: Decodable>(
         endpoint: APIEndpoint,
         responseType: T.Type

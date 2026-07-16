@@ -71747,6 +71747,330 @@
         }
       }
     },
+    "error.seerr.noSeasonsAvailable" : {
+      "comment" : "Seerr answers a TV request with 202 when every selected season is already requested, processing, or available",
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O všechny vybrané sezóny už bylo požádáno nebo jsou už dostupné"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alle valgte sæsoner er allerede anmodet om eller allerede tilgængelige"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alle ausgewählten Staffeln wurden bereits angefragt oder sind bereits verfügbar"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Όλες οι επιλεγμένες σεζόν έχουν ήδη ζητηθεί ή είναι ήδη διαθέσιμες"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "All selected seasons have already been requested or are already available"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Todas las temporadas seleccionadas ya han sido solicitadas o ya están disponibles"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kaikki valitut kaudet on jo pyydetty tai ne ovat jo saatavilla"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toutes les saisons sélectionnées ont déjà été demandées ou sont déjà disponibles"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sve odabrane sezone već su zatražene ili su već dostupne"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Minden kiválasztott évad már kérés alatt áll, vagy már elérhető"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tutte le stagioni selezionate sono già state richieste o sono già disponibili"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "選択したシーズンはすべてリクエスト済みか、すでに利用可能です"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "선택한 모든 시즌이 이미 요청되었거나 이미 이용 가능합니다"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alle valgte sesonger er allerede forespurt eller allerede tilgjengelige"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alle geselecteerde seizoenen zijn al aangevraagd of al beschikbaar"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O wszystkie wybrane sezony już poproszono lub są one już dostępne"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Todas as temporadas selecionadas já foram solicitadas ou já estão disponíveis"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Todas as temporadas selecionadas já foram pedidas ou já estão disponíveis"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toate sezoanele selectate au fost deja solicitate sau sunt deja disponibile"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Все выбранные сезоны уже запрошены или уже доступны"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O všetky vybrané sezóny už bolo požiadané alebo sú už dostupné"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alla valda säsonger har redan begärts eller är redan tillgängliga"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seçilen tüm sezonlar zaten istendi veya zaten mevcut"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Усі вибрані сезони вже запитані або вже доступні"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "所选剧季均已请求或已可用"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "所選季集均已請求或已可用"
+          }
+        }
+      }
+    },
+    "error.seerr.requestDiscarded" : {
+      "comment" : "Jellyseerr auto-approved the request, failed the Sonarr/Radarr handover (e.g. no TVDB entry yet), and removed the just-created request",
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Server žádost zahodil, protože ji nebylo možné předat službě Sonarr/Radarr. O zcela nové tituly často ještě nelze požádat."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Serveren kasserede anmodningen, fordi den ikke kunne overdrages til Sonarr/Radarr. Helt nye titler kan ofte endnu ikke anmodes om."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Server hat die Anfrage verworfen, da sie nicht an Sonarr/Radarr übergeben werden konnte. Ganz neue Titel sind oft noch nicht anforderbar."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ο διακομιστής απέρριψε το αίτημα επειδή δεν ήταν δυνατή η παράδοσή του στο Sonarr/Radarr. Οι ολοκαίνουργιοι τίτλοι συχνά δεν είναι ακόμη διαθέσιμοι για αίτημα."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The server discarded the request because it could not be handed over to Sonarr/Radarr. Very new titles are often not requestable yet."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El servidor descartó la solicitud porque no pudo entregarse a Sonarr/Radarr. Los títulos muy recientes a menudo aún no se pueden solicitar."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Palvelin hylkäsi pyynnön, koska sitä ei voitu välittää Sonarrille/Radarrille. Aivan uusia nimikkeitä ei usein voi vielä pyytää."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le serveur a rejeté la demande car elle n'a pas pu être transmise à Sonarr/Radarr. Les titres très récents ne peuvent souvent pas encore être demandés."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Poslužitelj je odbacio zahtjev jer ga nije bilo moguće proslijediti Sonarru/Radarru. Sasvim novi naslovi često se još ne mogu zatražiti."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A szerver elvetette a kérést, mert nem sikerült átadni a Sonarr/Radarr szolgáltatásnak. A vadonatúj címek gyakran még nem kérhetők."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Il server ha scartato la richiesta perché non è stato possibile inoltrarla a Sonarr/Radarr. I titoli molto recenti spesso non sono ancora richiedibili."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sonarr/Radarrに引き渡せなかったため、サーバーがリクエストを破棄しました。ごく新しいタイトルはまだリクエストできないことがあります。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sonarr/Radarr로 전달할 수 없어 서버가 요청을 폐기했습니다. 아주 최신 타이틀은 아직 요청할 수 없는 경우가 많습니다."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Serveren forkastet forespørselen fordi den ikke kunne overleveres til Sonarr/Radarr. Helt nye titler kan ofte ikke forespørres ennå."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "De server heeft de aanvraag verworpen omdat deze niet aan Sonarr/Radarr kon worden overgedragen. Gloednieuwe titels zijn vaak nog niet aan te vragen."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Serwer odrzucił prośbę, ponieważ nie udało się jej przekazać do Sonarr/Radarr. O zupełnie nowe tytuły często nie można jeszcze poprosić."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O servidor descartou a solicitação porque ela não pôde ser repassada ao Sonarr/Radarr. Títulos muito recentes muitas vezes ainda não podem ser solicitados."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O servidor descartou o pedido porque não foi possível entregá-lo ao Sonarr/Radarr. Títulos muito recentes muitas vezes ainda não podem ser pedidos."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Serverul a respins cererea deoarece nu a putut fi predată către Sonarr/Radarr. Titlurile foarte noi adesea nu pot fi încă solicitate."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сервер отклонил запрос, так как его не удалось передать в Sonarr/Radarr. Совсем новые фильмы и сериалы часто ещё нельзя запросить."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Server žiadosť zahodil, pretože ju nebolo možné odovzdať službe Sonarr/Radarr. O úplne nové tituly často ešte nemožno požiadať."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Servern kasserade begäran eftersom den inte kunde lämnas över till Sonarr/Radarr. Helt nya titlar går ofta inte att begära ännu."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sunucu, istek Sonarr/Radarr'a aktarılamadığı için isteği iptal etti. Çok yeni yapımlar genellikle henüz istenemez."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сервер відхилив запит, оскільки його не вдалося передати до Sonarr/Radarr. Зовсім нові фільми та серіали часто ще не можна запитати."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "服务器已丢弃该请求，因为无法将其移交给 Sonarr/Radarr。全新的作品通常暂时无法请求。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "伺服器已捨棄該請求，因為無法將其移交給 Sonarr/Radarr。全新的作品通常暫時無法請求。"
+          }
+        }
+      }
+    },
     "error.serverUnreachable" : {
       "comment": "Error when server cannot be reached",
       "extractionState": "manual",
