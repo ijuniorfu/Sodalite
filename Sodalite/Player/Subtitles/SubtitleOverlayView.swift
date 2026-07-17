@@ -50,6 +50,17 @@ struct SubtitleOverlayView: View {
     /// Fixed bottom inset for text cues while controls are visible, above the 300 pt gradient band.
     private static let controlsVisibleBottomInset: CGFloat = 280
 
+    /// A primary text line to render: plain (user-pref colour) or coloured runs (#107 teletext).
+    private enum RenderLine: Identifiable {
+        case plain(id: Int, text: String)
+        case rich(id: Int, runs: [SubtitleTextRun])
+        var id: Int { switch self { case .plain(let id, _): return id; case .rich(let id, _): return id } }
+    }
+
+    private func color(_ c: SubtitleColor) -> Color {
+        Color(red: Double(c.r) / 255, green: Double(c.g) / 255, blue: Double(c.b) / 255)
+    }
+
     var body: some View {
         // libass styling used ONLY without a secondary track; with one the primary
         // falls back to the plain-text overlay so both share one stack (issue #47).
@@ -90,18 +101,24 @@ struct SubtitleOverlayView: View {
             GeometryReader { geo in
                 Color.clear
                     .overlay(alignment: .topLeading) {
-                        let primaryLines: [String] = activeCues(in: cues, maxDuration: maxCueDuration).compactMap { cue in
-                            guard case .text(let raw) = cue.body else { return nil }
-                            let display = isASSTrackActive ? strippedASSText(raw) : raw
-                            return display.isEmpty ? nil : display
+                        let primaryRenderLines: [RenderLine] = activeCues(in: cues, maxDuration: maxCueDuration).compactMap { cue in
+                            switch cue.body {
+                            case .richText(let runs):
+                                return runs.isEmpty ? nil : .rich(id: cue.id, runs: runs)
+                            case .text(let raw):
+                                let display = isASSTrackActive ? strippedASSText(raw) : raw
+                                return display.isEmpty ? nil : .plain(id: cue.id, text: display)
+                            case .image:
+                                return nil
+                            }
                         }
                         let secondaryLines: [String] = activeCues(in: secondaryCues, maxDuration: secondaryMaxCueDuration).compactMap { cue in
                             guard case .text(let raw) = cue.body, !raw.isEmpty else { return nil }
                             return raw
                         }
-                        if !primaryLines.isEmpty || !secondaryLines.isEmpty {
+                        if !primaryRenderLines.isEmpty || !secondaryLines.isEmpty {
                             stackedText(
-                                primary: primaryLines,
+                                primary: primaryRenderLines,
                                 secondary: secondaryLines,
                                 in: geo.size,
                                 safeAreaInsets: geo.safeAreaInsets
@@ -144,7 +161,7 @@ struct SubtitleOverlayView: View {
     /// Render text cues as one bottom-anchored stack (secondary on top, primary below) so the
     /// secondary never overlaps a multi-line primary (the old fixed `pointSize * 2.4` lift did).
     private func stackedText(
-        primary: [String],
+        primary: [RenderLine],
         secondary: [String],
         in size: CGSize,
         safeAreaInsets: EdgeInsets
@@ -164,8 +181,11 @@ struct SubtitleOverlayView: View {
             ForEach(Array(secondary.enumerated()), id: \.offset) { _, line in
                 styledText(line, pointSize: pointSize)
             }
-            ForEach(Array(primary.enumerated()), id: \.offset) { _, line in
-                styledText(line, pointSize: pointSize)
+            ForEach(primary) { line in
+                switch line {
+                case .plain(_, let text): styledText(text, pointSize: pointSize)
+                case .rich(_, let runs): styledRuns(runs, pointSize: pointSize)
+                }
             }
         }
         .frame(maxWidth: maxWidth)
@@ -243,6 +263,40 @@ struct SubtitleOverlayView: View {
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 20)
                 .padding(.vertical, 6)
+        }
+    }
+
+    /// richText variant of styledText: concatenated per-run colour (broadcaster colour wins per run;
+    /// nil-colour runs use the user foreground pref). Outline uses the flattened plain text for the
+    /// eight black copies, coloured concat on top.
+    @ViewBuilder
+    private func styledRuns(_ runs: [SubtitleTextRun], pointSize: CGFloat) -> some View {
+        let baseFont = subtitleBaseFont(pointSize: pointSize)
+        let plain = runs.map(\.text).joined()
+        let colored = runs.reduce(Text("")) { acc, run in
+            acc + Text(run.text).font(baseFont).foregroundColor(run.color.map(color) ?? foregroundColor)
+        }
+        switch background {
+        case .box:
+            colored.multilineTextAlignment(.center)
+                .padding(.horizontal, 20).padding(.vertical, 10)
+                .background(.black.opacity(0.6), in: RoundedRectangle(cornerRadius: 8))
+        case .outline:
+            ZStack {
+                ForEach(Self.outlineOffsets, id: \.self) { offset in
+                    Text(plain).font(baseFont).foregroundStyle(.black)
+                        .multilineTextAlignment(.center).offset(x: offset.x, y: offset.y)
+                }
+                colored.multilineTextAlignment(.center)
+            }
+            .padding(.horizontal, 20).padding(.vertical, 6)
+        case .shadow:
+            colored.multilineTextAlignment(.center)
+                .shadow(color: .black.opacity(0.85), radius: 3, x: 0, y: 1)
+                .padding(.horizontal, 20).padding(.vertical, 6)
+        case .none:
+            colored.multilineTextAlignment(.center)
+                .padding(.horizontal, 20).padding(.vertical, 6)
         }
     }
 
