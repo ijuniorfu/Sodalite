@@ -167,6 +167,18 @@ struct PlaybackSettingsView: View {
                 )
 
                 ValuePickerRow(
+                    icon: "number.square",
+                    title: "settings.playback.teletext.title",
+                    subtitle: "settings.playback.teletext.subtitle",
+                    options: PlaybackPreferences.LiveTeletextPage.allCases,
+                    selection: Binding(
+                        get: { prefs.liveTeletextPage },
+                        set: { prefs.liveTeletextPage = $0 }
+                    ),
+                    label: { String(localized: String.LocalizationValue($0.titleKey)) }
+                )
+
+                ValuePickerRow(
                     icon: "rectangle.fill",
                     title: "settings.playback.subtitle.background",
                     subtitle: "settings.playback.subtitle.background.subtitle",
