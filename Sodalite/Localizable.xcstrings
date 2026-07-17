@@ -106246,6 +106246,489 @@
         }
       }
     },
+    "settings.licenses.title" : {
+      "extractionState": "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Licence open source"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Open source-licenser"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Open-Source-Lizenzen"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Άδειες ανοιχτού κώδικα"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Open Source Licenses"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Licencias de código abierto"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Avoimen lähdekoodin lisenssit"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Licences open source"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Licence otvorenog koda"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Nyílt forráskódú licencek"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Licenze open source"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "オープンソースライセンス"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "오픈 소스 라이선스"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Åpen kildekode-lisenser"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Opensourcelicenties"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Licencje open source"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Licenças de código aberto"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Licenças de código aberto"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Licențe open source"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Лицензии открытого ПО"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Licencie open source"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Licenser för öppen källkod"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Açık Kaynak Lisansları"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Ліцензії відкритого ПЗ"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "开源许可证"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "開源授權"
+          }
+        }
+      }
+    },
+    "settings.licenses.subtitle" : {
+      "extractionState": "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Komponenty třetích stran a texty licencí"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Tredjepartskomponenter og licenstekster"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Komponenten von Drittanbietern und Lizenztexte"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Στοιχεία τρίτων και κείμενα αδειών"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Third-party components and license texts"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Componentes de terceros y textos de licencia"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Kolmansien osapuolten komponentit ja lisenssitekstit"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Composants tiers et textes de licence"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Komponente trećih strana i tekstovi licenci"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Harmadik féltől származó összetevők és licencszövegek"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Componenti di terze parti e testi delle licenze"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "サードパーティコンポーネントとライセンス文書"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "타사 구성 요소 및 라이선스 텍스트"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Tredjepartskomponenter og lisenstekster"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Componenten van derden en licentieteksten"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Komponenty innych firm i teksty licencji"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Componentes de terceiros e textos de licença"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Componentes de terceiros e textos de licença"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Componente terțe și texte de licență"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Сторонние компоненты и тексты лицензий"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Komponenty tretích strán a texty licencií"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Tredjepartskomponenter och licenstexter"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Üçüncü taraf bileşenler ve lisans metinleri"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Сторонні компоненти та тексти ліцензій"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "第三方组件和许可证文本"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "第三方元件與授權文字"
+          }
+        }
+      }
+    },
+    "settings.licenses.footer" : {
+      "extractionState": "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Sodalite je open source pod licencí GPL-3.0 s výjimkou pro App Store. Tato aplikace používá FFmpeg a další výše uvedené komponenty."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Sodalite er open source under GPL-3.0 med en App Store-undtagelse. Denne app bruger FFmpeg og de øvrige komponenter, der er nævnt ovenfor."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Sodalite ist Open Source unter der GPL-3.0 mit App-Store-Ausnahme. Diese App verwendet FFmpeg und die weiteren oben aufgeführten Komponenten."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Το Sodalite είναι ανοιχτού κώδικα υπό την GPL-3.0 με εξαίρεση για το App Store. Αυτή η εφαρμογή χρησιμοποιεί το FFmpeg και τα υπόλοιπα στοιχεία που αναφέρονται παραπάνω."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Sodalite is open source under the GPL-3.0 with an App Store exception. This app uses FFmpeg and the other components listed above."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Sodalite es de código abierto bajo la GPL-3.0 con una excepción para el App Store. Esta app utiliza FFmpeg y los demás componentes indicados arriba."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Sodalite on avointa lähdekoodia GPL-3.0-lisenssillä App Store -poikkeuksella. Tämä sovellus käyttää FFmpegiä ja muita yllä lueteltuja komponentteja."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Sodalite est open source sous licence GPL-3.0 avec une exception App Store. Cette app utilise FFmpeg et les autres composants listés ci-dessus."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Sodalite je otvorenog koda pod licencom GPL-3.0 s iznimkom za App Store. Ova aplikacija koristi FFmpeg i ostale gore navedene komponente."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "A Sodalite nyílt forráskódú a GPL-3.0 licenc alatt, App Store-kivétellel. Az alkalmazás az FFmpeget és a fent felsorolt további összetevőket használja."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Sodalite è open source con licenza GPL-3.0 e un'eccezione per l'App Store. Questa app utilizza FFmpeg e gli altri componenti elencati sopra."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "SodaliteはApp Store例外付きGPL-3.0のオープンソースです。このAppはFFmpegおよび上記のコンポーネントを使用しています。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Sodalite는 App Store 예외가 포함된 GPL-3.0 오픈 소스입니다. 이 앱은 FFmpeg 및 위에 나열된 구성 요소를 사용합니다."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Sodalite er åpen kildekode under GPL-3.0 med et App Store-unntak. Denne appen bruker FFmpeg og de andre komponentene som er oppført ovenfor."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Sodalite is open source onder de GPL-3.0 met een App Store-uitzondering. Deze app gebruikt FFmpeg en de andere hierboven vermelde componenten."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Sodalite jest oprogramowaniem open source na licencji GPL-3.0 z wyjątkiem dla App Store. Ta aplikacja korzysta z FFmpeg oraz pozostałych komponentów wymienionych powyżej."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "O Sodalite é de código aberto sob a GPL-3.0 com uma exceção para a App Store. Este app usa o FFmpeg e os demais componentes listados acima."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "O Sodalite é de código aberto sob a GPL-3.0 com uma exceção para a App Store. Esta app usa o FFmpeg e os restantes componentes listados acima."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Sodalite este open source sub licența GPL-3.0 cu o excepție pentru App Store. Această aplicație folosește FFmpeg și celelalte componente enumerate mai sus."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Sodalite распространяется с открытым исходным кодом по лицензии GPL-3.0 с исключением для App Store. Это приложение использует FFmpeg и другие перечисленные выше компоненты."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Sodalite je open source pod licenciou GPL-3.0 s výnimkou pre App Store. Táto aplikácia používa FFmpeg a ďalšie vyššie uvedené komponenty."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Sodalite är öppen källkod under GPL-3.0 med ett App Store-undantag. Appen använder FFmpeg och de övriga komponenterna ovan."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Sodalite, App Store istisnası içeren GPL-3.0 lisansı altında açık kaynaklıdır. Bu uygulama FFmpeg'i ve yukarıda listelenen diğer bileşenleri kullanır."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Sodalite має відкритий код за ліцензією GPL-3.0 з винятком для App Store. Цей застосунок використовує FFmpeg та інші компоненти, перелічені вище."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Sodalite 是基于 GPL-3.0（含 App Store 例外条款）的开源软件。本 App 使用 FFmpeg 及上方列出的其他组件。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Sodalite 是基於 GPL-3.0（含 App Store 例外條款）的開源軟體。本 App 使用 FFmpeg 及上方列出的其他元件。"
+          }
+        }
+      }
+    },
     "settings.cloudSync.delete.confirm.action" : {
       "extractionState": "manual",
       "localizations" : {

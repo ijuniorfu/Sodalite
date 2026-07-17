@@ -239,6 +239,14 @@ struct SettingsView: View {
             ) {
                 ChangelogListView()
             }
+
+            SettingsTile(
+                icon: "doc.text",
+                title: "settings.licenses.title",
+                subtitle: "settings.licenses.subtitle"
+            ) {
+                LicensesView()
+            }
         }
     }
 
