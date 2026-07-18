@@ -6,6 +6,11 @@ struct LoginView: View {
     @State private var viewModel: LoginViewModel?
     @State private var showQuickConnect = false
     @State private var showSuccess = false
+    #if os(iOS)
+    @State private var promptServer: JellyfinServer?
+    @State private var showAddURLDialog = false
+    @State private var showAddURLSheet = false
+    #endif
 
     let server: JellyfinServer
     /// Nil means "Sign in manually": show the full form including the username field.
@@ -38,7 +43,45 @@ struct LoginView: View {
         .onDisappear {
             viewModel?.stopQuickConnect()
         }
+        #if os(iOS)
+        .confirmationDialog(
+            Text(addURLDialogTitle, bundle: .main),
+            isPresented: $showAddURLDialog,
+            titleVisibility: .visible
+        ) {
+            Button("multiServer.addURL.dialog.add") { showAddURLSheet = true }
+            Button("multiServer.addURL.dialog.notNow", role: .cancel) { proceedAfterAuth() }
+        } message: {
+            Text("multiServer.addURL.dialog.message", bundle: .main)
+        }
+        .sheet(isPresented: $showAddURLSheet, onDismiss: { proceedAfterAuth() }) {
+            if let server = promptServer, let slot = server.emptyURLSlot {
+                AddSecondURLSheet(
+                    slot: slot,
+                    knownURL: server.url,
+                    probe: { await ServerProbe.jellyfin($0) },
+                    onSave: { newURL in
+                        let merged = server.urls(filling: slot, with: newURL)
+                        try? dependencies.updateServerURLs(
+                            serverID: server.id,
+                            internalURL: merged.internal,
+                            externalURL: merged.external
+                        )
+                    }
+                )
+            }
+        }
+        #endif
     }
+
+    #if os(iOS)
+    private var addURLDialogTitle: LocalizedStringKey {
+        guard let slot = promptServer?.emptyURLSlot else { return "" }
+        return slot == .internal
+            ? "multiServer.addURL.dialog.title.internal"
+            : "multiServer.addURL.dialog.title.external"
+    }
+    #endif
 
     private var loginContent: some View {
         VStack(spacing: 40) {
@@ -246,9 +289,29 @@ struct LoginView: View {
             try? await Task.sleep(for: .seconds(1.5))
             guard let result = vm.authResult else { return }
 
-            // Persistence already happened in finalizeAuth -> saveSession; old addServer/pointer writes here were no-ops.
-            appState.setAuthenticated(server: result.server, user: result.user)
+            #if os(iOS)
+            // Offer the missing internal/external URL once per server, before the
+            // authenticated root swap so LoginView stays mounted for the prompt.
+            if result.server.emptyURLSlot != nil,
+               !DualURLPromptLatch.hasOffered(serverID: result.server.id) {
+                DualURLPromptLatch.markOffered(serverID: result.server.id)
+                promptServer = result.server
+                showAddURLDialog = true
+                return
+            }
+            #endif
 
+            proceedAfterAuth()
+        }
+    }
+
+    private func proceedAfterAuth() {
+        guard let result = viewModel?.authResult else { return }
+
+        // Persistence already happened in finalizeAuth -> saveSession; old addServer/pointer writes here were no-ops.
+        appState.setAuthenticated(server: result.server, user: result.user)
+
+        Task {
             // Re-evaluate Seerr against the new user. Add-mode needs this too, else it inherits the previous profile's Seerr state.
             await syncSeerrToActiveProfile(
                 userID: result.user.id,
