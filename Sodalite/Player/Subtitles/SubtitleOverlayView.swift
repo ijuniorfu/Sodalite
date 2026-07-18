@@ -273,9 +273,13 @@ struct SubtitleOverlayView: View {
     private func styledRuns(_ runs: [SubtitleTextRun], pointSize: CGFloat) -> some View {
         let baseFont = subtitleBaseFont(pointSize: pointSize)
         let plain = runs.map(\.text).joined()
-        let colored = runs.reduce(Text("")) { acc, run in
-            acc + Text(run.text).font(baseFont).foregroundColor(run.color.map(color) ?? foregroundColor)
+        let attributed = runs.reduce(into: AttributedString()) { acc, run in
+            var piece = AttributedString(run.text)
+            piece.font = baseFont
+            piece.foregroundColor = run.color.map(color) ?? foregroundColor
+            acc.append(piece)
         }
+        let colored = Text(attributed)
         switch background {
         case .box:
             colored.multilineTextAlignment(.center)
