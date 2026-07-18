@@ -116,6 +116,7 @@ struct PlayerTouchControls: View {
             if PlayerOrientation.isPhone {
                 rotationLockButton
             }
+            childLockButton
             // Auto-PiP (swipe-Home) is AVKit's own; no manual button (a custom AVPictureInPictureController
             // breaks AVKit's auto-PiP and can't survive backgrounding). AirPlay button for discoverability.
             AirPlayRouteButton(tint: .white)
@@ -149,6 +150,24 @@ struct PlayerTouchControls: View {
                 .contentShape(Circle())
         }
         .buttonStyle(.plain)
+    }
+
+    /// Child lock: one tap disables all touch input (PlayerLockOverlay takes over). A distinct
+    /// hand.raised glyph, deliberately unlike the rotation lock's padlock, so the two never read as
+    /// the same state. Released only by the hold-to-unlock control in the overlay.
+    private var childLockButton: some View {
+        Button {
+            viewModel.lockInput()
+        } label: {
+            Image(systemName: "hand.raised.fill")
+                .font(.headline.weight(.semibold))
+                .foregroundStyle(.white)
+                .frame(width: 44, height: 44)
+                .background(Circle().fill(.ultraThinMaterial))
+                .contentShape(Circle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(Text("player.lock.engage"))
     }
 
     private var titleText: String {
