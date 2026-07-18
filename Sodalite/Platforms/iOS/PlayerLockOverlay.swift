@@ -17,7 +17,8 @@ struct PlayerLockOverlay: View {
 
     var body: some View {
         ZStack {
-            // Transparent full-screen catcher: reveals the hint on tap, blocks all input below.
+            // Transparent full-screen catcher: blocks all input below and reveals the hint pill on tap.
+            // Holding to unlock is scoped to the pill itself (below), not the whole screen.
             Color.black.opacity(0.001)
                 .contentShape(Rectangle())
                 .ignoresSafeArea()
@@ -32,6 +33,8 @@ struct PlayerLockOverlay: View {
 
             if showHint {
                 holdToUnlock
+                    .padding(.bottom, 40)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
                     .transition(.opacity)
             }
         }
@@ -51,39 +54,42 @@ struct PlayerLockOverlay: View {
         Label {
             Text("player.lock.confirmation")
         } icon: {
-            Image(systemName: "hand.raised.fill")
+            Image(systemName: "lock.fill")
         }
         .font(.subheadline.weight(.semibold))
         .foregroundStyle(.white)
         .padding(.horizontal, 16)
         .padding(.vertical, 10)
         .background(.ultraThinMaterial, in: Capsule())
+        .allowsHitTesting(false)
     }
 
     private var holdToUnlock: some View {
-        VStack(spacing: 16) {
+        HStack(spacing: 10) {
             ZStack {
                 Circle()
-                    .fill(.ultraThinMaterial)
+                    .stroke(.white.opacity(0.25), lineWidth: 3)
                 Circle()
                     .trim(from: 0, to: holdFraction)
-                    .stroke(tint, style: StrokeStyle(lineWidth: 4, lineCap: .round))
+                    .stroke(tint, style: StrokeStyle(lineWidth: 3, lineCap: .round))
                     .rotationEffect(.degrees(-90))
-                    .padding(3)
                 Image(systemName: "lock.fill")
-                    .font(.system(size: 26, weight: .semibold))
+                    .font(.system(size: 14, weight: .semibold))
                     .foregroundStyle(.white)
             }
-            .frame(width: 84, height: 84)
-            .contentShape(Circle())
-            .gesture(holdGesture)
+            .frame(width: 34, height: 34)
 
             Text("player.lock.hint")
-                .font(.footnote.weight(.medium))
-                .foregroundStyle(.white.opacity(0.85))
+                .font(.caption)
+                .foregroundStyle(.white)
+                .fixedSize()
         }
-        .padding(24)
-        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 20))
+        .padding(.vertical, 7)
+        .padding(.horizontal, 12)
+        .background(.ultraThinMaterial, in: Capsule())
+        // Hold anywhere on the pill (not just the icon) to drive the ring and release the lock.
+        .contentShape(Capsule())
+        .gesture(holdGesture)
     }
 
     /// Press starts a linear fill to 1 over the remaining hold time; release before completion

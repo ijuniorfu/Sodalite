@@ -152,14 +152,14 @@ struct PlayerTouchControls: View {
         .buttonStyle(.plain)
     }
 
-    /// Child lock: one tap disables all touch input (PlayerLockOverlay takes over). A distinct
-    /// hand.raised glyph, deliberately unlike the rotation lock's padlock, so the two never read as
-    /// the same state. Released only by the hold-to-unlock control in the overlay.
+    /// Child lock: one tap disables all touch input (PlayerLockOverlay takes over). A plain lock.fill
+    /// padlock; the rotation lock beside it is lock.rotation (with the circular arrow), so the two
+    /// stay distinguishable. Released only by the hold-to-unlock control in the overlay.
     private var childLockButton: some View {
         Button {
             viewModel.lockInput()
         } label: {
-            Image(systemName: "hand.raised.fill")
+            Image(systemName: "lock.fill")
                 .font(.headline.weight(.semibold))
                 .foregroundStyle(.white)
                 .frame(width: 44, height: 44)
