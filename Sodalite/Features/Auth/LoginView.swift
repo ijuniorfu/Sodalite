@@ -27,10 +27,19 @@ struct LoginView: View {
                 loginContent
                     .transition(.opacity)
             }
+            #if os(iOS)
+            if showAddURLDialog {
+                addURLPromptOverlay
+                    .transition(.opacity)
+            }
+            #endif
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .glassBackground()
         .animation(.easeInOut(duration: 0.3), value: showSuccess)
+        #if os(iOS)
+        .animation(.easeInOut(duration: 0.25), value: showAddURLDialog)
+        #endif
         .onAppear {
             if viewModel == nil {
                 viewModel = LoginViewModel(
@@ -44,16 +53,6 @@ struct LoginView: View {
             viewModel?.stopQuickConnect()
         }
         #if os(iOS)
-        .confirmationDialog(
-            Text(addURLDialogTitle, bundle: .main),
-            isPresented: $showAddURLDialog,
-            titleVisibility: .visible
-        ) {
-            Button("multiServer.addURL.dialog.add") { showAddURLSheet = true }
-            Button("multiServer.addURL.dialog.notNow", role: .cancel) { proceedAfterAuth() }
-        } message: {
-            Text("multiServer.addURL.dialog.message", bundle: .main)
-        }
         .sheet(isPresented: $showAddURLSheet, onDismiss: { proceedAfterAuth() }) {
             if let server = promptServer, let slot = server.emptyURLSlot {
                 AddSecondURLSheet(
@@ -80,6 +79,48 @@ struct LoginView: View {
         return slot == .internal
             ? "multiServer.addURL.dialog.title.internal"
             : "multiServer.addURL.dialog.title.external"
+    }
+
+    private var addURLPromptOverlay: some View {
+        ZStack {
+            Color.black.opacity(0.55)
+                .ignoresSafeArea()
+            VStack(spacing: 16) {
+                Text(addURLDialogTitle, bundle: .main)
+                    .font(.title3.bold())
+                    .multilineTextAlignment(.center)
+                Text("multiServer.addURL.dialog.message", bundle: .main)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+                VStack(spacing: 10) {
+                    Button {
+                        showAddURLSheet = true
+                    } label: {
+                        Text("multiServer.addURL.dialog.add", bundle: .main)
+                            .font(.headline)
+                            .foregroundStyle(.white)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 14)
+                            .background(.tint, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                    }
+                    Button {
+                        proceedAfterAuth()
+                    } label: {
+                        Text("multiServer.addURL.dialog.notNow", bundle: .main)
+                            .font(.headline)
+                            .foregroundStyle(.secondary)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 14)
+                    }
+                }
+                .padding(.top, 4)
+            }
+            .padding(24)
+            .frame(maxWidth: 360)
+            .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+            .padding(32)
+        }
     }
     #endif
 
@@ -296,7 +337,7 @@ struct LoginView: View {
                !DualURLPromptLatch.hasOffered(serverID: result.server.id) {
                 DualURLPromptLatch.markOffered(serverID: result.server.id)
                 promptServer = result.server
-                showAddURLDialog = true
+                withAnimation { showAddURLDialog = true }
                 return
             }
             #endif
@@ -307,6 +348,10 @@ struct LoginView: View {
 
     private func proceedAfterAuth() {
         guard let result = viewModel?.authResult else { return }
+
+        #if os(iOS)
+        showAddURLDialog = false
+        #endif
 
         // Persistence already happened in finalizeAuth -> saveSession; old addServer/pointer writes here were no-ops.
         appState.setAuthenticated(server: result.server, user: result.user)
