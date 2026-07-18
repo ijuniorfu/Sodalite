@@ -588,6 +588,7 @@
 		FB9B0A48DC7CC3BC88C45436 /* MusicTimeFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E41472FF5A78B0C4F640829 /* MusicTimeFormatter.swift */; };
 		FBD2E669C43A4B2DF4CC09D7 /* SeerrServiceConfigService.swift in Sources */ = {isa = PBXBuildFile; fileRef = EBFD66C8435155A3FFF29632 /* SeerrServiceConfigService.swift */; };
 		FC43FBB00460436D6E91A940 /* PlayerLauncher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0543077939A1E2E1060E5B08 /* PlayerLauncher.swift */; };
+		FD94A165F98524A24CFBDD6A /* PlayerLockOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 772CB8FF2DA2804951AEA725 /* PlayerLockOverlay.swift */; };
 		FDB314297ACFCD6E71CB6159 /* ServerDiscoveryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9848335F9C1937CA6571F69 /* ServerDiscoveryView.swift */; };
 		FEC7094E718910B6D04487EA /* LicenseText-AetherEngine.txt in Resources */ = {isa = PBXBuildFile; fileRef = 65525527BDEE7CBB5EC35778 /* LicenseText-AetherEngine.txt */; };
 		FFD9B14B553A72E8B7232399 /* AlbumDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DAA0282AF1C282F923158406 /* AlbumDetailView.swift */; };
@@ -779,6 +780,7 @@
 		7501601A2864C83A34FEEB88 /* HorizontalMediaRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HorizontalMediaRow.swift; sourceTree = "<group>"; };
 		763CDF4F0B8FC70934BBB838 /* SeerrClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeerrClient.swift; sourceTree = "<group>"; };
 		768B47D4A956A499B68C6795 /* CatalogDetailComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CatalogDetailComponents.swift; sourceTree = "<group>"; };
+		772CB8FF2DA2804951AEA725 /* PlayerLockOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerLockOverlay.swift; sourceTree = "<group>"; };
 		77412030533E48E44E837CAC /* SeerrEpisodeCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeerrEpisodeCard.swift; sourceTree = "<group>"; };
 		77AB1D740706702455E9FAB7 /* SeerrGenreSlide.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeerrGenreSlide.swift; sourceTree = "<group>"; };
 		77F75B9F040C820A852BEBC8 /* WhatsNewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhatsNewView.swift; sourceTree = "<group>"; };
@@ -1327,6 +1329,7 @@
 				F107F8B6AF976EDFD99B7792 /* PendingRequestsNotifier.swift */,
 				F8E8471B0A8EB90E76396E7C /* PlayerGestureCatcher.swift */,
 				4B8A9D90F21B8186EDDE6925 /* PlayerHUD.swift */,
+				772CB8FF2DA2804951AEA725 /* PlayerLockOverlay.swift */,
 				65078FEBC5D0CDB0C24799C4 /* PlayerOrientation.swift */,
 				5B7F000B8D8677EF0C3F7C73 /* PlayerSystemVolume.swift */,
 				197C056F3F41EFB53CDD2345 /* PlayerTouchControls.swift */,
@@ -2040,6 +2043,7 @@
 				1CA21DD248027041C1F4AAD6 /* PlayerHostController.swift in Sources */,
 				1B5D8EFCDCE627EC18B4EC3F /* PlayerLauncher.swift in Sources */,
 				3F9C94DEF773B99EC52346DF /* PlayerLoadingIndicator.swift in Sources */,
+				FD94A165F98524A24CFBDD6A /* PlayerLockOverlay.swift in Sources */,
 				0B0D366D52C6FE77B0F5A208 /* PlayerLockProgress.swift in Sources */,
 				1A258231407BFFA4097EDC12 /* PlayerModalDismisser.swift in Sources */,
 				CEE4F399F4267AB60982F85B /* PlayerOrientation.swift in Sources */,
