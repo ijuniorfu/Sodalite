@@ -60,6 +60,11 @@ final class PlayerViewModel {
     var controlsFocus: ControlsFocus = .progressBar
     var trackDropdown: TrackDropdown = .none
 
+    /// iOS child lock: when true, all touch input is disabled and PlayerLockOverlay is shown.
+    /// Cross-platform property but only ever set on iOS; tvOS never engages it. Per player session
+    /// (not persisted); survives an in-player episode change and a foreground reload (same VM instance).
+    var isInputLocked = false
+
     // MARK: Subtitle search (Feature #4)
 
     enum SubtitleSearchState: Equatable {
@@ -1982,6 +1987,20 @@ final class PlayerViewModel {
         showControls = false
         controlsFocus = .progressBar
         trackDropdown = .none
+    }
+
+    /// Engage the iOS child lock: disable input, tear down any open chrome, cancel the auto-hide.
+    func lockInput() {
+        isInputLocked = true
+        cancelControlsHide()
+        showControls = false
+        controlsFocus = .progressBar
+        trackDropdown = .none
+    }
+
+    /// Release the iOS child lock.
+    func unlockInput() {
+        isInputLocked = false
     }
 
     func scheduleControlsHide() {
