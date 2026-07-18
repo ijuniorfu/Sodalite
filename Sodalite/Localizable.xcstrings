@@ -58643,6 +58643,326 @@
         }
       }
     },
+    "changelog.1_0_0.childLock.body" : {
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Jedním klepnutím zamknete přehrávač na iPhonu a iPadu, aby dítě nemohlo nic změnit; odemknete podržením."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Et tryk låser afspilleren på iPhone og iPad, så et barn ikke kan ændre noget; hold nede for at låse op."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Ein Tipp sperrt den Player auf iPhone und iPad, damit ein Kind nichts verändern kann; zum Entsperren gedrückt halten."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Ένα άγγιγμα κλειδώνει το πρόγραμμα αναπαραγωγής σε iPhone και iPad ώστε ένα παιδί να μην μπορεί να αλλάξει τίποτα· κρατήστε πατημένο για ξεκλείδωμα."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "One tap locks the player on iPhone and iPad so a child can't change anything; press and hold to unlock."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Un toque bloquea el reproductor en iPhone y iPad para que un niño no pueda cambiar nada; mantén pulsado para desbloquear."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Yhdellä napautuksella lukitset soittimen iPhonessa ja iPadissa, jottei lapsi voi muuttaa mitään; avaa lukitus pitämällä painettuna."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Une touche verrouille le lecteur sur iPhone et iPad pour qu'un enfant ne puisse rien changer ; maintenez pour déverrouiller."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Jednim dodirom zaključavate reproduktor na iPhoneu i iPadu kako dijete ne može ništa promijeniti; držite za otključavanje."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Egy koppintás zárolja a lejátszót iPhone-on és iPaden, hogy a gyerek ne változtathasson semmit; a feloldáshoz tartsa lenyomva."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Un tocco blocca il lettore su iPhone e iPad così un bambino non può cambiare nulla; tieni premuto per sbloccare."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "iPhoneとiPadでワンタップでプレーヤーをロックし、子供が何も変更できないようにします。長押しでロック解除。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "iPhone과 iPad에서 한 번의 탭으로 플레이어를 잠가 아이가 아무것도 바꿀 수 없게 합니다. 길게 눌러 잠금 해제하세요."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Ett trykk låser spilleren på iPhone og iPad så et barn ikke kan endre noe; hold inne for å låse opp."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Eén tik vergrendelt de speler op iPhone en iPad zodat een kind niets kan veranderen; houd vast om te ontgrendelen."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Jedno dotknięcie blokuje odtwarzacz na iPhonie i iPadzie, aby dziecko nie mogło nic zmienić; przytrzymaj, aby odblokować."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Um toque bloqueia o player no iPhone e no iPad para que uma criança não possa mudar nada; mantenha pressionado para desbloquear."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Um toque bloqueia o leitor no iPhone e no iPad para que uma criança não possa alterar nada; mantenha premido para desbloquear."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "O atingere blochează playerul pe iPhone și iPad, astfel încât un copil să nu poată schimba nimic; ține apăsat pentru a debloca."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Одно касание блокирует плеер на iPhone и iPad, чтобы ребёнок ничего не изменил; удерживайте для разблокировки."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Jedným klepnutím zamknete prehrávač na iPhone a iPade, aby dieťa nemohlo nič zmeniť; odomknete podržaním."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "En tryckning låser spelaren på iPhone och iPad så att ett barn inte kan ändra något; håll in för att låsa upp."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Tek dokunuşla iPhone ve iPad'de oynatıcıyı kilitleyin, böylece bir çocuk hiçbir şeyi değiştiremez; kilidi açmak için basılı tutun."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Одне торкання блокує програвач на iPhone та iPad, щоб дитина нічого не змінила; утримуйте, щоб розблокувати."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "在 iPhone 和 iPad 上轻点一下即可锁定播放器，孩子无法更改任何内容；按住即可解锁。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "在 iPhone 和 iPad 上輕點一下即可鎖定播放器，孩子無法更改任何內容；按住即可解鎖。"
+          }
+        }
+      }
+    },
+    "changelog.1_0_0.childLock.title" : {
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Dětský zámek"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Børnelås"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Kindersicherung"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Κλείδωμα για παιδιά"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Child lock"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Bloqueo infantil"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Lapsilukko"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Verrouillage enfant"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Zaključavanje za djecu"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Gyerekzár"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Blocco bambini"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "チャイルドロック"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "어린이 잠금"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Barnesikring"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Kinderslot"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Blokada rodzicielska"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Bloqueio infantil"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Bloqueio para crianças"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Blocare pentru copii"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Блокировка от детей"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Detský zámok"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Barnlås"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Çocuk kilidi"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Захист від дітей"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "儿童锁"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "兒童鎖"
+          }
+        }
+      }
+    },
     "changelog.1_0_0.cloudSync.body" : {
       "extractionState" : "manual",
       "localizations" : {
