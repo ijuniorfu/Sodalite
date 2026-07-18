@@ -166,9 +166,7 @@ private struct ServerManagementRow: View {
                     .lineLimit(1)
                     .truncationMode(.tail)
                 if isActive || isDefault {
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 8) { badges }
-                    }
+                    FlowLayout(alignment: .leading, spacing: 8) { badges }
                 }
                 #else
                 HStack(spacing: 8) {
