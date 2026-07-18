@@ -83,6 +83,7 @@ Almost everything is identical across devices, it's one codebase. A handful of c
 | AirPlay to another display | – | ✓ |
 | Full-screen video out over a wired HDMI adapter | – | ✓ |
 | Rotation lock &amp; portrait player | – | ✓ |
+| Child lock in the player | – | ✓ |
 | Top Shelf &amp; Siri Remote focus UX | ✓ | – |
 
 ## Open source, end to end
@@ -142,6 +143,7 @@ The Seerr integration isn't a tacked-on link to a web view. It's a first-class p
 - **AirPlay**: send any title to an AirPlay display, with HDR and surround metadata preserved
 - **Wired HDMI out**: plug in a USB-C to HDMI adapter and playback fills the connected screen instead of showing the mirrored phone window, with HDR / Dolby Vision and match-frame-rate passed through; subtitles render on the external screen too
 - **Rotation lock**: a one-tap toggle in the player pins landscape (or lets it follow the device), with a lock indicator so you always know which mode you're in
+- **Child lock**: one tap in the player disables every touch, so a child can watch without accidentally skipping, pausing, or leaving; release it by pressing and holding the on-screen pill for a moment
 - **Format badge**: the top bar surfaces the live format (Dolby Vision, HDR10+, Atmos and friends) so you can confirm at a glance what's actually playing
 - **Portrait-safe chrome**: player controls stay correctly placed in portrait and landscape, no clipped buttons behind the notch or home indicator
 - **Touch-native throughout**: swipe to scrub, tap to play/pause, drag the grids, the whole app is built for touch as a first-class input, not a ported remote UI
