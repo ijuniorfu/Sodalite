@@ -93,7 +93,8 @@ extension PlayerViewModel {
                 preserveASSMarkup: true,
                 // Engine picks the preferred-language audio on the first frame (#72), replacing the
                 // post-load selectAudioTrack reload that misfired on single-track channels.
-                preferredAudioLanguages: effectivePreferredAudioLanguage().map { [$0] } ?? []
+                preferredAudioLanguages: effectivePreferredAudioLanguage().map { [$0] } ?? [],
+                teletextPage: preferences.liveTeletextPage.page
             )
         )
 
@@ -178,7 +179,8 @@ extension PlayerViewModel {
                 preserveASSMarkup: true,
                 // Engine picks the preferred-language audio on the first frame (#72), replacing the
                 // post-load selectAudioTrack reload that misfired on single-track channels.
-                preferredAudioLanguages: effectivePreferredAudioLanguage().map { [$0] } ?? []
+                preferredAudioLanguages: effectivePreferredAudioLanguage().map { [$0] } ?? [],
+                teletextPage: preferences.liveTeletextPage.page
             )
         )
 

@@ -41,6 +41,7 @@ final class PlaybackPreferences {
         static let preferServerTrickplay = "playback.preferServerTrickplay"
         static let playerRotationLocked = "playback.playerRotationLocked"
         static let networkBufferDepth = "playback.networkBufferDepth"
+        static let liveTeletextPage = "playback.liveTeletextPage"
     }
 
     // MARK: - Allowed Values
@@ -168,6 +169,23 @@ final class PlaybackPreferences {
         case regular, bold
         var id: String { rawValue }
         var titleKey: String { "settings.playback.subtitle.weight.\(rawValue)" }
+    }
+
+    /// Live TV teletext caption page (#107). `auto` = libzvbi auto-detect; explicit pages target
+    /// channels libzvbi does not flag (888 = EU/UK subtitle page, 801 = AU, 777 = common alt).
+    /// Maps to the engine's `LoadOptions.teletextPage`.
+    enum LiveTeletextPage: String, CaseIterable, Sendable, Identifiable {
+        case auto, p888, p801, p777
+        var id: String { rawValue }
+        var titleKey: String { "settings.playback.teletext.\(rawValue)" }
+        var page: Int? {
+            switch self {
+            case .auto: return nil
+            case .p888: return 888
+            case .p801: return 801
+            case .p777: return 777
+            }
+        }
     }
 
     /// `original` keeps aspect ratio (letterbox), `fill` crops to cover; maps to AVLayerVideoGravity in the engine.
@@ -315,6 +333,10 @@ final class PlaybackPreferences {
         didSet { store.set(networkBufferDepth.rawValue, forKey: Keys.networkBufferDepth) }
     }
 
+    var liveTeletextPage: LiveTeletextPage {
+        didSet { store.set(liveTeletextPage.rawValue, forKey: Keys.liveTeletextPage) }
+    }
+
     var audioBridgeMode: AudioBridgeMode {
         preferLosslessAudioBridge ? .lossless : .surroundCompat
     }
@@ -375,5 +397,7 @@ final class PlaybackPreferences {
         self.playerRotationLocked = store.object(forKey: Keys.playerRotationLocked) as? Bool ?? true
         self.networkBufferDepth = (store.string(forKey: Keys.networkBufferDepth))
             .flatMap(NetworkBufferDepth.init(rawValue:)) ?? .system
+        self.liveTeletextPage = (store.string(forKey: Keys.liveTeletextPage))
+            .flatMap(LiveTeletextPage.init(rawValue:)) ?? .auto
     }
 }
