@@ -16,9 +16,12 @@ struct PlayerOverlayView: View {
             // Bottom gesture layer: catches taps / swipes on the empty video area; the controls and
             // buttons render above it and win their own hits. Explicit fill: a plain UIView has no
             // intrinsic size and would otherwise collapse to 0x0 and receive no touches.
-            PlayerGestureCatcher(viewModel: viewModel)
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .ignoresSafeArea()
+            // Removed entirely while the child lock is engaged so no swipe/tap reaches playback.
+            if !viewModel.isInputLocked {
+                PlayerGestureCatcher(viewModel: viewModel)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .ignoresSafeArea()
+            }
             #endif
 
             // Subtitle rendering (incl. the ~10 Hz subtitleTime clock) is observed inside SubtitleLayer,
@@ -72,7 +75,7 @@ struct PlayerOverlayView: View {
                 .transition(.opacity)
             }
 
-            if viewModel.showControls && !viewModel.isLoading && viewModel.errorMessage == nil {
+            if viewModel.showControls && !viewModel.isLoading && viewModel.errorMessage == nil && !viewModel.isInputLocked {
                 // iOS swipe hints live INSIDE controlsOverlay's absolute-geometry wrapper (Sodalite#15 portrait clip).
                 controlsOverlay
             }
@@ -139,6 +142,17 @@ struct PlayerOverlayView: View {
                 .transition(.opacity)
                 .zIndex(51)
             }
+
+            #if os(iOS)
+            // Child lock: top of the z-order so it swallows every gesture; the gesture catcher and
+            // controls are already removed above, and pickers/stats/subtitle-search can't be opened
+            // while locked, so nothing below can react. Subtitles keep rendering (kid keeps watching).
+            if viewModel.isInputLocked {
+                PlayerLockOverlay(viewModel: viewModel, tint: tintColor ?? .accentColor)
+                    .transition(.opacity)
+                    .zIndex(100)
+            }
+            #endif
         }
         .animation(.easeInOut(duration: 0.3), value: viewModel.isLoading)
         .animation(.easeInOut(duration: 0.3), value: viewModel.showControls)
@@ -147,6 +161,7 @@ struct PlayerOverlayView: View {
         .animation(.easeInOut(duration: 0.25), value: viewModel.showStatsOverlay)
         .animation(.easeInOut(duration: 0.3), value: viewModel.subtitleSearchVisible)
         .animation(.easeInOut(duration: 0.25), value: viewModel.isSubtitleDeletePromptVisible)
+        .animation(.easeInOut(duration: 0.25), value: viewModel.isInputLocked)
         #if os(iOS)
         // External-subtitle delete (Feature #4 on touch): confirmation dialog + error alert for the
         // trash button in PlayerTouchControls' subtitle picker. Hoisted OUT of the touch-controls
