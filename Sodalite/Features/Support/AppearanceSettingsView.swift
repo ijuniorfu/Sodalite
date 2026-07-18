@@ -134,7 +134,11 @@ struct AppearanceSettingsView: View {
 
     private var lockedCard: some View {
         VStack(spacing: 20) {
-            HStack(spacing: 12) {
+            // Centered flow so the ten swatches wrap AND each row stays centered. A fixed HStack was
+            // ~508pt wide (10 x 40 + spacing), overflowing the iPhone content width and stretching the
+            // whole screen's rows (the VStack sized to this widest child); an adaptive grid fixed the
+            // overflow but left-aligned the last row. Wraps on iPhone, one centered row on tvOS/iPad.
+            CenteredFlowLayout(spacing: 12) {
                 ForEach(AppearancePreferences.AccentChoice.allCases) { choice in
                     Circle()
                         .fill(choice.color)
@@ -220,5 +224,65 @@ private struct AccentRow: View {
             .padding(20)
         }
         .buttonStyle(SettingsTileButtonStyle())
+    }
+}
+
+// MARK: - Centered Flow Layout
+
+/// Flows subviews onto as many rows as fit the proposed width, each row horizontally centered.
+/// Used for the accent-swatch teaser so the swatches wrap without overflowing narrow screens and
+/// stay centered (a fixed HStack overflowed the iPhone width; an adaptive grid left-aligned the last row).
+private struct CenteredFlowLayout: Layout {
+    var spacing: CGFloat = 12
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout Void) -> CGSize {
+        let rows = rows(fitting: proposal.width ?? .infinity, subviews: subviews)
+        let height = rows.map(rowHeight).reduce(0, +) + spacing * CGFloat(max(0, rows.count - 1))
+        return CGSize(width: proposal.width ?? rows.map(rowWidth).max() ?? 0, height: height)
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout Void) {
+        var y = bounds.minY
+        for row in rows(fitting: bounds.width, subviews: subviews) {
+            let rowH = rowHeight(row)
+            var x = bounds.minX + (bounds.width - rowWidth(row)) / 2
+            for item in row {
+                let size = item.sizeThatFits(.unspecified)
+                item.place(
+                    at: CGPoint(x: x, y: y + (rowH - size.height) / 2),
+                    anchor: .topLeading,
+                    proposal: ProposedViewSize(size)
+                )
+                x += size.width + spacing
+            }
+            y += rowH + spacing
+        }
+    }
+
+    private func rows(fitting width: CGFloat, subviews: Subviews) -> [[LayoutSubview]] {
+        var rows: [[LayoutSubview]] = []
+        var current: [LayoutSubview] = []
+        var x: CGFloat = 0
+        for item in subviews {
+            let w = item.sizeThatFits(.unspecified).width
+            if !current.isEmpty, x + w > width {
+                rows.append(current)
+                current = []
+                x = 0
+            }
+            current.append(item)
+            x += w + spacing
+        }
+        if !current.isEmpty { rows.append(current) }
+        return rows
+    }
+
+    private func rowWidth(_ row: [LayoutSubview]) -> CGFloat {
+        row.map { $0.sizeThatFits(.unspecified).width }.reduce(0, +)
+            + spacing * CGFloat(max(0, row.count - 1))
+    }
+
+    private func rowHeight(_ row: [LayoutSubview]) -> CGFloat {
+        row.map { $0.sizeThatFits(.unspecified).height }.max() ?? 0
     }
 }
