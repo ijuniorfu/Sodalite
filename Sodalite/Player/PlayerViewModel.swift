@@ -443,6 +443,11 @@ final class PlayerViewModel {
     /// Lowercased Jellyfin codec of the active subtitle ("ass"/"ssa"/"subrip"/...), nil when off.
     /// The overlay reads it to gate the raw-ASS-event-line stripper.
     var activeSubtitleCodec: String?
+    /// Disc parity: forced captions render even while the user's subtitles are OFF. The engine
+    /// silently decodes a forced source (`activeSubtitleIndex` stays nil, picker shows "Off"); the
+    /// cue mirror filters to `isForced` when the source is a full bitmap track (AE#146). Resolved
+    /// by `applyForcedSubtitleFallback`, decisions in `ForcedSubtitleFallback`.
+    var forcedSubtitleFallback: ForcedSubtitleFallback.Mode = .none
     /// Styled ASS rendering bridge, active only while the selected embedded track is ASS/SSA
     /// (AetherEngine#30). Lazy to capture `player`; @ObservationIgnored, observable surface is `assRenderer`.
     @ObservationIgnored private lazy var assCoordinator = ASSRenderCoordinator(player: player)
@@ -789,6 +794,7 @@ final class PlayerViewModel {
             // (PiP / external display, #32 / #34), so the two never double up. Fullscreen behaviour is identical to main.
             resetNativeSubtitleRenderingState()
             applyPreferredSubtitle(forAudioLanguage: chosenAudio?.language)
+            applyForcedSubtitleFallback()
 
             hostLoadActive = false
             isPlaying = true
@@ -1183,7 +1189,7 @@ final class PlayerViewModel {
             .sink { [weak self] cues in
                 guard let self else { return }
                 guard self.player.isSubtitleActive else { return }
-                self.subtitleCues = cues
+                self.subtitleCues = ForcedSubtitleFallback.filteredCues(cues, mode: self.forcedSubtitleFallback)
             }
             .store(in: &cancellables)
 
@@ -1397,6 +1403,10 @@ final class PlayerViewModel {
         // (else DE → EN kept subs off even though autoSubtitleForForeignAudio would have turned them on).
         let language = player.audioTracks.first(where: { $0.id == id })?.language
         applyPreferredSubtitle(forAudioLanguage: language)
+        // The forced fallback is language-bound; re-resolve it for the new audio (a no-op when a
+        // subtitle is actively selected). The engine hasn't settled the switch yet, so resolve
+        // against the REQUESTED track's language, not activeAudioTrackIndex.
+        applyForcedSubtitleFallback(audioLanguageOverride: language)
     }
 
     /// Dedupes subtitle streams: one EMBEDDED track per (language, codec), but descriptor variants
@@ -1462,6 +1472,53 @@ final class PlayerViewModel {
         else { return }
         if let match = bestSubtitleMatch(forLanguage: preferredAudio) {
             selectSubtitleTrack(id: match.index)
+        }
+    }
+
+    /// Disc parity: with subtitles OFF, silently feed a forced source into the overlay so forced
+    /// captions (signs, foreign dialogue) still show, like a disc player would. Engine-silent by
+    /// design: `activeSubtitleIndex` stays nil (picker keeps "Off"), reporting is untouched, only
+    /// `activeSubtitleCodec` is set so a forced ASS track still gets its markup stripped. Re-run
+    /// after every subtitle/audio resolution; a no-op when a subtitle is user-selected. Skipped on
+    /// transcode (HLS rewrites stream indices; the legacy loader owns cues there).
+    private func applyForcedSubtitleFallback(audioLanguageOverride: String? = nil) {
+        let previous = forcedSubtitleFallback
+        guard activeSubtitleIndex == nil, activePlayMethod != .transcode else {
+            forcedSubtitleFallback = .none
+            return
+        }
+        let audioLanguage = audioLanguageOverride ?? player.audioTracks
+            .first(where: { $0.id == player.activeAudioTrackIndex })?.language
+        var mode = ForcedSubtitleFallback.resolve(streams: subtitleStreams, audioLanguage: audioLanguage)
+
+        switch mode {
+        case .forcedTrack(let index):
+            let stream = subtitleStreams.first(where: { $0.index == index })
+            if stream?.isExternal == true {
+                if let engineID = engineTrackID(forExternalStream: stream, jellyfinIndex: index) {
+                    player.selectSubtitleTrack(index: engineID)
+                } else {
+                    mode = .none
+                }
+            } else {
+                player.selectSubtitleTrack(index: index)
+            }
+            activeSubtitleCodec = stream?.codec?.lowercased()
+        case .cueFilter(let index):
+            player.selectSubtitleTrack(index: index)
+            activeSubtitleCodec = subtitleStreams.first(where: { $0.index == index })?.codec?.lowercased()
+        case .none:
+            if previous != .none {
+                player.clearSubtitle()
+                subtitleCues = []
+                activeSubtitleCodec = nil
+            }
+        }
+        forcedSubtitleFallback = mode
+        if mode != previous {
+            let line = "[PlayerVM] forced-subtitle fallback: \(mode) (audio=\(audioLanguage ?? "nil"))"
+            print(line)
+            LogTap.shared.note(line)
         }
     }
 
@@ -1703,8 +1760,12 @@ final class PlayerViewModel {
             subtitleCues = []
             deactivateASSRendering()
             player.clearSubtitle()
+            // "Off" is when disc-parity forced captions kick in: silently re-feed a forced source.
+            applyForcedSubtitleFallback()
             return
         }
+        // A user pick supersedes any silent forced fallback; the engine select below overrides it.
+        forcedSubtitleFallback = .none
         activeSubtitleIndex = id
         // Drop the secondary if it equals the new primary (a track can't be both lines).
         if activeSecondarySubtitleIndex == id {
