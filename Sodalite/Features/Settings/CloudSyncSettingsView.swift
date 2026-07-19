@@ -117,6 +117,7 @@ struct CloudSyncSettingsView: View {
     private var statusSymbol: String {
         switch dependencies.cloudSync?.status {
         case .active: "checkmark.icloud"
+        case .syncing: "icloud.and.arrow.up"
         case .noAccount: "xmark.icloud"
         case .error: "exclamationmark.icloud"
         case .disabled, nil: "icloud.slash"
@@ -131,6 +132,8 @@ struct CloudSyncSettingsView: View {
                 return String(format: String(localized: "settings.cloudSync.status.lastSync %@", defaultValue: "Active, last synced %@"), formatted)
             }
             return String(localized: "settings.cloudSync.status.active", defaultValue: "Active")
+        case .syncing:
+            return String(localized: "settings.cloudSync.status.syncing", defaultValue: "Syncing…")
         case .noAccount:
             return String(localized: "settings.cloudSync.status.noAccount", defaultValue: "No iCloud account")
         case .error:
