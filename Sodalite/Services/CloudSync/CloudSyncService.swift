@@ -5,6 +5,7 @@ import Observation
 enum CloudSyncStatus: Equatable {
     case disabled
     case noAccount
+    case syncing
     case active(lastSyncAt: Date?)
     case error(String)
 }
@@ -186,7 +187,7 @@ final class CloudSyncService: CloudSyncServiceProtocol {
             if preferences.adoptionCompleted { return }
             switch status {
             case .noAccount, .disabled, .error: return
-            case .active: break
+            case .active, .syncing: break
             }
             try? await Task.sleep(for: .milliseconds(200))
         }
@@ -256,6 +257,25 @@ final class CloudSyncService: CloudSyncServiceProtocol {
             markSettingsDirty(key)
         }
         LogTap.shared.note("[CloudSync] manual settings push queued")
+        guard let engine else { return }
+        // Force the upload now instead of waiting for the automatic scheduler, so a
+        // manual push lands immediately and the status timestamp reflects it promptly.
+        status = .syncing
+        Task { @MainActor [weak self] in
+            do {
+                try await engine.sendChanges()
+            } catch {
+                self?.status = .error(error.localizedDescription)
+                LogTap.shared.note("[CloudSync] manual push send failed: \(error)")
+                return
+            }
+            // The .sentRecordZoneChanges event already advanced status to .active when
+            // records were saved; only settle a push that sent nothing back itself.
+            guard let self else { return }
+            if case .syncing = self.status {
+                self.status = .active(lastSyncAt: self.preferences.lastSyncAt)
+            }
+        }
     }
 
     func deleteCloudDataAndDisable() async {
