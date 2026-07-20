@@ -36,9 +36,14 @@ final class PlayerPiPController: NSObject {
         guard AVPictureInPictureController.isPictureInPictureSupported() else { return }
         sourceView.playerLayer.player = player
         guard player != nil else {
-            possibleObservation?.invalidate()
-            possibleObservation = nil
-            controller = nil
+            // An engine reload publishes a nil gap (stopInternal) before the fresh player arrives; tearing
+            // the controller down here would close an open PiP window mid next-episode/audio-switch. Keep
+            // it while the window is up, the fresh bind re-attaches the layer's player.
+            if !isActive {
+                possibleObservation?.invalidate()
+                possibleObservation = nil
+                controller = nil
+            }
             onPossibleChanged?(false)
             return
         }

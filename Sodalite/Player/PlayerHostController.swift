@@ -150,6 +150,16 @@ final class PlayerHostController: AVPlayerViewController {
                     #if os(iOS)
                     avPlayer.usesExternalPlaybackWhileExternalScreenIsActive = true
                     #endif
+                    #if os(tvOS)
+                    // While the video lives in the PiP window AVKit stays unbound (it pauses a bound
+                    // player on app background); an engine reload mid-PiP (next episode, audio switch)
+                    // must not re-bind it. pipDidEnd re-binds on restore.
+                    if self.pipActive {
+                        self.pipController.bind(player: avPlayer)
+                        self.viewModel.isPiPAvailable = AVPictureInPictureController.isPictureInPictureSupported()
+                        return
+                    }
+                    #endif
                     self.player = avPlayer
                     // Each `self.player` assignment resets videoGravity to .resizeAspect, so re-apply the user's picture-mode after every rebind or an audio-switch reload silently drops fill mode.
                     self.applyVideoGravity(for: self.viewModel.pictureMode)
