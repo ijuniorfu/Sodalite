@@ -34,19 +34,21 @@ final class PlayerPiPController: NSObject {
     /// next episode); whether the window survives the player swap is a device-verify item.
     func bind(player: AVPlayer?) {
         guard AVPictureInPictureController.isPictureInPictureSupported() else { return }
-        sourceView.playerLayer.player = player
-        guard player != nil else {
+        guard let player else {
             // An engine reload publishes a nil gap (stopInternal) before the fresh player arrives; tearing
-            // the controller down here would close an open PiP window mid next-episode/audio-switch. Keep
-            // it while the window is up, the fresh bind re-attaches the layer's player.
+            // anything down here would close an open PiP window mid next-episode/audio-switch. While the
+            // window is up, keep the controller AND the layer's old (stopped) player until the fresh bind
+            // swaps it; a source layer without a player is a system reason to close the window.
             if !isActive {
+                sourceView.playerLayer.player = nil
                 possibleObservation?.invalidate()
                 possibleObservation = nil
                 controller = nil
+                onPossibleChanged?(false)
             }
-            onPossibleChanged?(false)
             return
         }
+        sourceView.playerLayer.player = player
         guard controller == nil else { return }
         guard let pip = AVPictureInPictureController(playerLayer: sourceView.playerLayer) else {
             LogTap.shared.note("[PiP] controller init failed (layer rejected)")
