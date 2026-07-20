@@ -99,32 +99,34 @@ struct PlayerTouchControls: View {
                     .font(.headline)
                     .foregroundStyle(.white)
                     .lineLimit(1)
-                // Format badge rides the metadata line (beside the year/episode), not the button row:
-                // on a narrow phone the button row plus a full-width badge starved the title down to a
-                // single glyph. Here the badge only competes with the subtitle text, which yields by
-                // truncating. (tvOS keeps its free-floating top-right column, no bar to align with.)
-                HStack(spacing: 8) {
-                    if let sub = subtitleText {
-                        Text(sub)
-                            .font(.subheadline)
-                            .foregroundStyle(.white.opacity(0.7))
-                            .lineLimit(1)
-                    }
-                    if viewModel.videoFormat != .sdr {
-                        VideoFormatBadge(format: viewModel.videoFormat, compact: true)
-                    }
+                if let sub = subtitleText {
+                    Text(sub)
+                        .font(.subheadline)
+                        .foregroundStyle(.white.opacity(0.7))
+                        .lineLimit(1)
                 }
             }
             Spacer()
-            if PlayerOrientation.isPhone {
-                rotationLockButton
+            // Right column: action buttons up top, format badge right-aligned underneath them (echoes
+            // tvOS's free-floating top-right badge). Kept out of both the button row and the title's
+            // metadata line, each of which the fixed-width badge starved on a narrow phone (it always
+            // won its row and crushed whatever shared it).
+            VStack(alignment: .trailing, spacing: 8) {
+                HStack(spacing: 12) {
+                    if PlayerOrientation.isPhone {
+                        rotationLockButton
+                    }
+                    childLockButton
+                    // Auto-PiP (swipe-Home) is AVKit's own; no manual button (a custom AVPictureInPictureController
+                    // breaks AVKit's auto-PiP and can't survive backgrounding). AirPlay button for discoverability.
+                    AirPlayRouteButton(tint: .white)
+                        .frame(width: 44, height: 44)
+                        .background(.ultraThinMaterial, in: Circle())
+                }
+                if viewModel.videoFormat != .sdr {
+                    VideoFormatBadge(format: viewModel.videoFormat, compact: true)
+                }
             }
-            childLockButton
-            // Auto-PiP (swipe-Home) is AVKit's own; no manual button (a custom AVPictureInPictureController
-            // breaks AVKit's auto-PiP and can't survive backgrounding). AirPlay button for discoverability.
-            AirPlayRouteButton(tint: .white)
-                .frame(width: 44, height: 44)
-                .background(.ultraThinMaterial, in: Circle())
         }
     }
 
