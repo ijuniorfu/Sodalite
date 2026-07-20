@@ -635,6 +635,8 @@ struct VideoFormatBadge: View {
         Text(label)
             .font(.system(size: compact ? 13 : 18, weight: .bold, design: .rounded))
             .foregroundStyle(.white)
+            .lineLimit(1)
+            .fixedSize(horizontal: true, vertical: false)
             .padding(.horizontal, compact ? 10 : 14)
             .padding(.vertical, compact ? 5 : 6)
             .background(
