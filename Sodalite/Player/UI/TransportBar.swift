@@ -56,6 +56,9 @@ struct TransportBar: View {
     let pictureMode: PlaybackPreferences.PictureMode
     /// "Stats for Nerds" info chip (off by default); toggles a side-panel overlay, no dropdown.
     let showsInfoButton: Bool
+    /// PiP chip (tvOS, native path only); dimmed while AVKit reports PiP not possible.
+    let showsPiPButton: Bool
+    let isPiPEnabled: Bool
     /// Whether the stats panel is open; gives the chip a "pressed" look so the state reads visually.
     let isStatsOverlayOpen: Bool
     /// Scrub-position preview frame; nil falls back to the time-only label.
@@ -155,6 +158,18 @@ struct TransportBar: View {
                     dropdown: pictureDropdownItems,
                     isOpen: isPictureDropdownOpen
                 )
+
+                if showsPiPButton {
+                    trackButton(
+                        label: String(localized: "player.pip", defaultValue: "Picture in Picture"),
+                        icon: "pip.enter",
+                        isFocused: controlsFocus == .pipButton,
+                        persistsLabel: false,
+                        dropdown: [],
+                        isOpen: false
+                    )
+                    .opacity(isPiPEnabled ? 1.0 : 0.4)
+                }
 
                 if showsInfoButton {
                     // Info chip toggles the stats side panel (no dropdown); looks pressed while open.
