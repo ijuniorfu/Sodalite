@@ -811,6 +811,16 @@ final class PlayerHostController: AVPlayerViewController {
 
     /// Step focus through transport buttons, built dynamically so a stream missing audio/subtitle tracks has no dead stops.
     private func stepTransportFocus(direction: Int) {
+        // Live has its own two-button row (Return to Live pill + PiP); the VOD list below does not apply.
+        if viewModel.isLiveSession {
+            var order: [PlayerViewModel.ControlsFocus] = []
+            if !viewModel.isAtLiveEdge { order.append(.returnToLiveButton) }
+            if viewModel.isPiPAvailable { order.append(.pipButton) }
+            guard let current = order.firstIndex(of: viewModel.controlsFocus) else { return }
+            let next = current + direction
+            if next >= 0 && next < order.count { viewModel.controlsFocus = order[next] }
+            return
+        }
         var order: [PlayerViewModel.ControlsFocus] = []
         if viewModel.isInsideIntro { order.append(.skipIntroButton) }
         if viewModel.seasonEpisodes.count > 1 { order.append(.episodeButton) }
@@ -824,6 +834,7 @@ final class PlayerHostController: AVPlayerViewController {
         }
         order.append(.speedButton)
         order.append(.pictureButton)
+        if viewModel.isPiPAvailable { order.append(.pipButton) }
         if viewModel.preferences.showStatsForNerds {
             order.append(.infoButton)
         }
@@ -851,6 +862,8 @@ final class PlayerHostController: AVPlayerViewController {
                 if viewModel.isLiveSession {
                     if !viewModel.isAtLiveEdge {
                         viewModel.controlsFocus = .returnToLiveButton
+                    } else if viewModel.isPiPAvailable {
+                        viewModel.controlsFocus = .pipButton
                     }
                     viewModel.scheduleControlsHide()
                     break
@@ -867,7 +880,7 @@ final class PlayerHostController: AVPlayerViewController {
                 else if hasSubs { viewModel.controlsFocus = .subtitleButton }
                 else { viewModel.controlsFocus = .speedButton }
                 viewModel.scheduleControlsHide()
-            case .skipIntroButton, .chapterButton, .episodeButton, .audioButton, .subtitleButton, .speedButton, .pictureButton, .infoButton, .returnToLiveButton:
+            case .skipIntroButton, .chapterButton, .episodeButton, .audioButton, .subtitleButton, .speedButton, .pictureButton, .pipButton, .infoButton, .returnToLiveButton:
                 viewModel.scheduleControlsHide()
             }
         } else {

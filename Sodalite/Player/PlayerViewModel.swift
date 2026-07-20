@@ -119,6 +119,7 @@ final class PlayerViewModel {
         case subtitleButton
         case speedButton
         case pictureButton
+        case pipButton
         case infoButton
         // Live-only "Return to Live" pill (LiveTransportBar); Up from the live scrubber when
         // behind the live edge, Select fires returnToLiveEdge(). VOD button row N/A for live.
@@ -258,6 +259,21 @@ final class PlayerViewModel {
     /// Fired once at demux EOF when there's no next episode; PlayerHostController routes it to the
     /// Menu dismiss path. Without it the player sits on a black frame with no focus target.
     var onPlaybackReachedEnd: (() -> Void)?
+
+    // MARK: - Picture in Picture (tvOS)
+
+    /// Native backend bound and PiP supported on this device; host writes it from the player bind.
+    var isPiPAvailable = false
+    /// AVKit's isPictureInPicturePossible; drives the transport button's enabled/dimmed state.
+    var isPiPPossible = false
+    /// Host hook: the AVPictureInPictureController lives host-side (PlayerPiPController).
+    var onPiPStartRequested: (() -> Void)?
+
+    func requestPictureInPicture() {
+        guard isPiPAvailable, isPiPPossible else { return }
+        hideControls()
+        onPiPStartRequested?()
+    }
 
     var isCountdownActive = false
     var nextEpisodeTimer: Task<Void, Never>?
@@ -2092,6 +2108,7 @@ final class PlayerViewModel {
         case .subtitleButton: openSubtitleDropdown()
         case .speedButton: openSpeedDropdown()
         case .pictureButton: openPictureDropdown()
+        case .pipButton: requestPictureInPicture()
         case .infoButton:
             showStatsOverlay.toggle()
             scheduleControlsHide()
