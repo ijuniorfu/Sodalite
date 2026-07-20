@@ -314,17 +314,20 @@ struct PlayerOverlayView: View {
             .lazy.compactMap { $0 as? UIWindowScene }
             .first?.screen.bounds.size ?? CGSize(width: 1920, height: 1080)
         #if os(iOS)
-        let cardW: CGFloat = 300
-        let cardH: CGFloat = 169
+        // `screen` reflects interface orientation, so `.width` is the oriented (visible) width. The card is capped at 240pt (landscape/iPad hit the cap) and otherwise ~55% of the actual width, so a portrait phone (~393pt) shrinks to ~216pt instead of dominating the letterboxed video. Height follows 16:9.
+        let cardW: CGFloat = min(240, screen.width * 0.55)
+        let cardH: CGFloat = cardW * 9 / 16
+        let cardPadding: CGFloat = min(20, cardW / 14)
         let marginX: CGFloat = 24
         let marginY: CGFloat = viewModel.showControls ? 150 : 28
         #else
         let cardW: CGFloat = 380
         let cardH: CGFloat = 214
+        let cardPadding: CGFloat = 20
         let marginX: CGFloat = viewModel.showControls ? 60 : 40
         let marginY: CGFloat = viewModel.showControls ? 300 : 40
         #endif
-        return nextEpisodeCard(for: episode, width: cardW, height: cardH)
+        return nextEpisodeCard(for: episode, width: cardW, height: cardH, padding: cardPadding)
             .position(
                 x: screen.width - cardW / 2 - marginX,
                 y: screen.height - cardH / 2 - marginY
@@ -338,19 +341,19 @@ struct PlayerOverlayView: View {
     }
 
     @ViewBuilder
-    private func nextEpisodeCard(for episode: JellyfinItem, width: CGFloat, height: CGFloat) -> some View {
+    private func nextEpisodeCard(for episode: JellyfinItem, width: CGFloat, height: CGFloat, padding: CGFloat) -> some View {
         #if os(iOS)
         // Tappable on touch; tvOS commits via the Select press machine.
         Button { Task { await viewModel.playNextEpisode() } } label: {
-            cardBody(for: episode, width: width, height: height)
+            cardBody(for: episode, width: width, height: height, padding: padding)
         }
         .buttonStyle(.plain)
         #else
-        cardBody(for: episode, width: width, height: height)
+        cardBody(for: episode, width: width, height: height, padding: padding)
         #endif
     }
 
-    private func cardBody(for episode: JellyfinItem, width: CGFloat, height: CGFloat) -> some View {
+    private func cardBody(for episode: JellyfinItem, width: CGFloat, height: CGFloat, padding: CGFloat) -> some View {
         ZStack(alignment: .topLeading) {
             // Explicit frame + clipped() required: otherwise the image's intrinsic size leaks into ZStack sizing and a portrait fallback (series poster) blows the card into a tall portrait.
             if let imageURL = episodeThumbnailURL(for: episode) {
@@ -399,7 +402,7 @@ struct PlayerOverlayView: View {
                         .contentTransition(.numericText())
                 }
             }
-            .padding(20)
+            .padding(padding)
             .frame(width: width, height: height, alignment: .topLeading)
         }
         // Fixed 16:9: image and content share the explicit 380x214 frame so nothing intrinsic-leaking can stretch the ZStack into a portrait.
