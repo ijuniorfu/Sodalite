@@ -104,6 +104,16 @@ final class PlayerPiPController: NSObject {
             LogTap.shared.note("[PiP] sw possible=\(possible)")
             Task { @MainActor [weak self] in self?.onPossibleChanged?(possible) }
         }
+        // DIAG (SW-PiP tvOS possible-pin): late-probe the controller and layer state; together with the
+        // delegate-call logs below this separates "AVKit never evaluates the layer" from "evaluated but
+        // rejected".
+        Task { @MainActor [weak self, weak pip] in
+            try? await Task.sleep(for: .seconds(5))
+            guard let self, let pip else { return }
+            let layer = self.boundSoftwareSource?.layer
+            let bounds = layer.map { "\(Int($0.bounds.width))x\(Int($0.bounds.height))" } ?? "nil"
+            LogTap.shared.note("[PiP] DIAG probe5s possible=\(pip.isPictureInPicturePossible) active=\(pip.isPictureInPictureActive) suspended=\(pip.isPictureInPictureSuspended) layerAttached=\(layer?.superlayer != nil) bounds=\(bounds)")
+        }
     }
 
     func start() { controller?.startPictureInPicture() }
@@ -154,15 +164,20 @@ extension PlayerPiPController: @preconcurrency AVPictureInPictureControllerDeleg
 // delivery contract as the window delegate above.
 extension PlayerPiPController: @preconcurrency AVPictureInPictureSampleBufferPlaybackDelegate {
     func pictureInPictureController(_ c: AVPictureInPictureController, setPlaying playing: Bool) {
+        LogTap.shared.note("[PiP] sw delegate setPlaying=\(playing)")
         boundSoftwareSource?.setPlaying(playing)
     }
 
     func pictureInPictureControllerTimeRangeForPlayback(_ c: AVPictureInPictureController) -> CMTimeRange {
-        boundSoftwareSource?.timeRange() ?? CMTimeRange(start: .negativeInfinity, duration: .positiveInfinity)
+        let range = boundSoftwareSource?.timeRange() ?? CMTimeRange(start: .negativeInfinity, duration: .positiveInfinity)
+        LogTap.shared.note("[PiP] sw delegate timeRange start=\(range.start.seconds) dur=\(range.duration.seconds)")
+        return range
     }
 
     func pictureInPictureControllerIsPlaybackPaused(_ c: AVPictureInPictureController) -> Bool {
-        boundSoftwareSource?.isPaused ?? true
+        let paused = boundSoftwareSource?.isPaused ?? true
+        LogTap.shared.note("[PiP] sw delegate isPaused=\(paused)")
+        return paused
     }
 
     func pictureInPictureController(
