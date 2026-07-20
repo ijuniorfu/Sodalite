@@ -268,6 +268,9 @@ final class PlayerViewModel {
     var isPiPPossible = false
     /// Host hook: the AVPictureInPictureController lives host-side (PlayerPiPController).
     var onPiPStartRequested: (() -> Void)?
+    /// Host hook (tvOS): content ended while the video lives in the PiP window; the coordinator closes
+    /// the window and ends the session (auto-advance is disabled in PiP, see startNextEpisodeCountdown).
+    var onPiPContentEnded: (() -> Void)?
 
     func requestPictureInPicture() {
         guard isPiPAvailable, isPiPPossible else { return }
@@ -1015,7 +1018,14 @@ final class PlayerViewModel {
                     self.isPlaying = false
                     // currentTime can stall a few seconds short of duration (demux's 15-20s look-ahead); cap the
                     // countdown at 10s so the overlay copy stays readable.
+                    // PiP (v1): no auto-advance in the window and no visible overlay; close the window and
+                    // end the session instead of parking a black frame in the corner. Covers the
+                    // next-episode AND last-episode/movie cases (the callback is wired on tvOS only).
                     if self.hasStartedPlaying,
+                       self.player.pictureInPictureActive,
+                       let onPiPContentEnded = self.onPiPContentEnded {
+                        onPiPContentEnded()
+                    } else if self.hasStartedPlaying,
                        self.nextEpisode != nil,
                        !self.nextEpisodeCancelled,
                        self.nextEpisodeTimer == nil {

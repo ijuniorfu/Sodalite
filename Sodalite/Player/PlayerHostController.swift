@@ -279,6 +279,9 @@ final class PlayerHostController: AVPlayerViewController {
         pipController.onDidStop = {
             PiPSessionCoordinator.shared.handleDidStop()
         }
+        viewModel.onPiPContentEnded = {
+            PiPSessionCoordinator.shared.endActiveSession()
+        }
         #endif
 
         // `.tint(...)` must be applied here: the UIKit modal never inherits SodaliteApp's WindowGroup tint.
