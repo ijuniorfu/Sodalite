@@ -102,7 +102,10 @@ extension PlayerViewModel {
         // [weak self]: the engine outlives the VM, the countdown timer must not.
         nextEpisodeTimer = Task { [weak self] in
             while !Task.isCancelled {
-                guard let self, self.nextEpisodeCountdown > 0 else { break }
+                // PiP: fire 4s early so the reused player swaps items while still actively playing. An
+                // episode that ends INSIDE the PiP window (rate 0 on the ended item) makes the system
+                // close the window during the swap; the countdown overlay is invisible in PiP anyway.
+                guard let self, self.nextEpisodeCountdown > (self.player.pictureInPictureActive ? 4 : 0) else { break }
                 try? await Task.sleep(for: .seconds(1))
                 guard !Task.isCancelled else { return }
                 self.nextEpisodeCountdown -= 1
