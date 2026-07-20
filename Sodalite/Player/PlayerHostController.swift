@@ -678,14 +678,14 @@ final class PlayerHostController: AVPlayerViewController {
         guard wasFullyBackgrounded else { return }
         wasFullyBackgrounded = false
 
-        #if os(iOS)
         // Background playback (PiP / background audio) kept the pipeline alive + playing (nothing to
         // reload, must NOT force it paused), and a paused pipeline can survive a quick app switch inside
         // the engine's grace window (backend stays non-.none). Only the torn-down path (background
         // disabled, or the paused-in-background teardown after the window) needs the reload below.
+        // Cross-platform since tvOS PiP keepalive (5.11.0): a fullscreen restore from the Home screen
+        // arrives with a live, playing pipeline; the unconditional tvOS reload paused it for nothing.
         if !Self.foregroundReturnNeedsReload(state: viewModel.player.state,
                                              backend: viewModel.player.playbackBackend) { return }
-        #endif
 
         // tvOS deactivates the AVAudioSession on background; without re-arming it the post-reload resume drives a synchronizer with no live session (state .playing but no audio, no frames advance).
         try? AVAudioSession.sharedInstance().setActive(true)
