@@ -94,25 +94,28 @@ struct PlayerTouchControls: View {
             }
             .buttonStyle(.plain)
 
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: 3) {
                 Text(titleText)
                     .font(.headline)
                     .foregroundStyle(.white)
                     .lineLimit(1)
-                if let sub = subtitleText {
-                    Text(sub)
-                        .font(.subheadline)
-                        .foregroundStyle(.white.opacity(0.7))
-                        .lineLimit(1)
+                // Format badge rides the metadata line (beside the year/episode), not the button row:
+                // on a narrow phone the button row plus a full-width badge starved the title down to a
+                // single glyph. Here the badge only competes with the subtitle text, which yields by
+                // truncating. (tvOS keeps its free-floating top-right column, no bar to align with.)
+                HStack(spacing: 8) {
+                    if let sub = subtitleText {
+                        Text(sub)
+                            .font(.subheadline)
+                            .foregroundStyle(.white.opacity(0.7))
+                            .lineLimit(1)
+                    }
+                    if viewModel.videoFormat != .sdr {
+                        VideoFormatBadge(format: viewModel.videoFormat, compact: true)
+                    }
                 }
             }
             Spacer()
-            // Format badge lives up here on touch, flush with the top-bar buttons (tvOS keeps the
-            // free-floating top-right column, which has no bar to align with).
-            if viewModel.videoFormat != .sdr {
-                VideoFormatBadge(format: viewModel.videoFormat, compact: true)
-                    .frame(height: 44)
-            }
             if PlayerOrientation.isPhone {
                 rotationLockButton
             }
