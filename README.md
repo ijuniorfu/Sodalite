@@ -79,7 +79,7 @@ Almost everything is identical across devices, it's one codebase. A handful of c
 | Live TV &amp; DVR | ✓ | ✓ |
 | Music library | ✓ | ✓ |
 | Watch Stats, parental controls, 26 languages | ✓ | ✓ |
-| Picture in Picture | – | ✓ |
+| Picture in Picture | ✓ | ✓ |
 | AirPlay to another display | – | ✓ |
 | Full-screen video out over a wired HDMI adapter | – | ✓ |
 | Rotation lock &amp; portrait player | – | ✓ |
@@ -136,11 +136,11 @@ The Seerr integration isn't a tacked-on link to a web view. It's a first-class p
 - **Audio track switcher**: pick the language or surround mix you want, mid-playback
 - **Scrub preview**: thumbnails of the exact frame as you scrub, floating above the playhead, generated on-device by AetherEngine straight from the video so they land on the precise frame and work even when your server has no trickplay images prepared. An optional setting lets you prefer your server's pre-generated trickplay images instead (decode-free, lighter on older devices), falling back to on-device when the server has none
 - **Custom player UI**: a hand-built transport bar and info panel on top of our own video engine, matching the gestures and feel of Apple's own player without using the system player
+- **Picture in Picture**: shrink playback into a floating window and keep browsing, or leave the app entirely. On Apple TV start it from a dedicated transport-bar button (video and Live TV); on iPhone and iPad it also engages automatically when you swipe home. Text subtitles render inside the PiP window and survive seeking in both directions
 - **Now Playing skip**: the 10-second forward and backward buttons in the system Now Playing controls (Control Center on iPhone and iPad, the Now Playing panel on Apple TV) route through to the engine via `MPRemoteCommandCenter`, App Store compliant, no private API
 - **Stats for Nerds overlay**: optional info panel during playback. Static section shows container, video codec / range / framerate / bitrate / decoder, audio codec / channels / bitrate / decoder, subtitle codec. Live section refreshes at 1 Hz with instant + average bitrate from the demuxer, forward buffer + cached MB, network throughput, dropped frames (native AVPlayer) or observed FPS (software AV1), plus a colour-coded A/V sync gap. A second toggle adds an Engine Diagnostics deep-dive (producer restarts, RSS, demuxer / muxer / audio-bridge bytes, server traffic) for troubleshooting. Enable in Settings → Playback → Advanced.
 
 ### 📱 On iPhone & iPad
-- **Picture in Picture**: shrink playback into a floating window and keep browsing, or leave the app entirely; text subtitles render inside the PiP window and survive seeking in both directions
 - **AirPlay**: send any title to an AirPlay display, with HDR and surround metadata preserved
 - **Wired HDMI out**: plug in a USB-C to HDMI adapter and playback fills the connected screen instead of showing the mirrored phone window, with HDR / Dolby Vision and match-frame-rate passed through; subtitles render on the external screen too
 - **Rotation lock**: a one-tap toggle in the player pins landscape (or lets it follow the device), with a lock indicator so you always know which mode you're in

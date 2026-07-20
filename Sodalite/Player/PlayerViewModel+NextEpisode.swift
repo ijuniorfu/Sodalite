@@ -95,6 +95,21 @@ extension PlayerViewModel {
             return
         }
 
+        // PiP: advance immediately. The countdown overlay is invisible in the window, and the engine's
+        // in-place item handover (AE#158, 5.12.0) needs the old item still attached when the swap
+        // lands, so waiting out the countdown (or the episode's end) only risks the transition.
+        guard !player.pictureInPictureActive else {
+            isCountdownActive = false
+            nextEpisodeCountdown = 0
+            nextEpisodeTimer?.cancel()
+            nextEpisodeTimer = nil
+            LogTap.shared.note("[NextEp] pip active, advancing immediately")
+            Task { @MainActor [weak self] in
+                await self?.playNextEpisode()
+            }
+            return
+        }
+
         nextEpisodeCountdown = max(1, seconds)
         isCountdownActive = true
         nextEpisodeTimer?.cancel()

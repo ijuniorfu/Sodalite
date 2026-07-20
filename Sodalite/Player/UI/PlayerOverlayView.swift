@@ -557,6 +557,8 @@ struct PlayerOverlayView: View {
                     chapterThumbnail: { await viewModel.chapterThumbnail(forIndex: $0) },
                     pictureMode: viewModel.pictureMode,
                     showsInfoButton: viewModel.preferences.showStatsForNerds,
+                    showsPiPButton: viewModel.isPiPAvailable,
+                    isPiPEnabled: viewModel.isPiPPossible,
                     isStatsOverlayOpen: viewModel.showStatsOverlay,
                     previewImage: viewModel.scrubPreview.previewImage
                 )

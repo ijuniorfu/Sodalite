@@ -119,6 +119,7 @@ final class PlayerViewModel {
         case subtitleButton
         case speedButton
         case pictureButton
+        case pipButton
         case infoButton
         // Live-only "Return to Live" pill (LiveTransportBar); Up from the live scrubber when
         // behind the live edge, Select fires returnToLiveEdge(). VOD button row N/A for live.
@@ -258,6 +259,24 @@ final class PlayerViewModel {
     /// Fired once at demux EOF when there's no next episode; PlayerHostController routes it to the
     /// Menu dismiss path. Without it the player sits on a black frame with no focus target.
     var onPlaybackReachedEnd: (() -> Void)?
+
+    // MARK: - Picture in Picture (tvOS)
+
+    /// Native backend bound and PiP supported on this device; host writes it from the player bind.
+    var isPiPAvailable = false
+    /// AVKit's isPictureInPicturePossible; drives the transport button's enabled/dimmed state.
+    var isPiPPossible = false
+    /// Host hook: the AVPictureInPictureController lives host-side (PlayerPiPController).
+    var onPiPStartRequested: (() -> Void)?
+    /// Host hook (tvOS): content ended while the video lives in the PiP window; the coordinator closes
+    /// the window and ends the session (auto-advance is disabled in PiP, see startNextEpisodeCountdown).
+    var onPiPContentEnded: (() -> Void)?
+
+    func requestPictureInPicture() {
+        guard isPiPAvailable, isPiPPossible else { return }
+        hideControls()
+        onPiPStartRequested?()
+    }
 
     var isCountdownActive = false
     var nextEpisodeTimer: Task<Void, Never>?
@@ -862,19 +881,14 @@ final class PlayerViewModel {
         #endif
     }
 
-    /// Sodalite#32 / #34 (iOS-only): gates serving the native WebVTT legible rendition. It exists so AVKit can
+    /// Sodalite#32 / #34: gates serving the native WebVTT legible rendition. It exists so AVKit can
     /// render a real subtitle track itself whenever the video leaves the app's own view hierarchy (a PiP window,
     /// an AirPlay receiver, or a wired external display), where the host's on-frame overlay cannot draw. The
     /// engine serves a DEFAULT=YES rendition with eager readers; the host selects it on those transitions and
-    /// deselects it back in fullscreen, where the on-frame overlay owns subtitles. tvOS is overlay-only (flag
-    /// false).
-    static var nativeSubtitleRenditionEnabled: Bool {
-        #if os(iOS)
-        return true
-        #else
-        return false
-        #endif
-    }
+    /// deselects it back in fullscreen, where the on-frame overlay owns subtitles. tvOS was overlay-only until
+    /// tvOS PiP (2026-07-20); fullscreen stays overlay-owned on both platforms via the engine's #38
+    /// deselect-at-load pin.
+    static var nativeSubtitleRenditionEnabled: Bool { true }
 
     /// Tear down the session. Local work (progress reporting, KVO, engine stop) finishes inline;
     /// the network reportStop is detached so a slow Jellyfin server can't stall the dismiss path
@@ -1004,7 +1018,15 @@ final class PlayerViewModel {
                     self.isPlaying = false
                     // currentTime can stall a few seconds short of duration (demux's 15-20s look-ahead); cap the
                     // countdown at 10s so the overlay copy stays readable.
+                    // PiP: with a next episode the auto-advance path swaps the item in place (AE#158);
+                    // only real end-of-content (movie / last episode / cancelled advance) closes the
+                    // window and ends the session, instead of parking a black frame in the corner.
                     if self.hasStartedPlaying,
+                       self.player.pictureInPictureActive,
+                       self.nextEpisode == nil || self.nextEpisodeCancelled,
+                       let onPiPContentEnded = self.onPiPContentEnded {
+                        onPiPContentEnded()
+                    } else if self.hasStartedPlaying,
                        self.nextEpisode != nil,
                        !self.nextEpisodeCancelled,
                        self.nextEpisodeTimer == nil {
@@ -1821,6 +1843,13 @@ final class PlayerViewModel {
             subtitleCues = []
             subtitleLoadTask = Task { await loadSubtitles(streamIndex: id) }
         }
+
+        // Subtitle picked while the video lives in the PiP window (next-episode auto-advance runs the
+        // new session's auto-pick through here): the load's deselect pin cleared the native rendition,
+        // re-select the one matching this track so the window keeps rendering subtitles (#32, AE#158).
+        if player.pictureInPictureActive {
+            enterNativeSubtitleRendering()
+        }
     }
 
     /// Select the SECONDARY companion subtitle track (issue #47). Text-only, session-only: no styled-ASS,
@@ -2092,6 +2121,7 @@ final class PlayerViewModel {
         case .subtitleButton: openSubtitleDropdown()
         case .speedButton: openSpeedDropdown()
         case .pictureButton: openPictureDropdown()
+        case .pipButton: requestPictureInPicture()
         case .infoButton:
             showStatsOverlay.toggle()
             scheduleControlsHide()

@@ -12,6 +12,10 @@ struct LiveTransportBar: View {
         viewModel.controlsFocus == .returnToLiveButton
     }
 
+    private var pipFocused: Bool {
+        viewModel.controlsFocus == .pipButton
+    }
+
     var body: some View {
         VStack(spacing: 16) {
             if viewModel.isScrubbing, let preview = viewModel.scrubPreview.previewImage {
@@ -45,6 +49,24 @@ struct LiveTransportBar: View {
                         )
                         .scaleEffect(returnToLiveFocused ? 1.08 : 1.0)
                         .animation(.easeInOut(duration: 0.15), value: returnToLiveFocused)
+                }
+
+                if viewModel.isPiPAvailable {
+                    Image(systemName: "pip.enter")
+                        .font(.caption.bold())
+                        .foregroundStyle(pipFocused ? Color.black : .white)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 8)
+                        .background(
+                            Capsule().fill(
+                                pipFocused
+                                    ? AnyShapeStyle(.tint)
+                                    : AnyShapeStyle(.white.opacity(0.2))
+                            )
+                        )
+                        .opacity(viewModel.isPiPPossible ? 1.0 : 0.4)
+                        .scaleEffect(pipFocused ? 1.08 : 1.0)
+                        .animation(.easeInOut(duration: 0.15), value: pipFocused)
                 }
 
                 liveBadge

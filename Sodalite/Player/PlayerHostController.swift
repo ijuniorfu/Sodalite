@@ -30,6 +30,12 @@ final class PlayerHostController: AVPlayerViewController {
     private let aetherView = AetherPlayerView()
     private var aetherViewMounted = false
 
+    #if os(tvOS)
+    /// Host-built PiP (design 2026-07-20): source layer + AVPictureInPictureController; AVKit's own tvOS
+    /// PiP is unreachable behind our suppressed chrome.
+    let pipController = PlayerPiPController()
+    #endif
+
     /// Our recognizers, so suppressAVKitGestures can disable AVKit's own (arrow→10s skip, select→toggle, pan→scrub) which otherwise fire silently and eat presses before our handlers.
     private var ourGestureRecognizers: [UIGestureRecognizer] = []
 
@@ -115,6 +121,14 @@ final class PlayerHostController: AVPlayerViewController {
         #endif
         delegate = self
 
+        #if os(tvOS)
+        if let overlay = contentOverlayView {
+            pipController.sourceView.frame = overlay.bounds
+            pipController.sourceView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+            overlay.addSubview(pipController.sourceView)
+        }
+        #endif
+
         // The nil case is load-bearing: the SW (dav1d/VP9) path never sets currentAVPlayer, so without `self.player = nil` AVKit keeps the old item-less player and renders its own spinner over our frames ("AV1 plays but loading never goes away").
         let engine = viewModel.player
         engine.$currentAVPlayer
@@ -136,9 +150,23 @@ final class PlayerHostController: AVPlayerViewController {
                     #if os(iOS)
                     avPlayer.usesExternalPlaybackWhileExternalScreenIsActive = true
                     #endif
+                    #if os(tvOS)
+                    // While the video lives in the PiP window AVKit stays unbound (it pauses a bound
+                    // player on app background); an engine reload mid-PiP (next episode, audio switch)
+                    // must not re-bind it. pipDidEnd re-binds on restore.
+                    if self.pipActive {
+                        self.pipController.bind(player: avPlayer)
+                        self.viewModel.isPiPAvailable = AVPictureInPictureController.isPictureInPictureSupported()
+                        return
+                    }
+                    #endif
                     self.player = avPlayer
                     // Each `self.player` assignment resets videoGravity to .resizeAspect, so re-apply the user's picture-mode after every rebind or an audio-switch reload silently drops fill mode.
                     self.applyVideoGravity(for: self.viewModel.pictureMode)
+                    #if os(tvOS)
+                    self.pipController.bind(player: avPlayer)
+                    self.viewModel.isPiPAvailable = AVPictureInPictureController.isPictureInPictureSupported()
+                    #endif
                     self.observeAVKitRenderLayer(for: avPlayer)
                     #if os(iOS)
                     self.observeExternalPlayback(for: avPlayer)
@@ -146,6 +174,11 @@ final class PlayerHostController: AVPlayerViewController {
                     #endif
                 } else {
                     self.player = nil
+                    #if os(tvOS)
+                    self.pipController.bind(player: nil)
+                    self.viewModel.isPiPAvailable = false
+                    self.viewModel.isPiPPossible = false
+                    #endif
                     self.avkitLayerObservation?.invalidate()
                     self.avkitLayerObservation = nil
                     self.avkitLayerSampler?.cancel()
@@ -201,6 +234,55 @@ final class PlayerHostController: AVPlayerViewController {
                 self?.dismissPlayer()
             }
         }
+
+        #if os(tvOS)
+        viewModel.onPiPStartRequested = { [weak self] in self?.pipController.start() }
+        // Availability (button visibility) comes from the player bind; this only tracks AVKit's possible
+        // flag (button enabled/dimmed), which flickers during reloads.
+        pipController.onPossibleChanged = { [weak self] possible in
+            self?.viewModel.isPiPPossible = possible
+        }
+        pipController.onWillStart = { [weak self] in
+            guard let self else { return }
+            // Order matters: pipActive before the dismiss so viewWillDisappear skips stopPlayback (the
+            // same handoff contract as the iOS AVKit delegate), engine flag before any backgrounding.
+            self.pipActive = true
+            self.viewModel.player.pictureInPictureActive = true
+            self.syncNativeSubtitleRendering()
+            PiPSessionCoordinator.shared.beginSession(player: self, viewModel: self.viewModel)
+            self.viewModel.hideControls()
+            // Same closure the normal exit uses: resets the launcher binding and dismisses this VC
+            // (VOD tearDownPlayer / live host.dismiss); playback continues because pipActive is set.
+            self.onDismiss()
+            LogTap.shared.note("[PiP] handoff: after onDismiss presenting=\(self.presentingViewController != nil) beingDismissed=\(self.isBeingDismissed)")
+            // The launcher holds this VC only weakly (and not at all after a coordinator re-present), so
+            // the closure above may be a no-op; the handoff must never depend on it. Same fallback as
+            // dismissPlayer.
+            if self.presentingViewController != nil, !self.isBeingDismissed {
+                LogTap.shared.note("[PiP] handoff: launcher path did not dismiss, self-dismissing")
+                self.dismiss(animated: false)
+            }
+            // AVKit pauses a bound player on app background unless AVKit itself owns the PiP; ours is
+            // host-built (allowsPictureInPicturePlayback stays false on tvOS), so unbind for the PiP
+            // phase. The PiP window renders from our source layer, not from AVKit. Rebound in pipDidEnd.
+            self.player = nil
+        }
+        pipController.onFailedToStart = { [weak self] _ in
+            guard let self else { return }
+            self.pipActive = false
+            self.viewModel.player.pictureInPictureActive = false
+            self.syncNativeSubtitleRendering()
+        }
+        pipController.onRestoreRequested = { completion in
+            PiPSessionCoordinator.shared.restore(completion: completion)
+        }
+        pipController.onDidStop = {
+            PiPSessionCoordinator.shared.handleDidStop()
+        }
+        viewModel.onPiPContentEnded = {
+            PiPSessionCoordinator.shared.endActiveSession()
+        }
+        #endif
 
         // `.tint(...)` must be applied here: the UIKit modal never inherits SodaliteApp's WindowGroup tint.
         let overlay = PlayerOverlayView(
@@ -270,6 +352,10 @@ final class PlayerHostController: AVPlayerViewController {
         case .original: self.videoGravity = .resizeAspect
         case .fill:     self.videoGravity = .resizeAspectFill
         }
+        #if os(tvOS)
+        // The PiP source layer covers AVKit's video; mismatched gravity would visibly double-expose.
+        pipController.setVideoGravity(videoGravity)
+        #endif
     }
 
     /// Mount aetherView in AVKit's contentOverlayView for the SW (dav1d) path. Idempotent. contentOverlayView sits between AVKit's player layer and chrome, so engine frames render above the empty player surface and below our overlay.
@@ -306,6 +392,21 @@ final class PlayerHostController: AVPlayerViewController {
             viewModel.exitNativeSubtitleRendering()
         }
     }
+
+    #if os(tvOS)
+    /// Coordinator callback when the PiP window ends (restore or close): clear the handoff flags, re-bind
+    /// AVKit (unbound during PiP, see the handoff), and hand subtitles back to the on-frame overlay.
+    func pipDidEnd() {
+        pipActive = false
+        viewModel.player.pictureInPictureActive = false
+        if let avPlayer = viewModel.player.currentAVPlayer, player !== avPlayer {
+            player = avPlayer
+            // Each `self.player` assignment resets videoGravity to .resizeAspect.
+            applyVideoGravity(for: viewModel.pictureMode)
+        }
+        syncNativeSubtitleRendering()
+    }
+    #endif
 
     #if os(iOS)
     /// Sodalite#34: wired HDMI (via usesExternalPlaybackWhileExternalScreenIsActive) and AirPlay both flip
@@ -577,14 +678,14 @@ final class PlayerHostController: AVPlayerViewController {
         guard wasFullyBackgrounded else { return }
         wasFullyBackgrounded = false
 
-        #if os(iOS)
         // Background playback (PiP / background audio) kept the pipeline alive + playing (nothing to
         // reload, must NOT force it paused), and a paused pipeline can survive a quick app switch inside
         // the engine's grace window (backend stays non-.none). Only the torn-down path (background
         // disabled, or the paused-in-background teardown after the window) needs the reload below.
+        // Cross-platform since tvOS PiP keepalive (5.11.0): a fullscreen restore from the Home screen
+        // arrives with a live, playing pipeline; the unconditional tvOS reload paused it for nothing.
         if !Self.foregroundReturnNeedsReload(state: viewModel.player.state,
                                              backend: viewModel.player.playbackBackend) { return }
-        #endif
 
         // tvOS deactivates the AVAudioSession on background; without re-arming it the post-reload resume drives a synchronizer with no live session (state .playing but no audio, no frames advance).
         try? AVAudioSession.sharedInstance().setActive(true)
@@ -787,6 +888,16 @@ final class PlayerHostController: AVPlayerViewController {
 
     /// Step focus through transport buttons, built dynamically so a stream missing audio/subtitle tracks has no dead stops.
     private func stepTransportFocus(direction: Int) {
+        // Live has its own two-button row (Return to Live pill + PiP); the VOD list below does not apply.
+        if viewModel.isLiveSession {
+            var order: [PlayerViewModel.ControlsFocus] = []
+            if !viewModel.isAtLiveEdge { order.append(.returnToLiveButton) }
+            if viewModel.isPiPAvailable { order.append(.pipButton) }
+            guard let current = order.firstIndex(of: viewModel.controlsFocus) else { return }
+            let next = current + direction
+            if next >= 0 && next < order.count { viewModel.controlsFocus = order[next] }
+            return
+        }
         var order: [PlayerViewModel.ControlsFocus] = []
         if viewModel.isInsideIntro { order.append(.skipIntroButton) }
         if viewModel.seasonEpisodes.count > 1 { order.append(.episodeButton) }
@@ -800,6 +911,7 @@ final class PlayerHostController: AVPlayerViewController {
         }
         order.append(.speedButton)
         order.append(.pictureButton)
+        if viewModel.isPiPAvailable { order.append(.pipButton) }
         if viewModel.preferences.showStatsForNerds {
             order.append(.infoButton)
         }
@@ -827,6 +939,8 @@ final class PlayerHostController: AVPlayerViewController {
                 if viewModel.isLiveSession {
                     if !viewModel.isAtLiveEdge {
                         viewModel.controlsFocus = .returnToLiveButton
+                    } else if viewModel.isPiPAvailable {
+                        viewModel.controlsFocus = .pipButton
                     }
                     viewModel.scheduleControlsHide()
                     break
@@ -843,7 +957,7 @@ final class PlayerHostController: AVPlayerViewController {
                 else if hasSubs { viewModel.controlsFocus = .subtitleButton }
                 else { viewModel.controlsFocus = .speedButton }
                 viewModel.scheduleControlsHide()
-            case .skipIntroButton, .chapterButton, .episodeButton, .audioButton, .subtitleButton, .speedButton, .pictureButton, .infoButton, .returnToLiveButton:
+            case .skipIntroButton, .chapterButton, .episodeButton, .audioButton, .subtitleButton, .speedButton, .pictureButton, .pipButton, .infoButton, .returnToLiveButton:
                 viewModel.scheduleControlsHide()
             }
         } else {
@@ -928,11 +1042,12 @@ final class PlayerHostController: AVPlayerViewController {
         // stopPlayback fire-and-forgets the reportStop call (DrHurt #12); called inline so synchronous teardown finishes before onDismiss and the back press hits the dismiss animation immediately.
         viewModel.stopPlayback()
         onDismiss()
-        #if os(iOS)
-        // Fallback: if the host-driven dismiss above did not take (a stale captured host reference left
-        // the fullScreen modal up while only the stream stopped), dismiss self via its real presenter.
-        if presentingViewController != nil { dismiss(animated: false) }
+        #if os(tvOS)
+        PiPSessionCoordinator.shared.playerDidDismiss(self)
         #endif
+        // Fallback: if the host-driven dismiss above did not take (a stale captured launcher host after a
+        // tvOS PiP restore, or a stale host reference on iOS), dismiss self via its real presenter.
+        if presentingViewController != nil { dismiss(animated: false) }
     }
 
     // MARK: - Pan (Touchpad Scrubbing)
