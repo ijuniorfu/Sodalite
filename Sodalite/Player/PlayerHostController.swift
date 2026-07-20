@@ -127,6 +127,17 @@ final class PlayerHostController: AVPlayerViewController {
             pipController.sourceView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
             overlay.addSubview(pipController.sourceView)
         }
+        // DIAG (SW-PiP): test whether the declared .longFormAudio route-sharing policy pins the
+        // sample-buffer controller's isPictureInPicturePossible to false (#116 analog). Off-main, #114.
+        Task.detached(priority: .userInitiated) {
+            let session = AVAudioSession.sharedInstance()
+            do {
+                try session.setCategory(.playback, mode: .moviePlayback, policy: .default, options: [])
+                LogTap.shared.note("[PiP] DIAG route policy override -> default ok")
+            } catch {
+                LogTap.shared.note("[PiP] DIAG route policy override failed: \(error)")
+            }
+        }
         #endif
 
         // The nil case is load-bearing: the SW (dav1d/VP9) path never sets currentAVPlayer, so without `self.player = nil` AVKit keeps the old item-less player and renders its own spinner over our frames ("AV1 plays but loading never goes away").
