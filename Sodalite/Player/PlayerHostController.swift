@@ -252,6 +252,10 @@ final class PlayerHostController: AVPlayerViewController {
                 LogTap.shared.note("[PiP] handoff: launcher path did not dismiss, self-dismissing")
                 self.dismiss(animated: false)
             }
+            // AVKit pauses a bound player on app background unless AVKit itself owns the PiP; ours is
+            // host-built (allowsPictureInPicturePlayback stays false on tvOS), so unbind for the PiP
+            // phase. The PiP window renders from our source layer, not from AVKit. Rebound in pipDidEnd.
+            self.player = nil
         }
         pipController.onFailedToStart = { [weak self] _ in
             guard let self else { return }
@@ -377,11 +381,16 @@ final class PlayerHostController: AVPlayerViewController {
     }
 
     #if os(tvOS)
-    /// Coordinator callback when the PiP window ends (restore or close): clear the handoff flags and hand
-    /// subtitles back to the on-frame overlay.
+    /// Coordinator callback when the PiP window ends (restore or close): clear the handoff flags, re-bind
+    /// AVKit (unbound during PiP, see the handoff), and hand subtitles back to the on-frame overlay.
     func pipDidEnd() {
         pipActive = false
         viewModel.player.pictureInPictureActive = false
+        if let avPlayer = viewModel.player.currentAVPlayer, player !== avPlayer {
+            player = avPlayer
+            // Each `self.player` assignment resets videoGravity to .resizeAspect.
+            applyVideoGravity(for: viewModel.pictureMode)
+        }
         syncNativeSubtitleRendering()
     }
     #endif
