@@ -1,6 +1,8 @@
-#if os(tvOS)
+#if os(tvOS) || os(iOS)
 import AVKit
 import UIKit
+import CoreMedia
+import AetherEngine
 
 /// View whose backing layer IS an AVPlayerLayer, so bounds changes track autoresizing without manual layout.
 final class PiPSourceView: UIView {
@@ -17,6 +19,8 @@ final class PlayerPiPController: NSObject {
 
     private var controller: AVPictureInPictureController?
     private var possibleObservation: NSKeyValueObservation?
+    /// Bound SW-path bridge (sample-buffer mode); nil while in playerLayer mode.
+    private var boundSoftwareSource: SoftwarePiPSource?
 
     var onPossibleChanged: ((Bool) -> Void)?
     var onWillStart: (() -> Void)?
@@ -34,6 +38,8 @@ final class PlayerPiPController: NSObject {
     /// next episode); whether the window survives the player swap is a device-verify item.
     func bind(player: AVPlayer?) {
         guard AVPictureInPictureController.isPictureInPictureSupported() else { return }
+        // A bound SW source owns the controller; the native sink's nil events must not clobber it.
+        if boundSoftwareSource != nil, player == nil { return }
         guard let player else {
             // An engine reload publishes a nil gap (stopInternal) before the fresh player arrives; tearing
             // anything down here would close an open PiP window mid next-episode/audio-switch. While the
@@ -59,6 +65,43 @@ final class PlayerPiPController: NSObject {
         possibleObservation = pip.observe(\.isPictureInPicturePossible, options: [.new, .initial]) { [weak self] pip, _ in
             let possible = pip.isPictureInPicturePossible
             LogTap.shared.note("[PiP] possible=\(possible)")
+            Task { @MainActor [weak self] in self?.onPossibleChanged?(possible) }
+        }
+    }
+
+    /// (Re)binds the sample-buffer ContentSource for the software path; nil unbinds. Mirrors
+    /// bind(player:): the controller survives only while its window is open, and a fresh source
+    /// rebuilds it. On iOS the controller also arms auto-PiP on swipe-home (AVKit parity).
+    func bind(softwareSource: SoftwarePiPSource?) {
+        guard AVPictureInPictureController.isPictureInPictureSupported() else { return }
+        guard let source = softwareSource else {
+            // Only tear down a SOFTWARE binding: every stopInternal publishes softwarePiPSource = nil
+            // (native sessions included), and that event must not clobber a fresh playerLayer controller.
+            guard boundSoftwareSource != nil else { return }
+            boundSoftwareSource = nil
+            if !isActive {
+                possibleObservation?.invalidate()
+                possibleObservation = nil
+                controller = nil
+                onPossibleChanged?(false)
+            }
+            return
+        }
+        boundSoftwareSource = source
+        guard controller == nil else { return }
+        let contentSource = AVPictureInPictureController.ContentSource(
+            sampleBufferDisplayLayer: source.layer,
+            playbackDelegate: self
+        )
+        let pip = AVPictureInPictureController(contentSource: contentSource)
+        pip.delegate = self
+        #if os(iOS)
+        pip.canStartPictureInPictureAutomaticallyFromInline = true
+        #endif
+        controller = pip
+        possibleObservation = pip.observe(\.isPictureInPicturePossible, options: [.new, .initial]) { [weak self] pip, _ in
+            let possible = pip.isPictureInPicturePossible
+            LogTap.shared.note("[PiP] sw possible=\(possible)")
             Task { @MainActor [weak self] in self?.onPossibleChanged?(possible) }
         }
     }
@@ -104,6 +147,36 @@ extension PlayerPiPController: @preconcurrency AVPictureInPictureControllerDeleg
     func pictureInPictureControllerDidStopPictureInPicture(_ c: AVPictureInPictureController) {
         LogTap.shared.note("[PiP] didStop")
         onDidStop?()
+    }
+}
+
+// Thin proxy onto the engine's SoftwarePiPSource; @preconcurrency for the same main-thread
+// delivery contract as the window delegate above.
+extension PlayerPiPController: @preconcurrency AVPictureInPictureSampleBufferPlaybackDelegate {
+    func pictureInPictureController(_ c: AVPictureInPictureController, setPlaying playing: Bool) {
+        boundSoftwareSource?.setPlaying(playing)
+    }
+
+    func pictureInPictureControllerTimeRangeForPlayback(_ c: AVPictureInPictureController) -> CMTimeRange {
+        boundSoftwareSource?.timeRange() ?? CMTimeRange(start: .negativeInfinity, duration: .positiveInfinity)
+    }
+
+    func pictureInPictureControllerIsPlaybackPaused(_ c: AVPictureInPictureController) -> Bool {
+        boundSoftwareSource?.isPaused ?? true
+    }
+
+    func pictureInPictureController(
+        _ c: AVPictureInPictureController,
+        didTransitionToRenderSize newRenderSize: CMVideoDimensions
+    ) {}
+
+    func pictureInPictureController(
+        _ c: AVPictureInPictureController,
+        skipByInterval skipInterval: CMTime,
+        completion completionHandler: @escaping () -> Void
+    ) {
+        boundSoftwareSource?.skip(by: skipInterval.seconds)
+        completionHandler()
     }
 }
 #endif
