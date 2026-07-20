@@ -30,6 +30,12 @@ final class PlayerHostController: AVPlayerViewController {
     private let aetherView = AetherPlayerView()
     private var aetherViewMounted = false
 
+    #if os(tvOS)
+    /// Host-built PiP (design 2026-07-20): source layer + AVPictureInPictureController; AVKit's own tvOS
+    /// PiP is unreachable behind our suppressed chrome.
+    let pipController = PlayerPiPController()
+    #endif
+
     /// Our recognizers, so suppressAVKitGestures can disable AVKit's own (arrow→10s skip, select→toggle, pan→scrub) which otherwise fire silently and eat presses before our handlers.
     private var ourGestureRecognizers: [UIGestureRecognizer] = []
 
@@ -115,6 +121,14 @@ final class PlayerHostController: AVPlayerViewController {
         #endif
         delegate = self
 
+        #if os(tvOS)
+        if let overlay = contentOverlayView {
+            pipController.sourceView.frame = overlay.bounds
+            pipController.sourceView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+            overlay.addSubview(pipController.sourceView)
+        }
+        #endif
+
         // The nil case is load-bearing: the SW (dav1d/VP9) path never sets currentAVPlayer, so without `self.player = nil` AVKit keeps the old item-less player and renders its own spinner over our frames ("AV1 plays but loading never goes away").
         let engine = viewModel.player
         engine.$currentAVPlayer
@@ -139,6 +153,9 @@ final class PlayerHostController: AVPlayerViewController {
                     self.player = avPlayer
                     // Each `self.player` assignment resets videoGravity to .resizeAspect, so re-apply the user's picture-mode after every rebind or an audio-switch reload silently drops fill mode.
                     self.applyVideoGravity(for: self.viewModel.pictureMode)
+                    #if os(tvOS)
+                    self.pipController.bind(player: avPlayer)
+                    #endif
                     self.observeAVKitRenderLayer(for: avPlayer)
                     #if os(iOS)
                     self.observeExternalPlayback(for: avPlayer)
@@ -146,6 +163,9 @@ final class PlayerHostController: AVPlayerViewController {
                     #endif
                 } else {
                     self.player = nil
+                    #if os(tvOS)
+                    self.pipController.bind(player: nil)
+                    #endif
                     self.avkitLayerObservation?.invalidate()
                     self.avkitLayerObservation = nil
                     self.avkitLayerSampler?.cancel()
@@ -270,6 +290,10 @@ final class PlayerHostController: AVPlayerViewController {
         case .original: self.videoGravity = .resizeAspect
         case .fill:     self.videoGravity = .resizeAspectFill
         }
+        #if os(tvOS)
+        // The PiP source layer covers AVKit's video; mismatched gravity would visibly double-expose.
+        pipController.setVideoGravity(videoGravity)
+        #endif
     }
 
     /// Mount aetherView in AVKit's contentOverlayView for the SW (dav1d) path. Idempotent. contentOverlayView sits between AVKit's player layer and chrome, so engine frames render above the empty player surface and below our overlay.
