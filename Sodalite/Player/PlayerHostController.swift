@@ -244,6 +244,14 @@ final class PlayerHostController: AVPlayerViewController {
             // Same closure the normal exit uses: resets the launcher binding and dismisses this VC
             // (VOD tearDownPlayer / live host.dismiss); playback continues because pipActive is set.
             self.onDismiss()
+            LogTap.shared.note("[PiP] handoff: after onDismiss presenting=\(self.presentingViewController != nil) beingDismissed=\(self.isBeingDismissed)")
+            // The launcher holds this VC only weakly (and not at all after a coordinator re-present), so
+            // the closure above may be a no-op; the handoff must never depend on it. Same fallback as
+            // dismissPlayer.
+            if self.presentingViewController != nil, !self.isBeingDismissed {
+                LogTap.shared.note("[PiP] handoff: launcher path did not dismiss, self-dismissing")
+                self.dismiss(animated: false)
+            }
         }
         pipController.onFailedToStart = { [weak self] _ in
             guard let self else { return }
