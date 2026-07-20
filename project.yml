@@ -60,6 +60,9 @@ targets:
         TARGETED_DEVICE_FAMILY: "3"
         ASSETCATALOG_COMPILER_APPICON_NAME: "App Icon & Top Shelf Image"
         ASSETCATALOG_COMPILER_BRAND_ASSETS_NAME: "App Icon & Top Shelf Image"
+        # PiP: without the audio background mode tvOS kills the app's audio session on backgrounding and
+        # the system pauses playback the moment the user leaves the app, even with a live PiP window.
+        INFOPLIST_KEY_UIBackgroundModes: audio
       configs:
         Debug:
           ENABLE_PREVIEWS: YES
