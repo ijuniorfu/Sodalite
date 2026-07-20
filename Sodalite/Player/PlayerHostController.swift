@@ -112,11 +112,7 @@ final class PlayerHostController: AVPlayerViewController {
         allowsPictureInPicturePlayback = true
         canStartPictureInPictureAutomaticallyFromInline = true
         #else
-        // true since SW-PiP: the sample-buffer ContentSource layer lives inside this VC's
-        // contentOverlayView, and tvOS keeps its isPictureInPicturePossible pinned to false while the
-        // hosting AVPlayerViewController forbids PiP (the native playerLayer controller was not
-        // affected). AVKit's own PiP UI stays unreachable behind the suppressed chrome either way.
-        allowsPictureInPicturePlayback = true
+        allowsPictureInPicturePlayback = false
         #endif
 
         // .skipItem routes AVKit skip events to delegate skipToNextItem/skipToPreviousItem instead of the default 10s seek (a no-op without track listings).
@@ -200,18 +196,20 @@ final class PlayerHostController: AVPlayerViewController {
             .store(in: &engineSubscriptions)
 
         // SW-PiP (Phase A): the software path's PiP source, the sample-buffer analog of the sink above.
-        // Cross-platform: on tvOS it feeds the transport-bar button, on iOS it arms auto-PiP.
+        // iOS ONLY: tvOS AVKit never evaluates a sample-buffer ContentSource (isPictureInPicturePossible
+        // stays false and the playback delegate is never called; framework limitation, device-verified
+        // 2026-07-20 and documented in Apple Forums thread 706722 / jazzychad's PiPBugDemo), so tvOS
+        // neither binds a dead controller nor shows a permanently dimmed button for SW titles.
+        #if os(iOS)
         engine.$softwarePiPSource
             .receive(on: DispatchQueue.main)
             .sink { [weak self] source in
                 guard let self else { return }
                 LogTap.shared.note("[PiP] sw_source=\(source == nil ? "nil" : "set")")
                 self.pipController.bind(softwareSource: source)
-                #if os(tvOS)
-                self.updatePiPAvailability()
-                #endif
             }
             .store(in: &engineSubscriptions)
+        #endif
 
         #if os(iOS)
         // Sodalite#98: the external-subtitle window reacts to the engine's master-vs-media serving state
@@ -433,12 +431,12 @@ final class PlayerHostController: AVPlayerViewController {
     }
 
     #if os(tvOS)
-    /// Button visibility from EITHER source (native player or SW bridge); called from both sinks so
-    /// one source's nil event cannot clobber the other's availability.
+    /// Button visibility: native player only. tvOS AVKit never evaluates a sample-buffer ContentSource
+    /// (framework limitation, see the softwarePiPSource sink comment), so SW titles get no button here;
+    /// SW-PiP is iOS-only until the OS closes that gap.
     private func updatePiPAvailability() {
-        let engine = viewModel.player
         viewModel.isPiPAvailable = AVPictureInPictureController.isPictureInPictureSupported()
-            && (engine.currentAVPlayer != nil || engine.softwarePiPSource != nil)
+            && viewModel.player.currentAVPlayer != nil
         if !viewModel.isPiPAvailable { viewModel.isPiPPossible = false }
     }
 
