@@ -104,8 +104,8 @@ extension PlayerViewModel {
             nextEpisodeCountdown = 0
             nextEpisodeTimer?.cancel()
             nextEpisodeTimer = nil
-            guard player.playbackBackend == .native else {
-                LogTap.shared.note("[NextEp] pip active on SW backend, auto-advance disabled (Phase A)")
+            guard pipCanAdvanceCurrentBackend else {
+                LogTap.shared.note("[NextEp] pip active, backend cannot advance in place")
                 return
             }
             LogTap.shared.note("[NextEp] pip active, advancing immediately")
