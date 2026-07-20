@@ -155,6 +155,7 @@ final class PlayerHostController: AVPlayerViewController {
                     self.applyVideoGravity(for: self.viewModel.pictureMode)
                     #if os(tvOS)
                     self.pipController.bind(player: avPlayer)
+                    self.viewModel.isPiPAvailable = AVPictureInPictureController.isPictureInPictureSupported()
                     #endif
                     self.observeAVKitRenderLayer(for: avPlayer)
                     #if os(iOS)
@@ -165,6 +166,8 @@ final class PlayerHostController: AVPlayerViewController {
                     self.player = nil
                     #if os(tvOS)
                     self.pipController.bind(player: nil)
+                    self.viewModel.isPiPAvailable = false
+                    self.viewModel.isPiPPossible = false
                     #endif
                     self.avkitLayerObservation?.invalidate()
                     self.avkitLayerObservation = nil
@@ -221,6 +224,40 @@ final class PlayerHostController: AVPlayerViewController {
                 self?.dismissPlayer()
             }
         }
+
+        #if os(tvOS)
+        viewModel.onPiPStartRequested = { [weak self] in self?.pipController.start() }
+        // Availability (button visibility) comes from the player bind; this only tracks AVKit's possible
+        // flag (button enabled/dimmed), which flickers during reloads.
+        pipController.onPossibleChanged = { [weak self] possible in
+            self?.viewModel.isPiPPossible = possible
+        }
+        pipController.onWillStart = { [weak self] in
+            guard let self else { return }
+            // Order matters: pipActive before the dismiss so viewWillDisappear skips stopPlayback (the
+            // same handoff contract as the iOS AVKit delegate), engine flag before any backgrounding.
+            self.pipActive = true
+            self.viewModel.player.pictureInPictureActive = true
+            self.syncNativeSubtitleRendering()
+            PiPSessionCoordinator.shared.beginSession(player: self, viewModel: self.viewModel)
+            self.viewModel.hideControls()
+            // Same closure the normal exit uses: resets the launcher binding and dismisses this VC
+            // (VOD tearDownPlayer / live host.dismiss); playback continues because pipActive is set.
+            self.onDismiss()
+        }
+        pipController.onFailedToStart = { [weak self] _ in
+            guard let self else { return }
+            self.pipActive = false
+            self.viewModel.player.pictureInPictureActive = false
+            self.syncNativeSubtitleRendering()
+        }
+        pipController.onRestoreRequested = { completion in
+            PiPSessionCoordinator.shared.restore(completion: completion)
+        }
+        pipController.onDidStop = {
+            PiPSessionCoordinator.shared.handleDidStop()
+        }
+        #endif
 
         // `.tint(...)` must be applied here: the UIKit modal never inherits SodaliteApp's WindowGroup tint.
         let overlay = PlayerOverlayView(
@@ -330,6 +367,16 @@ final class PlayerHostController: AVPlayerViewController {
             viewModel.exitNativeSubtitleRendering()
         }
     }
+
+    #if os(tvOS)
+    /// Coordinator callback when the PiP window ends (restore or close): clear the handoff flags and hand
+    /// subtitles back to the on-frame overlay.
+    func pipDidEnd() {
+        pipActive = false
+        viewModel.player.pictureInPictureActive = false
+        syncNativeSubtitleRendering()
+    }
+    #endif
 
     #if os(iOS)
     /// Sodalite#34: wired HDMI (via usesExternalPlaybackWhileExternalScreenIsActive) and AirPlay both flip
@@ -965,11 +1012,12 @@ final class PlayerHostController: AVPlayerViewController {
         // stopPlayback fire-and-forgets the reportStop call (DrHurt #12); called inline so synchronous teardown finishes before onDismiss and the back press hits the dismiss animation immediately.
         viewModel.stopPlayback()
         onDismiss()
-        #if os(iOS)
-        // Fallback: if the host-driven dismiss above did not take (a stale captured host reference left
-        // the fullScreen modal up while only the stream stopped), dismiss self via its real presenter.
-        if presentingViewController != nil { dismiss(animated: false) }
+        #if os(tvOS)
+        PiPSessionCoordinator.shared.playerDidDismiss(self)
         #endif
+        // Fallback: if the host-driven dismiss above did not take (a stale captured launcher host after a
+        // tvOS PiP restore, or a stale host reference on iOS), dismiss self via its real presenter.
+        if presentingViewController != nil { dismiss(animated: false) }
     }
 
     // MARK: - Pan (Touchpad Scrubbing)

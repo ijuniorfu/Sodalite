@@ -162,6 +162,11 @@ final class PlayerLauncherHostVC: UIViewController {
             return
         }
 
+        // Second video while PiP runs: close the PiP session first (progress reported), Netflix behavior.
+        #if os(tvOS)
+        PiPSessionCoordinator.shared.endActiveSession()
+        #endif
+
         let playerVC = build()
         presentedPlayer = playerVC
         presenter.present(playerVC, animated: false)

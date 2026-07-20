@@ -6,6 +6,10 @@ import AetherEngine
 enum PlayerModalDismisser {
     /// Walks the active scene's modal chain and dismisses PlayerHostController if presented (dismissing the direct presenter leaves other modal levels alone). Logged via EngineLog with `logPrefix` for TestFlight overlay confirmation.
     static func dismissActive(logPrefix: String) {
+        #if os(tvOS)
+        // Deep-link teardown must also cover a session living in the PiP window (no modal to walk).
+        PiPSessionCoordinator.shared.endActiveSession()
+        #endif
         guard let scene = UIApplication.shared.connectedScenes
             .compactMap({ $0 as? UIWindowScene })
             .first(where: { $0.activationState != .background }),

@@ -51,6 +51,11 @@ struct LivePlayerLauncher: UIViewControllerRepresentable {
         host.pendingLivePresent = false
         if host.presentedViewController is PlayerHostController { return }
 
+        // Second video while PiP runs: close the PiP session first (progress reported), Netflix behavior.
+        #if os(tvOS)
+        PiPSessionCoordinator.shared.endActiveSession()
+        #endif
+
         let item = JellyfinItem(liveChannel: liveContext.channel, program: liveContext.program)
         let vm = PlayerViewModel(
             item: item,
