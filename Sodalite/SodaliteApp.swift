@@ -48,6 +48,11 @@ struct SodaliteApp: App {
         // Hand the live AppState/DependencyContainer to the intent layer so AppIntent.perform() drives navigation without rebuilding its own DI graph.
         IntentBridge.bind(appState: appState, dependencies: dependencies)
 
+        #if os(tvOS) && DEBUG
+        // DIAG: one-shot engine-free sample-buffer PiP probe (see SwPiPProbe).
+        SwPiPProbe.autoRun()
+        #endif
+
         // Cloud sync: attach after the container is fully built, then register
         // for the silent CloudKit pushes that drive near-real-time propagation.
         dependencies.attachCloudSync()
