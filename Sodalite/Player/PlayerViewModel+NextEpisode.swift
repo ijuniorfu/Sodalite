@@ -95,6 +95,18 @@ extension PlayerViewModel {
             return
         }
 
+        // PiP (v1): no auto-advance. The engine reload's item handover has an unavoidable
+        // paused/no-source phase and the system closes the PiP window mid-transition
+        // (device-verified: early swap, layer retention, and controller retention all failed).
+        // Let the episode run out in the window instead; a gapless PiP advance needs a
+        // queue-style handover in the engine (AE follow-up).
+        guard !player.pictureInPictureActive else {
+            isCountdownActive = false
+            nextEpisodeCountdown = 0
+            LogTap.shared.note("[NextEp] pip active, auto-advance disabled (v1)")
+            return
+        }
+
         nextEpisodeCountdown = max(1, seconds)
         isCountdownActive = true
         nextEpisodeTimer?.cancel()
@@ -102,10 +114,7 @@ extension PlayerViewModel {
         // [weak self]: the engine outlives the VM, the countdown timer must not.
         nextEpisodeTimer = Task { [weak self] in
             while !Task.isCancelled {
-                // PiP: fire 4s early so the reused player swaps items while still actively playing. An
-                // episode that ends INSIDE the PiP window (rate 0 on the ended item) makes the system
-                // close the window during the swap; the countdown overlay is invisible in PiP anyway.
-                guard let self, self.nextEpisodeCountdown > (self.player.pictureInPictureActive ? 4 : 0) else { break }
+                guard let self, self.nextEpisodeCountdown > 0 else { break }
                 try? await Task.sleep(for: .seconds(1))
                 guard !Task.isCancelled else { return }
                 self.nextEpisodeCountdown -= 1
@@ -127,6 +136,12 @@ extension PlayerViewModel {
         // Second latch behind stopPlayback's timer cancel: a countdown firing into a torn-down session must not load on the shared engine behind a dismissed player (startPlayback resets isTearingDown at entry).
         guard !isTearingDown else {
             LogTap.shared.note("[NextEp] playNextEpisode: bailing, session is tearing down")
+            return
+        }
+        // v1: a countdown armed before PiP started must not fire into the PiP window; the reload
+        // transition closes it (see startNextEpisodeCountdown).
+        guard !player.pictureInPictureActive else {
+            LogTap.shared.note("[NextEp] playNextEpisode: bailing, PiP active (v1)")
             return
         }
         LogTap.shared.note("[NextEp] playNextEpisode enter: from=\(item.id) to=\(next.id)")
