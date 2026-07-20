@@ -112,7 +112,11 @@ final class PlayerHostController: AVPlayerViewController {
         allowsPictureInPicturePlayback = true
         canStartPictureInPictureAutomaticallyFromInline = true
         #else
-        allowsPictureInPicturePlayback = false
+        // true since SW-PiP: the sample-buffer ContentSource layer lives inside this VC's
+        // contentOverlayView, and tvOS keeps its isPictureInPicturePossible pinned to false while the
+        // hosting AVPlayerViewController forbids PiP (the native playerLayer controller was not
+        // affected). AVKit's own PiP UI stays unreachable behind the suppressed chrome either way.
+        allowsPictureInPicturePlayback = true
         #endif
 
         // .skipItem routes AVKit skip events to delegate skipToNextItem/skipToPreviousItem instead of the default 10s seek (a no-op without track listings).
@@ -126,17 +130,6 @@ final class PlayerHostController: AVPlayerViewController {
             pipController.sourceView.frame = overlay.bounds
             pipController.sourceView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
             overlay.addSubview(pipController.sourceView)
-        }
-        // DIAG (SW-PiP): test whether the declared .longFormAudio route-sharing policy pins the
-        // sample-buffer controller's isPictureInPicturePossible to false (#116 analog). Off-main, #114.
-        Task.detached(priority: .userInitiated) {
-            let session = AVAudioSession.sharedInstance()
-            do {
-                try session.setCategory(.playback, mode: .moviePlayback, policy: .default, options: [])
-                LogTap.shared.note("[PiP] DIAG route policy override -> default ok")
-            } catch {
-                LogTap.shared.note("[PiP] DIAG route policy override failed: \(error)")
-            }
         }
         #endif
 
