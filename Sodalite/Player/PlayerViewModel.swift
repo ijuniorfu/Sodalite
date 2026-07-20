@@ -272,6 +272,17 @@ final class PlayerViewModel {
     /// the window and ends the session (auto-advance is disabled in PiP, see startNextEpisodeCountdown).
     var onPiPContentEnded: (() -> Void)?
 
+    /// PiP advance capability by backend: native everywhere (5.12.0 in-place item handover); software
+    /// only on iOS (Phase B contentSource swap; tvOS has no SW-PiP window, FB9751461).
+    var pipCanAdvanceCurrentBackend: Bool {
+        if player.playbackBackend == .native { return true }
+        #if os(iOS)
+        return player.playbackBackend == .software
+        #else
+        return false
+        #endif
+    }
+
     func requestPictureInPicture() {
         guard isPiPAvailable, isPiPPossible else { return }
         hideControls()
@@ -1024,7 +1035,7 @@ final class PlayerViewModel {
                     // session, instead of parking a black frame in the corner.
                     if self.hasStartedPlaying,
                        self.player.pictureInPictureActive,
-                       self.nextEpisode == nil || self.nextEpisodeCancelled || self.player.playbackBackend != .native,
+                       self.nextEpisode == nil || self.nextEpisodeCancelled || !self.pipCanAdvanceCurrentBackend,
                        let onPiPContentEnded = self.onPiPContentEnded {
                         onPiPContentEnded()
                     } else if self.hasStartedPlaying,

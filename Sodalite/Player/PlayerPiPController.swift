@@ -88,7 +88,20 @@ final class PlayerPiPController: NSObject {
             return
         }
         boundSoftwareSource = source
-        guard controller == nil else { return }
+        // Phase B: an active window survives a next-episode reload by swapping the ContentSource to
+        // the fresh layer on the SAME controller (the SW reload rebuilds renderer+layer, so the bound
+        // layer identity changes mid-window). Inactive controllers keep today's rebuild-on-nil flow.
+        if let existing = controller {
+            if existing.isPictureInPictureActive,
+               existing.contentSource?.sampleBufferDisplayLayer !== source.layer {
+                LogTap.shared.note("[PiP] sw contentSource swap (advance)")
+                existing.contentSource = AVPictureInPictureController.ContentSource(
+                    sampleBufferDisplayLayer: source.layer,
+                    playbackDelegate: self
+                )
+            }
+            return
+        }
         let contentSource = AVPictureInPictureController.ContentSource(
             sampleBufferDisplayLayer: source.layer,
             playbackDelegate: self
