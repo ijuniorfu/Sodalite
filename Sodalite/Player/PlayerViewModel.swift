@@ -1018,12 +1018,13 @@ final class PlayerViewModel {
                     self.isPlaying = false
                     // currentTime can stall a few seconds short of duration (demux's 15-20s look-ahead); cap the
                     // countdown at 10s so the overlay copy stays readable.
-                    // PiP: with a next episode the auto-advance path swaps the item in place (AE#158);
-                    // only real end-of-content (movie / last episode / cancelled advance) closes the
-                    // window and ends the session, instead of parking a black frame in the corner.
+                    // PiP: with a next episode the auto-advance path swaps the item in place (native
+                    // backend, 5.12.0); real end-of-content, a cancelled advance, or a SW-backend
+                    // session (Phase A, no layer-stable reload yet) closes the window and ends the
+                    // session, instead of parking a black frame in the corner.
                     if self.hasStartedPlaying,
                        self.player.pictureInPictureActive,
-                       self.nextEpisode == nil || self.nextEpisodeCancelled,
+                       self.nextEpisode == nil || self.nextEpisodeCancelled || self.player.playbackBackend != .native,
                        let onPiPContentEnded = self.onPiPContentEnded {
                         onPiPContentEnded()
                     } else if self.hasStartedPlaying,

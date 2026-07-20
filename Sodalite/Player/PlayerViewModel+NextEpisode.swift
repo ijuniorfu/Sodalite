@@ -95,14 +95,19 @@ extension PlayerViewModel {
             return
         }
 
-        // PiP: advance immediately. The countdown overlay is invisible in the window, and the engine's
-        // in-place item handover (AE#158, 5.12.0) needs the old item still attached when the swap
-        // lands, so waiting out the countdown (or the episode's end) only risks the transition.
-        guard !player.pictureInPictureActive else {
+        // PiP on the NATIVE backend: advance immediately (invisible countdown; the 5.12.0 in-place
+        // item handover keeps the window alive through the swap). SW backend (Phase A): the reload
+        // rebuilds renderer+layer and would kill the window, so no auto-advance; the episode runs
+        // out and onPiPContentEnded closes the window (layer-stable reload is Phase B).
+        if player.pictureInPictureActive {
             isCountdownActive = false
             nextEpisodeCountdown = 0
             nextEpisodeTimer?.cancel()
             nextEpisodeTimer = nil
+            guard player.playbackBackend == .native else {
+                LogTap.shared.note("[NextEp] pip active on SW backend, auto-advance disabled (Phase A)")
+                return
+            }
             LogTap.shared.note("[NextEp] pip active, advancing immediately")
             Task { @MainActor [weak self] in
                 await self?.playNextEpisode()

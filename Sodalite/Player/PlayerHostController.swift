@@ -30,9 +30,9 @@ final class PlayerHostController: AVPlayerViewController {
     private let aetherView = AetherPlayerView()
     private var aetherViewMounted = false
 
-    #if os(tvOS)
-    /// Host-built PiP (design 2026-07-20): source layer + AVPictureInPictureController; AVKit's own tvOS
-    /// PiP is unreachable behind our suppressed chrome.
+    #if os(tvOS) || os(iOS)
+    /// Host-built PiP (native path on tvOS, SW path on both platforms; AVKit's own PiP covers the
+    /// native path on iOS, and its tvOS button is unreachable behind our suppressed chrome).
     let pipController = PlayerPiPController()
     #endif
 
@@ -156,7 +156,7 @@ final class PlayerHostController: AVPlayerViewController {
                     // must not re-bind it. pipDidEnd re-binds on restore.
                     if self.pipActive {
                         self.pipController.bind(player: avPlayer)
-                        self.viewModel.isPiPAvailable = AVPictureInPictureController.isPictureInPictureSupported()
+                        self.updatePiPAvailability()
                         return
                     }
                     #endif
@@ -165,7 +165,7 @@ final class PlayerHostController: AVPlayerViewController {
                     self.applyVideoGravity(for: self.viewModel.pictureMode)
                     #if os(tvOS)
                     self.pipController.bind(player: avPlayer)
-                    self.viewModel.isPiPAvailable = AVPictureInPictureController.isPictureInPictureSupported()
+                    self.updatePiPAvailability()
                     #endif
                     self.observeAVKitRenderLayer(for: avPlayer)
                     #if os(iOS)
@@ -176,8 +176,7 @@ final class PlayerHostController: AVPlayerViewController {
                     self.player = nil
                     #if os(tvOS)
                     self.pipController.bind(player: nil)
-                    self.viewModel.isPiPAvailable = false
-                    self.viewModel.isPiPPossible = false
+                    self.updatePiPAvailability()
                     #endif
                     self.avkitLayerObservation?.invalidate()
                     self.avkitLayerObservation = nil
@@ -193,6 +192,20 @@ final class PlayerHostController: AVPlayerViewController {
                     self.externalScreenObservers.removeAll()
                     #endif
                 }
+            }
+            .store(in: &engineSubscriptions)
+
+        // SW-PiP (Phase A): the software path's PiP source, the sample-buffer analog of the sink above.
+        // Cross-platform: on tvOS it feeds the transport-bar button, on iOS it arms auto-PiP.
+        engine.$softwarePiPSource
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] source in
+                guard let self else { return }
+                LogTap.shared.note("[PiP] sw_source=\(source == nil ? "nil" : "set")")
+                self.pipController.bind(softwareSource: source)
+                #if os(tvOS)
+                self.updatePiPAvailability()
+                #endif
             }
             .store(in: &engineSubscriptions)
 
@@ -281,6 +294,28 @@ final class PlayerHostController: AVPlayerViewController {
         }
         viewModel.onPiPContentEnded = {
             PiPSessionCoordinator.shared.endActiveSession()
+        }
+        #endif
+
+        #if os(iOS)
+        // iOS SW-PiP: AVKit parity. The VC stays presented (no handoff, no coordinator); the flags
+        // feed the engine keepalive and the pause-safety exactly like the AVKit delegate does for
+        // the native path. Restore is inline, answer AVKit immediately.
+        pipController.onWillStart = { [weak self] in
+            guard let self else { return }
+            self.pipActive = true
+            self.viewModel.player.pictureInPictureActive = true
+        }
+        pipController.onRestoreRequested = { completion in completion(true) }
+        pipController.onFailedToStart = { [weak self] _ in
+            guard let self else { return }
+            self.pipActive = false
+            self.viewModel.player.pictureInPictureActive = false
+        }
+        pipController.onDidStop = { [weak self] in
+            guard let self else { return }
+            self.pipActive = false
+            self.viewModel.player.pictureInPictureActive = false
         }
         #endif
 
@@ -394,6 +429,15 @@ final class PlayerHostController: AVPlayerViewController {
     }
 
     #if os(tvOS)
+    /// Button visibility from EITHER source (native player or SW bridge); called from both sinks so
+    /// one source's nil event cannot clobber the other's availability.
+    private func updatePiPAvailability() {
+        let engine = viewModel.player
+        viewModel.isPiPAvailable = AVPictureInPictureController.isPictureInPictureSupported()
+            && (engine.currentAVPlayer != nil || engine.softwarePiPSource != nil)
+        if !viewModel.isPiPAvailable { viewModel.isPiPPossible = false }
+    }
+
     /// Coordinator callback when the PiP window ends (restore or close): clear the handoff flags, re-bind
     /// AVKit (unbound during PiP, see the handoff), and hand subtitles back to the on-frame overlay.
     func pipDidEnd() {
