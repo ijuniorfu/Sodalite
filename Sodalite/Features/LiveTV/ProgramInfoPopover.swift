@@ -68,7 +68,7 @@ struct ProgramInfoPopover: View {
     @ViewBuilder
     private var infoBlock: some View {
         Text(program.name).font(hSizeClass == .compact ? .title2 : .title)
-        // Episode identity — prefers episode title as the primary label, falls back to series name.
+        // Episode identity: prefers episode title as the primary label, falls back to series name.
         if let label = episodeLabel {
             Text(label)
                 .font(.headline)
@@ -95,10 +95,12 @@ struct ProgramInfoPopover: View {
         } else {
             nil as String?
         }
-        if let title = program.episodeTitle {
+        // Drop an episode title or series name that just repeats the header (`program.name`);
+        // some EPG providers set these equal, which would render the same string twice.
+        if let title = program.episodeTitle, title != program.name {
             return se.map { "\($0) · \(title)" } ?? title
         }
-        if let series = program.seriesName {
+        if let series = program.seriesName, series != program.name {
             return se.map { "\(series) · \($0)" } ?? series
         }
         return se

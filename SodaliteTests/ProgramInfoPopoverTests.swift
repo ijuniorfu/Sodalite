@@ -85,10 +85,36 @@ struct ProgramInfoPopoverTests {
     @Test func seriesNameBeatsBareSE() {
         // No episode title, so series name wins over bare S/E.
         // (seriesName is already tested above with S/E; this is the bare-S/E
-        // case where seriesName is present — it's the same branch.)
+        // case where seriesName is present, the same branch.)
         #expect(label(seriesName: "The Show",
                        parentIndexNumber: 1, indexNumber: 10)
                 == "The Show · S1:E10")
+    }
+
+    // MARK: - Header de-duplication
+
+    /// The stub program's `name` is always "Program Name"; an episode title equal to it
+    /// must be dropped so the popover never renders the same string in header and label.
+    @Test func episodeTitleEqualToNameFallsBackToSeries() {
+        #expect(label(episodeTitle: "Program Name", seriesName: "The Show",
+                       parentIndexNumber: 2, indexNumber: 5)
+                == "The Show · S2:E5")
+    }
+
+    @Test func episodeTitleEqualToNameFallsBackToBareSE() {
+        #expect(label(episodeTitle: "Program Name",
+                       parentIndexNumber: 1, indexNumber: 2)
+                == "S1:E2")
+    }
+
+    @Test func seriesNameEqualToNameDropped() {
+        #expect(label(seriesName: "Program Name",
+                       parentIndexNumber: 1, indexNumber: 1)
+                == "S1:E1")
+    }
+
+    @Test func episodeTitleEqualToNameWithNoOtherMetadataIsNil() {
+        #expect(label(episodeTitle: "Program Name") == nil)
     }
 
     // MARK: - Nil
