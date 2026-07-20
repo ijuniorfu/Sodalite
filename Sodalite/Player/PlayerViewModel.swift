@@ -1018,11 +1018,12 @@ final class PlayerViewModel {
                     self.isPlaying = false
                     // currentTime can stall a few seconds short of duration (demux's 15-20s look-ahead); cap the
                     // countdown at 10s so the overlay copy stays readable.
-                    // PiP (v1): no auto-advance in the window and no visible overlay; close the window and
-                    // end the session instead of parking a black frame in the corner. Covers the
-                    // next-episode AND last-episode/movie cases (the callback is wired on tvOS only).
+                    // PiP: with a next episode the auto-advance path swaps the item in place (AE#158);
+                    // only real end-of-content (movie / last episode / cancelled advance) closes the
+                    // window and ends the session, instead of parking a black frame in the corner.
                     if self.hasStartedPlaying,
                        self.player.pictureInPictureActive,
+                       self.nextEpisode == nil || self.nextEpisodeCancelled,
                        let onPiPContentEnded = self.onPiPContentEnded {
                         onPiPContentEnded()
                     } else if self.hasStartedPlaying,
@@ -1841,6 +1842,13 @@ final class PlayerViewModel {
             player.clearSubtitle()
             subtitleCues = []
             subtitleLoadTask = Task { await loadSubtitles(streamIndex: id) }
+        }
+
+        // Subtitle picked while the video lives in the PiP window (next-episode auto-advance runs the
+        // new session's auto-pick through here): the load's deselect pin cleared the native rendition,
+        // re-select the one matching this track so the window keeps rendering subtitles (#32, AE#158).
+        if player.pictureInPictureActive {
+            enterNativeSubtitleRendering()
         }
     }
 
