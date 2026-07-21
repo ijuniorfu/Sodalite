@@ -306,7 +306,10 @@ struct LaunchProfilePickerView: View {
         guard user.id != activeSessionUserID else { return }
         do {
             try dependencies.forgetUser(id: user.id, serverID: server.id)
-            rememberedUsers = dependencies.listRememberedUsers(serverID: server.id)
+            rememberedUsers = ProfilePickerOrdering.orderedForPicker(
+                dependencies.listRememberedUsers(serverID: server.id),
+                activeID: activeSessionUserID
+            )
 
             // If the user forgot the defaultUserID, clear the default
             // so launch behavior doesn't try to restore a ghost.
