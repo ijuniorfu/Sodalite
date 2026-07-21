@@ -75,6 +75,12 @@ struct LaunchProfilePickerView: View {
                     activeID: activeSessionUserID
                 )
             }
+            // Add-profile / add-server from inside the reprompt cover authenticates underneath
+            // (setAuthenticated without a serverDidSwitch bump); drop the cover instead of
+            // stranding the user on the picker until they tap the now-active card.
+            .onReceive(NotificationCenter.default.publisher(for: .loginDidComplete)) { _ in
+                if context == .reprompt { onFinished?() }
+            }
             .sheet(isPresented: $showServerSwitchSheet) {
                 ServerSwitchSheet(
                     onAddServer: {
