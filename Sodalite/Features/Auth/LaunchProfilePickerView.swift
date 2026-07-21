@@ -13,6 +13,12 @@ struct LaunchProfilePickerView: View {
     @Environment(\.horizontalSizeClass) private var hSizeClass
 
     let server: JellyfinServer
+    /// Cold-launch root vs mid-session reprompt cover (issue #41). In reprompt context,
+    /// picking the active profile must not switch or clear caches, just dismiss.
+    enum Context { case launch, reprompt }
+    var context: Context = .launch
+    /// Reprompt-cover dismissal; nil in launch context.
+    var onFinished: (() -> Void)? = nil
 
     @State private var rememberedUsers: [RememberedUser] = []
     @State private var navigateToAddProfile = false
@@ -75,7 +81,9 @@ struct LaunchProfilePickerView: View {
                         showAddServerFlow = true
                     },
                     onSwitched: { _ in
-                        // Picker re-resolves the active server from environment dependencies on next render.
+                        // Launch context: picker re-resolves the active server from environment dependencies
+                        // on next render. Reprompt context: serverDidSwitch authenticates underneath, drop the cover.
+                        onFinished?()
                     }
                 )
             }
@@ -226,6 +234,10 @@ struct LaunchProfilePickerView: View {
     }
 
     private func performSelect(_ user: RememberedUser) {
+        if context == .reprompt, user.id == activeSessionUserID {
+            onFinished?()
+            return
+        }
         do {
             try dependencies.switchToUser(user, server: server)
             // Thumbnails fetched under the old token may no longer resolve.
@@ -246,6 +258,7 @@ struct LaunchProfilePickerView: View {
             Task { await restoreSeerrForProfile(userID: user.id, serverID: server.id) }
             // Backfill missing PrimaryImageTag + the server-side Policy block (drives the File Management gate) from /Users/Me, else the delete button stays hidden after switching back.
             Task { await refreshUserDetails(userID: user.id, serverID: server.id) }
+            onFinished?()
         } catch {
             switchError = error.localizedDescription
         }
