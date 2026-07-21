@@ -158,6 +158,9 @@ struct AppRouter: View {
                 tvUserLogger.notice("scenePhase: skip (not active)")
                 return
             }
+            // Consume on every .active entry: a stale instant must never survive into a later task re-fire.
+            let backgroundedAt = lastBackgroundedAt
+            lastBackgroundedAt = nil
             // Skip until performRestore has set the baseline.
             guard lastResolvedTVUserIDSet else {
                 tvUserLogger.notice("scenePhase: skip (baseline not set yet)")
@@ -174,10 +177,11 @@ struct AppRouter: View {
                 appState.disconnectSeerr()
                 dependencies.detachSeerrClient()
                 launchPickerServer = nil
+                showProfileReprompt = false
                 markTVUserResolved()
                 await performRestore()
             } else {
-                maybeRequestProfileReprompt()
+                maybeRequestProfileReprompt(backgroundedAt: backgroundedAt)
                 tvUserLogger.notice("scenePhase: same tvUser. Cheap resolveTVUserContext.")
                 // Same tvOS user: cheap re-resolve in case the mapping was edited in Settings on another scene.
                 guard appState.isAuthenticated || launchPickerServer != nil else {
@@ -429,8 +433,14 @@ struct AppRouter: View {
             return
         }
         // Dismiss any active player before the new sheet (TopShelf often fires over a backgrounded paused player, else its modal stays on top of the new cover). Two-step: (1) bump requestPlayerDismissal so detail views flip showPlayer (keeps the binding path consistent on return); (2) walk the modal chain to dismiss PlayerHostController directly, since binding-driven dismiss proved unreliable across scene-foreground.
-        // A deep link is deliberate navigation: drop the reprompt cover (continue as current profile).
-        showProfileReprompt = false
+        // A deep link is deliberate navigation: drop the reprompt cover (continue as current profile)
+        // and cancel any PIN challenge started from it, else its continuation later runs a stale switch.
+        if showProfileReprompt {
+            showProfileReprompt = false
+            if dependencies.parentalGate.activeRequest != nil {
+                dependencies.parentalGate.resolve(false)
+            }
+        }
         appState.requestPlayerDismissal &+= 1
         PlayerModalDismisser.dismissActive(logPrefix: "[AppRouter]")
         // Let UIKit finish the dismiss before the new fullScreenCover, else it races and SwiftUI warns "presenting from a VC that is being dismissed" or the modal never lands.
@@ -456,11 +466,11 @@ struct AppRouter: View {
         lastResolvedTVUserIDSet = true
     }
 
-    /// Consumes lastBackgroundedAt (a player dismissal re-fires the scenePhase task while
-    /// still .active, and must not re-prompt) and arms the reprompt cover when the policy says so.
-    private func maybeRequestProfileReprompt() {
-        guard let backgroundedAt = lastBackgroundedAt else { return }
-        lastBackgroundedAt = nil
+    /// Caller consumes lastBackgroundedAt on every .active entry (a player dismissal re-fires the
+    /// scenePhase task while still .active, and must not re-prompt); this only decides whether to
+    /// arm the cover.
+    private func maybeRequestProfileReprompt(backgroundedAt: ContinuousClock.Instant?) {
+        guard let backgroundedAt else { return }
         // Never arm over a sibling cover (one fullScreenCover per host view) or a deep link in flight.
         guard deepLinkItem == nil, !showNowPlaying, !showWhatsNew,
               appState.pendingDeepLinkItemID == nil, !appState.isResolvingDeepLink
