@@ -134133,7 +134133,7 @@
         "cs" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Zeptejte se, kdo se dívá, když se aplikace po čase na pozadí vrátí."
+            "value": "Zeptejte se, kdo se dívá, když se aplikace po čase vrátí z pozadí."
           }
         },
         "da" : {
@@ -134199,7 +134199,7 @@
         "ja" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "アプリがバックグラウンドにしばらく滞在してから復帰すると、視聴者を確認します。"
+            "value": "アプリがしばらくバックグラウンドにあった後に復帰すると、視聴者を確認します。"
           }
         },
         "ko" : {
