@@ -183,6 +183,7 @@ struct ProfileSettingsView: View {
                         .padding(20)
                     }
                     .buttonStyle(SettingsTileButtonStyle())
+                    .accessibilityAddTraits(authPreferences.launchBehavior == choice ? .isSelected : [])
                 }
             }
 
@@ -225,6 +226,7 @@ struct ProfileSettingsView: View {
                         .padding(16)
                     }
                     .buttonStyle(SettingsTileButtonStyle())
+                    .accessibilityAddTraits(authPreferences.defaultUserID == user.id ? .isSelected : [])
                 }
             }
         }
@@ -268,6 +270,7 @@ struct ProfileSettingsView: View {
                         .padding(16)
                     }
                     .buttonStyle(SettingsTileButtonStyle())
+                    .accessibilityAddTraits(authPreferences.profileReprompt == choice ? .isSelected : [])
                 }
             }
         }
