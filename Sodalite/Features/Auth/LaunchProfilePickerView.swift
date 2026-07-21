@@ -219,6 +219,12 @@ struct LaunchProfilePickerView: View {
     // MARK: - Actions
 
     private func select(_ user: RememberedUser) {
+        // Reprompt context, active profile tapped: continue as current, same as a Menu dismiss.
+        // Nothing is activated, so the Guardian gate does not apply (it still gates real switches).
+        if context == .reprompt, user.id == activeSessionUserID {
+            onFinished?()
+            return
+        }
         // Cold-start picker context: activating an UNPROTECTED profile
         // requires the Guardian-PIN. Protected profiles enter free.
         if dependencies.parentalGateRequired(forActivatingUserID: user.id,
@@ -234,10 +240,6 @@ struct LaunchProfilePickerView: View {
     }
 
     private func performSelect(_ user: RememberedUser) {
-        if context == .reprompt, user.id == activeSessionUserID {
-            onFinished?()
-            return
-        }
         do {
             try dependencies.switchToUser(user, server: server)
             // Thumbnails fetched under the old token may no longer resolve.
