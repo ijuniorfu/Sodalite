@@ -461,6 +461,10 @@ struct AppRouter: View {
     private func maybeRequestProfileReprompt() {
         guard let backgroundedAt = lastBackgroundedAt else { return }
         lastBackgroundedAt = nil
+        // Never arm over a sibling cover (one fullScreenCover per host view) or a deep link in flight.
+        guard deepLinkItem == nil, !showNowPlaying, !showWhatsNew,
+              appState.pendingDeepLinkItemID == nil, !appState.isResolvingDeepLink
+        else { return }
         guard let server = appState.activeServer else { return }
         let should = ProfileRepromptPolicy.shouldReprompt(
             elapsed: backgroundedAt.duration(to: ContinuousClock().now),
