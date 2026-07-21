@@ -58,10 +58,16 @@ struct LaunchProfilePickerView: View {
                 Text(message)
             }
             .onAppear {
-                rememberedUsers = dependencies.listRememberedUsers(serverID: server.id)
+                rememberedUsers = ProfilePickerOrdering.orderedForPicker(
+                    dependencies.listRememberedUsers(serverID: server.id),
+                    activeID: activeSessionUserID
+                )
             }
             .onReceive(NotificationCenter.default.publisher(for: .cloudSyncDidApplyChanges)) { _ in
-                rememberedUsers = dependencies.listRememberedUsers(serverID: server.id)
+                rememberedUsers = ProfilePickerOrdering.orderedForPicker(
+                    dependencies.listRememberedUsers(serverID: server.id),
+                    activeID: activeSessionUserID
+                )
             }
             .sheet(isPresented: $showServerSwitchSheet) {
                 ServerSwitchSheet(
@@ -163,7 +169,7 @@ struct LaunchProfilePickerView: View {
                             forget(user)
                         }
                     )
-                    // Pre-focus the remembered default profile (or first card) so cold launch opens with a profile highlighted (issue #25).
+                    // Pre-focus default profile, else the active-session profile, else the first card (issues #25, #41).
                     .prefersDefaultFocusCompat(isPreferredDefault(user), in: focusNamespace)
                 }
             }
@@ -173,11 +179,11 @@ struct LaunchProfilePickerView: View {
     }
 
     private func isPreferredDefault(_ user: RememberedUser) -> Bool {
-        if let defaultID = dependencies.authPreferences.defaultUserID,
-           rememberedUsers.contains(where: { $0.id == defaultID }) {
-            return user.id == defaultID
-        }
-        return user.id == rememberedUsers.first?.id
+        user.id == ProfilePickerOrdering.preferredFocusID(
+            users: rememberedUsers,
+            defaultID: dependencies.authPreferences.defaultUserID,
+            activeID: activeSessionUserID
+        )
     }
 
     // MARK: - Add Profile
