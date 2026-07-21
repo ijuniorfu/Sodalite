@@ -13,6 +13,12 @@ struct LaunchProfilePickerView: View {
     @Environment(\.horizontalSizeClass) private var hSizeClass
 
     let server: JellyfinServer
+    /// Cold-launch root vs mid-session reprompt cover (issue #41). In reprompt context,
+    /// picking the active profile must not switch or clear caches, just dismiss.
+    enum Context { case launch, reprompt }
+    var context: Context = .launch
+    /// Reprompt-cover dismissal; nil in launch context.
+    var onFinished: (() -> Void)? = nil
 
     @State private var rememberedUsers: [RememberedUser] = []
     @State private var navigateToAddProfile = false
@@ -58,10 +64,16 @@ struct LaunchProfilePickerView: View {
                 Text(message)
             }
             .onAppear {
-                rememberedUsers = dependencies.listRememberedUsers(serverID: server.id)
+                rememberedUsers = ProfilePickerOrdering.orderedForPicker(
+                    dependencies.listRememberedUsers(serverID: server.id),
+                    activeID: activeSessionUserID
+                )
             }
             .onReceive(NotificationCenter.default.publisher(for: .cloudSyncDidApplyChanges)) { _ in
-                rememberedUsers = dependencies.listRememberedUsers(serverID: server.id)
+                rememberedUsers = ProfilePickerOrdering.orderedForPicker(
+                    dependencies.listRememberedUsers(serverID: server.id),
+                    activeID: activeSessionUserID
+                )
             }
             .sheet(isPresented: $showServerSwitchSheet) {
                 ServerSwitchSheet(
@@ -69,7 +81,9 @@ struct LaunchProfilePickerView: View {
                         showAddServerFlow = true
                     },
                     onSwitched: { _ in
-                        // Picker re-resolves the active server from environment dependencies on next render.
+                        // Launch context: picker re-resolves the active server from environment dependencies
+                        // on next render. Reprompt context: serverDidSwitch authenticates underneath, drop the cover.
+                        onFinished?()
                     }
                 )
             }
@@ -163,7 +177,7 @@ struct LaunchProfilePickerView: View {
                             forget(user)
                         }
                     )
-                    // Pre-focus the remembered default profile (or first card) so cold launch opens with a profile highlighted (issue #25).
+                    // Pre-focus default profile, else the active-session profile, else the first card (issues #25, #41).
                     .prefersDefaultFocusCompat(isPreferredDefault(user), in: focusNamespace)
                 }
             }
@@ -173,11 +187,11 @@ struct LaunchProfilePickerView: View {
     }
 
     private func isPreferredDefault(_ user: RememberedUser) -> Bool {
-        if let defaultID = dependencies.authPreferences.defaultUserID,
-           rememberedUsers.contains(where: { $0.id == defaultID }) {
-            return user.id == defaultID
-        }
-        return user.id == rememberedUsers.first?.id
+        user.id == ProfilePickerOrdering.preferredFocusID(
+            users: rememberedUsers,
+            defaultID: dependencies.authPreferences.defaultUserID,
+            activeID: activeSessionUserID
+        )
     }
 
     // MARK: - Add Profile
@@ -205,6 +219,12 @@ struct LaunchProfilePickerView: View {
     // MARK: - Actions
 
     private func select(_ user: RememberedUser) {
+        // Reprompt context, active profile tapped: continue as current, same as a Menu dismiss.
+        // Nothing is activated, so the Guardian gate does not apply (it still gates real switches).
+        if context == .reprompt, user.id == activeSessionUserID {
+            onFinished?()
+            return
+        }
         // Cold-start picker context: activating an UNPROTECTED profile
         // requires the Guardian-PIN. Protected profiles enter free.
         if dependencies.parentalGateRequired(forActivatingUserID: user.id,
@@ -240,6 +260,7 @@ struct LaunchProfilePickerView: View {
             Task { await restoreSeerrForProfile(userID: user.id, serverID: server.id) }
             // Backfill missing PrimaryImageTag + the server-side Policy block (drives the File Management gate) from /Users/Me, else the delete button stays hidden after switching back.
             Task { await refreshUserDetails(userID: user.id, serverID: server.id) }
+            onFinished?()
         } catch {
             switchError = error.localizedDescription
         }
@@ -300,7 +321,10 @@ struct LaunchProfilePickerView: View {
         guard user.id != activeSessionUserID else { return }
         do {
             try dependencies.forgetUser(id: user.id, serverID: server.id)
-            rememberedUsers = dependencies.listRememberedUsers(serverID: server.id)
+            rememberedUsers = ProfilePickerOrdering.orderedForPicker(
+                dependencies.listRememberedUsers(serverID: server.id),
+                activeID: activeSessionUserID
+            )
 
             // If the user forgot the defaultUserID, clear the default
             // so launch behavior doesn't try to restore a ghost.

@@ -19,6 +19,12 @@ struct AppRouter: View {
     /// Non-nil while the launch-time profile picker is armed. Picking a profile flips isAuthenticated=true which hides it.
     @State private var launchPickerServer: JellyfinServer?
 
+    /// ContinuousClock (keeps counting through device sleep) instant of the last .background
+    /// entry; consumed on return to .active by maybeRequestProfileReprompt (issue #41).
+    @State private var lastBackgroundedAt: ContinuousClock.Instant?
+    /// Drives the who's-watching reprompt cover.
+    @State private var showProfileReprompt = false
+
     /// JellyfinItem fetched for an incoming deep link; drives the fullScreenCover (non-nil = sheet shown).
     @State private var deepLinkItem: JellyfinItem?
 
@@ -144,11 +150,17 @@ struct AppRouter: View {
         }
         .task(id: scenePhase) {
             tvUserLogger.notice("scenePhase task fired: phase=\(String(describing: scenePhase), privacy: .public) tvUserID=\(TVUserContext.currentUserID ?? "nil", privacy: .public) last=\(lastResolvedTVUserID ?? "nil", privacy: .public) lastSet=\(lastResolvedTVUserIDSet, privacy: .public) isAuth=\(appState.isAuthenticated, privacy: .public) pickerServer=\(launchPickerServer?.id ?? "nil", privacy: .public)")
+            if scenePhase == .background {
+                lastBackgroundedAt = ContinuousClock().now
+            }
             // Only react to .active; inactive/background need no tvOS-user re-resolve.
             guard scenePhase == .active else {
                 tvUserLogger.notice("scenePhase: skip (not active)")
                 return
             }
+            // Consume on every .active entry: a stale instant must never survive into a later task re-fire.
+            let backgroundedAt = lastBackgroundedAt
+            lastBackgroundedAt = nil
             // Skip until performRestore has set the baseline.
             guard lastResolvedTVUserIDSet else {
                 tvUserLogger.notice("scenePhase: skip (baseline not set yet)")
@@ -165,9 +177,11 @@ struct AppRouter: View {
                 appState.disconnectSeerr()
                 dependencies.detachSeerrClient()
                 launchPickerServer = nil
+                showProfileReprompt = false
                 markTVUserResolved()
                 await performRestore()
             } else {
+                maybeRequestProfileReprompt(backgroundedAt: backgroundedAt)
                 tvUserLogger.notice("scenePhase: same tvUser. Cheap resolveTVUserContext.")
                 // Same tvOS user: cheap re-resolve in case the mapping was edited in Settings on another scene.
                 guard appState.isAuthenticated || launchPickerServer != nil else {
@@ -268,11 +282,30 @@ struct AppRouter: View {
             }
         }
         .fullScreenCover(item: Binding(
-            get: { dependencies.parentalGate.activeRequest },
+            get: { showProfileReprompt ? nil : dependencies.parentalGate.activeRequest },
             set: { if $0 == nil { dependencies.parentalGate.resolve(false) } }
         )) { request in
             PINEntryView(mode: .unlock(reason: request.reason)) { unlocked in
                 dependencies.parentalGate.resolve(unlocked)
+            }
+        }
+        .fullScreenCover(isPresented: $showProfileReprompt) {
+            if let server = appState.activeServer {
+                LaunchProfilePickerView(
+                    server: server,
+                    context: .reprompt,
+                    onFinished: { showProfileReprompt = false }
+                )
+                // The AppRouter-level PIN cover can't stack on this cover (one cover per host view),
+                // so the gate presents from inside while the reprompt is up.
+                .fullScreenCover(item: Binding(
+                    get: { dependencies.parentalGate.activeRequest },
+                    set: { if $0 == nil { dependencies.parentalGate.resolve(false) } }
+                )) { request in
+                    PINEntryView(mode: .unlock(reason: request.reason)) { unlocked in
+                        dependencies.parentalGate.resolve(unlocked)
+                    }
+                }
             }
         }
         .onChange(of: appState.isLoading) { _, isLoading in
@@ -400,6 +433,14 @@ struct AppRouter: View {
             return
         }
         // Dismiss any active player before the new sheet (TopShelf often fires over a backgrounded paused player, else its modal stays on top of the new cover). Two-step: (1) bump requestPlayerDismissal so detail views flip showPlayer (keeps the binding path consistent on return); (2) walk the modal chain to dismiss PlayerHostController directly, since binding-driven dismiss proved unreliable across scene-foreground.
+        // A deep link is deliberate navigation: drop the reprompt cover (continue as current profile)
+        // and cancel any PIN challenge started from it, else its continuation later runs a stale switch.
+        if showProfileReprompt {
+            showProfileReprompt = false
+            if dependencies.parentalGate.activeRequest != nil {
+                dependencies.parentalGate.resolve(false)
+            }
+        }
         appState.requestPlayerDismissal &+= 1
         PlayerModalDismisser.dismissActive(logPrefix: "[AppRouter]")
         // Let UIKit finish the dismiss before the new fullScreenCover, else it races and SwiftUI warns "presenting from a VC that is being dismissed" or the modal never lands.
@@ -423,6 +464,28 @@ struct AppRouter: View {
         tvUserLogger.notice("markTVUserResolved: tvUserID=\(id ?? "nil", privacy: .public)")
         lastResolvedTVUserID = id
         lastResolvedTVUserIDSet = true
+    }
+
+    /// Caller consumes lastBackgroundedAt on every .active entry (a player dismissal re-fires the
+    /// scenePhase task while still .active, and must not re-prompt); this only decides whether to
+    /// arm the cover.
+    private func maybeRequestProfileReprompt(backgroundedAt: ContinuousClock.Instant?) {
+        guard let backgroundedAt else { return }
+        // Never arm over a sibling cover (one fullScreenCover per host view) or a deep link in flight.
+        guard deepLinkItem == nil, !showNowPlaying, !showWhatsNew,
+              appState.pendingDeepLinkItemID == nil, !appState.isResolvingDeepLink
+        else { return }
+        guard let server = appState.activeServer else { return }
+        let should = ProfileRepromptPolicy.shouldReprompt(
+            elapsed: backgroundedAt.duration(to: ContinuousClock().now),
+            interval: dependencies.authPreferences.profileReprompt,
+            launchBehavior: dependencies.authPreferences.launchBehavior,
+            isAuthenticated: appState.isAuthenticated,
+            rememberedCount: dependencies.listRememberedUsers(serverID: server.id).count,
+            isPlayerActive: PlayerModalPresence.isPlayerActive,
+            tvUserChanged: false
+        )
+        if should { showProfileReprompt = true }
     }
 
     private func restoreSession() async {

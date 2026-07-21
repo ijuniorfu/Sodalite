@@ -189,6 +189,10 @@ struct ProfileSettingsView: View {
             if authPreferences.launchBehavior == .useDefault {
                 defaultProfilePicker
             }
+
+            if authPreferences.launchBehavior == .showPicker {
+                repromptPicker
+            }
         }
         .padding(.top, 12)
     }
@@ -215,6 +219,49 @@ struct ProfileSettingsView: View {
                                   : "circle")
                                 .foregroundStyle(.tint)
                             Text(user.name)
+                                .font(.body)
+                            Spacer()
+                        }
+                        .padding(16)
+                    }
+                    .buttonStyle(SettingsTileButtonStyle())
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var repromptPicker: some View {
+        VStack(spacing: 12) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(String(
+                    localized: "settings.profile.reprompt.title",
+                    defaultValue: "Show the picker again"
+                ))
+                .font(.subheadline)
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+                Text(String(
+                    localized: "settings.profile.reprompt.detail",
+                    defaultValue: "Ask who's watching when the app comes back after time in the background."
+                ))
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .padding(.top, 12)
+
+            VStack(spacing: 8) {
+                ForEach(AuthPreferences.ProfileRepromptInterval.allCases, id: \.self) { choice in
+                    Button {
+                        authPreferences.profileReprompt = choice
+                    } label: {
+                        HStack(spacing: 16) {
+                            Image(systemName: authPreferences.profileReprompt == choice
+                                  ? "largecircle.fill.circle"
+                                  : "circle")
+                                .foregroundStyle(.tint)
+                            Text(choice.label)
                                 .font(.body)
                             Spacer()
                         }
@@ -322,6 +369,29 @@ private extension AuthPreferences.LaunchBehavior {
         case .useDefault:
             String(localized: "settings.profile.launch.default.detail",
                    defaultValue: "Skip the picker and sign in as the default profile automatically.")
+        }
+    }
+}
+
+// MARK: - Reprompt interval labels
+
+private extension AuthPreferences.ProfileRepromptInterval {
+    var label: String {
+        switch self {
+        case .off:
+            String(localized: "settings.profile.reprompt.off", defaultValue: "Never")
+        case .immediately:
+            String(localized: "settings.profile.reprompt.immediately", defaultValue: "Every time")
+        case .after30s:
+            String(localized: "settings.profile.reprompt.30s", defaultValue: "After 30 seconds")
+        case .after1min:
+            String(localized: "settings.profile.reprompt.1min", defaultValue: "After 1 minute")
+        case .after5min:
+            String(localized: "settings.profile.reprompt.5min", defaultValue: "After 5 minutes")
+        case .after15min:
+            String(localized: "settings.profile.reprompt.15min", defaultValue: "After 15 minutes")
+        case .after60min:
+            String(localized: "settings.profile.reprompt.60min", defaultValue: "After 1 hour")
         }
     }
 }
