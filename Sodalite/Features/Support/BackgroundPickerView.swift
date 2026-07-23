@@ -1,5 +1,12 @@
 import SwiftUI
 
+enum BackgroundPickerLayout {
+    static let tvOSColumnCount = 3
+    static let columnSpacing: CGFloat = 24
+    static let previewAspectRatio: CGFloat = 16.0 / 9.0
+    static let metadataHeight: CGFloat = 68
+}
+
 struct BackgroundPickerView: View {
     @Environment(\.appearanceTheme) private var theme
     @Environment(\.dependencies) private var dependencies
@@ -15,10 +22,21 @@ struct BackgroundPickerView: View {
     }
 
     private var columns: [GridItem] {
+        #if os(tvOS)
+        Array(
+            repeating: GridItem(
+                .flexible(),
+                spacing: BackgroundPickerLayout.columnSpacing,
+                alignment: .top
+            ),
+            count: BackgroundPickerLayout.tvOSColumnCount
+        )
+        #else
         [GridItem(.adaptive(
             minimum: horizontalSizeClass == .compact ? 155 : 280,
             maximum: 360
-        ), spacing: 20)]
+        ), spacing: 20, alignment: .top)]
+        #endif
     }
 
     var body: some View {
@@ -30,7 +48,10 @@ struct BackgroundPickerView: View {
                 ))
                 .font(.largeTitle.bold())
 
-                LazyVGrid(columns: columns, spacing: 20) {
+                LazyVGrid(
+                    columns: columns,
+                    spacing: BackgroundPickerLayout.columnSpacing
+                ) {
                     ForEach(BackgroundStyle.allCases) { style in
                         FocusableCard(
                             action: { select(style) },
@@ -91,27 +112,51 @@ private struct BackgroundStyleTile: View {
         VStack(alignment: .leading, spacing: 12) {
             AppBackgroundView(
                 theme: ResolvedAppearanceTheme(accent: accent, background: style),
-                mode: focused ? .preview : .static
+                mode: focused && style.tier == .supporter ? .preview : .static
             )
-            .frame(height: 160)
+            .aspectRatio(
+                BackgroundPickerLayout.previewAspectRatio,
+                contentMode: .fit
+            )
+            .frame(maxWidth: .infinity)
             .clipShape(RoundedRectangle(cornerRadius: 14))
 
-            HStack {
-                Text(style.title).font(.headline)
-                Spacer()
-                if selected {
-                    Image(systemName: "checkmark").foregroundStyle(.tint)
-                }
-                if style.tier == .supporter {
-                    Image(systemName: "crown.fill")
-                        .foregroundStyle(.secondary)
-                        .accessibilityHidden(true)
-                } else {
-                    Text(String(localized: "appearance.free", defaultValue: "Free"))
+            VStack(alignment: .leading, spacing: 8) {
+                Text(style.title)
+                    .font(.headline)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.78)
+                    .multilineTextAlignment(.leading)
+                    .frame(maxWidth: .infinity, alignment: .topLeading)
+
+                Spacer(minLength: 0)
+
+                HStack(spacing: 10) {
+                    if style.tier == .supporter {
+                        Image(systemName: "crown.fill")
+                            .foregroundStyle(.secondary)
+                            .accessibilityHidden(true)
+                    } else {
+                        Text(String(
+                            localized: "appearance.free",
+                            defaultValue: "Free"
+                        ))
                         .font(.caption)
                         .foregroundStyle(.secondary)
+                    }
+
+                    Spacer()
+
+                    if selected {
+                        Image(systemName: "checkmark")
+                            .foregroundStyle(.tint)
+                    }
                 }
             }
+            .frame(
+                height: BackgroundPickerLayout.metadataHeight,
+                alignment: .top
+            )
         }
         .padding(12)
         .background(
