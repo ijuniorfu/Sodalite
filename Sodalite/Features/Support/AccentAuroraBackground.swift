@@ -1,5 +1,39 @@
 import SwiftUI
 
+enum AccentAuroraMotion {
+    static let primaryDuration: TimeInterval = 18
+    static let secondaryDuration: TimeInterval = 20
+
+    struct Sample {
+        let primaryX: CGFloat
+        let primaryY: CGFloat
+        let secondaryX: CGFloat
+        let secondaryY: CGFloat
+    }
+
+    static func sample(at time: TimeInterval) -> Sample {
+        Sample(
+            primaryX: 0.18 + 0.14 * wave(time, duration: primaryDuration),
+            primaryY: 0.18 + 0.12 * wave(
+                time + primaryDuration / 4,
+                duration: primaryDuration
+            ),
+            secondaryX: 0.80 + 0.12 * wave(time, duration: secondaryDuration),
+            secondaryY: 0.74 + 0.10 * wave(
+                time + secondaryDuration / 4,
+                duration: secondaryDuration
+            )
+        )
+    }
+
+    private static func wave(
+        _ time: TimeInterval,
+        duration: TimeInterval
+    ) -> CGFloat {
+        CGFloat(sin(time * 2 * .pi / duration))
+    }
+}
+
 struct AccentAuroraBackground: View {
     let accent: Color
     let isAnimating: Bool
@@ -9,6 +43,7 @@ struct AccentAuroraBackground: View {
             let time = isAnimating
                 ? timeline.date.timeIntervalSinceReferenceDate
                 : 0
+            let motion = AccentAuroraMotion.sample(at: time)
             GeometryReader { proxy in
                 let size = proxy.size
                 ZStack {
@@ -16,14 +51,14 @@ struct AccentAuroraBackground: View {
                     glow(
                         color: accent,
                         diameter: max(size.width, size.height) * 0.72,
-                        x: size.width * (0.16 + 0.08 * sin(time / 8)),
-                        y: size.height * (0.12 + 0.07 * cos(time / 9))
+                        x: size.width * motion.primaryX,
+                        y: size.height * motion.primaryY
                     )
                     glow(
                         color: accent.opacity(0.72),
                         diameter: max(size.width, size.height) * 0.62,
-                        x: size.width * (0.82 + 0.06 * cos(time / 10)),
-                        y: size.height * (0.78 + 0.08 * sin(time / 11))
+                        x: size.width * motion.secondaryX,
+                        y: size.height * motion.secondaryY
                     )
                     Color.black.opacity(0.42)
                     LinearGradient(

@@ -1,6 +1,36 @@
 import SwiftUI
 import UIKit
 
+enum CinemaNoirMotion {
+    static let lightDuration: TimeInterval = 18
+    private static let grainXDuration: TimeInterval = 36
+    private static let grainYDuration: TimeInterval = 42
+
+    struct Sample {
+        let lightOffsetX: CGFloat
+        let grainOffsetX: CGFloat
+        let grainOffsetY: CGFloat
+    }
+
+    static func sample(at time: TimeInterval) -> Sample {
+        Sample(
+            lightOffsetX: 0.46 * wave(time, duration: lightDuration),
+            grainOffsetX: 8 * wave(time, duration: grainXDuration),
+            grainOffsetY: 6 * wave(
+                time + grainYDuration / 4,
+                duration: grainYDuration
+            )
+        )
+    }
+
+    private static func wave(
+        _ time: TimeInterval,
+        duration: TimeInterval
+    ) -> CGFloat {
+        CGFloat(sin(time * 2 * .pi / duration))
+    }
+}
+
 struct CinemaNoirBackground: View {
     let isAnimating: Bool
 
@@ -9,6 +39,7 @@ struct CinemaNoirBackground: View {
             let time = isAnimating
                 ? timeline.date.timeIntervalSinceReferenceDate
                 : 0
+            let motion = CinemaNoirMotion.sample(at: time)
             GeometryReader { proxy in
                 ZStack {
                     RadialGradient(
@@ -19,6 +50,11 @@ struct CinemaNoirBackground: View {
                     )
                     Rectangle()
                         .fill(ImagePaint(image: Image(uiImage: Self.grain), scale: 1))
+                        .scaleEffect(1.08)
+                        .offset(
+                            x: motion.grainOffsetX,
+                            y: motion.grainOffsetY
+                        )
                         .opacity(0.08)
                     Rectangle()
                         .fill(LinearGradient(
@@ -26,8 +62,9 @@ struct CinemaNoirBackground: View {
                             startPoint: .leading,
                             endPoint: .trailing
                         ))
+                        .frame(width: proxy.size.width * 0.72)
                         .rotationEffect(.degrees(-7))
-                        .offset(x: CGFloat(sin(time / 14)) * proxy.size.width * 0.12)
+                        .offset(x: motion.lightOffsetX * proxy.size.width)
                     Color.black.opacity(0.28)
                 }
             }
