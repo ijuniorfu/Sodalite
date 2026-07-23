@@ -2,72 +2,12 @@ import Foundation
 import Observation
 import SwiftUI
 
-/// Supporter-gated cosmetics; non-supporters pinned to `.system` at read time but stored value preserved across refund/repurchase. UserDefaults, not Keychain.
+/// Supporter-gated cosmetics preserve stored values across refund and repurchase.
 @Observable
 @MainActor
 final class AppearancePreferences {
 
-    // MARK: - Accent
-
-    enum AccentChoice: String, CaseIterable, Identifiable, Sendable {
-        case system   // Default, free for everyone
-        // Warm family
-        case gold
-        case sunset
-        case rose
-        case crimson
-        // Cool family
-        case ocean
-        case mint
-        case emerald
-        // Purple family
-        case amethyst
-        case lavender
-
-        var id: String { rawValue }
-
-        /// Literal keys/defaults so `String(localized:defaultValue:)` compile-time-literal requirement holds.
-        var title: String {
-            switch self {
-            case .system:
-                String(localized: "appearance.accent.system",   defaultValue: "System Blue")
-            case .gold:
-                String(localized: "appearance.accent.gold",     defaultValue: "Gold")
-            case .sunset:
-                String(localized: "appearance.accent.sunset",   defaultValue: "Sunset")
-            case .rose:
-                String(localized: "appearance.accent.rose",     defaultValue: "Rose")
-            case .crimson:
-                String(localized: "appearance.accent.crimson",  defaultValue: "Crimson")
-            case .ocean:
-                String(localized: "appearance.accent.ocean",    defaultValue: "Ocean")
-            case .mint:
-                String(localized: "appearance.accent.mint",     defaultValue: "Mint")
-            case .emerald:
-                String(localized: "appearance.accent.emerald",  defaultValue: "Emerald")
-            case .amethyst:
-                String(localized: "appearance.accent.amethyst", defaultValue: "Amethyst")
-            case .lavender:
-                String(localized: "appearance.accent.lavender", defaultValue: "Lavender")
-            }
-        }
-
-        /// Hex tuned for dark Liquid-Glass backdrop, L≈0.65–0.75 so `.tint` text stays legible; `.system` hardcodes asset RGB not `Color.accentColor` (which would follow environment tint).
-        var color: Color {
-            switch self {
-            case .system:   Color(red: 0.00, green: 0.478, blue: 1.00)
-            case .gold:     Color(red: 0.98, green: 0.79, blue: 0.35)
-            case .sunset:   Color(red: 1.00, green: 0.60, blue: 0.30)
-            case .rose:     Color(red: 0.99, green: 0.57, blue: 0.70)
-            case .crimson:  Color(red: 0.94, green: 0.35, blue: 0.40)
-            case .ocean:    Color(red: 0.30, green: 0.78, blue: 0.88)
-            case .mint:     Color(red: 0.40, green: 0.87, blue: 0.70)
-            case .emerald:  Color(red: 0.30, green: 0.80, blue: 0.50)
-            case .amethyst: Color(red: 0.69, green: 0.50, blue: 0.95)
-            case .lavender: Color(red: 0.78, green: 0.68, blue: 0.98)
-            }
-        }
-    }
+    typealias AccentChoice = AccentPreset
 
     // MARK: - Continue Watching image
 
@@ -95,6 +35,7 @@ final class AppearancePreferences {
 
     private enum Keys {
         static let accentChoice = "appearance.accentChoice"
+        static let backgroundStyle = "appearance.backgroundStyle"
         static let showContentLogos = "appearance.showContentLogos"
         static let continueWatchingImage = "appearance.continueWatchingImage"
         static let largeCards = "appearance.largeCards"
@@ -108,6 +49,10 @@ final class AppearancePreferences {
 
     var accentChoice: AccentChoice {
         didSet { store.set(accentChoice.rawValue, forKey: Keys.accentChoice) }
+    }
+
+    var backgroundStyle: BackgroundStyle {
+        didSet { store.set(backgroundStyle.rawValue, forKey: Keys.backgroundStyle) }
     }
 
     /// Logo image instead of text title on detail screens; free for everyone, falls back to text when no logo or off. Default on.
@@ -138,8 +83,11 @@ final class AppearancePreferences {
 
     init(store: UserDefaults = .standard) {
         self.store = store
-        let raw = store.string(forKey: Keys.accentChoice) ?? AccentChoice.system.rawValue
-        self.accentChoice = AccentChoice(rawValue: raw) ?? .system
+        let rawAccent = store.string(forKey: Keys.accentChoice) ?? AccentPreset.systemBlue.rawValue
+        self.accentChoice = AccentPreset(rawValue: rawAccent) ?? .systemBlue
+        let rawBackground = store.string(forKey: Keys.backgroundStyle)
+        self.backgroundStyle = rawBackground.flatMap(BackgroundStyle.init(rawValue:))
+            ?? .graphiteGlass
         self.showContentLogos = store.object(forKey: Keys.showContentLogos) as? Bool ?? true
         self.continueWatchingImage = store.string(forKey: Keys.continueWatchingImage)
             .flatMap(ContinueWatchingImage.init(rawValue:)) ?? .still
@@ -147,14 +95,19 @@ final class AppearancePreferences {
         self.nowPlayingUsesSeriesPoster = store.object(forKey: Keys.nowPlayingUsesSeriesPoster) as? Bool ?? false
     }
 
-    /// Non-supporters always get `.system` regardless of stored choice, so downgrade paths are graceful.
-    func effectiveAccent(isSupporter: Bool) -> AccentChoice {
-        isSupporter ? accentChoice : .system
+    func resolvedTheme(isSupporter: Bool) -> ResolvedAppearanceTheme {
+        AppearanceThemeResolver.resolve(
+            storedAccent: accentChoice,
+            storedBackground: backgroundStyle,
+            isSupporter: isSupporter
+        )
     }
 
-    /// `nil` for `.system` so we don't self-reference `Color.accentColor`, which resolves to white if `AccentColor.colorset` empty/stale -> unreadable buttons.
+    func effectiveAccent(isSupporter: Bool) -> AccentChoice {
+        resolvedTheme(isSupporter: isSupporter).accent
+    }
+
     func effectiveTint(isSupporter: Bool) -> Color? {
-        let choice = effectiveAccent(isSupporter: isSupporter)
-        return choice == .system ? nil : choice.color
+        resolvedTheme(isSupporter: isSupporter).palette.control.color
     }
 }
