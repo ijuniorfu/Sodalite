@@ -49,6 +49,7 @@ final class PiPSessionCoordinator {
         activePlayer = player
         activeViewModel = viewModel
         apply(event: .begin)
+        PlayerModalPresence.notifyDidChange()
     }
 
     func restore(completion: @escaping (Bool) -> Void) {
@@ -97,6 +98,7 @@ final class PiPSessionCoordinator {
     private func release() {
         activePlayer = nil
         activeViewModel = nil
+        PlayerModalPresence.notifyDidChange()
     }
 
     /// Present the retained VC from the scene's settled top-most VC (same rationale as PlayerLauncherHostVC:

@@ -675,8 +675,14 @@ final class PlayerHostController: AVPlayerViewController {
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
+        PlayerModalPresence.notifyDidChange()
         suppressAVKitGestures()
         suppressAVKitChrome()
+    }
+
+    override func viewDidDisappear(_ animated: Bool) {
+        super.viewDidDisappear(animated)
+        PlayerModalPresence.notifyDidChange()
     }
 
     override func viewDidLayoutSubviews() {
@@ -1286,4 +1292,3 @@ final class PlayerHostController: AVPlayerViewController {
     }
 
 }
-

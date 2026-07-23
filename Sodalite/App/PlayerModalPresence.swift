@@ -5,6 +5,10 @@ import UIKit
 /// Used to skip the profile reprompt over active playback (issue #41).
 @MainActor
 enum PlayerModalPresence {
+    static func notifyDidChange() {
+        NotificationCenter.default.post(name: .playerModalPresenceDidChange, object: nil)
+    }
+
     static var isPlayerActive: Bool {
         #if os(tvOS)
         if PiPSessionCoordinator.shared.hasActiveSession { return true }

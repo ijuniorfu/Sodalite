@@ -25,6 +25,9 @@ extension Notification.Name {
     /// Posted by DependencyContainer after the route resolver moved the active
     /// session to the other URL slot (internal <-> external).
     static let serverRouteDidChange = Notification.Name("serverRouteDidChange")
+
+    static let playerModalPresenceDidChange =
+        Notification.Name("playerModalPresenceDidChange")
 }
 
 /// userInfo keys for `.playbackProgressDidChange`.
