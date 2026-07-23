@@ -12,13 +12,14 @@ extension View {
             NavigationStack {
                 content(value)
                     #if os(iOS)
-                    .themedStaticBackground()
+                    .themedStaticBackground(pausesMotion: false)
                     #endif
             }
-            #if os(tvOS)
+            #if os(iOS)
+            .pausesAppBackgroundMotion()
+            #else
             .themedStaticBackground()
             #endif
-            .pausesAppBackgroundMotion()
             #if os(iOS)
             // tvOS dismisses via the Menu button; iOS needs a touch close (a fullScreenCover
             // has no swipe-to-dismiss), else detail / program-info covers are a dead end.

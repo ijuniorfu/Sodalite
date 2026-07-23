@@ -144,6 +144,18 @@ struct AppearanceSettingsPayload: Codable, Equatable {
             forKey: .nowPlayingUsesSeriesPoster
         )
     }
+
+    func encode(to encoder: Encoder) throws {
+        var values = encoder.container(keyedBy: CodingKeys.self)
+        try values.encode(2, forKey: .schemaVersion)
+        try values.encode(updatedAt, forKey: .updatedAt)
+        try values.encode(accentChoice, forKey: .accentChoice)
+        try values.encode(backgroundStyle, forKey: .backgroundStyle)
+        try values.encode(showContentLogos, forKey: .showContentLogos)
+        try values.encode(continueWatchingImage, forKey: .continueWatchingImage)
+        try values.encode(largeCards, forKey: .largeCards)
+        try values.encode(nowPlayingUsesSeriesPoster, forKey: .nowPlayingUsesSeriesPoster)
+    }
 }
 
 struct AuthSettingsPayload: Codable, Equatable {

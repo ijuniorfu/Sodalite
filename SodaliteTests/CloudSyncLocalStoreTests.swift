@@ -34,8 +34,37 @@ final class InMemoryKeychain: KeychainServiceProtocol, @unchecked Sendable {
 @Suite("CloudSync local collect/apply", .serialized)
 @MainActor
 struct CloudSyncLocalStoreTests {
+    private static let accentChoiceKey = "appearance.accentChoice"
+    private static let backgroundStyleKey = "appearance.backgroundStyle"
+
     private func makeContainer() -> DependencyContainer {
         DependencyContainer(keychainService: InMemoryKeychain())
+    }
+
+    private func withStoredAppearanceIDs(
+        accent: String,
+        background: String,
+        perform: (DependencyContainer, UserDefaults) -> Void
+    ) {
+        let defaults = UserDefaults.standard
+        let previousAccent = defaults.object(forKey: Self.accentChoiceKey)
+        let previousBackground = defaults.object(forKey: Self.backgroundStyleKey)
+        defer {
+            if let previousAccent {
+                defaults.set(previousAccent, forKey: Self.accentChoiceKey)
+            } else {
+                defaults.removeObject(forKey: Self.accentChoiceKey)
+            }
+            if let previousBackground {
+                defaults.set(previousBackground, forKey: Self.backgroundStyleKey)
+            } else {
+                defaults.removeObject(forKey: Self.backgroundStyleKey)
+            }
+        }
+
+        defaults.set(accent, forKey: Self.accentChoiceKey)
+        defaults.set(background, forKey: Self.backgroundStyleKey)
+        perform(makeContainer(), defaults)
     }
 
     private var sampleServer: JellyfinServer {
@@ -144,6 +173,83 @@ struct CloudSyncLocalStoreTests {
         container.applySettingsPayload(payload)
         #expect(container.appearancePreferences.accentChoice == .gold)
         #expect(container.appearancePreferences.backgroundStyle == .oledBlack)
+    }
+
+    @Test("unknown stored appearance IDs render fallbacks and collect losslessly")
+    func unknownStoredAppearanceIDs() {
+        withStoredAppearanceIDs(
+            accent: "futureAccent",
+            background: "futureBackground"
+        ) { container, defaults in
+            let appearance = container.appearancePreferences
+            #expect(appearance.accentChoice == .systemBlue)
+            #expect(appearance.backgroundStyle == .graphiteGlass)
+            #expect(appearance.resolvedTheme(isSupporter: true) == .default)
+
+            appearance.largeCards.toggle()
+            let payload = container.collectSettingsPayload(
+                .appearance,
+                stamp: Date(timeIntervalSince1970: 4)
+            )
+            guard case .appearance(let collected) = payload else {
+                Issue.record("wrong case")
+                return
+            }
+            #expect(collected.accentChoice == "futureAccent")
+            #expect(collected.backgroundStyle == "futureBackground")
+
+            appearance.accentChoice = .orange
+            appearance.backgroundStyle = .oledBlack
+            #expect(defaults.string(forKey: Self.accentChoiceKey) == "orange")
+            #expect(defaults.string(forKey: Self.backgroundStyleKey) == "oledBlack")
+            let selectedPayload = container.collectSettingsPayload(
+                .appearance,
+                stamp: Date(timeIntervalSince1970: 5)
+            )
+            guard case .appearance(let selected) = selectedPayload else {
+                Issue.record("wrong case")
+                return
+            }
+            #expect(selected.accentChoice == "orange")
+            #expect(selected.backgroundStyle == "oledBlack")
+        }
+    }
+
+    @Test("unknown remote appearance IDs preserve unknown local stored IDs")
+    func unknownRemoteAppearanceIDs() {
+        withStoredAppearanceIDs(
+            accent: "futureAccent",
+            background: "futureBackground"
+        ) { container, defaults in
+            let unknown = SettingsSyncPayload.appearance(AppearanceSettingsPayload(
+                updatedAt: Date(timeIntervalSince1970: 5),
+                accentChoice: "newerFutureAccent",
+                backgroundStyle: "newerFutureBackground",
+                showContentLogos: false,
+                continueWatchingImage: "backdrop",
+                largeCards: true,
+                nowPlayingUsesSeriesPoster: true
+            ))
+
+            container.applySettingsPayload(unknown)
+
+            #expect(defaults.string(forKey: Self.accentChoiceKey) == "futureAccent")
+            #expect(defaults.string(forKey: Self.backgroundStyleKey) == "futureBackground")
+            #expect(container.appearancePreferences.showContentLogos == false)
+            #expect(container.appearancePreferences.continueWatchingImage == .backdrop)
+            #expect(container.appearancePreferences.largeCards == true)
+            #expect(container.appearancePreferences.nowPlayingUsesSeriesPoster == true)
+            let payload = container.collectSettingsPayload(
+                .appearance,
+                stamp: Date(timeIntervalSince1970: 6)
+            )
+            guard case .appearance(let collected) = payload else {
+                Issue.record("wrong case")
+                return
+            }
+            #expect(collected.accentChoice == "futureAccent")
+            #expect(collected.backgroundStyle == "futureBackground")
+        }
     }
 
     @Test("security payload round-trips the PIN blob")

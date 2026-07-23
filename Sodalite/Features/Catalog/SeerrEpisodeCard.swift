@@ -49,9 +49,10 @@ struct SeerrEpisodeCard: View {
             .clipShape(RoundedRectangle(cornerRadius: 12))
             // Focus border on the fixed-height still so it can't drift with caption-block size.
             .overlay(
-                RoundedRectangle(cornerRadius: 12)
-                    .strokeBorder(.tint, lineWidth: 4)
-                    .opacity(isFocused ? 1 : 0)
+                MediaFocusRing(
+                    shape: RoundedRectangle(cornerRadius: 12),
+                    isFocused: isFocused
+                )
             )
 
             // Fixed-height caption block keeps cards equal total height (top-aligned in the row) with or without the subtitle.

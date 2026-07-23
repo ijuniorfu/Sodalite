@@ -52,7 +52,7 @@ private struct GenreTile: View {
     private var height: CGFloat { LayoutMetrics.current(hSizeClass).genreTileSize.height }
 
     var body: some View {
-        // FocusableCard not Button: tvOS layers an unsuppressable white halo on focused .plain buttons, so all cards route through this primitive (own scale + shadow + tint outline).
+        // FocusableCard not Button: tvOS layers an unsuppressable white halo on focused .plain buttons, so all cards route through this primitive (own scale, shadow, and semantic focus outline).
         FocusableCard(action: action) { isFocused in
             ZStack {
                 if let path = genre.primaryBackdrop,
@@ -84,18 +84,19 @@ private struct GenreTile: View {
             .frame(width: width, height: height)
             .clipShape(RoundedRectangle(cornerRadius: 16))
             .overlay(
-                RoundedRectangle(cornerRadius: 16)
-                    .strokeBorder(.tint, lineWidth: 4)
-                    .opacity(isFocused ? 1 : 0)
+                MediaFocusRing(
+                    shape: RoundedRectangle(cornerRadius: 16),
+                    isFocused: isFocused
+                )
             )
         }
     }
 
     private var fallbackBackground: some View {
-        // LinearGradient(colors:) needs [Color], so resolve effectiveTint here; Color.accentColor only on the .system (no custom tint) path.
-        let tint = dependencies.appearancePreferences.effectiveTint(
+        // LinearGradient(colors:) needs concrete Colors, so resolve the effective control-role palette here.
+        let tint = dependencies.appearancePreferences.resolvedTheme(
             isSupporter: dependencies.storeKitService.isSupporter
-        ) ?? Color.accentColor
+        ).palette.control.color
         return LinearGradient(
             colors: [tint.opacity(0.5), tint.opacity(0.2)],
             startPoint: .topLeading,

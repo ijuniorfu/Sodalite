@@ -32,19 +32,16 @@ struct BackgroundPickerView: View {
 
                 LazyVGrid(columns: columns, spacing: 20) {
                     ForEach(BackgroundStyle.allCases) { style in
-                        FocusableCard {
-                            if style.tier == .supporter && !isSupporter {
-                                requestSupportAccess()
-                            } else {
-                                preferences.backgroundStyle = style
-                            }
-                        } content: { focused in
+                        FocusableCard(
+                            action: { select(style) },
+                            highlightsOnPress: true,
+                            exposesButtonSemantics: true
+                        ) { focused in
                             BackgroundStyleTile(
                                 style: style,
                                 accent: theme.accent,
                                 controlColor: theme.palette.control.color,
                                 selected: preferences.backgroundStyle == style,
-                                locked: style.tier == .supporter && !isSupporter,
                                 focused: focused
                             )
                         }
@@ -57,6 +54,14 @@ struct BackgroundPickerView: View {
         .navigationDestination(isPresented: $showSupport) {
             SupportDevelopmentView()
                 .hidesShellTabBar()
+        }
+    }
+
+    private func select(_ style: BackgroundStyle) {
+        if style.tier == .supporter && !isSupporter {
+            requestSupportAccess()
+        } else {
+            preferences.backgroundStyle = style
         }
     }
 
@@ -80,7 +85,6 @@ private struct BackgroundStyleTile: View {
     let accent: AccentPreset
     let controlColor: Color
     let selected: Bool
-    let locked: Bool
     let focused: Bool
 
     var body: some View {
@@ -98,10 +102,11 @@ private struct BackgroundStyleTile: View {
                 if selected {
                     Image(systemName: "checkmark").foregroundStyle(.tint)
                 }
-                if locked {
-                    Image(systemName: "crown.fill").foregroundStyle(.secondary)
-                }
-                if !selected && !locked {
+                if style.tier == .supporter {
+                    Image(systemName: "crown.fill")
+                        .foregroundStyle(.secondary)
+                        .accessibilityHidden(true)
+                } else {
                     Text(String(localized: "appearance.free", defaultValue: "Free"))
                         .font(.caption)
                         .foregroundStyle(.secondary)
@@ -127,11 +132,16 @@ private struct BackgroundStyleTile: View {
             localized: "appearance.selected",
             defaultValue: "Selected"
         )
-        let lockedLabel = String(
+        let supporterLabel = String(
             localized: "settings.appearance.locked.title",
             defaultValue: "Part of the Supporter Pack"
         )
-        return [selected ? selectedLabel : nil, locked ? lockedLabel : nil]
+        let freeLabel = String(
+            localized: "appearance.free",
+            defaultValue: "Free"
+        )
+        let tierLabel = style.tier == .supporter ? supporterLabel : freeLabel
+        return [selected ? selectedLabel : nil, tierLabel]
             .compactMap { $0 }
             .joined(separator: ", ")
     }

@@ -121,7 +121,7 @@ struct AppearanceSettingsView: View {
                     icon: "paintpalette.fill",
                     title: String(localized: "appearance.accentPicker.title",
                                   defaultValue: "Accent Color"),
-                    value: effectiveTheme.accent.title
+                    value: accentSummary
                 ) {
                     Circle()
                         .fill(effectiveTheme.palette.control.color)
@@ -138,7 +138,7 @@ struct AppearanceSettingsView: View {
                     icon: "rectangle.inset.filled",
                     title: String(localized: "appearance.backgroundPicker.title",
                                   defaultValue: "Background"),
-                    value: effectiveTheme.background.title
+                    value: backgroundSummary
                 ) {
                     AppBackgroundView(
                         theme: effectiveTheme,
@@ -154,6 +154,27 @@ struct AppearanceSettingsView: View {
             }
             .buttonStyle(SettingsTileButtonStyle())
         }
+    }
+
+    private var accentSummary: String {
+        "\(effectiveTheme.accent.category.title) · \(effectiveTheme.accent.title)"
+    }
+
+    private var backgroundSummary: String {
+        let motionState: String
+        switch effectiveTheme.background {
+        case .graphiteGlass, .oledBlack:
+            motionState = String(
+                localized: "appearance.motion.static",
+                defaultValue: "Static"
+            )
+        case .accentAurora, .polishedCrystal, .cinemaNoir:
+            motionState = String(
+                localized: "appearance.motion.animated",
+                defaultValue: "Animated"
+            )
+        }
+        return "\(motionState) · \(effectiveTheme.background.title)"
     }
 }
 

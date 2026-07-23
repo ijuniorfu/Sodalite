@@ -151,8 +151,8 @@ extension DependencyContainer {
             let a = appearancePreferences
             return .appearance(AppearanceSettingsPayload(
                 updatedAt: stamp,
-                accentChoice: a.accentChoice.rawValue,
-                backgroundStyle: a.backgroundStyle.rawValue,
+                accentChoice: a.storedAccentRawValue,
+                backgroundStyle: a.storedBackgroundRawValue,
                 showContentLogos: a.showContentLogos,
                 continueWatchingImage: a.continueWatchingImage.rawValue,
                 largeCards: a.largeCards,
@@ -212,8 +212,12 @@ extension DependencyContainer {
             store.networkBufferDepth = PlaybackPreferences.NetworkBufferDepth(rawValue: p.networkBufferDepth) ?? store.networkBufferDepth
         case .appearance(let a):
             let store = appearancePreferences
-            store.accentChoice = AppearancePreferences.AccentChoice(rawValue: a.accentChoice) ?? store.accentChoice
-            store.backgroundStyle = BackgroundStyle(rawValue: a.backgroundStyle) ?? store.backgroundStyle
+            if let accentChoice = AppearancePreferences.AccentChoice(rawValue: a.accentChoice) {
+                store.accentChoice = accentChoice
+            }
+            if let backgroundStyle = BackgroundStyle(rawValue: a.backgroundStyle) {
+                store.backgroundStyle = backgroundStyle
+            }
             store.showContentLogos = a.showContentLogos
             store.continueWatchingImage = AppearancePreferences.ContinueWatchingImage(rawValue: a.continueWatchingImage) ?? store.continueWatchingImage
             store.largeCards = a.largeCards

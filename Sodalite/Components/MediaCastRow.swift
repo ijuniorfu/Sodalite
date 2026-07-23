@@ -63,10 +63,10 @@ private struct MediaCastCard: View {
             .frame(width: 100, height: 100)
             .clipShape(Circle())
             .overlay(
-                Circle()
-                    .strokeBorder(.tint, lineWidth: 3)
-                    .padding(-3)
-                    .opacity(isFocused ? 1 : 0)
+                MediaFocusRing(
+                    shape: Circle(),
+                    isFocused: isFocused
+                )
             )
 
             VStack(spacing: 2) {

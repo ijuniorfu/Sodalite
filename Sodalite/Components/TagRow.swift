@@ -79,9 +79,10 @@ struct GenreCard: View {
             .frame(width: tileSize.width, height: tileSize.height)
             .clipShape(RoundedRectangle(cornerRadius: 16))
             .overlay(
-                RoundedRectangle(cornerRadius: 16)
-                    .strokeBorder(.tint, lineWidth: 4)
-                    .opacity(isFocused ? 1 : 0)
+                MediaFocusRing(
+                    shape: RoundedRectangle(cornerRadius: 16),
+                    isFocused: isFocused
+                )
             )
         }
     }

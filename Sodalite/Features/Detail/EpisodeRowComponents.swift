@@ -140,6 +140,7 @@ struct EpisodeLandscapeCard: View {
     /// Passed explicitly so the badge live-updates from the VM override map (the immutable episode.userData wouldn't change in-session).
     var isPlayed: Bool = false
 
+    @Environment(\.appearanceTheme) private var appearanceTheme
     @Environment(\.horizontalSizeClass) private var hSizeClass
     private var cardSize: CGSize { LayoutMetrics.current(hSizeClass).landscapeSize }
 
@@ -216,16 +217,16 @@ struct EpisodeLandscapeCard: View {
         }
     }
 
-    /// Focus stroke beats selected/current. AnyShapeStyle mixes the tint ShapeStyle (focus) with Color values (selected/current) behind one .strokeBorder.
+    /// Focus stroke beats selected/current. Selection keeps the control tint, while focus uses the semantic media role.
     private var strokeStyle: AnyShapeStyle {
-        if isFocused { return AnyShapeStyle(TintShapeStyle.tint) }
+        if isFocused { return AnyShapeStyle(appearanceTheme.palette.focus.color) }
         if isSelected { return AnyShapeStyle(TintShapeStyle.tint.opacity(0.8)) }
         if isCurrent { return AnyShapeStyle(Color.green.opacity(0.8)) }
         return AnyShapeStyle(Color.clear)
     }
 
     private var strokeWidth: CGFloat {
-        if isFocused { return 3 }
+        if isFocused { return 4 }
         return isCurrent ? 3 : 2
     }
 }

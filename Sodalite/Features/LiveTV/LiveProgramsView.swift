@@ -132,7 +132,7 @@ private struct ProgramCategoryRow: View {
     }
 }
 
-/// 16:9 program card (mirrors `MediaCard.landscape`, 360x202): image + TV placeholder, tinted focus
+/// 16:9 program card (mirrors `MediaCard.landscape`, 360x202): image + TV placeholder, semantic focus
 /// stroke, title + channel/time subtitle (always rendered so cards in a row stay equal height).
 private struct ProgramCard: View {
     let program: JellyfinProgram
@@ -160,11 +160,10 @@ private struct ProgramCard: View {
             .frame(width: cardWidth, height: cardHeight)
             .clipShape(RoundedRectangle(cornerRadius: 12))
             .overlay(
-                RoundedRectangle(cornerRadius: 15)
-                    .strokeBorder(.tint, lineWidth: 3)
-                    .padding(-3)
-                    .opacity(isFocused ? 1 : 0)
-                    .animation(.easeInOut(duration: 0.2), value: isFocused)
+                MediaFocusRing(
+                    shape: RoundedRectangle(cornerRadius: 12),
+                    isFocused: isFocused
+                )
             )
 
             VStack(alignment: .leading, spacing: 2) {

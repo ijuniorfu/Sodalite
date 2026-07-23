@@ -49,13 +49,16 @@ struct AccentColorPickerView: View {
 
                 LazyVGrid(columns: columns, spacing: 18) {
                     ForEach(category.presets) { preset in
-                        FocusableCard {
-                            if preset.tier == .supporter && !isSupporter {
-                                requestSupportAccess()
-                            } else {
-                                preferences.accentChoice = preset
-                            }
-                        } content: { focused in
+                        FocusableCard(
+                            action: {
+                                if preset.tier == .supporter && !isSupporter {
+                                    requestSupportAccess()
+                                } else {
+                                    preferences.accentChoice = preset
+                                }
+                            },
+                            exposesButtonSemantics: true
+                        ) { focused in
                             AccentPresetTile(
                                 preset: preset,
                                 selected: preferences.accentChoice == preset,

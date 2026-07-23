@@ -77,6 +77,16 @@ final class AppearancePreferences {
         largeCards ? Self.largeCardScale : 1.0
     }
 
+    var storedAccentRawValue: String {
+        let fallback = accentChoice.rawValue
+        return store.string(forKey: Keys.accentChoice) ?? fallback
+    }
+
+    var storedBackgroundRawValue: String {
+        let fallback = backgroundStyle.rawValue
+        return store.string(forKey: Keys.backgroundStyle) ?? fallback
+    }
+
     // MARK: - Init
 
     private let store: UserDefaults

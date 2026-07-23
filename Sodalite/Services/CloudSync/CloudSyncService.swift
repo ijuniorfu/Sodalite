@@ -448,7 +448,7 @@ final class CloudSyncService: CloudSyncServiceProtocol {
             let localStamp = preferences.localStamp(for: name) ?? .distantPast
             if adopting || CloudSyncMerge.remoteWins(localUpdatedAt: localStamp, remoteUpdatedAt: cloud.updatedAt) {
                 dependencies.applySettingsPayload(cloud)
-                lastSettingsSnapshot[key] = cloud.restamped(.distantPast)
+                lastSettingsSnapshot[key] = dependencies.collectSettingsPayload(key, stamp: .distantPast)
                 preferences.setLocalStamp(cloud.updatedAt, for: name)
             } else {
                 addPendingSave(recordName: name)

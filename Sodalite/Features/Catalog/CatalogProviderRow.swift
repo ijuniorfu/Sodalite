@@ -88,9 +88,10 @@ private struct ProviderTile: View {
             .frame(width: width, height: height)
             .clipShape(RoundedRectangle(cornerRadius: 16))
             .overlay(
-                RoundedRectangle(cornerRadius: 16)
-                    .strokeBorder(.tint, lineWidth: 4)
-                    .opacity(isFocused ? 1 : 0)
+                MediaFocusRing(
+                    shape: RoundedRectangle(cornerRadius: 16),
+                    isFocused: isFocused
+                )
             )
         }
     }

@@ -26,17 +26,26 @@ extension View {
         background { GraphiteGlassBackground() }
     }
 
-    func themedStaticBackground() -> some View {
-        modifier(ThemedStaticBackgroundModifier())
+    func themedStaticBackground(pausesMotion: Bool = true) -> some View {
+        modifier(ThemedStaticBackgroundModifier(pausesMotion: pausesMotion))
     }
 }
 
 private struct ThemedStaticBackgroundModifier: ViewModifier {
     @Environment(\.appearanceTheme) private var theme
+    let pausesMotion: Bool
 
+    @ViewBuilder
     func body(content: Content) -> some View {
-        content.background {
+        let renderedContent = content.background {
             AppBackgroundView(theme: theme, mode: .static)
+        }
+
+        if pausesMotion {
+            renderedContent
+                .pausesAppBackgroundMotion()
+        } else {
+            renderedContent
         }
     }
 }

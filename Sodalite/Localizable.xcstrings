@@ -17201,6 +17201,330 @@
         }
       }
     },
+    "appearance.motion.animated" : {
+      "comment": "Motion state shown for an animated appearance background",
+      "extractionState": "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Animované"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Animeret"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Animiert"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Κινούμενο"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Animated"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Animado"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Animoitu"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Animé"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Animirana"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Animált"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Animato"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "アニメーション"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "애니메이션"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Animert"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Geanimeerd"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Animowane"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Animado"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Animado"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Animat"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Анимированный"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Animované"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Animerad"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Animasyonlu"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Анімований"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "动态"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "動態"
+          }
+        }
+      }
+    },
+    "appearance.motion.static" : {
+      "comment": "Motion state shown for a static appearance background",
+      "extractionState": "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Statické"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Statisk"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Statisch"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Στατικό"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Static"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Estático"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Staattinen"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Statique"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Statična"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Statikus"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Statico"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "静止"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "정적"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Statisk"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Statisch"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Statyczne"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Estático"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Estático"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Static"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Статичный"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Statické"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Statisk"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Statik"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Статичний"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "静态"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "靜態"
+          }
+        }
+      }
+    },
     "appearance.selected" : {
       "comment": "State label for the selected appearance option",
       "extractionState": "manual",
