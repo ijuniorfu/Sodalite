@@ -18,6 +18,18 @@ enum AccentCategory: String, CaseIterable, Identifiable, Sendable {
     }
 }
 
+extension AccentCategory {
+    var title: String {
+        switch self {
+        case .basic: String(localized: "appearance.category.basic", defaultValue: "Basic")
+        case .pastel: String(localized: "appearance.category.pastel", defaultValue: "Pastel")
+        case .bold: String(localized: "appearance.category.bold", defaultValue: "Bold")
+        case .electric: String(localized: "appearance.category.electric", defaultValue: "Electric")
+        case .cinematic: String(localized: "appearance.category.cinematic", defaultValue: "Cinematic")
+        }
+    }
+}
+
 struct RGBColor: Equatable, Sendable {
     let red: Double
     let green: Double
@@ -135,7 +147,36 @@ enum AccentPreset: String, CaseIterable, Identifiable, Sendable {
     }
 
     var color: Color { palette.control.color }
-    var title: String { rawValue }
+}
+
+extension AccentPreset {
+    var title: String {
+        switch self {
+        case .systemBlue: String(localized: "appearance.accent.system", defaultValue: "System Blue")
+        case .orange: String(localized: "appearance.accent.orange", defaultValue: "Orange")
+        case .violet: String(localized: "appearance.accent.violet", defaultValue: "Violet")
+        case .sky: String(localized: "appearance.accent.sky", defaultValue: "Sky")
+        case .mint: String(localized: "appearance.accent.mint", defaultValue: "Mint")
+        case .blush: String(localized: "appearance.accent.blush", defaultValue: "Blush")
+        case .apricot: String(localized: "appearance.accent.apricot", defaultValue: "Apricot")
+        case .lavender: String(localized: "appearance.accent.lavender", defaultValue: "Lavender")
+        case .cobalt: String(localized: "appearance.accent.cobalt", defaultValue: "Cobalt")
+        case .emerald: String(localized: "appearance.accent.emerald", defaultValue: "Emerald")
+        case .ruby: String(localized: "appearance.accent.ruby", defaultValue: "Ruby")
+        case .amber: String(localized: "appearance.accent.amber", defaultValue: "Amber")
+        case .royalViolet: String(localized: "appearance.accent.royalViolet", defaultValue: "Royal Violet")
+        case .cyan: String(localized: "appearance.accent.cyan", defaultValue: "Cyan")
+        case .magenta: String(localized: "appearance.accent.magenta", defaultValue: "Magenta")
+        case .lime: String(localized: "appearance.accent.lime", defaultValue: "Lime")
+        case .ultraviolet: String(localized: "appearance.accent.ultraviolet", defaultValue: "Ultraviolet")
+        case .solarOrange: String(localized: "appearance.accent.solarOrange", defaultValue: "Solar Orange")
+        case .petrol: String(localized: "appearance.accent.petrol", defaultValue: "Petrol")
+        case .burgundy: String(localized: "appearance.accent.burgundy", defaultValue: "Burgundy")
+        case .indigo: String(localized: "appearance.accent.indigo", defaultValue: "Indigo")
+        case .copper: String(localized: "appearance.accent.copper", defaultValue: "Copper")
+        case .champagne: String(localized: "appearance.accent.champagne", defaultValue: "Champagne")
+        }
+    }
 }
 
 enum BackgroundStyle: String, CaseIterable, Identifiable, Sendable {
@@ -150,6 +191,18 @@ enum BackgroundStyle: String, CaseIterable, Identifiable, Sendable {
         switch self {
         case .graphiteGlass, .oledBlack: .free
         case .accentAurora, .polishedCrystal, .cinemaNoir: .supporter
+        }
+    }
+}
+
+extension BackgroundStyle {
+    var title: String {
+        switch self {
+        case .graphiteGlass: String(localized: "appearance.background.graphite", defaultValue: "Graphite Glass")
+        case .oledBlack: String(localized: "appearance.background.oled", defaultValue: "OLED Black")
+        case .accentAurora: String(localized: "appearance.background.aurora", defaultValue: "Accent Aurora")
+        case .polishedCrystal: String(localized: "appearance.background.crystal", defaultValue: "Polished Crystal")
+        case .cinemaNoir: String(localized: "appearance.background.noir", defaultValue: "Cinema Noir")
         }
     }
 }

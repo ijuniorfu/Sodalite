@@ -1,12 +1,14 @@
 import SwiftUI
 
-/// Accent picker gated behind Supporter Pack; locked state grays swatches + CTA to Support screen.
 struct AppearanceSettingsView: View {
 
     @Environment(\.dependencies) private var dependencies
 
     private var appearance: AppearancePreferences { dependencies.appearancePreferences }
     private var isSupporter: Bool { dependencies.storeKitService.isSupporter }
+    private var effectiveTheme: ResolvedAppearanceTheme {
+        appearance.resolvedTheme(isSupporter: isSupporter)
+    }
 
     var body: some View {
         ScrollView {
@@ -19,14 +21,9 @@ struct AppearanceSettingsView: View {
                 .fontWeight(.bold)
                 .frame(maxWidth: .infinity)
 
-                togglesSection
-
                 header
-                if isSupporter {
-                    accentPicker
-                } else {
-                    lockedCard
-                }
+                togglesSection
+                personalizationSection
             }
             .screenContentInset()
         }
@@ -44,7 +41,7 @@ struct AppearanceSettingsView: View {
 
             Text(String(
                 localized: "settings.appearance.subtitle",
-                defaultValue: "How logos, cards, and images look, plus the accent color."
+                defaultValue: "Customize content, accent color, and background."
             ))
             .font(.body)
             .foregroundStyle(.secondary)
@@ -115,114 +112,80 @@ struct AppearanceSettingsView: View {
         )
     }
 
-    // MARK: - Picker
-
-    private var accentPicker: some View {
+    private var personalizationSection: some View {
         VStack(spacing: 4) {
-            ForEach(AppearancePreferences.AccentChoice.allCases) { choice in
-                AccentRow(
-                    choice: choice,
-                    isSelected: appearance.accentChoice == choice
+            NavigationLink {
+                AccentColorPickerView(initialCategory: appearance.accentChoice.category)
+            } label: {
+                AppearanceNavigationRow(
+                    icon: "paintpalette.fill",
+                    title: String(localized: "appearance.accentPicker.title",
+                                  defaultValue: "Accent Color"),
+                    value: effectiveTheme.accent.title
                 ) {
-                    appearance.accentChoice = choice
-                }
-            }
-        }
-    }
-
-    // MARK: - Locked state
-
-    private var lockedCard: some View {
-        VStack(spacing: 20) {
-            // Centered flow so the ten swatches wrap AND each row stays centered. A fixed HStack was
-            // ~508pt wide (10 x 40 + spacing), overflowing the iPhone content width and stretching the
-            // whole screen's rows (the VStack sized to this widest child); an adaptive grid fixed the
-            // overflow but left-aligned the last row. Wraps on iPhone, one centered row on tvOS/iPad.
-            FlowLayout(alignment: .center, spacing: 12) {
-                ForEach(AppearancePreferences.AccentChoice.allCases) { choice in
                     Circle()
-                        .fill(choice.color)
-                        .frame(width: 40, height: 40)
-                        .opacity(0.35)
+                        .fill(effectiveTheme.palette.control.color)
+                        .frame(width: 36, height: 36)
+                        .overlay(Circle().stroke(.white.opacity(0.18), lineWidth: 1))
                 }
             }
-
-            VStack(spacing: 8) {
-                Label(
-                    String(localized: "settings.appearance.locked.title",
-                           defaultValue: "Part of the Supporter Pack"),
-                    systemImage: "lock.fill"
-                )
-                .font(.headline)
-
-                Text(String(
-                    localized: "settings.appearance.locked.subtitle",
-                    defaultValue: "Unlock accent colors along with the premium splash icon and supporter badge."
-                ))
-                .font(.body)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
-            }
+            .buttonStyle(SettingsTileButtonStyle())
 
             NavigationLink {
-                SupportDevelopmentView()
-                    .hidesShellTabBar()
+                BackgroundPickerView()
             } label: {
-                Text(String(
-                    localized: "settings.appearance.locked.cta",
-                    defaultValue: "Open Support Development"
-                ))
-                .font(.body)
-                .fontWeight(.medium)
-                .padding(.horizontal, 32)
-                .padding(.vertical, 16)
+                AppearanceNavigationRow(
+                    icon: "rectangle.inset.filled",
+                    title: String(localized: "appearance.backgroundPicker.title",
+                                  defaultValue: "Background"),
+                    value: effectiveTheme.background.title
+                ) {
+                    AppBackgroundView(
+                        theme: effectiveTheme,
+                        mode: .static
+                    )
+                    .frame(width: 52, height: 32)
+                    .clipShape(RoundedRectangle(cornerRadius: 7))
+                    .overlay {
+                        RoundedRectangle(cornerRadius: 7)
+                            .stroke(.white.opacity(0.16), lineWidth: 1)
+                    }
+                }
             }
-            .buttonStyle(.borderedProminent)
+            .buttonStyle(SettingsTileButtonStyle())
         }
-        .padding(32)
-        .frame(maxWidth: .infinity)
-        .background(
-            RoundedRectangle(cornerRadius: 20)
-                .fill(.white.opacity(0.05))
-        )
     }
 }
 
-// MARK: - Accent Row
-
-private struct AccentRow: View {
-    let choice: AppearancePreferences.AccentChoice
-    let isSelected: Bool
-    let action: () -> Void
-
-    @Environment(\.isFocused) private var isFocused
+private struct AppearanceNavigationRow<Preview: View>: View {
+    let icon: String
+    let title: String
+    let value: String
+    @ViewBuilder let preview: () -> Preview
 
     var body: some View {
-        Button(action: action) {
-            HStack(spacing: 28) {
-                Circle()
-                    .fill(choice.color)
-                    .frame(width: 36, height: 36)
-                    .overlay(
-                        Circle()
-                            .stroke(.white.opacity(0.15), lineWidth: 1)
-                    )
+        HStack(spacing: 20) {
+            Image(systemName: icon)
+                .font(.title3)
+                .frame(width: 34)
+                .foregroundStyle(.tint)
 
-                Text(choice.title)
+            VStack(alignment: .leading, spacing: 4) {
+                Text(title)
                     .font(.body)
                     .fontWeight(.medium)
-
-                Spacer()
-
-                if isSelected {
-                    Image(systemName: "checkmark")
-                        .font(.body)
-                        .fontWeight(.semibold)
-                        .foregroundStyle(.tint)
-                }
+                Text(value)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             }
-            .padding(20)
+
+            Spacer()
+            preview()
+            Image(systemName: "chevron.right")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.secondary)
         }
-        .buttonStyle(SettingsTileButtonStyle())
+        .padding(20)
+        .contentShape(Rectangle())
     }
 }

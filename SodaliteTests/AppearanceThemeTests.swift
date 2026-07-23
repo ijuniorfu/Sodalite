@@ -89,4 +89,47 @@ struct AppearanceThemeTests {
         let second = AppearancePreferences(store: defaults)
         #expect(second.backgroundStyle == .cinemaNoir)
     }
+
+    @Test("categories presets and backgrounds expose localized titles")
+    func localizedTitles() {
+        #expect(AccentCategory.allCases.map(\.title) == [
+            String(localized: "appearance.category.basic", defaultValue: "Basic"),
+            String(localized: "appearance.category.pastel", defaultValue: "Pastel"),
+            String(localized: "appearance.category.bold", defaultValue: "Bold"),
+            String(localized: "appearance.category.electric", defaultValue: "Electric"),
+            String(localized: "appearance.category.cinematic", defaultValue: "Cinematic")
+        ])
+        #expect(AccentPreset.allCases.map(\.title) == [
+            String(localized: "appearance.accent.system", defaultValue: "System Blue"),
+            String(localized: "appearance.accent.orange", defaultValue: "Orange"),
+            String(localized: "appearance.accent.violet", defaultValue: "Violet"),
+            String(localized: "appearance.accent.sky", defaultValue: "Sky"),
+            String(localized: "appearance.accent.mint", defaultValue: "Mint"),
+            String(localized: "appearance.accent.blush", defaultValue: "Blush"),
+            String(localized: "appearance.accent.apricot", defaultValue: "Apricot"),
+            String(localized: "appearance.accent.lavender", defaultValue: "Lavender"),
+            String(localized: "appearance.accent.cobalt", defaultValue: "Cobalt"),
+            String(localized: "appearance.accent.emerald", defaultValue: "Emerald"),
+            String(localized: "appearance.accent.ruby", defaultValue: "Ruby"),
+            String(localized: "appearance.accent.amber", defaultValue: "Amber"),
+            String(localized: "appearance.accent.royalViolet", defaultValue: "Royal Violet"),
+            String(localized: "appearance.accent.cyan", defaultValue: "Cyan"),
+            String(localized: "appearance.accent.magenta", defaultValue: "Magenta"),
+            String(localized: "appearance.accent.lime", defaultValue: "Lime"),
+            String(localized: "appearance.accent.ultraviolet", defaultValue: "Ultraviolet"),
+            String(localized: "appearance.accent.solarOrange", defaultValue: "Solar Orange"),
+            String(localized: "appearance.accent.petrol", defaultValue: "Petrol"),
+            String(localized: "appearance.accent.burgundy", defaultValue: "Burgundy"),
+            String(localized: "appearance.accent.indigo", defaultValue: "Indigo"),
+            String(localized: "appearance.accent.copper", defaultValue: "Copper"),
+            String(localized: "appearance.accent.champagne", defaultValue: "Champagne")
+        ])
+        #expect(BackgroundStyle.allCases.map(\.title) == [
+            String(localized: "appearance.background.graphite", defaultValue: "Graphite Glass"),
+            String(localized: "appearance.background.oled", defaultValue: "OLED Black"),
+            String(localized: "appearance.background.aurora", defaultValue: "Accent Aurora"),
+            String(localized: "appearance.background.crystal", defaultValue: "Polished Crystal"),
+            String(localized: "appearance.background.noir", defaultValue: "Cinema Noir")
+        ])
+    }
 }

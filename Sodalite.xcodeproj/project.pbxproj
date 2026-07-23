@@ -86,6 +86,7 @@
 		2155B86FB8E0317746E49A12 /* SeerrServiceConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 090B5210D3ACA84E2E25E318 /* SeerrServiceConfig.swift */; };
 		21F6A56F0A2B20C0B254A484 /* JellyfinEndpoints.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0E5CFBC331D8C9C23D2D0A4 /* JellyfinEndpoints.swift */; };
 		220ECFD0EA61845A4CC696A8 /* MusicPlaybackCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2B5EC01B133010A8DEF1159 /* MusicPlaybackCoordinator.swift */; };
+		22EFDA502DA9F1A03824876C /* AccentColorPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 367B00A12CB554D4C5961786 /* AccentColorPickerView.swift */; };
 		2335E7F547AA09125FE5DB98 /* LiveTransportBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6F5CE78EAB9F5BC71D0CF0B /* LiveTransportBar.swift */; };
 		234FD6BF76C34011FC978A38 /* TrickplayScrubSourceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F65790C4F34A9AB07D29DAE /* TrickplayScrubSourceTests.swift */; };
 		23B467018C2F36BF380F4189 /* SeerrMediaDetail.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0890FF7654C1CDB8D2A8A71A /* SeerrMediaDetail.swift */; };
@@ -126,6 +127,7 @@
 		32157D9499F50E40ACD9324F /* PlaybackPreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57DC6498B2FB8855EAD8A759 /* PlaybackPreferences.swift */; };
 		32D4792FE49F480428CF582C /* SeerrServiceConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 090B5210D3ACA84E2E25E318 /* SeerrServiceConfig.swift */; };
 		32E90092EF199E8EF002F0DE /* GenreFilter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EA6EBC252CCA4B36109E389 /* GenreFilter.swift */; };
+		32FAF2DA394EF114FB09A5A6 /* BackgroundPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E6F943062A404584A9A3AF7 /* BackgroundPickerView.swift */; };
 		33E1C150090FAA494E9C6A61 /* JellyfinImageService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3922C20A201F47D136223B20 /* JellyfinImageService.swift */; };
 		34AD492EDFD9D01B3DA34543 /* TabRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FD9103B219AFCAC73A8836A /* TabRootView.swift */; };
 		3597A65B0A4EFDE1257BDC92 /* MediaDeletionSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84A366A9666BD16A484E1F50 /* MediaDeletionSheet.swift */; };
@@ -249,6 +251,7 @@
 		65DBD42F2403DAFE61E91020 /* WhatsNewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77F75B9F040C820A852BEBC8 /* WhatsNewView.swift */; };
 		676AECEBEB7272EA391EEC61 /* EnvironmentKeys.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58AF29A659F51ED292CF8D58 /* EnvironmentKeys.swift */; };
 		67946C2FED6A583BE7598C44 /* ServerDiscoveryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4001613D7E44F6797CCE86F /* ServerDiscoveryService.swift */; };
+		6812A22EB3301759F0492FD7 /* BackgroundPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E6F943062A404584A9A3AF7 /* BackgroundPickerView.swift */; };
 		68641A144E8EFBB4B8322B29 /* DualURLEditSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = D42A8DD9098B66267D05CF17 /* DualURLEditSheet.swift */; };
 		69178F8ED3D909174C5B4360 /* ProgramInfoPopoverTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4267FC75ADC0DFBBDF75871B /* ProgramInfoPopoverTests.swift */; };
 		691D8C2E9E427963B9FC273F /* CloudSyncPayloads.swift in Sources */ = {isa = PBXBuildFile; fileRef = 726923509DF667EA95ED1733 /* CloudSyncPayloads.swift */; };
@@ -514,6 +517,7 @@
 		CCC7638709A326D61D876104 /* PINEntryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C576CF181E723BDEB11605F /* PINEntryView.swift */; };
 		CD411C46A7BEE41CD81E0C39 /* CloudSyncPreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = 306295C10371A4A926588650 /* CloudSyncPreferences.swift */; };
 		CD452D30CACB03AFE784063C /* TVProfileMappings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 206185A89433535F64E95035 /* TVProfileMappings.swift */; };
+		CD73E798237BEF03F717BFC1 /* AccentColorPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 367B00A12CB554D4C5961786 /* AccentColorPickerView.swift */; };
 		CEE4F399F4267AB60982F85B /* PlayerOrientation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65078FEBC5D0CDB0C24799C4 /* PlayerOrientation.swift */; };
 		CF8ED7254A05D0364D2774DB /* JellyfinAuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 477BA4C25F579EBD37469D21 /* JellyfinAuthService.swift */; };
 		CFAE64CD92C74114C9C65085 /* MusicScrubberInput.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27C0989097FA38E35DE5B355 /* MusicScrubberInput.swift */; };
@@ -746,6 +750,7 @@
 		330F8013CF2D5BFB7DD3C3FF /* ExternalSubtitleMappingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExternalSubtitleMappingTests.swift; sourceTree = "<group>"; };
 		34D5B3810DDB2AD91CD7A5CD /* SessionRestorerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionRestorerTests.swift; sourceTree = "<group>"; };
 		3558FABE54073F78BABEF9DD /* SRTParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SRTParser.swift; sourceTree = "<group>"; };
+		367B00A12CB554D4C5961786 /* AccentColorPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccentColorPickerView.swift; sourceTree = "<group>"; };
 		368B32F98097EE977BFBB373 /* SessionRestorer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionRestorer.swift; sourceTree = "<group>"; };
 		37069EBB512D8095D5F68CED /* ServerRoute.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServerRoute.swift; sourceTree = "<group>"; };
 		37F20293DC3BAA83586C3058 /* HomeCustomizeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeCustomizeView.swift; sourceTree = "<group>"; };
@@ -854,6 +859,7 @@
 		7C70AF39F350B8FBC30EDFF0 /* JellyfinLibrary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JellyfinLibrary.swift; sourceTree = "<group>"; };
 		7CA61D2C186BB798C1ABACDF /* ProbeBudgetTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProbeBudgetTests.swift; sourceTree = "<group>"; };
 		7D862A1F897DD265807CC48F /* JellyfinItemService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JellyfinItemService.swift; sourceTree = "<group>"; };
+		7E6F943062A404584A9A3AF7 /* BackgroundPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundPickerView.swift; sourceTree = "<group>"; };
 		7E6FC57C0434B0E5A844A312 /* LicenseText-dav1d.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "LicenseText-dav1d.txt"; sourceTree = "<group>"; };
 		8045FAEEA02DFFFAF1D2E465 /* ChangelogEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChangelogEntry.swift; sourceTree = "<group>"; };
 		81E6D9A823ADF28BFA536A81 /* SplashView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplashView.swift; sourceTree = "<group>"; };
@@ -1711,11 +1717,13 @@
 			isa = PBXGroup;
 			children = (
 				8AC7712AD9E8B29E84A7C624 /* AccentAuroraBackground.swift */,
+				367B00A12CB554D4C5961786 /* AccentColorPickerView.swift */,
 				4C01A1DB2E58B09133252977 /* AppBackgroundView.swift */,
 				22DBDEEBE73D05D216A079E1 /* AppearancePreferences.swift */,
 				A0A3049205841D55FB3F382F /* AppearanceSettingsView.swift */,
 				A62F1DBB63B1D0EDCBAA87A2 /* AppearanceTheme.swift */,
 				939BA0A11557668ABD145990 /* BackgroundMotionPolicy.swift */,
+				7E6F943062A404584A9A3AF7 /* BackgroundPickerView.swift */,
 				92C116449AE00A9C9E64ABEA /* CinemaNoirBackground.swift */,
 				B101C18533FCB36B81E9BA20 /* PolishedCrystalBackground.swift */,
 				5DCCDE639EE071B54BD03C8B /* SupportDevelopmentView.swift */,
@@ -2001,6 +2009,7 @@
 				739AEA99DFE24200A34461F6 /* APIError.swift in Sources */,
 				35ACF8026C06CE26BD8652F3 /* ASSRenderCoordinator.swift in Sources */,
 				1EECB7865DE68E8408B8FC49 /* AccentAuroraBackground.swift in Sources */,
+				22EFDA502DA9F1A03824876C /* AccentColorPickerView.swift in Sources */,
 				C5E95A33808D1B34EEF4E1BB /* ActiveUserBadge.swift in Sources */,
 				D9A18DD9E001AF7701A6B52E /* AddSecondURLSheet.swift in Sources */,
 				727CB25E4B00CA055FA6C50D /* AirPlayRouteButton.swift in Sources */,
@@ -2015,6 +2024,7 @@
 				1F069BF8E9280E25499C2FFB /* AsyncSemaphore.swift in Sources */,
 				9D8F177619267AE8785EC722 /* AuthPreferences.swift in Sources */,
 				CB816A3368A0F3FECEF84C84 /* BackgroundMotionPolicy.swift in Sources */,
+				6812A22EB3301759F0492FD7 /* BackgroundPickerView.swift in Sources */,
 				0C8B22D41A8B1CBF7DC4B9F9 /* CatalogAllRequestsView.swift in Sources */,
 				E3813B046BE8448693D24F19 /* CatalogDetailComponents.swift in Sources */,
 				9EB5374F1D8318854E3EE8F7 /* CatalogDetailView.swift in Sources */,
@@ -2349,6 +2359,7 @@
 				B4520E43727C43F66C7C14B3 /* APIError.swift in Sources */,
 				ECB34071C05CE3F826E912CF /* ASSRenderCoordinator.swift in Sources */,
 				F6FF181CEC42C2FF177329F7 /* AccentAuroraBackground.swift in Sources */,
+				CD73E798237BEF03F717BFC1 /* AccentColorPickerView.swift in Sources */,
 				170787E57091B604031DA94A /* ActiveUserBadge.swift in Sources */,
 				DA5EEF748BAB98B1CFC64A87 /* AddSecondURLSheet.swift in Sources */,
 				7004E52583DE1E3A1E4E668A /* AlbumDetailView.swift in Sources */,
@@ -2362,6 +2373,7 @@
 				DD07C9ACEED4C480EF32E3E6 /* AsyncSemaphore.swift in Sources */,
 				7DE057BFC94CB03E34FDEBAA /* AuthPreferences.swift in Sources */,
 				C7484CC6ECEF7365D4765AE4 /* BackgroundMotionPolicy.swift in Sources */,
+				32FAF2DA394EF114FB09A5A6 /* BackgroundPickerView.swift in Sources */,
 				6E900352ED20781B5C81B573 /* CatalogAllRequestsView.swift in Sources */,
 				E1CDCE4D37EDE1287C1C2FFB /* CatalogDetailComponents.swift in Sources */,
 				0B9268660F623039B4D1C3EC /* CatalogDetailView.swift in Sources */,
