@@ -35,7 +35,7 @@ struct CloudSyncPayloadsTests {
         let payload = SettingsSyncPayload.appearance(AppearanceSettingsPayload(
             updatedAt: Date(timeIntervalSince1970: 42),
             accentChoice: "ocean",
-            backgroundStyle: BackgroundStyle.polishedCrystal.rawValue,
+            backgroundStyle: BackgroundStyle.cinemaNoir.rawValue,
             showContentLogos: false,
             continueWatchingImage: "backdrop",
             largeCards: true,

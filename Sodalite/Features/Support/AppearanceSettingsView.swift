@@ -168,7 +168,7 @@ struct AppearanceSettingsView: View {
                 localized: "appearance.motion.static",
                 defaultValue: "Static"
             )
-        case .accentAurora, .polishedCrystal, .cinemaNoir:
+        case .accentAurora, .cinemaNoir:
             motionState = String(
                 localized: "appearance.motion.animated",
                 defaultValue: "Animated"

@@ -14,6 +14,15 @@ struct AppearanceThemeTests {
         }
     }
 
+    @Test("background catalog has two free and two supporter choices")
+    func backgroundCatalogMembership() {
+        #expect(BackgroundStyle.allCases.filter { $0.tier == .free }.count == 2)
+        #expect(BackgroundStyle.allCases.filter { $0.tier == .supporter }.count == 2)
+        #expect(BackgroundStyle.allCases.map(\.rawValue) == [
+            "graphiteGlass", "oledBlack", "accentAurora", "cinemaNoir"
+        ])
+    }
+
     @Test("legacy raw identifiers resolve to approved presets", arguments: [
         ("system", AccentPreset.systemBlue),
         ("gold", .champagne),
@@ -60,7 +69,7 @@ struct AppearanceThemeTests {
 
         let premiumBackground = AppearanceThemeResolver.resolve(
             storedAccent: .orange,
-            storedBackground: .polishedCrystal,
+            storedBackground: .cinemaNoir,
             isSupporter: false
         )
         #expect(premiumBackground.accent == .orange)
@@ -68,11 +77,11 @@ struct AppearanceThemeTests {
 
         let supporter = AppearanceThemeResolver.resolve(
             storedAccent: .ultraviolet,
-            storedBackground: .polishedCrystal,
+            storedBackground: .cinemaNoir,
             isSupporter: true
         )
         #expect(supporter.accent == .ultraviolet)
-        #expect(supporter.background == .polishedCrystal)
+        #expect(supporter.background == .cinemaNoir)
     }
 
     @Test("background defaults to graphite and persists")
@@ -88,6 +97,19 @@ struct AppearanceThemeTests {
 
         let second = AppearancePreferences(store: defaults)
         #expect(second.backgroundStyle == .cinemaNoir)
+    }
+
+    @Test("removed crystal preference falls back to graphite")
+    @MainActor
+    func removedCrystalPreferenceFallback() {
+        let suite = "AppearanceThemeTests.removedCrystal.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suite)!
+        defer { defaults.removePersistentDomain(forName: suite) }
+        defaults.set("polishedCrystal", forKey: "appearance.backgroundStyle")
+
+        let preferences = AppearancePreferences(store: defaults)
+
+        #expect(preferences.backgroundStyle == .graphiteGlass)
     }
 
     @Test("categories presets and backgrounds expose localized titles")
@@ -128,7 +150,6 @@ struct AppearanceThemeTests {
             String(localized: "appearance.background.graphite", defaultValue: "Graphite Glass"),
             String(localized: "appearance.background.oled", defaultValue: "OLED Black"),
             String(localized: "appearance.background.aurora", defaultValue: "Accent Aurora"),
-            String(localized: "appearance.background.crystal", defaultValue: "Polished Crystal"),
             String(localized: "appearance.background.noir", defaultValue: "Cinema Noir")
         ])
     }

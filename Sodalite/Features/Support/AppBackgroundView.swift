@@ -40,8 +40,6 @@ struct AppBackgroundView: View {
                     accent: theme.palette.control.color,
                     isAnimating: allowsMotion
                 )
-            case .polishedCrystal:
-                PolishedCrystalBackground(isAnimating: allowsMotion)
             case .cinemaNoir:
                 CinemaNoirBackground(isAnimating: allowsMotion)
             }

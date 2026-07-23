@@ -183,14 +183,13 @@ enum BackgroundStyle: String, CaseIterable, Identifiable, Sendable {
     case graphiteGlass
     case oledBlack
     case accentAurora
-    case polishedCrystal
     case cinemaNoir
 
     var id: String { rawValue }
     var tier: AppearanceTier {
         switch self {
         case .graphiteGlass, .oledBlack: .free
-        case .accentAurora, .polishedCrystal, .cinemaNoir: .supporter
+        case .accentAurora, .cinemaNoir: .supporter
         }
     }
 }
@@ -201,7 +200,6 @@ extension BackgroundStyle {
         case .graphiteGlass: String(localized: "appearance.background.graphite", defaultValue: "Graphite Glass")
         case .oledBlack: String(localized: "appearance.background.oled", defaultValue: "OLED Black")
         case .accentAurora: String(localized: "appearance.background.aurora", defaultValue: "Accent Aurora")
-        case .polishedCrystal: String(localized: "appearance.background.crystal", defaultValue: "Polished Crystal")
         case .cinemaNoir: String(localized: "appearance.background.noir", defaultValue: "Cinema Noir")
         }
     }
