@@ -72,9 +72,6 @@ struct HomeView: View {
                     cacheKey: filter.cacheKey
                 )
             }
-            #if os(iOS)
-            .glassBackground()
-            #endif
         }
         .onAppear {
             guard let userID = appState.activeUser?.id else { return }

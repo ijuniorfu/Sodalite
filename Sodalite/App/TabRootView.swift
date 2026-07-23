@@ -113,6 +113,9 @@ struct TabRootView: View {
         // iPhone -> bottom tab bar, iPad -> collapsible sidebar, from one TabView.
         .tabViewStyle(.sidebarAdaptable)
         #endif
+        .background {
+            AppBackgroundView(theme: appearanceTheme, mode: .automatic)
+        }
         // Fresh TabView (fresh UITabBar) when the active server changes while TabRootView stays mounted (deleting the active server auto-promotes a survivor; isAuthenticated never drops, so the view isn't recreated). A fresh bar reads the tinted appearance at creation. NOT bumped on detail return: detail immersion now alpha-hides the bar instead of removing it, so the bar is never re-templated gray and never needs a rebuild.
         .id(appState.activeServer?.id)
         // Display-only active-profile badge; non-focusable, below the player cover, hidden unless the server has multiple profiles.
@@ -137,6 +140,7 @@ struct TabRootView: View {
         #if os(iOS)
         .sheet(isPresented: $showSettings) {
             SettingsView(onClose: { showSettings = false })
+                .pausesAppBackgroundMotion()
         }
         #endif
         // Foreground Siri Remote play/pause arrives via the responder chain (not MPRemoteCommandCenter), so toggle music here when a track is active.
@@ -316,9 +320,6 @@ struct TabRootView: View {
         // padding reliably repositions content, including screens rooted in a NavigationStack
         // (Catalog/Search/...) which ignore a parent safeAreaInset and so would overlap.
         .padding(.top, hSizeClass == .compact ? Self.gearChromeHeight : 0)
-        // Frosted glass behind every tab screen (Home/Library/Catalog/Search/Music) so they read as
-        // glass like the secondary pages instead of dead black on the iOS root. tvOS unchanged.
-        .glassBackground()
         #endif
     }
 

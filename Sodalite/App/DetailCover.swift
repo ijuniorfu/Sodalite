@@ -3,7 +3,7 @@ import SwiftUI
 extension View {
     /// Presents a full-screen detail as a cover (over the tab bar) instead of a NavigationStack push. The cover covers the tab bar WITHOUT ever removing it, so tvOS never re-templates the bar's icons gray on return (the tvOS 26 system bug that a `.toolbar(.hidden)` push triggers). Each cover hosts its own NavigationStack so the detail's deeper navigation (detail -> detail, -> person) still pushes normally.
     ///
-    /// A `glassBackground()` sits behind the stack as a uniform backing: detail views draw their own full-screen backdrop over it, while backdrop-less pages (filter grids, person/album pages that used to inherit the root `Color.black`) show the glass instead of being see-through over the presenter.
+    /// A static themed background sits behind the stack. Detail views draw their own full-screen backdrop over it, while backdrop-less pages show the selected theme.
     func detailCover<Item: Identifiable, Content: View>(
         item: Binding<Item?>,
         @ViewBuilder content: @escaping (Item) -> Content
@@ -12,15 +12,13 @@ extension View {
             NavigationStack {
                 content(value)
                     #if os(iOS)
-                    // The iOS nav container paints an opaque system background that occludes a glass
-                    // applied outside it (backdrop-less covers like filter grids / person / album
-                    // showed black); inside the stack the glass sits behind the content and shows.
-                    .glassBackground()
+                    .themedStaticBackground()
                     #endif
             }
             #if os(tvOS)
-            .glassBackground()
+            .themedStaticBackground()
             #endif
+            .pausesAppBackgroundMotion()
             #if os(iOS)
             // tvOS dismisses via the Menu button; iOS needs a touch close (a fullScreenCover
             // has no swipe-to-dismiss), else detail / program-info covers are a dead end.

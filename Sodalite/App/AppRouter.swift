@@ -259,9 +259,11 @@ struct AppRouter: View {
                 .buttonStyle(.plain)
             }
             #endif
+            .pausesAppBackgroundMotion()
         }
         .fullScreenCover(isPresented: $showNowPlaying) {
             NowPlayingView(onClose: { showNowPlaying = false })
+                .pausesAppBackgroundMotion()
         }
         .onChange(of: dependencies.musicPlaybackCoordinator.nowPlayingPresentationRequest) { _, _ in
             showNowPlaying = true
@@ -279,6 +281,7 @@ struct AppRouter: View {
                     ChangelogPreferences.markCurrentSeen()
                     showWhatsNew = false
                 }
+                .pausesAppBackgroundMotion()
             }
         }
         .fullScreenCover(item: Binding(
@@ -288,6 +291,7 @@ struct AppRouter: View {
             PINEntryView(mode: .unlock(reason: request.reason)) { unlocked in
                 dependencies.parentalGate.resolve(unlocked)
             }
+            .pausesAppBackgroundMotion()
         }
         .fullScreenCover(isPresented: $showProfileReprompt) {
             if let server = appState.activeServer {
@@ -296,6 +300,7 @@ struct AppRouter: View {
                     context: .reprompt,
                     onFinished: { showProfileReprompt = false }
                 )
+                .pausesAppBackgroundMotion()
                 // The AppRouter-level PIN cover can't stack on this cover (one cover per host view),
                 // so the gate presents from inside while the reprompt is up.
                 .fullScreenCover(item: Binding(
@@ -305,6 +310,7 @@ struct AppRouter: View {
                     PINEntryView(mode: .unlock(reason: request.reason)) { unlocked in
                         dependencies.parentalGate.resolve(unlocked)
                     }
+                    .pausesAppBackgroundMotion()
                 }
             }
         }

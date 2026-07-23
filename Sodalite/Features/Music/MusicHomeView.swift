@@ -39,9 +39,6 @@ struct MusicHomeView: View {
             .detailCover(item: $selectedAlbum) { album in
                 AlbumDetailView(album: album)
             }
-            #if os(iOS)
-            .glassBackground()
-            #endif
         }
         .task {
             await viewModel.load(using: dependencies)

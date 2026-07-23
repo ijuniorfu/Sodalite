@@ -27,6 +27,7 @@ struct ParentalControlsSettingsView: View {
                 showSetup = false
                 reload()
             }
+            .pausesAppBackgroundMotion()
         }
     }
 
