@@ -69,14 +69,16 @@ struct SodaliteApp: App {
     }
 
     var body: some Scene {
+        let theme = dependencies.appearancePreferences.resolvedTheme(
+            isSupporter: dependencies.storeKitService.isSupporter
+        )
         WindowGroup {
             AppRouter()
                 .environment(\.appState, appState)
                 .environment(\.dependencies, dependencies)
+                .environment(\.appearanceTheme, theme)
                 .preferredColorScheme(.dark)
-                .tint(dependencies.appearancePreferences.effectiveTint(
-                    isSupporter: dependencies.storeKitService.isSupporter
-                ))
+                .tint(theme.palette.control.color)
                 .onOpenURL { url in
                     handleDeepLink(url)
                 }

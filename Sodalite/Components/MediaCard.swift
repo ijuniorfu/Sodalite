@@ -79,12 +79,10 @@ struct MediaCard: View {
             }
         }
         .overlay(
-            // padding(-3) pushes the stroke around the card, not into it; radius is card radius + stroke width to stay concentric.
-            RoundedRectangle(cornerRadius: 15)
-                .strokeBorder(.tint, lineWidth: 3)
-                .padding(-3)
-                .opacity(isFocused ? 1 : 0)
-                .animation(.easeInOut(duration: 0.2), value: isFocused)
+            MediaFocusRing(
+                shape: RoundedRectangle(cornerRadius: 16),
+                isFocused: isFocused
+            )
         )
     }
 

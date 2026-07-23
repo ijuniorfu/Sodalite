@@ -40,11 +40,10 @@ struct SeerrMediaCard: View {
             }
         }
         .overlay(
-            RoundedRectangle(cornerRadius: 15)
-                .strokeBorder(.tint, lineWidth: 3)
-                .padding(-3)
-                .opacity(isFocused ? 1 : 0)
-                .animation(.easeInOut(duration: 0.2), value: isFocused)
+            MediaFocusRing(
+                shape: RoundedRectangle(cornerRadius: 16),
+                isFocused: isFocused
+            )
         )
     }
 

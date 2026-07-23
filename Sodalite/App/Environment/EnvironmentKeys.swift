@@ -9,6 +9,10 @@ private struct AppStateKey: EnvironmentKey {
     static let defaultValue = AppState.shared
 }
 
+private struct AppearanceThemeKey: EnvironmentKey {
+    static let defaultValue = ResolvedAppearanceTheme.default
+}
+
 extension EnvironmentValues {
     var dependencies: DependencyContainer {
         get { self[DependencyContainerKey.self] }
@@ -18,5 +22,10 @@ extension EnvironmentValues {
     var appState: AppState {
         get { self[AppStateKey.self] }
         set { self[AppStateKey.self] = newValue }
+    }
+
+    var appearanceTheme: ResolvedAppearanceTheme {
+        get { self[AppearanceThemeKey.self] }
+        set { self[AppearanceThemeKey.self] = newValue }
     }
 }

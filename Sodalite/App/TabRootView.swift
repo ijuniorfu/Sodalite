@@ -41,14 +41,12 @@ struct TabRootView: View {
     @State private var loginProbeTask: Task<Void, Never>?
     @Environment(\.dependencies) private var dependencies
     @Environment(\.appState) private var appState
+    @Environment(\.appearanceTheme) private var appearanceTheme
     @Environment(\.horizontalSizeClass) private var hSizeClass
     @State private var showSettings = false
 
-    /// Tab-bar icon accent; falls back to the asset-catalog accent on `.system` so icons never render plain white.
     private var iconColor: Color {
-        dependencies.appearancePreferences.effectiveTint(
-            isSupporter: dependencies.storeKitService.isSupporter
-        ) ?? Color.accentColor
+        appearanceTheme.palette.navigation.color
     }
 
     @ViewBuilder
@@ -117,7 +115,6 @@ struct TabRootView: View {
         #endif
         // Fresh TabView (fresh UITabBar) when the active server changes while TabRootView stays mounted (deleting the active server auto-promotes a survivor; isAuthenticated never drops, so the view isn't recreated). A fresh bar reads the tinted appearance at creation. NOT bumped on detail return: detail immersion now alpha-hides the bar instead of removing it, so the bar is never re-templated gray and never needs a rebuild.
         .id(appState.activeServer?.id)
-        .tint(iconColor)
         // Display-only active-profile badge; non-focusable, below the player cover, hidden unless the server has multiple profiles.
         .overlay(alignment: .topTrailing) {
             #if os(iOS)

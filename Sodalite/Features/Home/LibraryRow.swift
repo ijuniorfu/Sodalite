@@ -65,12 +65,10 @@ private struct LibraryTile: View {
             .frame(width: width, height: height)
             .clipShape(RoundedRectangle(cornerRadius: 12))
             .overlay(
-                // MediaCard focus stroke: concentric outer border pushed 3pt past the edge.
-                RoundedRectangle(cornerRadius: 15)
-                    .strokeBorder(.tint, lineWidth: 3)
-                    .padding(-3)
-                    .opacity(isFocused ? 1 : 0)
-                    .animation(.easeInOut(duration: 0.2), value: isFocused)
+                MediaFocusRing(
+                    shape: RoundedRectangle(cornerRadius: 16),
+                    isFocused: isFocused
+                )
             )
         }
     }
