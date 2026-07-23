@@ -152,6 +152,7 @@ extension DependencyContainer {
             return .appearance(AppearanceSettingsPayload(
                 updatedAt: stamp,
                 accentChoice: a.accentChoice.rawValue,
+                backgroundStyle: a.backgroundStyle.rawValue,
                 showContentLogos: a.showContentLogos,
                 continueWatchingImage: a.continueWatchingImage.rawValue,
                 largeCards: a.largeCards,
@@ -212,6 +213,7 @@ extension DependencyContainer {
         case .appearance(let a):
             let store = appearancePreferences
             store.accentChoice = AppearancePreferences.AccentChoice(rawValue: a.accentChoice) ?? store.accentChoice
+            store.backgroundStyle = BackgroundStyle(rawValue: a.backgroundStyle) ?? store.backgroundStyle
             store.showContentLogos = a.showContentLogos
             store.continueWatchingImage = AppearancePreferences.ContinueWatchingImage(rawValue: a.continueWatchingImage) ?? store.continueWatchingImage
             store.largeCards = a.largeCards

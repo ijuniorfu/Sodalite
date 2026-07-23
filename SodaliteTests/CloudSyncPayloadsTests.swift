@@ -2,6 +2,16 @@ import Foundation
 import Testing
 @testable import Sodalite
 
+private struct LegacyAppearancePayload: Encodable {
+    let schemaVersion = 1
+    let updatedAt: Date
+    let accentChoice: String
+    let showContentLogos: Bool
+    let continueWatchingImage: String
+    let largeCards: Bool
+    let nowPlayingUsesSeriesPoster: Bool
+}
+
 @Suite("CloudSync payload round-trips")
 struct CloudSyncPayloadsTests {
     @Test("server payload JSON round-trip")
@@ -25,6 +35,7 @@ struct CloudSyncPayloadsTests {
         let payload = SettingsSyncPayload.appearance(AppearanceSettingsPayload(
             updatedAt: Date(timeIntervalSince1970: 42),
             accentChoice: "ocean",
+            backgroundStyle: BackgroundStyle.polishedCrystal.rawValue,
             showContentLogos: false,
             continueWatchingImage: "backdrop",
             largeCards: true,
@@ -33,6 +44,26 @@ struct CloudSyncPayloadsTests {
         let data = try payload.encoded()
         let decoded = try SettingsSyncPayload.decode(data, key: .appearance)
         #expect(decoded == payload)
+    }
+
+    @Test("appearance schema 1 defaults background to graphite")
+    func appearanceSchema1Default() throws {
+        let legacy = LegacyAppearancePayload(
+            updatedAt: Date(timeIntervalSince1970: 42),
+            accentChoice: "ocean",
+            showContentLogos: false,
+            continueWatchingImage: "backdrop",
+            largeCards: true,
+            nowPlayingUsesSeriesPoster: false
+        )
+        let data = try JSONEncoder().encode(legacy)
+        let decoded = try SettingsSyncPayload.decode(data, key: .appearance)
+        guard case .appearance(let payload) = decoded else {
+            Issue.record("wrong payload case")
+            return
+        }
+        #expect(payload.schemaVersion == 1)
+        #expect(payload.backgroundStyle == BackgroundStyle.graphiteGlass.rawValue)
     }
 
     @Test("record names round-trip to ids")

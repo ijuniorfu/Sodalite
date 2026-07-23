@@ -117,15 +117,18 @@ struct CloudSyncLocalStoreTests {
     func settingsRoundTrip() {
         let source = makeContainer()
         source.appearancePreferences.accentChoice = .ocean
+        source.appearancePreferences.backgroundStyle = .accentAurora
         source.appearancePreferences.largeCards = true
         let payload = source.collectSettingsPayload(.appearance, stamp: Date(timeIntervalSince1970: 3))
         guard case .appearance(let inner) = payload else { Issue.record("wrong case"); return }
         #expect(inner.accentChoice == "ocean")
+        #expect(inner.backgroundStyle == BackgroundStyle.accentAurora.rawValue)
         #expect(inner.largeCards == true)
 
         let target = makeContainer()
         target.applySettingsPayload(payload)
         #expect(target.appearancePreferences.accentChoice == .ocean)
+        #expect(target.appearancePreferences.backgroundStyle == .accentAurora)
         #expect(target.appearancePreferences.largeCards == true)
     }
 
@@ -133,11 +136,14 @@ struct CloudSyncLocalStoreTests {
     func enumFallback() {
         let container = makeContainer()
         container.appearancePreferences.accentChoice = .gold
+        container.appearancePreferences.backgroundStyle = .oledBlack
         let payload = SettingsSyncPayload.appearance(AppearanceSettingsPayload(
-            updatedAt: Date(), accentChoice: "fromTheFuture", showContentLogos: true,
+            updatedAt: Date(), accentChoice: "fromTheFuture", backgroundStyle: "fromTheFuture",
+            showContentLogos: true,
             continueWatchingImage: "still", largeCards: false, nowPlayingUsesSeriesPoster: false))
         container.applySettingsPayload(payload)
         #expect(container.appearancePreferences.accentChoice == .gold)
+        #expect(container.appearancePreferences.backgroundStyle == .oledBlack)
     }
 
     @Test("security payload round-trips the PIN blob")

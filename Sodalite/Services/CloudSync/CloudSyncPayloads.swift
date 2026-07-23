@@ -89,13 +89,61 @@ struct PlaybackSettingsPayload: Codable, Equatable {
 }
 
 struct AppearanceSettingsPayload: Codable, Equatable {
-    var schemaVersion: Int = 1
+    var schemaVersion: Int
     var updatedAt: Date
     var accentChoice: String
+    var backgroundStyle: String
     var showContentLogos: Bool
     var continueWatchingImage: String
     var largeCards: Bool
     var nowPlayingUsesSeriesPoster: Bool
+
+    init(
+        schemaVersion: Int = 2,
+        updatedAt: Date,
+        accentChoice: String,
+        backgroundStyle: String,
+        showContentLogos: Bool,
+        continueWatchingImage: String,
+        largeCards: Bool,
+        nowPlayingUsesSeriesPoster: Bool
+    ) {
+        self.schemaVersion = schemaVersion
+        self.updatedAt = updatedAt
+        self.accentChoice = accentChoice
+        self.backgroundStyle = backgroundStyle
+        self.showContentLogos = showContentLogos
+        self.continueWatchingImage = continueWatchingImage
+        self.largeCards = largeCards
+        self.nowPlayingUsesSeriesPoster = nowPlayingUsesSeriesPoster
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case schemaVersion
+        case updatedAt
+        case accentChoice
+        case backgroundStyle
+        case showContentLogos
+        case continueWatchingImage
+        case largeCards
+        case nowPlayingUsesSeriesPoster
+    }
+
+    init(from decoder: Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        schemaVersion = try values.decodeIfPresent(Int.self, forKey: .schemaVersion) ?? 1
+        updatedAt = try values.decode(Date.self, forKey: .updatedAt)
+        accentChoice = try values.decode(String.self, forKey: .accentChoice)
+        backgroundStyle = try values.decodeIfPresent(String.self, forKey: .backgroundStyle)
+            ?? BackgroundStyle.graphiteGlass.rawValue
+        showContentLogos = try values.decode(Bool.self, forKey: .showContentLogos)
+        continueWatchingImage = try values.decode(String.self, forKey: .continueWatchingImage)
+        largeCards = try values.decode(Bool.self, forKey: .largeCards)
+        nowPlayingUsesSeriesPoster = try values.decode(
+            Bool.self,
+            forKey: .nowPlayingUsesSeriesPoster
+        )
+    }
 }
 
 struct AuthSettingsPayload: Codable, Equatable {
