@@ -12017,6 +12017,5352 @@
         }
       }
     },
+    "appearance.accent.amber" : {
+      "comment": "Accent color option name",
+      "extractionState": "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Jantarová"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Rav"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Bernstein"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Κεχριμπαρί"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Amber"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Ámbar"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Meripihka"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Ambre"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Jantarna"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Borostyán"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Ambra"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "アンバー"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "호박색"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Rav"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Amber"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Bursztynowy"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Âmbar"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Âmbar"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Chihlimbar"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Янтарный"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Jantárová"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Bärnsten"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Kehribar"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Бурштиновий"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "琥珀色"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "琥珀色"
+          }
+        }
+      }
+    },
+    "appearance.accent.apricot" : {
+      "comment": "Accent color option name",
+      "extractionState": "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Meruňková"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Abrikos"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Apricot"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Βερίκοκο"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Apricot"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Albaricoque"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Aprikoosi"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Abricot"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Marelica"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Sárgabarack"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Albicocca"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "アプリコット"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "살구색"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Aprikos"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Abrikoos"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Morelowy"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Damasco"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Alperce"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Caisă"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Абрикосовый"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Marhuľová"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Aprikos"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Kayısı"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Абрикосовий"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "杏色"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "杏色"
+          }
+        }
+      }
+    },
+    "appearance.accent.blush" : {
+      "comment": "Accent color option name",
+      "extractionState": "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Pudrově růžová"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Pudderrosa"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Zartrosa"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Ροζ πούδρα"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Blush"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Rosa empolvado"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Puuteriroosa"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Rose poudré"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Puderasto ružičasta"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Púderrózsaszín"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Rosa cipria"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "ブラッシュピンク"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "블러시 핑크"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Pudderrosa"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Poederroze"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Pudrowy róż"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Rosa suave"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Rosa-pó"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Roz pudrat"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Пудрово-розовый"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Púdrová ružová"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Puderrosa"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Pudra pembesi"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Пудрово-рожевий"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "腮红粉"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "腮紅粉"
+          }
+        }
+      }
+    },
+    "appearance.accent.burgundy" : {
+      "comment": "Accent color option name",
+      "extractionState": "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Vínová"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Bordeaux"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Burgunderrot"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Μπορντό"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Burgundy"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Borgoña"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Burgundi"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Bordeaux"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Bordo"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Bordó"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Borgogna"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "バーガンディ"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "버건디"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Burgunder"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Bordeauxrood"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Burgundowy"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Borgonha"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Borgonha"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Bordo"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Бургундский"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Bordová"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Vinröd"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Bordo"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Бургундський"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "酒红色"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "酒紅色"
+          }
+        }
+      }
+    },
+    "appearance.accent.champagne" : {
+      "comment": "Accent color option name",
+      "extractionState": "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Šampaňská"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Champagne"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Champagner"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Σαμπανί"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Champagne"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Champán"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Samppanja"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Champagne"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Šampanjac"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Pezsgő"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Champagne"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "シャンパン"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "샴페인"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Champagne"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Champagne"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Szampański"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Champanhe"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Champanhe"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Șampanie"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Шампань"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Šampanská"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Champagne"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Şampanya"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Шампань"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "香槟色"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "香檳色"
+          }
+        }
+      }
+    },
+    "appearance.accent.cobalt" : {
+      "comment": "Accent color option name",
+      "extractionState": "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Kobaltová"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Kobolt"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Kobalt"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Κοβαλτί"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Cobalt"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Cobalto"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Koboltti"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Cobalt"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Kobaltna"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Kobaltkék"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Cobalto"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "コバルト"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "코발트"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Kobolt"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Kobalt"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Kobaltowy"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Cobalto"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Cobalto"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Cobalt"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Кобальтовый"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Kobaltová"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Kobolt"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Kobalt"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Кобальтовий"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "钴蓝"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "鈷藍"
+          }
+        }
+      }
+    },
+    "appearance.accent.copper" : {
+      "comment": "Accent color option name",
+      "extractionState": "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Měděná"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Kobber"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Kupfer"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Χάλκινο"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Copper"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Cobre"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Kupari"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Cuivre"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Bakrena"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Réz"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Rame"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "カッパー"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "구리"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Kobber"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Koper"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Miedziany"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Cobre"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Cobre"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Cupru"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Медный"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Medená"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Koppar"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Bakır"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Мідний"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "铜色"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "銅色"
+          }
+        }
+      }
+    },
+    "appearance.accent.cyan" : {
+      "comment": "Accent color option name",
+      "extractionState": "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Azurová"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Cyan"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Cyan"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Κυανό"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Cyan"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Cian"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Syaani"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Cyan"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Cijan"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Cián"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Ciano"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "シアン"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "시안"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Cyan"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Cyaan"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Cyjan"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Ciano"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Ciano"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Cian"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Циан"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Azúrová"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Cyan"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Camgöbeği"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Ціан"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "青色"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "青色"
+          }
+        }
+      }
+    },
+    "appearance.accent.indigo" : {
+      "comment": "Accent color option name",
+      "extractionState": "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Indigová"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Indigo"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Indigo"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Λουλακί"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Indigo"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Índigo"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Indigo"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Indigo"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Indigo"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Indigó"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Indaco"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "インディゴ"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "인디고"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Indigo"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Indigo"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Indygo"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Índigo"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Índigo"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Indigo"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Индиго"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Indigová"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Indigo"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Çivit"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Індиго"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "靛蓝色"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "靛藍色"
+          }
+        }
+      }
+    },
+    "appearance.accent.lime" : {
+      "comment": "Accent color option name",
+      "extractionState": "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Limetková"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Limegrøn"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Limettengrün"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Λαχανί"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Lime"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Lima"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Limetinvihreä"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Vert citron"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Limeta"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Limezöld"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Verde lime"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "ライム"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "라임"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Limegrønn"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Limoengroen"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Limonkowy"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Verde-limão"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Verde-lima"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Verde lime"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Лаймовый"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Limetková"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Limegrön"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Misket limonu"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Лаймовий"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "青柠色"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "萊姆色"
+          }
+        }
+      }
+    },
+    "appearance.accent.magenta" : {
+      "comment": "Accent color option name",
+      "extractionState": "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Magenta"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Magenta"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Magenta"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Ματζέντα"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Magenta"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Magenta"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Magenta"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Magenta"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Magenta"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Magenta"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Magenta"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "マゼンタ"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "마젠타"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Magenta"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Magenta"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Magenta"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Magenta"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Magenta"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Magenta"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Маджента"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Magenta"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Magenta"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Macenta"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Маджента"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "品红色"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "洋紅色"
+          }
+        }
+      }
+    },
+    "appearance.accent.orange" : {
+      "comment": "Accent color option name",
+      "extractionState": "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Oranžová"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Orange"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Orange"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Πορτοκαλί"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Orange"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Naranja"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Oranssi"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Orange"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Narančasta"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Narancs"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Arancione"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "オレンジ"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "주황"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Oransje"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Oranje"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Pomarańczowy"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Laranja"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Laranja"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Portocaliu"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Оранжевый"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Oranžová"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Orange"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Turuncu"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Помаранчевий"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "橙色"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "橙色"
+          }
+        }
+      }
+    },
+    "appearance.accent.petrol" : {
+      "comment": "Accent color option name",
+      "extractionState": "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Petrolejová"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Petroleum"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Petrol"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Πετρόλ"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Petrol"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Azul petróleo"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Petrooli"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Bleu pétrole"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Petrol"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Petrolkék"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Petrolio"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "ペトロールブルー"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "페트롤"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Petrol"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Petrol"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Petrolowy"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Azul-petróleo"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Azul-petróleo"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Petrol"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Петрольный"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Petrolejová"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Petrol"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Petrol"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Петрольний"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "石油蓝"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "石油藍"
+          }
+        }
+      }
+    },
+    "appearance.accent.royalViolet" : {
+      "comment": "Accent color option name",
+      "extractionState": "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Královská fialová"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Kongelig violet"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Königsviolett"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Βασιλικό βιολετί"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Royal Violet"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Violeta real"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Kuninkaallinen violetti"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Violet royal"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Kraljevska ljubičasta"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Királyi lila"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Viola reale"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "ロイヤルバイオレット"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "로열 바이올렛"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Kongelig fiolett"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Koninklijk violet"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Królewski fiolet"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Violeta-real"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Violeta-real"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Violet regal"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Королевский фиолетовый"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Kráľovská fialová"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Kunglig violett"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Kraliyet moru"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Королівський фіолетовий"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "皇家紫"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "皇家紫"
+          }
+        }
+      }
+    },
+    "appearance.accent.ruby" : {
+      "comment": "Accent color option name",
+      "extractionState": "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Rubínová"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Rubinrød"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Rubinrot"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Ρουμπινί"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Ruby"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Rubí"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Rubiininpunainen"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Rubis"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Rubinska crvena"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Rubinvörös"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Rubino"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "ルビーレッド"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "루비"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Rubinrød"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Robijnrood"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Rubinowy"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Rubi"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Rubi"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Rubiniu"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Рубиновый"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Rubínová"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Rubinröd"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Yakut"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Рубіновий"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "红宝石色"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "紅寶石色"
+          }
+        }
+      }
+    },
+    "appearance.accent.sky" : {
+      "comment": "Accent color option name",
+      "extractionState": "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Nebeská modrá"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Himmelblå"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Himmelblau"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Γαλάζιο του ουρανού"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Sky"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Azul cielo"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Taivaansininen"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Bleu ciel"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Nebesko plava"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Égkék"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Azzurro cielo"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "スカイブルー"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "하늘색"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Himmelblå"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Hemelsblauw"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Błękit nieba"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Azul-celeste"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Azul-celeste"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Albastru-celest"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Небесно-голубой"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Nebeská modrá"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Himmelsblå"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Gök mavisi"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Небесно-блакитний"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "天空蓝"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "天空藍"
+          }
+        }
+      }
+    },
+    "appearance.accent.solarOrange" : {
+      "comment": "Accent color option name",
+      "extractionState": "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Solární oranžová"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Solorange"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Solarorange"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Ηλιακό πορτοκαλί"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Solar Orange"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Naranja solar"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Aurinko-oranssi"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Orange solaire"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Sunčano narančasta"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Napnarancs"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Arancione solare"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "ソーラーオレンジ"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "솔라 오렌지"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Soloransje"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Zonneoranje"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Słoneczny pomarańczowy"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Laranja solar"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Laranja solar"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Portocaliu solar"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Солнечно-оранжевый"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Solárna oranžová"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Solorange"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Güneş turuncusu"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Сонячно-помаранчевий"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "太阳橙"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "太陽橙"
+          }
+        }
+      }
+    },
+    "appearance.accent.ultraviolet" : {
+      "comment": "Accent color option name",
+      "extractionState": "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Ultrafialová"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Ultraviolet"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Ultraviolett"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Υπεριώδες"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Ultraviolet"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Ultravioleta"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Ultravioletti"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Ultraviolet"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Ultraljubičasta"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Ultraibolya"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Ultravioletto"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "ウルトラバイオレット"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "울트라바이올렛"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Ultrafiolett"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Ultraviolet"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Ultrafiolet"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Ultravioleta"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Ultravioleta"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Ultraviolet"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Ультрафиолетовый"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Ultrafialová"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Ultraviolett"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Ultraviyole"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Ультрафіолетовий"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "紫外色"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "紫外色"
+          }
+        }
+      }
+    },
+    "appearance.accent.violet" : {
+      "comment": "Accent color option name",
+      "extractionState": "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Fialová"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Violet"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Violett"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Βιολετί"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Violet"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Violeta"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Violetti"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Violet"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Ljubičasta"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Ibolya"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Viola"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "バイオレット"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "보라"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Fiolett"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Violet"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Fioletowy"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Violeta"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Violeta"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Violet"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Фиолетовый"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Fialová"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Violett"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Menekşe"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Фіолетовий"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "紫罗兰色"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "紫羅蘭色"
+          }
+        }
+      }
+    },
+    "appearance.accentPicker.title" : {
+      "comment": "Title of the accent color picker",
+      "extractionState": "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Barva zvýraznění"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Fremhævningsfarve"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Akzentfarbe"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Χρώμα έμφασης"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Accent Color"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Color de acento"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Korostusväri"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Couleur d’accentuation"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Naglasna boja"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Kiemelőszín"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Colore d’accento"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "アクセントカラー"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "강조 색상"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Aksentfarge"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Accentkleur"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Kolor akcentu"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Cor de destaque"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Cor de realce"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Culoare de accent"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Акцентный цвет"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Farba zvýraznenia"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Accentfärg"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Vurgu rengi"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Акцентний колір"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "强调色"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "強調色"
+          }
+        }
+      }
+    },
+    "appearance.background.aurora" : {
+      "comment": "Background style option name",
+      "extractionState": "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Akcentová polární záře"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Nordlys i fremhævningsfarven"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Akzent-Aurora"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Σέλας έμφασης"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Accent Aurora"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Aurora de acento"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Korostusvärin revontulet"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Aurore d’accent"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Aurora naglaska"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Kiemelő aurora"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Aurora d’accento"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "アクセントオーロラ"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "액센트 오로라"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Aksentnordlys"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Accent-aurora"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Akcentowa zorza"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Aurora de destaque"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Aurora de realce"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Auroră de accent"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Акцентная аврора"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Akcentová polárna žiara"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Accentnorrsken"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Vurgu aurorası"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Акцентна аврора"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "强调色极光"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "強調色極光"
+          }
+        }
+      }
+    },
+    "appearance.background.crystal" : {
+      "comment": "Background style option name",
+      "extractionState": "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Leštěný křišťál"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Poleret krystal"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Polierter Kristall"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Γυαλισμένο κρύσταλλο"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Polished Crystal"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Cristal pulido"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Kiillotettu kristalli"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Cristal poli"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Polirani kristal"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Csiszolt kristály"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Cristallo lucido"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "磨き上げたクリスタル"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "폴리시드 크리스털"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Polert krystall"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Gepolijst kristal"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Polerowany kryształ"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Cristal polido"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Cristal polido"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Cristal șlefuit"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Полированный кристалл"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Leštený krištáľ"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Polerad kristall"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Cilalı kristal"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Полірований кристал"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "抛光水晶"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "拋光水晶"
+          }
+        }
+      }
+    },
+    "appearance.background.graphite" : {
+      "comment": "Background style option name",
+      "extractionState": "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Grafitové sklo"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Grafitglas"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Graphitglas"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Γυαλί γραφίτη"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Graphite Glass"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Cristal de grafito"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Grafiittilasi"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Verre graphite"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Grafitno staklo"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Grafitüveg"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Vetro grafite"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "グラファイトガラス"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "그래파이트 글래스"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Grafittglass"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Grafietglas"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Grafitowe szkło"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Vidro grafite"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Vidro de grafite"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Sticlă grafit"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Графитовое стекло"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Grafitové sklo"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Grafitglas"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Grafit cam"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Графітове скло"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "石墨玻璃"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "石墨玻璃"
+          }
+        }
+      }
+    },
+    "appearance.background.noir" : {
+      "comment": "Background style option name",
+      "extractionState": "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Filmový noir"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Film noir"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Cinema Noir"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Κινηματογραφικό νουάρ"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Cinema Noir"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Cinema Noir"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Elokuvanoir"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Cinéma noir"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Filmski noir"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Cinema Noir"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Cinema noir"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "シネマノワール"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "시네마 누아르"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Cinema Noir"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Cinema noir"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Kinowy noir"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Cinema noir"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Cinema noir"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Cinema noir"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Кинонуар"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Film noir"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Cinema noir"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Cinema Noir"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Кінонуар"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "影院黑"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "影院黑"
+          }
+        }
+      }
+    },
+    "appearance.background.oled" : {
+      "comment": "Background style option name",
+      "extractionState": "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "OLED černá"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "OLED-sort"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "OLED-Schwarz"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Μαύρο OLED"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "OLED Black"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Negro OLED"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "OLED-musta"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Noir OLED"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "OLED crna"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "OLED-fekete"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Nero OLED"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "OLEDブラック"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "OLED 블랙"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "OLED-svart"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "OLED-zwart"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Czerń OLED"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Preto OLED"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Preto OLED"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Negru OLED"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Чёрный OLED"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "OLED čierna"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "OLED-svart"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "OLED siyahı"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Чорний OLED"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "OLED 纯黑"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "OLED 純黑"
+          }
+        }
+      }
+    },
+    "appearance.backgroundPicker.title" : {
+      "comment": "Title of the background picker",
+      "extractionState": "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Pozadí"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Baggrund"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Hintergrund"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Φόντο"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Background"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Fondo"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Tausta"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Arrière-plan"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Pozadina"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Háttér"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Sfondo"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "背景"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "배경"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Bakgrunn"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Achtergrond"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Tło"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Fundo"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Fundo"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Fundal"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Фон"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Pozadie"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Bakgrund"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Arka plan"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Фон"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "背景"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "背景"
+          }
+        }
+      }
+    },
+    "appearance.category.basic" : {
+      "comment": "Accent palette category name",
+      "extractionState": "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Základní"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Basis"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Basis"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Βασικά"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Basic"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Básico"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Perus"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Essentiel"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Osnovno"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Alap"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Base"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "ベーシック"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "기본"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Grunnleggende"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Basis"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Podstawowe"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Básico"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Básico"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "De bază"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Базовые"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Základné"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Grundläggande"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Temel"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Базові"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "基础"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "基本"
+          }
+        }
+      }
+    },
+    "appearance.category.bold" : {
+      "comment": "Accent palette category name",
+      "extractionState": "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Výrazné"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Kraftig"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Kräftig"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Έντονα"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Bold"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Intenso"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Voimakas"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Vif"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Intenzivno"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Élénk"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Vivace"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "ビビッド"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "강렬함"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Kraftig"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Krachtig"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Wyraziste"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Intenso"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Intenso"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Intens"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Яркие"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Výrazné"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Kraftfull"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Canlı"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Насичені"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "浓烈"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "濃烈"
+          }
+        }
+      }
+    },
+    "appearance.category.cinematic" : {
+      "comment": "Accent palette category name",
+      "extractionState": "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Filmové"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Filmisk"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Filmisch"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Κινηματογραφικά"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Cinematic"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Cinematográfico"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Elokuvallinen"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Cinématographique"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Filmsko"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Filmes"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Cinematografico"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "シネマティック"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "시네마틱"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Filmisk"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Filmisch"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Filmowe"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Cinematográfico"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Cinematográfico"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Cinematografic"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Кинематографические"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Filmové"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Filmisk"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Sinematik"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Кінематографічні"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "电影感"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "電影感"
+          }
+        }
+      }
+    },
+    "appearance.category.electric" : {
+      "comment": "Accent palette category name",
+      "extractionState": "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Elektrické"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Elektrisk"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Elektrisch"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Ηλεκτρικά"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Electric"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Eléctrico"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Sähköinen"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Électrique"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Električno"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Elektromos"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Elettrico"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "エレクトリック"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "일렉트릭"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Elektrisk"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Elektrisch"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Elektryczne"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Elétrico"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Elétrico"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Electric"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Электрические"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Elektrické"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Elektrisk"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Elektrik"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Електричні"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "电光"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "電光"
+          }
+        }
+      }
+    },
+    "appearance.category.pastel" : {
+      "comment": "Accent palette category name",
+      "extractionState": "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Pastelové"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Pastel"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Pastell"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Παστέλ"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Pastel"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Pastel"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Pastelli"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Pastel"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Pastelno"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Pasztell"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Pastello"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "パステル"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "파스텔"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Pastell"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Pastel"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Pastelowe"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Pastel"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Pastel"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Pastel"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Пастельные"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Pastelové"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Pastell"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Pastel"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Пастельні"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "柔和"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "柔和"
+          }
+        }
+      }
+    },
+    "appearance.free" : {
+      "comment": "Badge for appearance options available without the Supporter Pack",
+      "extractionState": "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Zdarma"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Gratis"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Kostenlos"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Δωρεάν"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Free"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Gratis"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Ilmainen"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Gratuit"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Besplatno"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Ingyenes"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Gratis"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "無料"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "무료"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Gratis"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Gratis"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Za darmo"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Grátis"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Grátis"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Gratuit"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Бесплатно"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Zadarmo"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Gratis"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Ücretsiz"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Безкоштовно"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "免费"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "免費"
+          }
+        }
+      }
+    },
+    "appearance.selected" : {
+      "comment": "State label for the selected appearance option",
+      "extractionState": "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Vybráno"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Valgt"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Ausgewählt"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Επιλεγμένο"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Selected"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Seleccionado"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Valittu"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Sélectionné"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Odabrano"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Kiválasztva"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Selezionato"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "選択中"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "선택됨"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Valgt"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Geselecteerd"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Wybrano"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Selecionado"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Selecionado"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Selectat"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Выбрано"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Vybrané"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Vald"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Seçili"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Вибрано"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "已选择"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "已選取"
+          }
+        }
+      }
+    },
     "appearance.accent.amethyst" : {
       "comment": "Accent color option name",
       "extractionState": "manual",
@@ -106874,157 +112220,157 @@
         "cs" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Odemkněte zvýrazňovací barvy spolu s prémiovou úvodní ikonou a odznakem podporovatele."
+            "value": "Jednorázové odemčení. Pečlivě vybrané palety barev zvýraznění, prémiová animovaná pozadí a speciální úvodní ikona."
           }
         },
         "da" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Lås op for fremhævningsfarver sammen med det premium splash-ikon og supporter-badget."
+            "value": "Engangsoplåsning. Kuraterede paletter med fremhævningsfarver, animerede premiumbaggrunde og et særligt splash-ikon."
           }
         },
         "de" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Schalte die Akzentfarben zusammen mit dem Premium-Splash-Icon und dem Supporter-Abzeichen frei."
+            "value": "Einmalig freischalten. Kuratierte Akzentpaletten, animierte Premium-Hintergründe und ein spezielles Splash-Icon."
           }
         },
         "el" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Ξεκλειδώστε τα χρώματα έμφασης μαζί με το premium εικονίδιο έναρξης και το σήμα υποστηρικτή."
+            "value": "Εφάπαξ ξεκλείδωμα. Επιλεγμένες παλέτες χρωμάτων έμφασης, premium κινούμενα φόντα και ένα ειδικό εικονίδιο έναρξης."
           }
         },
         "en" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Unlock accent colors along with the premium splash icon and supporter badge."
+            "value": "One-time unlock. Curated accent palettes, premium animated backgrounds, and a special splash icon."
           }
         },
         "es" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Desbloquea los colores de acento junto con el icono de inicio premium y la insignia de apoyo."
+            "value": "Desbloqueo único. Paletas de colores de acento seleccionadas, fondos animados prémium y un icono de inicio especial."
           }
         },
         "fi" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Avaa korostusvärit premium-käynnistyskuvakkeen ja tukija-merkin kanssa."
+            "value": "Kertaluonteinen avaus. Huolella valitut korostusväripaletit, animoidut premium-taustat ja erityinen käynnistyskuvake."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Débloquez les couleurs d'accent avec l'icône de lancement premium et le badge de soutien."
+            "value": "Déblocage unique. Palettes d’accentuation soigneusement composées, arrière-plans animés premium et icône de lancement spéciale."
           }
         },
         "hr" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Otključajte naglasne boje zajedno s premium uvodnom ikonom i podržavateljskom značkom."
+            "value": "Jednokratno otključavanje. Pomno odabrane palete naglasnih boja, premium animirane pozadine i posebna uvodna ikona."
           }
         },
         "hu" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Oldd fel a kiemelőszíneket a prémium nyitóikonnal és a támogatói jelvénnyel együtt."
+            "value": "Egyszeri feloldás. Gondosan összeállított kiemelőszín-paletták, prémium animált hátterek és egy különleges nyitóikon."
           }
         },
         "it" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Sblocca i colori di accento insieme all'icona iniziale premium e al badge sostenitore."
+            "value": "Sblocco una tantum. Palette di colori d’accento curate, sfondi animati premium e un’icona iniziale speciale."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "プレミアムスプラッシュアイコンとサポーターバッジと一緒にアクセントカラーをアンロックします。"
+            "value": "一回限りのアンロック。厳選されたアクセントパレット、プレミアムアニメーション背景、特別なスプラッシュアイコンが含まれます。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "프리미엄 스플래시 아이콘 및 서포터 배지와 함께 강조 색상을 잠금 해제하세요."
+            "value": "일회성 잠금 해제. 엄선된 강조 색상 팔레트, 프리미엄 애니메이션 배경, 특별한 스플래시 아이콘이 포함됩니다."
           }
         },
         "nb" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Lås opp aksentfarger sammen med premium splash-ikonet og supporter-merket."
+            "value": "Engangsopplåsing. Håndplukkede aksentpaletter, animerte premiumbakgrunner og et spesielt splash-ikon."
           }
         },
         "nl" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Ontgrendel accentkleuren samen met het premium splash-icoon en de supportersbadge."
+            "value": "Eenmalige ontgrendeling. Zorgvuldig samengestelde accentpaletten, premium geanimeerde achtergronden en een speciaal splash-icoon."
           }
         },
         "pl" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Odblokuj kolory akcentu wraz z premiową ikoną powitalną i odznaką wspierającego."
+            "value": "Jednorazowe odblokowanie. Starannie dobrane palety kolorów akcentu, animowane tła premium i specjalna ikona powitalna."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Desbloqueie cores de destaque junto com o ícone de abertura premium e o distintivo de apoiador."
+            "value": "Desbloqueio único. Paletas de cores de destaque selecionadas, fundos animados premium e um ícone de abertura especial."
           }
         },
         "pt-PT" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Desbloqueie cores de realce juntamente com o ícone de abertura premium e o distintivo de apoiante."
+            "value": "Desbloqueio único. Paletas de cores de realce selecionadas, fundos animados premium e um ícone de abertura especial."
           }
         },
         "ro" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Deblochează culorile de accent împreună cu pictograma de pornire premium și insigna de susținător."
+            "value": "Deblocare unică. Palete atent selecționate de culori de accent, fundaluri animate premium și o pictogramă de pornire specială."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Разблокируйте акцентные цвета вместе с премиальной заставкой и значком поддержки."
+            "value": "Разовая разблокировка. Тщательно подобранные палитры акцентных цветов, премиальные анимированные фоны и специальная заставка."
           }
         },
         "sk" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Odomknite zvýrazňovacie farby spolu s prémiovou úvodnou ikonou a odznakom podporovateľa."
+            "value": "Jednorazové odomknutie. Starostlivo vybrané palety farieb zvýraznenia, prémiové animované pozadia a špeciálna úvodná ikona."
           }
         },
         "sv" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Lås upp accentfärger tillsammans med premium-startikonen och supporter-märket."
+            "value": "Engångsupplåsning. Handplockade accentpaletter, animerade premiumbakgrunder och en särskild startikon."
           }
         },
         "tr" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Premium açılış simgesi ve destekçi rozeti ile birlikte vurgu renklerinin kilidini açın."
+            "value": "Tek seferlik kilit açma. Özenle seçilmiş vurgu rengi paletleri, premium animasyonlu arka planlar ve özel bir açılış simgesi."
           }
         },
         "uk" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Розблокуйте акцентні кольори разом із преміальною заставкою та значком прихильника."
+            "value": "Разове розблокування. Ретельно підібрані палітри акцентних кольорів, преміальні анімовані фони та спеціальна заставка."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "解锁强调色以及高级启动图标和支持者徽章。"
+            "value": "一次性解锁。包含精心挑选的强调色调色板、高级动态背景和特殊启动图标。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "解鎖強調色以及高級啟動圖示和支持者徽章。"
+            "value": "一次性解鎖。包含精心挑選的強調色調色盤、進階動態背景和特殊啟動圖示。"
           }
         }
       }
@@ -107846,157 +113192,157 @@
         "cs" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Jak vypadají loga, karty a obrázky, plus barva zvýraznění."
+            "value": "Přizpůsobte loga, karty a obrázky pomocí tří bezplatných barev zvýraznění, Grafitového skla a OLED černé, plus palet pro podporovatele a prémiových animovaných pozadí."
           }
         },
         "da" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Hvordan logoer, kort og billeder ser ud, plus fremhævningsfarven."
+            "value": "Tilpas logoer, kort og billeder med tre gratis fremhævningsfarver, Grafitglas og OLED-sort samt supporter-paletter og animerede premiumbaggrunde."
           }
         },
         "de" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Wie Logos, Karten und Bilder aussehen, plus die Akzentfarbe."
+            "value": "Passe Logos, Karten und Bilder mit drei kostenlosen Akzentfarben, Graphitglas und OLED-Schwarz sowie Supporter-Paletten und animierten Premium-Hintergründen an."
           }
         },
         "el" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Πώς εμφανίζονται λογότυπα, κάρτες και εικόνες, καθώς και το χρώμα τονισμού."
+            "value": "Προσαρμόστε λογότυπα, κάρτες και εικόνες με τρία δωρεάν χρώματα έμφασης, Γυαλί γραφίτη και Μαύρο OLED, καθώς και παλέτες υποστηρικτών και premium κινούμενα φόντα."
           }
         },
         "en" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "How logos, cards, and images look, plus the accent color."
+            "value": "Customize logos, cards, and images with three free accents, Graphite Glass and OLED Black, plus Supporter palettes and premium animated backgrounds."
           }
         },
         "es" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Cómo se ven los logotipos, las tarjetas y las imágenes, además del color de acento."
+            "value": "Personaliza logotipos, tarjetas e imágenes con tres colores de acento gratis, Cristal de grafito y Negro OLED, además de paletas del Supporter Pack y fondos animados prémium."
           }
         },
         "fi" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Miltä logot, kortit ja kuvat näyttävät, sekä korostusväri."
+            "value": "Mukauta logoja, kortteja ja kuvia kolmella ilmaisella korostusvärillä, Grafiittilasilla ja OLED-mustalla sekä tukijapaleteilla ja animoiduilla premium-taustoilla."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "L'apparence des logos, des cartes et des images, ainsi que la couleur d'accentuation."
+            "value": "Personnalisez les logos, cartes et images avec trois couleurs d’accentuation gratuites, Verre graphite et Noir OLED, ainsi que des palettes Supporter et des arrière-plans animés premium."
           }
         },
         "hr" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Kako izgledaju logotipi, kartice i slike, te boja naglaska."
+            "value": "Prilagodite logotipe, kartice i slike s tri besplatne naglasne boje, Grafitnim staklom i OLED crnom te paletama za podržavatelje i premium animiranim pozadinama."
           }
         },
         "hu" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Hogyan néznek ki a logók, kártyák és képek, valamint a kiemelőszín."
+            "value": "Szabd személyre a logókat, kártyákat és képeket három ingyenes kiemelőszínnel, Grafitüveg és OLED-fekete háttérrel, valamint támogatói palettákkal és prémium animált hátterekkel."
           }
         },
         "it" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "L'aspetto di logo, schede e immagini, oltre al colore d'accento."
+            "value": "Personalizza logo, schede e immagini con tre colori d’accento gratuiti, Vetro grafite e Nero OLED, oltre a palette per sostenitori e sfondi animati premium."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "ロゴ、カード、画像の見た目とアクセントカラー。"
+            "value": "ロゴ、カード、画像に加え、3色の無料アクセント、グラファイトガラスとOLEDブラック、サポーター向けパレット、プレミアムアニメーション背景をカスタマイズできます。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "로고, 카드, 이미지의 모양과 강조 색상."
+            "value": "로고, 카드, 이미지를 세 가지 무료 강조 색상, 그래파이트 글래스 및 OLED 블랙 배경, 서포터 팔레트와 프리미엄 애니메이션 배경으로 꾸밀 수 있습니다."
           }
         },
         "nb" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Hvordan logoer, kort og bilder ser ut, pluss aksentfargen."
+            "value": "Tilpass logoer, kort og bilder med tre gratis aksentfarger, Grafittglass og OLED-svart samt supporterpaletter og animerte premiumbakgrunner."
           }
         },
         "nl" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Hoe logo's, kaarten en afbeeldingen eruitzien, plus de accentkleur."
+            "value": "Pas logo's, kaarten en afbeeldingen aan met drie gratis accentkleuren, Grafietglas en OLED-zwart, plus supporterspaletten en premium geanimeerde achtergronden."
           }
         },
         "pl" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Wygląd logo, kart i obrazów oraz kolor akcentu."
+            "value": "Dostosuj logo, karty i obrazy za pomocą trzech bezpłatnych kolorów akcentu, Grafitowego szkła i Czerni OLED, a także palet dla wspierających i animowanych teł premium."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "A aparência de logotipos, cartões e imagens, além da cor de destaque."
+            "value": "Personalize logotipos, cartões e imagens com três cores de destaque grátis, Vidro grafite e Preto OLED, além de paletas para apoiadores e fundos animados premium."
           }
         },
         "pt-PT" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "O aspeto de logótipos, cartões e imagens, além da cor de destaque."
+            "value": "Personalize logótipos, cartões e imagens com três cores de realce grátis, Vidro de grafite e Preto OLED, além de paletas para apoiantes e fundos animados premium."
           }
         },
         "ro" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Cum arată logourile, cardurile și imaginile, plus culoarea de accent."
+            "value": "Personalizează logourile, cardurile și imaginile cu trei culori de accent gratuite, Sticlă grafit și Negru OLED, plus palete pentru susținători și fundaluri animate premium."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Как выглядят логотипы, карточки и изображения, а также акцентный цвет."
+            "value": "Настройте логотипы, карточки и изображения с тремя бесплатными акцентными цветами, Графитовым стеклом и Чёрным OLED, а также палитрами для сторонников и премиальными анимированными фонами."
           }
         },
         "sk" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Ako vyzerajú logá, karty a obrázky, plus farba zvýraznenia."
+            "value": "Prispôsobte logá, karty a obrázky pomocou troch bezplatných farieb zvýraznenia, Grafitového skla a OLED čiernej, plus paliet pre podporovateľov a prémiových animovaných pozadí."
           }
         },
         "sv" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Hur logotyper, kort och bilder ser ut, plus accentfärgen."
+            "value": "Anpassa logotyper, kort och bilder med tre kostnadsfria accentfärger, Grafitglas och OLED-svart samt supporterpaletter och animerade premiumbakgrunder."
           }
         },
         "tr" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Logoların, kartların ve görsellerin görünümü ve vurgu rengi."
+            "value": "Logoları, kartları ve görselleri üç ücretsiz vurgu rengi, Grafit cam ve OLED siyahının yanı sıra destekçi paletleri ve premium animasyonlu arka planlarla özelleştirin."
           }
         },
         "uk" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Який вигляд мають логотипи, картки та зображення, а також акцентний колір."
+            "value": "Налаштуйте логотипи, картки та зображення з трьома безкоштовними акцентними кольорами, Графітовим склом і Чорним OLED, а також палітрами для прихильників і преміальними анімованими фонами."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "标志、卡片和图片的外观，以及强调色。"
+            "value": "自定义标志、卡片和图片，可使用三种免费强调色、石墨玻璃和 OLED 纯黑背景，以及支持者调色板和高级动态背景。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "標誌、卡片和圖片的外觀，以及強調色。"
+            "value": "自訂標誌、卡片和圖片，可使用三種免費強調色、石墨玻璃和 OLED 純黑背景，以及支持者調色盤和進階動態背景。"
           }
         }
       }
@@ -138507,157 +143853,157 @@
         "cs" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Sodalite je vášnivý projekt jedné osoby. Vše v aplikaci je a zůstane zdarma. Spropitné a balíček podporovatele jsou volitelné — pomáhají pokrýt poplatek Apple Developer a ukazují, že si práce vážíte."
+            "value": "Sodalite je projekt jednoho člověka, který vzniká z nadšení. Veškeré funkce aplikace jsou a zůstanou zdarma. Spropitné a placené kosmetické doplňky v Balíčku podporovatele jsou volitelné. Pomáhají pokrýt poplatek Apple Developer a ukazují, že si této práce vážíte."
           }
         },
         "da" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Sodalite er et passionprojekt lavet af én person. Alt i appen er og forbliver gratis. Drikkepenge og Supporter-pakken er valgfri — de hjælper med at dække Apple Developer-gebyret og viser, at arbejdet værdsættes."
+            "value": "Sodalite er et passionprojekt lavet af én person. Alle appens funktioner er og forbliver gratis. Drikkepenge og de betalte kosmetiske tilvalg i Supporter-pakken er valgfrie. De hjælper med at dække Apple Developer-gebyret og viser, at arbejdet værdsættes."
           }
         },
         "de" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Sodalite ist ein Ein-Personen-Projekt aus Leidenschaft. Alles in der App bleibt kostenlos. Trinkgelder und das Supporter-Paket sind optional — sie helfen, die Apple-Developer-Gebühr zu decken, und zeigen, dass die Arbeit geschätzt wird."
+            "value": "Sodalite ist ein Ein-Personen-Projekt aus Leidenschaft. Alle Funktionen der App sind und bleiben kostenlos. Trinkgelder und die kostenpflichtigen kosmetischen Extras des Supporter-Pakets sind optional. Sie helfen, die Apple-Developer-Gebühr zu decken, und zeigen, dass die Arbeit geschätzt wird."
           }
         },
         "el" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Το Sodalite είναι ένα έργο πάθους ενός ατόμου. Όλα στην εφαρμογή είναι και παραμένουν δωρεάν. Τα φιλοδωρήματα και το Πακέτο Υποστήριξης είναι προαιρετικά — βοηθούν να καλυφθεί η συνδρομή Apple Developer και δείχνουν ότι η δουλειά εκτιμάται."
+            "value": "Το Sodalite είναι ένα προσωπικό έργο φτιαγμένο με μεράκι από έναν άνθρωπο. Όλες οι λειτουργίες της εφαρμογής είναι και θα παραμείνουν δωρεάν. Τα φιλοδωρήματα και τα επί πληρωμή αισθητικά πρόσθετα του Πακέτου Υποστήριξης είναι προαιρετικά. Βοηθούν να καλυφθεί η συνδρομή Apple Developer και δείχνουν ότι η δουλειά εκτιμάται."
           }
         },
         "en" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Sodalite is a one-person passion project. Everything in the app is and stays free. Tips and the Supporter Pack are optional. They help cover the Apple Developer fee and show that the work is appreciated."
+            "value": "Sodalite is a one-person passion project. Every functional feature in the app is and stays free. Tips and the paid cosmetic Supporter Pack are optional. They help cover the Apple Developer fee and show that the work is appreciated."
           }
         },
         "es" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Sodalite es un proyecto de pasión hecho por una sola persona. Todo en la app es y sigue siendo gratis. Las propinas y el Pack de Apoyo son opcionales: ayudan a cubrir la cuota de Apple Developer y muestran que se aprecia el trabajo."
+            "value": "Sodalite es un proyecto personal creado con pasión por una sola persona. Todas las funciones de la app son y seguirán siendo gratuitas. Las propinas y los extras cosméticos de pago del Pack de Apoyo son opcionales. Ayudan a cubrir la cuota de Apple Developer y muestran que se aprecia el trabajo."
           }
         },
         "fi" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Sodalite on yhden henkilön intohimoprojekti. Kaikki sovelluksessa on ja pysyy ilmaisena. Juomarahat ja Tukijapaketti ovat valinnaisia — ne auttavat kattamaan Apple Developer -maksun ja osoittavat, että työtä arvostetaan."
+            "value": "Sodalite on yhden henkilön intohimoprojekti. Kaikki sovelluksen toiminnalliset ominaisuudet ovat ja pysyvät ilmaisina. Juomarahat ja Tukijapaketin maksulliset ulkoasulisät ovat valinnaisia. Ne auttavat kattamaan Apple Developer -maksun ja osoittavat, että työtä arvostetaan."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Sodalite est un projet passion d'une seule personne. Tout dans l'application est et reste gratuit. Les pourboires et le Pack de soutien sont optionnels — ils aident à couvrir les frais Apple Developer et montrent que le travail est apprécié."
+            "value": "Sodalite est un projet personnel porté avec passion par une seule personne. Toutes les fonctionnalités de l’application sont et resteront gratuites. Les pourboires et les options esthétiques payantes du Pack de soutien sont facultatifs. Ils aident à couvrir les frais Apple Developer et montrent que le travail est apprécié."
           }
         },
         "hr" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Sodalite je strastan projekt jedne osobe. Sve u aplikaciji jest i ostaje besplatno. Napojnice i Podržavateljski paket su opcionalni — pomažu pokriti naknadu Apple Developer i pokazuju da se rad cijeni."
+            "value": "Sodalite je projekt jedne osobe nastao iz strasti. Sve funkcionalne značajke aplikacije jesu i ostat će besplatne. Napojnice i estetski dodaci Podržavateljskog paketa koji se plaćaju su opcionalni. Pomažu pokriti naknadu Apple Developer i pokazuju da se rad cijeni."
           }
         },
         "hu" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "A Sodalite egyszemélyes szenvedélyprojekt. Az alkalmazásban minden ingyenes és az is marad. A borravalók és a Támogatói csomag opcionálisak — segítenek fedezni az Apple Developer díjat és mutatják, hogy a munkát megbecsülik."
+            "value": "A Sodalite egyszemélyes szenvedélyprojekt. Az alkalmazás minden funkciója ingyenes, és az is marad. A borravalók és a Támogatói csomag fizetős megjelenési extrái opcionálisak. Segítenek fedezni az Apple Developer díjat és mutatják, hogy a munkát megbecsülik."
           }
         },
         "it" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Sodalite è un progetto di passione di una sola persona. Tutto nell'app è e rimane gratuito. Le mance e il Pacchetto Sostenitore sono opzionali — aiutano a coprire la quota Apple Developer e mostrano che il lavoro è apprezzato."
+            "value": "Sodalite è un progetto personale nato dalla passione di una sola persona. Tutte le funzionalità dell’app sono e resteranno gratuite. Le mance e gli extra estetici a pagamento del Pacchetto Sostenitore sono opzionali. Aiutano a coprire la quota Apple Developer e mostrano che il lavoro è apprezzato."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Sodaliteは一人で作っている情熱プロジェクトです。アプリの機能はすべて無料で、これからも無料のままです。チップとサポーターパックは任意です — Apple Developer手数料の負担を助け、作業への感謝を示すためのものです。"
+            "value": "Sodaliteは一人で作っている情熱プロジェクトです。アプリの機能はすべて無料のままで、チップとサポーターパックの有料外観カスタマイズは任意です。Apple Developerの登録料をまかない、開発への応援を示す助けになります。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Sodalite는 한 사람의 열정 프로젝트입니다. 앱의 모든 기능은 무료이며 앞으로도 무료로 유지됩니다. 팁과 서포터 팩은 선택 사항으로, Apple Developer 수수료를 충당하고 작업에 대한 감사를 표현하는 데 도움이 됩니다."
+            "value": "Sodalite는 한 사람의 열정 프로젝트입니다. 앱의 모든 기능은 무료이며 앞으로도 무료로 유지됩니다. 팁과 서포터 팩의 유료 꾸미기 옵션은 선택 사항입니다. Apple Developer 수수료를 충당하고 개발에 대한 응원을 표현하는 데 도움이 됩니다."
           }
         },
         "nb" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Sodalite er et lidenskapsprosjekt laget av én person. Alt i appen er og forblir gratis. Drikkepenger og Supporter-pakken er valgfrie — de hjelper med å dekke Apple Developer-avgiften og viser at arbeidet settes pris på."
+            "value": "Sodalite er et lidenskapsprosjekt laget av én person. Alle appens funksjoner er og forblir gratis. Drikkepenger og de betalte kosmetiske tilleggene i Supporter-pakken er valgfrie. De hjelper med å dekke Apple Developer-avgiften og viser at arbeidet settes pris på."
           }
         },
         "nl" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Sodalite is een passieproject van één persoon. Alles in de app is en blijft gratis. Fooien en het Supporterspakket zijn optioneel — ze helpen de Apple Developer-vergoeding te dekken en laten zien dat het werk gewaardeerd wordt."
+            "value": "Sodalite is een passieproject van één persoon. Alle functies van de app zijn en blijven gratis. Fooien en de betaalde cosmetische extra’s van het Supporterspakket zijn optioneel. Ze helpen de Apple Developer-vergoeding te dekken en laten zien dat het werk gewaardeerd wordt."
           }
         },
         "pl" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Sodalite to projekt pasji jednej osoby. Wszystko w aplikacji jest i pozostanie darmowe. Napiwki i Pakiet Wspierający są opcjonalne — pomagają pokryć opłatę Apple Developer i pokazują, że praca jest doceniana."
+            "value": "Sodalite to projekt pasji jednej osoby. Wszystkie funkcje aplikacji są i pozostaną bezpłatne. Napiwki i płatne dodatki kosmetyczne Pakietu Wspierającego są opcjonalne. Pomagają pokryć opłatę Apple Developer i pokazują, że praca jest doceniana."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Sodalite é um projeto de paixão feito por uma só pessoa. Tudo no app é e continua gratuito. Gorjetas e o Pacote de Apoio são opcionais — ajudam a cobrir a taxa do Apple Developer e mostram que o trabalho é apreciado."
+            "value": "Sodalite é um projeto pessoal feito com paixão por uma só pessoa. Todos os recursos funcionais do app são e continuarão gratuitos. Gorjetas e os extras visuais pagos do Pacote de Apoio são opcionais. Eles ajudam a cobrir a taxa do Apple Developer e mostram que o trabalho é apreciado."
           }
         },
         "pt-PT" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Sodalite é um projeto de paixão feito por uma só pessoa. Tudo na app é e continua gratuito. Gorjetas e o Pacote de Apoio são opcionais — ajudam a cobrir a taxa do Apple Developer e mostram que o trabalho é apreciado."
+            "value": "Sodalite é um projeto pessoal feito com paixão por uma só pessoa. Todas as funcionalidades da app são e continuarão gratuitas. Gorjetas e os extras visuais pagos do Pacote de Apoio são opcionais. Ajudam a cobrir a taxa do Apple Developer e mostram que o trabalho é apreciado."
           }
         },
         "ro" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Sodalite este un proiect pasional al unei singure persoane. Totul din aplicație este și rămâne gratuit. Bacșișurile și Pachetul de Susținător sunt opționale — ajută la acoperirea taxei Apple Developer și arată că munca este apreciată."
+            "value": "Sodalite este proiectul de suflet al unei singure persoane. Toate funcțiile aplicației sunt și vor rămâne gratuite. Bacșișurile și elementele cosmetice contra cost ale Pachetului de Susținător sunt opționale. Ajută la acoperirea taxei Apple Developer și arată că munca este apreciată."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Sodalite — это проект-страсть одного человека. Всё в приложении бесплатно и таким останется. Чаевые и Пакет поддержки необязательны — они помогают покрыть плату Apple Developer и показывают, что работа ценится."
+            "value": "Sodalite представляет собой личный проект, который один человек создаёт с увлечением. Все функциональные возможности приложения бесплатны и останутся такими. Чаевые и платные косметические дополнения Пакета поддержки необязательны. Они помогают покрыть плату Apple Developer и показывают, что работа ценится."
           }
         },
         "sk" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Sodalite je vášnivý projekt jednej osoby. Všetko v aplikácii je a zostane zadarmo. Prepitné a Balíček podporovateľa sú voliteľné — pomáhajú pokryť poplatok Apple Developer a ukazujú, že práca je cenená."
+            "value": "Sodalite je projekt jedného človeka, ktorý vznikol z nadšenia. Všetky funkcie aplikácie sú a zostanú zadarmo. Prepitné a platené vzhľadové doplnky Balíčka podporovateľa sú voliteľné. Pomáhajú pokryť poplatok Apple Developer a ukazujú, že práca je cenená."
           }
         },
         "sv" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Sodalite är ett passionsprojekt av en enda person. Allt i appen är och förblir gratis. Dricks och Supporterpaketet är frivilliga — de hjälper till att täcka Apple Developer-avgiften och visar att arbetet uppskattas."
+            "value": "Sodalite är ett passionsprojekt av en enda person. Alla funktioner i appen är och förblir gratis. Dricks och de betalda kosmetiska tillvalen i Supporterpaketet är frivilliga. De hjälper till att täcka Apple Developer-avgiften och visar att arbetet uppskattas."
           }
         },
         "tr" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Sodalite tek kişinin tutku projesidir. Uygulamadaki her şey ücretsizdir ve öyle kalacaktır. Bahşişler ve Destekçi Paketi isteğe bağlıdır — Apple Developer ücretini karşılamaya yardımcı olur ve çalışmanın takdir edildiğini gösterir."
+            "value": "Sodalite tek kişinin tutku projesidir. Uygulamanın tüm işlevsel özellikleri ücretsizdir ve öyle kalacaktır. Bahşişler ve Destekçi Paketi’ndeki ücretli kozmetik ekstralar isteğe bağlıdır. Apple Developer ücretini karşılamaya yardımcı olur ve çalışmanın takdir edildiğini gösterir."
           }
         },
         "uk" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Sodalite — це пристрасний проєкт однієї людини. Все в застосунку безкоштовне і таким залишиться. Чайові та Пакет прихильника необов'язкові — вони допомагають покрити плату Apple Developer і показують, що роботу цінують."
+            "value": "Sodalite є особистим проєктом, який одна людина створює із захопленням. Усі функціональні можливості застосунку безкоштовні й такими залишаться. Чайові та платні косметичні доповнення Пакета прихильника необов’язкові. Вони допомагають покрити плату Apple Developer і показують, що роботу цінують."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Sodalite 是一个人的热情项目。应用中的所有功能都是免费的，且将保持免费。小费和支持者套餐是可选的——它们有助于支付 Apple Developer 费用，并表明这项工作受到赞赏。"
+            "value": "Sodalite 是由一人用热情打造的项目。应用的所有功能均免费且将始终免费。小费和支持者套餐中的付费外观选项完全自愿。它们有助于支付 Apple Developer 费用，也表达了对开发工作的认可。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Sodalite 是一個人的熱情專案。應用程式中的所有功能都是免費的，並將保持免費。小費和支持者套裝是可選的——它們有助於支付 Apple Developer 費用，並表明這項工作受到讚賞。"
+            "value": "Sodalite 是由一人用熱情打造的專案。應用程式的所有功能均免費且將始終免費。小費和支持者套裝中的付費外觀選項完全自願。它們有助於支付 Apple Developer 費用，也表達了對開發工作的肯定。"
           }
         }
       }
@@ -138993,157 +144339,157 @@
         "cs" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Jednorázové odemčení. Kosmetické extra — speciální úvodní ikona, vlastní zvýrazňovací barvy a odznak podporovatele v nastavení."
+            "value": "Jednorázové odemčení. Pečlivě vybrané palety barev zvýraznění, prémiová animovaná pozadí a speciální úvodní ikona."
           }
         },
         "da" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Engangsoplåsning. Kosmetiske ekstrafunktioner — et specielt splash-ikon, brugerdefinerede fremhævningsfarver og et supporter-badge i Indstillinger."
+            "value": "Engangsoplåsning. Kuraterede paletter med fremhævningsfarver, animerede premiumbaggrunde og et særligt splash-ikon."
           }
         },
         "de" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Einmaliger Freischaltkauf. Kosmetische Extras — ein spezielles Splash-Icon, eigene Akzentfarben und ein Supporter-Abzeichen in den Einstellungen."
+            "value": "Einmalig freischalten. Kuratierte Akzentpaletten, animierte Premium-Hintergründe und ein spezielles Splash-Icon."
           }
         },
         "el" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Εφάπαξ ξεκλείδωμα. Κοσμητικά έξτρα — ένα ειδικό εικονίδιο έναρξης, προσαρμοσμένα χρώματα έμφασης και ένα σήμα υποστηρικτή στις Ρυθμίσεις."
+            "value": "Εφάπαξ ξεκλείδωμα. Επιλεγμένες παλέτες χρωμάτων έμφασης, premium κινούμενα φόντα και ένα ειδικό εικονίδιο έναρξης."
           }
         },
         "en" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "One-time unlock. Cosmetic extras: a special splash icon, custom accent colors, and a supporter badge in Settings."
+            "value": "One-time unlock. Curated accent palettes, premium animated backgrounds, and a special splash icon."
           }
         },
         "es" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Desbloqueo único. Extras cosméticos: un icono de inicio especial, colores de acento personalizados y una insignia de apoyo en Ajustes."
+            "value": "Desbloqueo único. Paletas de colores de acento seleccionadas, fondos animados prémium y un icono de inicio especial."
           }
         },
         "fi" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Kertakertainen avaus. Kosmeettiset lisät — erityinen käynnistyskuvake, mukautetut korostusvärit ja tukija-merkki asetuksissa."
+            "value": "Kertaluonteinen avaus. Huolella valitut korostusväripaletit, animoidut premium-taustat ja erityinen käynnistyskuvake."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Déblocage unique. Extras cosmétiques — une icône de lancement spéciale, des couleurs d'accent personnalisées et un badge de soutien dans les Réglages."
+            "value": "Déblocage unique. Palettes d’accentuation soigneusement composées, arrière-plans animés premium et icône de lancement spéciale."
           }
         },
         "hr" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Jednokratno otključavanje. Kozmetički dodaci — posebna uvodna ikona, prilagođene naglasne boje i podržavateljska značka u postavkama."
+            "value": "Jednokratno otključavanje. Pomno odabrane palete naglasnih boja, premium animirane pozadine i posebna uvodna ikona."
           }
         },
         "hu" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Egyszeri feloldás. Kozmetikai extrák — egy különleges nyitóikon, egyéni kiemelőszínek és egy támogatói jelvény a Beállításokban."
+            "value": "Egyszeri feloldás. Gondosan összeállított kiemelőszín-paletták, prémium animált hátterek és egy különleges nyitóikon."
           }
         },
         "it" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Sblocco una tantum. Extra estetici — un'icona iniziale speciale, colori di accento personalizzati e un badge sostenitore in Impostazioni."
+            "value": "Sblocco una tantum. Palette di colori d’accento curate, sfondi animati premium e un’icona iniziale speciale."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "一回限りのアンロック。見た目だけの追加要素 — 特別なスプラッシュアイコン、カスタムアクセントカラー、設定内のサポーターバッジ。"
+            "value": "一回限りのアンロック。厳選されたアクセントパレット、プレミアムアニメーション背景、特別なスプラッシュアイコンが含まれます。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "일회성 잠금 해제. 꾸미기 추가 기능 — 특별한 스플래시 아이콘, 맞춤 강조 색상, 설정의 서포터 배지."
+            "value": "일회성 잠금 해제. 엄선된 강조 색상 팔레트, 프리미엄 애니메이션 배경, 특별한 스플래시 아이콘이 포함됩니다."
           }
         },
         "nb" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Engangsopplåsing. Kosmetiske ekstra — et spesielt splash-ikon, tilpassede aksentfarger og et supporter-merke i Innstillinger."
+            "value": "Engangsopplåsing. Håndplukkede aksentpaletter, animerte premiumbakgrunner og et spesielt splash-ikon."
           }
         },
         "nl" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Eenmalige ontgrendeling. Cosmetische extra's — een speciaal splash-icoon, aangepaste accentkleuren en een supportersbadge in Instellingen."
+            "value": "Eenmalige ontgrendeling. Zorgvuldig samengestelde accentpaletten, premium geanimeerde achtergronden en een speciaal splash-icoon."
           }
         },
         "pl" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Jednorazowe odblokowanie. Dodatki kosmetyczne — specjalna ikona powitalna, niestandardowe kolory akcentu i odznaka wspierającego w Ustawieniach."
+            "value": "Jednorazowe odblokowanie. Starannie dobrane palety kolorów akcentu, animowane tła premium i specjalna ikona powitalna."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Desbloqueio único. Extras cosméticos — um ícone de abertura especial, cores de destaque personalizadas e um distintivo de apoiador nas Configurações."
+            "value": "Desbloqueio único. Paletas de cores de destaque selecionadas, fundos animados premium e um ícone de abertura especial."
           }
         },
         "pt-PT" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Desbloqueio único. Extras cosméticos — um ícone de abertura especial, cores de realce personalizadas e um distintivo de apoiante nas Definições."
+            "value": "Desbloqueio único. Paletas de cores de realce selecionadas, fundos animados premium e um ícone de abertura especial."
           }
         },
         "ro" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Deblocare unică. Extra cosmetice — o pictogramă de pornire specială, culori de accent personalizate și o insignă de susținător în Setări."
+            "value": "Deblocare unică. Palete atent selecționate de culori de accent, fundaluri animate premium și o pictogramă de pornire specială."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Разовая разблокировка. Косметические дополнения — специальная заставка, настраиваемые акцентные цвета и значок поддержки в настройках."
+            "value": "Разовая разблокировка. Тщательно подобранные палитры акцентных цветов, премиальные анимированные фоны и специальная заставка."
           }
         },
         "sk" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Jednorazové odomknutie. Kozmetické extra — špeciálna úvodná ikona, vlastné zvýrazňovacie farby a odznak podporovateľa v nastaveniach."
+            "value": "Jednorazové odomknutie. Starostlivo vybrané palety farieb zvýraznenia, prémiové animované pozadia a špeciálna úvodná ikona."
           }
         },
         "sv" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Engångsupplåsning. Kosmetiska extra — en speciell startikon, anpassade accentfärger och ett supporter-märke i Inställningar."
+            "value": "Engångsupplåsning. Handplockade accentpaletter, animerade premiumbakgrunder och en särskild startikon."
           }
         },
         "tr" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Tek seferlik kilit açma. Kozmetik ekstralar — özel bir açılış simgesi, özel vurgu renkleri ve Ayarlar'da bir destekçi rozeti."
+            "value": "Tek seferlik kilit açma. Özenle seçilmiş vurgu rengi paletleri, premium animasyonlu arka planlar ve özel bir açılış simgesi."
           }
         },
         "uk" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "Разове розблокування. Косметичні доповнення — спеціальна заставка, власні акцентні кольори та значок прихильника в налаштуваннях."
+            "value": "Разове розблокування. Ретельно підібрані палітри акцентних кольорів, преміальні анімовані фони та спеціальна заставка."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "一次性解锁。装饰性附加内容 — 特殊启动图标、自定义强调色和设置中的支持者徽章。"
+            "value": "一次性解锁。包含精心挑选的强调色调色板、高级动态背景和特殊启动图标。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state": "translated",
-            "value": "一次性解鎖。裝飾性附加內容 — 特殊啟動圖示、自訂強調色和設定中的支持者徽章。"
+            "value": "一次性解鎖。包含精心挑選的強調色調色盤、進階動態背景和特殊啟動圖示。"
           }
         }
       }

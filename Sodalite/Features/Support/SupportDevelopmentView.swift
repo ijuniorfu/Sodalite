@@ -1,7 +1,7 @@
 import StoreKit
 import SwiftUI
 
-/// Optional tip / Supporter Pack; nothing is gated behind purchase.
+/// Optional tip / Supporter Pack; every functional feature stays free.
 struct SupportDevelopmentView: View {
 
     @Environment(\.dependencies) private var dependencies
@@ -64,7 +64,7 @@ struct SupportDevelopmentView: View {
 
             Text(String(
                 localized: "support.header.copy",
-                defaultValue: "Sodalite is a one-person passion project. Everything in the app is and stays free. Tips and the Supporter Pack are optional, they help cover the Apple Developer fee and show that the work is appreciated."
+                defaultValue: "Sodalite is a one-person passion project. Every functional feature in the app is and stays free. Tips and the paid cosmetic Supporter Pack are optional. They help cover the Apple Developer fee and show that the work is appreciated."
             ))
             .font(.body)
             .foregroundStyle(.secondary)
@@ -106,7 +106,7 @@ struct SupportDevelopmentView: View {
                 .fontWeight(.semibold)
                 Text(String(
                     localized: "support.pack.subtitle",
-                    defaultValue: "One-time unlock. Cosmetic extras, a special splash icon, custom accent colors, and a supporter badge in Settings."
+                    defaultValue: "One-time unlock. Curated accent palettes, premium animated backgrounds, and a special splash icon."
                 ))
                 .font(.footnote)
                 .foregroundStyle(.secondary)
@@ -482,7 +482,7 @@ private struct SupporterPackRow: View {
                 .fontWeight(.semibold)
                 .monospacedDigit()
         } else {
-            Text("—")
+            Text("–")
                 .font(.body)
                 .foregroundStyle(.tertiary)
         }

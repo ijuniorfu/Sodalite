@@ -177,7 +177,7 @@ The Seerr integration isn't a tacked-on link to a web view. It's a first-class p
 - **Watch Stats**: a Settings screen with your viewing totals, movies and episodes watched, completion rate, estimated hours, top genres, most-rewatched and recently-watched titles, all aggregated client-side from standard Jellyfin data
 - **26 languages**: German, English, Spanish, French, Italian, Japanese, Korean, Norwegian, Dutch, Polish, Portuguese (BR + PT), Russian, Swedish, Simplified + Traditional Chinese, Turkish, Ukrainian, Czech, Slovak, Croatian, Finnish, Greek, Hungarian, Romanian, Danish
 - **Dark, minimal design** that puts the artwork first, on the big screen and in your hand
-- **Appearance options**: choose how Continue Watching and Now Playing artwork looks (episode still, backdrop or series thumb), set card size, toggle title logos, plus an accent color with the Supporter Pack
+- **Appearance options**: choose artwork style, card size and title logos, plus three free accent colors and Graphite Glass or OLED Black backgrounds; the optional Supporter Pack adds curated Pastel, Bold, Electric and Cinematic palettes plus animated Aurora, Crystal and Noir backgrounds
 - **Liquid Glass** UI accents on tvOS 26 and iOS 26
 - **Input-native everywhere**: Siri Remote touch scrubbing, click for play/pause and swipe gestures on Apple TV; touch scrubbing and gestures on iPhone and iPad
 
@@ -253,7 +253,7 @@ If you're not sure which to use, start a Discussion. Bugs get moved to Issues. B
 
 ## Support
 
-Sodalite is free and stays that way. If it's useful to you and you'd like to say thanks, there's a [Ko-fi](https://ko-fi.com/superuser404). The app also has an in-app Tip Jar and a Supporter Pack (cosmetics only, no gating).
+Sodalite is free and stays that way. If it's useful to you and you'd like to say thanks, there's a [Ko-fi](https://ko-fi.com/superuser404). The app also has an in-app Tip Jar and an optional Supporter Pack with cosmetic extras; every functional feature remains free.
 
 ## Related
 
