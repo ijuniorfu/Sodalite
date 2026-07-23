@@ -83,38 +83,43 @@ struct TabRootView: View {
     }
 
     var body: some View {
-        TabView(selection: $selectedTab) {
-            ForEach(displayedTabs, id: \.self) { tab in
-                #if os(iOS)
-                if tab == .search {
-                    Tab(value: tab, role: .search) {
-                        tabContent(for: tab)
-                    } label: {
-                        tabLabel(tab)
+        ZStack {
+            AppBackgroundView(theme: appearanceTheme, mode: .automatic)
+                .allowsHitTesting(false)
+
+            TabView(selection: $selectedTab) {
+                ForEach(displayedTabs, id: \.self) { tab in
+                    #if os(iOS)
+                    if tab == .search {
+                        Tab(value: tab, role: .search) {
+                            tabContent(for: tab)
+                        } label: {
+                            tabLabel(tab)
+                        }
+                    } else {
+                        Tab(value: tab) {
+                            tabContent(for: tab)
+                        } label: {
+                            tabLabel(tab)
+                        }
+                        .badge(catalogBadgeCount(tab) ?? 0)
                     }
-                } else {
+                    #else
                     Tab(value: tab) {
                         tabContent(for: tab)
                     } label: {
                         tabLabel(tab)
                     }
-                    .badge(catalogBadgeCount(tab) ?? 0)
+                    #endif
                 }
-                #else
-                Tab(value: tab) {
-                    tabContent(for: tab)
-                } label: {
-                    tabLabel(tab)
-                }
-                #endif
             }
-        }
-        #if os(iOS)
-        // iPhone -> bottom tab bar, iPad -> collapsible sidebar, from one TabView.
-        .tabViewStyle(.sidebarAdaptable)
-        #endif
-        .background {
-            AppBackgroundView(theme: appearanceTheme, mode: .automatic)
+            #if os(iOS)
+            // The adaptable tab view uses an opaque navigation container by
+            // default. Clear only that layer so the shared renderer remains
+            // visible without creating one animated background per tab.
+            .tabViewStyle(.sidebarAdaptable)
+            .containerBackground(.clear, for: .navigation)
+            #endif
         }
         // Fresh TabView (fresh UITabBar) when the active server changes while TabRootView stays mounted (deleting the active server auto-promotes a survivor; isAuthenticated never drops, so the view isn't recreated). A fresh bar reads the tinted appearance at creation. NOT bumped on detail return: detail immersion now alpha-hides the bar instead of removing it, so the bar is never re-templated gray and never needs a rebuild.
         .id(appState.activeServer?.id)
