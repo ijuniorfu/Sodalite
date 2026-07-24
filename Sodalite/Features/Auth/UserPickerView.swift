@@ -34,7 +34,6 @@ struct UserPickerView: View {
         }
         .screenContentInset()
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .glassBackground()
         .task {
             await loadUsers()
         }

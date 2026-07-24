@@ -64,10 +64,15 @@ struct AppRouter: View {
         ZStack {
             if appState.isAuthenticated {
                 TabRootView()
-            } else if let server = launchPickerServer {
-                LaunchProfilePickerView(server: server)
             } else {
-                ServerDiscoveryView()
+                Group {
+                    if let server = launchPickerServer {
+                        LaunchProfilePickerView(server: server)
+                    } else {
+                        ServerDiscoveryView()
+                    }
+                }
+                .themedRootBackground()
             }
 
             // Now-Playing is surfaced in the Music tab + track tap (not a global bar, which covered detail action buttons); both bump the coordinator's presentation request, observed below.
@@ -300,7 +305,7 @@ struct AppRouter: View {
                     context: .reprompt,
                     onFinished: { showProfileReprompt = false }
                 )
-                .pausesAppBackgroundMotion()
+                .themedPresentationBackground()
                 // The AppRouter-level PIN cover can't stack on this cover (one cover per host view),
                 // so the gate presents from inside while the reprompt is up.
                 .fullScreenCover(item: Binding(

@@ -35,7 +35,6 @@ struct LoginView: View {
             #endif
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .glassBackground()
         .animation(.easeInOut(duration: 0.3), value: showSuccess)
         #if os(iOS)
         .animation(.easeInOut(duration: 0.25), value: showAddURLDialog)

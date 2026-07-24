@@ -19,7 +19,7 @@ struct ServerDiscoveryView: View {
     }
 
     var body: some View {
-        NavigationStack(path: $path) {
+        ThemeNavigationPathStack(path: $path) {
             VStack(spacing: 32) {
                 header
 
@@ -43,7 +43,6 @@ struct ServerDiscoveryView: View {
             }
             .padding()
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .glassBackground()
             .navigationDestination(for: Route.self) { route in
                 switch route {
                 case .login(let server):

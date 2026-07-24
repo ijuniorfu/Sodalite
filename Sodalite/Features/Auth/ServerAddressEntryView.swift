@@ -75,7 +75,6 @@ struct ServerAddressEntryView: View {
         }
         .padding()
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .glassBackground()
         .onAppear {
             if viewModel == nil {
                 viewModel = ServerAddressEntryViewModel(discoveryService: dependencies.serverDiscoveryService)

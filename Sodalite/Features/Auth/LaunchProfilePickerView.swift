@@ -30,7 +30,7 @@ struct LaunchProfilePickerView: View {
     @Namespace private var focusNamespace
 
     var body: some View {
-        NavigationStack {
+        ThemeNavigationStack {
             VStack(spacing: 40) {
                 header
 
@@ -44,7 +44,6 @@ struct LaunchProfilePickerView: View {
             .focusScopeCompat(focusNamespace)
             .screenContentInset()
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .glassBackground()
             .navigationDestination(isPresented: $navigateToAddProfile) {
                 UserPickerView(server: server)
             }
@@ -97,6 +96,7 @@ struct LaunchProfilePickerView: View {
                 ServerDiscoveryView(addMode: true) {
                     showAddServerFlow = false
                 }
+                .themedPresentationBackground()
             }
         }
     }

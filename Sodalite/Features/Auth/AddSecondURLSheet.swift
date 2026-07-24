@@ -25,7 +25,7 @@ struct AddSecondURLSheet: View {
     }
 
     var body: some View {
-        NavigationStack {
+        ThemeNavigationStack {
             Form {
                 Section {
                     LabeledContent {
@@ -51,6 +51,7 @@ struct AddSecondURLSheet: View {
                     }
                 }
             }
+            .scrollContentBackground(.hidden)
             .navigationTitle(Text(title, bundle: .main))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -77,6 +78,7 @@ struct AddSecondURLSheet: View {
                 Text("multiServer.urls.unreachable.message \(unreachableHost)", bundle: .main)
             }
         }
+        .themedPresentationBackground()
     }
 
     private func parsed() -> URL? {

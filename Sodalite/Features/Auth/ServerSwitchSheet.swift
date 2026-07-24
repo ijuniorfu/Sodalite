@@ -42,6 +42,7 @@ struct ServerSwitchSheet: View {
         .background(.regularMaterial)
         .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
         .onAppear(perform: load)
+        .themedPresentationBackground()
     }
 
     private func load() {
