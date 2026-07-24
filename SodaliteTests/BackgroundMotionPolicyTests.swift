@@ -46,4 +46,14 @@ struct BackgroundMotionPolicyTests {
         monitor.setCover(second, presented: false)
         #expect(!monitor.isCovered)
     }
+
+    @Test("only the selected iOS tab receives automatic motion")
+    func shellTabMode() {
+        #expect(
+            ShellBackgroundMotionPolicy.mode(isSelected: true) == .automatic
+        )
+        #expect(
+            ShellBackgroundMotionPolicy.mode(isSelected: false) == .static
+        )
+    }
 }

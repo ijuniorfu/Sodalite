@@ -1,6 +1,6 @@
 import SwiftUI
 
-enum BackgroundMotionMode {
+enum BackgroundMotionMode: Equatable {
     case automatic
     case preview
     case `static`

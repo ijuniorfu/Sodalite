@@ -83,44 +83,39 @@ struct TabRootView: View {
     }
 
     var body: some View {
-        ZStack {
-            AppBackgroundView(theme: appearanceTheme, mode: .automatic)
-                .allowsHitTesting(false)
-
-            TabView(selection: $selectedTab) {
-                ForEach(displayedTabs, id: \.self) { tab in
-                    #if os(iOS)
-                    if tab == .search {
-                        Tab(value: tab, role: .search) {
-                            tabContent(for: tab)
-                        } label: {
-                            tabLabel(tab)
-                        }
-                    } else {
-                        Tab(value: tab) {
-                            tabContent(for: tab)
-                        } label: {
-                            tabLabel(tab)
-                        }
-                        .badge(catalogBadgeCount(tab) ?? 0)
+        TabView(selection: $selectedTab) {
+            ForEach(displayedTabs, id: \.self) { tab in
+                #if os(iOS)
+                if tab == .search {
+                    Tab(value: tab, role: .search) {
+                        tabContent(for: tab)
+                    } label: {
+                        tabLabel(tab)
                     }
-                    #else
+                } else {
                     Tab(value: tab) {
                         tabContent(for: tab)
                     } label: {
                         tabLabel(tab)
                     }
-                    #endif
+                    .badge(catalogBadgeCount(tab) ?? 0)
                 }
+                #else
+                Tab(value: tab) {
+                    tabContent(for: tab)
+                } label: {
+                    tabLabel(tab)
+                }
+                #endif
             }
-            #if os(iOS)
-            // The adaptable tab view uses an opaque navigation container by
-            // default. Clear only that layer so the shared renderer remains
-            // visible without creating one animated background per tab.
-            .tabViewStyle(.sidebarAdaptable)
-            .containerBackground(.clear, for: .navigation)
-            #endif
         }
+        #if os(iOS)
+        .tabViewStyle(.sidebarAdaptable)
+        #else
+        .background {
+            AppBackgroundView(theme: appearanceTheme, mode: .automatic)
+        }
+        #endif
         // Fresh TabView (fresh UITabBar) when the active server changes while TabRootView stays mounted (deleting the active server auto-promotes a survivor; isAuthenticated never drops, so the view isn't recreated). A fresh bar reads the tinted appearance at creation. NOT bumped on detail return: detail immersion now alpha-hides the bar instead of removing it, so the bar is never re-templated gray and never needs a rebuild.
         .id(appState.activeServer?.id)
         // Display-only active-profile badge; non-focusable, below the player cover, hidden unless the server has multiple profiles.
@@ -145,7 +140,7 @@ struct TabRootView: View {
         #if os(iOS)
         .sheet(isPresented: $showSettings) {
             SettingsView(onClose: { showSettings = false })
-                .pausesAppBackgroundMotion()
+                .themedStaticBackground()
         }
         #endif
         // Foreground Siri Remote play/pause arrives via the responder chain (not MPRemoteCommandCenter), so toggle music here when a track is active.
@@ -325,6 +320,14 @@ struct TabRootView: View {
         // padding reliably repositions content, including screens rooted in a NavigationStack
         // (Catalog/Search/...) which ignore a parent safeAreaInset and so would overlap.
         .padding(.top, hSizeClass == .compact ? Self.gearChromeHeight : 0)
+        .background {
+            AppBackgroundView(
+                theme: appearanceTheme,
+                mode: ShellBackgroundMotionPolicy.mode(
+                    isSelected: tab == selectedTab
+                )
+            )
+        }
         #endif
     }
 
