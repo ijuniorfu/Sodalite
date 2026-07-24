@@ -17,12 +17,6 @@ enum BackgroundMotionPolicy {
     }
 }
 
-enum ShellBackgroundMotionPolicy {
-    static func mode(isSelected: Bool) -> BackgroundMotionMode {
-        isSelected ? .automatic : .static
-    }
-}
-
 @MainActor
 @Observable
 final class BackgroundVisibilityMonitor {
