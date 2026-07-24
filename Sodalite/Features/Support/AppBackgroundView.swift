@@ -12,19 +12,25 @@ struct AppBackgroundView: View {
 
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.backgroundSurfaceDepth) private var surfaceDepth
     @State private var visibility = BackgroundVisibilityMonitor.shared
+    @State private var rendererToken = UUID()
     @State private var lowPower = ProcessInfo.processInfo.isLowPowerModeEnabled
     @State private var playerActive = PlayerModalPresence.isPlayerActive
 
+    private var isAutomaticRenderer: Bool {
+        mode == .automatic
+    }
+
     private var allowsMotion: Bool {
         guard mode != .static else { return false }
-        let isShellRenderer = mode == .automatic
         return BackgroundMotionPolicy.allowsMotion(
             sceneActive: scenePhase == .active,
             reduceMotion: reduceMotion,
             lowPower: lowPower,
-            playerActive: isShellRenderer && playerActive,
-            covered: isShellRenderer && visibility.isCovered
+            playerActive: isAutomaticRenderer && playerActive,
+            covered: isAutomaticRenderer
+                && !visibility.permitsMotion(at: surfaceDepth)
         )
     }
 
@@ -55,8 +61,21 @@ struct AppBackgroundView: View {
             playerActive = PlayerModalPresence.isPlayerActive
         }
         .onAppear {
+            if isAutomaticRenderer {
+                visibility.setRenderer(rendererToken, depth: surfaceDepth)
+            }
             lowPower = ProcessInfo.processInfo.isLowPowerModeEnabled
             playerActive = PlayerModalPresence.isPlayerActive
+        }
+        .onChange(of: surfaceDepth) { _, newDepth in
+            if isAutomaticRenderer {
+                visibility.setRenderer(rendererToken, depth: newDepth)
+            }
+        }
+        .onDisappear {
+            if isAutomaticRenderer {
+                visibility.setRenderer(rendererToken, depth: nil)
+            }
         }
     }
 }

@@ -46,4 +46,56 @@ struct BackgroundMotionPolicyTests {
         monitor.setCover(second, presented: false)
         #expect(!monitor.isCovered)
     }
+
+    @Test("only the highest mounted surface depth receives motion")
+    @MainActor
+    func highestSurfaceDepth() {
+        let monitor = BackgroundVisibilityMonitor()
+        let rootA = UUID()
+        let rootB = UUID()
+        let sheet = UUID()
+
+        monitor.setRenderer(rootA, depth: 0)
+        monitor.setRenderer(rootB, depth: 0)
+        #expect(monitor.permitsMotion(at: 0))
+
+        monitor.setRenderer(sheet, depth: 1)
+        #expect(!monitor.permitsMotion(at: 0))
+        #expect(monitor.permitsMotion(at: 1))
+
+        monitor.setRenderer(sheet, depth: nil)
+        #expect(monitor.permitsMotion(at: 0))
+    }
+
+    @Test("renderer registration and removal are idempotent")
+    @MainActor
+    func rendererRegistrationIsIdempotent() {
+        let monitor = BackgroundVisibilityMonitor()
+        let token = UUID()
+
+        monitor.setRenderer(token, depth: 2)
+        monitor.setRenderer(token, depth: 2)
+        #expect(monitor.rendererCount == 1)
+        #expect(monitor.highestRendererDepth == 2)
+
+        monitor.setRenderer(token, depth: nil)
+        monitor.setRenderer(token, depth: nil)
+        #expect(monitor.rendererCount == 0)
+        #expect(monitor.highestRendererDepth == nil)
+    }
+
+    @Test("hard cover blocks every renderer depth")
+    @MainActor
+    func hardCoverBlocksRendererLayers() {
+        let monitor = BackgroundVisibilityMonitor()
+        let renderer = UUID()
+        let cover = UUID()
+
+        monitor.setRenderer(renderer, depth: 3)
+        #expect(monitor.permitsMotion(at: 3))
+        monitor.setCover(cover, presented: true)
+        #expect(!monitor.permitsMotion(at: 3))
+        monitor.setCover(cover, presented: false)
+        #expect(monitor.permitsMotion(at: 3))
+    }
 }
