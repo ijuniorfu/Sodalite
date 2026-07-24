@@ -53,7 +53,6 @@ struct LicensesView: View {
             )
         )
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .themedStaticBackground()
         .hidesNavigationBarChrome()
         .onExitCommandCompat { dismiss() }
     }
@@ -145,7 +144,6 @@ private struct LicenseDetailView: View {
             )
         )
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .themedStaticBackground()
         .hidesNavigationBarChrome()
         .onExitCommandCompat { dismiss() }
     }

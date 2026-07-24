@@ -21,6 +21,34 @@ struct AppearanceSurfaceStructureTests {
         #expect(source.contains("containerBackground(.clear, for: .navigation)"))
     }
 
+    @Test("settings owns one presentation renderer and child pages inherit it")
+    func settingsSurfaceOwnership() throws {
+        let tabRoot = try sourceFile("Sodalite/App/TabRootView.swift")
+        let settings = try sourceFile("Sodalite/Features/Settings/SettingsView.swift")
+        let seerr = try sourceFile("Sodalite/Features/Settings/SeerrSettingsView.swift")
+        let licenses = try sourceFile("Sodalite/Features/Settings/Licenses/LicensesView.swift")
+        let changelog = try sourceFile("Sodalite/Features/Changelog/ChangelogListView.swift")
+
+        #expect(tabRoot.contains(
+            "SettingsView(onClose: { showSettings = false })\n"
+                + "                .themedPresentationBackground()"
+        ))
+        #expect(settings.contains("ThemeNavigationStack {"))
+        #expect(!seerr.contains(".themedStaticBackground()"))
+        #expect(!licenses.contains(".themedStaticBackground()"))
+        #expect(!changelog.contains(".themedStaticBackground()"))
+    }
+
+    @Test("URL forms reveal only their isolated theme surface")
+    func themedURLForms() throws {
+        let source = try sourceFile(
+            "Sodalite/Features/Settings/DualURLEditSheet.swift"
+        )
+        #expect(source.contains("ThemeNavigationStack {"))
+        #expect(source.contains(".scrollContentBackground(.hidden)"))
+        #expect(source.contains(".themedPresentationBackground()"))
+    }
+
     private func sourceFile(_ relativePath: String) throws -> String {
         let repository = URL(fileURLWithPath: #filePath)
             .deletingLastPathComponent()

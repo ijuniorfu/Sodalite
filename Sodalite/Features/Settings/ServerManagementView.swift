@@ -58,7 +58,7 @@ struct ServerManagementView: View {
                 showAddServerFlow = false
                 load()
             })
-            .pausesAppBackgroundMotion()
+            .themedPresentationBackground()
         }
         #if os(iOS)
         .sheet(item: $editingURLsFor) { server in

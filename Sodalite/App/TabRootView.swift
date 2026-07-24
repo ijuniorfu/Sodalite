@@ -140,7 +140,7 @@ struct TabRootView: View {
         #if os(iOS)
         .sheet(isPresented: $showSettings) {
             SettingsView(onClose: { showSettings = false })
-                .themedStaticBackground()
+                .themedPresentationBackground()
         }
         #endif
         // Foreground Siri Remote play/pause arrives via the responder chain (not MPRemoteCommandCenter), so toggle music here when a track is active.

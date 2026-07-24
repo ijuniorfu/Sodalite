@@ -21,7 +21,7 @@ struct DualURLEditSheet: View {
     @State private var showUnreachableConfirm = false
 
     var body: some View {
-        NavigationStack {
+        ThemeNavigationStack {
             Form {
                 Section {
                     TextField("multiServer.urls.internal.placeholder", text: $internalText)
@@ -50,6 +50,7 @@ struct DualURLEditSheet: View {
                     }
                 }
             }
+            .scrollContentBackground(.hidden)
             .navigationTitle(Text(title, bundle: .main))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -80,6 +81,7 @@ struct DualURLEditSheet: View {
                 externalText = initialExternalURL?.absoluteString ?? ""
             }
         }
+        .themedPresentationBackground()
     }
 
     private func parsed(_ text: String) -> URL?? {

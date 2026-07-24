@@ -9,7 +9,7 @@ struct SettingsView: View {
     @Environment(\.dependencies) private var dependencies
 
     var body: some View {
-        NavigationStack {
+        ThemeNavigationStack {
             ScrollView {
                 VStack(spacing: 48) {
                     profileHeader
@@ -502,4 +502,3 @@ struct GhostTileButtonStyle: ButtonStyle {
             .animation(.easeInOut(duration: 0.2), value: active)
     }
 }
-

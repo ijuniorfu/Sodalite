@@ -56,7 +56,6 @@ struct SeerrSettingsView: View {
             }
         }
         .animation(.easeInOut(duration: 0.3), value: showSuccess)
-        .themedStaticBackground()
         .hidesShellTabBar()
         // Inline header only; floating tvOS nav-title sits behind scrolling content. Matches PlaybackSettingsView.
         .hidesNavigationBarChrome()
