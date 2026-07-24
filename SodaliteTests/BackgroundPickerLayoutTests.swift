@@ -16,6 +16,12 @@ struct BackgroundPickerLayoutTests {
             abs(BackgroundPickerLayout.previewAspectRatio - 16.0 / 9.0)
                 < 0.0001
         )
+        #expect(BackgroundPickerLayout.tvOSMetadataHeight == 144)
+        #expect(BackgroundPickerLayout.iOSMetadataHeight == 68)
+        #if os(tvOS)
+        #expect(BackgroundPickerLayout.metadataHeight == 144)
+        #else
         #expect(BackgroundPickerLayout.metadataHeight == 68)
+        #endif
     }
 }

@@ -4,7 +4,14 @@ enum BackgroundPickerLayout {
     static let tvOSColumnCount = 3
     static let columnSpacing: CGFloat = 24
     static let previewAspectRatio: CGFloat = 16.0 / 9.0
-    static let metadataHeight: CGFloat = 68
+    static let tvOSMetadataHeight: CGFloat = 144
+    static let iOSMetadataHeight: CGFloat = 68
+
+    #if os(tvOS)
+    static let metadataHeight = tvOSMetadataHeight
+    #else
+    static let metadataHeight = iOSMetadataHeight
+    #endif
 }
 
 struct BackgroundPickerView: View {
