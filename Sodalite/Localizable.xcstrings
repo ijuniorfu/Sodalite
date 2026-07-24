@@ -1139,157 +1139,157 @@
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Načítá více dopředu pro plynulé přehrávání z pomalých síťových disků (WebDAV, rclone). Větší vyrovnávací paměť zkracuje hloubku převíjení zpět na rychlých serverech."
+            "value" : "Načítá více dopředu pro plynulé přehrávání z pomalých síťových disků (WebDAV, rclone). Větší vyrovnávací paměť zkracuje hloubku převíjení zpět na rychlých serverech. Neomezeně načte tolik z titulu, kolik bezpečně dovolí volné úložiště."
           }
         },
         "da" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Buffer længere frem for jævn afspilning fra langsomme netværksdrev (WebDAV, rclone). Større buffere reducerer tilbagespolingsdybden på hurtige servere."
+            "value" : "Buffer længere frem for jævn afspilning fra langsomme netværksdrev (WebDAV, rclone). Større buffere reducerer tilbagespolingsdybden på hurtige servere. Ubegrænset buffrer så meget af titlen, som den ledige lagerplads sikkert tillader."
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Lädt weiter voraus für flüssige Wiedergabe von langsamen Netzlaufwerken (WebDAV, rclone). Größere Puffer verringern die Rückspultiefe auf schnellen Servern."
+            "value" : "Lädt weiter voraus für flüssige Wiedergabe von langsamen Netzlaufwerken (WebDAV, rclone). Größere Puffer verringern die Rückspultiefe auf schnellen Servern. Unbegrenzt puffert so viel vom Titel, wie der freie Speicher sicher zulässt."
           }
         },
         "el" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Προφόρτωση περισσότερου περιεχομένου για ομαλή αναπαραγωγή από αργούς δίσκους δικτύου (WebDAV, rclone). Τα μεγαλύτερα buffer μειώνουν το βάθος επαναφοράς σε γρήγορους διακομιστές."
+            "value" : "Προφόρτωση περισσότερου περιεχομένου για ομαλή αναπαραγωγή από αργούς δίσκους δικτύου (WebDAV, rclone). Τα μεγαλύτερα buffer μειώνουν το βάθος επαναφοράς σε γρήγορους διακομιστές. Το Απεριόριστο αποθηκεύει όσο μέρος του τίτλου επιτρέπει με ασφάλεια ο ελεύθερος χώρος."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Buffer further ahead for smooth playback from slow network drives (WebDAV, rclone). Larger buffers reduce rewind depth on fast servers."
+            "value" : "Buffer further ahead for smooth playback from slow network drives (WebDAV, rclone). Larger buffers reduce rewind depth on fast servers. Unlimited buffers as much of the title as free storage safely allows."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Almacena más contenido por adelantado para una reproducción fluida desde unidades de red lentas (WebDAV, rclone). Los búferes más grandes reducen la profundidad de rebobinado en servidores rápidos."
+            "value" : "Almacena más contenido por adelantado para una reproducción fluida desde unidades de red lentas (WebDAV, rclone). Los búferes más grandes reducen la profundidad de rebobinado en servidores rápidos. Sin límite almacena tanto del título como permita con seguridad el espacio libre."
           }
         },
         "fi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Puskuroi enemmän etukäteen sujuvaa toistoa varten hitailta verkkoasemilta (WebDAV, rclone). Suuremmat puskurit lyhentävät taaksepäin kelaamisen syvyyttä nopeilla palvelimilla."
+            "value" : "Puskuroi enemmän etukäteen sujuvaa toistoa varten hitailta verkkoasemilta (WebDAV, rclone). Suuremmat puskurit lyhentävät taaksepäin kelaamisen syvyyttä nopeilla palvelimilla. Rajoittamaton puskuroi nimikkeestä niin paljon kuin vapaa tallennustila turvallisesti sallii."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Met davantage en mémoire tampon pour une lecture fluide depuis des lecteurs réseau lents (WebDAV, rclone). Des tampons plus grands réduisent la profondeur de rembobinage sur les serveurs rapides."
+            "value" : "Met davantage en mémoire tampon pour une lecture fluide depuis des lecteurs réseau lents (WebDAV, rclone). Des tampons plus grands réduisent la profondeur de rembobinage sur les serveurs rapides. Illimité met en mémoire tampon autant du titre que l'espace libre le permet en toute sécurité."
           }
         },
         "hr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Učitava više unaprijed za glatku reprodukciju sa sporih mrežnih pogona (WebDAV, rclone). Veći međuspremnici smanjuju dubinu premotavanja unatrag na brzim poslužiteljima."
+            "value" : "Učitava više unaprijed za glatku reprodukciju sa sporih mrežnih pogona (WebDAV, rclone). Veći međuspremnici smanjuju dubinu premotavanja unatrag na brzim poslužiteljima. Neograničeno učitava onoliko naslova koliko slobodan prostor sigurno dopušta."
           }
         },
         "hu" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Több tartalmat tölt be előre a zökkenőmentes lejátszáshoz lassú hálózati meghajtókról (WebDAV, rclone). A nagyobb pufferek csökkentik a visszatekerés mélységét gyors kiszolgálókon."
+            "value" : "Több tartalmat tölt be előre a zökkenőmentes lejátszáshoz lassú hálózati meghajtókról (WebDAV, rclone). A nagyobb pufferek csökkentik a visszatekerés mélységét gyors kiszolgálókon. A Korlátlan annyit tölt be a címből, amennyit a szabad tárhely biztonságosan enged."
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Precarica più contenuto per una riproduzione fluida da unità di rete lente (WebDAV, rclone). Buffer più grandi riducono la profondità di riavvolgimento su server veloci."
+            "value" : "Precarica più contenuto per una riproduzione fluida da unità di rete lente (WebDAV, rclone). Buffer più grandi riducono la profondità di riavvolgimento su server veloci. Illimitato memorizza quanta parte del titolo lo spazio libero consente in sicurezza."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "低速なネットワークドライブ（WebDAV、rclone）からのスムーズな再生のため、先読みを増やします。バッファを大きくすると、高速なサーバーでの巻き戻し可能な範囲が短くなります。"
+            "value" : "低速なネットワークドライブ（WebDAV、rclone）からのスムーズな再生のため、先読みを増やします。バッファを大きくすると、高速なサーバーでの巻き戻し可能な範囲が短くなります。 「無制限」は空き容量が安全に許す限りタイトルを先読みします。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "느린 네트워크 드라이브(WebDAV, rclone)에서 매끄러운 재생을 위해 더 많이 미리 버퍼링합니다. 버퍼가 클수록 빠른 서버에서 되감기 가능 범위가 줄어듭니다."
+            "value" : "느린 네트워크 드라이브(WebDAV, rclone)에서 매끄러운 재생을 위해 더 많이 미리 버퍼링합니다. 버퍼가 클수록 빠른 서버에서 되감기 가능 범위가 줄어듭니다. 무제한은 여유 저장 공간이 안전하게 허용하는 만큼 타이틀을 미리 버퍼링합니다."
           }
         },
         "nb" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Buffer lenger frem for jevn avspilling fra trege nettverksstasjoner (WebDAV, rclone). Større buffere reduserer tilbakespolingsdybden på raske servere."
+            "value" : "Buffer lenger frem for jevn avspilling fra trege nettverksstasjoner (WebDAV, rclone). Større buffere reduserer tilbakespolingsdybden på raske servere. Ubegrenset bufrer så mye av tittelen som ledig lagringsplass trygt tillater."
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Buffert verder vooruit voor soepele weergave vanaf trage netwerkschijven (WebDAV, rclone). Grotere buffers verkleinen de terugspoeldiepte op snelle servers."
+            "value" : "Buffert verder vooruit voor soepele weergave vanaf trage netwerkschijven (WebDAV, rclone). Grotere buffers verkleinen de terugspoeldiepte op snelle servers. Onbeperkt buffert zoveel van de titel als de vrije opslagruimte veilig toelaat."
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Buforuje więcej z wyprzedzeniem dla płynnego odtwarzania z wolnych dysków sieciowych (WebDAV, rclone). Większe bufory zmniejszają głębokość przewijania do tyłu na szybkich serwerach."
+            "value" : "Buforuje więcej z wyprzedzeniem dla płynnego odtwarzania z wolnych dysków sieciowych (WebDAV, rclone). Większe bufory zmniejszają głębokość przewijania do tyłu na szybkich serwerach. Bez limitu buforuje tyle tytułu, ile bezpiecznie pozwala wolne miejsce."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Armazena mais conteúdo à frente para reprodução suave a partir de unidades de rede lentas (WebDAV, rclone). Buffers maiores reduzem a profundidade de retrocesso em servidores rápidos."
+            "value" : "Armazena mais conteúdo à frente para reprodução suave a partir de unidades de rede lentas (WebDAV, rclone). Buffers maiores reduzem a profundidade de retrocesso em servidores rápidos. Ilimitado armazena tanto do título quanto o espaço livre permitir com segurança."
           }
         },
         "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Coloca mais conteúdo em buffer com antecedência para uma reprodução fluida a partir de unidades de rede lentas (WebDAV, rclone). Buffers maiores reduzem a profundidade de retrocesso em servidores rápidos."
+            "value" : "Coloca mais conteúdo em buffer com antecedência para uma reprodução fluida a partir de unidades de rede lentas (WebDAV, rclone). Buffers maiores reduzem a profundidade de retrocesso em servidores rápidos. Ilimitado coloca em buffer tanto do título quanto o espaço livre permitir com segurança."
           }
         },
         "ro" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Încarcă mai mult în avans pentru redare fluidă de pe unități de rețea lente (WebDAV, rclone). Bufferele mai mari reduc adâncimea de derulare înapoi pe serverele rapide."
+            "value" : "Încarcă mai mult în avans pentru redare fluidă de pe unități de rețea lente (WebDAV, rclone). Bufferele mai mari reduc adâncimea de derulare înapoi pe serverele rapide. Nelimitat încarcă din titlu atât cât permite în siguranță spațiul liber."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Буферизует больше данных заранее для плавного воспроизведения с медленных сетевых дисков (WebDAV, rclone). Больший буфер уменьшает глубину перемотки назад на быстрых серверах."
+            "value" : "Буферизует больше данных заранее для плавного воспроизведения с медленных сетевых дисков (WebDAV, rclone). Больший буфер уменьшает глубину перемотки назад на быстрых серверах. Режим «Без ограничений» буферизует столько, сколько безопасно позволяет свободное место."
           }
         },
         "sk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Načíta viac vopred pre plynulé prehrávanie z pomalých sieťových diskov (WebDAV, rclone). Väčšia vyrovnávacia pamäť skracuje hĺbku pretáčania dozadu na rýchlych serveroch."
+            "value" : "Načíta viac vopred pre plynulé prehrávanie z pomalých sieťových diskov (WebDAV, rclone). Väčšia vyrovnávacia pamäť skracuje hĺbku pretáčania dozadu na rýchlych serveroch. Neobmedzene načíta z titulu toľko, koľko bezpečne dovolí voľné úložisko."
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Buffrar längre fram för jämn uppspelning från långsamma nätverksenheter (WebDAV, rclone). Större buffertar minskar bakåtspolningsdjupet på snabba servrar."
+            "value" : "Buffrar längre fram för jämn uppspelning från långsamma nätverksenheter (WebDAV, rclone). Större buffertar minskar bakåtspolningsdjupet på snabba servrar. Obegränsad buffrar så mycket av titeln som det lediga utrymmet säkert tillåter."
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Yavaş ağ sürücülerinden (WebDAV, rclone) akıcı oynatma için daha fazla önbelleğe alır. Daha büyük arabellekler, hızlı sunucularda geri sarma derinliğini azaltır."
+            "value" : "Yavaş ağ sürücülerinden (WebDAV, rclone) akıcı oynatma için daha fazla önbelleğe alır. Daha büyük arabellekler, hızlı sunucularda geri sarma derinliğini azaltır. Sınırsız, boş depolama alanının güvenle izin verdiği kadar içeriği önceden önbelleğe alır."
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Буферизує більше даних заздалегідь для плавного відтворення з повільних мережевих дисків (WebDAV, rclone). Більший буфер зменшує глибину перемотування назад на швидких серверах."
+            "value" : "Буферизує більше даних заздалегідь для плавного відтворення з повільних мережевих дисків (WebDAV, rclone). Більший буфер зменшує глибину перемотування назад на швидких серверах. Режим «Без обмежень» буферизує стільки, скільки безпечно дозволяє вільне місце."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "为从缓慢的网络驱动器（WebDAV、rclone）流畅播放而预先缓冲更多内容。缓冲越大，在高速服务器上可回退的范围越小。"
+            "value" : "为从缓慢的网络驱动器（WebDAV、rclone）流畅播放而预先缓冲更多内容。缓冲越大，在高速服务器上可回退的范围越小。 无限制会在可用存储空间安全允许的范围内尽量多地预先缓冲影片。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "為了從緩慢的網路磁碟機（WebDAV、rclone）流暢播放而預先緩衝更多內容。緩衝越大，在高速伺服器上可倒轉的範圍越小。"
+            "value" : "為了從緩慢的網路磁碟機（WebDAV、rclone）流暢播放而預先緩衝更多內容。緩衝越大，在高速伺服器上可倒轉的範圍越小。 無限制會在可用儲存空間安全允許的範圍內盡量多地預先緩衝影片。"
           }
         }
       }
@@ -1451,6 +1451,167 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "系統"
+          }
+        }
+      }
+    },
+    "settings.playback.buffer.unlimited" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Neomezeně"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ubegrænset"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unbegrenzt"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Απεριόριστο"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unlimited"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sin límite"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rajoittamaton"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Illimité"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Neograničeno"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Korlátlan"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Illimitato"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無制限"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "무제한"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ubegrenset"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Onbeperkt"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bez limitu"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ilimitado"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ilimitado"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nelimitat"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Без ограничений"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Neobmedzene"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Obegränsad"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sınırsız"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Без обмежень"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无限制"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無限制"
           }
         }
       }
@@ -1783,157 +1944,157 @@
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Maximum"
+            "value" : "10 minut"
           }
         },
         "da" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Maksimum"
+            "value" : "10 minutter"
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Maximum"
+            "value" : "10 Minuten"
           }
         },
         "el" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Μέγιστο"
+            "value" : "10 λεπτά"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Maximum"
+            "value" : "10 Minutes"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Máximo"
+            "value" : "10 minutos"
           }
         },
         "fi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Maksimi"
+            "value" : "10 minuuttia"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Maximum"
+            "value" : "10 minutes"
           }
         },
         "hr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Maksimum"
+            "value" : "10 minuta"
           }
         },
         "hu" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Maximum"
+            "value" : "10 perc"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Massimo"
+            "value" : "10 minuti"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "最大"
+            "value" : "10分"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "최대"
+            "value" : "10분"
           }
         },
         "nb" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Maksimum"
+            "value" : "10 minutter"
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Maximum"
+            "value" : "10 minuten"
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Maksimum"
+            "value" : "10 minut"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Máximo"
+            "value" : "10 minutos"
           }
         },
         "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Máximo"
+            "value" : "10 minutos"
           }
         },
         "ro" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Maxim"
+            "value" : "10 minute"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Максимум"
+            "value" : "10 минут"
           }
         },
         "sk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Maximum"
+            "value" : "10 minút"
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Maximum"
+            "value" : "10 minuter"
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Maksimum"
+            "value" : "10 dakika"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Максимум"
+            "value" : "10 хвилин"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "最大"
+            "value" : "10 分钟"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "最大"
+            "value" : "10 分鐘"
           }
         }
       }

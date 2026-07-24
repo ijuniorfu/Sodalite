@@ -196,10 +196,13 @@ final class PlaybackPreferences {
     }
 
     /// VOD forward read-ahead window (Issue #33), passed to the engine as LoadOptions.forwardBufferSegments
-    /// (engine clamp 4...150 at 4 s/segment). nil = engine default (10 seg / ~40 s). Deeper buffers help slow
-    /// network mounts but trade away rewind depth on fast servers (shared 2 GiB budget).
+    /// (engine clamp 4...2700 at 4 s/segment). nil = engine default (10 seg / ~40 s). Deeper buffers help slow
+    /// network mounts but trade away rewind depth on fast servers (shared disk budget).
+    /// `unlimited` sends the engine's whole-source sentinel (AE#207): past 150 segments the engine bounds the
+    /// prefetch in bytes, not segments, running until it fills a quarter of the volume's free space and then
+    /// tracking the playhead, so it buffers as much of the title as safely fits.
     enum NetworkBufferDepth: String, CaseIterable, Sendable, Identifiable {
-        case system, oneMinute, fiveMinutes, maximum
+        case system, oneMinute, fiveMinutes, maximum, unlimited
         var id: String { rawValue }
         var titleKey: String { "settings.playback.buffer.\(rawValue)" }
         var forwardBufferSegments: Int? {
@@ -207,7 +210,8 @@ final class PlaybackPreferences {
             case .system:      return nil
             case .oneMinute:   return 15   // ~60 s
             case .fiveMinutes: return 75   // ~300 s
-            case .maximum:     return 150  // ~600 s, engine clamp ceiling
+            case .maximum:     return 150  // ~600 s
+            case .unlimited:   return Int.max   // AE#207 whole-source sentinel, engine clamps to 2700
             }
         }
     }

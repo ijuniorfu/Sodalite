@@ -15,13 +15,27 @@ struct NetworkBufferDepthTests {
         #expect(PlaybackPreferences.NetworkBufferDepth.maximum.forwardBufferSegments == 150)
     }
 
-    // Contract against AetherEngine AE#102: forwardWindow clamp is 4...150.
+    // AE#207: Int.max is the engine's contract for "buffer the entire source"; it clamps to 2700 and
+    // bounds the prefetch by the session disk budget instead of the segment count.
+    @Test func unlimitedRequestsTheWholeSource() {
+        #expect(PlaybackPreferences.NetworkBufferDepth.unlimited.forwardBufferSegments == Int.max)
+    }
+
+    // Contract against AetherEngine AE#102/AE#207: forwardWindow clamp is 4...2700, plus Int.max as
+    // the explicit whole-source request.
     @Test func allNonNilStagesWithinEngineClamp() {
         for depth in PlaybackPreferences.NetworkBufferDepth.allCases {
             if let seg = depth.forwardBufferSegments {
-                #expect(seg >= 4 && seg <= 150)
+                #expect(seg >= 4)
+                #expect(seg <= 2700 || seg == Int.max)
             }
         }
+    }
+
+    // The picker reads allCases, so the order is the user-visible ladder.
+    @Test func stagesAreOrderedByDepth() {
+        #expect(PlaybackPreferences.NetworkBufferDepth.allCases
+            == [.system, .oneMinute, .fiveMinutes, .maximum, .unlimited])
     }
 
     @Test func titleKeyFollowsConvention() {
@@ -42,5 +56,14 @@ struct NetworkBufferDepthTests {
         a.networkBufferDepth = .maximum
         let b = PlaybackPreferences(store: suite)
         #expect(b.networkBufferDepth == .maximum)
+    }
+
+    @Test func persistsUnlimitedAcrossInstances() {
+        let suite = UserDefaults(suiteName: "NetworkBufferDepthTests.unlimited")!
+        suite.removePersistentDomain(forName: "NetworkBufferDepthTests.unlimited")
+        let a = PlaybackPreferences(store: suite)
+        a.networkBufferDepth = .unlimited
+        let b = PlaybackPreferences(store: suite)
+        #expect(b.networkBufferDepth == .unlimited)
     }
 }
