@@ -67,6 +67,7 @@ struct ServerAddressEntryView: View {
                 .navigationDestination(isPresented: Bindable(vm).showLogin) {
                     if let server = vm.discoveredServer {
                         UserPickerView(server: server, addMode: addMode, onCompletion: onCompletion)
+                            .themedNavigationDestination()
                     }
                 }
             }

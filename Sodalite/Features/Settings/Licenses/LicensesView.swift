@@ -65,6 +65,7 @@ private struct ComponentRow: View {
         NavigationLink {
             LicenseDetailView(component: component)
                 .hidesShellTabBar()
+                .themedNavigationDestination()
         } label: {
             HStack(spacing: 28) {
                 Image(systemName: "doc.text")

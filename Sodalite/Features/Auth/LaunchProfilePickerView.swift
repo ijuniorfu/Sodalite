@@ -46,6 +46,7 @@ struct LaunchProfilePickerView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .navigationDestination(isPresented: $navigateToAddProfile) {
                 UserPickerView(server: server)
+                    .themedNavigationDestination()
             }
             .alert(
                 String(localized: "profile.switch.failed.title",

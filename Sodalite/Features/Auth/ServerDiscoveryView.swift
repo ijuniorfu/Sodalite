@@ -47,8 +47,10 @@ struct ServerDiscoveryView: View {
                 switch route {
                 case .login(let server):
                     UserPickerView(server: server, addMode: addMode, onCompletion: onCompletion)
+                        .themedNavigationDestination()
                 case .manual:
                     ServerAddressEntryView(addMode: addMode, onCompletion: onCompletion)
+                        .themedNavigationDestination()
                 }
             }
             .task {

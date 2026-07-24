@@ -52,6 +52,7 @@ struct UserPickerView: View {
                 addMode: addMode,
                 onCompletion: onCompletion
             )
+            .themedNavigationDestination()
         }
     }
 

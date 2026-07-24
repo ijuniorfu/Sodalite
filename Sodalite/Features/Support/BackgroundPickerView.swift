@@ -82,6 +82,7 @@ struct BackgroundPickerView: View {
         .navigationDestination(isPresented: $showSupport) {
             SupportDevelopmentView()
                 .hidesShellTabBar()
+                .themedNavigationDestination()
         }
     }
 

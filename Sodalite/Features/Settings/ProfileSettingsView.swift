@@ -40,6 +40,7 @@ struct ProfileSettingsView: View {
             if let server = appState.activeServer {
                 // UserPickerView shows public profiles with avatars, or falls back to manual sign-in if the list is disabled.
                 UserPickerView(server: server)
+                    .themedNavigationDestination()
             }
         }
         .alert(
@@ -398,4 +399,3 @@ private extension AuthPreferences.ProfileRepromptInterval {
         }
     }
 }
-

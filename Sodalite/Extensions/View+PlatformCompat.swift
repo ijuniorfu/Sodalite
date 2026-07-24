@@ -5,7 +5,7 @@ struct ThemeNavigationStack<Content: View>: View {
 
     var body: some View {
         NavigationStack {
-            content().clearsThemeNavigationBackground()
+            content().themedNavigationDestination()
         }
     }
 }
@@ -16,14 +16,14 @@ struct ThemeNavigationPathStack<Content: View>: View {
 
     var body: some View {
         NavigationStack(path: $path) {
-            content().clearsThemeNavigationBackground()
+            content().themedNavigationDestination()
         }
     }
 }
 
-private extension View {
+extension View {
     @ViewBuilder
-    func clearsThemeNavigationBackground() -> some View {
+    func themedNavigationDestination() -> some View {
         #if os(iOS)
         containerBackground(.clear, for: .navigation)
         #else

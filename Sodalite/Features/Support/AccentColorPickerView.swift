@@ -75,6 +75,7 @@ struct AccentColorPickerView: View {
         .navigationDestination(isPresented: $showSupport) {
             SupportDevelopmentView()
                 .hidesShellTabBar()
+                .themedNavigationDestination()
         }
     }
 

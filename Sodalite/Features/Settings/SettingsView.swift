@@ -368,6 +368,7 @@ struct SettingsTile<Destination: View>: View {
         NavigationLink {
             destination()
                 .hidesShellTabBar()
+                .themedNavigationDestination()
         } label: {
             HStack(spacing: 28) {
                 Image(systemName: icon)
@@ -424,7 +425,9 @@ struct GatedSettingsTile<Destination: View>: View {
         }
         .buttonStyle(SettingsTileButtonStyle())
         .navigationDestination(isPresented: $navigate) {
-            destination().hidesShellTabBar()
+            destination()
+                .hidesShellTabBar()
+                .themedNavigationDestination()
         }
     }
 

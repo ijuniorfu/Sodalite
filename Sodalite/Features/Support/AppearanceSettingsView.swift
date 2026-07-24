@@ -116,6 +116,7 @@ struct AppearanceSettingsView: View {
         VStack(spacing: 4) {
             NavigationLink {
                 AccentColorPickerView(initialCategory: appearance.accentChoice.category)
+                    .themedNavigationDestination()
             } label: {
                 AppearanceNavigationRow(
                     icon: "paintpalette.fill",
@@ -133,6 +134,7 @@ struct AppearanceSettingsView: View {
 
             NavigationLink {
                 BackgroundPickerView()
+                    .themedNavigationDestination()
             } label: {
                 AppearanceNavigationRow(
                     icon: "rectangle.inset.filled",

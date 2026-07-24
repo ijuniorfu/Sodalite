@@ -18,7 +18,50 @@ struct AppearanceSurfaceStructureTests {
         let source = try sourceFile("Sodalite/Extensions/View+PlatformCompat.swift")
         #expect(source.contains("struct ThemeNavigationPathStack"))
         #expect(source.contains("NavigationStack(path: $path)"))
+        #expect(source.contains("func themedNavigationDestination()"))
         #expect(source.contains("containerBackground(.clear, for: .navigation)"))
+    }
+
+    @Test("backdrop-less Settings pushes clear their destination hosts")
+    func settingsDestinationHosts() throws {
+        let expectedCounts = [
+            "Sodalite/Features/Settings/SettingsView.swift": 2,
+            "Sodalite/Features/Support/AppearanceSettingsView.swift": 2,
+            "Sodalite/Features/Settings/ProfileSettingsView.swift": 1,
+            "Sodalite/Features/Settings/Licenses/LicensesView.swift": 1,
+            "Sodalite/Features/Support/AccentColorPickerView.swift": 1,
+            "Sodalite/Features/Support/BackgroundPickerView.swift": 1
+        ]
+
+        for (path, expectedCount) in expectedCounts {
+            let source = try sourceFile(path)
+            #expect(
+                occurrenceCount(
+                    of: ".themedNavigationDestination()",
+                    in: source
+                ) == expectedCount
+            )
+        }
+    }
+
+    @Test("backdrop-less Auth pushes clear their destination hosts")
+    func authDestinationHosts() throws {
+        let expectedCounts = [
+            "Sodalite/Features/Auth/ServerDiscoveryView.swift": 2,
+            "Sodalite/Features/Auth/LaunchProfilePickerView.swift": 1,
+            "Sodalite/Features/Auth/ServerAddressEntryView.swift": 1,
+            "Sodalite/Features/Auth/UserPickerView.swift": 1
+        ]
+
+        for (path, expectedCount) in expectedCounts {
+            let source = try sourceFile(path)
+            #expect(
+                occurrenceCount(
+                    of: ".themedNavigationDestination()",
+                    in: source
+                ) == expectedCount
+            )
+        }
     }
 
     @Test("settings owns one presentation renderer and child pages inherit it")
@@ -131,5 +174,9 @@ struct AppearanceSurfaceStructureTests {
             contentsOf: repository.appendingPathComponent(relativePath),
             encoding: .utf8
         )
+    }
+
+    private func occurrenceCount(of needle: String, in source: String) -> Int {
+        source.components(separatedBy: needle).count - 1
     }
 }
