@@ -1,5 +1,20 @@
 import SwiftUI
 
+struct ThemeNavigationStack<Content: View>: View {
+    @ViewBuilder let content: () -> Content
+
+    var body: some View {
+        NavigationStack {
+            #if os(iOS)
+            content()
+                .containerBackground(.clear, for: .navigation)
+            #else
+            content()
+            #endif
+        }
+    }
+}
+
 // No-op-on-iOS shims for tvOS-only focus/command modifiers so shared views
 // compile Universal. On tvOS the real modifier applies; on iOS the equivalent
 // affordance comes from native touch navigation (back swipe / Now Playing remote)

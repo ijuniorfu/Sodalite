@@ -9,7 +9,7 @@ struct SearchView: View {
     @State private var selectedSeerrMedia: SeerrMedia?
 
     var body: some View {
-        NavigationStack {
+        ThemeNavigationStack {
             VStack(spacing: 0) {
                 searchBar
 

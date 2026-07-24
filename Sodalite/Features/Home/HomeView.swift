@@ -26,7 +26,7 @@ struct HomeView: View {
     private static let refreshStaleSeconds: TimeInterval = 60
 
     var body: some View {
-        NavigationStack {
+        ThemeNavigationStack {
             Group {
                 if let vm = viewModel {
                     if vm.isLoading {

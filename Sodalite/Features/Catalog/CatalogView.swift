@@ -15,7 +15,7 @@ struct CatalogView: View {
     }
 
     var body: some View {
-        NavigationStack {
+        ThemeNavigationStack {
             Group {
                 if !appState.isSeerrConnected {
                     notConnectedState

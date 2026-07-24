@@ -21,7 +21,7 @@ struct MusicHomeView: View {
 
     var body: some View {
         let metrics = LayoutMetrics.current(hSizeClass)
-        NavigationStack {
+        ThemeNavigationStack {
             ScrollView {
                 VStack(spacing: 0) {
                     if dependencies.musicPlaybackCoordinator.currentItem != nil {
