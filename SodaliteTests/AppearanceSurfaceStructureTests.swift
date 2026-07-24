@@ -94,6 +94,35 @@ struct AppearanceSurfaceStructureTests {
         #expect(source.contains(".themedPresentationBackground()"))
     }
 
+    @Test("What's New uses a themed presentation without fixed page black")
+    func whatsNewSurface() throws {
+        let router = try sourceFile("Sodalite/App/AppRouter.swift")
+        let whatsNew = try sourceFile("Sodalite/Features/Changelog/WhatsNewView.swift")
+        let cover = try #require(
+            router.components(
+                separatedBy: ".fullScreenCover(isPresented: $showWhatsNew)"
+            ).dropFirst().first
+        )
+        let coverBody = cover.components(
+            separatedBy: ".fullScreenCover(item: Binding("
+        ).first ?? cover
+
+        #expect(coverBody.contains("WhatsNewView(entry: entry)"))
+        #expect(coverBody.contains(".themedPresentationBackground()"))
+        #expect(!coverBody.contains(".pausesAppBackgroundMotion()"))
+        #expect(!whatsNew.contains("Color.black.opacity(0.96)"))
+    }
+
+    @Test("security surfaces remain deliberately dark")
+    func securitySurfaceExclusions() throws {
+        #expect(try sourceFile(
+            "Sodalite/Features/Settings/ParentalControls/PINEntryView.swift"
+        ).contains("Color.black.opacity(0.92).ignoresSafeArea()"))
+        #expect(try sourceFile(
+            "Sodalite/Features/Settings/ParentalControls/PINRecoveryView.swift"
+        ).contains("Color.black.opacity(0.95).ignoresSafeArea()"))
+    }
+
     private func sourceFile(_ relativePath: String) throws -> String {
         let repository = URL(fileURLWithPath: #filePath)
             .deletingLastPathComponent()

@@ -286,7 +286,7 @@ struct AppRouter: View {
                     ChangelogPreferences.markCurrentSeen()
                     showWhatsNew = false
                 }
-                .pausesAppBackgroundMotion()
+                .themedPresentationBackground()
             }
         }
         .fullScreenCover(item: Binding(

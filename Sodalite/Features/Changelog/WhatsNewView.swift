@@ -34,13 +34,10 @@ struct WhatsNewView: View {
             )
         )
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        // Near-opaque black so content behind the modal doesn't bleed through (0.85 was visibly translucent over the catalog grid).
-        .background(Color.black.opacity(0.96).ignoresSafeArea())
         // Pin the Got-it CTA to the bottom edge so it stays visible however tall the list grows.
         .safeAreaInset(edge: .bottom, spacing: 0) {
             dismissButton
                 .frame(maxWidth: .infinity)
-                .background(Color.black.opacity(0.96).ignoresSafeArea(edges: .bottom))
         }
         // Menu button on the Siri Remote also dismisses.
         .onExitCommandCompat { onDismiss() }
