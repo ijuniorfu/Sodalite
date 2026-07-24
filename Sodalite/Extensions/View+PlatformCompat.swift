@@ -5,13 +5,30 @@ struct ThemeNavigationStack<Content: View>: View {
 
     var body: some View {
         NavigationStack {
-            #if os(iOS)
-            content()
-                .containerBackground(.clear, for: .navigation)
-            #else
-            content()
-            #endif
+            content().clearsThemeNavigationBackground()
         }
+    }
+}
+
+struct ThemeNavigationPathStack<Content: View>: View {
+    @Binding var path: NavigationPath
+    @ViewBuilder let content: () -> Content
+
+    var body: some View {
+        NavigationStack(path: $path) {
+            content().clearsThemeNavigationBackground()
+        }
+    }
+}
+
+private extension View {
+    @ViewBuilder
+    func clearsThemeNavigationBackground() -> some View {
+        #if os(iOS)
+        containerBackground(.clear, for: .navigation)
+        #else
+        self
+        #endif
     }
 }
 

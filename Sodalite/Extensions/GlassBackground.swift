@@ -29,6 +29,62 @@ extension View {
     func themedStaticBackground(pausesMotion: Bool = true) -> some View {
         modifier(ThemedStaticBackgroundModifier(pausesMotion: pausesMotion))
     }
+
+    func themedRootBackground() -> some View {
+        modifier(ThemedRootBackgroundModifier())
+    }
+
+    func themedPresentationBackground() -> some View {
+        modifier(ThemedPresentationBackgroundModifier())
+    }
+}
+
+private struct IsolatedThemedSurface<Content: View>: View {
+    let theme: ResolvedAppearanceTheme
+    let depth: Int
+    @ViewBuilder let content: () -> Content
+
+    var body: some View {
+        ZStack {
+            Color.black.ignoresSafeArea()
+            AppBackgroundView(theme: theme, mode: .automatic)
+            content()
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .environment(\.backgroundSurfaceDepth, depth)
+    }
+}
+
+private struct ThemedRootBackgroundModifier: ViewModifier {
+    @Environment(\.appearanceTheme) private var theme
+    @Environment(\.backgroundSurfaceDepth) private var depth
+
+    func body(content: Content) -> some View {
+        IsolatedThemedSurface(theme: theme, depth: depth) {
+            content
+        }
+    }
+}
+
+private struct ThemedPresentationBackgroundModifier: ViewModifier {
+    @Environment(\.appearanceTheme) private var theme
+    @Environment(\.backgroundSurfaceDepth) private var parentDepth
+
+    @ViewBuilder
+    func body(content: Content) -> some View {
+        let surface = IsolatedThemedSurface(
+            theme: theme,
+            depth: parentDepth + 1
+        ) {
+            content
+        }
+
+        #if os(iOS)
+        surface.presentationBackground(.clear)
+        #else
+        surface
+        #endif
+    }
 }
 
 private struct ThemedStaticBackgroundModifier: ViewModifier {
