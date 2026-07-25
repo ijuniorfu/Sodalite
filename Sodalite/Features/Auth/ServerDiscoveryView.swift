@@ -14,8 +14,8 @@ struct ServerDiscoveryView: View {
         case manual
     }
 
-    private enum CloudLoadState {
-        case idle, loading, nothingFound, noAccount
+    private enum CloudLoadState: Equatable {
+        case idle, loading, nothingFound, noAccount, failed(String?)
     }
 
     var body: some View {
@@ -169,6 +169,11 @@ struct ServerDiscoveryView: View {
                 Text("settings.cloudSync.status.noAccount")
                     .font(.caption)
                     .foregroundStyle(.secondary)
+            case .failed(let message):
+                Text(failureText(message))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
             case .idle, .loading:
                 EmptyView()
             }
@@ -176,22 +181,28 @@ struct ServerDiscoveryView: View {
         .padding(.top, 4)
     }
 
+    private func failureText(_ message: String?) -> String {
+        guard let message, !message.isEmpty else {
+            return String(localized: "cloudSync.discovery.failed", defaultValue: "Could not load from iCloud")
+        }
+        return String(
+            format: String(localized: "cloudSync.discovery.failed %@", defaultValue: "Could not load from iCloud: %@"),
+            message
+        )
+    }
+
     private func loadFromCloud() {
         guard let cloudSync = dependencies.cloudSync else { return }
         cloudLoadState = .loading
         Task {
-            await cloudSync.fetchNow()
-            await cloudSync.waitForInitialSync(timeout: 8)
-            // If data arrived, AppRouter's .cloudSyncDidApplyChanges restore flips
-            // the screen away; reaching here with servers still empty means no data.
-            if dependencies.listKnownServers().isEmpty {
-                if case .noAccount = cloudSync.status {
-                    cloudLoadState = .noAccount
-                } else {
-                    cloudLoadState = .nothingFound
-                }
-            } else {
-                cloudLoadState = .idle
+            // Reports the real outcome: a fetch that failed, an account that is signed
+            // out, and an actually empty zone are three different answers. If data
+            // arrived, AppRouter's .cloudSyncDidApplyChanges restore flips the screen.
+            switch await cloudSync.loadFromCloud() {
+            case .loaded: cloudLoadState = .idle
+            case .empty: cloudLoadState = .nothingFound
+            case .noAccount: cloudLoadState = .noAccount
+            case .failed(let message): cloudLoadState = .failed(message)
             }
         }
     }

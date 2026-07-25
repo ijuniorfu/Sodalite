@@ -7,6 +7,7 @@ struct CloudSyncSettingsView: View {
     @Environment(\.dependencies) private var dependencies
 
     @State private var isEnabled = true
+    @State private var isPulling = false
     @State private var confirmPush = false
     @State private var confirmDelete = false
 
@@ -46,6 +47,19 @@ struct CloudSyncSettingsView: View {
                     subtitle: "settings.cloudSync.push.subtitle",
                     disabled: !isEnabled
                 ) { confirmPush = true }
+
+                actionRow(
+                    icon: "arrow.down.to.line",
+                    title: "settings.cloudSync.pull.title",
+                    subtitle: "settings.cloudSync.pull.subtitle",
+                    disabled: !isEnabled || isPulling
+                ) {
+                    isPulling = true
+                    Task {
+                        _ = await dependencies.cloudSync?.loadFromCloud()
+                        isPulling = false
+                    }
+                }
 
                 actionRow(
                     icon: "trash",
