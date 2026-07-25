@@ -399,7 +399,7 @@ struct PlayerTouchControls: View {
             return viewModel.displayAudioTracks.map { track in
                 PickerRow(label: TrackDisplayFormatter.audioDisplayName(for: track),
                           isActive: track.id == viewModel.activeAudioIndex) {
-                    viewModel.selectAudioTrack(id: track.id)
+                    viewModel.selectAudioTrack(id: track.id, userInitiated: true)
                 }
             }
         case .subtitle:
@@ -420,13 +420,13 @@ struct PlayerTouchControls: View {
             }
             rows.append(PickerRow(label: String(localized: "player.subtitles.off", defaultValue: "Off"),
                                   isActive: viewModel.activeSubtitleIndex == nil) {
-                viewModel.selectSubtitleTrack(id: nil)
+                viewModel.selectSubtitleTrack(id: nil, userInitiated: true)
             })
             rows += viewModel.displaySubtitleStreams.map { stream in
                 PickerRow(label: TrackDisplayFormatter.subtitleStreamDisplayName(for: stream),
                           isActive: stream.index == viewModel.activeSubtitleIndex,
                           deleteStreamIndex: stream.isExternal == true ? stream.index : nil) {
-                    viewModel.selectSubtitleTrack(id: stream.index)
+                    viewModel.selectSubtitleTrack(id: stream.index, userInitiated: true)
                 }
             }
             if viewModel.supportsSubtitleSearch {

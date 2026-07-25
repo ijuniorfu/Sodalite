@@ -150,7 +150,7 @@ extension PlayerViewModel {
             subtitleSearchFocus = .retry
             return
         }
-        selectSubtitleTrack(id: applied.index)
+        selectSubtitleTrack(id: applied.index, userInitiated: true)
         dismissSubtitleSearch()
         scheduleControlsHide()
     }

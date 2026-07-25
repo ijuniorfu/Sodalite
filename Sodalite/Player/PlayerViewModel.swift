@@ -1437,7 +1437,11 @@ final class PlayerViewModel {
         Task { [weak self] in await self?.player.seek(to: target) }
     }
 
-    func selectAudioTrack(id: Int) {
+    func selectAudioTrack(id: Int, userInitiated: Bool = false) {
+        if userInitiated, let key = memoryScopeKey,
+           let track = player.audioTracks.first(where: { $0.id == id }) {
+            trackMemory?.recordAudio(TrackSelectionMatcher.audioSignature(track), for: key)
+        }
         // No optimistic `activeAudioIndex = id`: the $activeAudioTrackIndex sink updates the picker once
         // the engine settles, else it claims the switch happened while the pipeline is still mid-reload.
         player.selectAudioTrack(index: id)
@@ -1821,12 +1825,20 @@ final class PlayerViewModel {
         player.setRate(Self.speedOptions[clamped])
     }
 
-    func selectSubtitleTrack(id: Int?) {
+    func selectSubtitleTrack(id: Int?, userInitiated: Bool = false) {
         // #32: the active subtitle changed, so the native rendition selection is stale; re-select on the next
         // PiP/external-display entry (also hides any currently-shown native track so it can't linger from a
         // prior pick).
         resetNativeSubtitleRenderingState()
         setNativeSubtitleRenditionVisible(false)
+        // Sodalite#46: only the user's own pick is remembered. Recording an automatic one
+        // would bake it in and make later changes to the language settings ineffective.
+        if userInitiated, let key = memoryScopeKey {
+            let remembered: RememberedSubtitle = id
+                .flatMap { streamID in subtitleStreams.first(where: { $0.index == streamID }) }
+                .map { .track(TrackSelectionMatcher.subtitleSignature($0)) } ?? .off
+            trackMemory?.recordSubtitle(remembered, for: key)
+        }
         // Cancel any in-flight transcode-path load so a slow earlier extraction can't overwrite the
         // cues for the track the user just selected (or disabled).
         subtitleLoadTask?.cancel()
@@ -2251,7 +2263,7 @@ final class PlayerViewModel {
             Task { await selectEpisode(at: idx) }
         case .audio(let idx):
             let tracks = displayAudioTracks
-            if idx < tracks.count { selectAudioTrack(id: tracks[idx].id) }
+            if idx < tracks.count { selectAudioTrack(id: tracks[idx].id, userInitiated: true) }
             trackDropdown = .none
             scheduleControlsHide()
         case .subtitle(let idx):
@@ -2259,7 +2271,7 @@ final class PlayerViewModel {
             if idx == 0 {
                 trackDropdown = .secondarySubtitle(highlighted: 0)
             } else if idx == 1 {
-                selectSubtitleTrack(id: nil)
+                selectSubtitleTrack(id: nil, userInitiated: true)
                 trackDropdown = .none
                 scheduleControlsHide()
             } else if idx == streams.count + 2 {
@@ -2267,7 +2279,9 @@ final class PlayerViewModel {
                 presentSubtitleSearch()
             } else {
                 let streamIdx = idx - 2
-                if streamIdx < streams.count { selectSubtitleTrack(id: streams[streamIdx].index) }
+                if streamIdx < streams.count {
+                    selectSubtitleTrack(id: streams[streamIdx].index, userInitiated: true)
+                }
                 trackDropdown = .none
                 scheduleControlsHide()
             }
