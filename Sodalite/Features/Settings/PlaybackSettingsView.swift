@@ -130,6 +130,16 @@ struct PlaybackSettingsView: View {
                     )
                 )
 
+                boolRow(
+                    icon: "bookmark",
+                    title: "settings.playback.rememberTracks",
+                    subtitle: "settings.playback.rememberTracks.subtitle",
+                    value: Binding(
+                        get: { prefs.rememberTrackSelections },
+                        set: { prefs.rememberTrackSelections = $0 }
+                    )
+                )
+
                 sectionHeader("settings.playback.section.subtitleStyle")
 
                 boolRow(
