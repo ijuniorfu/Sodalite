@@ -7,7 +7,14 @@ final class DependencyContainer {
     /// Single instance (App `@State` + `@Environment` default both resolve here). A second container spawns a zombie MusicPlaybackCoordinator that clears system Now-Playing on every engine state change.
     static let shared = DependencyContainer()
 
-    @MainActor static let playerEngine: AetherEngine = try! AetherEngine()
+    @MainActor static let playerEngine: AetherEngine = {
+        let engine = try! AetherEngine()
+        // AetherEngine #215: nothing in this app plays audio outside the engine, so the engine may release
+        // the shared AVAudioSession when playback ends. Without it, an E-AC-3/Atmos bitstream-passthrough
+        // route leaves the HDMI sink looping the last MAT frame after the player is gone.
+        engine.deactivatesAudioSessionOnStop = true
+        return engine
+    }()
     let keychainService: KeychainServiceProtocol
     let httpClient: HTTPClientProtocol
     let jellyfinClient: JellyfinClient
