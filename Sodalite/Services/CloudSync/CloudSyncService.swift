@@ -10,12 +10,34 @@ enum CloudSyncStatus: Equatable {
     case error(String)
 }
 
+/// What a manual "load from iCloud" attempt amounted to. Distinguishing these is
+/// the point: reporting every outcome as "nothing in iCloud" hides broken fetches.
+enum CloudSyncLoadOutcome: Equatable {
+    case loaded
+    case empty
+    case noAccount
+    /// Carries CloudKit's message when there was one; nil when the engine never
+    /// got far enough to produce one (sync still disabled).
+    case failed(String?)
+
+    static func resolve(status: CloudSyncStatus, hasServers: Bool) -> CloudSyncLoadOutcome {
+        if hasServers { return .loaded }
+        switch status {
+        case .noAccount: return .noAccount
+        case .error(let message): return .failed(message)
+        case .disabled: return .failed(nil)
+        case .active, .syncing: return .empty
+        }
+    }
+}
+
 protocol CloudSyncServiceProtocol: AnyObject {
     var status: CloudSyncStatus { get }
     var isEnabled: Bool { get }
     func start()
     func setEnabled(_ enabled: Bool)
     func fetchNow() async
+    func loadFromCloud() async -> CloudSyncLoadOutcome
     func waitForInitialSync(timeout: TimeInterval) async
     func markServerDirty(serverID: String)
     func markServerDeleted(serverID: String)
@@ -43,6 +65,9 @@ final class CloudSyncService: CloudSyncServiceProtocol {
     let preferences: CloudSyncPreferences
     private var engine: CKSyncEngine?
     private var startInFlight = false
+    /// The in-flight (or last) engine start, so callers that need a live engine can
+    /// await it instead of no-opping while it is still coming up.
+    private var startTask: Task<Void, Never>?
     private var debounceTasks: [CloudSyncStoreKey: Task<Void, Never>] = [:]
     /// Last snapshot uploaded or applied per store, to skip observation echoes.
     private var lastSettingsSnapshot: [CloudSyncStoreKey: SettingsSyncPayload] = [:]
@@ -69,7 +94,7 @@ final class CloudSyncService: CloudSyncServiceProtocol {
         observeAccountChanges()
         observeSettingsStores()
         observeHomeConfigChanges()
-        Task { await startEngine() }
+        startTask = Task { await startEngine() }
     }
 
     func setEnabled(_ enabled: Bool) {
@@ -197,11 +222,43 @@ final class CloudSyncService: CloudSyncServiceProtocol {
         if engine == nil {
             // A failed or skipped start (offline launch, signed-out account) must be
             // retryable in-session; foregrounding is the natural retry point.
-            if preferences.isEnabled, !startInFlight { start() }
-            return
+            guard preferences.isEnabled else { return }
+            if !startInFlight { start() }
+            // The engine only exists after two CloudKit round trips (account status,
+            // user record), so a cold-launch foreground always arrives before it.
+            // Awaiting the start is what makes that first fetch happen at all:
+            // startEngine itself only fetches while adoption is still pending, and
+            // without a fetch here a device that finished adoption would receive
+            // remote changes solely from silent pushes.
+            await startTask?.value
         }
         guard let engine else { return }
-        try? await engine.fetchChanges()
+        do {
+            try await engine.fetchChanges()
+        } catch {
+            LogTap.shared.note("[CloudSync] fetch failed: \(error)")
+        }
+    }
+
+    /// Manual load from the discovery screen. A full logout leaves sync disabled,
+    /// so this has to re-enable it (the tap is the explicit user consent) before any
+    /// fetch can land, then report what actually happened rather than assuming an
+    /// empty zone. Deliberately unbounded: CloudKit's own timeouts surface as a real
+    /// error, which beats calling a slow network "no data in iCloud".
+    func loadFromCloud() async -> CloudSyncLoadOutcome {
+        if !preferences.isEnabled { setEnabled(true) }
+        // Same in-flight signal the manual push uses, so the settings status row shows
+        // the tap did something. Only over a healthy state: a real error or a missing
+        // account must stay visible.
+        if case .active = status { status = .syncing }
+        await fetchNow()
+        // A fetch that changed nothing never posts .fetchedRecordZoneChanges, so settle
+        // the transient state here instead of leaving it stuck on "Syncing…".
+        if case .syncing = status { status = .active(lastSyncAt: preferences.lastSyncAt) }
+        return CloudSyncLoadOutcome.resolve(
+            status: status,
+            hasServers: !dependencies.listKnownServers().isEmpty
+        )
     }
 
     // MARK: Dirty marking (called from DependencyContainer mutation hooks)
@@ -420,8 +477,14 @@ final class CloudSyncService: CloudSyncServiceProtocol {
         // A record we are about to delete (or have queued a delete for while the
         // engine was unavailable) must not resurrect locally via the adoption fetch.
         guard !recentLocalDeletes.contains(record.recordID.recordName) else { return }
-        guard let data = record.encryptedValues[Self.payloadKey] as? Data else { return }
         let name = record.recordID.recordName
+        guard let data = record.encryptedValues[Self.payloadKey] as? Data else {
+            // Reachable when CloudKit cannot decrypt the field for this device (no
+            // iCloud Keychain, so no zone key). Silence here looks exactly like an
+            // empty zone from the outside, so say it.
+            LogTap.shared.note("[CloudSync] no readable payload on \(name), record skipped")
+            return
+        }
         preferences.setSystemFields(Self.encodeSystemFields(record), for: name)
         let adopting = !preferences.adoptionCompleted
 

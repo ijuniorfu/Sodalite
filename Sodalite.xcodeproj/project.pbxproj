@@ -518,6 +518,7 @@
 		CD411C46A7BEE41CD81E0C39 /* CloudSyncPreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = 306295C10371A4A926588650 /* CloudSyncPreferences.swift */; };
 		CD452D30CACB03AFE784063C /* TVProfileMappings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 206185A89433535F64E95035 /* TVProfileMappings.swift */; };
 		CD73E798237BEF03F717BFC1 /* AccentColorPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 367B00A12CB554D4C5961786 /* AccentColorPickerView.swift */; };
+		CEC7DC2F00B0534E9E139047 /* CloudSyncLoadOutcomeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9CD46B60AB2991E263AF7F48 /* CloudSyncLoadOutcomeTests.swift */; };
 		CEE4F399F4267AB60982F85B /* PlayerOrientation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65078FEBC5D0CDB0C24799C4 /* PlayerOrientation.swift */; };
 		CF4EC28EDB43B31A93892C1A /* BackgroundPickerLayoutTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 588112BFC0A31A2AA0D4CD08 /* BackgroundPickerLayoutTests.swift */; };
 		CF8ED7254A05D0364D2774DB /* JellyfinAuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 477BA4C25F579EBD37469D21 /* JellyfinAuthService.swift */; };
@@ -909,6 +910,7 @@
 		9BD1784CA145F8A51ADEF045 /* PlayerViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerViewModel.swift; sourceTree = "<group>"; };
 		9C81387341EF393A20422D1A /* ProfilePickerOrderingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfilePickerOrderingTests.swift; sourceTree = "<group>"; };
 		9CB5764AB40106CA965930C0 /* PlayerViewModel+SessionReporting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PlayerViewModel+SessionReporting.swift"; sourceTree = "<group>"; };
+		9CD46B60AB2991E263AF7F48 /* CloudSyncLoadOutcomeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudSyncLoadOutcomeTests.swift; sourceTree = "<group>"; };
 		9E1AC7926A5BACFAFA70305D /* CatalogProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CatalogProvider.swift; sourceTree = "<group>"; };
 		9E53795954AE52383DBA19D4 /* DependencyContainer+Routes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DependencyContainer+Routes.swift"; sourceTree = "<group>"; };
 		9EB11FC05D955CAA82390899 /* SearchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchView.swift; sourceTree = "<group>"; };
@@ -1199,6 +1201,7 @@
 				588112BFC0A31A2AA0D4CD08 /* BackgroundPickerLayoutTests.swift */,
 				34D645BDAC050F8D2C30C5A3 /* BackgroundRendererMotionTests.swift */,
 				55F3667ADD69A9E32E9CF83B /* BufferedProgressTests.swift */,
+				9CD46B60AB2991E263AF7F48 /* CloudSyncLoadOutcomeTests.swift */,
 				FED4924C59BA61D242DD445D /* CloudSyncLocalStoreTests.swift */,
 				F0AC027922382F10B2A84DD1 /* CloudSyncMergeTests.swift */,
 				15D7F74A9A6EF41AB0AAD09C /* CloudSyncPayloadsTests.swift */,
@@ -2315,6 +2318,7 @@
 				CF4EC28EDB43B31A93892C1A /* BackgroundPickerLayoutTests.swift in Sources */,
 				28F6E65D5A04655537B7A03B /* BackgroundRendererMotionTests.swift in Sources */,
 				4C1CFA98092A985FCF100E60 /* BufferedProgressTests.swift in Sources */,
+				CEC7DC2F00B0534E9E139047 /* CloudSyncLoadOutcomeTests.swift in Sources */,
 				1FADF4FA7B03398CB589B083 /* CloudSyncLocalStoreTests.swift in Sources */,
 				1FBE20CC3C28F935D90A7FCE /* CloudSyncMergeTests.swift in Sources */,
 				545BB21DEEC05B0CCA7EE9CD /* CloudSyncPayloadsTests.swift in Sources */,
@@ -2726,7 +2730,6 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = SupportingFiles/Info.plist;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.entertainment";
-				INFOPLIST_KEY_UIBackgroundModes = "remote-notification";
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
@@ -2756,7 +2759,6 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = SupportingFiles/Info.plist;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.entertainment";
-				INFOPLIST_KEY_UIBackgroundModes = audio;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -2858,7 +2860,6 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = SupportingFiles/Info.plist;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.entertainment";
-				INFOPLIST_KEY_UIBackgroundModes = audio;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -2902,7 +2903,6 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = SupportingFiles/Info.plist;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.entertainment";
-				INFOPLIST_KEY_UIBackgroundModes = "remote-notification";
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";

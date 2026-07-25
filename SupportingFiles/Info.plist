@@ -13,10 +13,17 @@
 	<string>Sodalite reaches Jellyfin and AetherEngine media servers on your local network. Required for direct play of media from a server in your home.</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
+	<!-- Shared by both app targets; this file wins over any INFOPLIST_KEY_UIBackgroundModes.
+	     audio: tvOS otherwise kills the audio session on backgrounding and pauses playback
+	     the moment the user leaves the app, even with a live PiP window.
+	     remote-notification: CKSyncEngine receives remote changes through silent CloudKit
+	     pushes; without this mode they are never delivered and cloud sync only ever fetches
+	     when the app foregrounds. -->
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>audio</string>
 		<string>fetch</string>
+		<string>remote-notification</string>
 	</array>
 	<key>BGTaskSchedulerPermittedIdentifiers</key>
 	<array>
