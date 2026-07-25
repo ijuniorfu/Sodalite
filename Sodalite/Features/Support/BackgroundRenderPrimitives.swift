@@ -25,7 +25,7 @@ extension Array where Element == SoftGradientStop {
 /// Shared noise tile. Cinema Noir uses it as visible film grain, Accent
 /// Aurora as a dither that breaks up 8 bit banding in its wide gradients.
 enum BackgroundGrain {
-    static let filmOpacity: Double = 0.08
+    static let filmOpacity: Double = 0.045
     static let ditherOpacity: Double = 0.03
 
     static let image: UIImage = {

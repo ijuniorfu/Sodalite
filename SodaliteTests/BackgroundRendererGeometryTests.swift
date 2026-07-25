@@ -73,6 +73,7 @@ struct BackgroundRendererGeometryTests {
         #expect(BackgroundGrain.ditherOpacity >= 0.02)
         #expect(BackgroundGrain.ditherOpacity <= 0.04)
         #expect(BackgroundGrain.filmOpacity > BackgroundGrain.ditherOpacity)
+        #expect(BackgroundGrain.filmOpacity <= 0.05)
     }
 
     @Test("aurora shapes its glows as gradients instead of blurring offscreen")
