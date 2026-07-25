@@ -1,0 +1,65 @@
+import SwiftUI
+import UIKit
+
+/// A gradient stop expressed as opacity over a single tint, so the falloff
+/// can be reasoned about and tested without materialising a `Color`.
+struct SoftGradientStop: Equatable {
+    let opacity: Double
+    let location: Double
+}
+
+extension Array where Element == SoftGradientStop {
+    func gradientStops(
+        _ color: Color,
+        intensity: Double = 1
+    ) -> [Gradient.Stop] {
+        map {
+            Gradient.Stop(
+                color: color.opacity($0.opacity * intensity),
+                location: $0.location
+            )
+        }
+    }
+}
+
+/// Shared noise tile. Cinema Noir uses it as visible film grain, Accent
+/// Aurora as a dither that breaks up 8 bit banding in its wide gradients.
+enum BackgroundGrain {
+    static let filmOpacity: Double = 0.08
+    static let ditherOpacity: Double = 0.03
+
+    static let image: UIImage = {
+        var seed: UInt64 = 0x534F44414C495445
+        func next() -> UInt8 {
+            seed = 6364136223846793005 &* seed &+ 1442695040888963407
+            return UInt8(truncatingIfNeeded: seed >> 40)
+        }
+        return UIGraphicsImageRenderer(size: CGSize(width: 96, height: 96)).image { context in
+            let cg = context.cgContext
+            for y in 0..<96 {
+                for x in 0..<96 {
+                    let value = CGFloat(next()) / 255
+                    cg.setFillColor(UIColor(white: value, alpha: 1).cgColor)
+                    cg.fill(CGRect(x: x, y: y, width: 1, height: 1))
+                }
+            }
+        }
+    }()
+}
+
+/// Always compose this above every other layer. Dithering only helps when it
+/// is applied after the last compositing step that can quantise a gradient.
+struct BackgroundGrainLayer: View {
+    let opacity: Double
+    var scale: CGFloat = 1
+    var offset: CGSize = .zero
+
+    var body: some View {
+        Rectangle()
+            .fill(ImagePaint(image: Image(uiImage: BackgroundGrain.image), scale: 1))
+            .scaleEffect(scale)
+            .offset(x: offset.width, y: offset.height)
+            .opacity(opacity)
+            .allowsHitTesting(false)
+    }
+}

@@ -34,6 +34,36 @@ enum AccentAuroraMotion {
     }
 }
 
+enum AccentAuroraGlow {
+    /// Peak opacities already include the dimming that used to sit in a
+    /// separate black overlay. One compositing step less means one 8 bit
+    /// quantisation step less, which is where the banding came from.
+    static let primaryIntensity: Double = 0.24
+    static let secondaryIntensity: Double = 0.175
+
+    static let primaryDiameterFraction: CGFloat = 1.02
+    static let secondaryDiameterFraction: CGFloat = 0.88
+
+    /// Normalised falloff, shaped to match the reach of the offscreen blur it
+    /// replaces without rasterising an intermediate layer.
+    static let profile: [SoftGradientStop] = [
+        SoftGradientStop(opacity: 1, location: 0),
+        SoftGradientStop(opacity: 0.92, location: 0.18),
+        SoftGradientStop(opacity: 0.72, location: 0.38),
+        SoftGradientStop(opacity: 0.44, location: 0.58),
+        SoftGradientStop(opacity: 0.19, location: 0.76),
+        SoftGradientStop(opacity: 0.05, location: 0.90),
+        SoftGradientStop(opacity: 0, location: 1)
+    ]
+
+    static func stops(
+        for color: Color,
+        intensity: Double
+    ) -> [Gradient.Stop] {
+        profile.gradientStops(color, intensity: intensity)
+    }
+}
+
 struct AccentAuroraBackground: View {
     let accent: Color
     let isAnimating: Bool
@@ -46,26 +76,27 @@ struct AccentAuroraBackground: View {
             let motion = AccentAuroraMotion.sample(at: time)
             GeometryReader { proxy in
                 let size = proxy.size
+                let span = max(size.width, size.height)
                 ZStack {
                     Color.black
                     glow(
-                        color: accent,
-                        diameter: max(size.width, size.height) * 0.72,
+                        intensity: AccentAuroraGlow.primaryIntensity,
+                        diameter: span * AccentAuroraGlow.primaryDiameterFraction,
                         x: size.width * motion.primaryX,
                         y: size.height * motion.primaryY
                     )
                     glow(
-                        color: accent.opacity(0.72),
-                        diameter: max(size.width, size.height) * 0.62,
+                        intensity: AccentAuroraGlow.secondaryIntensity,
+                        diameter: span * AccentAuroraGlow.secondaryDiameterFraction,
                         x: size.width * motion.secondaryX,
                         y: size.height * motion.secondaryY
                     )
-                    Color.black.opacity(0.42)
                     LinearGradient(
                         colors: [.black.opacity(0.28), .clear, .black.opacity(0.34)],
                         startPoint: .top,
                         endPoint: .bottom
                     )
+                    BackgroundGrainLayer(opacity: BackgroundGrain.ditherOpacity)
                 }
                 .clipped()
             }
@@ -74,15 +105,19 @@ struct AccentAuroraBackground: View {
     }
 
     private func glow(
-        color: Color,
+        intensity: Double,
         diameter: CGFloat,
         x: CGFloat,
         y: CGFloat
     ) -> some View {
         Circle()
-            .fill(color.opacity(0.42))
+            .fill(RadialGradient(
+                stops: AccentAuroraGlow.stops(for: accent, intensity: intensity),
+                center: .center,
+                startRadius: 0,
+                endRadius: diameter / 2
+            ))
             .frame(width: diameter, height: diameter)
-            .blur(radius: diameter * 0.22)
             .position(x: x, y: y)
     }
 }

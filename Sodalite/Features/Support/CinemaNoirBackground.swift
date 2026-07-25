@@ -1,5 +1,4 @@
 import SwiftUI
-import UIKit
 
 enum CinemaNoirMotion {
     static let lightDuration: TimeInterval = 18
@@ -31,6 +30,36 @@ enum CinemaNoirMotion {
     }
 }
 
+enum CinemaNoirLightBeam {
+    static let angleDegrees: CGFloat = -7
+    static let widthFraction: CGFloat = 0.72
+
+    /// The beam is rotated, so a canvas sized sheet drags its own top and
+    /// bottom edges into frame. Sizing it past the diagonal keeps every edge
+    /// outside the visible area at any travel offset.
+    static let heightFactor: CGFloat = 1.6
+
+    static let tint = Color(red: 1, green: 0.88, blue: 0.70)
+
+    static let profile: [SoftGradientStop] = [
+        SoftGradientStop(opacity: 0, location: 0),
+        SoftGradientStop(opacity: 0.03, location: 0.24),
+        SoftGradientStop(opacity: 0.09, location: 0.38),
+        SoftGradientStop(opacity: 0.12, location: 0.5),
+        SoftGradientStop(opacity: 0.09, location: 0.62),
+        SoftGradientStop(opacity: 0.03, location: 0.76),
+        SoftGradientStop(opacity: 0, location: 1)
+    ]
+
+    static func height(for size: CGSize) -> CGFloat {
+        hypot(size.width, size.height) * heightFactor
+    }
+
+    static func stops() -> [Gradient.Stop] {
+        profile.gradientStops(tint)
+    }
+}
+
 struct CinemaNoirBackground: View {
     let isAnimating: Bool
 
@@ -49,44 +78,30 @@ struct CinemaNoirBackground: View {
                         endRadius: max(proxy.size.width, proxy.size.height) * 0.82
                     )
                     Rectangle()
-                        .fill(ImagePaint(image: Image(uiImage: Self.grain), scale: 1))
-                        .scaleEffect(1.08)
-                        .offset(
-                            x: motion.grainOffsetX,
-                            y: motion.grainOffsetY
-                        )
-                        .opacity(0.08)
-                    Rectangle()
                         .fill(LinearGradient(
-                            colors: [.clear, Color(red: 1, green: 0.88, blue: 0.70).opacity(0.12), .clear],
+                            stops: CinemaNoirLightBeam.stops(),
                             startPoint: .leading,
                             endPoint: .trailing
                         ))
-                        .frame(width: proxy.size.width * 0.72)
-                        .rotationEffect(.degrees(-7))
+                        .frame(
+                            width: proxy.size.width * CinemaNoirLightBeam.widthFraction,
+                            height: CinemaNoirLightBeam.height(for: proxy.size)
+                        )
+                        .rotationEffect(.degrees(CinemaNoirLightBeam.angleDegrees))
                         .offset(x: motion.lightOffsetX * proxy.size.width)
                     Color.black.opacity(0.28)
+                    BackgroundGrainLayer(
+                        opacity: BackgroundGrain.filmOpacity,
+                        scale: 1.08,
+                        offset: CGSize(
+                            width: motion.grainOffsetX,
+                            height: motion.grainOffsetY
+                        )
+                    )
                 }
+                .clipped()
             }
             .ignoresSafeArea()
         }
     }
-
-    private static let grain: UIImage = {
-        var seed: UInt64 = 0x534F44414C495445
-        func next() -> UInt8 {
-            seed = 6364136223846793005 &* seed &+ 1442695040888963407
-            return UInt8(truncatingIfNeeded: seed >> 40)
-        }
-        return UIGraphicsImageRenderer(size: CGSize(width: 96, height: 96)).image { context in
-            let cg = context.cgContext
-            for y in 0..<96 {
-                for x in 0..<96 {
-                    let value = CGFloat(next()) / 255
-                    cg.setFillColor(UIColor(white: value, alpha: 1).cgColor)
-                    cg.fill(CGRect(x: x, y: y, width: 1, height: 1))
-                }
-            }
-        }
-    }()
 }
