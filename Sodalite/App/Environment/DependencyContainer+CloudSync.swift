@@ -150,7 +150,8 @@ extension DependencyContainer {
                 showScrubPreview: p.showScrubPreview,
                 preferServerTrickplay: p.preferServerTrickplay,
                 playerRotationLocked: p.playerRotationLocked,
-                networkBufferDepth: p.networkBufferDepth.rawValue
+                networkBufferDepth: p.networkBufferDepth.rawValue,
+                rememberTrackSelections: p.rememberTrackSelections
             ))
         case .appearance:
             let a = appearancePreferences
@@ -179,6 +180,11 @@ extension DependencyContainer {
             return .parentalControls(ParentalControlsSettingsPayload(
                 updatedAt: stamp,
                 protectedProfileIDs: parentalControlsPreferences.protectedProfileIDs.sorted()
+            ))
+        case .trackMemory:
+            return .trackMemory(TrackMemoryPayload(
+                updatedAt: stamp,
+                entries: trackSelectionMemory.entries
             ))
         }
     }
@@ -213,8 +219,13 @@ extension DependencyContainer {
             store.preferLosslessAudioBridge = p.preferLosslessAudioBridge
             store.showScrubPreview = p.showScrubPreview
             store.preferServerTrickplay = p.preferServerTrickplay
-            store.playerRotationLocked = p.playerRotationLocked
-            store.networkBufferDepth = PlaybackPreferences.NetworkBufferDepth(rawValue: p.networkBufferDepth) ?? store.networkBufferDepth
+            // Absent on payloads from builds before these fields existed; leave the local
+            // value alone rather than resetting it to a default.
+            if let rotationLocked = p.playerRotationLocked { store.playerRotationLocked = rotationLocked }
+            if let depth = p.networkBufferDepth {
+                store.networkBufferDepth = PlaybackPreferences.NetworkBufferDepth(rawValue: depth) ?? store.networkBufferDepth
+            }
+            if let remember = p.rememberTrackSelections { store.rememberTrackSelections = remember }
         case .appearance(let a):
             let store = appearancePreferences
             if let accentChoice = AppearancePreferences.AccentChoice(rawValue: a.accentChoice) {
@@ -235,6 +246,8 @@ extension DependencyContainer {
             seerrNotificationPreferences.notifyPendingRequests = s.notifyPendingRequests
         case .parentalControls(let p):
             parentalControlsPreferences.protectedProfileIDs = Set(p.protectedProfileIDs)
+        case .trackMemory(let t):
+            trackSelectionMemory.replaceAll(t.entries)
         }
     }
 

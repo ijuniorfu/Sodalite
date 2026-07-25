@@ -93,4 +93,46 @@ struct CloudSyncMergeTests {
         #expect(merged.first(where: { $0.jellyfinUserID == "a" })?.cookie == "cloudA")
         #expect(merged.first(where: { $0.jellyfinUserID == "b" })?.cookie == "localB")
     }
+
+    // MARK: - Track memory union (Sodalite#46)
+
+    private func memoryEntry(_ seconds: TimeInterval, off: Bool) -> TrackMemoryEntry {
+        TrackMemoryEntry(subtitle: off ? .off : nil, audio: nil,
+                         updatedAt: Date(timeIntervalSince1970: seconds))
+    }
+
+    @Test("disjoint track memories union instead of replacing each other")
+    func trackMemoryUnionIsDisjointSafe() {
+        let local = TrackMemoryPayload(updatedAt: Date(timeIntervalSince1970: 5),
+                                       entries: ["a": memoryEntry(5, off: true)])
+        let cloud = TrackMemoryPayload(updatedAt: Date(timeIntervalSince1970: 7),
+                                       entries: ["b": memoryEntry(7, off: true)])
+        let merged = CloudSyncMerge.unionTrackMemory(local: local, cloud: cloud)
+        #expect(Set(merged.entries.keys) == ["a", "b"])
+        #expect(merged.updatedAt == Date(timeIntervalSince1970: 7))
+    }
+
+    @Test("a colliding key resolves to the newer entry")
+    func trackMemoryUnionPrefersNewerEntry() {
+        let local = TrackMemoryPayload(updatedAt: Date(timeIntervalSince1970: 9),
+                                       entries: ["a": memoryEntry(9, off: true)])
+        let cloud = TrackMemoryPayload(updatedAt: Date(timeIntervalSince1970: 3),
+                                       entries: ["a": memoryEntry(3, off: false)])
+        #expect(CloudSyncMerge.unionTrackMemory(local: local, cloud: cloud).entries["a"]?.subtitle == .off)
+    }
+
+    @Test("the union is capped so both devices converge on the same set")
+    func trackMemoryUnionCaps() {
+        var localEntries: [String: TrackMemoryEntry] = [:]
+        var cloudEntries: [String: TrackMemoryEntry] = [:]
+        for i in 0..<TrackSelectionMemory.maxEntries {
+            localEntries["l\(i)"] = memoryEntry(Double(i), off: true)
+            cloudEntries["c\(i)"] = memoryEntry(Double(i) + 0.5, off: true)
+        }
+        let merged = CloudSyncMerge.unionTrackMemory(
+            local: TrackMemoryPayload(updatedAt: Date(timeIntervalSince1970: 1), entries: localEntries),
+            cloud: TrackMemoryPayload(updatedAt: Date(timeIntervalSince1970: 1), entries: cloudEntries))
+        #expect(merged.entries.count == TrackSelectionMemory.maxEntries)
+        #expect(merged.entries["l0"] == nil)
+    }
 }

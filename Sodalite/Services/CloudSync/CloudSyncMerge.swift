@@ -51,4 +51,19 @@ enum CloudSyncMerge {
         for session in cloud { byID[session.jellyfinUserID] = session }
         return byID.values.sorted { $0.jellyfinUserID < $1.jellyfinUserID }
     }
+
+    /// Sodalite#46. Union by scope key, newest entry per key wins. Eviction deliberately
+    /// does not propagate: an evicted entry coming back from the cloud is less harmful
+    /// than a lost selection. The cap is re-applied so both devices converge on one set.
+    static func unionTrackMemory(local: TrackMemoryPayload, cloud: TrackMemoryPayload) -> TrackMemoryPayload {
+        var byKey = local.entries
+        for (key, entry) in cloud.entries {
+            if let existing = byKey[key], existing.updatedAt >= entry.updatedAt { continue }
+            byKey[key] = entry
+        }
+        return TrackMemoryPayload(
+            updatedAt: max(local.updatedAt, cloud.updatedAt),
+            entries: TrackSelectionMemory.capped(byKey)
+        )
+    }
 }

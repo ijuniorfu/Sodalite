@@ -16,6 +16,7 @@ enum CloudSyncStoreKey: String, CaseIterable, Codable {
     case auth
     case seerrNotifications
     case parentalControls
+    case trackMemory
 }
 
 enum CloudSyncRecordName {
@@ -87,8 +88,23 @@ struct PlaybackSettingsPayload: Codable, Equatable {
     var preferLosslessAudioBridge: Bool
     var showScrubPreview: Bool
     var preferServerTrickplay: Bool
-    var playerRotationLocked: Bool
-    var networkBufferDepth: String
+    /// The three below are optional because they were added after the payload shipped.
+    /// Swift's synthesized Decodable does NOT fall back to a property default on a missing
+    /// key, it throws, and one thrown key drops the whole payload: a device on an older
+    /// build would silently stop syncing its playback settings to a newer one. A missing
+    /// value means keep-current on apply, never reset.
+    var playerRotationLocked: Bool?
+    var networkBufferDepth: String?
+    var rememberTrackSelections: Bool?
+}
+
+/// Sodalite#46. Unlike the other settings payloads this one is NOT last-writer-wins:
+/// each entry carries its own stamp and `CloudSyncMerge.unionTrackMemory` merges per key,
+/// else a title watched on the Apple TV would erase one watched on the iPhone.
+struct TrackMemoryPayload: Codable, Equatable {
+    var schemaVersion: Int = 1
+    var updatedAt: Date
+    var entries: [String: TrackMemoryEntry]
 }
 
 struct AppearanceSettingsPayload: Codable, Equatable {
@@ -194,6 +210,7 @@ enum SettingsSyncPayload: Equatable {
     case auth(AuthSettingsPayload)
     case seerrNotifications(SeerrNotificationSettingsPayload)
     case parentalControls(ParentalControlsSettingsPayload)
+    case trackMemory(TrackMemoryPayload)
 
     var storeKey: CloudSyncStoreKey {
         switch self {
@@ -202,6 +219,7 @@ enum SettingsSyncPayload: Equatable {
         case .auth: .auth
         case .seerrNotifications: .seerrNotifications
         case .parentalControls: .parentalControls
+        case .trackMemory: .trackMemory
         }
     }
 
@@ -212,6 +230,7 @@ enum SettingsSyncPayload: Equatable {
         case .auth(let p): p.updatedAt
         case .seerrNotifications(let p): p.updatedAt
         case .parentalControls(let p): p.updatedAt
+        case .trackMemory(let t): t.updatedAt
         }
     }
 
@@ -222,6 +241,7 @@ enum SettingsSyncPayload: Equatable {
         case .auth(var p): p.updatedAt = stamp; return .auth(p)
         case .seerrNotifications(var p): p.updatedAt = stamp; return .seerrNotifications(p)
         case .parentalControls(var p): p.updatedAt = stamp; return .parentalControls(p)
+        case .trackMemory(var t): t.updatedAt = stamp; return .trackMemory(t)
         }
     }
 
@@ -232,6 +252,7 @@ enum SettingsSyncPayload: Equatable {
         case .auth(let p): try JSONEncoder().encode(p)
         case .seerrNotifications(let p): try JSONEncoder().encode(p)
         case .parentalControls(let p): try JSONEncoder().encode(p)
+        case .trackMemory(let t): try JSONEncoder().encode(t)
         }
     }
 
@@ -242,6 +263,7 @@ enum SettingsSyncPayload: Equatable {
         case .auth: .auth(try JSONDecoder().decode(AuthSettingsPayload.self, from: data))
         case .seerrNotifications: .seerrNotifications(try JSONDecoder().decode(SeerrNotificationSettingsPayload.self, from: data))
         case .parentalControls: .parentalControls(try JSONDecoder().decode(ParentalControlsSettingsPayload.self, from: data))
+        case .trackMemory: .trackMemory(try JSONDecoder().decode(TrackMemoryPayload.self, from: data))
         }
     }
 }

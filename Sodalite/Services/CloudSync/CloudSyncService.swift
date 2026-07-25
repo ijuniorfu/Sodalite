@@ -508,6 +508,20 @@ final class CloudSyncService: CloudSyncServiceProtocol {
         } else if let key = CloudSyncRecordName.storeKey(fromRecordName: name) {
             guard let cloud = try? SettingsSyncPayload.decode(data, key: key) else { return }
             preferences.noteRemoteStamp(cloud.updatedAt)
+            // Sodalite#46: track memory is per entry, not one blob. Last-writer-wins would
+            // drop every title the other device recorded, so union instead, adoption
+            // included, and re-upload when the merge produced more than the cloud had.
+            if case .trackMemory(let cloudMemory) = cloud {
+                guard case .trackMemory(let localMemory) = dependencies.collectSettingsPayload(
+                    key, stamp: preferences.localStamp(for: name) ?? .distantPast
+                ) else { return }
+                let merged = CloudSyncMerge.unionTrackMemory(local: localMemory, cloud: cloudMemory)
+                dependencies.applySettingsPayload(.trackMemory(merged))
+                lastSettingsSnapshot[key] = dependencies.collectSettingsPayload(key, stamp: .distantPast)
+                preferences.setLocalStamp(merged.updatedAt, for: name)
+                if merged.entries != cloudMemory.entries { addPendingSave(recordName: name) }
+                return
+            }
             let localStamp = preferences.localStamp(for: name) ?? .distantPast
             if adopting || CloudSyncMerge.remoteWins(localUpdatedAt: localStamp, remoteUpdatedAt: cloud.updatedAt) {
                 dependencies.applySettingsPayload(cloud)
