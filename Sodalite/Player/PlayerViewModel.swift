@@ -1834,10 +1834,15 @@ final class PlayerViewModel {
         // Sodalite#46: only the user's own pick is remembered. Recording an automatic one
         // would bake it in and make later changes to the language settings ineffective.
         if userInitiated, let key = memoryScopeKey {
-            let remembered: RememberedSubtitle = id
-                .flatMap { streamID in subtitleStreams.first(where: { $0.index == streamID }) }
-                .map { .track(TrackSelectionMatcher.subtitleSignature($0)) } ?? .off
-            trackMemory?.recordSubtitle(remembered, for: key)
+            // An id we cannot resolve to a stream records nothing: silently storing .off
+            // there would remember the opposite of what the user picked.
+            if let id {
+                if let stream = subtitleStreams.first(where: { $0.index == id }) {
+                    trackMemory?.recordSubtitle(.track(TrackSelectionMatcher.subtitleSignature(stream)), for: key)
+                }
+            } else {
+                trackMemory?.recordSubtitle(.off, for: key)
+            }
         }
         // Cancel any in-flight transcode-path load so a slow earlier extraction can't overwrite the
         // cues for the track the user just selected (or disabled).
