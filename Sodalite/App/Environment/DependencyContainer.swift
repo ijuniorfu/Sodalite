@@ -448,6 +448,21 @@ final class DependencyContainer {
 
         let userID = try? keychainService.loadString(for: KeychainKeys.userID(serverID: serverID))
 
+        // activeUserName / activeUserImageTag are global while the identity they describe is per server: re-stamp them from the target's remembered profile, else the next cold launch pairs this server's userID with the previous server's name. Cleared when the target has no remembered entry, so nothing stale outlives the switch.
+        let rememberedForTarget = userID.flatMap { id in
+            listRememberedUsers(serverID: serverID).first { $0.id == id }
+        }
+        if let rememberedForTarget {
+            try? keychainService.save(rememberedForTarget.name, for: KeychainKeys.activeUserName)
+        } else {
+            try? keychainService.delete(for: KeychainKeys.activeUserName)
+        }
+        if let tag = rememberedForTarget?.imageTag, !tag.isEmpty {
+            try? keychainService.save(tag, for: KeychainKeys.activeUserImageTag)
+        } else {
+            try? keychainService.delete(for: KeychainKeys.activeUserImageTag)
+        }
+
         jellyfinClient.baseURL = sessionURL
         jellyfinClient.accessToken = token
 
@@ -626,7 +641,26 @@ final class DependencyContainer {
         scheduleRouteResolve()
     }
 
-    /// Refreshes active-user details after a profile switch. /Users/Me supplies the Policy block (canDeleteContent gate, else stuck on the keychain stub with policy: nil); /Users/Public is the imageTag-only fallback backfilling a nil/stale RememberedUser tag. `expectedUserID` discards the result if a racing switch changed the active profile. Persists tag to keychain + remembered entry, returns the fresh user; nil on guard trip / no change.
+    /// Re-stamps the server's own name for a (server, user) onto both stores that cache it: the global activeUserName entry and the server's remembered profile. Called once /Users/Me has spoken, so a rename (or a name inherited from another server by an install predating the per-server name resolution) heals instead of surviving every launch.
+    func persistActiveUserName(_ name: String, userID: String, serverID: String) {
+        guard activeJellyfinServerID == serverID else { return }
+        try? keychainService.save(name, for: KeychainKeys.activeUserName)
+        guard let existing = listRememberedUsers(serverID: serverID)
+            .first(where: { $0.id == userID }), existing.name != name
+        else { return }
+        try? rememberUser(
+            RememberedUser(
+                id: existing.id,
+                serverID: existing.serverID,
+                name: name,
+                imageTag: existing.imageTag,
+                token: existing.token,
+                addedAt: existing.addedAt
+            )
+        )
+    }
+
+    /// Refreshes active-user details after a profile switch. /Users/Me supplies the Policy block (canDeleteContent gate, else stuck on the keychain stub with policy: nil) and the authoritative name; /Users/Public is the imageTag-only fallback backfilling a nil/stale RememberedUser tag. `expectedUserID` discards the result if a racing switch changed the active profile. Persists name + tag to keychain + remembered entry, returns the fresh user; nil on guard trip / no change.
     func refreshActiveUserDetails(
         expectedUserID userID: String,
         serverID: String
@@ -640,15 +674,17 @@ final class DependencyContainer {
         guard appState?.activeUser?.id == userID,
               let current = appState?.activeUser else { return nil }
 
-        // Apply the fetched policy when /Users/Me succeeded; else keep the existing value (no-op, not a regression).
+        // Apply the fetched policy/name when /Users/Me succeeded; else keep the existing values (no-op, not a regression). The server owns the name, so a stale in-memory one never gets written back into the remembered entry.
         let freshPolicy = (me?.id == userID) ? me?.policy : current.policy
+        let freshName = (me?.id == userID) ? (me?.name ?? current.name) : current.name
         let tagChanged = current.primaryImageTag != tag
         let policyChanged = current.policy != freshPolicy
-        guard tagChanged || policyChanged else { return nil }
+        let nameChanged = current.name != freshName
+        guard tagChanged || policyChanged || nameChanged else { return nil }
 
         let fresh = JellyfinUser(
             id: current.id,
-            name: current.name,
+            name: freshName,
             serverID: current.serverID,
             hasPassword: current.hasPassword,
             primaryImageTag: tag,
@@ -658,6 +694,9 @@ final class DependencyContainer {
             try? keychainService.save(tag, for: KeychainKeys.activeUserImageTag)
         } else {
             try? keychainService.delete(for: KeychainKeys.activeUserImageTag)
+        }
+        if nameChanged {
+            try? keychainService.save(freshName, for: KeychainKeys.activeUserName)
         }
         if let existing = listRememberedUsers(serverID: serverID)
             .first(where: { $0.id == userID }) {

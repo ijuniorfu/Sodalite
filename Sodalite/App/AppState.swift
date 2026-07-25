@@ -43,12 +43,12 @@ final class AppState {
         isAuthenticated = true
     }
 
-    /// Replaces activeUser.policy (preserving other fields) after a profile switch/restore once getCurrentUser() returns fresh rights, else the keychain stub's policy: nil keeps permission-gated UI hidden until logout/login.
-    func updateActiveUserPolicy(_ policy: JellyfinUser.Policy?) {
+    /// Replaces activeUser.name + .policy (preserving other fields) after a profile switch/restore once getCurrentUser() returns the server's own view: policy, else the keychain stub's policy: nil keeps permission-gated UI hidden until logout/login; name, because the keychain bootstrap can carry another server's profile name from an install predating the per-server name resolution.
+    func updateActiveUserIdentity(name: String, policy: JellyfinUser.Policy?) {
         guard let current = activeUser else { return }
         activeUser = JellyfinUser(
             id: current.id,
-            name: current.name,
+            name: name,
             serverID: current.serverID,
             hasPassword: current.hasPassword,
             primaryImageTag: current.primaryImageTag,

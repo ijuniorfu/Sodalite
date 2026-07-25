@@ -55,24 +55,25 @@ struct SessionRestorer {
         // restoreSession succeeded so activeServer + token are in place; this guard is defensive.
         guard let server = env.activeServer else { return .discovery }
 
-        guard let userID = env.loadUserID(serverID: server.id),
-              let userName = env.loadActiveUserName()
-        else {
-            // Server + token but lost the active-user globals. Don't clearSession (nukes every server's per-server state); land in this server's picker.
+        guard let userID = env.loadUserID(serverID: server.id) else {
+            // Server + token but lost the active-user pointer. Don't clearSession (nukes every server's per-server state); land in this server's picker.
             return .picker(server: server, syncSeerr: false)
         }
 
-        // primaryImageTag is optional (no custom avatar = initials). Fallback covers JellySeeTV migrations predating the activeUserImageTag entry: lift the tag from the RememberedUser blob and re-stamp the canonical key.
+        // activeUserName / activeUserImageTag are single global entries while the identity they describe is per server, so a server switch (which only moves the per-server pointers) can leave them naming the previous server's profile. The remembered entry for this exact (server, userID) is the per-server truth; the globals are the fallback for legacy installs predating remembered profiles.
+        let rememberedForActive = env.listRememberedUsers(serverID: server.id)
+            .first { $0.id == userID }
+
+        guard let userName = rememberedForActive?.name ?? env.loadActiveUserName() else {
+            return .picker(server: server, syncSeerr: false)
+        }
+
+        // primaryImageTag is optional (no custom avatar = initials). Re-stamping the canonical key from the remembered blob also covers JellySeeTV migrations predating the activeUserImageTag entry.
         let imageTag: String? = {
-            if let direct = env.loadActiveUserImageTag() {
-                return direct
-            }
-            guard let fromRemembered = env.listRememberedUsers(serverID: server.id)
-                .first(where: { $0.id == userID })?
-                .imageTag, !fromRemembered.isEmpty
-            else { return nil }
-            env.saveActiveUserImageTag(fromRemembered)
-            return fromRemembered
+            guard let rememberedForActive else { return env.loadActiveUserImageTag() }
+            guard let tag = rememberedForActive.imageTag, !tag.isEmpty else { return nil }
+            if tag != env.loadActiveUserImageTag() { env.saveActiveUserImageTag(tag) }
+            return tag
         }()
         let restored = JellyfinUser(
             id: userID,
@@ -85,8 +86,7 @@ struct SessionRestorer {
 
         // Migrate pre-0.3.0 sessions into remembered-profiles (legacy installs only persisted the active session, so "Add another profile" would show the current user with no entry to filter by).
         if let token = env.loadAccessToken(serverID: server.id),
-           !env.listRememberedUsers(serverID: server.id)
-            .contains(where: { $0.id == userID }) {
+           rememberedForActive == nil {
             try? env.rememberUser(
                 RememberedUser(
                     id: userID,

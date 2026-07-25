@@ -215,6 +215,8 @@ struct AppRouter: View {
                 guard !Task.isCancelled else { return }
                 if let user, let server = probedServer {
                     appState.setAuthenticated(server: server, user: user)
+                    // The probe carries the server's own name; re-stamp the caches so the switched-to identity is right on the next cold launch too.
+                    dependencies.persistActiveUserName(user.name, userID: user.id, serverID: server.id)
                     // Restore the per-(server,user) Seerr session so Catalog reflects the new identity.
                     let outcome = await dependencies.syncSeerrSession(
                         forJellyfinUserID: user.id,
@@ -546,7 +548,7 @@ struct AppRouter: View {
         switch outcome {
         case .authenticated(let server, let user):
             appState.setAuthenticated(server: server, user: user)
-            Task { await refreshActiveUserPolicy(expectedUserID: user.id) }
+            Task { await refreshActiveUserIdentity(expectedUserID: user.id) }
             syncSeerr = true
         case .picker(let server, let wantsSeerr):
             launchPickerServer = server
@@ -568,12 +570,15 @@ struct AppRouter: View {
         }
     }
 
-    /// Refreshes the active user's Policy block via /Users/Me for the canDeleteContent permission gate (keychain-bootstrapped users have policy: nil, else the gated UI stays hidden until logout/login). `expectedUserID` discards the result if a racing profile switch changed the active user.
-    private func refreshActiveUserPolicy(expectedUserID: String) async {
+    /// Refreshes the active user's name + Policy block via /Users/Me: the policy drives the canDeleteContent permission gate (keychain-bootstrapped users have policy: nil, else the gated UI stays hidden until logout/login), the name heals a stale keychain bootstrap (renames server-side, or another server's name inherited from an install predating the per-server name resolution). `expectedUserID` discards the result if a racing profile switch changed the active user.
+    private func refreshActiveUserIdentity(expectedUserID: String) async {
         guard let me = try? await dependencies.jellyfinAuthService.getCurrentUser(),
               me.id == expectedUserID,
               appState.activeUser?.id == expectedUserID
         else { return }
-        appState.updateActiveUserPolicy(me.policy)
+        appState.updateActiveUserIdentity(name: me.name, policy: me.policy)
+        if let serverID = appState.activeServer?.id {
+            dependencies.persistActiveUserName(me.name, userID: me.id, serverID: serverID)
+        }
     }
 }

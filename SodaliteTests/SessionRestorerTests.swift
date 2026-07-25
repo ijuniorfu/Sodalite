@@ -184,7 +184,51 @@ struct SessionRestorerTests {
         let outcome = SessionRestorer(env: env).restore()
         guard case .authenticated(_, let u) = outcome else { Issue.record("expected authenticated, got \(tagOf(outcome))"); return }
         #expect(u.id == "U")
+        #expect(u.name == "User U")   // per-server remembered entry, not the global name
+    }
+
+    // The globals are not server-scoped: switching servers moves the per-server userID pointer but leaves
+    // activeUserName describing the previous server's profile. The remembered entry for this exact
+    // (server, userID) must win, else the header shows another server's profile name.
+    @Test func globalNameFromAnotherServer_losesToPerServerRememberedName() {
+        let env = restorable()
+        env.activeUserName = "demo"   // stale: belongs to the server we switched away from
+        env.remembered = [RememberedUser(id: "U", serverID: "A", name: "Vince", imageTag: nil, token: "t")]
+        let outcome = SessionRestorer(env: env).restore()
+        guard case .authenticated(_, let u) = outcome else { Issue.record("expected authenticated, got \(tagOf(outcome))"); return }
+        #expect(u.name == "Vince")
+    }
+
+    // Same desync on the avatar side: a tag left behind by another server must not be pinned onto a
+    // profile that has no avatar of its own.
+    @Test func globalImageTagFromAnotherServer_doesNotLeakOntoTaglessProfile() {
+        let env = restorable()
+        env.activeUserImageTag = "tag-from-other-server"
+        env.remembered = [RememberedUser(id: "U", serverID: "A", name: "Vince", imageTag: nil, token: "t")]
+        let outcome = SessionRestorer(env: env).restore()
+        guard case .authenticated(_, let u) = outcome else { Issue.record("expected authenticated, got \(tagOf(outcome))"); return }
+        #expect(u.primaryImageTag == nil)
+    }
+
+    // The remembered entry is authoritative, so a lost global name is no longer a reason to drop to the picker.
+    @Test func missingGlobalNameWithRememberedEntry_stillAuthenticates() {
+        let env = restorable()
+        env.activeUserName = nil
+        env.remembered = [user("U")]
+        let outcome = SessionRestorer(env: env).restore()
+        guard case .authenticated(_, let u) = outcome else { Issue.record("expected authenticated, got \(tagOf(outcome))"); return }
+        #expect(u.name == "User U")
+    }
+
+    // Legacy installs (pre-0.3.0) have no remembered entry yet; the globals stay the fallback there.
+    @Test func noRememberedEntry_fallsBackToGlobals() {
+        let env = restorable()
+        env.activeUserImageTag = "legacy-tag"
+        env.remembered = []
+        let outcome = SessionRestorer(env: env).restore()
+        guard case .authenticated(_, let u) = outcome else { Issue.record("expected authenticated, got \(tagOf(outcome))"); return }
         #expect(u.name == "Main")
+        #expect(u.primaryImageTag == "legacy-tag")
     }
 
     @Test func pre030Session_migratesIntoRememberedUsers() {
