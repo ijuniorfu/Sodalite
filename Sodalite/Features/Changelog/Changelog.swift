@@ -16,6 +16,30 @@ enum Changelog {
                 ),
                 ChangelogHighlight(
                     .new,
+                    "changelog.1_0_0.pip.title",
+                    "changelog.1_0_0.pip.body",
+                    icon: "pip.fill"
+                ),
+                ChangelogHighlight(
+                    .new,
+                    "changelog.1_0_0.appearance.title",
+                    "changelog.1_0_0.appearance.body",
+                    icon: "paintpalette.fill"
+                ),
+                ChangelogHighlight(
+                    .new,
+                    "changelog.1_0_0.trackMemory.title",
+                    "changelog.1_0_0.trackMemory.body",
+                    icon: "bookmark.fill"
+                ),
+                ChangelogHighlight(
+                    .new,
+                    "changelog.1_0_0.forcedSubtitles.title",
+                    "changelog.1_0_0.forcedSubtitles.body",
+                    icon: "captions.bubble.fill"
+                ),
+                ChangelogHighlight(
+                    .new,
                     "changelog.1_0_0.childLock.title",
                     "changelog.1_0_0.childLock.body",
                     icon: "lock.fill"
