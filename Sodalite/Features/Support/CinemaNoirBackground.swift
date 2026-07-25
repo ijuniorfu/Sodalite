@@ -2,6 +2,7 @@ import SwiftUI
 
 enum CinemaNoirMotion {
     static let lightDuration: TimeInterval = 18
+    static let lightAmplitude: CGFloat = 0.46
     private static let grainXDuration: TimeInterval = 36
     private static let grainYDuration: TimeInterval = 42
 
@@ -13,7 +14,7 @@ enum CinemaNoirMotion {
 
     static func sample(at time: TimeInterval) -> Sample {
         Sample(
-            lightOffsetX: 0.46 * wave(time, duration: lightDuration),
+            lightOffsetX: lightAmplitude * wave(time, duration: lightDuration),
             grainOffsetX: 8 * wave(time, duration: grainXDuration),
             grainOffsetY: 6 * wave(
                 time + grainYDuration / 4,
@@ -30,14 +31,15 @@ enum CinemaNoirMotion {
     }
 }
 
+/// The light is a gradient across the whole surface, not a shape drawn on top
+/// of it. Any sized or rotated layer eventually drags one of its own edges into
+/// frame, so there is no geometry here to expose.
 enum CinemaNoirLightBeam {
-    static let angleDegrees: CGFloat = -7
-    static let widthFraction: CGFloat = 0.72
-
-    /// The beam is rotated, so a canvas sized sheet drags its own top and
-    /// bottom edges into frame. Sizing it past the diagonal keeps every edge
-    /// outside the visible area at any travel offset.
-    static let heightFactor: CGFloat = 1.6
+    /// The gradient axis runs past both frame edges, which leaves room for the
+    /// sweep to sit near a border without a stop ever needing to be clamped.
+    static let axisOvershoot: Double = 0.4
+    static let axisTilt: Double = 0.16
+    static let peakHalfWidth: Double = 0.25
 
     static let tint = Color(red: 1, green: 0.88, blue: 0.70)
 
@@ -51,12 +53,42 @@ enum CinemaNoirLightBeam {
         SoftGradientStop(opacity: 0, location: 1)
     ]
 
-    static func height(for size: CGSize) -> CGFloat {
-        hypot(size.width, size.height) * heightFactor
+    static var startPoint: UnitPoint {
+        UnitPoint(x: -axisOvershoot, y: 0.5 - axisTilt)
     }
 
-    static func stops() -> [Gradient.Stop] {
-        profile.gradientStops(tint)
+    static var endPoint: UnitPoint {
+        UnitPoint(x: 1 + axisOvershoot, y: 0.5 + axisTilt)
+    }
+
+    /// Maps the travel wave onto the axis so the peak stays far enough from
+    /// both ends for the full profile to fit.
+    static func travel(forOffset offset: CGFloat) -> Double {
+        let reach = 0.5 - peakHalfWidth
+        return 0.5 + Double(offset / CinemaNoirMotion.lightAmplitude) * reach
+    }
+
+    static func shapedProfile(travel: Double) -> [SoftGradientStop] {
+        let leading = travel - peakHalfWidth
+        let trailing = travel + peakHalfWidth
+        var shaped: [SoftGradientStop] = []
+        if leading > 0 {
+            shaped.append(SoftGradientStop(opacity: 0, location: 0))
+        }
+        shaped += profile.map {
+            SoftGradientStop(
+                opacity: $0.opacity,
+                location: min(1, max(0, leading + $0.location * 2 * peakHalfWidth))
+            )
+        }
+        if trailing < 1 {
+            shaped.append(SoftGradientStop(opacity: 0, location: 1))
+        }
+        return shaped
+    }
+
+    static func stops(travel: Double) -> [Gradient.Stop] {
+        shapedProfile(travel: travel).gradientStops(tint)
     }
 }
 
@@ -79,16 +111,14 @@ struct CinemaNoirBackground: View {
                     )
                     Rectangle()
                         .fill(LinearGradient(
-                            stops: CinemaNoirLightBeam.stops(),
-                            startPoint: .leading,
-                            endPoint: .trailing
+                            stops: CinemaNoirLightBeam.stops(
+                                travel: CinemaNoirLightBeam.travel(
+                                    forOffset: motion.lightOffsetX
+                                )
+                            ),
+                            startPoint: CinemaNoirLightBeam.startPoint,
+                            endPoint: CinemaNoirLightBeam.endPoint
                         ))
-                        .frame(
-                            width: proxy.size.width * CinemaNoirLightBeam.widthFraction,
-                            height: CinemaNoirLightBeam.height(for: proxy.size)
-                        )
-                        .rotationEffect(.degrees(CinemaNoirLightBeam.angleDegrees))
-                        .offset(x: motion.lightOffsetX * proxy.size.width)
                     Color.black.opacity(0.28)
                     BackgroundGrainLayer(
                         opacity: BackgroundGrain.filmOpacity,

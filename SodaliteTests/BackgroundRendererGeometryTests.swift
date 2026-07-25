@@ -4,25 +4,39 @@ import Testing
 
 @Suite("Background renderer geometry")
 struct BackgroundRendererGeometryTests {
-    private let canvases = [
-        CGSize(width: 1920, height: 1080),
-        CGSize(width: 3840, height: 2160),
-        CGSize(width: 1024, height: 768),
-        CGSize(width: 393, height: 852),
-        CGSize(width: 852, height: 393)
-    ]
+    @Test("noir sweep keeps every stop on its axis for the whole cycle")
+    func noirSweepStaysOnAxis() {
+        for step in 0...72 {
+            let time = CinemaNoirMotion.lightDuration * Double(step) / 72
+            let offset = CinemaNoirMotion.sample(at: time).lightOffsetX
+            let shaped = CinemaNoirLightBeam.shapedProfile(
+                travel: CinemaNoirLightBeam.travel(forOffset: offset)
+            )
 
-    @Test("noir light beam never exposes a horizontal edge")
-    func noirBeamCoversEveryCanvas() {
-        for canvas in canvases {
-            let halfHeight = CinemaNoirLightBeam.height(for: canvas) / 2
-            for step in 0...36 {
-                let time = CinemaNoirMotion.lightDuration * Double(step) / 36
-                let offsetX = CinemaNoirMotion.sample(at: time).lightOffsetX
-                    * canvas.width
-                #expect(halfHeight >= maxBeamSpan(canvas: canvas, offsetX: offsetX))
+            #expect(shaped.first?.location == 0)
+            #expect(shaped.last?.location == 1)
+            #expect(shaped.first?.opacity == 0)
+            #expect(shaped.last?.opacity == 0)
+
+            for (lower, upper) in zip(shaped, shaped.dropFirst()) {
+                #expect(upper.location >= lower.location)
             }
         }
+    }
+
+    @Test("noir sweep travels across most of the surface")
+    func noirSweepTravel() {
+        let axisSpan = 1 + 2 * CinemaNoirLightBeam.axisOvershoot
+        func surfacePosition(atOffset offset: CGFloat) -> Double {
+            CinemaNoirLightBeam.travel(forOffset: offset)
+                * axisSpan - CinemaNoirLightBeam.axisOvershoot
+        }
+
+        let leftmost = surfacePosition(atOffset: -CinemaNoirMotion.lightAmplitude)
+        let rightmost = surfacePosition(atOffset: CinemaNoirMotion.lightAmplitude)
+        #expect(rightmost - leftmost >= 0.8)
+        #expect(leftmost >= 0)
+        #expect(rightmost <= 1)
     }
 
     @Test("noir light beam fades in and out along its travel axis")
@@ -72,36 +86,19 @@ struct BackgroundRendererGeometryTests {
         #expect(source.contains("BackgroundGrainLayer"))
     }
 
-    @Test("noir reuses the shared grain texture and the oversized beam")
-    func noirUsesSharedPrimitives() throws {
+    /// The beam used to be a sized, rotated Rectangle, which inflated the
+    /// ZStack around it and dragged its own edge into frame. Nothing in this
+    /// renderer may carry a size of its own again.
+    @Test("noir light carries no geometry that can expose an edge")
+    func noirLightHasNoGeometry() throws {
         let source = try sourceFile(
             "Sodalite/Features/Support/CinemaNoirBackground.swift"
         )
+        #expect(!source.contains("rotationEffect"))
+        #expect(!source.contains(".frame("))
         #expect(!source.contains("UIGraphicsImageRenderer"))
         #expect(source.contains("BackgroundGrainLayer"))
-        #expect(source.contains("CinemaNoirLightBeam.height(for:"))
         #expect(source.contains("CinemaNoirLightBeam.stops"))
-    }
-
-    /// Largest distance any canvas corner reaches along the beam's own
-    /// vertical axis. The beam must be at least twice that tall, otherwise
-    /// its rotated top or bottom edge cuts into the visible frame.
-    private func maxBeamSpan(canvas: CGSize, offsetX: CGFloat) -> CGFloat {
-        let radians = CinemaNoirLightBeam.angleDegrees * .pi / 180
-        let axis = CGPoint(x: -sin(radians), y: cos(radians))
-        let centre = CGPoint(
-            x: canvas.width / 2 + offsetX,
-            y: canvas.height / 2
-        )
-        let corners = [
-            CGPoint(x: 0, y: 0),
-            CGPoint(x: canvas.width, y: 0),
-            CGPoint(x: 0, y: canvas.height),
-            CGPoint(x: canvas.width, y: canvas.height)
-        ]
-        return corners
-            .map { abs(($0.x - centre.x) * axis.x + ($0.y - centre.y) * axis.y) }
-            .max() ?? 0
     }
 
     private func sourceFile(_ relativePath: String) throws -> String {
