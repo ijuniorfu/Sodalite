@@ -1,0 +1,19 @@
+{
+  "fill" : {
+    "automatic-gradient" : "extended-srgb:0.96,0.97,1.00,1.00"
+  },
+  "groups" : [
+    {
+      "layers" : [
+        {
+          "image-name" : "motif.png",
+          "name" : "Motif"
+        }
+      ]
+    }
+  ],
+  "supported-platforms" : {
+    "circles" : [ "watchOS" ],
+    "squares" : "shared"
+  }
+}
