@@ -20,7 +20,8 @@ extension DependencyContainer {
         let homeRows = HomeRowsSyncState(
             configsJSON: HomeRowConfig.rawConfigData(serverID: serverID),
             mergeCWNextUp: HomeRowConfig.mergeContinueWatchingNextUp(serverID: serverID),
-            rewatchNextUp: HomeRowConfig.enableRewatchingNextUp(serverID: serverID)
+            rewatchNextUp: HomeRowConfig.enableRewatchingNextUp(serverID: serverID),
+            collectionGrouping: HomeRowConfig.collectionGrouping(serverID: serverID).rawValue
         )
         let password = try? keychainService.loadString(for: KeychainKeys.jellyfinPassword(serverID: serverID))
         // Pre-feature installs stored the password without an owner entry. switchToUser
@@ -100,6 +101,10 @@ extension DependencyContainer {
             }
             HomeRowConfig.setMergeContinueWatchingNextUp(homeRows.mergeCWNextUp, serverID: serverID)
             HomeRowConfig.setEnableRewatchingNextUp(homeRows.rewatchNextUp, serverID: serverID)
+            // Absent on payloads from builds before Sodalite#44; leave the local mode alone rather than resetting it to the server default.
+            if let grouping = homeRows.collectionGrouping {
+                HomeRowConfig.setCollectionGrouping(CollectionGrouping(storedValue: grouping), serverID: serverID)
+            }
             NotificationCenter.default.post(name: .homeConfigDidChange, object: nil)
         }
     }

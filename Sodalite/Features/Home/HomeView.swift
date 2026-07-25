@@ -312,16 +312,20 @@ struct HomeView: View {
         case .tvshows: types = [.series]
         default: types = [.movie, .series]
         }
+        // The only grids that defer to the server's "Group movies into collections" (Sodalite#44). Note the server itself skips collapsing once the grid's watch-status filter adds IsPlayed, so Watched/Unwatched stay flat.
+        let grouping = HomeRowConfig.collectionGrouping(serverID: appState.activeServer?.id ?? appState.activeUser?.id ?? "")
+        var query = ItemQuery(
+            parentID: library.id,
+            includeItemTypes: types,
+            sortBy: "SortName",
+            sortOrder: "Ascending",
+            limit: 200
+        )
+        query.collapseBoxSetItems = grouping.queryValue
         return FilterDestination(
             title: library.name,
-            query: ItemQuery(
-                parentID: library.id,
-                includeItemTypes: types,
-                sortBy: "SortName",
-                sortOrder: "Ascending",
-                limit: 200
-            ),
-            cacheKey: "library_\(library.id)"
+            query: query,
+            cacheKey: FilterCacheKey.Home.library(id: library.id, grouping: grouping)
         )
     }
 }

@@ -105,7 +105,7 @@ The Seerr integration isn't a tacked-on link to a web view. It's a first-class p
 - **Multiple servers**: keep several Jellyfin servers in the app and switch between them without logging out; pick or add one from above your profile list, manage the full list in Settings → Servers
 - **Internal / external URLs**: give a server both a local address and a remote one; Sodalite probes each and automatically switches to whichever one actually answers, rather than guessing from network type, so it keeps working over a VPN. Editable per server on iPhone and iPad, for both Jellyfin and Seerr, with a badge showing the active route; Apple TV resolves once when a session starts.
 - **Home**: Continue Watching, Next Up, a separate Latest row for each of your libraries, plus a My Media row to jump straight into any library; every row can be toggled and reordered, and Continue Watching and Next Up can optionally merge into a single row
-- **Library**: Movies, Series, Collections with poster grids, instant filtering and an All / Unwatched / Watched watch-status filter on every grid
+- **Library**: Movies, Series, Collections with poster grids, instant filtering and an All / Unwatched / Watched watch-status filter on every grid; a library grid follows your server's "Group movies into collections" setting, so a collection shows up as one tile, and you can override that per server in Settings → Customize Home
 - **Series view**: season picker, episode list, "Up Next" highlighting
 - **Playlists**: your Jellyfin playlists get their own Home row and a detail page that plays through in order
 - **Search**: across your whole server, results as you type

@@ -8,6 +8,7 @@ struct HomeCustomizeView: View {
     @State private var movingID: String?
     @State private var mergeCWNextUp = false
     @State private var rewatchNextUp = false
+    @State private var collectionGrouping: CollectionGrouping = .system
 
     private var serverID: String {
         appState.activeServer?.id ?? appState.activeUser?.id ?? ""
@@ -22,6 +23,7 @@ struct HomeCustomizeView: View {
                 header
                 mergeRowToggle
                 rewatchRowToggle
+                collectionGroupingRow
                 rowList
             }
             .padding(.vertical, 40)
@@ -32,6 +34,7 @@ struct HomeCustomizeView: View {
             configs = HomeRowConfig.loadFromStorage(serverID: serverID)
             mergeCWNextUp = HomeRowConfig.mergeContinueWatchingNextUp(serverID: serverID)
             rewatchNextUp = HomeRowConfig.enableRewatchingNextUp(serverID: serverID)
+            collectionGrouping = HomeRowConfig.collectionGrouping(serverID: serverID)
             // Per-library rows are otherwise discovered only on Home load, so Customize showed a stale list right after a server add/switch. Reconcile here too.
             Task { await reconcileLibraries() }
         }
@@ -137,6 +140,30 @@ struct HomeCustomizeView: View {
                     ? String(localized: "common.on", defaultValue: "On")
                     : String(localized: "common.off", defaultValue: "Off")
             }
+        )
+        .padding(.horizontal, hInset)
+    }
+
+    // MARK: - Collection grouping
+
+    /// Jellyfin's server-wide "Group movies into collections" for the My Media grids (Sodalite#44). Server default sends no CollapseBoxSetItems at all, which is the only way the server option applies; the other two override it on this device.
+    private var collectionGroupingRow: some View {
+        ValuePickerRow(
+            icon: "rectangle.stack",
+            title: "home.customize.collectionGrouping",
+            subtitle: "home.customize.collectionGrouping.subtitle",
+            options: CollectionGrouping.allCases,
+            selection: Binding(
+                get: { collectionGrouping },
+                set: { newValue in
+                    movingID = nil
+                    collectionGrouping = newValue
+                    HomeRowConfig.setCollectionGrouping(newValue, serverID: serverID)
+                    // The grids cache per mode, so no stale shape survives; Home still reloads for the My Media tiles.
+                    NotificationCenter.default.post(name: .homeConfigDidChange, object: nil)
+                }
+            ),
+            label: { $0.localizedLabel }
         )
         .padding(.horizontal, hInset)
     }
@@ -497,5 +524,22 @@ extension HomeRowConfig {
 
     static func setEnableRewatchingNextUp(_ value: Bool, serverID: String) {
         UserDefaults.standard.set(value, forKey: rewatchingKey(serverID: serverID))
+    }
+
+    // MARK: Collection grouping in the library grids
+
+    private static func collectionGroupingKey(serverID: String) -> String {
+        "libraryCollectionGrouping.\(serverID)"
+    }
+
+    /// Whether the My Media grids fold a BoxSet's movies into one collection tile (Sodalite#44). Per server, mirroring the server-wide Jellyfin option it defers to; default `.system` (follow the server).
+    static func collectionGrouping(serverID: String) -> CollectionGrouping {
+        CollectionGrouping(
+            storedValue: UserDefaults.standard.string(forKey: collectionGroupingKey(serverID: serverID))
+        )
+    }
+
+    static func setCollectionGrouping(_ value: CollectionGrouping, serverID: String) {
+        UserDefaults.standard.set(value.rawValue, forKey: collectionGroupingKey(serverID: serverID))
     }
 }

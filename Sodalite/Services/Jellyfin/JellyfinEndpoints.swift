@@ -479,6 +479,11 @@ struct ItemQuery: Sendable {
     /// Single provider-id match ("tmdb.123"). `AnyProviderIdEquals` takes one value only, so the home smart-provider filter fans out multi-id lookups as parallel queries.
     var anyProviderIdEquals: String?
     var fields: String?
+    /// `CollapseBoxSetItems`: false (the default) keeps every movie standing alone, true forces
+    /// BoxSet grouping, nil omits the param so the server's own "Group movies into collections"
+    /// config decides (Sodalite#44). Only the My Media library grids pass nil; home rows, search and
+    /// shuffle stay flat, else a freshly added movie hides behind a collection tile.
+    var collapseBoxSetItems: Bool? = false
 
     func toQueryItems() -> [URLQueryItem] {
         var items: [URLQueryItem] = []
@@ -512,8 +517,10 @@ struct ItemQuery: Sendable {
         let fields = fields ?? JellyfinEndpoint.defaultFields
         items.append(URLQueryItem(name: "Fields", value: fields))
         items.append(URLQueryItem(name: "Recursive", value: "true"))
-        // CollapseBoxSetItems defaults true for Movie queries (folds BoxSet members into one row, even for silent TMDB-created collections); force false so each movie stands alone. The Collections row uses a dedicated BoxSet query, unaffected.
-        items.append(URLQueryItem(name: "CollapseBoxSetItems", value: "false"))
+        // Omitted entirely when nil: Jellyfin only consults its own grouping config while the param is absent (an explicit false overrides the admin's setting). The Collections row uses a dedicated BoxSet query, unaffected either way.
+        if let collapseBoxSetItems {
+            items.append(URLQueryItem(name: "CollapseBoxSetItems", value: String(collapseBoxSetItems)))
+        }
 
         return items
     }

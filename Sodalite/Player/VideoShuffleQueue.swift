@@ -28,6 +28,8 @@ enum VideoShuffleQueue {
         query.startIndex = nil
         // Shuffle ignores the watch-status filter per the feature spec.
         query.filters = nil
+        // A library grid may defer collection grouping to the server (Sodalite#44); a collapsed BoxSet in the queue is not playable, so shuffle always takes the flat list.
+        query.collapseBoxSetItems = false
         let response = try? await service.getItems(userID: userID, query: query)
         return response?.items ?? []
     }

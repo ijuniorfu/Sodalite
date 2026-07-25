@@ -42,6 +42,9 @@ struct HomeRowsSyncState: Codable, Equatable {
     var configsJSON: Data?
     var mergeCWNextUp: Bool
     var rewatchNextUp: Bool
+    /// CollectionGrouping raw value (Sodalite#44). Optional: payloads written before the field
+    /// existed must still decode, and a missing value must not reset a device's local mode.
+    var collectionGrouping: String?
 }
 
 struct ServerSyncPayload: Codable, Equatable {

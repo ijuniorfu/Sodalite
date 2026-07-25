@@ -17,6 +17,11 @@ enum FilterCacheKey {
         nonisolated static func tag(name: String) -> String {
             "home-tag-\(name)"
         }
+
+        /// My Media library grid. The grouping mode is in the key because it changes the shape of the result (collection tiles vs. single movies); a shared key would repaint the previous shape from cache after the setting flips.
+        nonisolated static func library(id: String, grouping: CollectionGrouping) -> String {
+            "library_\(id)_\(grouping.rawValue)"
+        }
     }
 
     enum Catalog {
