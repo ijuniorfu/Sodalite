@@ -7,6 +7,12 @@ struct LayoutMetrics: Equatable {
     var posterSize: CGSize
     var landscapeSize: CGSize
     var squareSize: CGSize
+    /// Thumbnail in the vertical detail lists (collection, playlist, watch stats).
+    /// tvOS reads these from the couch, so it gets a share of the browse poster
+    /// rather than the touch-scale thumb.
+    var listPosterSize: CGSize
+    var listTitleFont: Font
+    var listOverviewFont: Font
     var rowInset: CGFloat
     var itemSpacing: CGFloat
     var rowVerticalPadding: CGFloat
@@ -31,6 +37,8 @@ struct LayoutMetrics: Equatable {
         posterSize: CGSize(width: 220, height: 330),
         landscapeSize: CGSize(width: 360, height: 202),
         squareSize: CGSize(width: 220, height: 220),
+        listPosterSize: CGSize(width: 140, height: 210),
+        listTitleFont: .title3, listOverviewFont: .footnote,
         rowInset: 50, itemSpacing: 30, rowVerticalPadding: 20,
         gridMinimum: 220, gridSpacing: 40, gridInset: 60,
         genreTileSize: CGSize(width: 320, height: 180),
@@ -42,6 +50,8 @@ struct LayoutMetrics: Equatable {
         posterSize: CGSize(width: 160, height: 240),
         landscapeSize: CGSize(width: 280, height: 158),
         squareSize: CGSize(width: 160, height: 160),
+        listPosterSize: CGSize(width: 80, height: 120),
+        listTitleFont: .body, listOverviewFont: .caption,
         rowInset: 28, itemSpacing: 20, rowVerticalPadding: 16,
         gridMinimum: 160, gridSpacing: 28, gridInset: 24,
         genreTileSize: CGSize(width: 240, height: 135),
@@ -53,6 +63,8 @@ struct LayoutMetrics: Equatable {
         posterSize: CGSize(width: 120, height: 180),
         landscapeSize: CGSize(width: 200, height: 112),
         squareSize: CGSize(width: 120, height: 120),
+        listPosterSize: CGSize(width: 80, height: 120),
+        listTitleFont: .body, listOverviewFont: .caption,
         rowInset: 16, itemSpacing: 12, rowVerticalPadding: 12,
         gridMinimum: 108, gridSpacing: 16, gridInset: 16,
         genreTileSize: CGSize(width: 200, height: 112),

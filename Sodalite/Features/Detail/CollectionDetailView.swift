@@ -215,13 +215,28 @@ struct CollectionDetailView: View {
 // MARK: - Collection Item Row
 
 struct CollectionItemRow: View {
+    @Environment(\.horizontalSizeClass) private var hSizeClass
+
     let item: JellyfinItem
     let imageURL: URL?
     let onSelect: () -> Void
 
+    private var metrics: LayoutMetrics { LayoutMetrics.current(hSizeClass) }
+
+    private var overview: String? {
+        guard let overview = item.overview, !overview.isEmpty else { return nil }
+        return overview
+    }
+
+    /// Three overview lines fill the poster height, so the text block tops out next to it.
+    /// Without an overview the block is too short for that and stays centered.
+    static func verticalAlignment(hasOverview: Bool) -> VerticalAlignment {
+        hasOverview ? .top : .center
+    }
+
     var body: some View {
         Button { onSelect() } label: {
-            HStack(spacing: 20) {
+            HStack(alignment: Self.verticalAlignment(hasOverview: overview != nil), spacing: 20) {
                 AsyncCachedImage(url: imageURL) { image in
                     image
                         .resizable()
@@ -230,25 +245,30 @@ struct CollectionItemRow: View {
                     Rectangle()
                         .fill(Color.Theme.surface)
                 }
-                .frame(width: 80, height: 120)
+                .frame(width: metrics.listPosterSize.width, height: metrics.listPosterSize.height)
                 .clipShape(RoundedRectangle(cornerRadius: 8))
 
                 VStack(alignment: .leading, spacing: 6) {
                     Text(item.name)
-                        .font(.body)
+                        .font(metrics.listTitleFont)
                         .fontWeight(.medium)
                         .lineLimit(1)
 
-                    HStack(spacing: 10) {
+                    // Values must stay atomic on the narrow phone row: the flow layout wraps whole
+                    // chips to a second line instead of shrinking them past legibility or breaking
+                    // mid-token ("7.0" -> "7."/"0", "74 %" -> "74"/"%").
+                    FlowLayout(spacing: 10) {
                         if let year = item.productionYear {
                             Text(String(year))
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
+                                .lineLimit(1)
                         }
                         if let runtime = item.runTimeTicks {
                             Text(runtime.ticksToDisplay)
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
+                                .lineLimit(1)
                         }
                         if let score = item.communityRating {
                             HStack(spacing: 3) {
@@ -259,6 +279,7 @@ struct CollectionItemRow: View {
                                     .font(.caption)
                                     .foregroundStyle(.secondary)
                             }
+                            .lineLimit(1)
                         }
                         // RT critic score, fresh/rotten split at 60; only when the server delivers CriticRating.
                         if let critic = item.criticRating {
@@ -272,19 +293,15 @@ struct CollectionItemRow: View {
                                     .font(.caption)
                                     .foregroundStyle(.secondary)
                             }
+                            .lineLimit(1)
                         }
                     }
-                    // Values must stay atomic on the narrow phone row: without this the metadata
-                    // Texts wrap mid-token ("7.0" -> "7."/"0", "74 %" -> "74"/"%"). Matches the
-                    // compact treatment in DetailSecondaryInfo: scale down before truncating.
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.7)
 
-                    if let overview = item.overview {
+                    if let overview {
                         Text(overview)
-                            .font(.caption)
+                            .font(metrics.listOverviewFont)
                             .foregroundStyle(.tertiary)
-                            .lineLimit(2)
+                            .lineLimit(3)
                     }
                 }
 
