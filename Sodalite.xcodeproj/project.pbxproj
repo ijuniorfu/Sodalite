@@ -82,6 +82,7 @@
 		2030D795B07A6CBC9716B0BC /* AppBackgroundView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C01A1DB2E58B09133252977 /* AppBackgroundView.swift */; };
 		20B785459CBFD6E022E62724 /* JellyfinServerDualURLPromptTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FCEE5A1416FF3B3900EE3B0 /* JellyfinServerDualURLPromptTests.swift */; };
 		20BE98904C5EE8F95DF336E6 /* LiveTvModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEB91D87EC2D7981F4D8D0D2 /* LiveTvModels.swift */; };
+		20D938BFB6EA2CF34D36E066 /* TrackSelectionMemory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 247F3F4BFD1A383FB168B6F6 /* TrackSelectionMemory.swift */; };
 		2146F6513432146603A266CB /* FilterCacheKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79858A2D4C0C7A75FDD55200 /* FilterCacheKey.swift */; };
 		2155B86FB8E0317746E49A12 /* SeerrServiceConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 090B5210D3ACA84E2E25E318 /* SeerrServiceConfig.swift */; };
 		21F6A56F0A2B20C0B254A484 /* JellyfinEndpoints.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0E5CFBC331D8C9C23D2D0A4 /* JellyfinEndpoints.swift */; };
@@ -230,6 +231,7 @@
 		5B88E7BF4979C557E84694D5 /* TrickplayTileSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7BF8E24A5047D7DB3C84A8EF /* TrickplayTileSet.swift */; };
 		5B8F96F19B45D8232E0B0173 /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A67A85813AA4FE94C9DF9D5 /* LoginView.swift */; };
 		5C43EB831D086A82B65B7FE2 /* HomeCustomizeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37F20293DC3BAA83586C3058 /* HomeCustomizeView.swift */; };
+		5C69B7B41DBFB7EDACB6A5BD /* TrackSelectionMemory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 247F3F4BFD1A383FB168B6F6 /* TrackSelectionMemory.swift */; };
 		5C950AD6BE0E377E0CAB0B36 /* CatalogGenreRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACAF0DCC3698E211D9E6132F /* CatalogGenreRow.swift */; };
 		5C9B1927478341433BDBEF31 /* RememberedUser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 287E31101A6E454F2B09BEF9 /* RememberedUser.swift */; };
 		5CC1AD49C00E8D6893898AE2 /* RecordingsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 730C8FB986E1263A255832CC /* RecordingsViewModel.swift */; };
@@ -420,6 +422,7 @@
 		A1570D935F19BC0F36F0BEAE /* PlayerViewModel+Live.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85C3D4639FA7277264A7D858 /* PlayerViewModel+Live.swift */; };
 		A1E579F4E5D91B1BB4AED0AF /* TVUserContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACDABA49F1BCF1678FCFE5D6 /* TVUserContext.swift */; };
 		A254E90ABD1A190287B5ED8E /* SodaliteApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 241980A7FAAC5D70827F795D /* SodaliteApp.swift */; };
+		A2FC1A1306E456B2424EC377 /* TrackSelectionMemoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5010D9C8B7FF35BAD3E1408B /* TrackSelectionMemoryTests.swift */; };
 		A3D3187C5F2ABF827E5FE6A0 /* LaunchProfilePickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92E81D87A395406880D1F11F /* LaunchProfilePickerView.swift */; };
 		A4BFA36B843326A7EC932BFF /* LicenseText-MIT.txt in Resources */ = {isa = PBXBuildFile; fileRef = E16CB1DBF0F096E8267D8D08 /* LicenseText-MIT.txt */; };
 		A4D535231D2DEAF8FD49722B /* GlassActionButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1021036298773AF91C95F8C2 /* GlassActionButton.swift */; };
@@ -743,6 +746,7 @@
 		22DBDEEBE73D05D216A079E1 /* AppearancePreferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppearancePreferences.swift; sourceTree = "<group>"; };
 		231D308F2B70E534C8F04447 /* MediaCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaCard.swift; sourceTree = "<group>"; };
 		241980A7FAAC5D70827F795D /* SodaliteApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SodaliteApp.swift; sourceTree = "<group>"; };
+		247F3F4BFD1A383FB168B6F6 /* TrackSelectionMemory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackSelectionMemory.swift; sourceTree = "<group>"; };
 		256CE5DE2B1273662AB9F398 /* StatsOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatsOverlayView.swift; sourceTree = "<group>"; };
 		25FF2C59F162B68CC0D9F82B /* RecordingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordingsView.swift; sourceTree = "<group>"; };
 		261AEA58524CCEA603AA9D35 /* MediaDeletionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaDeletionService.swift; sourceTree = "<group>"; };
@@ -808,6 +812,7 @@
 		4E46636B059F74492348E235 /* PendingRequestsMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PendingRequestsMonitor.swift; sourceTree = "<group>"; };
 		4EFC87C79D77AB6C13405B06 /* EPGCollectionLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EPGCollectionLayout.swift; sourceTree = "<group>"; };
 		4FCC0AD2AA3F895C4DE7EE5F /* NetworkPathObserver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkPathObserver.swift; sourceTree = "<group>"; };
+		5010D9C8B7FF35BAD3E1408B /* TrackSelectionMemoryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackSelectionMemoryTests.swift; sourceTree = "<group>"; };
 		507BD61D174F40D1EAE62DE4 /* TrackSelectionMatcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackSelectionMatcher.swift; sourceTree = "<group>"; };
 		50D44D64EE3E9EBE69B65698 /* SeerrMediaStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeerrMediaStatus.swift; sourceTree = "<group>"; };
 		50ECB1F4714BE9BDB90243F1 /* DualURLPromptLatch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DualURLPromptLatch.swift; sourceTree = "<group>"; };
@@ -1263,6 +1268,7 @@
 				34D5B3810DDB2AD91CD7A5CD /* SessionRestorerTests.swift */,
 				20F0563DC3B9E955AE59349F /* SRTParserTests.swift */,
 				5450D64B456309A318F89F37 /* TrackSelectionMatcherTests.swift */,
+				5010D9C8B7FF35BAD3E1408B /* TrackSelectionMemoryTests.swift */,
 				8F65790C4F34A9AB07D29DAE /* TrickplayScrubSourceTests.swift */,
 				8730A8CE2859D3564EF8CA11 /* TrickplayTileSetTests.swift */,
 			);
@@ -1701,6 +1707,7 @@
 				BB86B2C38A397724F13D05E0 /* SeerrSettingsView.swift */,
 				AD92F70D67DC2DE192A24567 /* ServerManagementView.swift */,
 				8BB64AA91C881200F98F790D /* SettingsView.swift */,
+				247F3F4BFD1A383FB168B6F6 /* TrackSelectionMemory.swift */,
 			);
 			path = Settings;
 			sourceTree = "<group>";
@@ -2309,6 +2316,7 @@
 				AB7BA0AC30A273DCF170A80C /* TimeInterval+Display.swift in Sources */,
 				D11DDB91CCDF3E877EAD8683 /* TrackDisplayFormatter.swift in Sources */,
 				424308DE3BF409FF649E5D3D /* TrackSelectionMatcher.swift in Sources */,
+				20D938BFB6EA2CF34D36E066 /* TrackSelectionMemory.swift in Sources */,
 				5939CD9349B214F8A1020362 /* TransportBar.swift in Sources */,
 				5B88E7BF4979C557E84694D5 /* TrickplayTileSet.swift in Sources */,
 				80811AA6BB3E51EE8A6D196A /* UserPickerView.swift in Sources */,
@@ -2388,6 +2396,7 @@
 				C46B3F125E18CBAD3C030347 /* ServerURLClassifierTests.swift in Sources */,
 				7E6A5602AAE2EB1189151A70 /* SessionRestorerTests.swift in Sources */,
 				E01D328CCEC86F8FD4005394 /* TrackSelectionMatcherTests.swift in Sources */,
+				A2FC1A1306E456B2424EC377 /* TrackSelectionMemoryTests.swift in Sources */,
 				234FD6BF76C34011FC978A38 /* TrickplayScrubSourceTests.swift in Sources */,
 				ACBD1C0414C2A351FF486D36 /* TrickplayTileSetTests.swift in Sources */,
 			);
@@ -2657,6 +2666,7 @@
 				01A1A521373723693EFE03B0 /* TimeInterval+Display.swift in Sources */,
 				874F04CFFA50BD362156DD5D /* TrackDisplayFormatter.swift in Sources */,
 				B757153052CE1EF9EBF69705 /* TrackSelectionMatcher.swift in Sources */,
+				5C69B7B41DBFB7EDACB6A5BD /* TrackSelectionMemory.swift in Sources */,
 				4C7019340962676491BBB2BC /* TransportBar.swift in Sources */,
 				9CFA0E5FCF158CBF4B90E7C3 /* TrickplayTileSet.swift in Sources */,
 				7278EC59CB5A676B9AD32699 /* UserPickerView.swift in Sources */,

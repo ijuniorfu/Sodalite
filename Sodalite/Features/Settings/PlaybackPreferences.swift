@@ -42,6 +42,7 @@ final class PlaybackPreferences {
         static let playerRotationLocked = "playback.playerRotationLocked"
         static let networkBufferDepth = "playback.networkBufferDepth"
         static let liveTeletextPage = "playback.liveTeletextPage"
+        static let rememberTrackSelections = "playback.rememberTrackSelections"
     }
 
     // MARK: - Allowed Values
@@ -341,6 +342,12 @@ final class PlaybackPreferences {
         didSet { store.set(liveTeletextPage.rawValue, forKey: Keys.liveTeletextPage) }
     }
 
+    /// Sodalite#46: remember the manual audio/subtitle pick per movie and per series.
+    /// Off means the memory is neither read nor written; existing entries stay on disk.
+    var rememberTrackSelections: Bool {
+        didSet { store.set(rememberTrackSelections, forKey: Keys.rememberTrackSelections) }
+    }
+
     var audioBridgeMode: AudioBridgeMode {
         preferLosslessAudioBridge ? .lossless : .surroundCompat
     }
@@ -403,5 +410,6 @@ final class PlaybackPreferences {
             .flatMap(NetworkBufferDepth.init(rawValue:)) ?? .system
         self.liveTeletextPage = (store.string(forKey: Keys.liveTeletextPage))
             .flatMap(LiveTeletextPage.init(rawValue:)) ?? .auto
+        self.rememberTrackSelections = store.object(forKey: Keys.rememberTrackSelections) as? Bool ?? true
     }
 }

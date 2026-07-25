@@ -28,6 +28,7 @@ final class DependencyContainer {
     let jellyfinImageService: JellyfinImageService
     let jellyfinPlaybackService: JellyfinPlaybackServiceProtocol
     let playbackPreferences: PlaybackPreferences
+    let trackSelectionMemory: TrackSelectionMemory
     let storeKitService: StoreKitServiceProtocol
     let appearancePreferences: AppearancePreferences
     let authPreferences: AuthPreferences
@@ -117,6 +118,7 @@ final class DependencyContainer {
         )
         self.jellyfinPlaybackService = JellyfinPlaybackService(client: jellyfinClient)
         self.playbackPreferences = PlaybackPreferences()
+        self.trackSelectionMemory = TrackSelectionMemory()
         self.storeKitService = StoreKitService()
         self.appearancePreferences = AppearancePreferences()
         self.authPreferences = AuthPreferences()
