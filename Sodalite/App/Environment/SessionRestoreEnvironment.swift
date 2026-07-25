@@ -7,9 +7,10 @@ protocol SessionRestoreEnvironment {
     var hasTVMapping: Bool { get }
     var defaultServerID: String? { get }
     var launchBehavior: AuthPreferences.LaunchBehavior { get }
-    var defaultUserID: String? { get }
     var activeServer: JellyfinServer? { get }
 
+    /// Default profile pinned on one server; per server, so a pin on another server can never auto-enter here.
+    func defaultUserID(serverID: String) -> String?
     func listKnownServers() -> [JellyfinServer]
     func listRememberedUsers(serverID: String) -> [RememberedUser]
     /// Route-aware best guess for a server's base URL: the persisted last-known route, else server.url. Satisfied by DependencyContainer's existing member.
@@ -41,7 +42,10 @@ extension DependencyContainer: SessionRestoreEnvironment {
     }
     var defaultServerID: String? { authPreferences.defaultServerID }
     var launchBehavior: AuthPreferences.LaunchBehavior { authPreferences.launchBehavior }
-    var defaultUserID: String? { authPreferences.defaultUserID }
+
+    func defaultUserID(serverID: String) -> String? {
+        authPreferences.defaultUserID(serverID: serverID)
+    }
 
     func loadActiveServerID() -> String? {
         try? keychainService.loadString(for: KeychainKeys.activeServerID)

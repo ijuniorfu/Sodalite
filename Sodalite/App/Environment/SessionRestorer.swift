@@ -111,12 +111,14 @@ struct SessionRestorer {
             }
         }
 
+        // Pinned per server, so this never resolves against another server's default profile.
+        let pinnedDefaultID = env.defaultUserID(serverID: server.id)
         let shouldUseDefault = !hasTVMapping
             && env.launchBehavior == .useDefault
-            && env.defaultUserID.flatMap { id in remembered.first { $0.id == id } } != nil
+            && pinnedDefaultID.flatMap { id in remembered.first { $0.id == id } } != nil
 
         if shouldUseDefault,
-           let defaultID = env.defaultUserID,
+           let defaultID = pinnedDefaultID,
            let target = remembered.first(where: { $0.id == defaultID }) {
             if target.id != userID {
                 try? env.switchToUser(target, server: server)

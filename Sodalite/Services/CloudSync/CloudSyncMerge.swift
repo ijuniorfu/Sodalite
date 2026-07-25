@@ -25,6 +25,7 @@ enum CloudSyncMerge {
         merged.rememberedUsers = unionRememberedUsers(local: local.rememberedUsers, cloud: cloud.rememberedUsers)
         merged.seerrSessions = unionSeerrSessions(local: local.seerrSessions, cloud: cloud.seerrSessions)
         if merged.homeRows == nil { merged.homeRows = local.homeRows }
+        if merged.defaultUserID == nil { merged.defaultUserID = local.defaultUserID }
         if merged.jellyfinPassword == nil {
             merged.jellyfinPassword = local.jellyfinPassword
             merged.passwordUserID = local.passwordUserID

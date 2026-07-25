@@ -196,7 +196,7 @@ struct LaunchProfilePickerView: View {
     private func isPreferredDefault(_ user: RememberedUser) -> Bool {
         user.id == ProfilePickerOrdering.preferredFocusID(
             users: rememberedUsers,
-            defaultID: dependencies.authPreferences.defaultUserID,
+            defaultID: dependencies.authPreferences.defaultUserID(serverID: server.id),
             activeID: activeSessionUserID
         )
     }
@@ -332,8 +332,8 @@ struct LaunchProfilePickerView: View {
 
             // If the user forgot the defaultUserID, clear the default
             // so launch behavior doesn't try to restore a ghost.
-            if dependencies.authPreferences.defaultUserID == user.id {
-                dependencies.authPreferences.defaultUserID = nil
+            if dependencies.authPreferences.defaultUserID(serverID: server.id) == user.id {
+                dependencies.authPreferences.setDefaultUserID(nil, serverID: server.id)
             }
         } catch {
             switchError = error.localizedDescription

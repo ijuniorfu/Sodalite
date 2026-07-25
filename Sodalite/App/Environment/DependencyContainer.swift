@@ -122,6 +122,11 @@ final class DependencyContainer {
         self.storeKitService = StoreKitService()
         self.appearancePreferences = AppearancePreferences()
         self.authPreferences = AuthPreferences()
+        // The pre-1.0 default-profile pin had no server scope; attribute it to the pinned default server, else the one that was active when it was written.
+        self.authPreferences.migrateLegacyDefaultUserID(
+            toServerID: self.authPreferences.defaultServerID
+                ?? (try? keychainService.loadString(for: KeychainKeys.activeServerID))
+        )
         self.parentalControlsPreferences = ParentalControlsPreferences()
         self.parentalGate = ParentalGate()
         self.tvProfileMappings = TVProfileMappings()
@@ -513,6 +518,8 @@ final class DependencyContainer {
         if authPreferences.defaultServerID == serverID {
             authPreferences.defaultServerID = nil
         }
+        // Drop this server's default-profile pin too, else re-adding the server later resurrects a pin to a profile that may be long gone.
+        authPreferences.setDefaultUserID(nil, serverID: serverID)
 
         let activeID = try? keychainService.loadString(for: KeychainKeys.activeServerID)
         var signalAlreadyScheduled = false

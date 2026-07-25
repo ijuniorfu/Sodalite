@@ -59,6 +59,9 @@ struct ServerSyncPayload: Codable, Equatable {
     var passwordUserID: String?
     var seerrSessions: [RememberedSeerrSession]
     var homeRows: HomeRowsSyncState?
+    /// Profile pinned as this server's default. Optional: payloads written before the pin moved out
+    /// of the global auth store must still decode, and a missing value must not clear a device's pin.
+    var defaultUserID: String?
 }
 
 struct PlaybackSettingsPayload: Codable, Equatable {
@@ -181,6 +184,8 @@ struct AuthSettingsPayload: Codable, Equatable {
     var schemaVersion: Int = 1
     var updatedAt: Date
     var launchBehavior: String
+    /// Retired: the pin lives in `ServerSyncPayload.defaultUserID` now. Still written (mirroring the
+    /// default server's pin) so a device on an older build keeps working; never applied on this build.
     var defaultUserID: String?
     var defaultServerID: String?
 }

@@ -41,7 +41,11 @@ final class AuthPreferences {
 
     private enum Keys {
         static let launchBehavior = "auth.launchBehavior"
-        static let defaultUserID = "auth.defaultUserID"
+        /// Retired single-slot pin: a default profile only means anything inside one server's profile list, so one slot let pinning on server B silently unpin server A.
+        static let legacyDefaultUserID = "auth.defaultUserID"
+        static func defaultUserID(serverID: String) -> String {
+            "auth.defaultUserID.\(serverID)"
+        }
         static let defaultServerID = "auth.defaultServerID"
         static let profileReprompt = "auth.profileReprompt"
     }
@@ -56,15 +60,32 @@ final class AuthPreferences {
         didSet { store.set(profileReprompt.rawValue, forKey: Keys.profileReprompt) }
     }
 
-    /// Nil means no default set yet: the picker shows regardless of launch behavior.
-    var defaultUserID: String? {
-        didSet {
-            if let defaultUserID, !defaultUserID.isEmpty {
-                store.set(defaultUserID, forKey: Keys.defaultUserID)
-            } else {
-                store.removeObject(forKey: Keys.defaultUserID)
-            }
+    /// Bumped on every write below. A method is invisible to `@Observable`, so the accessor reads this to register the dependency for the enclosing view body instead.
+    private(set) var defaultUserIDRevision: Int = 0
+
+    /// The profile pinned as default on one server. Nil means none: the picker shows regardless of launch behavior.
+    func defaultUserID(serverID: String) -> String? {
+        _ = defaultUserIDRevision
+        return store.string(forKey: Keys.defaultUserID(serverID: serverID))
+    }
+
+    func setDefaultUserID(_ userID: String?, serverID: String) {
+        if let userID, !userID.isEmpty {
+            store.set(userID, forKey: Keys.defaultUserID(serverID: serverID))
+        } else {
+            store.removeObject(forKey: Keys.defaultUserID(serverID: serverID))
         }
+        defaultUserIDRevision &+= 1
+    }
+
+    /// One-time move of the retired single-slot pin onto the server it must have belonged to (the pinned default server, else the active one). Deletes the old entry either way, so it can never resurface on a third server.
+    func migrateLegacyDefaultUserID(toServerID serverID: String?) {
+        guard let legacy = store.string(forKey: Keys.legacyDefaultUserID) else { return }
+        store.removeObject(forKey: Keys.legacyDefaultUserID)
+        guard let serverID,
+              store.string(forKey: Keys.defaultUserID(serverID: serverID)) == nil
+        else { return }
+        setDefaultUserID(legacy, serverID: serverID)
     }
 
     /// Server auto-promoted to active on cold launch. Nil keeps the most-recently-used; cleared when the server is removed.
@@ -88,7 +109,6 @@ final class AuthPreferences {
         self.launchBehavior = LaunchBehavior(rawValue: raw) ?? .showPicker
         let repromptRaw = store.string(forKey: Keys.profileReprompt) ?? ProfileRepromptInterval.off.rawValue
         self.profileReprompt = ProfileRepromptInterval(rawValue: repromptRaw) ?? .off
-        self.defaultUserID = store.string(forKey: Keys.defaultUserID)
         self.defaultServerID = store.string(forKey: Keys.defaultServerID)
     }
 }

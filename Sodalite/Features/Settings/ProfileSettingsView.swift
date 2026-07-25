@@ -199,6 +199,12 @@ struct ProfileSettingsView: View {
         .padding(.top, 12)
     }
 
+    /// Pinned default profile of the active server (the pin is per server).
+    private var defaultUserID: String? {
+        guard let serverID = appState.activeServer?.id else { return nil }
+        return authPreferences.defaultUserID(serverID: serverID)
+    }
+
     @ViewBuilder
     private var defaultProfilePicker: some View {
         VStack(spacing: 12) {
@@ -213,10 +219,12 @@ struct ProfileSettingsView: View {
             VStack(spacing: 8) {
                 ForEach(rememberedUsers) { user in
                     Button {
-                        authPreferences.defaultUserID = user.id
+                        if let serverID = appState.activeServer?.id {
+                            authPreferences.setDefaultUserID(user.id, serverID: serverID)
+                        }
                     } label: {
                         HStack(spacing: 16) {
-                            Image(systemName: authPreferences.defaultUserID == user.id
+                            Image(systemName: defaultUserID == user.id
                                   ? "largecircle.fill.circle"
                                   : "circle")
                                 .foregroundStyle(.tint)
@@ -227,7 +235,7 @@ struct ProfileSettingsView: View {
                         .padding(16)
                     }
                     .buttonStyle(SettingsTileButtonStyle())
-                    .accessibilityAddTraits(authPreferences.defaultUserID == user.id ? .isSelected : [])
+                    .accessibilityAddTraits(defaultUserID == user.id ? .isSelected : [])
                 }
             }
         }
@@ -338,8 +346,8 @@ struct ProfileSettingsView: View {
         guard let server = appState.activeServer else { return }
         do {
             try dependencies.forgetUser(id: user.id, serverID: server.id)
-            if authPreferences.defaultUserID == user.id {
-                authPreferences.defaultUserID = nil
+            if authPreferences.defaultUserID(serverID: server.id) == user.id {
+                authPreferences.setDefaultUserID(nil, serverID: server.id)
             }
             refresh()
         } catch {

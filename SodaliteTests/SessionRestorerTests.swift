@@ -10,7 +10,8 @@ final class FakeRestoreEnv: SessionRestoreEnvironment {
     var hasTVMapping = false
     var defaultServerID: String?
     var launchBehavior: AuthPreferences.LaunchBehavior = .showPicker
-    var defaultUserID: String?
+    /// Pinned default profile per server id, mirroring the per-server store.
+    var defaultUserIDByServer: [String: String] = [:]
     var activeServer: JellyfinServer?
     var knownServers: [JellyfinServer] = []
     var remembered: [RememberedUser] = []
@@ -29,6 +30,7 @@ final class FakeRestoreEnv: SessionRestoreEnvironment {
     private(set) var rememberedAdded: [RememberedUser] = []
     private(set) var switched: [String] = []
 
+    func defaultUserID(serverID: String) -> String? { defaultUserIDByServer[serverID] }
     func listKnownServers() -> [JellyfinServer] { knownServers }
     func listRememberedUsers(serverID: String) -> [RememberedUser] { remembered.filter { $0.serverID == serverID } }
     func preferredURL(for server: JellyfinServer) -> URL { server.url }  // single-slot fallback, matches production's server.url default
@@ -117,7 +119,7 @@ struct SessionRestorerTests {
         env.remembered = [user("U")]            // unprotected (not in protectedKeys)
         env.parentalControlsActiveResult = true
         env.launchBehavior = .useDefault
-        env.defaultUserID = "U"                 // would otherwise auto-enter
+        env.defaultUserIDByServer["A"] = "U"                 // would otherwise auto-enter
         let outcome = SessionRestorer(env: env).restore()
         guard case .picker(let srv, let sync) = outcome else { Issue.record("SECURITY REGRESSION: lock bypassed, got \(tagOf(outcome))"); return }
         #expect(srv.id == "A")
@@ -151,7 +153,7 @@ struct SessionRestorerTests {
         let env = restorable()
         env.remembered = [user("U"), user("B")]
         env.launchBehavior = .useDefault
-        env.defaultUserID = "B"
+        env.defaultUserIDByServer["A"] = "B"
         let outcome = SessionRestorer(env: env).restore()
         guard case .authenticated(_, let u) = outcome else { Issue.record("expected authenticated, got \(tagOf(outcome))"); return }
         #expect(u.id == "B")
@@ -162,7 +164,7 @@ struct SessionRestorerTests {
         let env = restorable()
         env.remembered = [user("U"), user("B")]
         env.launchBehavior = .useDefault
-        env.defaultUserID = "U"
+        env.defaultUserIDByServer["A"] = "U"
         let outcome = SessionRestorer(env: env).restore()
         guard case .authenticated(_, let u) = outcome else { Issue.record("expected authenticated, got \(tagOf(outcome))"); return }
         #expect(u.id == "U")
@@ -266,9 +268,21 @@ struct SessionRestorerTests {
         env.hasTVMapping = true
         env.remembered = [user("U"), user("B")]
         env.launchBehavior = .useDefault
-        env.defaultUserID = "B"
+        env.defaultUserIDByServer["A"] = "B"
         let outcome = SessionRestorer(env: env).restore()
         guard case .picker(_, let sync) = outcome else { Issue.record("expected picker (tvMapping suppresses useDefault), got \(tagOf(outcome))"); return }
+        #expect(sync == true)
+        #expect(env.switched.isEmpty)
+    }
+
+    // The pin is per server: another server's default profile must never auto-enter this one.
+    @Test func defaultUserIDPinnedOnAnotherServer_doesNotAutoEnter() {
+        let env = restorable()
+        env.remembered = [user("U"), user("B")]
+        env.launchBehavior = .useDefault
+        env.defaultUserIDByServer["OTHER"] = "B"
+        let outcome = SessionRestorer(env: env).restore()
+        guard case .picker(_, let sync) = outcome else { Issue.record("expected picker, got \(tagOf(outcome))"); return }
         #expect(sync == true)
         #expect(env.switched.isEmpty)
     }
@@ -278,7 +292,7 @@ struct SessionRestorerTests {
         let env = restorable()
         env.remembered = [user("U"), user("B")]
         env.launchBehavior = .useDefault
-        env.defaultUserID = "GHOST"
+        env.defaultUserIDByServer["A"] = "GHOST"
         let outcome = SessionRestorer(env: env).restore()
         guard case .picker(_, let sync) = outcome else { Issue.record("expected picker fallback, got \(tagOf(outcome))"); return }
         #expect(sync == true)

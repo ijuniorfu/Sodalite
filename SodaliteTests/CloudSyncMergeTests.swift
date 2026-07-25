@@ -9,12 +9,13 @@ struct CloudSyncMergeTests {
     }
 
     private func serverPayload(users: [RememberedUser], password: String? = nil, passwordUserID: String? = nil,
-                               homeRows: HomeRowsSyncState? = nil, at: TimeInterval) -> ServerSyncPayload {
+                               homeRows: HomeRowsSyncState? = nil, defaultUserID: String? = nil,
+                               at: TimeInterval) -> ServerSyncPayload {
         ServerSyncPayload(
             updatedAt: Date(timeIntervalSince1970: at),
             server: JellyfinServer(id: "s1", name: "Main", url: URL(string: "https://jf.example")!, version: nil),
             rememberedUsers: users, jellyfinPassword: password, passwordUserID: passwordUserID,
-            seerrSessions: [], homeRows: homeRows)
+            seerrSessions: [], homeRows: homeRows, defaultUserID: defaultUserID)
     }
 
     @Test("monotonic stamp uses now when ahead of highest seen")
@@ -66,6 +67,24 @@ struct CloudSyncMergeTests {
         #expect(merged.passwordUserID == "onlyLocal")
         // Cloud has no home rows, so local rows survive.
         #expect(merged.homeRows?.mergeCWNextUp == true)
+    }
+
+    // A cloud payload written before the default-profile pin moved into the server record carries no
+    // pin; adoption must keep the local one instead of clearing it.
+    @Test("adoption: local default-profile pin survives a cloud payload without one")
+    func adoptionKeepsLocalDefaultUserID() {
+        let local = serverPayload(users: [], defaultUserID: "u1", at: 999)
+        let cloud = serverPayload(users: [], at: 5)
+        let merged = CloudSyncMerge.adoptServerPayload(local: local, cloud: cloud, stamp: Date(timeIntervalSince1970: 1000))
+        #expect(merged.defaultUserID == "u1")
+    }
+
+    @Test("adoption: cloud default-profile pin wins when present")
+    func adoptionCloudDefaultUserIDWins() {
+        let local = serverPayload(users: [], defaultUserID: "u1", at: 999)
+        let cloud = serverPayload(users: [], defaultUserID: "u2", at: 5)
+        let merged = CloudSyncMerge.adoptServerPayload(local: local, cloud: cloud, stamp: Date(timeIntervalSince1970: 1000))
+        #expect(merged.defaultUserID == "u2")
     }
 
     @Test("adoption: cloud password and home rows win when present")

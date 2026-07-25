@@ -38,7 +38,8 @@ extension DependencyContainer {
             jellyfinPassword: password,
             passwordUserID: passwordUserID,
             seerrSessions: sessions,
-            homeRows: homeRows
+            homeRows: homeRows,
+            defaultUserID: authPreferences.defaultUserID(serverID: serverID)
         )
     }
 
@@ -107,6 +108,11 @@ extension DependencyContainer {
             }
             NotificationCenter.default.post(name: .homeConfigDidChange, object: nil)
         }
+
+        // Absent on payloads from builds that still kept the pin in the global auth store; leave the local pin alone rather than clearing it.
+        if let defaultUserID = payload.defaultUserID {
+            authPreferences.setDefaultUserID(defaultUserID, serverID: serverID)
+        }
     }
 
     /// Remote record delete: same teardown as a local removeServer (successor
@@ -168,7 +174,9 @@ extension DependencyContainer {
             return .auth(AuthSettingsPayload(
                 updatedAt: stamp,
                 launchBehavior: authPreferences.launchBehavior.rawValue,
-                defaultUserID: authPreferences.defaultUserID,
+                // Legacy mirror for devices still on a build without the per-server pin: the default server's is the one they would have used.
+                defaultUserID: authPreferences.defaultServerID
+                    .flatMap { authPreferences.defaultUserID(serverID: $0) },
                 defaultServerID: authPreferences.defaultServerID
             ))
         case .seerrNotifications:
@@ -240,7 +248,7 @@ extension DependencyContainer {
             store.nowPlayingUsesSeriesPoster = a.nowPlayingUsesSeriesPoster
         case .auth(let a):
             authPreferences.launchBehavior = AuthPreferences.LaunchBehavior(rawValue: a.launchBehavior) ?? authPreferences.launchBehavior
-            authPreferences.defaultUserID = a.defaultUserID
+            // a.defaultUserID is the retired global pin, deliberately not applied: it carries no server, so applying it would pin the wrong server's profile. The per-server value rides the server record.
             authPreferences.defaultServerID = a.defaultServerID
         case .seerrNotifications(let s):
             seerrNotificationPreferences.notifyPendingRequests = s.notifyPendingRequests
