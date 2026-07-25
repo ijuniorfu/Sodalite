@@ -53,7 +53,9 @@ struct AppRouter: View {
         #if os(iOS)
         await PendingRequestsSync.refreshAndSync(
             monitor: dependencies.pendingRequestsMonitor,
-            preferences: dependencies.seerrNotificationPreferences
+            preferences: dependencies.seerrNotificationPreferences,
+            jellyfinServerID: dependencies.activeServer?.id,
+            jellyfinUserID: dependencies.activeUserID
         )
         #else
         await dependencies.pendingRequestsMonitor.refresh()

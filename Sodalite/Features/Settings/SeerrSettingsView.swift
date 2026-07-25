@@ -443,7 +443,9 @@ struct SeerrSettingsView: View {
             await dependencies.pendingRequestsMonitor.refresh()
             let count = dependencies.pendingRequestsMonitor.pendingApprovalCount ?? 0
             // Baseline so enabling never retro-notifies about already-pending requests; only future rises fire.
-            prefs.lastSeenPendingCount = count
+            if let serverID = dependencies.activeServer?.id, let userID = dependencies.activeUserID {
+                prefs.setLastSeenPendingCount(count, jellyfinServerID: serverID, jellyfinUserID: userID)
+            }
             await PendingRequestsNotifier.setBadgeCount(count)
         } else {
             prefs.notifyPendingRequests = false

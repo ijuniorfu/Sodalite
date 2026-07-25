@@ -59,15 +59,30 @@ enum PendingRequestsSync {
     @MainActor
     static func refreshAndSync(
         monitor: PendingRequestsMonitor,
-        preferences: SeerrNotificationPreferences
+        preferences: SeerrNotificationPreferences,
+        jellyfinServerID: String?,
+        jellyfinUserID: String?
     ) async {
         await monitor.refresh()
         // Notifications off: the tab badge (monitor) still updated above; leave the app-icon badge alone.
         guard preferences.notifyPendingRequests, let count = monitor.pendingApprovalCount else { return }
-        if PendingRequestsMonitor.shouldNotify(current: count, lastSeen: preferences.lastSeenPendingCount) {
+        // No resolvable profile means no baseline this count can be compared against; the badge still tracks it.
+        guard let jellyfinServerID, let jellyfinUserID else {
+            await PendingRequestsNotifier.setBadgeCount(count)
+            return
+        }
+        let lastSeen = preferences.lastSeenPendingCount(
+            jellyfinServerID: jellyfinServerID,
+            jellyfinUserID: jellyfinUserID
+        )
+        if PendingRequestsMonitor.shouldNotify(current: count, lastSeen: lastSeen) {
             await PendingRequestsNotifier.notifyPendingIncrease(count: count)
         }
         await PendingRequestsNotifier.setBadgeCount(count)
-        preferences.lastSeenPendingCount = count
+        preferences.setLastSeenPendingCount(
+            count,
+            jellyfinServerID: jellyfinServerID,
+            jellyfinUserID: jellyfinUserID
+        )
     }
 }

@@ -1,14 +1,18 @@
 import Foundation
 import Observation
 
-/// Device-local (UserDefaults) opt-in + baseline for the pending-requests notification feature;
-/// read/write via `DependencyContainer.seerrNotificationPreferences`. Sole owner of its two keys.
+/// Device-local (UserDefaults) opt-in + baselines for the pending-requests notification feature;
+/// read/write via `DependencyContainer.seerrNotificationPreferences`. Sole owner of its keys.
 @Observable
 @MainActor
 final class SeerrNotificationPreferences {
     private enum Keys {
         static let notifyPendingRequests = "seerr.notifyPendingRequests"
-        static let lastSeenPendingCount = "seerr.lastSeenPendingCount"
+        /// Retired device-global baseline: every Jellyfin profile has its own Seerr session, so one profile's count silenced another profile's notification.
+        static let legacyLastSeenPendingCount = "seerr.lastSeenPendingCount"
+        static func lastSeenPendingCount(jellyfinServerID: String, jellyfinUserID: String) -> String {
+            "seerr.lastSeenPendingCount.\(jellyfinServerID)_\(jellyfinUserID)"
+        }
     }
 
     @ObservationIgnored private let defaults: UserDefaults
@@ -16,14 +20,31 @@ final class SeerrNotificationPreferences {
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
         self.notifyPendingRequests = defaults.bool(forKey: Keys.notifyPendingRequests)
-        self.lastSeenPendingCount = defaults.integer(forKey: Keys.lastSeenPendingCount)
+        // Deliberately not migrated onto a profile: which one it belonged to was never recorded, and guessing wrong silences that profile. Worst case is one notification about already-pending requests, once.
+        defaults.removeObject(forKey: Keys.legacyLastSeenPendingCount)
     }
 
     var notifyPendingRequests: Bool {
         didSet { defaults.set(notifyPendingRequests, forKey: Keys.notifyPendingRequests) }
     }
 
-    var lastSeenPendingCount: Int {
-        didSet { defaults.set(lastSeenPendingCount, forKey: Keys.lastSeenPendingCount) }
+    /// Approval count this profile was last notified about, scoped per (Jellyfin server, Jellyfin profile), which is exactly the scope of a Seerr session.
+    func lastSeenPendingCount(jellyfinServerID: String, jellyfinUserID: String) -> Int {
+        defaults.integer(
+            forKey: Keys.lastSeenPendingCount(
+                jellyfinServerID: jellyfinServerID,
+                jellyfinUserID: jellyfinUserID
+            )
+        )
+    }
+
+    func setLastSeenPendingCount(_ count: Int, jellyfinServerID: String, jellyfinUserID: String) {
+        defaults.set(
+            count,
+            forKey: Keys.lastSeenPendingCount(
+                jellyfinServerID: jellyfinServerID,
+                jellyfinUserID: jellyfinUserID
+            )
+        )
     }
 }

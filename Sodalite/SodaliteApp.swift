@@ -38,7 +38,12 @@ struct SodaliteApp: App {
         PendingRequestsBackgroundRefresh.register {
             let prefs = deps.seerrNotificationPreferences
             guard prefs.notifyPendingRequests else { return false }
-            await PendingRequestsSync.refreshAndSync(monitor: deps.pendingRequestsMonitor, preferences: prefs)
+            await PendingRequestsSync.refreshAndSync(
+                monitor: deps.pendingRequestsMonitor,
+                preferences: prefs,
+                jellyfinServerID: deps.activeServer?.id,
+                jellyfinUserID: deps.activeUserID
+            )
             return true
         }
         // Show notifications as banners even while the app is foregrounded.
