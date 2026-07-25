@@ -49,16 +49,16 @@ enum BackgroundGrain {
 
 /// Always compose this above every other layer. Dithering only helps when it
 /// is applied after the last compositing step that can quantise a gradient.
+///
+/// The texture never moves. Grain that drifts slowly enough to be followed
+/// reads as a crawling pattern rather than as grain, which is far more
+/// distracting behind static content than holding it still.
 struct BackgroundGrainLayer: View {
     let opacity: Double
-    var scale: CGFloat = 1
-    var offset: CGSize = .zero
 
     var body: some View {
         Rectangle()
             .fill(ImagePaint(image: Image(uiImage: BackgroundGrain.image), scale: 1))
-            .scaleEffect(scale)
-            .offset(x: offset.width, y: offset.height)
             .opacity(opacity)
             .allowsHitTesting(false)
     }

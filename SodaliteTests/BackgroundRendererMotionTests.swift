@@ -31,7 +31,6 @@ struct BackgroundRendererMotionTests {
             at: CinemaNoirMotion.lightDuration / 4
         )
         #expect(abs(quarter.lightOffsetX - start.lightOffsetX) >= 0.40)
-        #expect(quarter.grainOffsetX != start.grainOffsetX)
     }
 
     @Test("static renderer samples start from a composed frame")

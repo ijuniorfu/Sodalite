@@ -101,6 +101,26 @@ struct BackgroundRendererGeometryTests {
         #expect(source.contains("CinemaNoirLightBeam.stops"))
     }
 
+    /// Grain that drifts slowly reads as a crawling pattern instead of grain.
+    /// Neither renderer may move its texture, and the layer must not offer a
+    /// way to do so.
+    @Test("grain never moves in either renderer")
+    func grainIsStatic() throws {
+        for path in [
+            "Sodalite/Features/Support/CinemaNoirBackground.swift",
+            "Sodalite/Features/Support/AccentAuroraBackground.swift"
+        ] {
+            let source = try sourceFile(path)
+            #expect(!source.contains("grainOffset"))
+        }
+
+        let primitives = try sourceFile(
+            "Sodalite/Features/Support/BackgroundRenderPrimitives.swift"
+        )
+        #expect(!primitives.contains("scaleEffect"))
+        #expect(!primitives.contains(".offset("))
+    }
+
     private func sourceFile(_ relativePath: String) throws -> String {
         let repository = URL(fileURLWithPath: #filePath)
             .deletingLastPathComponent()

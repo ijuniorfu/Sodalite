@@ -3,24 +3,13 @@ import SwiftUI
 enum CinemaNoirMotion {
     static let lightDuration: TimeInterval = 18
     static let lightAmplitude: CGFloat = 0.46
-    private static let grainXDuration: TimeInterval = 36
-    private static let grainYDuration: TimeInterval = 42
 
     struct Sample {
         let lightOffsetX: CGFloat
-        let grainOffsetX: CGFloat
-        let grainOffsetY: CGFloat
     }
 
     static func sample(at time: TimeInterval) -> Sample {
-        Sample(
-            lightOffsetX: lightAmplitude * wave(time, duration: lightDuration),
-            grainOffsetX: 8 * wave(time, duration: grainXDuration),
-            grainOffsetY: 6 * wave(
-                time + grainYDuration / 4,
-                duration: grainYDuration
-            )
-        )
+        Sample(lightOffsetX: lightAmplitude * wave(time, duration: lightDuration))
     }
 
     private static func wave(
@@ -120,16 +109,8 @@ struct CinemaNoirBackground: View {
                             endPoint: CinemaNoirLightBeam.endPoint
                         ))
                     Color.black.opacity(0.28)
-                    BackgroundGrainLayer(
-                        opacity: BackgroundGrain.filmOpacity,
-                        scale: 1.08,
-                        offset: CGSize(
-                            width: motion.grainOffsetX,
-                            height: motion.grainOffsetY
-                        )
-                    )
+                    BackgroundGrainLayer(opacity: BackgroundGrain.filmOpacity)
                 }
-                .clipped()
             }
             .ignoresSafeArea()
         }
