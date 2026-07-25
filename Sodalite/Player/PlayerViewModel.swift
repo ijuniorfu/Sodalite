@@ -335,6 +335,8 @@ final class PlayerViewModel {
     var startFromBeginning: Bool
     var cachedPlaybackInfo: PlaybackInfoResponse?
     let preferences: PlaybackPreferences
+    /// Sodalite#46 per-title memory; nil in contexts that do not persist picks (live, previews).
+    let trackMemory: TrackSelectionMemory?
 
     /// When set, `startPlayback()` selects the matching PlaybackInfo source instead of first.
     /// Nil keeps default-first. Set by the detail-view version picker.
@@ -534,6 +536,7 @@ final class PlayerViewModel {
         playbackService: JellyfinPlaybackServiceProtocol,
         userID: String,
         preferences: PlaybackPreferences,
+        trackMemory: TrackSelectionMemory? = nil,
         cachedPlaybackInfo: PlaybackInfoResponse? = nil,
         preferredMediaSourceID: String? = nil,
         playQueue: [JellyfinItem] = [],
@@ -547,6 +550,7 @@ final class PlayerViewModel {
         self.playbackService = playbackService
         self.userID = userID
         self.preferences = preferences
+        self.trackMemory = trackMemory
         self.scrubPreview = ScrubPreviewProvider()
         self.cachedPlaybackInfo = cachedPlaybackInfo
         self.preferredMediaSourceID = preferredMediaSourceID
@@ -770,7 +774,11 @@ final class PlayerViewModel {
             let probeBudget = Self.remoteDirectPlayProbeBudget(method: activePlayMethod, source: source)
             // Hand the language preference to the engine so it picks the audio track on the first frame
             // from its single probe (#72), instead of us reloading via selectAudioTrack after load.
-            let preferredAudio = effectivePreferredAudioLanguage()
+            // A remembered pick (Sodalite#46) outranks the global preference here; only a different
+            // track of the SAME language still needs the post-load reload in resolveInitialTracks.
+            let rememberedAudioLanguage = memoryScopeKey
+                .flatMap { trackMemory?.entry(for: $0) }?.audio?.language
+            let preferredAudio = rememberedAudioLanguage ?? effectivePreferredAudioLanguage()
             // AE#88: declare external Jellyfin subs at load so they list in engine.subtitleTracks
             // and join the native WebVTT renditions (PiP / external display); the map routes UI selections to engine ids.
             let externalSubs = Self.externalSubtitleDescriptors(streams: subtitleStreams) { stream in
@@ -823,7 +831,7 @@ final class PlayerViewModel {
             // rendition is served but stays UNSELECTED here; it is selected only when the video leaves the app
             // (PiP / external display, #32 / #34), so the two never double up. Fullscreen behaviour is identical to main.
             resetNativeSubtitleRenderingState()
-            applyPreferredSubtitle(forAudioLanguage: chosenAudio?.language)
+            resolveInitialTracks(audioLanguage: chosenAudio?.language)
             applyForcedSubtitleFallback()
 
             hostLoadActive = false
@@ -1506,6 +1514,41 @@ final class PlayerViewModel {
         else { return }
         if let match = bestSubtitleMatch(forLanguage: preferredAudio) {
             selectSubtitleTrack(id: match.index)
+        }
+    }
+
+    /// nil when the memory is disabled or unavailable, which turns every read and write
+    /// below into a no-op without a second flag to check.
+    var memoryScopeKey: String? {
+        guard preferences.rememberTrackSelections, trackMemory != nil, !isLiveSession else { return nil }
+        return TrackSelectionMemory.scopeKey(userID: userID, itemID: item.id, seriesID: item.seriesId)
+    }
+
+    /// Sodalite#46: a remembered pick for this movie or series beats both
+    /// `preferredSubtitleLanguage` and `autoSubtitleForForeignAudio`; anything the memory
+    /// cannot resolve falls through to that automatic resolution unchanged. VOD only, the
+    /// live path keeps calling `applyPreferredSubtitle` directly.
+    private func resolveInitialTracks(audioLanguage: String?) {
+        let entry = memoryScopeKey.flatMap { trackMemory?.entry(for: $0) }
+        let plan = TrackSelectionMatcher.plan(
+            entry: entry,
+            subtitleStreams: subtitleStreams,
+            audioTracks: player.audioTracks
+        )
+
+        // Raw engine select, not selectAudioTrack: the wrapper re-runs the automatic
+        // subtitle resolution, which would overwrite the remembered subtitle below.
+        if let audioTrackID = plan.audioTrackID, audioTrackID != player.activeAudioTrackIndex {
+            player.selectAudioTrack(index: audioTrackID)
+        }
+
+        switch plan.subtitle {
+        case .off:
+            selectSubtitleTrack(id: nil)
+        case .select(let streamIndex):
+            selectSubtitleTrack(id: streamIndex)
+        case .fallThrough:
+            applyPreferredSubtitle(forAudioLanguage: audioLanguage)
         }
     }
 

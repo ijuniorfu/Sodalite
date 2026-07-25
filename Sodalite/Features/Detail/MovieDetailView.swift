@@ -73,6 +73,7 @@ struct MovieDetailView: View {
                     playbackService: dependencies.jellyfinPlaybackService,
                     userID: userID,
                     preferences: dependencies.playbackPreferences,
+                    trackMemory: dependencies.trackSelectionMemory,
                     cachedPlaybackInfo: viewModel?.cachedPlaybackInfo,
                     preferredMediaSourceID: pendingSourceID,
                     tintColor: dependencies.appearancePreferences.effectiveTint(
@@ -91,6 +92,7 @@ struct MovieDetailView: View {
                     playbackService: dependencies.jellyfinPlaybackService,
                     userID: userID,
                     preferences: dependencies.playbackPreferences,
+                    trackMemory: dependencies.trackSelectionMemory,
                     // Trailer is a distinct server item; the movie's
                     // cached PlaybackInfo does not apply to it.
                     cachedPlaybackInfo: nil,

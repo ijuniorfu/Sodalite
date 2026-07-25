@@ -225,6 +225,7 @@ struct FilteredGridView: View {
                     playbackService: dependencies.jellyfinPlaybackService,
                     userID: userID,
                     preferences: dependencies.playbackPreferences,
+                    trackMemory: dependencies.trackSelectionMemory,
                     cachedPlaybackInfo: nil,
                     preferredMediaSourceID: nil,
                     playQueue: playQueue,

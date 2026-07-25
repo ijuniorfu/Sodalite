@@ -13,6 +13,8 @@ struct PlayerLauncher: UIViewControllerRepresentable {
     let playbackService: JellyfinPlaybackServiceProtocol
     let userID: String
     let preferences: PlaybackPreferences
+    /// Sodalite#46 per-title track memory; nil disables remembering for this launch.
+    var trackMemory: TrackSelectionMemory?
     var cachedPlaybackInfo: PlaybackInfoResponse?
     /// Version picker's choice; nil = default-first source.
     var preferredMediaSourceID: String?
@@ -40,6 +42,7 @@ struct PlayerLauncher: UIViewControllerRepresentable {
                     playbackService: playbackService,
                     userID: userID,
                     preferences: preferences,
+                    trackMemory: trackMemory,
                     cachedPlaybackInfo: cachedPlaybackInfo,
                     preferredMediaSourceID: preferredMediaSourceID,
                     playQueue: playQueue

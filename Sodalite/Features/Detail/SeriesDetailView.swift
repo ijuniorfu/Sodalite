@@ -232,6 +232,7 @@ struct SeriesDetailView: View {
                     playbackService: dependencies.jellyfinPlaybackService,
                     userID: userID,
                     preferences: dependencies.playbackPreferences,
+                    trackMemory: dependencies.trackSelectionMemory,
                     cachedPlaybackInfo: playItem.flatMap { ep in
                         (viewModel?.currentEpisodeID == ep.id) ? viewModel?.cachedPlaybackInfo : nil
                     },
