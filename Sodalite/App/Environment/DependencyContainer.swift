@@ -428,7 +428,12 @@ final class DependencyContainer {
             }
         }
 
+        let previousServerID = try? keychainService.loadString(for: KeychainKeys.activeServerID)
         try keychainService.save(serverID, for: KeychainKeys.activeServerID)
+        if previousServerID != serverID {
+            // Identity-scoped caches must die where the identity changes. Doing it in a view's onChange left a hole: TabRootView is .id(activeServer.id), so switching from Settings rebuilds the tab bar without instantiating HomeView, and Catalog/Library then hydrate from the previous server's cached pages.
+            FilterCache.shared.clearAll()
+        }
 
         let loaded: String?
         do {
@@ -597,6 +602,7 @@ final class DependencyContainer {
 
     /// Swaps to a remembered profile: reuses cached token, updates active-session keychain, reconfigures client. Drops the cached Jellyfin password (per-server, not per-user) so Seerr auto-fill doesn't carry the previous user's password.
     func switchToUser(_ remembered: RememberedUser, server: JellyfinServer) throws {
+        let previousIdentity = activeSessionIdentity()
         try addServer(server)
         try keychainService.save(server.id, for: KeychainKeys.activeServerID)
         try keychainService.save(
@@ -617,6 +623,12 @@ final class DependencyContainer {
 
         try? keychainService.delete(for: KeychainKeys.jellyfinPassword(serverID: server.id))
         try? keychainService.delete(for: KeychainKeys.jellyfinPasswordUserID(serverID: server.id))
+
+        if previousIdentity?.serverID != server.id || previousIdentity?.userID != remembered.id {
+            // Same reason as switchServer, plus: rows and thumbnails were fetched under the previous profile's token, so they carry its library permissions and watched flags.
+            FilterCache.shared.clearAll()
+            ImageCache.shared.clear()
+        }
 
         let sessionURL = preferredURL(for: server)
         jellyfinClient.baseURL = sessionURL

@@ -248,11 +248,8 @@ struct LaunchProfilePickerView: View {
 
     private func performSelect(_ user: RememberedUser) {
         do {
+            // switchToUser purges the identity-scoped caches (images, filter pages) itself.
             try dependencies.switchToUser(user, server: server)
-            // Thumbnails fetched under the old token may no longer resolve.
-            ImageCache.shared.clear()
-            // FilterCache carries the previous user's library perms + watched flags; same-server switches don't bump serverDidSwitch, so clear here.
-            FilterCache.shared.clearAll()
             let jf = JellyfinUser(
                 id: user.id,
                 name: user.name,

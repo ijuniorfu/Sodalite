@@ -147,7 +147,7 @@ struct HomeView: View {
                     lastHandledServerSwitch = 0
                 }
             }
-            FilterCache.shared.clearAll()
+            // switchServer already purged FilterCache, before this signal was even bumped.
             await viewModel?.reloadAfterServerSwitch()
         }
         // Pre-warm row artwork as rows land so first focus doesn't pay round-trip + decode. Keyed on the cross-row item-id set so it re-fires whenever row membership changes.

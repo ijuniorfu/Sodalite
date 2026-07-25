@@ -289,11 +289,8 @@ struct ProfileSettingsView: View {
 
     private func switchTo(_ user: RememberedUser, server: JellyfinServer) {
         do {
+            // switchToUser purges the identity-scoped caches (images, filter pages) itself.
             try dependencies.switchToUser(user, server: server)
-            // Cached images carry the previous profile's token; clear so they re-fetch under new permissions.
-            ImageCache.shared.clear()
-            // switchToUser doesn't bump serverDidSwitch (same server), so HomeView's clear-task never fires; clear here.
-            FilterCache.shared.clearAll()
             let jf = JellyfinUser(
                 id: user.id,
                 name: user.name,
