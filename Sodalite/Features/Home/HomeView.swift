@@ -84,9 +84,6 @@ struct HomeView: View {
                     serverID: appState.activeServer?.id ?? userID
                 )
                 Task { await viewModel?.loadContent() }
-            } else if viewModel?.needsReload == true {
-                viewModel?.needsReload = false
-                Task { await viewModel?.loadContent() }
             } else if let last = viewModel?.lastLoadedAt,
                       Date().timeIntervalSince(last) > Self.refreshStaleSeconds {
                 // Pick up new server-side content on return after 60 s: tight enough to show additions fast, loose enough that tab-hopping doesn't spam the server.
@@ -95,7 +92,7 @@ struct HomeView: View {
         }
         .onReceive(NotificationCenter.default.publisher(for: .homeConfigDidChange)) { _ in
             viewModel?.reloadConfig()
-            viewModel?.needsReload = true
+            viewModel?.scheduleConfigReload()
         }
         .onReceive(NotificationCenter.default.publisher(for: .homeFavoritesDidChange)) { _ in
             Task { await viewModel?.loadContent() }

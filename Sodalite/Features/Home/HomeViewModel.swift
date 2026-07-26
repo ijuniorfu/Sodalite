@@ -7,7 +7,6 @@ final class HomeViewModel {
     var isLoading = true
     var errorMessage: String?
     var rowConfigs: [HomeRowConfig] = []
-    var needsReload = false
     /// Sample backdrop per provider TMDB id from a one-shot Studios query so each provider tile shows a real library hero; nil falls back to logo-only.
     var providerBackdrops: [Int: URL] = [:]
 
@@ -19,6 +18,10 @@ final class HomeViewModel {
 
     /// Same throttle for the genre-tile pre-warm; grids still revalidate on open, this just paints the first post-tap frame from the file cache.
     var genreCachesComputedAt: Date?
+
+    /// Coalescing window for config-change reloads; Home Customize posts one notification per toggle. Settable so tests don't wait it out.
+    var configReloadDebounce: Duration = .milliseconds(800)
+    private var configReloadTask: Task<Void, Never>?
 
     /// Handles for loadContent's background fan-outs, cancelled on teardown or re-entry, else an orphaned VM keeps fetching and writing FilterCache after its UI is gone.
     private var backdropTask: Task<Void, Never>?
@@ -55,8 +58,20 @@ final class HomeViewModel {
         self.rowConfigs = HomeRowConfig.loadFromStorage(serverID: serverID)
     }
 
+    /// Reload after a config change, coalesced. Deliberately not a flag consumed by the view's onAppear: iOS presents Settings as a sheet over the tab bar, and a sheet dismiss fires no onAppear underneath, so a pending flag survived until relaunch (tvOS Settings is a tab, which did re-appear Home). Same reason the iCloud-sync poster needs this.
+    func scheduleConfigReload() {
+        configReloadTask?.cancel()
+        configReloadTask = Task { [weak self] in
+            guard let debounce = self?.configReloadDebounce else { return }
+            try? await Task.sleep(for: debounce)
+            guard !Task.isCancelled else { return }
+            await self?.loadContent()
+        }
+    }
+
     isolated deinit {
         // Fan-outs hold self weakly, but a deferred-sleep task would linger up to 13 s after the VM is gone (profile switch); cancel flips Task.isCancelled so the next checkpoint stops early.
+        configReloadTask?.cancel()
         backdropTask?.cancel()
         providerCountsTask?.cancel()
         genreCachesTask?.cancel()
