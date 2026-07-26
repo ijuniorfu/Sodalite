@@ -418,6 +418,9 @@ final class DetailViewModel {
         do {
             try await itemService.setPlayed(userID: userID, itemID: item.id, isPlayed: isPlayed)
             NotificationCenter.default.post(name: .homePlayedDidChange, object: nil)
+            // Marking watched drops the item out of Resume and advances Next Up, so both
+            // shelf sections are stale.
+            TopShelfRefresher.invalidate()
         } catch {
             isPlayed = oldValue
             playedOverrides[item.id] = oldValue
@@ -432,6 +435,9 @@ final class DetailViewModel {
         do {
             try await itemService.setPlayed(userID: userID, itemID: episode.id, isPlayed: isPlayed)
             NotificationCenter.default.post(name: .homePlayedDidChange, object: nil)
+            // Marking watched drops the item out of Resume and advances Next Up, so both
+            // shelf sections are stale.
+            TopShelfRefresher.invalidate()
         } catch {
             playedOverrides[episode.id] = oldValue
         }
@@ -451,6 +457,9 @@ final class DetailViewModel {
         do {
             try await itemService.setPlayed(userID: userID, itemID: seasonID, isPlayed: isPlayed)
             NotificationCenter.default.post(name: .homePlayedDidChange, object: nil)
+            // Marking watched drops the item out of Resume and advances Next Up, so both
+            // shelf sections are stale.
+            TopShelfRefresher.invalidate()
         } catch {
             playedOverrides = previous
         }

@@ -382,6 +382,7 @@
 		8F81A0F63AFFC0FC5E14909F /* JellyfinClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2080A79A7BCF42A714B4B67 /* JellyfinClient.swift */; };
 		8FC78FED2D47E6E7FD65CC2C /* PlayerViewModel+SubtitleSearch.swift in Sources */ = {isa = PBXBuildFile; fileRef = 038BBEAE0097DCB4283CD8BD /* PlayerViewModel+SubtitleSearch.swift */; };
 		8FCEC367C387AAB678C1E20F /* HorizontalMediaRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7501601A2864C83A34FEEB88 /* HorizontalMediaRow.swift */; };
+		902ABF6BC8EDD2296385E4D6 /* TopShelfRefresher.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7C2F6626D47D897ABFD497A /* TopShelfRefresher.swift */; };
 		90BE98FBC33873CD3301C463 /* LivePlayerLauncher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12D48C0E2F7E3BC442ECDDB4 /* LivePlayerLauncher.swift */; };
 		90D19563C17ADD2BC8340CC8 /* ChangelogListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E1FB527AFBC2EF233653E73 /* ChangelogListView.swift */; };
 		910ADBBEA8840E737462AB4C /* SeerrSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB86B2C38A397724F13D05E0 /* SeerrSettingsView.swift */; };
@@ -618,6 +619,7 @@
 		E9511232011DBFDC358C3D29 /* AppearanceSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0A3049205841D55FB3F382F /* AppearanceSettingsView.swift */; };
 		E984E6A6BA6D6898E0924E32 /* ContentProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C6921178DD65491C08AE8CB /* ContentProvider.swift */; };
 		E9882F71A7B8FC9523BE2C7A /* PiPSessionMachineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B1A47884F1F377AE81C780B /* PiPSessionMachineTests.swift */; };
+		E9E3BE760E86F2BAA4C2F83D /* TopShelfRefresher.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7C2F6626D47D897ABFD497A /* TopShelfRefresher.swift */; };
 		EA17419A52470FBCC407C1AF /* JellyfinItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94E01603BBC5E3C43B2FE1F0 /* JellyfinItem.swift */; };
 		EABD486C41810AF76E61F932 /* ExpandableTextBox.swift in Sources */ = {isa = PBXBuildFile; fileRef = 484A27C5E575AFDDB1BD1404 /* ExpandableTextBox.swift */; };
 		EAE8B943BB09D49866DD75C3 /* SeerrServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = D52B58D4E42BF82C030A8DA2 /* SeerrServer.swift */; };
@@ -1031,6 +1033,7 @@
 		E5AB5D7618DDA0234AD98A97 /* HomeRowConfigTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeRowConfigTests.swift; sourceTree = "<group>"; };
 		E5AC25744AF04149582645C9 /* WatchStats.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchStats.swift; sourceTree = "<group>"; };
 		E7BCB7F7CD85E2F64A64C87D /* JellyfinAPI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JellyfinAPI.swift; sourceTree = "<group>"; };
+		E7C2F6626D47D897ABFD497A /* TopShelfRefresher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TopShelfRefresher.swift; sourceTree = "<group>"; };
 		E80A021B835F6729AC316A2C /* Sodalite-iOS.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = "Sodalite-iOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		E8A3CE174D07975F74B21F10 /* LogTap.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogTap.swift; sourceTree = "<group>"; };
 		E9532B89E34C911A0311633A /* CatalogFilteredGridView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CatalogFilteredGridView.swift; sourceTree = "<group>"; };
@@ -1127,6 +1130,7 @@
 				81E6D9A823ADF28BFA536A81 /* SplashView.swift */,
 				3997F1A421DEEA00C9DA66C7 /* TabBarImmersion.swift */,
 				0FD9103B219AFCAC73A8836A /* TabRootView.swift */,
+				E7C2F6626D47D897ABFD497A /* TopShelfRefresher.swift */,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -2346,6 +2350,7 @@
 				59EC6D80B92D43F8613330AB /* TechInfoBox.swift in Sources */,
 				AB7BA0AC30A273DCF170A80C /* TimeInterval+Display.swift in Sources */,
 				A20C0561B17DEDAE79BAB4C2 /* TopShelfProgress.swift in Sources */,
+				E9E3BE760E86F2BAA4C2F83D /* TopShelfRefresher.swift in Sources */,
 				D11DDB91CCDF3E877EAD8683 /* TrackDisplayFormatter.swift in Sources */,
 				424308DE3BF409FF649E5D3D /* TrackSelectionMatcher.swift in Sources */,
 				20D938BFB6EA2CF34D36E066 /* TrackSelectionMemory.swift in Sources */,
@@ -2702,6 +2707,7 @@
 				F9893A06A72CBE53B7E5D00B /* TechInfoBox.swift in Sources */,
 				01A1A521373723693EFE03B0 /* TimeInterval+Display.swift in Sources */,
 				FEF0180CC2897F7032D68187 /* TopShelfProgress.swift in Sources */,
+				902ABF6BC8EDD2296385E4D6 /* TopShelfRefresher.swift in Sources */,
 				874F04CFFA50BD362156DD5D /* TrackDisplayFormatter.swift in Sources */,
 				B757153052CE1EF9EBF69705 /* TrackSelectionMatcher.swift in Sources */,
 				5C69B7B41DBFB7EDACB6A5BD /* TrackSelectionMemory.swift in Sources */,

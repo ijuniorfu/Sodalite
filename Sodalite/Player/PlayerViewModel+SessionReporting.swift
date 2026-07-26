@@ -83,6 +83,9 @@ extension PlayerViewModel {
                     PlaybackProgressKey.positionTicks: ticks
                 ]
             )
+            // Inside the do: a failed report means the server never learned the new
+            // position, so the shelf has nothing new to fetch.
+            TopShelfRefresher.invalidate()
         } catch {
             #if DEBUG
             print("[SessionReport] Stop FAILED: \(error)")
