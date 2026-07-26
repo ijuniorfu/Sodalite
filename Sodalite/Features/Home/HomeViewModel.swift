@@ -7,7 +7,6 @@ final class HomeViewModel {
     var isLoading = true
     var errorMessage: String?
     var rowConfigs: [HomeRowConfig] = []
-    var needsReload = false
     /// Sample backdrop per provider TMDB id from a one-shot Studios query so each provider tile shows a real library hero; nil falls back to logo-only.
     var providerBackdrops: [Int: URL] = [:]
 
@@ -19,6 +18,10 @@ final class HomeViewModel {
 
     /// Same throttle for the genre-tile pre-warm; grids still revalidate on open, this just paints the first post-tap frame from the file cache.
     var genreCachesComputedAt: Date?
+
+    /// Coalescing window for config-change reloads; Home Customize posts one notification per toggle. Settable so tests don't wait it out.
+    var configReloadDebounce: Duration = .milliseconds(800)
+    private var configReloadTask: Task<Void, Never>?
 
     /// Handles for loadContent's background fan-outs, cancelled on teardown or re-entry, else an orphaned VM keeps fetching and writing FilterCache after its UI is gone.
     private var backdropTask: Task<Void, Never>?
@@ -55,8 +58,20 @@ final class HomeViewModel {
         self.rowConfigs = HomeRowConfig.loadFromStorage(serverID: serverID)
     }
 
+    /// Reload after a config change, coalesced. Deliberately not a flag consumed by the view's onAppear: iOS presents Settings as a sheet over the tab bar, and a sheet dismiss fires no onAppear underneath, so a pending flag survived until relaunch (tvOS Settings is a tab, which did re-appear Home). Same reason the iCloud-sync poster needs this.
+    func scheduleConfigReload() {
+        configReloadTask?.cancel()
+        configReloadTask = Task { [weak self] in
+            guard let debounce = self?.configReloadDebounce else { return }
+            try? await Task.sleep(for: debounce)
+            guard !Task.isCancelled else { return }
+            await self?.loadContent()
+        }
+    }
+
     isolated deinit {
         // Fan-outs hold self weakly, but a deferred-sleep task would linger up to 13 s after the VM is gone (profile switch); cancel flips Task.isCancelled so the next checkpoint stops early.
+        configReloadTask?.cancel()
         backdropTask?.cancel()
         providerCountsTask?.cancel()
         genreCachesTask?.cancel()
@@ -112,6 +127,9 @@ final class HomeViewModel {
         enum RowResult: Sendable {
             case media(HomeRowData)
             case tag(HomeTagRowData)
+            /// Fetch succeeded and returned nothing: the row has to go, else it keeps showing what it held before (unfavoriting the last item left the stale card on screen until relaunch).
+            case emptied(id: String, isTag: Bool)
+            /// Fetch failed (loadRow/loadTagRow swallow errors and return nil): leave the on-screen row alone so a transient hiccup doesn't blank Home.
             case empty
         }
 
@@ -143,15 +161,17 @@ final class HomeViewModel {
                 let config = entry.config
                 let isTag = entry.isTag
                 let type = config.type
+                // Resolved here for the same reason as isTag: id reads the MainActor-isolated type.
+                let rowID = config.id
                 group.addTask { [weak self] in
                     guard let self else { return .empty }
                     if isTag {
-                        if let tagRow = await self.loadTagRow(type: type), !tagRow.tags.isEmpty {
-                            return .tag(tagRow)
+                        if let tagRow = await self.loadTagRow(type: type) {
+                            return tagRow.tags.isEmpty ? .emptied(id: rowID, isTag: true) : .tag(tagRow)
                         }
                     } else {
-                        if let rowData = await self.loadRow(config: config), !rowData.items.isEmpty {
-                            return .media(rowData)
+                        if let rowData = await self.loadRow(config: config) {
+                            return rowData.items.isEmpty ? .emptied(id: rowID, isTag: false) : .media(rowData)
                         }
                     }
                     return .empty
@@ -176,6 +196,17 @@ final class HomeViewModel {
                     } else {
                         tagRows.append(row)
                     }
+                    sawAnyResult = true
+                    isLoading = false
+                    errorMessage = nil
+                case .emptied(let id, let isTag):
+                    if isTag {
+                        tagRows.removeAll { $0.id == id }
+                    } else {
+                        rows.removeAll { $0.id == id }
+                    }
+                    // Counts as a result: the server answered, so this is not the total-failure case
+                    // below. A server whose every row is legitimately empty must not read as offline.
                     sawAnyResult = true
                     isLoading = false
                     errorMessage = nil
