@@ -12,6 +12,8 @@ struct JellyfinItem: Decodable, Sendable {
     let imageTags: ImageTags?
     let backdropImageTags: [String]?
     let parentBackdropImageTags: [String]?
+    let runTimeTicks: Int64?
+    let userData: UserData?
 
     enum CodingKeys: String, CodingKey {
         case id = "Id"
@@ -24,6 +26,8 @@ struct JellyfinItem: Decodable, Sendable {
         case imageTags = "ImageTags"
         case backdropImageTags = "BackdropImageTags"
         case parentBackdropImageTags = "ParentBackdropImageTags"
+        case runTimeTicks = "RunTimeTicks"
+        case userData = "UserData"
     }
 }
 
@@ -49,6 +53,17 @@ struct ImageTags: Decodable, Sendable {
     }
 }
 
+/// Per-user playback state; feeds the cell's resume bar.
+struct UserData: Decodable, Sendable {
+    let playedPercentage: Double?
+    let playbackPositionTicks: Int64?
+
+    enum CodingKeys: String, CodingKey {
+        case playedPercentage = "PlayedPercentage"
+        case playbackPositionTicks = "PlaybackPositionTicks"
+    }
+}
+
 extension JellyfinItem {
     /// Wide thumbnail for the carousel cell: episodes prefer their own Primary still (parent series backdrop fallback for orphans), movies use their backdrop. Episode resolution is capped at the server's image-extraction-width setting (320 old default, can't upscale client-side); requests enableImageEnhancers=false to dodge a downscaling enhancer.
     func topShelfImageURL(baseURL: URL, token: String) -> URL? {
@@ -70,6 +85,14 @@ extension JellyfinItem {
             return imageURL(baseURL: baseURL, itemID: id, kind: "Primary", tag: tag, token: token)
         }
         return nil
+    }
+
+    /// Resume bar for the cell. Percentage first (what /Items/Resume returns), ticks as the
+    /// fallback for anything that only carries a position.
+    var topShelfProgress: Double? {
+        TopShelfProgress.fraction(playedPercentage: userData?.playedPercentage,
+                                  positionTicks: userData?.playbackPositionTicks,
+                                  runTimeTicks: runTimeTicks)
     }
 
     /// Card headline: movies render bare name; episodes prefix series + S/E breadcrumb (the still alone doesn't identify the show).

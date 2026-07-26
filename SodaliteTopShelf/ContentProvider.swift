@@ -59,6 +59,9 @@ final class ContentProvider: TVTopShelfContentProvider {
         cell.title = item.topShelfTitle
         cell.imageShape = .hdtv
         cell.displayAction = TVTopShelfAction(url: deepLink(for: item))
+        if let progress = item.topShelfProgress {
+            cell.playbackProgress = progress
+        }
 
         if let url = item.topShelfImageURL(baseURL: session.baseURL, token: session.accessToken) {
             // 2x is the only scale Apple TV renders; setting both 1x and 2x doubles the daemon's fetch work and trips memory pressure surfacing as "-17102 decompressing image" when cells race to decode.
