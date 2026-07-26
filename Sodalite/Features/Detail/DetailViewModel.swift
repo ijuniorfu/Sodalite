@@ -8,6 +8,8 @@ final class DetailViewModel {
     var isPlayed: Bool
     /// Played overrides keyed by item/episode/season ID; live-updates the watched badge without mutating the immutable JellyfinItem (same "pass state to the card" pattern as isFocused/isCurrent).
     var playedOverrides: [String: Bool] = [:]
+    /// Favorite overrides keyed by episode ID; same reason as playedOverrides, the heart badge has to update without mutating the item.
+    var favoriteOverrides: [String: Bool] = [:]
     var seasons: [JellyfinItem] = []
     var episodes: [JellyfinItem] = []
     /// Cache-miss episode fetch for the selected season in flight; drives the skeleton row instead of a blank ("grey then everything at once" slow-CDN symptom).
@@ -401,6 +403,25 @@ final class DetailViewModel {
             NotificationCenter.default.post(name: .homeFavoritesDidChange, object: nil)
         } catch {
             isFavorite = oldValue
+        }
+    }
+
+    /// Effective favorite state: in-session override wins over the server snapshot.
+    func isFavorite(_ item: JellyfinItem) -> Bool {
+        favoriteOverrides[item.id] ?? (item.userData?.isFavorite ?? false)
+    }
+
+    /// Toggle a single episode. `isFavorite` is the desired new state.
+    func setEpisodeFavorite(_ episode: JellyfinItem, isFavorite: Bool) async {
+        let oldValue = favoriteOverrides[episode.id]
+        favoriteOverrides[episode.id] = isFavorite
+
+        do {
+            try await itemService.setFavorite(
+                userID: userID, itemID: episode.id, isFavorite: isFavorite)
+            NotificationCenter.default.post(name: .homeFavoritesDidChange, object: nil)
+        } catch {
+            favoriteOverrides[episode.id] = oldValue
         }
     }
 
