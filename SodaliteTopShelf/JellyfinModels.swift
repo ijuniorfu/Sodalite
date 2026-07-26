@@ -1,7 +1,7 @@
 import Foundation
 
-/// Subset of Jellyfin's item DTO the TopShelf renders; PascalCase keys so the same JSON the main app receives decodes here unmassaged.
-struct JellyfinItem: Decodable, Sendable {
+/// Subset of Jellyfin's item DTO the TopShelf renders; PascalCase keys so the same JSON the main app receives decodes here unmassaged. Codable (not just Decodable) so TopShelfCache can persist items for the offline fallback.
+struct JellyfinItem: Codable, Sendable {
     let id: String
     let name: String
     let type: ItemType
@@ -12,6 +12,8 @@ struct JellyfinItem: Decodable, Sendable {
     let imageTags: ImageTags?
     let backdropImageTags: [String]?
     let parentBackdropImageTags: [String]?
+    let runTimeTicks: Int64?
+    let userData: UserData?
 
     enum CodingKeys: String, CodingKey {
         case id = "Id"
@@ -24,10 +26,12 @@ struct JellyfinItem: Decodable, Sendable {
         case imageTags = "ImageTags"
         case backdropImageTags = "BackdropImageTags"
         case parentBackdropImageTags = "ParentBackdropImageTags"
+        case runTimeTicks = "RunTimeTicks"
+        case userData = "UserData"
     }
 }
 
-enum ItemType: String, Decodable, Sendable {
+enum ItemType: String, Codable, Sendable {
     case movie = "Movie"
     case series = "Series"
     case episode = "Episode"
@@ -39,13 +43,24 @@ enum ItemType: String, Decodable, Sendable {
     }
 }
 
-struct ImageTags: Decodable, Sendable {
+struct ImageTags: Codable, Sendable {
     let primary: String?
     let thumb: String?
 
     enum CodingKeys: String, CodingKey {
         case primary = "Primary"
         case thumb = "Thumb"
+    }
+}
+
+/// Per-user playback state; feeds the cell's resume bar.
+struct UserData: Codable, Sendable {
+    let playedPercentage: Double?
+    let playbackPositionTicks: Int64?
+
+    enum CodingKeys: String, CodingKey {
+        case playedPercentage = "PlayedPercentage"
+        case playbackPositionTicks = "PlaybackPositionTicks"
     }
 }
 
@@ -70,6 +85,14 @@ extension JellyfinItem {
             return imageURL(baseURL: baseURL, itemID: id, kind: "Primary", tag: tag, token: token)
         }
         return nil
+    }
+
+    /// Resume bar for the cell. Percentage first (what /Items/Resume returns), ticks as the
+    /// fallback for anything that only carries a position.
+    var topShelfProgress: Double? {
+        TopShelfProgress.fraction(playedPercentage: userData?.playedPercentage,
+                                  positionTicks: userData?.playbackPositionTicks,
+                                  runTimeTicks: runTimeTicks)
     }
 
     /// Card headline: movies render bare name; episodes prefix series + S/E breadcrumb (the still alone doesn't identify the show).

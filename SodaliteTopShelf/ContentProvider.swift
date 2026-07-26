@@ -21,9 +21,28 @@ final class ContentProvider: TVTopShelfContentProvider {
         async let resume = Self.fetch("resume") { try await api.resumeItems() }
         async let nextUp = Self.fetch("nextUp") { try await api.nextUp() }
 
-        let resumeItems = await resume
-        let nextUpItems = await nextUp
-        log.info("Fetched resume=\(resumeItems.count) nextUp=\(nextUpItems.count)")
+        let fetchedResume = await resume
+        let fetchedNextUp = await nextUp
+
+        // Failure path only: a healthy load never touches the container, which keeps the
+        // extension's tight budget clear of a read + decode it has no use for.
+        let cached = (fetchedResume == nil || fetchedNextUp == nil)
+            ? Self.usableCache(session: session)
+            : nil
+
+        let resumeItems = fetchedResume ?? cached?.resume ?? []
+        let nextUpItems = fetchedNextUp ?? cached?.nextUp ?? []
+        log.info("Fetched resume=\(resumeItems.count) nextUp=\(nextUpItems.count) usedCache=\(cached != nil)")
+
+        // Writes the merged view, not just what came back, so a partial failure still leaves
+        // both sections populated for the next total failure.
+        if TopShelfCachePolicy.shouldWrite(resumeSucceeded: fetchedResume != nil,
+                                           nextUpSucceeded: fetchedNextUp != nil) {
+            TopShelfCache(serverURL: session.baseURL.absoluteString,
+                          userID: session.userID,
+                          resume: resumeItems,
+                          nextUp: nextUpItems).write()
+        }
 
         var sections: [TVTopShelfItemCollection<TVTopShelfSectionedItem>] = []
 
@@ -58,7 +77,14 @@ final class ContentProvider: TVTopShelfContentProvider {
         let cell = TVTopShelfSectionedItem(identifier: item.id)
         cell.title = item.topShelfTitle
         cell.imageShape = .hdtv
-        cell.displayAction = TVTopShelfAction(url: deepLink(for: item))
+        // Both actions play. A shelf cell is an invitation to keep watching, not a link to a
+        // page, and nobody guesses that the detail route hides behind Select while Play starts.
+        let play = TVTopShelfAction(url: playLink(for: item))
+        cell.displayAction = play
+        cell.playAction = play
+        if let progress = item.topShelfProgress {
+            cell.playbackProgress = progress
+        }
 
         if let url = item.topShelfImageURL(baseURL: session.baseURL, token: session.accessToken) {
             // 2x is the only scale Apple TV renders; setting both 1x and 2x doubles the daemon's fetch work and trips memory pressure surfacing as "-17102 decompressing image" when cells race to decode.
@@ -69,17 +95,33 @@ final class ContentProvider: TVTopShelfContentProvider {
         return cell
     }
 
-    /// `sodalite://item/{id}`: handled by the main app's `onOpenURL` to push directly into the detail/player route for that item.
-    private func deepLink(for item: JellyfinItem) -> URL {
-        URL(string: "sodalite://item/\(item.id)")!
+    /// `sodalite://play/{id}`: the main app's `onOpenURL` opens the item's detail route and starts playback on arrival. The app still understands `sodalite://item/{id}` (detail without playing), the shelf just has no use for it.
+    private func playLink(for item: JellyfinItem) -> URL {
+        URL(string: "sodalite://play/\(item.id)")!
     }
 
-    private static func fetch(_ label: String, _ work: () async throws -> [JellyfinItem]) async -> [JellyfinItem] {
+    /// Last good content, but only when it belongs to the session just read from the keychain.
+    /// A cache from another server or profile is deleted rather than carried forward.
+    private static func usableCache(session: SharedSession) -> TopShelfCache? {
+        guard let stored = TopShelfCache.read() else { return nil }
+        guard TopShelfCachePolicy.matches(cachedServerURL: stored.serverURL,
+                                          cachedUserID: stored.userID,
+                                          sessionServerURL: session.baseURL.absoluteString,
+                                          sessionUserID: session.userID)
+        else {
+            TopShelfCachePolicy.delete()
+            return nil
+        }
+        return stored
+    }
+
+    /// nil is a failed fetch, [] is a genuinely empty section; the cache fallback needs to tell them apart.
+    private static func fetch(_ label: String, _ work: () async throws -> [JellyfinItem]) async -> [JellyfinItem]? {
         do {
             return try await work()
         } catch {
             log.error("\(label, privacy: .public) fetch failed: \(error.localizedDescription, privacy: .public)")
-            return []
+            return nil
         }
     }
 }

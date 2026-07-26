@@ -74,6 +74,25 @@ struct SeriesDetailView: View {
     let item: JellyfinItem
     /// Seeds the preselected episode for an episode-route open (DetailRouterView .episode) so the panel paints from snapshot and the VM lands on the right season. nil for a normal series open.
     var initialEpisode: JellyfinItem? = nil
+    /// TopShelf playAction: fire the primary play action once, as soon as a play target exists.
+    var autoPlay: Bool = false
+    @State private var didAutoPlay = false
+
+    /// Re-keys the autoplay task whenever the resolved play target changes, so it also runs for
+    /// whatever target already exists at first render. `autoPlay` is part of the key because the
+    /// flag can arrive after the target does, and that late arrival has to re-run the check.
+    private var autoPlayTargetKey: String {
+        guard let vm = viewModel else { return "\(autoPlay)-no-vm" }
+        return "\(autoPlay)-\(playTarget(vm: vm)?.id ?? "no-target")"
+    }
+
+    /// Gated on playTarget rather than hasFullDetail: the latter describes the series, not whether a playable episode has been resolved yet.
+    private func maybeAutoPlay() {
+        guard autoPlay, !didAutoPlay, let vm = viewModel,
+              let target = playTarget(vm: vm) else { return }
+        didAutoPlay = true
+        requestPlay(target, fromBeginning: false, fromPlayButton: true)
+    }
 
     /// `fromPlayButton` preserves the focus-restoration origin flag the trigger sites set.
     private func requestPlay(_ episode: JellyfinItem, fromBeginning: Bool, fromPlayButton: Bool) {
@@ -248,6 +267,10 @@ struct SeriesDetailView: View {
                 .allowsHitTesting(false)
             }
         }
+        // task(id:), NOT onChange: onChange only sees transitions, and on a cold launch the play
+        // target can already be resolved when this view first renders (the deep-link resolver
+        // waits for the session and fetches ahead of it), leaving nothing to transition to.
+        .task(id: autoPlayTargetKey) { maybeAutoPlay() }
         .sheet(item: $versionChoice, onDismiss: {
             if didPickVersion {
                 didPickVersion = false

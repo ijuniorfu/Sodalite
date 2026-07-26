@@ -25,11 +25,18 @@ enum SharedSessionMirror {
             return
         }
         save(data, account: slot)
+        TopShelfRefresher.invalidate()
     }
 
     static func clear(tvUserID: String?) {
         let slot = KeychainKeys.sharedSession(tvUserID: tvUserID)
         delete(account: slot)
+        // The extension's own identity check already refuses a foreign cache; this is the
+        // tidy-up so a logged-out device carries no library titles in its container.
+        TopShelfCachePolicy.delete()
+        // Without this the shelf keeps serving the previous profile's cells until tvOS
+        // asks again on its own schedule.
+        TopShelfRefresher.invalidate()
     }
 
     /// Wipes every shared-session slot (full logout). Enumerates by `tvOSSession_` account-prefix since SecItem has no prefix match.
@@ -53,6 +60,8 @@ enum SharedSessionMirror {
             else { continue }
             delete(account: account)
         }
+        TopShelfCachePolicy.delete()
+        TopShelfRefresher.invalidate()
     }
 
     private static func save(_ data: Data, account: String) {

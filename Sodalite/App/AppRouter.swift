@@ -25,8 +25,13 @@ struct AppRouter: View {
     /// Drives the who's-watching reprompt cover.
     @State private var showProfileReprompt = false
 
-    /// JellyfinItem fetched for an incoming deep link; drives the fullScreenCover (non-nil = sheet shown).
-    @State private var deepLinkItem: JellyfinItem?
+    /// Item fetched for an incoming deep link plus whether it should start playing; drives the fullScreenCover (non-nil = sheet shown).
+    ///
+    /// One value, not an item plus a parallel Bool: as two separate `@State`s the cover could be
+    /// built from the new item while still reading the old flag, and a TopShelf play link then
+    /// landed on the detail page instead of playing (cold launch, where the flag is written in the
+    /// same update as the item).
+    @State private var deepLinkPresentation: DeepLinkPresentation?
 
     /// Drives the WhatsNew fullScreenCover after the splash on a release-boundary launch; dismiss callback stamps the version seen.
     @State private var showWhatsNew = false
@@ -249,16 +254,16 @@ struct AppRouter: View {
                 }
             }
         }
-        .fullScreenCover(item: $deepLinkItem) { item in
+        .fullScreenCover(item: $deepLinkPresentation) { presentation in
             NavigationStack {
-                DetailRouterView(item: item)
+                DetailRouterView(item: presentation.item, autoPlay: presentation.autoPlay)
             }
             #if os(iOS)
             // tvOS dismisses this deep-link cover via the Menu button; iOS needs a touch
             // close. Floating overlay (not a toolbar) because detail views hide the nav bar.
             .overlay(alignment: .topLeading) {
                 Button {
-                    deepLinkItem = nil
+                    deepLinkPresentation = nil
                 } label: {
                     Image(systemName: "xmark.circle.fill")
                         .font(.title)
@@ -431,6 +436,7 @@ struct AppRouter: View {
     /// Waits for auth, fetches the item, triggers the fullScreenCover. Clears the pending id last so a repeat tap on the same TopShelf cell re-fires.
     private func resolvePendingDeepLink() async {
         guard let id = appState.pendingDeepLinkItemID else {
+            appState.pendingDeepLinkAutoPlay = false
             appState.isResolvingDeepLink = false
             return
         }
@@ -444,6 +450,7 @@ struct AppRouter: View {
         guard appState.isAuthenticated, let user = appState.activeUser else {
             // Couldn't restore in time: drop the pending link + overlay so the user can interact with picker/discovery.
             appState.pendingDeepLinkItemID = nil
+            appState.pendingDeepLinkAutoPlay = false
             appState.isResolvingDeepLink = false
             return
         }
@@ -466,10 +473,13 @@ struct AppRouter: View {
             itemID: id
         )
         guard !Task.isCancelled else { return }
-        deepLinkItem = item
+        deepLinkPresentation = item.map {
+            DeepLinkPresentation(item: $0, autoPlay: appState.pendingDeepLinkAutoPlay)
+        }
         // Hold the overlay past the cover binding flip so the slide-in fully obscures the view before we fade out. Pending id cleared LAST: this task is keyed on it, so nilling earlier self-cancels at the next suspension and the 300ms hold never happens (stale-view flash returns).
         try? await Task.sleep(for: .milliseconds(300))
         appState.isResolvingDeepLink = false
+        appState.pendingDeepLinkAutoPlay = false
         appState.pendingDeepLinkItemID = nil
     }
 
@@ -487,7 +497,7 @@ struct AppRouter: View {
     private func maybeRequestProfileReprompt(backgroundedAt: ContinuousClock.Instant?) {
         guard let backgroundedAt else { return }
         // Never arm over a sibling cover (one fullScreenCover per host view) or a deep link in flight.
-        guard deepLinkItem == nil, !showNowPlaying, !showWhatsNew,
+        guard deepLinkPresentation == nil, !showNowPlaying, !showWhatsNew,
               appState.pendingDeepLinkItemID == nil, !appState.isResolvingDeepLink
         else { return }
         guard let server = appState.activeServer else { return }

@@ -18,6 +18,9 @@ final class AppState {
     /// `sodalite://item/{id}` id set by onOpenURL (usually TopShelf); AppRouter clears it after presenting so a repeat tap re-fires. The deep-link signal field.
     var pendingDeepLinkItemID: String?
 
+    /// Set with pendingDeepLinkItemID when the link was the TopShelf's playAction. AppRouter forwards it into DetailRouterView, which starts playback once. Cleared with the id.
+    var pendingDeepLinkAutoPlay = false
+
     /// Flipped by ContinueWatchingIntent; AppRouter fetches the latest Resume item then routes via pendingDeepLinkItemID. Separate because the intent runs before the target item is known.
     var requestContinueWatching: Bool = false
 

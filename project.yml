@@ -53,6 +53,10 @@ targets:
       - path: Sodalite
         excludes:
           - "Platforms/iOS/**"
+      # Pure helpers the extension shares with the app (and, via @testable, with SodaliteTests).
+      # Compiled here rather than added to the test target: a second JellyfinItem in the test
+      # module would make every unqualified use ambiguous.
+      - path: SodaliteTopShelf/Shared
     settings:
       groups:
         - app
@@ -81,6 +85,7 @@ targets:
       - path: Sodalite
         excludes:
           - "Platforms/tvOS/**"
+      - path: SodaliteTopShelf/Shared
     settings:
       groups:
         - app
