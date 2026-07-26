@@ -13,14 +13,21 @@ struct HomeConfigReloadTests {
         /// loadContent() always starts with getLibraries, so this counts reloads.
         var getLibrariesCalls = 0
 
-        func getLibraries(userID: String) async throws -> [JellyfinLibrary] {
-            getLibrariesCalls += 1
-            return []
-        }
+        /// Decoded on the MainActor by the test and handed over, because the model's Decodable
+        /// conformance is actor-isolated and these protocol methods are not. nil makes getItems throw.
+        var itemsResponse: JellyfinItemsResponse?
 
         struct Unused: Error {}
-        func getItems(userID: String, query: ItemQuery) async throws -> JellyfinItemsResponse {
+
+        /// Throws so loadContent skips reconciliation and leaves the test's rowConfigs alone.
+        func getLibraries(userID: String) async throws -> [JellyfinLibrary] {
+            getLibrariesCalls += 1
             throw Unused()
+        }
+
+        func getItems(userID: String, query: ItemQuery) async throws -> JellyfinItemsResponse {
+            guard let itemsResponse else { throw Unused() }
+            return itemsResponse
         }
         func getResumeItems(userID: String, mediaType: String, limit: Int) async throws -> JellyfinItemsResponse {
             throw Unused()
@@ -88,5 +95,47 @@ struct HomeConfigReloadTests {
         await waitForReload()
 
         #expect(service.getLibrariesCalls == 2)
+    }
+
+    private func decodeResponse(_ json: String) throws -> JellyfinItemsResponse {
+        try JSONDecoder().decode(JellyfinItemsResponse.self, from: Data(json.utf8))
+    }
+
+    private func viewModelShowingOneFavoriteEpisode(
+        service: MockLibraryService
+    ) async throws -> HomeViewModel {
+        service.itemsResponse = try decodeResponse(
+            #"{"Items":[{"Id":"e1","Name":"E1","Type":"Episode"}],"TotalRecordCount":1}"#)
+        let vm = makeViewModel(service: service)
+        vm.rowConfigs = [HomeRowConfig(type: .favoriteEpisodes, isEnabled: true, sortOrder: 0)]
+        await vm.loadContent()
+        #expect(vm.rows.contains { $0.type == .favoriteEpisodes })
+        return vm
+    }
+
+    /// Unfavoriting the last episode: the server correctly returns zero items (verified on device),
+    /// but the row kept its previous items because a successful-but-empty result hit the same
+    /// `case .empty: break` as a failed fetch, so the stale card stayed until the app was relaunched.
+    @Test func rowThatBecameEmptyIsRemoved() async throws {
+        let service = MockLibraryService()
+        let vm = try await viewModelShowingOneFavoriteEpisode(service: service)
+
+        service.itemsResponse = try decodeResponse(#"{"Items":[],"TotalRecordCount":0}"#)
+        await vm.loadContent()
+
+        #expect(!vm.rows.contains { $0.type == .favoriteEpisodes })
+    }
+
+    /// The other half of the contract: a failed refresh must NOT wipe on-screen rows, so a transient
+    /// CDN hiccup doesn't blank Home. This is why "empty" and "failed" have to stay distinguishable.
+    @Test func rowSurvivesAFailedRefresh() async throws {
+        let service = MockLibraryService()
+        let vm = try await viewModelShowingOneFavoriteEpisode(service: service)
+
+        service.itemsResponse = nil
+        await vm.loadContent()
+
+        #expect(vm.rows.contains { $0.type == .favoriteEpisodes })
+        #expect(vm.rows.first { $0.type == .favoriteEpisodes }?.items.count == 1)
     }
 }

@@ -127,6 +127,9 @@ final class HomeViewModel {
         enum RowResult: Sendable {
             case media(HomeRowData)
             case tag(HomeTagRowData)
+            /// Fetch succeeded and returned nothing: the row has to go, else it keeps showing what it held before (unfavoriting the last item left the stale card on screen until relaunch).
+            case emptied(id: String, isTag: Bool)
+            /// Fetch failed (loadRow/loadTagRow swallow errors and return nil): leave the on-screen row alone so a transient hiccup doesn't blank Home.
             case empty
         }
 
@@ -158,15 +161,17 @@ final class HomeViewModel {
                 let config = entry.config
                 let isTag = entry.isTag
                 let type = config.type
+                // Resolved here for the same reason as isTag: id reads the MainActor-isolated type.
+                let rowID = config.id
                 group.addTask { [weak self] in
                     guard let self else { return .empty }
                     if isTag {
-                        if let tagRow = await self.loadTagRow(type: type), !tagRow.tags.isEmpty {
-                            return .tag(tagRow)
+                        if let tagRow = await self.loadTagRow(type: type) {
+                            return tagRow.tags.isEmpty ? .emptied(id: rowID, isTag: true) : .tag(tagRow)
                         }
                     } else {
-                        if let rowData = await self.loadRow(config: config), !rowData.items.isEmpty {
-                            return .media(rowData)
+                        if let rowData = await self.loadRow(config: config) {
+                            return rowData.items.isEmpty ? .emptied(id: rowID, isTag: false) : .media(rowData)
                         }
                     }
                     return .empty
@@ -191,6 +196,17 @@ final class HomeViewModel {
                     } else {
                         tagRows.append(row)
                     }
+                    sawAnyResult = true
+                    isLoading = false
+                    errorMessage = nil
+                case .emptied(let id, let isTag):
+                    if isTag {
+                        tagRows.removeAll { $0.id == id }
+                    } else {
+                        rows.removeAll { $0.id == id }
+                    }
+                    // Counts as a result: the server answered, so this is not the total-failure case
+                    // below. A server whose every row is legitimately empty must not read as offline.
                     sawAnyResult = true
                     isLoading = false
                     errorMessage = nil
