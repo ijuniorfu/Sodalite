@@ -1,7 +1,7 @@
 import Foundation
 
-/// Subset of Jellyfin's item DTO the TopShelf renders; PascalCase keys so the same JSON the main app receives decodes here unmassaged.
-struct JellyfinItem: Decodable, Sendable {
+/// Subset of Jellyfin's item DTO the TopShelf renders; PascalCase keys so the same JSON the main app receives decodes here unmassaged. Codable (not just Decodable) so TopShelfCache can persist items for the offline fallback.
+struct JellyfinItem: Codable, Sendable {
     let id: String
     let name: String
     let type: ItemType
@@ -31,7 +31,7 @@ struct JellyfinItem: Decodable, Sendable {
     }
 }
 
-enum ItemType: String, Decodable, Sendable {
+enum ItemType: String, Codable, Sendable {
     case movie = "Movie"
     case series = "Series"
     case episode = "Episode"
@@ -43,7 +43,7 @@ enum ItemType: String, Decodable, Sendable {
     }
 }
 
-struct ImageTags: Decodable, Sendable {
+struct ImageTags: Codable, Sendable {
     let primary: String?
     let thumb: String?
 
@@ -54,7 +54,7 @@ struct ImageTags: Decodable, Sendable {
 }
 
 /// Per-user playback state; feeds the cell's resume bar.
-struct UserData: Decodable, Sendable {
+struct UserData: Codable, Sendable {
     let playedPercentage: Double?
     let playbackPositionTicks: Int64?
 

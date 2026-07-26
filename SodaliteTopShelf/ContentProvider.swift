@@ -21,9 +21,34 @@ final class ContentProvider: TVTopShelfContentProvider {
         async let resume = Self.fetch("resume") { try await api.resumeItems() }
         async let nextUp = Self.fetch("nextUp") { try await api.nextUp() }
 
-        let resumeItems = await resume
-        let nextUpItems = await nextUp
-        log.info("Fetched resume=\(resumeItems.count) nextUp=\(nextUpItems.count)")
+        let fetchedResume = await resume
+        let fetchedNextUp = await nextUp
+
+        let stored = TopShelfCache.read()
+        let cached = stored.flatMap { cache in
+            TopShelfCachePolicy.matches(cachedServerURL: cache.serverURL,
+                                        cachedUserID: cache.userID,
+                                        sessionServerURL: session.baseURL.absoluteString,
+                                        sessionUserID: session.userID) ? cache : nil
+        }
+        if cached == nil, stored != nil {
+            // Belongs to a session we are no longer in; don't carry it forward.
+            TopShelfCachePolicy.delete()
+        }
+
+        let resumeItems = fetchedResume ?? cached?.resume ?? []
+        let nextUpItems = fetchedNextUp ?? cached?.nextUp ?? []
+        log.info("Fetched resume=\(resumeItems.count) nextUp=\(nextUpItems.count) fromCache=\(fetchedResume == nil || fetchedNextUp == nil)")
+
+        // Writes the merged view, not just what came back, so a partial failure still leaves
+        // both sections populated for the next total failure.
+        if TopShelfCachePolicy.shouldWrite(resumeSucceeded: fetchedResume != nil,
+                                           nextUpSucceeded: fetchedNextUp != nil) {
+            TopShelfCache(serverURL: session.baseURL.absoluteString,
+                          userID: session.userID,
+                          resume: resumeItems,
+                          nextUp: nextUpItems).write()
+        }
 
         var sections: [TVTopShelfItemCollection<TVTopShelfSectionedItem>] = []
 
@@ -83,12 +108,13 @@ final class ContentProvider: TVTopShelfContentProvider {
         URL(string: "sodalite://play/\(item.id)")!
     }
 
-    private static func fetch(_ label: String, _ work: () async throws -> [JellyfinItem]) async -> [JellyfinItem] {
+    /// nil is a failed fetch, [] is a genuinely empty section; the cache fallback needs to tell them apart.
+    private static func fetch(_ label: String, _ work: () async throws -> [JellyfinItem]) async -> [JellyfinItem]? {
         do {
             return try await work()
         } catch {
             log.error("\(label, privacy: .public) fetch failed: \(error.localizedDescription, privacy: .public)")
-            return []
+            return nil
         }
     }
 }
