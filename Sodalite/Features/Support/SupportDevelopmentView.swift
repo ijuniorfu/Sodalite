@@ -482,7 +482,9 @@ private struct SupporterPackRow: View {
                 .fontWeight(.semibold)
                 .monospacedDigit()
         } else {
-            Text("–")
+            // verbatim: a bare dash is the same in every locale, and without it Xcode
+            // extracts it into the catalog as an empty key on every build.
+            Text(verbatim: "–")
                 .font(.body)
                 .foregroundStyle(.tertiary)
         }
