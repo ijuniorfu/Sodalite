@@ -140,6 +140,9 @@ struct EpisodeLandscapeCard: View {
     /// Passed explicitly so the badge live-updates from the VM override map (the immutable episode.userData wouldn't change in-session).
     var isPlayed: Bool = false
 
+    /// Same reason as isPlayed; also the only feedback the context-menu favorite toggle has.
+    var isFavorite: Bool = false
+
     @Environment(\.appearanceTheme) private var appearanceTheme
     @Environment(\.horizontalSizeClass) private var hSizeClass
     private var cardSize: CGSize { LayoutMetrics.current(hSizeClass).landscapeSize }
@@ -184,12 +187,20 @@ struct EpisodeLandscapeCard: View {
                     .clipShape(RoundedRectangle(cornerRadius: 12))
                 }
 
-                if isPlayed {
-                    Image(systemName: "checkmark.circle.fill")
-                        .font(.title3)
-                        .foregroundStyle(.tint)
-                        .padding(10)
-                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
+                // One stack for both badges: pinned separately they would land on the same point.
+                if isFavorite || isPlayed {
+                    HStack(spacing: 6) {
+                        if isFavorite {
+                            Image(systemName: "heart.fill")
+                        }
+                        if isPlayed {
+                            Image(systemName: "checkmark.circle.fill")
+                        }
+                    }
+                    .font(.title3)
+                    .foregroundStyle(.tint)
+                    .padding(10)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
                 }
             }
             .frame(width: cardSize.width, height: cardSize.height)

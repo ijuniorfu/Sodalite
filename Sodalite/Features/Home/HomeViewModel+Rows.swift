@@ -136,6 +136,20 @@ extension HomeViewModel {
                 let response = try await libraryService.getItems(userID: userID, query: query)
                 items = response.items
 
+            case .favoriteEpisodes:
+                // Series/season/episode sort keeps several favorites of one show adjacent; no
+                // foldEpisodesIntoSeries here, the individual episode is the point of the row.
+                let query = ItemQuery(
+                    includeItemTypes: [.episode],
+                    sortBy: "SeriesSortName,ParentIndexNumber,IndexNumber",
+                    sortOrder: "Ascending",
+                    limit: 30,
+                    isFavorite: true,
+                    fields: JellyfinEndpoint.homeRowFields
+                )
+                let response = try await libraryService.getItems(userID: userID, query: query)
+                items = response.items
+
             case .topRatedMovies:
                 let query = ItemQuery(
                     includeItemTypes: [.movie],
