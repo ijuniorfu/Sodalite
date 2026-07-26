@@ -74,6 +74,17 @@ struct SeriesDetailView: View {
     let item: JellyfinItem
     /// Seeds the preselected episode for an episode-route open (DetailRouterView .episode) so the panel paints from snapshot and the VM lands on the right season. nil for a normal series open.
     var initialEpisode: JellyfinItem? = nil
+    /// TopShelf playAction: fire the primary play action once, as soon as a play target exists.
+    var autoPlay: Bool = false
+    @State private var didAutoPlay = false
+
+    /// Gated on playTarget rather than hasFullDetail: the latter describes the series, not whether a playable episode has been resolved yet. Its three feeds (tapped episode, next-up, first loaded) land at different moments, so all three trigger this; the latch makes the repetition harmless.
+    private func maybeAutoPlay() {
+        guard autoPlay, !didAutoPlay, let vm = viewModel,
+              let target = playTarget(vm: vm) else { return }
+        didAutoPlay = true
+        requestPlay(target, fromBeginning: false, fromPlayButton: true)
+    }
 
     /// `fromPlayButton` preserves the focus-restoration origin flag the trigger sites set.
     private func requestPlay(_ episode: JellyfinItem, fromBeginning: Bool, fromPlayButton: Bool) {
@@ -248,6 +259,9 @@ struct SeriesDetailView: View {
                 .allowsHitTesting(false)
             }
         }
+        .onChange(of: viewModel?.nextUpEpisode?.id) { _, _ in maybeAutoPlay() }
+        .onChange(of: viewModel?.episodes.count) { _, _ in maybeAutoPlay() }
+        .onChange(of: selectedEpisode?.id) { _, _ in maybeAutoPlay() }
         .sheet(item: $versionChoice, onDismiss: {
             if didPickVersion {
                 didPickVersion = false

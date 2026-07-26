@@ -58,7 +58,8 @@ final class ContentProvider: TVTopShelfContentProvider {
         let cell = TVTopShelfSectionedItem(identifier: item.id)
         cell.title = item.topShelfTitle
         cell.imageShape = .hdtv
-        cell.displayAction = TVTopShelfAction(url: deepLink(for: item))
+        cell.displayAction = TVTopShelfAction(url: detailLink(for: item))
+        cell.playAction = TVTopShelfAction(url: playLink(for: item))
         if let progress = item.topShelfProgress {
             cell.playbackProgress = progress
         }
@@ -73,8 +74,13 @@ final class ContentProvider: TVTopShelfContentProvider {
     }
 
     /// `sodalite://item/{id}`: handled by the main app's `onOpenURL` to push directly into the detail/player route for that item.
-    private func deepLink(for item: JellyfinItem) -> URL {
+    private func detailLink(for item: JellyfinItem) -> URL {
         URL(string: "sodalite://item/\(item.id)")!
+    }
+
+    /// Same route, but the app starts playback on arrival. Bound to the cell's playAction, so the remote's Play button skips the detail page.
+    private func playLink(for item: JellyfinItem) -> URL {
+        URL(string: "sodalite://play/\(item.id)")!
     }
 
     private static func fetch(_ label: String, _ work: () async throws -> [JellyfinItem]) async -> [JellyfinItem] {

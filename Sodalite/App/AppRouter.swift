@@ -28,6 +28,9 @@ struct AppRouter: View {
     /// JellyfinItem fetched for an incoming deep link; drives the fullScreenCover (non-nil = sheet shown).
     @State private var deepLinkItem: JellyfinItem?
 
+    /// Captured alongside deepLinkItem when the link was the TopShelf's playAction; the detail view starts playback once on it.
+    @State private var deepLinkAutoPlay = false
+
     /// Drives the WhatsNew fullScreenCover after the splash on a release-boundary launch; dismiss callback stamps the version seen.
     @State private var showWhatsNew = false
 
@@ -249,9 +252,9 @@ struct AppRouter: View {
                 }
             }
         }
-        .fullScreenCover(item: $deepLinkItem) { item in
+        .fullScreenCover(item: $deepLinkItem, onDismiss: { deepLinkAutoPlay = false }) { item in
             NavigationStack {
-                DetailRouterView(item: item)
+                DetailRouterView(item: item, autoPlay: deepLinkAutoPlay)
             }
             #if os(iOS)
             // tvOS dismisses this deep-link cover via the Menu button; iOS needs a touch
@@ -431,6 +434,7 @@ struct AppRouter: View {
     /// Waits for auth, fetches the item, triggers the fullScreenCover. Clears the pending id last so a repeat tap on the same TopShelf cell re-fires.
     private func resolvePendingDeepLink() async {
         guard let id = appState.pendingDeepLinkItemID else {
+            appState.pendingDeepLinkAutoPlay = false
             appState.isResolvingDeepLink = false
             return
         }
@@ -444,6 +448,7 @@ struct AppRouter: View {
         guard appState.isAuthenticated, let user = appState.activeUser else {
             // Couldn't restore in time: drop the pending link + overlay so the user can interact with picker/discovery.
             appState.pendingDeepLinkItemID = nil
+            appState.pendingDeepLinkAutoPlay = false
             appState.isResolvingDeepLink = false
             return
         }
@@ -466,10 +471,12 @@ struct AppRouter: View {
             itemID: id
         )
         guard !Task.isCancelled else { return }
+        deepLinkAutoPlay = appState.pendingDeepLinkAutoPlay
         deepLinkItem = item
         // Hold the overlay past the cover binding flip so the slide-in fully obscures the view before we fade out. Pending id cleared LAST: this task is keyed on it, so nilling earlier self-cancels at the next suspension and the 300ms hold never happens (stale-view flash returns).
         try? await Task.sleep(for: .milliseconds(300))
         appState.isResolvingDeepLink = false
+        appState.pendingDeepLinkAutoPlay = false
         appState.pendingDeepLinkItemID = nil
     }
 

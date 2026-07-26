@@ -24,6 +24,9 @@ struct MovieDetailView: View {
     @State private var didSettleIn = false
 
     let item: JellyfinItem
+    /// TopShelf playAction: fire the primary play action once, as soon as full detail has settled.
+    var autoPlay: Bool = false
+    @State private var didAutoPlay = false
 
     /// EnableContentDeletion (or admin) on the active user; read reactively from AppState.activeUser so a profile switch updates visibility without a manual refresh.
     private var canDelete: Bool {
@@ -102,6 +105,14 @@ struct MovieDetailView: View {
                 )
                 .allowsHitTesting(false)
             }
+        }
+        // hasFullDetail, not isLoading: isLoading flips nil->false->true->false and that first
+        // false precedes the detail round trip, so requestPlay would see mediaSources still nil
+        // and skip the version picker for a multi-version movie.
+        .onChange(of: viewModel?.hasFullDetail) { _, hasDetail in
+            guard autoPlay, !didAutoPlay, hasDetail == true, let vm = viewModel else { return }
+            didAutoPlay = true
+            requestPlay(fromBeginning: false, vm: vm)
         }
         .sheet(item: $versionChoice, onDismiss: {
             if didPickVersion {

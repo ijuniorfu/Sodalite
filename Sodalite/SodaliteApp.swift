@@ -90,15 +90,15 @@ struct SodaliteApp: App {
         }
     }
 
-    /// Handles `sodalite://item/{id}` (only scheme, from TopShelf's displayAction): stashes the id in AppState for AppRouter to resolve. Synchronously tears down any active player modal first, else a TopShelf tap waking the app from a paused player loses ~10s to the player's own appDidBecomeActive reload before AppRouter's .task(id:) cycles in.
+    /// Handles `sodalite://item/{id}` and `sodalite://play/{id}` (TopShelf's display and play actions): stashes the id in AppState for AppRouter to resolve. Synchronously tears down any active player modal first, else a TopShelf tap waking the app from a paused player loses ~10s to the player's own appDidBecomeActive reload before AppRouter's .task(id:) cycles in.
     private func handleDeepLink(_ url: URL) {
-        guard url.scheme == "sodalite", url.host == "item" else { return }
-        let id = url.pathComponents.dropFirst().first ?? ""
-        guard !id.isEmpty else { return }
+        guard let route = DeepLinkRoute.parse(url) else { return }
         PlayerModalDismisser.dismissActive(logPrefix: "[SodaliteApp]")
         appState.requestPlayerDismissal &+= 1
         // Mask the prior detail view during the fetch + cover slide-in; AppRouter clears this once the new sheet takes over.
         appState.isResolvingDeepLink = true
-        appState.pendingDeepLinkItemID = id
+        // Assigned before the id: AppRouter's .task is keyed on the id, so the flag has to be in place when it fires.
+        appState.pendingDeepLinkAutoPlay = route.autoPlay
+        appState.pendingDeepLinkItemID = route.itemID
     }
 }
