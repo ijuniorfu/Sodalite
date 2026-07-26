@@ -131,6 +131,16 @@ struct PlaybackSettingsView: View {
                 )
 
                 boolRow(
+                    icon: "text.bubble.fill",
+                    title: "settings.playback.autoForcedSubtitles",
+                    subtitle: "settings.playback.autoForcedSubtitles.subtitle",
+                    value: Binding(
+                        get: { prefs.autoForcedSubtitles },
+                        set: { prefs.autoForcedSubtitles = $0 }
+                    )
+                )
+
+                boolRow(
                     icon: "bookmark",
                     title: "settings.playback.rememberTracks",
                     subtitle: "settings.playback.rememberTracks.subtitle",

@@ -122221,6 +122221,330 @@
         }
       }
     },
+    "settings.playback.autoForcedSubtitles" : {
+      "comment": "Boolean playback preference title",
+      "extractionState": "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Automatické vynucené titulky"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Automatiske tvungne undertekster"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Automatische erzwungene Untertitel"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Αυτόματοι εξαναγκασμένοι υπότιτλοι"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Automatic forced subtitles"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Subtítulos forzados automáticos"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Automaattiset pakotetut tekstitykset"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Sous-titres forcés automatiques"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Automatski prisilni titlovi"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Automatikus kényszerített feliratok"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Sottotitoli forzati automatici"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "強制字幕の自動表示"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "자동 강제 자막"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Automatiske tvungne undertekster"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Automatische geforceerde ondertitels"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Automatyczne napisy wymuszone"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Legendas forçadas automáticas"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Legendas forçadas automáticas"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Subtitrări forțate automate"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Автоматические принудительные субтитры"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Automatické vynútené titulky"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Automatiska tvingade undertexter"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Otomatik zorunlu altyazılar"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Автоматичні примусові субтитри"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "自动强制字幕"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "自動強制字幕"
+          }
+        }
+      }
+    },
+    "settings.playback.autoForcedSubtitles.subtitle" : {
+      "comment": "Subtitle for the autoForcedSubtitles preference",
+      "extractionState": "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Zobrazí vynucené titulky pro nápisy a cizojazyčné dialogy i při vypnutých titulcích, stejně jako přehrávač disků."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Vis tvungne undertekster til skilte og fremmedsproget dialog, selv når undertekster er slået fra, ligesom en diskafspiller."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Erzwungene Untertitel für Schilder und fremdsprachige Dialoge auch bei ausgeschalteten Untertiteln anzeigen, wie bei einem Disc-Player."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Εμφανίζει εξαναγκασμένους υπότιτλους για πινακίδες και ξενόγλωσσους διαλόγους ακόμη και όταν οι υπότιτλοι είναι απενεργοποιημένοι, όπως ένα πρόγραμμα αναπαραγωγής δίσκων."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Show forced captions for signs and foreign dialogue even when subtitles are off, the way a disc player does."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Muestra los subtítulos forzados de carteles y diálogos en otros idiomas incluso con los subtítulos desactivados, como haría un reproductor de discos."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Näyttää kylttien ja vieraskielisten vuoropuhelujen pakotetut tekstitykset myös silloin, kun tekstitykset ovat pois käytöstä, kuten levysoitin tekee."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Affiche les sous-titres forcés des panneaux et des dialogues en langue étrangère même lorsque les sous-titres sont désactivés, comme le fait un lecteur de disques."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Prikazuje prisilne titlove za natpise i dijaloge na stranom jeziku čak i kada su titlovi isključeni, kao što to čini disk player."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Megjeleníti a táblák és az idegen nyelvű párbeszédek kényszerített feliratait akkor is, ha a feliratok ki vannak kapcsolva, ahogy a lemezlejátszók teszik."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Mostra i sottotitoli forzati per cartelli e dialoghi in lingua straniera anche quando i sottotitoli sono disattivati, come fa un lettore di dischi."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "字幕がオフのときでも、看板や外国語のセリフの強制字幕をディスクプレーヤーと同じように表示します。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "자막이 꺼져 있어도 디스크 플레이어처럼 표지판과 외국어 대사의 강제 자막을 표시합니다."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Vis tvungne undertekster for skilt og fremmedspråklig dialog selv når undertekster er av, slik en diskspiller gjør."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Toont geforceerde ondertitels voor borden en anderstalige dialogen, ook wanneer ondertitels uit staan, net als een schijfspeler."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Wyświetla wymuszone napisy dla tablic i dialogów w obcym języku nawet przy wyłączonych napisach, tak jak robi to odtwarzacz płyt."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Mostra legendas forçadas de placas e diálogos em outros idiomas mesmo com as legendas desativadas, como faz um reprodutor de discos."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Mostra legendas forçadas de sinais e diálogos noutros idiomas mesmo com as legendas desativadas, tal como faz um leitor de discos."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Afișează subtitrările forțate pentru indicatoare și dialogurile în limbi străine chiar și când subtitrările sunt dezactivate, la fel ca un player de discuri."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Показывать принудительные субтитры для надписей и иноязычных диалогов даже при выключенных субтитрах, как это делает дисковый проигрыватель."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Zobrazí vynútené titulky pre nápisy a cudzojazyčné dialógy aj pri vypnutých titulkoch, rovnako ako prehrávač diskov."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Visa tvingade undertexter för skyltar och främmande dialog även när undertexter är avstängda, precis som en skivspelare gör."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Altyazılar kapalıyken bile tabelalar ve yabancı dildeki diyaloglar için zorunlu altyazıları, bir disk oynatıcı gibi gösterir."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "Показувати примусові субтитри для написів та іншомовних діалогів навіть із вимкненими субтитрами, як це робить дисковий програвач."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "即使关闭字幕，也会像光盘播放机一样显示招牌和外语对白的强制字幕。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state": "translated",
+            "value": "即使關閉字幕，也會像光碟播放機一樣顯示招牌和外語對白的強制字幕。"
+          }
+        }
+      }
+    },
     "settings.playback.autoSkipIntro" : {
       "extractionState": "manual",
       "localizations" : {

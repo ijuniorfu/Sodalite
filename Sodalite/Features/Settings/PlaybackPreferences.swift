@@ -19,6 +19,7 @@ final class PlaybackPreferences {
         static let autoSkipIntro = "playback.autoSkipIntro"
         static let autoSkipOutro = "playback.autoSkipOutro"
         static let autoSubtitleForForeignAudio = "playback.autoSubtitleForForeignAudio"
+        static let autoForcedSubtitles = "playback.autoForcedSubtitles"
         static let styledASSSubtitles = "playback.styledASSSubtitles"
         static let subtitleFontSize = "playback.subtitleFontSize"
         static let subtitleColor = "playback.subtitleColor"
@@ -252,6 +253,12 @@ final class PlaybackPreferences {
         didSet { store.set(autoSubtitleForForeignAudio, forKey: Keys.autoSubtitleForForeignAudio) }
     }
 
+    /// Disc parity: render forced captions (signs, foreign dialogue) even with subtitles off. Default ON,
+    /// matching how the feature shipped before it had a switch. See `ForcedSubtitleFallback`.
+    var autoForcedSubtitles: Bool {
+        didSet { store.set(autoForcedSubtitles, forKey: Keys.autoForcedSubtitles) }
+    }
+
     /// Render ASS/SSA with authored styling via libass; OFF falls back to plain text path (user style settings apply).
     var styledASSSubtitles: Bool {
         didSet { store.set(styledASSSubtitles, forKey: Keys.styledASSSubtitles) }
@@ -383,6 +390,7 @@ final class PlaybackPreferences {
         self.preferredAudioLanguage = store.string(forKey: Keys.preferredAudioLanguage)
         self.preferredSubtitleLanguage = store.string(forKey: Keys.preferredSubtitleLanguage)
         self.autoSubtitleForForeignAudio = store.object(forKey: Keys.autoSubtitleForForeignAudio) as? Bool ?? true
+        self.autoForcedSubtitles = store.object(forKey: Keys.autoForcedSubtitles) as? Bool ?? true
         self.styledASSSubtitles = store.object(forKey: Keys.styledASSSubtitles) as? Bool ?? true
         self.subtitleFontSize = (store.string(forKey: Keys.subtitleFontSize))
             .flatMap(SubtitleFontSize.init(rawValue:)) ?? .medium

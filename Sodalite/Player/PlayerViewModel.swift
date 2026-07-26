@@ -1570,7 +1570,11 @@ final class PlayerViewModel {
         }
         let audioLanguage = audioLanguageOverride ?? player.audioTracks
             .first(where: { $0.id == player.activeAudioTrackIndex })?.language
-        var mode = ForcedSubtitleFallback.resolve(streams: subtitleStreams, audioLanguage: audioLanguage)
+        var mode = ForcedSubtitleFallback.resolve(
+            streams: subtitleStreams,
+            audioLanguage: audioLanguage,
+            enabled: preferences.autoForcedSubtitles
+        )
 
         switch mode {
         case .forcedTrack(let index):

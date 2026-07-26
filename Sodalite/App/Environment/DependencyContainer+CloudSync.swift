@@ -157,7 +157,8 @@ extension DependencyContainer {
                 preferServerTrickplay: p.preferServerTrickplay,
                 playerRotationLocked: p.playerRotationLocked,
                 networkBufferDepth: p.networkBufferDepth.rawValue,
-                rememberTrackSelections: p.rememberTrackSelections
+                rememberTrackSelections: p.rememberTrackSelections,
+                autoForcedSubtitles: p.autoForcedSubtitles
             ))
         case .appearance:
             let a = appearancePreferences
@@ -234,6 +235,7 @@ extension DependencyContainer {
                 store.networkBufferDepth = PlaybackPreferences.NetworkBufferDepth(rawValue: depth) ?? store.networkBufferDepth
             }
             if let remember = p.rememberTrackSelections { store.rememberTrackSelections = remember }
+            if let forced = p.autoForcedSubtitles { store.autoForcedSubtitles = forced }
         case .appearance(let a):
             let store = appearancePreferences
             if let accentChoice = AppearancePreferences.AccentChoice(rawValue: a.accentChoice) {

@@ -91,7 +91,7 @@ struct PlaybackSettingsPayload: Codable, Equatable {
     var preferLosslessAudioBridge: Bool
     var showScrubPreview: Bool
     var preferServerTrickplay: Bool
-    /// The three below are optional because they were added after the payload shipped.
+    /// The four below are optional because they were added after the payload shipped.
     /// Swift's synthesized Decodable does NOT fall back to a property default on a missing
     /// key, it throws, and one thrown key drops the whole payload: a device on an older
     /// build would silently stop syncing its playback settings to a newer one. A missing
@@ -99,6 +99,7 @@ struct PlaybackSettingsPayload: Codable, Equatable {
     var playerRotationLocked: Bool?
     var networkBufferDepth: String?
     var rememberTrackSelections: Bool?
+    var autoForcedSubtitles: Bool?
 }
 
 /// Sodalite#46. Unlike the other settings payloads this one is NOT last-writer-wins:

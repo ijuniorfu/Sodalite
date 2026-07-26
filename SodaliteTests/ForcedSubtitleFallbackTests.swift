@@ -133,4 +133,26 @@ struct ForcedSubtitleFallbackTests {
         #expect(ForcedSubtitleFallback.filteredCues(cues, mode: .forcedTrack(streamIndex: 3)).count == 3)
         #expect(ForcedSubtitleFallback.filteredCues(cues, mode: .none).count == 3)
     }
+
+    // MARK: - User preference gate
+
+    @Test("the preference switched off suppresses both resolution shapes")
+    func disabledPreferenceSuppressesFallback() {
+        let dedicated = [stream(index: 3, lang: "en", forced: true)]
+        let bitmapOnly = [stream(index: 2, codec: "hdmv_pgs_subtitle", lang: "en")]
+        #expect(ForcedSubtitleFallback.resolve(streams: dedicated, audioLanguage: "eng", enabled: false) == .none)
+        #expect(ForcedSubtitleFallback.resolve(streams: bitmapOnly, audioLanguage: "eng", enabled: false) == .none)
+        // Same inputs with the preference on still resolve, so the gate is what changed.
+        #expect(ForcedSubtitleFallback.resolve(streams: dedicated, audioLanguage: "eng", enabled: true)
+                == .forcedTrack(streamIndex: 3))
+        #expect(ForcedSubtitleFallback.resolve(streams: bitmapOnly, audioLanguage: "eng", enabled: true)
+                == .cueFilter(streamIndex: 2))
+    }
+
+    @Test("the gate defaults to on, so existing call sites keep disc parity")
+    func gateDefaultsToEnabled() {
+        let streams = [stream(index: 3, lang: "en", forced: true)]
+        #expect(ForcedSubtitleFallback.resolve(streams: streams, audioLanguage: "eng")
+                == .forcedTrack(streamIndex: 3))
+    }
 }

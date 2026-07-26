@@ -22,7 +22,11 @@ enum ForcedSubtitleFallback {
         case cueFilter(streamIndex: Int)
     }
 
-    static func resolve(streams: [MediaStream], audioLanguage: String?) -> Mode {
+    /// `enabled` is the user preference (`PlaybackPreferences.autoForcedSubtitles`, default on). It gates
+    /// here rather than at the call site so the off state travels through the caller's normal mode switch,
+    /// which tears an already-running fallback down instead of leaving it on screen.
+    static func resolve(streams: [MediaStream], audioLanguage: String?, enabled: Bool = true) -> Mode {
+        guard enabled else { return .none }
         let subs = streams.filter { $0.type == .subtitle }
 
         let forced = subs.filter { isForcedTrack($0) }
