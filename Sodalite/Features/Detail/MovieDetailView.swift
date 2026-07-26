@@ -106,11 +106,17 @@ struct MovieDetailView: View {
                 .allowsHitTesting(false)
             }
         }
+        // task(id:), NOT onChange: onChange only sees transitions. On a cold launch the deep-link
+        // resolver waits for the session and fetches the item first, so by the time this view
+        // renders the detail can already be complete, and there is no transition left to observe.
+        // task(id:) runs once for the initial value too.
+        //
         // hasFullDetail, not isLoading: isLoading flips nil->false->true->false and that first
         // false precedes the detail round trip, so requestPlay would see mediaSources still nil
         // and skip the version picker for a multi-version movie.
-        .onChange(of: viewModel?.hasFullDetail) { _, hasDetail in
-            guard autoPlay, !didAutoPlay, hasDetail == true, let vm = viewModel else { return }
+        .task(id: viewModel?.hasFullDetail) {
+            guard autoPlay, !didAutoPlay, viewModel?.hasFullDetail == true,
+                  let vm = viewModel else { return }
             didAutoPlay = true
             requestPlay(fromBeginning: false, vm: vm)
         }

@@ -78,7 +78,15 @@ struct SeriesDetailView: View {
     var autoPlay: Bool = false
     @State private var didAutoPlay = false
 
-    /// Gated on playTarget rather than hasFullDetail: the latter describes the series, not whether a playable episode has been resolved yet. Its three feeds (tapped episode, next-up, first loaded) land at different moments, so all three trigger this; the latch makes the repetition harmless.
+    /// Re-keys the autoplay task whenever the resolved play target changes, so it also runs for
+    /// whatever target already exists at first render. `autoPlay` is part of the key because the
+    /// flag can arrive after the target does, and that late arrival has to re-run the check.
+    private var autoPlayTargetKey: String {
+        guard let vm = viewModel else { return "\(autoPlay)-no-vm" }
+        return "\(autoPlay)-\(playTarget(vm: vm)?.id ?? "no-target")"
+    }
+
+    /// Gated on playTarget rather than hasFullDetail: the latter describes the series, not whether a playable episode has been resolved yet.
     private func maybeAutoPlay() {
         guard autoPlay, !didAutoPlay, let vm = viewModel,
               let target = playTarget(vm: vm) else { return }
@@ -259,9 +267,10 @@ struct SeriesDetailView: View {
                 .allowsHitTesting(false)
             }
         }
-        .onChange(of: viewModel?.nextUpEpisode?.id) { _, _ in maybeAutoPlay() }
-        .onChange(of: viewModel?.episodes.count) { _, _ in maybeAutoPlay() }
-        .onChange(of: selectedEpisode?.id) { _, _ in maybeAutoPlay() }
+        // task(id:), NOT onChange: onChange only sees transitions, and on a cold launch the play
+        // target can already be resolved when this view first renders (the deep-link resolver
+        // waits for the session and fetches ahead of it), leaving nothing to transition to.
+        .task(id: autoPlayTargetKey) { maybeAutoPlay() }
         .sheet(item: $versionChoice, onDismiss: {
             if didPickVersion {
                 didPickVersion = false
