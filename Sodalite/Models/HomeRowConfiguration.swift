@@ -6,6 +6,7 @@ enum HomeRowType: String, Codable, Sendable, CaseIterable, Identifiable {
     case nextUp
     case myMedia
     case favorites
+    case favoriteEpisodes
     case latestMovies
     case latestShows
     case discoverProviders
@@ -24,7 +25,7 @@ enum HomeRowType: String, Codable, Sendable, CaseIterable, Identifiable {
 
     var defaultEnabled: Bool {
         switch self {
-        case .continueWatching, .nextUp, .myMedia, .favorites, .latestMovies,
+        case .continueWatching, .nextUp, .myMedia, .favorites, .favoriteEpisodes, .latestMovies,
              .latestShows, .discoverProviders, .genres:
             true
         default:
@@ -34,7 +35,7 @@ enum HomeRowType: String, Codable, Sendable, CaseIterable, Identifiable {
 
     var cardStyle: MediaCardStyle {
         switch self {
-        case .continueWatching, .nextUp:
+        case .continueWatching, .nextUp, .favoriteEpisodes:
             .landscape
         default:
             .poster
@@ -43,7 +44,7 @@ enum HomeRowType: String, Codable, Sendable, CaseIterable, Identifiable {
 
     var usesBackdrop: Bool {
         switch self {
-        case .continueWatching, .nextUp:
+        case .continueWatching, .nextUp, .favoriteEpisodes:
             true
         default:
             false
@@ -72,6 +73,7 @@ enum HomeRowType: String, Codable, Sendable, CaseIterable, Identifiable {
         case .allMovies: "home.allMovies"
         case .allSeries: "home.allSeries"
         case .favorites: "home.favorites"
+        case .favoriteEpisodes: "home.favoriteEpisodes"
         case .topRatedMovies: "home.topRatedMovies"
         case .topRatedShows: "home.topRatedShows"
         case .recentlyAdded: "home.recentlyAdded"
@@ -93,6 +95,7 @@ enum HomeRowType: String, Codable, Sendable, CaseIterable, Identifiable {
         case .allMovies: "film.stack"
         case .allSeries: "rectangle.stack"
         case .favorites: "heart.fill"
+        case .favoriteEpisodes: "heart.rectangle"
         case .topRatedMovies: "star.fill"
         case .topRatedShows: "star.fill"
         case .recentlyAdded: "clock"
