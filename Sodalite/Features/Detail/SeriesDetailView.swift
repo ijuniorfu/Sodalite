@@ -667,6 +667,19 @@ struct SeriesDetailView: View {
                 )
             }
 
+            // Deliberately selectedEpisode, not playTarget: playTarget also resolves to an episode
+            // while the panel is closed, so the series button would silently favorite an episode.
+            if isShowingEpisode, let ep = selectedEpisode {
+                GlassActionButton(
+                    title: vm.isFavorite(ep) ? "detail.unfavorite" : "detail.favorite",
+                    systemImage: vm.isFavorite(ep) ? "heart.fill" : "heart",
+                    action: {
+                        let target = !vm.isFavorite(ep)
+                        Task { await vm.setEpisodeFavorite(ep, isFavorite: target) }
+                    }
+                )
+            }
+
             if isShowingEpisode, let ep = selectedEpisode {
                 GlassActionButton(
                     title: vm.isPlayed(ep) ? "detail.markUnwatched" : "detail.markWatched",
@@ -901,7 +914,8 @@ struct SeriesDetailView: View {
                                             isSelected: selectedEpisode?.id == episode.id,
                                             isCurrent: vm.currentEpisodeID == episode.id,
                                             isFocused: focusedEpisodeID == episode.id,
-                                            isPlayed: vm.isPlayed(episode)
+                                            isPlayed: vm.isPlayed(episode),
+                                            isFavorite: vm.isFavorite(episode)
                                         )
                                     }
                                     .buttonStyle(EpisodeCardButtonStyle())
@@ -952,6 +966,16 @@ struct SeriesDetailView: View {
                                             Label(
                                                 vm.isPlayed(episode) ? "detail.markUnwatched" : "detail.markWatched",
                                                 systemImage: vm.isPlayed(episode) ? "checkmark.circle.fill" : "checkmark.circle"
+                                            )
+                                        }
+
+                                        Button {
+                                            let target = !vm.isFavorite(episode)
+                                            Task { await vm.setEpisodeFavorite(episode, isFavorite: target) }
+                                        } label: {
+                                            Label(
+                                                vm.isFavorite(episode) ? "detail.unfavorite" : "detail.favorite",
+                                                systemImage: vm.isFavorite(episode) ? "heart.fill" : "heart"
                                             )
                                         }
                                     }
