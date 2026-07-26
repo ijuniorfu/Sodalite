@@ -115,6 +115,7 @@ The Seerr integration isn't a tacked-on link to a web view. It's a first-class p
 - **Title logos & synopses**: detail screens float the title logo over the backdrop and show full episode synopses, both toggleable in Appearance settings
 - **Full-bleed backdrops**: artwork shines through the whole detail page and dims as you scroll; titles without backdrop art get an ambient poster fill instead of a grey plate
 - **Watched tracking**: mark movies, episodes, seasons or whole series as watched or unwatched, with progress badges across Home and detail screens
+- **Favorites**: heart a movie, series, collection or a single episode; favorited episodes get their own Home row, alongside the Favorites row for everything else
 - **Cast & filmography**: open any cast member to see their photo, biography and full filmography, then jump straight to a title in your library or request it from the catalog
 
 ### 🎬 Watch
