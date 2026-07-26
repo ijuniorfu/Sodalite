@@ -168,9 +168,11 @@ struct SubtitleOverlayView: View {
     ) -> some View {
         #if os(iOS)
         // 28pt is tuned for the ~1920pt-wide 10-foot tvOS screen; at iPhone/iPad sizes it reads far too
-        // large (issue #14). Scale to the actual render width, with a legibility floor and the tvOS max cap.
+        // large (issue #14). /68 keeps the tvOS proportion (28/1920) at every width, so a wired external
+        // display still lands on the cap and matches tvOS exactly, while phone/iPad shrink accordingly.
+        // Floor is a hand-held legibility bound (portrait is far below the proportional size).
         let maxWidth = max(0, size.width - 120)
-        let basePoints = min(28, max(14, size.width / 44))
+        let basePoints = min(28, max(12, size.width / 68))
         #else
         let maxWidth = max(0, size.width - 240)
         let basePoints: CGFloat = 28
