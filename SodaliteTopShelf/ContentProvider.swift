@@ -24,21 +24,15 @@ final class ContentProvider: TVTopShelfContentProvider {
         let fetchedResume = await resume
         let fetchedNextUp = await nextUp
 
-        let stored = TopShelfCache.read()
-        let cached = stored.flatMap { cache in
-            TopShelfCachePolicy.matches(cachedServerURL: cache.serverURL,
-                                        cachedUserID: cache.userID,
-                                        sessionServerURL: session.baseURL.absoluteString,
-                                        sessionUserID: session.userID) ? cache : nil
-        }
-        if cached == nil, stored != nil {
-            // Belongs to a session we are no longer in; don't carry it forward.
-            TopShelfCachePolicy.delete()
-        }
+        // Failure path only: a healthy load never touches the container, which keeps the
+        // extension's tight budget clear of a read + decode it has no use for.
+        let cached = (fetchedResume == nil || fetchedNextUp == nil)
+            ? Self.usableCache(session: session)
+            : nil
 
         let resumeItems = fetchedResume ?? cached?.resume ?? []
         let nextUpItems = fetchedNextUp ?? cached?.nextUp ?? []
-        log.info("Fetched resume=\(resumeItems.count) nextUp=\(nextUpItems.count) fromCache=\(fetchedResume == nil || fetchedNextUp == nil)")
+        log.info("Fetched resume=\(resumeItems.count) nextUp=\(nextUpItems.count) usedCache=\(cached != nil)")
 
         // Writes the merged view, not just what came back, so a partial failure still leaves
         // both sections populated for the next total failure.
@@ -106,6 +100,21 @@ final class ContentProvider: TVTopShelfContentProvider {
     /// Same route, but the app starts playback on arrival. Bound to the cell's playAction, so the remote's Play button skips the detail page.
     private func playLink(for item: JellyfinItem) -> URL {
         URL(string: "sodalite://play/\(item.id)")!
+    }
+
+    /// Last good content, but only when it belongs to the session just read from the keychain.
+    /// A cache from another server or profile is deleted rather than carried forward.
+    private static func usableCache(session: SharedSession) -> TopShelfCache? {
+        guard let stored = TopShelfCache.read() else { return nil }
+        guard TopShelfCachePolicy.matches(cachedServerURL: stored.serverURL,
+                                          cachedUserID: stored.userID,
+                                          sessionServerURL: session.baseURL.absoluteString,
+                                          sessionUserID: session.userID)
+        else {
+            TopShelfCachePolicy.delete()
+            return nil
+        }
+        return stored
     }
 
     /// nil is a failed fetch, [] is a genuinely empty section; the cache fallback needs to tell them apart.
