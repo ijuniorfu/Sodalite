@@ -192,6 +192,17 @@ extension HomeRowConfig {
             nextOrder += 1
         }
 
+        // A row type added in a later app version is missing from every persisted config, and this
+        // is the only path that sees stored configs, so append it with its default state instead of
+        // making the user hit Reset. Existing rows keep their saved isEnabled/sortOrder, which keeps
+        // the pass idempotent.
+        let presentTypes = Set(result.map(\.type))
+        for type in HomeRowType.allCases
+        where type != .libraryLatest && !presentTypes.contains(type) {
+            result.append(HomeRowConfig(type: type, isEnabled: type.defaultEnabled, sortOrder: nextOrder))
+            nextOrder += 1
+        }
+
         return result
     }
 

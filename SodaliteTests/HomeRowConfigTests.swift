@@ -70,4 +70,56 @@ struct HomeRowConfigTests {
         #expect(dynamic.first?.libraryID == "m1")
         #expect(dynamic.first?.isEnabled == true)
     }
+
+    /// A row type added in a later app version must reach users who already have a persisted
+    /// config: reconciliation used to append only `.libraryLatest`, so a new static row was
+    /// unreachable short of Reset to default.
+    @Test func reconcileAppendsMissingStaticRowType() {
+        var stored = HomeRowConfig.defaultConfig()
+        stored.removeAll { $0.type == .topRatedMovies }
+        #expect(!stored.contains { $0.type == .topRatedMovies })
+
+        let after = HomeRowConfig.reconciled(stored: stored, libraries: [])
+
+        let restored = after.first { $0.type == .topRatedMovies }
+        #expect(restored != nil)
+        #expect(restored?.isEnabled == HomeRowType.topRatedMovies.defaultEnabled)
+    }
+
+    /// The appended row must not disturb what the user configured: an off-by-default row they
+    /// enabled stays enabled, and nobody's sortOrder shifts.
+    @Test func reconcileAppendingPreservesExistingRowState() {
+        var stored = HomeRowConfig.defaultConfig()
+        stored.removeAll { $0.type == .topRatedMovies }
+        if let idx = stored.firstIndex(where: { $0.type == .collections }) {
+            stored[idx].isEnabled = true
+        }
+        if let idx = stored.firstIndex(where: { $0.type == .favorites }) {
+            stored[idx].isEnabled = false
+        }
+        let before = stored
+
+        let after = HomeRowConfig.reconciled(stored: stored, libraries: [])
+
+        for old in before {
+            let survivor = after.first { $0.id == old.id }
+            #expect(survivor?.isEnabled == old.isEnabled)
+            #expect(survivor?.sortOrder == old.sortOrder)
+        }
+        // Appended at the end, after the highest existing sortOrder.
+        let appended = after.first { $0.type == .topRatedMovies }
+        #expect((appended?.sortOrder ?? -1) > (before.map(\.sortOrder).max() ?? -1))
+    }
+
+    /// Reconciliation runs on every load; a second pass over its own output must be a no-op,
+    /// else the persisted config churns and sortOrder drifts on each launch.
+    @Test func reconcileIsIdempotentAfterAppending() {
+        var stored = HomeRowConfig.defaultConfig()
+        stored.removeAll { $0.type == .topRatedMovies }
+        let libraries = [library("m1", "Movies", "movies")]
+
+        let once = HomeRowConfig.reconciled(stored: stored, libraries: libraries)
+        let twice = HomeRowConfig.reconciled(stored: once, libraries: libraries)
+        #expect(once == twice)
+    }
 }
