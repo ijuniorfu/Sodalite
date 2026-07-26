@@ -251,10 +251,9 @@ struct MovieDetailView: View {
                         .padding(.horizontal, metrics.rowInset)
                 }
 
-                if vm.item.mediaStreams != nil || vm.item.mediaSources != nil {
-                    TechInfoBox(item: vm.item)
-                }
-
+                // Cast ahead of the tech strip (Sodalite#47): the four tech cards cost about a
+                // screen third, so the cast row was several remote presses down for viewers who
+                // only want the people. Codec details stay one row further for those who want them.
                 if let people = vm.item.people, !people.isEmpty {
                     MediaCastRow(
                         members: jellyfinCastMembers(
@@ -263,6 +262,10 @@ struct MovieDetailView: View {
                         ),
                         onSelect: { handlePersonTap($0) }
                     )
+                }
+
+                if vm.item.mediaStreams != nil || vm.item.mediaSources != nil {
+                    TechInfoBox(item: vm.item)
                 }
 
                 if !vm.similarItems.isEmpty {

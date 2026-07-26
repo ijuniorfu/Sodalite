@@ -176,11 +176,9 @@ struct SeriesDetailView: View {
                                     .id("episodeRow")
                             }
 
-                            if displayItem.mediaStreams != nil || displayItem.mediaSources != nil {
-                                TechInfoBox(item: displayItem)
-                                    .animation(.easeInOut(duration: 0.3), value: selectedEpisode?.id)
-                            }
-
+                            // Cast ahead of the tech strip (Sodalite#47): with the season/episode
+                            // block above it, the cast row sat far down the page for viewers who
+                            // only want the people. Codec details follow one row later.
                             if let people = vm.item.people, !people.isEmpty {
                                 MediaCastRow(
                                     members: jellyfinCastMembers(
@@ -189,6 +187,11 @@ struct SeriesDetailView: View {
                                     ),
                                     onSelect: { handlePersonTap($0) }
                                 )
+                            }
+
+                            if displayItem.mediaStreams != nil || displayItem.mediaSources != nil {
+                                TechInfoBox(item: displayItem)
+                                    .animation(.easeInOut(duration: 0.3), value: selectedEpisode?.id)
                             }
 
                             if !vm.similarItems.isEmpty {
@@ -880,7 +883,7 @@ struct SeriesDetailView: View {
                                     }
                                     .buttonStyle(EpisodeCardButtonStyle())
                                     .focused($focusedEpisodeID, equals: episode.id)
-                                    // Prime the season-bar target before the up-move resolves, else tvOS's geographic picker skips the bar (far-right episode outside the tabs' span) and lands on the TechInfoBox/overview above.
+                                    // Prime the season-bar target before the up-move resolves, else tvOS's geographic picker skips the bar (far-right episode outside the tabs' span) and lands on the overview above.
                                     #if os(tvOS)
                                     .onMoveCommand { direction in
                                         if direction == .up {
