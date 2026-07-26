@@ -77,8 +77,11 @@ final class ContentProvider: TVTopShelfContentProvider {
         let cell = TVTopShelfSectionedItem(identifier: item.id)
         cell.title = item.topShelfTitle
         cell.imageShape = .hdtv
-        cell.displayAction = TVTopShelfAction(url: detailLink(for: item))
-        cell.playAction = TVTopShelfAction(url: playLink(for: item))
+        // Both actions play. A shelf cell is an invitation to keep watching, not a link to a
+        // page, and nobody guesses that the detail route hides behind Select while Play starts.
+        let play = TVTopShelfAction(url: playLink(for: item))
+        cell.displayAction = play
+        cell.playAction = play
         if let progress = item.topShelfProgress {
             cell.playbackProgress = progress
         }
@@ -92,12 +95,7 @@ final class ContentProvider: TVTopShelfContentProvider {
         return cell
     }
 
-    /// `sodalite://item/{id}`: handled by the main app's `onOpenURL` to push directly into the detail/player route for that item.
-    private func detailLink(for item: JellyfinItem) -> URL {
-        URL(string: "sodalite://item/\(item.id)")!
-    }
-
-    /// Same route, but the app starts playback on arrival. Bound to the cell's playAction, so the remote's Play button skips the detail page.
+    /// `sodalite://play/{id}`: the main app's `onOpenURL` opens the item's detail route and starts playback on arrival. The app still understands `sodalite://item/{id}` (detail without playing), the shelf just has no use for it.
     private func playLink(for item: JellyfinItem) -> URL {
         URL(string: "sodalite://play/\(item.id)")!
     }
