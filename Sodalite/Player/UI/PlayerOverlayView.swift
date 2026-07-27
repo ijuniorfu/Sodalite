@@ -732,8 +732,11 @@ private struct SubtitleLayer: View {
     let viewModel: PlayerViewModel
 
     var body: some View {
+        // AE#227: while the native rendition renders the subtitles (PiP, AirPlay, external display), AVKit
+        // owns them; drawing here as well double-draws on the device and on the way back from the route.
         // Keep the styled ASS layer mounted even while the cue array is momentarily empty (seek resets); libass already holds the assembled script.
-        if viewModel.assRenderer != nil || !viewModel.subtitleCues.isEmpty || !viewModel.secondarySubtitleCues.isEmpty {
+        if !viewModel.nativeSubtitleRenderingActive,
+           viewModel.assRenderer != nil || !viewModel.subtitleCues.isEmpty || !viewModel.secondarySubtitleCues.isEmpty {
             SubtitleOverlayView(
                 cues: viewModel.subtitleCues,
                 currentTime: viewModel.subtitleTime,

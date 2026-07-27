@@ -1627,7 +1627,12 @@ final class PlayerViewModel {
     /// #32: true once the native rendition has been selected this session. The select (deselect/reselect dance)
     /// must run ONCE to attach the renderer; re-running it on a later entry would detach it and not re-attach
     /// after a seek. Reset when the item is rebuilt (load) or the user changes subtitle.
-    private var nativeSubtitleRenderingActive = false
+    ///
+    /// AE#227: also gates the on-frame overlay. While the rendition renders (PiP, AirPlay, external display),
+    /// AVKit draws the same lines, and this device drew them a second time underneath: the sending iPhone
+    /// showed subtitles over its AirPlay placeholder, and returning from the route double-drew them for a
+    /// moment. The engine's own host guidance is to hide the overlay for exactly this window.
+    private(set) var nativeSubtitleRenderingActive = false
 
     /// Video left the app's view hierarchy (a PiP window, an AirPlay receiver, or a wired external display):
     /// select the native rendition matching the user's active subtitle so AVKit renders it itself, and make it
