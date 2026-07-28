@@ -19,6 +19,17 @@ struct ExternalSubtitleMappingTests {
                     realFrameRate: nil, profile: nil, bitRate: nil, dvProfile: nil)
     }
 
+    @Test("the subtitle route asks for the extension Jellyfin serves, not the codec name")
+    func subtitleRouteFormat() {
+        // ffprobe names two of these differently from the file extension the route expects, and
+        // Jellyfin has no writer registered under the codec name, so the track never arrives.
+        #expect(JellyfinPlaybackService.subtitleRouteFormat(forCodec: "subrip") == "srt")
+        #expect(JellyfinPlaybackService.subtitleRouteFormat(forCodec: "webvtt") == "vtt")
+        #expect(JellyfinPlaybackService.subtitleRouteFormat(forCodec: "ass") == "ass")
+        #expect(JellyfinPlaybackService.subtitleRouteFormat(forCodec: "srt") == "srt")
+        #expect(JellyfinPlaybackService.subtitleRouteFormat(forCodec: "vtt") == "vtt")
+    }
+
     @Test("external streams map to base-offset ids in declaration order; embedded are skipped")
     func mappingOrder() {
         let streams = [stream(index: 2, external: false),

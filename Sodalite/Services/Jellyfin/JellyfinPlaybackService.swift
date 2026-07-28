@@ -218,11 +218,22 @@ final class JellyfinPlaybackService: JellyfinPlaybackServiceProtocol {
 
     func buildSubtitleURL(itemID: String, mediaSourceID: String, streamIndex: Int, format: String) -> URL? {
         guard let baseURL = client.baseURL, let token = client.accessToken else { return nil }
-        let fmt = (format == "subrip") ? "srt" : format
+        let fmt = Self.subtitleRouteFormat(forCodec: format)
         let path = "/Videos/\(itemID)/\(mediaSourceID)/Subtitles/\(streamIndex)/0/Stream.\(fmt)"
         var components = URLComponents(url: baseURL.appendingPathComponent(path), resolvingAgainstBaseURL: true)
         components?.queryItems = [URLQueryItem(name: "api_key", value: token)]
         return components?.url
+    }
+
+    /// The subtitle route's trailing token is the file extension Jellyfin serves, not the codec
+    /// name ffprobe reports. Two of those names differ, and asking for one Jellyfin has no writer
+    /// for loses the track: `subrip` is served as `.srt`, `webvtt` as `.vtt`.
+    static func subtitleRouteFormat(forCodec codec: String) -> String {
+        switch codec.lowercased() {
+        case "subrip": return "srt"
+        case "webvtt": return "vtt"
+        default: return codec
+        }
     }
 
     func buildChapterImageURL(itemID: String, chapterIndex: Int, imageTag: String, maxWidth: Int) -> URL? {
