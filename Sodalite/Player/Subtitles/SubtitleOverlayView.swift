@@ -268,19 +268,16 @@ struct SubtitleOverlayView: View {
         }
     }
 
-    /// richText variant of styledText: concatenated per-run colour (broadcaster colour wins per run;
-    /// nil-colour runs use the user foreground pref). Outline uses the flattened plain text for the
-    /// eight black copies, coloured concat on top.
+    /// richText variant of styledText: per-run colour and emphasis (the source wins per run;
+    /// nil-colour runs use the user foreground pref). Outline draws the same attributed string in
+    /// black for the eight copies, so emphasis cannot shift the outline off the glyphs.
+    ///
+    /// AetherEngine 5.26.0 also surfaces `fontName` and `fontSize` per run. Both are deliberately
+    /// ignored here: the subtitle font and size are user preferences, and High Legibility is an
+    /// accessibility choice, so a track is not allowed to override either.
     @ViewBuilder
     private func styledRuns(_ runs: [SubtitleTextRun], pointSize: CGFloat) -> some View {
-        let baseFont = subtitleBaseFont(pointSize: pointSize)
-        let plain = runs.map(\.text).joined()
-        let attributed = runs.reduce(into: AttributedString()) { acc, run in
-            var piece = AttributedString(run.text)
-            piece.font = baseFont
-            piece.foregroundColor = run.color.map(color) ?? foregroundColor
-            acc.append(piece)
-        }
+        let attributed = attributedRuns(runs, pointSize: pointSize)
         let colored = Text(attributed)
         switch background {
         case .box:
@@ -290,7 +287,7 @@ struct SubtitleOverlayView: View {
         case .outline:
             ZStack {
                 ForEach(Self.outlineOffsets, id: \.self) { offset in
-                    Text(plain).font(baseFont).foregroundStyle(.black)
+                    Text(attributedRuns(runs, pointSize: pointSize, forcedColor: .black))
                         .multilineTextAlignment(.center).offset(x: offset.x, y: offset.y)
                 }
                 colored.multilineTextAlignment(.center)
@@ -303,6 +300,25 @@ struct SubtitleOverlayView: View {
         case .none:
             colored.multilineTextAlignment(.center)
                 .padding(.horizontal, 20).padding(.vertical, 6)
+        }
+    }
+
+    /// One attributed string from a run sequence: the user's font as the base, the source's
+    /// emphasis on top. `forcedColor` paints every run in one colour for the outline copies, which
+    /// have to match the coloured layer glyph for glyph.
+    private func attributedRuns(_ runs: [SubtitleTextRun], pointSize: CGFloat,
+                                forcedColor: Color? = nil) -> AttributedString {
+        let baseFont = subtitleBaseFont(pointSize: pointSize)
+        return runs.reduce(into: AttributedString()) { acc, run in
+            var piece = AttributedString(run.text)
+            var runFont = baseFont
+            if run.isBold { runFont = runFont.bold() }
+            if run.isItalic { runFont = runFont.italic() }
+            piece.font = runFont
+            piece.foregroundColor = forcedColor ?? run.color.map(color) ?? foregroundColor
+            if run.isUnderlined { piece.underlineStyle = .single }
+            if run.isStruckThrough { piece.strikethroughStyle = .single }
+            acc.append(piece)
         }
     }
 
