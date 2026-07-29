@@ -101,16 +101,14 @@ struct SubtitleOverlayView: View {
             GeometryReader { geo in
                 Color.clear
                     .overlay(alignment: .topLeading) {
-                        let primaryRenderLines: [RenderLine] = activeCues(in: cues, maxDuration: maxCueDuration).compactMap { cue in
-                            switch cue.body {
-                            case .richText(let runs):
-                                return runs.isEmpty ? nil : .rich(id: cue.id, runs: runs)
-                            case .text(let raw):
-                                let display = isASSTrackActive ? strippedASSText(raw) : raw
-                                return display.isEmpty ? nil : .plain(id: cue.id, text: display)
-                            case .image:
-                                return nil
-                            }
+                        let activePrimary = activeCues(in: cues, maxDuration: maxCueDuration)
+                        // A cue that asks for its own spot (AetherEngine #233: teletext pages,
+                        // WebVTT cue settings, ASS `\an`/`\pos`) leaves the shared stack and is
+                        // drawn where it asked. That also keeps it clear of the secondary track
+                        // by construction, which is what the stack exists to guarantee (#47).
+                        let placedCues = activePrimary.filter { $0.placement != nil && renderLine(for: $0) != nil }
+                        let primaryRenderLines: [RenderLine] = activePrimary.compactMap { cue in
+                            cue.placement == nil ? renderLine(for: cue) : nil
                         }
                         let secondaryLines: [String] = activeCues(in: secondaryCues, maxDuration: secondaryMaxCueDuration).compactMap { cue in
                             guard case .text(let raw) = cue.body, !raw.isEmpty else { return nil }
@@ -123,6 +121,9 @@ struct SubtitleOverlayView: View {
                                 in: geo.size,
                                 safeAreaInsets: geo.safeAreaInsets
                             )
+                        }
+                        ForEach(placedCues, id: \.id) { cue in
+                            placedText(cue, in: geo.size)
                         }
                     }
             }
@@ -158,14 +159,9 @@ struct SubtitleOverlayView: View {
 
     // MARK: - Text branch
 
-    /// Render text cues as one bottom-anchored stack (secondary on top, primary below) so the
-    /// secondary never overlaps a multi-line primary (the old fixed `pointSize * 2.4` lift did).
-    private func stackedText(
-        primary: [RenderLine],
-        secondary: [String],
-        in size: CGSize,
-        safeAreaInsets: EdgeInsets
-    ) -> some View {
+    /// Point size and wrap width for text cues, shared by the stack and by placed cues so a cue
+    /// does not change size depending on whether it carries a placement.
+    private func textMetrics(in size: CGSize) -> (pointSize: CGFloat, maxWidth: CGFloat) {
         #if os(iOS)
         // 28pt is tuned for the ~1920pt-wide 10-foot tvOS screen; at iPhone/iPad sizes it reads far too
         // large (issue #14). /68 keeps the tvOS proportion (28/1920) at every width, so a wired external
@@ -177,7 +173,31 @@ struct SubtitleOverlayView: View {
         let maxWidth = max(0, size.width - 240)
         let basePoints: CGFloat = 28
         #endif
-        let pointSize = basePoints * fontSize.scale
+        return (basePoints * fontSize.scale, maxWidth)
+    }
+
+    /// Cue to renderable line, or nil when there is nothing to draw (empty body, bitmap cue).
+    private func renderLine(for cue: SubtitleCue) -> RenderLine? {
+        switch cue.body {
+        case .richText(let runs):
+            return runs.isEmpty ? nil : .rich(id: cue.id, runs: runs)
+        case .text(let raw):
+            let display = isASSTrackActive ? strippedASSText(raw) : raw
+            return display.isEmpty ? nil : .plain(id: cue.id, text: display)
+        case .image:
+            return nil
+        }
+    }
+
+    /// Render text cues as one bottom-anchored stack (secondary on top, primary below) so the
+    /// secondary never overlaps a multi-line primary (the old fixed `pointSize * 2.4` lift did).
+    private func stackedText(
+        primary: [RenderLine],
+        secondary: [String],
+        in size: CGSize,
+        safeAreaInsets: EdgeInsets
+    ) -> some View {
+        let (pointSize, maxWidth) = textMetrics(in: size)
         let placement = textBottomPlacement(in: size, safeAreaInsets: safeAreaInsets)
         return VStack(spacing: 10) {
             ForEach(Array(secondary.enumerated()), id: \.offset) { _, line in
@@ -216,6 +236,133 @@ struct SubtitleOverlayView: View {
             return (0, safeBottom - desiredAboveScreenBottom)
         }
         return (80, 0)
+    }
+
+    /// A cue drawn where it asked to be (AetherEngine #233), instead of in the shared bottom
+    /// stack. Positioned like a bitmap cue: against the aspect-fit video band rather than the
+    /// screen, and carrying the same vertical-position delta the user's dial gives bitmaps. The
+    /// styling is identical to the stack's, since placement is geometry and not appearance.
+    @ViewBuilder
+    private func placedText(_ cue: SubtitleCue, in size: CGSize) -> some View {
+        if let placement = cue.placement, let line = renderLine(for: cue) {
+            let (pointSize, maxWidth) = textMetrics(in: size)
+            let offset = Self.placedOffset(
+                placement: placement,
+                in: Self.aspectFitRect(videoSize: videoSize, in: size),
+                container: size,
+                margin: Self.placedMargin,
+                verticalShift: bitmapVerticalShift(in: size),
+                // Unlike a bitmap cue, a placed text cue still gets out of the chrome's way: on
+                // teletext every cue carries a placement, so leaving them put would hide the
+                // whole track behind the transport bar.
+                bottomLimit: controlsVisible ? size.height - Self.controlsVisibleBottomInset : .infinity)
+            Group {
+                switch line {
+                case .plain(_, let text): styledText(text, pointSize: pointSize)
+                case .rich(_, let runs): styledRuns(runs, pointSize: pointSize)
+                }
+            }
+            .frame(maxWidth: maxWidth)
+            .frame(width: size.width, height: size.height,
+                   alignment: Self.placedAlignment(placement.alignment))
+            .offset(x: offset.width, y: offset.height)
+            .transition(.opacity)
+        }
+    }
+
+    /// Edge inset for a placed cue with no `\pos`. Matches the stack's default bottom gap, so an
+    /// `\an2` cue sits exactly where an unplaced one would.
+    private static let placedMargin: CGFloat = 80
+
+    /// Top-left origin for a text cue that carries its own placement (AetherEngine #233), in the
+    /// coordinate space of `frame`. Mirrors `SubtitleFrameCompositor.blockOrigin` in the engine,
+    /// translated to SwiftUI's top-down y axis, so the engine's compositor and this overlay put
+    /// the same cue in the same spot.
+    ///
+    /// ASS numpad alignment: 1 to 3 bottom, 4 to 6 middle, 7 to 9 top, left to right within each
+    /// row. With a `\pos` the point is the anchor and the alignment says which part of the block
+    /// sits on it; without one the alignment picks a corner inset by `margin`. A missing or
+    /// out-of-range alignment takes the ASS default of 2, which is exactly where unplaced cues
+    /// sit, so a track carrying `\an` on only some of its cues does not make the text jump.
+    ///
+    /// `verticalShift` is the user's vertical-position dial, the same delta bitmap cues get.
+    /// `bottomLimit` is the lowest the block may end, which lifts a low cue clear of the player
+    /// chrome and leaves everything above it untouched.
+    nonisolated static func placedOrigin(placement: SubtitleTextPlacement,
+                                         blockSize: CGSize,
+                                         in frame: CGRect,
+                                         margin: CGFloat,
+                                         verticalShift: CGFloat,
+                                         bottomLimit: CGFloat) -> CGPoint {
+        let requested = placement.alignment ?? 2
+        let an = (1...9).contains(requested) ? requested : 2
+        let column = (an - 1) % 3     // 0 left, 1 centre, 2 right
+        let row = (an - 1) / 3        // 0 bottom, 1 middle, 2 top
+
+        let x: CGFloat
+        let y: CGFloat
+        if let position = placement.position {
+            let anchorX = frame.minX + position.x * frame.width
+            let anchorY = frame.minY + position.y * frame.height
+            x = column == 0 ? anchorX
+                : column == 1 ? anchorX - blockSize.width / 2
+                : anchorX - blockSize.width
+            y = row == 0 ? anchorY - blockSize.height
+                : row == 1 ? anchorY - blockSize.height / 2
+                : anchorY
+        } else {
+            x = column == 0 ? frame.minX + margin
+                : column == 1 ? frame.midX - blockSize.width / 2
+                : frame.maxX - blockSize.width - margin
+            y = row == 0 ? frame.maxY - blockSize.height - margin
+                : row == 1 ? frame.midY - blockSize.height / 2
+                : frame.minY + margin
+        }
+        return CGPoint(x: x, y: min(y + verticalShift, bottomLimit - blockSize.height))
+    }
+
+    /// Which corner of the block the placement is measured from, as the SwiftUI alignment that
+    /// puts that corner where the container's matching corner is. Same numpad reading and the
+    /// same fallback to 2 as `placedOrigin`.
+    nonisolated static func placedAlignment(_ alignment: Int?) -> Alignment {
+        let requested = alignment ?? 2
+        let an = (1...9).contains(requested) ? requested : 2
+        switch ((an - 1) % 3, (an - 1) / 3) {
+        case (0, 0): return .bottomLeading
+        case (1, 0): return .bottom
+        case (2, 0): return .bottomTrailing
+        case (0, 1): return .leading
+        case (1, 1): return .center
+        case (2, 1): return .trailing
+        case (0, 2): return .topLeading
+        case (1, 2): return .top
+        default:     return .topTrailing
+        }
+    }
+
+    /// How far to move a block that SwiftUI has already aligned by `placedAlignment`, so that its
+    /// reference corner lands on the placement's target.
+    ///
+    /// The block's size is unknown until it lays out, and this never needs it: aligning first
+    /// makes the block's own corner the reference, so only the two container-space points have to
+    /// be subtracted. `placedOrigin` evaluated with a zero block IS the target point, which keeps
+    /// this and the engine's compositor on one formula.
+    nonisolated static func placedOffset(placement: SubtitleTextPlacement,
+                                         in frame: CGRect,
+                                         container: CGSize,
+                                         margin: CGFloat,
+                                         verticalShift: CGFloat,
+                                         bottomLimit: CGFloat) -> CGSize {
+        let target = placedOrigin(placement: placement, blockSize: .zero, in: frame,
+                                  margin: margin, verticalShift: verticalShift,
+                                  bottomLimit: bottomLimit)
+        let requested = placement.alignment ?? 2
+        let an = (1...9).contains(requested) ? requested : 2
+        let column = (an - 1) % 3
+        let row = (an - 1) / 3
+        let anchorX: CGFloat = column == 0 ? 0 : column == 1 ? container.width / 2 : container.width
+        let anchorY: CGFloat = row == 2 ? 0 : row == 1 ? container.height / 2 : container.height
+        return CGSize(width: target.x - anchorX, height: target.y - anchorY)
     }
 
     /// Compose the text view: font + colour + background style. Outline stacks eight nudged
