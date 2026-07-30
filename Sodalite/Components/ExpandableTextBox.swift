@@ -2,8 +2,19 @@ import SwiftUI
 
 struct ExpandableTextBox: View {
     let text: String
+    /// Sodalite#50. nil keeps the component exactly as it was for callers with nothing to spoil.
+    var spoilerItem: JellyfinItem?
+
     @State private var showFullText = false
     @FocusState private var isFocused: Bool
+
+    @Environment(\.dependencies) private var dependencies
+    @Environment(\.appState) private var appState
+
+    private var isSpoilerHidden: Bool {
+        guard let spoilerItem else { return false }
+        return SpoilerReveal.isHidden(spoilerItem, dependencies: dependencies, appState: appState)
+    }
 
     var body: some View {
         Text(text)
@@ -12,6 +23,8 @@ struct ExpandableTextBox: View {
             .lineLimit(4)
             .frame(maxWidth: .infinity, alignment: .leading)
             .frame(height: 110)
+            // Sodalite#50: only the text is veiled, the material and the focus stroke stay sharp.
+            .spoilerVeil(isHidden: isSpoilerHidden, style: .text)
             .padding(20)
             .background(
                 // Material base (not a faint white tint) so body text keeps contrast over bright full-bleed artwork (Sodalite#15).
@@ -32,6 +45,11 @@ struct ExpandableTextBox: View {
             .focusable()
             .focused($isFocused)
             .stableTap(isFocused: isFocused) {
+                // Sodalite#50: same two-step as EpisodeSynopsisBox, uncover first, expand second.
+                if let spoilerItem, isSpoilerHidden {
+                    SpoilerReveal.reveal(spoilerItem, dependencies: dependencies, appState: appState)
+                    return
+                }
                 showFullText = true
             }
             .fullScreenCover(isPresented: $showFullText) {

@@ -42,6 +42,7 @@ struct CollectionDetailView: View {
                     userID: userID,
                     preferences: dependencies.playbackPreferences,
                     trackMemory: dependencies.trackSelectionMemory,
+                    spoilerPolicy: dependencies.spoilerPolicy(userID: userID),
                     cachedPlaybackInfo: nil,
                     preferredMediaSourceID: nil,
                     playQueue: playQueue,

@@ -57,6 +57,12 @@ enum Changelog {
                     icon: "network"
                 ),
                 ChangelogHighlight(
+                    .new,
+                    "changelog.1_0_0.spoilers.title",
+                    "changelog.1_0_0.spoilers.body",
+                    icon: "eye.slash.fill"
+                ),
+                ChangelogHighlight(
                     .improve,
                     "changelog.1_0_0.playback.title",
                     "changelog.1_0_0.playback.body",

@@ -171,7 +171,10 @@ struct SeriesDetailView: View {
                         VStack(alignment: .leading, spacing: 40) {
                             // Navigable synopsis box, both modes; a top-level item keyed on item id renders reliably on data-land, unlike an in-panel teaser the ScrollView left blank until a scroll.
                             if let overview = displayOverview {
-                                ExpandableTextBox(text: overview)
+                                // displayItem is the series in series mode and the selected episode
+                                // in episode mode, so the series overview stays visible (the policy
+                                // ignores .series) while the episode overview is veiled.
+                                ExpandableTextBox(text: overview, spoilerItem: displayItem)
                                     .padding(.horizontal, metrics.rowInset)
                                     .id(displayItem.id)
                             } else if !isShowingEpisode && !vm.hasFullDetail {
@@ -255,6 +258,7 @@ struct SeriesDetailView: View {
                     userID: userID,
                     preferences: dependencies.playbackPreferences,
                     trackMemory: dependencies.trackSelectionMemory,
+                    spoilerPolicy: dependencies.spoilerPolicy(userID: userID),
                     cachedPlaybackInfo: playItem.flatMap { ep in
                         (viewModel?.currentEpisodeID == ep.id) ? viewModel?.cachedPlaybackInfo : nil
                     },
@@ -455,7 +459,11 @@ struct SeriesDetailView: View {
         if let url = viewModel.backdropURL(for: viewModel.item) {
             backdropURL = url
         } else if let episode = selectedEpisode {
-            backdropURL = viewModel.backdropURL(for: episode)
+            // Sodalite#50: this fallback would otherwise take the episode's OWN backdrop first and
+            // paint it full bleed. While veiled, go straight to the parent series art.
+            backdropURL = SpoilerReveal.isHidden(episode, dependencies: dependencies, appState: appState, surface: .artwork)
+                ? dependencies.jellyfinImageService.parentBackdropURL(for: episode)
+                : viewModel.backdropURL(for: episode)
         } else {
             backdropURL = nil
         }
@@ -978,10 +986,21 @@ struct SeriesDetailView: View {
                                                 systemImage: vm.isFavorite(episode) ? "heart.fill" : "heart"
                                             )
                                         }
+
+                                        // Sodalite#50. For an episode without a synopsis the box is
+                                        // not focusable, so this is the only way to uncover its still.
+                                        if SpoilerReveal.isHidden(episode, dependencies: dependencies, appState: appState) {
+                                            Button {
+                                                SpoilerReveal.reveal(episode, dependencies: dependencies, appState: appState)
+                                            } label: {
+                                                Label("spoiler.reveal", systemImage: "eye")
+                                            }
+                                        }
                                     }
 
                                     // Per-card synopsis box; reserves a fixed three-line height even when empty so every column stays the same height.
                                     EpisodeSynopsisBox(
+                                        episode: episode,
                                         text: episode.overview?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
                                     )
                                 }

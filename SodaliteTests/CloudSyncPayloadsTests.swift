@@ -66,8 +66,8 @@ struct CloudSyncPayloadsTests {
         #expect(payload.backgroundStyle == BackgroundStyle.graphiteGlass.rawValue)
     }
 
-    @Test("decoded legacy appearance re-encodes as schema 2")
-    func legacyAppearanceReencodesAsSchema2() throws {
+    @Test("decoded legacy appearance re-encodes at the current schema")
+    func legacyAppearanceReencodesAtCurrentSchema() throws {
         let legacy = LegacyAppearancePayload(
             updatedAt: Date(timeIntervalSince1970: 42),
             accentChoice: "ocean",
@@ -87,7 +87,7 @@ struct CloudSyncPayloadsTests {
         let object = try #require(
             JSONSerialization.jsonObject(with: reencoded) as? [String: Any]
         )
-        #expect(object["schemaVersion"] as? Int == 2)
+        #expect(object["schemaVersion"] as? Int == 3)
     }
 
     @Test("record names round-trip to ids")

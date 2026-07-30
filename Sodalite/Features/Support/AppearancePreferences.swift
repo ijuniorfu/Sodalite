@@ -40,6 +40,9 @@ final class AppearancePreferences {
         static let continueWatchingImage = "appearance.continueWatchingImage"
         static let largeCards = "appearance.largeCards"
         static let nowPlayingUsesSeriesPoster = "appearance.nowPlayingUsesSeriesPoster"
+        static let spoilerProtectionEnabled = "appearance.spoilerProtection"
+        static let spoilerHideEpisodes = "appearance.spoilerHideEpisodes"
+        static let spoilerHideMovies = "appearance.spoilerHideMovies"
     }
 
     /// 1.3: noticeably bigger Apple TV-style card without dropping so many cards per row that rows feel empty.
@@ -73,6 +76,19 @@ final class AppearancePreferences {
         didSet { store.set(nowPlayingUsesSeriesPoster, forKey: Keys.nowPlayingUsesSeriesPoster) }
     }
 
+    /// Sodalite#50. Opt-in, so the two switches below have no effect while this is off.
+    var spoilerProtectionEnabled: Bool {
+        didSet { store.set(spoilerProtectionEnabled, forKey: Keys.spoilerProtectionEnabled) }
+    }
+
+    var spoilerHideEpisodes: Bool {
+        didSet { store.set(spoilerHideEpisodes, forKey: Keys.spoilerHideEpisodes) }
+    }
+
+    var spoilerHideMovies: Bool {
+        didSet { store.set(spoilerHideMovies, forKey: Keys.spoilerHideMovies) }
+    }
+
     var cardScale: CGFloat {
         largeCards ? Self.largeCardScale : 1.0
     }
@@ -103,6 +119,9 @@ final class AppearancePreferences {
             .flatMap(ContinueWatchingImage.init(rawValue:)) ?? .still
         self.largeCards = store.object(forKey: Keys.largeCards) as? Bool ?? false
         self.nowPlayingUsesSeriesPoster = store.object(forKey: Keys.nowPlayingUsesSeriesPoster) as? Bool ?? false
+        self.spoilerProtectionEnabled = store.object(forKey: Keys.spoilerProtectionEnabled) as? Bool ?? false
+        self.spoilerHideEpisodes = store.object(forKey: Keys.spoilerHideEpisodes) as? Bool ?? true
+        self.spoilerHideMovies = store.object(forKey: Keys.spoilerHideMovies) as? Bool ?? false
     }
 
     func resolvedTheme(isSupporter: Bool) -> ResolvedAppearanceTheme {

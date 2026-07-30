@@ -89,6 +89,32 @@ struct AppearanceSettingsView: View {
                 value: Binding(get: { appearance.nowPlayingUsesSeriesPoster },
                                set: { appearance.nowPlayingUsesSeriesPoster = $0 })
             )
+
+            // Sodalite#50. The two sub-rows stay visible while protection is off: this screen has
+            // no conditional rows, and rows appearing under the focused one is a tvOS focus hazard.
+            boolRow(
+                icon: "eye.slash",
+                title: "settings.appearance.spoiler",
+                subtitle: "settings.appearance.spoiler.subtitle",
+                value: Binding(get: { appearance.spoilerProtectionEnabled },
+                               set: { appearance.spoilerProtectionEnabled = $0 })
+            )
+
+            boolRow(
+                icon: "tv",
+                title: "settings.appearance.spoilerEpisodes",
+                subtitle: "settings.appearance.spoilerEpisodes.subtitle",
+                value: Binding(get: { appearance.spoilerHideEpisodes },
+                               set: { appearance.spoilerHideEpisodes = $0 })
+            )
+
+            boolRow(
+                icon: "film",
+                title: "settings.appearance.spoilerMovies",
+                subtitle: "settings.appearance.spoilerMovies.subtitle",
+                value: Binding(get: { appearance.spoilerHideMovies },
+                               set: { appearance.spoilerHideMovies = $0 })
+            )
         }
     }
 

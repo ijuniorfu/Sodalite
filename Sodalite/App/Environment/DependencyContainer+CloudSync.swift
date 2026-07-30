@@ -169,7 +169,10 @@ extension DependencyContainer {
                 showContentLogos: a.showContentLogos,
                 continueWatchingImage: a.continueWatchingImage.rawValue,
                 largeCards: a.largeCards,
-                nowPlayingUsesSeriesPoster: a.nowPlayingUsesSeriesPoster
+                nowPlayingUsesSeriesPoster: a.nowPlayingUsesSeriesPoster,
+                spoilerProtectionEnabled: a.spoilerProtectionEnabled,
+                spoilerHideEpisodes: a.spoilerHideEpisodes,
+                spoilerHideMovies: a.spoilerHideMovies
             ))
         case .auth:
             return .auth(AuthSettingsPayload(
@@ -194,6 +197,11 @@ extension DependencyContainer {
             return .trackMemory(TrackMemoryPayload(
                 updatedAt: stamp,
                 entries: trackSelectionMemory.entries
+            ))
+        case .spoilerReveals:
+            return .spoilerReveals(SpoilerRevealPayload(
+                updatedAt: stamp,
+                entries: spoilerRevealMemory.entries
             ))
         }
     }
@@ -248,6 +256,9 @@ extension DependencyContainer {
             store.continueWatchingImage = AppearancePreferences.ContinueWatchingImage(rawValue: a.continueWatchingImage) ?? store.continueWatchingImage
             store.largeCards = a.largeCards
             store.nowPlayingUsesSeriesPoster = a.nowPlayingUsesSeriesPoster
+            store.spoilerProtectionEnabled = a.spoilerProtectionEnabled
+            store.spoilerHideEpisodes = a.spoilerHideEpisodes
+            store.spoilerHideMovies = a.spoilerHideMovies
         case .auth(let a):
             authPreferences.launchBehavior = AuthPreferences.LaunchBehavior(rawValue: a.launchBehavior) ?? authPreferences.launchBehavior
             // a.defaultUserID is the retired global pin, deliberately not applied: it carries no server, so applying it would pin the wrong server's profile. The per-server value rides the server record.
@@ -258,6 +269,8 @@ extension DependencyContainer {
             parentalControlsPreferences.protectedProfileIDs = Set(p.protectedProfileIDs)
         case .trackMemory(let t):
             trackSelectionMemory.replaceAll(t.entries)
+        case .spoilerReveals(let s):
+            spoilerRevealMemory.replaceAll(s.entries)
         }
     }
 

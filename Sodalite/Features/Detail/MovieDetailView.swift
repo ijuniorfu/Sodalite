@@ -77,6 +77,7 @@ struct MovieDetailView: View {
                     userID: userID,
                     preferences: dependencies.playbackPreferences,
                     trackMemory: dependencies.trackSelectionMemory,
+                    spoilerPolicy: dependencies.spoilerPolicy(userID: userID),
                     cachedPlaybackInfo: viewModel?.cachedPlaybackInfo,
                     preferredMediaSourceID: pendingSourceID,
                     tintColor: dependencies.appearancePreferences.effectiveTint(
@@ -96,6 +97,7 @@ struct MovieDetailView: View {
                     userID: userID,
                     preferences: dependencies.playbackPreferences,
                     trackMemory: dependencies.trackSelectionMemory,
+                    spoilerPolicy: dependencies.spoilerPolicy(userID: userID),
                     // Trailer is a distinct server item; the movie's
                     // cached PlaybackInfo does not apply to it.
                     cachedPlaybackInfo: nil,
@@ -260,7 +262,7 @@ struct MovieDetailView: View {
                 .padding(.horizontal, metrics.rowInset)
             }) {
                 if let overview = vm.item.overview, !overview.isEmpty {
-                    ExpandableTextBox(text: overview)
+                    ExpandableTextBox(text: overview, spoilerItem: vm.item)
                         .padding(.horizontal, metrics.rowInset)
                 } else if !vm.hasFullDetail {
                     // Overview in flight after a snapshot paint: reserve the footprint (Sodalite#15).

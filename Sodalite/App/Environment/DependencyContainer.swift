@@ -29,6 +29,7 @@ final class DependencyContainer {
     let jellyfinPlaybackService: JellyfinPlaybackServiceProtocol
     let playbackPreferences: PlaybackPreferences
     let trackSelectionMemory: TrackSelectionMemory
+    let spoilerRevealMemory: SpoilerRevealMemory
     let storeKitService: StoreKitServiceProtocol
     let appearancePreferences: AppearancePreferences
     let authPreferences: AuthPreferences
@@ -119,6 +120,7 @@ final class DependencyContainer {
         self.jellyfinPlaybackService = JellyfinPlaybackService(client: jellyfinClient)
         self.playbackPreferences = PlaybackPreferences()
         self.trackSelectionMemory = TrackSelectionMemory()
+        self.spoilerRevealMemory = SpoilerRevealMemory()
         self.storeKitService = StoreKitService()
         self.appearancePreferences = AppearancePreferences()
         self.authPreferences = AuthPreferences()
@@ -403,6 +405,18 @@ final class DependencyContainer {
 
     /// The active Jellyfin user's id, resolved from the keychain for the
     /// active server. nil when there is no active session.
+    /// Sodalite#50. `userID` comes from `AppState.activeUser?.id`, not from `activeUserID`
+    /// below: that one reads the keychain, and this is evaluated once per card body.
+    func spoilerPolicy(userID: String?) -> SpoilerPolicy {
+        SpoilerPolicy(
+            enabled: appearancePreferences.spoilerProtectionEnabled,
+            hideEpisodes: appearancePreferences.spoilerHideEpisodes,
+            hideMovies: appearancePreferences.spoilerHideMovies,
+            userID: userID ?? "",
+            revealedKeys: spoilerRevealMemory.revealedKeys
+        )
+    }
+
     var activeUserID: String? {
         guard let server = activeServer else { return nil }
         return try? keychainService.loadString(for: KeychainKeys.userID(serverID: server.id))
