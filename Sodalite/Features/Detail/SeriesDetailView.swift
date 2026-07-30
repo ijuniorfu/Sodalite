@@ -461,7 +461,7 @@ struct SeriesDetailView: View {
         } else if let episode = selectedEpisode {
             // Sodalite#50: this fallback would otherwise take the episode's OWN backdrop first and
             // paint it full bleed. While veiled, go straight to the parent series art.
-            backdropURL = SpoilerReveal.isHidden(episode, dependencies: dependencies, appState: appState)
+            backdropURL = SpoilerReveal.isHidden(episode, dependencies: dependencies, appState: appState, surface: .artwork)
                 ? dependencies.jellyfinImageService.parentBackdropURL(for: episode)
                 : viewModel.backdropURL(for: episode)
         } else {

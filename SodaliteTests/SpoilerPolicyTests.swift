@@ -89,4 +89,34 @@ struct SpoilerPolicyTests {
     func disabledConstant() throws {
         #expect(!SpoilerPolicy.disabled.isHidden(try item()))
     }
+
+    // MARK: Surfaces
+
+    @Test("a movie's artwork is never veiled, only its description")
+    func movieArtworkStaysVisible() throws {
+        let movie = try item(type: "Movie")
+        #expect(policy().isHidden(movie, surface: .text))
+        #expect(!policy().isHidden(movie, surface: .artwork))
+    }
+
+    @Test("an episode's still is veiled alongside its synopsis")
+    func episodeArtworkVeiled() throws {
+        let episode = try item(type: "Episode")
+        #expect(policy().isHidden(episode, surface: .text))
+        #expect(policy().isHidden(episode, surface: .artwork))
+    }
+
+    @Test("both surfaces still answer to the base decision")
+    func surfacesRespectBaseDecision() throws {
+        let watched = try item(type: "Episode", played: true)
+        #expect(!policy().isHidden(watched, surface: .text))
+        #expect(!policy().isHidden(watched, surface: .artwork))
+        #expect(!policy(enabled: false).isHidden(try item(), surface: .artwork))
+    }
+
+    @Test("the veil styles map onto the surfaces")
+    func styleSurfaceMapping() {
+        #expect(SpoilerVeilStyle.image.surface == .artwork)
+        #expect(SpoilerVeilStyle.text.surface == .text)
+    }
 }

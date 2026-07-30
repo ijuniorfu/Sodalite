@@ -12,13 +12,27 @@ enum SpoilerVeilStyle: Sendable {
         case .text: 6
         }
     }
+
+    var surface: SpoilerPolicy.Surface {
+        switch self {
+        case .image: .artwork
+        case .text: .text
+        }
+    }
 }
 
 /// Sodalite#50. The environment reads live here so SpoilerPolicy stays a pure value and call
 /// sites stay one line.
 enum SpoilerReveal {
-    static func isHidden(_ item: JellyfinItem, dependencies: DependencyContainer, appState: AppState) -> Bool {
-        dependencies.spoilerPolicy(userID: appState.activeUser?.id).isHidden(item)
+    /// Defaults to the text surface, which is also the base decision: anything veiled at all has
+    /// its description veiled, while artwork narrows further.
+    static func isHidden(
+        _ item: JellyfinItem,
+        dependencies: DependencyContainer,
+        appState: AppState,
+        surface: SpoilerPolicy.Surface = .text
+    ) -> Bool {
+        dependencies.spoilerPolicy(userID: appState.activeUser?.id).isHidden(item, surface: surface)
     }
 
     static func reveal(_ item: JellyfinItem, dependencies: DependencyContainer, appState: AppState) {
@@ -62,7 +76,12 @@ private struct SpoilerItemVeilModifier: ViewModifier {
     func body(content: Content) -> some View {
         content.modifier(
             SpoilerVeilModifier(
-                isHidden: SpoilerReveal.isHidden(item, dependencies: dependencies, appState: appState),
+                isHidden: SpoilerReveal.isHidden(
+                    item,
+                    dependencies: dependencies,
+                    appState: appState,
+                    surface: style.surface
+                ),
                 style: style
             )
         )
