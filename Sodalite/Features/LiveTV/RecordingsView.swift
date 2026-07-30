@@ -46,6 +46,7 @@ struct RecordingsView: View {
                     userID: userID,
                     preferences: dependencies.playbackPreferences,
                     trackMemory: dependencies.trackSelectionMemory,
+                    spoilerPolicy: dependencies.spoilerPolicy(userID: userID),
                     cachedPlaybackInfo: nil,
                     tintColor: tint
                 )

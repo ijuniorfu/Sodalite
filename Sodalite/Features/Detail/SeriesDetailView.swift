@@ -258,6 +258,7 @@ struct SeriesDetailView: View {
                     userID: userID,
                     preferences: dependencies.playbackPreferences,
                     trackMemory: dependencies.trackSelectionMemory,
+                    spoilerPolicy: dependencies.spoilerPolicy(userID: userID),
                     cachedPlaybackInfo: playItem.flatMap { ep in
                         (viewModel?.currentEpisodeID == ep.id) ? viewModel?.cachedPlaybackInfo : nil
                     },

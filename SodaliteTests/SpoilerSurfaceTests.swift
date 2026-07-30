@@ -54,6 +54,27 @@ struct SpoilerSurfaceTests {
         #expect(series.contains("parentBackdropURL(for: episode)"))
     }
 
+    @Test("the player takes an injected policy rather than reading the environment")
+    func playerInjectsPolicy() throws {
+        let vm = try sourceFile("Sodalite/Player/PlayerViewModel.swift")
+        #expect(vm.contains("let spoilerPolicy: SpoilerPolicy"))
+        #expect(vm.contains("spoilerPolicy: SpoilerPolicy = .disabled"))
+        let launcher = try sourceFile("Sodalite/Player/PlayerLauncher.swift")
+        #expect(launcher.contains("spoilerPolicy: spoilerPolicy"))
+    }
+
+    @Test("the now-playing description is dropped, not blurred")
+    func nowPlayingDropsDescription() throws {
+        let source = try sourceFile("Sodalite/Player/PlayerViewModel+NowPlaying.swift")
+        #expect(source.contains("spoilerPolicy.isHidden(item)"))
+    }
+
+    @Test("the next-episode still is veiled")
+    func nextEpisodeVeiled() throws {
+        let source = try sourceFile("Sodalite/Player/UI/PlayerOverlayView.swift")
+        #expect(source.contains(".spoilerVeil(isHidden:"))
+    }
+
     private func sourceFile(_ relativePath: String) throws -> String {
         let repository = URL(fileURLWithPath: #filePath)
             .deletingLastPathComponent()

@@ -15,6 +15,8 @@ struct PlayerLauncher: UIViewControllerRepresentable {
     let preferences: PlaybackPreferences
     /// Sodalite#46 per-title track memory; nil disables remembering for this launch.
     var trackMemory: TrackSelectionMemory?
+    /// Sodalite#50 spoiler decision, snapshotted by the caller; .disabled leaves the player alone.
+    var spoilerPolicy: SpoilerPolicy = .disabled
     var cachedPlaybackInfo: PlaybackInfoResponse?
     /// Version picker's choice; nil = default-first source.
     var preferredMediaSourceID: String?
@@ -43,6 +45,7 @@ struct PlayerLauncher: UIViewControllerRepresentable {
                     userID: userID,
                     preferences: preferences,
                     trackMemory: trackMemory,
+                    spoilerPolicy: spoilerPolicy,
                     cachedPlaybackInfo: cachedPlaybackInfo,
                     preferredMediaSourceID: preferredMediaSourceID,
                     playQueue: playQueue

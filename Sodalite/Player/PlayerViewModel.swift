@@ -338,6 +338,10 @@ final class PlayerViewModel {
     /// Sodalite#46 per-title memory; nil in contexts that do not persist picks (live, previews).
     let trackMemory: TrackSelectionMemory?
 
+    /// Sodalite#50. A snapshot taken at construction: neither player surface offers a reveal, so it
+    /// never needs to change mid-session. Nothing under Player/ reads the SwiftUI environment.
+    let spoilerPolicy: SpoilerPolicy
+
     /// When set, `startPlayback()` selects the matching PlaybackInfo source instead of first.
     /// Nil keeps default-first. Set by the detail-view version picker.
     let preferredMediaSourceID: String?
@@ -537,6 +541,7 @@ final class PlayerViewModel {
         userID: String,
         preferences: PlaybackPreferences,
         trackMemory: TrackSelectionMemory? = nil,
+        spoilerPolicy: SpoilerPolicy = .disabled,
         cachedPlaybackInfo: PlaybackInfoResponse? = nil,
         preferredMediaSourceID: String? = nil,
         playQueue: [JellyfinItem] = [],
@@ -551,6 +556,7 @@ final class PlayerViewModel {
         self.userID = userID
         self.preferences = preferences
         self.trackMemory = trackMemory
+        self.spoilerPolicy = spoilerPolicy
         self.scrubPreview = ScrubPreviewProvider()
         self.cachedPlaybackInfo = cachedPlaybackInfo
         self.preferredMediaSourceID = preferredMediaSourceID

@@ -107,6 +107,8 @@ extension PlayerViewModel {
     private var displayDescriptionLine: String? {
         if item.type == .episode {
             // Title + subtitle already carry series and SxEy; use the description slot for the synopsis instead of repeating them.
+            // Sodalite#50: AVKit metadata cannot be blurred, so a veiled synopsis is dropped instead.
+            guard !spoilerPolicy.isHidden(item) else { return nil }
             if let overview = item.overview, !overview.isEmpty {
                 return overview
             }

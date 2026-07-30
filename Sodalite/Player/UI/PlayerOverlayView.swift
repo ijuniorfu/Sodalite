@@ -364,6 +364,9 @@ struct PlayerOverlayView: View {
                     Color.clear
                 }
                 .frame(width: width, height: height)
+                // Sodalite#50: before the clip so the blur stays inside the card. The title and the
+                // SxEy label stay readable, the user is being asked whether to continue.
+                .spoilerVeil(isHidden: viewModel.spoilerPolicy.isHidden(episode), style: .image)
                 .clipped()
                 .opacity(0.4)
             }
