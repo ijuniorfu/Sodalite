@@ -107,6 +107,20 @@ final class CloudSyncPreferences {
         store.set(systemFieldsByRecord, forKey: Keys.systemFields)
     }
 
+    /// Drops only the record identity, never the LWW stamp: a save rejected because our identity
+    /// was wrong still has to win the merge it was queued for.
+    func removeSystemFields(for recordName: String) {
+        systemFieldsByRecord.removeValue(forKey: recordName)
+        store.set(systemFieldsByRecord, forKey: Keys.systemFields)
+    }
+
+    /// Zone resync: every cached identity is suspect, the stamps are not. Keeping the stamps is
+    /// what stops a resync from degrading into a cloud-wins adoption.
+    func forgetAllSystemFields() {
+        systemFieldsByRecord = [:]
+        store.removeObject(forKey: Keys.systemFields)
+    }
+
     // MARK: Pending changes stashed while the engine is unavailable
 
     func stashPendingSave(_ recordName: String) {
@@ -134,12 +148,12 @@ final class CloudSyncPreferences {
 
     // MARK: Resets
 
-    /// iCloud account switched (or full logout): drop everything tied to the old
-    /// account so the next start re-adopts cleanly.
-    func resetForAccountChange() {
+    /// Our zone was deleted on the server, so every record we knew about is gone with it and
+    /// each cached identity and stamp is meaningless. The engine's own knowledge is deliberately
+    /// left alone: it saw the same deletion and rewrites its state itself, and nilling that blob
+    /// behind a running engine is how a stale change token outlives the zone it belonged to.
+    func resetForZoneRecreation() {
         adoptionCompleted = false
-        accountID = nil
-        engineState = nil
         lastSyncAt = nil
         localStamps = [:]
         systemFieldsByRecord = [:]
@@ -149,6 +163,14 @@ final class CloudSyncPreferences {
         store.removeObject(forKey: Keys.systemFields)
         store.removeObject(forKey: Keys.pendingSaves)
         store.removeObject(forKey: Keys.pendingDeletes)
+    }
+
+    /// iCloud account switched (or full logout): drop everything tied to the old
+    /// account so the next start re-adopts cleanly.
+    func resetForAccountChange() {
+        resetForZoneRecreation()
+        accountID = nil
+        engineState = nil
     }
 
     /// User deleted the cloud zone from Settings: same wipe, but keep accountID.

@@ -77,6 +77,13 @@ final class CloudSyncService: CloudSyncServiceProtocol {
     /// Records queued for local deletion but not yet confirmed sent, so a remote
     /// fetch racing the delete cannot resurrect them via applyRemoteRecord.
     private var recentLocalDeletes: Set<String> = []
+    /// In-flight zone resync, so the several records that report the same divergence in one
+    /// batch trigger one recovery rather than one each.
+    private var resyncTask: Task<Void, Never>?
+    /// Bounded per session: a resync that does not fix the divergence must surface as an error
+    /// instead of spinning fetch/send forever.
+    private var resyncCount = 0
+    private static let maxResyncsPerSession = 2
 
     init(dependencies: DependencyContainer, preferences: CloudSyncPreferences = CloudSyncPreferences()) {
         self.dependencies = dependencies
@@ -110,6 +117,11 @@ final class CloudSyncService: CloudSyncServiceProtocol {
     private func teardownEngine() {
         observationGeneration += 1
         removeObservers()
+        // An engine start that is still mid-flight would otherwise install its engine after this
+        // teardown, and the next start() would bail at its `engine == nil` guard without ever
+        // re-arming the observers: sync would look enabled and be deaf until the next launch.
+        startTask?.cancel()
+        startTask = nil
         engine = nil
         startInFlight = false
         for task in debounceTasks.values { task.cancel() }
@@ -125,15 +137,21 @@ final class CloudSyncService: CloudSyncServiceProtocol {
     }
 
     private func startEngine() async {
-        defer { startInFlight = false }
+        // Teardown bumps this, so a start that was superseded while awaiting CloudKit can tell
+        // and stop touching shared state.
+        let generation = observationGeneration
+        defer { if observationGeneration == generation { startInFlight = false } }
         var stash: (saves: [String], deletes: [String]) = ([], [])
         do {
             let container = CKContainer(identifier: Self.containerID)
-            guard try await container.accountStatus() == .available else {
+            let accountStatus = try await container.accountStatus()
+            guard observationGeneration == generation else { return }
+            guard accountStatus == .available else {
                 status = .noAccount
                 return
             }
             let accountID = try await container.userRecordID().recordName
+            guard observationGeneration == generation else { return }
             if let stored = preferences.accountID, stored != accountID {
                 preferences.resetForAccountChange()
             }
@@ -166,8 +184,9 @@ final class CloudSyncService: CloudSyncServiceProtocol {
                 completeAdoption()
             }
         } catch {
-            status = .error(error.localizedDescription)
+            status = .error(CloudSyncRecovery.describe(error))
             LogTap.shared.note("[CloudSync] start failed: \(error)")
+            handleFetchFailure(error)
             // A failed adoption fetch must not lose the drained stash: put it back
             // (both stash methods are idempotent) so a relaunch still replays it.
             stash.saves.forEach(preferences.stashPendingSave)
@@ -237,6 +256,67 @@ final class CloudSyncService: CloudSyncServiceProtocol {
             try await engine.fetchChanges()
         } catch {
             LogTap.shared.note("[CloudSync] fetch failed: \(error)")
+            handleFetchFailure(error)
+        }
+    }
+
+    private func handleFetchFailure(_ error: Error) {
+        guard let ckError = error as? CKError else { return }
+        switch CloudSyncRecovery.fetchAction(for: ckError) {
+        case .resyncZone:
+            resyncZoneFromScratch(reason: "change token expired")
+        case .report:
+            break
+        }
+    }
+
+    /// Local knowledge of the zone is provably out of step with the server: either the change
+    /// token no longer matches its history, or a save came back rejected as an insert of a record
+    /// that already exists. Both mean the cached record identities are worthless, and nothing in
+    /// the engine ever relearns them, so the zone has to be fetched from scratch.
+    ///
+    /// Deliberately NOT an adoption reset. The LWW stamps survive, so the fetch applies normally
+    /// and `applyRemoteRecord` re-queues everything that is locally newer, with the identities it
+    /// just learned. A manual push therefore still wins against the cloud copy it was meant to
+    /// overwrite instead of being silently reverted by its own recovery.
+    private func resyncZoneFromScratch(reason: String) {
+        guard preferences.isEnabled, resyncTask == nil else { return }
+        guard resyncCount < Self.maxResyncsPerSession else {
+            LogTap.shared.note("[CloudSync] resync limit reached, leaving the error up: \(reason)")
+            return
+        }
+        resyncCount += 1
+        LogTap.shared.note("[CloudSync] resyncing zone from scratch (\(reason))")
+
+        // Queued changes live in the engine's in-memory state, which the restart below drops.
+        // Stash them so startEngine's drain replays them onto the fresh engine.
+        if let engine {
+            for change in engine.state.pendingRecordZoneChanges {
+                switch change {
+                case .saveRecord(let recordID): preferences.stashPendingSave(recordID.recordName)
+                case .deleteRecord(let recordID): preferences.stashPendingDelete(recordID.recordName)
+                @unknown default: break
+                }
+            }
+        }
+        preferences.forgetAllSystemFields()
+        preferences.engineState = nil
+        status = .syncing
+
+        resyncTask = Task { @MainActor [weak self] in
+            guard let self else { return }
+            defer { self.resyncTask = nil }
+            self.teardownEngine()
+            self.start()
+            await self.startTask?.value
+            await self.fetchNow()
+            guard let engine = self.engine else { return }
+            // The fetch relearned the identities and re-queued whatever is locally newer; flush
+            // it now rather than leaving the user's push to the automatic scheduler.
+            try? await engine.sendChanges()
+            if case .syncing = self.status {
+                self.status = .active(lastSyncAt: self.preferences.lastSyncAt)
+            }
         }
     }
 
@@ -322,8 +402,10 @@ final class CloudSyncService: CloudSyncServiceProtocol {
             do {
                 try await engine.sendChanges()
             } catch {
-                self?.status = .error(error.localizedDescription)
+                guard let self else { return }
                 LogTap.shared.note("[CloudSync] manual push send failed: \(error)")
+                self.status = .error(CloudSyncRecovery.describe(error))
+                self.handlePartialSendFailure(error, syncEngine: engine)
                 return
             }
             // The .sentRecordZoneChanges event already advanced status to .active when
@@ -616,7 +698,7 @@ extension CloudSyncService: CKSyncEngineDelegate {
                 // Zone deleted externally (user cleared iCloud data in Settings):
                 // recreate and re-upload the local state.
                 LogTap.shared.note("[CloudSync] zone deleted remotely, re-uploading")
-                preferences.resetForCloudDataDeletion()
+                preferences.resetForZoneRecreation()
                 preferences.isEnabled = true
                 syncEngine.state.add(pendingDatabaseChanges: [.saveZone(CKRecordZone(zoneID: Self.zoneID))])
                 completeAdoption()
@@ -675,25 +757,50 @@ extension CloudSyncService: CKSyncEngineDelegate {
         _ failure: CKSyncEngine.Event.SentRecordZoneChanges.FailedRecordSave,
         syncEngine: CKSyncEngine
     ) {
-        let recordName = failure.record.recordID.recordName
-        let ckError = failure.error
-        switch ckError.code {
-        case .serverRecordChanged:
-            guard let serverRecord = ckError.serverRecord else { return }
+        handleSaveFailure(
+            recordName: failure.record.recordID.recordName,
+            error: failure.error,
+            syncEngine: syncEngine
+        )
+    }
+
+    /// A send that fails as a whole reports its per-record errors only inside the thrown partial
+    /// error. Without routing those here they never reach the recovery below, and a record the
+    /// server permanently rejects keeps being rejected on every future attempt.
+    private func handlePartialSendFailure(_ error: Error, syncEngine: CKSyncEngine) {
+        for (recordID, itemError) in CloudSyncRecovery.partialSaveErrors(in: error) {
+            handleSaveFailure(recordName: recordID.recordName, error: itemError, syncEngine: syncEngine)
+        }
+    }
+
+    private func handleSaveFailure(recordName: String, error: CKError, syncEngine: CKSyncEngine) {
+        switch CloudSyncRecovery.saveAction(for: error) {
+        case .adoptServerRecord:
+            guard let serverRecord = error.serverRecord else { return }
             // Adopt the server's system fields, then LWW: apply theirs if newer,
             // else re-queue ours (now based on their record, so the save sticks).
             preferences.setSystemFields(Self.encodeSystemFields(serverRecord), for: recordName)
             applyRemoteRecord(serverRecord)
-        case .zoneNotFound:
+            // applyRemoteRecord gives up on a record whose payload it cannot read, which would
+            // drop our save with it. The identity is learned either way, so re-queue.
+            if serverRecord.encryptedValues[Self.payloadKey] as? Data == nil {
+                addPendingSave(recordName: recordName)
+            }
+        case .resyncZone:
+            resyncZoneFromScratch(reason: "save rejected as an insert of an existing record (\(recordName))")
+        case .reinsert:
+            preferences.removeSystemFields(for: recordName)
+            addPendingSave(recordName: recordName)
+        case .recreateZone:
             syncEngine.state.add(pendingDatabaseChanges: [.saveZone(CKRecordZone(zoneID: Self.zoneID))])
             addPendingSave(recordName: recordName)
-        case .networkFailure, .networkUnavailable, .serviceUnavailable, .requestRateLimited, .zoneBusy:
+        case .retry:
             addPendingSave(recordName: recordName)
-        case .quotaExceeded:
-            status = .error(ckError.localizedDescription)
+        case .surfaceQuota:
+            status = .error(error.localizedDescription)
             LogTap.shared.note("[CloudSync] iCloud quota exceeded, save deferred: \(recordName)")
-        default:
-            LogTap.shared.note("[CloudSync] save failed \(recordName): \(ckError.code.rawValue)")
+        case .report:
+            LogTap.shared.note("[CloudSync] save failed \(recordName): \(error.code.rawValue)")
         }
     }
 }
