@@ -1,0 +1,83 @@
+import SwiftUI
+
+enum SpoilerVeilStyle: Sendable {
+    /// Episode stills and other artwork.
+    case image
+    /// Synopsis text.
+    case text
+
+    var blurRadius: CGFloat {
+        switch self {
+        case .image: 30
+        case .text: 6
+        }
+    }
+}
+
+/// Sodalite#50. The environment reads live here so SpoilerPolicy stays a pure value and call
+/// sites stay one line.
+enum SpoilerReveal {
+    static func isHidden(_ item: JellyfinItem, dependencies: DependencyContainer, appState: AppState) -> Bool {
+        dependencies.spoilerPolicy(userID: appState.activeUser?.id).isHidden(item)
+    }
+
+    static func reveal(_ item: JellyfinItem, dependencies: DependencyContainer, appState: AppState) {
+        let policy = dependencies.spoilerPolicy(userID: appState.activeUser?.id)
+        dependencies.spoilerRevealMemory.reveal(policy.key(for: item))
+    }
+}
+
+private struct SpoilerVeilModifier: ViewModifier {
+    let isHidden: Bool
+    let style: SpoilerVeilStyle
+
+    func body(content: Content) -> some View {
+        if isHidden {
+            content
+                .blur(radius: style.blurRadius)
+                .overlay {
+                    if style == .image {
+                        Image(systemName: "eye.slash")
+                            .font(.title2)
+                            .foregroundStyle(.white.opacity(0.85))
+                    }
+                }
+                // Blurring only hides it from sight. Without collapsing the subtree into one
+                // relabelled element, VoiceOver would still read the spoiler out loud.
+                .accessibilityElement()
+                .accessibilityLabel(Text("spoiler.hidden"))
+        } else {
+            content
+        }
+    }
+}
+
+private struct SpoilerItemVeilModifier: ViewModifier {
+    let item: JellyfinItem
+    let style: SpoilerVeilStyle
+
+    @Environment(\.dependencies) private var dependencies
+    @Environment(\.appState) private var appState
+
+    func body(content: Content) -> some View {
+        content.modifier(
+            SpoilerVeilModifier(
+                isHidden: SpoilerReveal.isHidden(item, dependencies: dependencies, appState: appState),
+                style: style
+            )
+        )
+    }
+}
+
+extension View {
+    /// Veils this view when the item is an unseen episode or movie under the user's settings.
+    func spoilerVeil(for item: JellyfinItem, style: SpoilerVeilStyle) -> some View {
+        modifier(SpoilerItemVeilModifier(item: item, style: style))
+    }
+
+    /// Veils on a decision the caller already made, for surfaces outside the environment: the
+    /// player injects its policy through PlayerViewModel instead.
+    func spoilerVeil(isHidden: Bool, style: SpoilerVeilStyle) -> some View {
+        modifier(SpoilerVeilModifier(isHidden: isHidden, style: style))
+    }
+}
