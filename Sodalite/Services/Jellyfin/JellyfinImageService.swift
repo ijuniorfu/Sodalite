@@ -77,6 +77,14 @@ final class JellyfinImageService {
         return nil
     }
 
+    /// Sodalite#50. Skips the item's own backdrop and goes straight to the parent series, so a
+    /// veiled episode cannot paint its own art full bleed behind the whole screen.
+    func parentBackdropURL(for item: JellyfinItem, maxWidth: Int = 1920) -> URL? {
+        guard let tags = item.parentBackdropImageTags, let tag = tags.first, let seriesId = item.seriesId
+        else { return nil }
+        return imageURL(itemID: seriesId, imageType: .backdrop, tag: tag, maxWidth: maxWidth)
+    }
+
     /// Episode thumbnail fallback chain: own primary → own thumb → own backdrop → series backdrop → series poster.
     func episodeThumbnailURL(for item: JellyfinItem, maxWidth: Int = 640) -> URL? {
         if let tag = item.imageTags?.primary {

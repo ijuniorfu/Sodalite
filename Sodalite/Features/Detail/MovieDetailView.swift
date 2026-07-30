@@ -260,7 +260,7 @@ struct MovieDetailView: View {
                 .padding(.horizontal, metrics.rowInset)
             }) {
                 if let overview = vm.item.overview, !overview.isEmpty {
-                    ExpandableTextBox(text: overview)
+                    ExpandableTextBox(text: overview, spoilerItem: vm.item)
                         .padding(.horizontal, metrics.rowInset)
                 } else if !vm.hasFullDetail {
                     // Overview in flight after a snapshot paint: reserve the footprint (Sodalite#15).

@@ -25,6 +25,35 @@ struct SpoilerSurfaceTests {
         #expect(source.contains("SpoilerReveal.reveal(episode"))
     }
 
+    @Test("the shared media card veils episode art")
+    func mediaCardVeiled() throws {
+        let source = try sourceFile("Sodalite/Components/MediaCard.swift")
+        #expect(source.contains(".spoilerVeil(for: item, style: .image)"))
+    }
+
+    @Test("the expandable text box takes an optional spoiler item and reveals first")
+    func expandableTextBoxTwoStep() throws {
+        let source = try sourceFile("Sodalite/Components/ExpandableTextBox.swift")
+        #expect(source.contains("var spoilerItem: JellyfinItem?"))
+        #expect(source.contains("SpoilerReveal.reveal("))
+    }
+
+    @Test("both detail heroes pass their item to the text box")
+    func detailHeroesPassItem() throws {
+        let movie = try sourceFile("Sodalite/Features/Detail/MovieDetailView.swift")
+        #expect(movie.contains("spoilerItem: vm.item"))
+        let series = try sourceFile("Sodalite/Features/Detail/SeriesDetailView.swift")
+        #expect(series.contains("spoilerItem: displayItem"))
+    }
+
+    @Test("a veiled episode never paints its own backdrop full bleed")
+    func backdropFallsBackToSeries() throws {
+        let service = try sourceFile("Sodalite/Services/Jellyfin/JellyfinImageService.swift")
+        #expect(service.contains("func parentBackdropURL("))
+        let series = try sourceFile("Sodalite/Features/Detail/SeriesDetailView.swift")
+        #expect(series.contains("parentBackdropURL(for: episode)"))
+    }
+
     private func sourceFile(_ relativePath: String) throws -> String {
         let repository = URL(fileURLWithPath: #filePath)
             .deletingLastPathComponent()

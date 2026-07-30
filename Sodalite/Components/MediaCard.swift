@@ -66,6 +66,9 @@ struct MediaCard: View {
             }
         }
         .frame(width: cardWidth, height: cardHeight)
+        // Sodalite#50: before the clip so the blur cannot bleed past the tile edge. No type check
+        // here, the policy already passes everything that is not an unseen episode or movie.
+        .spoilerVeil(for: item, style: .image)
         .clipShape(RoundedRectangle(cornerRadius: 12))
         .overlay(alignment: .bottom) {
             progressOverlay
