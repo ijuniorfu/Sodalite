@@ -522,6 +522,19 @@ final class CloudSyncService: CloudSyncServiceProtocol {
                 if merged.entries != cloudMemory.entries { addPendingSave(recordName: name) }
                 return
             }
+            // Sodalite#50: reveals are per entry like track memory, so union instead of
+            // last-writer-wins, adoption included.
+            if case .spoilerReveals(let cloudReveals) = cloud {
+                guard case .spoilerReveals(let localReveals) = dependencies.collectSettingsPayload(
+                    key, stamp: preferences.localStamp(for: name) ?? .distantPast
+                ) else { return }
+                let merged = CloudSyncMerge.unionSpoilerReveals(local: localReveals, cloud: cloudReveals)
+                dependencies.applySettingsPayload(.spoilerReveals(merged))
+                lastSettingsSnapshot[key] = dependencies.collectSettingsPayload(key, stamp: .distantPast)
+                preferences.setLocalStamp(merged.updatedAt, for: name)
+                if merged.entries != cloudReveals.entries { addPendingSave(recordName: name) }
+                return
+            }
             let localStamp = preferences.localStamp(for: name) ?? .distantPast
             if adopting || CloudSyncMerge.remoteWins(localUpdatedAt: localStamp, remoteUpdatedAt: cloud.updatedAt) {
                 dependencies.applySettingsPayload(cloud)

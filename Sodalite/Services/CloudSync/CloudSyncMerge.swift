@@ -67,4 +67,19 @@ enum CloudSyncMerge {
             entries: TrackSelectionMemory.capped(byKey)
         )
     }
+
+    /// Sodalite#50. Union by reveal key, later reveal wins. Same shape as unionTrackMemory:
+    /// eviction deliberately does not propagate, and the cap is re-applied so both devices
+    /// converge on one set.
+    static func unionSpoilerReveals(local: SpoilerRevealPayload, cloud: SpoilerRevealPayload) -> SpoilerRevealPayload {
+        var byKey = local.entries
+        for (key, revealedAt) in cloud.entries {
+            if let existing = byKey[key], existing >= revealedAt { continue }
+            byKey[key] = revealedAt
+        }
+        return SpoilerRevealPayload(
+            updatedAt: max(local.updatedAt, cloud.updatedAt),
+            entries: SpoilerRevealMemory.capped(byKey)
+        )
+    }
 }

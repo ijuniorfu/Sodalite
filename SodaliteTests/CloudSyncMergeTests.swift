@@ -154,4 +154,55 @@ struct CloudSyncMergeTests {
         #expect(merged.entries.count == TrackSelectionMemory.maxEntries)
         #expect(merged.entries["l0"] == nil)
     }
+
+    // MARK: Spoiler reveals (Sodalite#50)
+
+    @Test("disjoint spoiler reveals union instead of replacing each other")
+    func spoilerRevealUnionIsDisjointSafe() {
+        let local = SpoilerRevealPayload(updatedAt: Date(timeIntervalSince1970: 5),
+                                         entries: ["u1|a": Date(timeIntervalSince1970: 5)])
+        let cloud = SpoilerRevealPayload(updatedAt: Date(timeIntervalSince1970: 7),
+                                         entries: ["u1|b": Date(timeIntervalSince1970: 7)])
+        let merged = CloudSyncMerge.unionSpoilerReveals(local: local, cloud: cloud)
+        #expect(Set(merged.entries.keys) == ["u1|a", "u1|b"])
+        #expect(merged.updatedAt == Date(timeIntervalSince1970: 7))
+    }
+
+    @Test("a colliding spoiler key keeps the later reveal")
+    func spoilerRevealUnionPrefersNewer() {
+        let local = SpoilerRevealPayload(updatedAt: Date(timeIntervalSince1970: 9),
+                                         entries: ["u1|a": Date(timeIntervalSince1970: 9)])
+        let cloud = SpoilerRevealPayload(updatedAt: Date(timeIntervalSince1970: 3),
+                                         entries: ["u1|a": Date(timeIntervalSince1970: 3)])
+        #expect(CloudSyncMerge.unionSpoilerReveals(local: local, cloud: cloud).entries["u1|a"]
+                == Date(timeIntervalSince1970: 9))
+    }
+
+    @Test("the spoiler union is capped so both devices converge")
+    func spoilerRevealUnionCaps() {
+        var localEntries: [String: Date] = [:]
+        var cloudEntries: [String: Date] = [:]
+        for i in 0..<SpoilerRevealMemory.maxEntries {
+            localEntries["l\(i)"] = Date(timeIntervalSince1970: Double(i))
+            cloudEntries["c\(i)"] = Date(timeIntervalSince1970: Double(i) + 0.5)
+        }
+        let merged = CloudSyncMerge.unionSpoilerReveals(
+            local: SpoilerRevealPayload(updatedAt: Date(timeIntervalSince1970: 1), entries: localEntries),
+            cloud: SpoilerRevealPayload(updatedAt: Date(timeIntervalSince1970: 1), entries: cloudEntries))
+        #expect(merged.entries.count == SpoilerRevealMemory.maxEntries)
+        #expect(merged.entries["l0"] == nil)
+    }
+
+    @Test("an appearance payload without the spoiler keys decodes to the defaults")
+    func appearancePayloadBackCompat() throws {
+        let legacy = #"""
+        {"schemaVersion":2,"updatedAt":0,"accentChoice":"systemBlue","backgroundStyle":"graphiteGlass",
+         "showContentLogos":true,"continueWatchingImage":"still","largeCards":false,
+         "nowPlayingUsesSeriesPoster":false}
+        """#
+        let payload = try JSONDecoder().decode(AppearanceSettingsPayload.self, from: Data(legacy.utf8))
+        #expect(payload.spoilerProtectionEnabled == false)
+        #expect(payload.spoilerHideEpisodes == true)
+        #expect(payload.spoilerHideMovies == false)
+    }
 }

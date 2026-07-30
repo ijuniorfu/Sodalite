@@ -17,6 +17,7 @@ enum CloudSyncStoreKey: String, CaseIterable, Codable {
     case seerrNotifications
     case parentalControls
     case trackMemory
+    case spoilerReveals
 }
 
 enum CloudSyncRecordName {
@@ -111,6 +112,15 @@ struct TrackMemoryPayload: Codable, Equatable {
     var entries: [String: TrackMemoryEntry]
 }
 
+/// Sodalite#50. Like `TrackMemoryPayload` this is NOT last-writer-wins: each reveal carries its
+/// own date and `CloudSyncMerge.unionSpoilerReveals` merges per key, else a reveal on the Apple TV
+/// would erase one from the iPhone.
+struct SpoilerRevealPayload: Codable, Equatable {
+    var schemaVersion: Int = 1
+    var updatedAt: Date
+    var entries: [String: Date]
+}
+
 struct AppearanceSettingsPayload: Codable, Equatable {
     var schemaVersion: Int
     var updatedAt: Date
@@ -120,16 +130,22 @@ struct AppearanceSettingsPayload: Codable, Equatable {
     var continueWatchingImage: String
     var largeCards: Bool
     var nowPlayingUsesSeriesPoster: Bool
+    var spoilerProtectionEnabled: Bool
+    var spoilerHideEpisodes: Bool
+    var spoilerHideMovies: Bool
 
     init(
-        schemaVersion: Int = 2,
+        schemaVersion: Int = 3,
         updatedAt: Date,
         accentChoice: String,
         backgroundStyle: String,
         showContentLogos: Bool,
         continueWatchingImage: String,
         largeCards: Bool,
-        nowPlayingUsesSeriesPoster: Bool
+        nowPlayingUsesSeriesPoster: Bool,
+        spoilerProtectionEnabled: Bool = false,
+        spoilerHideEpisodes: Bool = true,
+        spoilerHideMovies: Bool = false
     ) {
         self.schemaVersion = schemaVersion
         self.updatedAt = updatedAt
@@ -139,6 +155,9 @@ struct AppearanceSettingsPayload: Codable, Equatable {
         self.continueWatchingImage = continueWatchingImage
         self.largeCards = largeCards
         self.nowPlayingUsesSeriesPoster = nowPlayingUsesSeriesPoster
+        self.spoilerProtectionEnabled = spoilerProtectionEnabled
+        self.spoilerHideEpisodes = spoilerHideEpisodes
+        self.spoilerHideMovies = spoilerHideMovies
     }
 
     private enum CodingKeys: String, CodingKey {
@@ -150,6 +169,9 @@ struct AppearanceSettingsPayload: Codable, Equatable {
         case continueWatchingImage
         case largeCards
         case nowPlayingUsesSeriesPoster
+        case spoilerProtectionEnabled
+        case spoilerHideEpisodes
+        case spoilerHideMovies
     }
 
     init(from decoder: Decoder) throws {
@@ -166,11 +188,14 @@ struct AppearanceSettingsPayload: Codable, Equatable {
             Bool.self,
             forKey: .nowPlayingUsesSeriesPoster
         )
+        spoilerProtectionEnabled = try values.decodeIfPresent(Bool.self, forKey: .spoilerProtectionEnabled) ?? false
+        spoilerHideEpisodes = try values.decodeIfPresent(Bool.self, forKey: .spoilerHideEpisodes) ?? true
+        spoilerHideMovies = try values.decodeIfPresent(Bool.self, forKey: .spoilerHideMovies) ?? false
     }
 
     func encode(to encoder: Encoder) throws {
         var values = encoder.container(keyedBy: CodingKeys.self)
-        try values.encode(2, forKey: .schemaVersion)
+        try values.encode(3, forKey: .schemaVersion)
         try values.encode(updatedAt, forKey: .updatedAt)
         try values.encode(accentChoice, forKey: .accentChoice)
         try values.encode(backgroundStyle, forKey: .backgroundStyle)
@@ -178,6 +203,9 @@ struct AppearanceSettingsPayload: Codable, Equatable {
         try values.encode(continueWatchingImage, forKey: .continueWatchingImage)
         try values.encode(largeCards, forKey: .largeCards)
         try values.encode(nowPlayingUsesSeriesPoster, forKey: .nowPlayingUsesSeriesPoster)
+        try values.encode(spoilerProtectionEnabled, forKey: .spoilerProtectionEnabled)
+        try values.encode(spoilerHideEpisodes, forKey: .spoilerHideEpisodes)
+        try values.encode(spoilerHideMovies, forKey: .spoilerHideMovies)
     }
 }
 
@@ -217,6 +245,7 @@ enum SettingsSyncPayload: Equatable {
     case seerrNotifications(SeerrNotificationSettingsPayload)
     case parentalControls(ParentalControlsSettingsPayload)
     case trackMemory(TrackMemoryPayload)
+    case spoilerReveals(SpoilerRevealPayload)
 
     var storeKey: CloudSyncStoreKey {
         switch self {
@@ -226,6 +255,7 @@ enum SettingsSyncPayload: Equatable {
         case .seerrNotifications: .seerrNotifications
         case .parentalControls: .parentalControls
         case .trackMemory: .trackMemory
+        case .spoilerReveals: .spoilerReveals
         }
     }
 
@@ -237,6 +267,7 @@ enum SettingsSyncPayload: Equatable {
         case .seerrNotifications(let p): p.updatedAt
         case .parentalControls(let p): p.updatedAt
         case .trackMemory(let t): t.updatedAt
+        case .spoilerReveals(let s): s.updatedAt
         }
     }
 
@@ -248,6 +279,7 @@ enum SettingsSyncPayload: Equatable {
         case .seerrNotifications(var p): p.updatedAt = stamp; return .seerrNotifications(p)
         case .parentalControls(var p): p.updatedAt = stamp; return .parentalControls(p)
         case .trackMemory(var t): t.updatedAt = stamp; return .trackMemory(t)
+        case .spoilerReveals(var s): s.updatedAt = stamp; return .spoilerReveals(s)
         }
     }
 
@@ -259,6 +291,7 @@ enum SettingsSyncPayload: Equatable {
         case .seerrNotifications(let p): try JSONEncoder().encode(p)
         case .parentalControls(let p): try JSONEncoder().encode(p)
         case .trackMemory(let t): try JSONEncoder().encode(t)
+        case .spoilerReveals(let s): try JSONEncoder().encode(s)
         }
     }
 
@@ -270,6 +303,7 @@ enum SettingsSyncPayload: Equatable {
         case .seerrNotifications: .seerrNotifications(try JSONDecoder().decode(SeerrNotificationSettingsPayload.self, from: data))
         case .parentalControls: .parentalControls(try JSONDecoder().decode(ParentalControlsSettingsPayload.self, from: data))
         case .trackMemory: .trackMemory(try JSONDecoder().decode(TrackMemoryPayload.self, from: data))
+        case .spoilerReveals: .spoilerReveals(try JSONDecoder().decode(SpoilerRevealPayload.self, from: data))
         }
     }
 }
