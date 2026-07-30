@@ -112,6 +112,7 @@ final class PlayerViewModel {
 
     enum ControlsFocus: Hashable {
         case progressBar
+        case restartButton
         case skipIntroButton
         case chapterButton
         case episodeButton
@@ -1443,6 +1444,21 @@ final class PlayerViewModel {
         Task { [weak self] in await self?.player.seek(to: target) }
     }
 
+    /// Jump to the start of the current item and play. Live is excluded: tvOS renders LiveTransportBar
+    /// there and the iOS icon row hides the button, this guard is the second line of defence.
+    func restartFromBeginning() {
+        guard !isLiveSession else { return }
+        Task { [weak self] in
+            await self?.player.seek(to: 0)
+            guard let self else { return }
+            if !isPlaying { player.play() }
+            // Move Jellyfin's resume point to 0 now: closing the player right after the restart
+            // would otherwise restore the pre-restart position on the next open.
+            reportProgressIfNeeded()
+            scheduleControlsHide()
+        }
+    }
+
     func selectAudioTrack(id: Int, userInitiated: Bool = false) {
         if userInitiated, let key = memoryScopeKey,
            let track = player.audioTracks.first(where: { $0.id == id }) {
@@ -2201,6 +2217,7 @@ final class PlayerViewModel {
     /// iOS calls it directly from the SwiftUI track buttons.
     func activateControl(_ focus: ControlsFocus) {
         switch focus {
+        case .restartButton: restartFromBeginning()
         case .skipIntroButton: skipIntro()
         case .chapterButton: openChapterDropdown()
         case .episodeButton: openEpisodeDropdown()
