@@ -1,0 +1,44 @@
+import Foundation
+
+/// Sodalite#50. Decides whether an item's synopsis and still are veiled. A pure value so the
+/// whole matrix is unit-testable; the environment reads live in `spoilerVeil`.
+struct SpoilerPolicy: Sendable, Equatable {
+    var enabled: Bool
+    var hideEpisodes: Bool
+    var hideMovies: Bool
+    var userID: String
+    /// Shared with `SpoilerRevealMemory` by COW, so building a policy per card body is a retain, not a copy.
+    var revealedKeys: Set<String>
+
+    static let disabled = SpoilerPolicy(
+        enabled: false,
+        hideEpisodes: false,
+        hideMovies: false,
+        userID: "",
+        revealedKeys: []
+    )
+
+    /// Per item, deliberately unlike `TrackSelectionMemory.scopeKey`, which folds episodes under
+    /// their series: revealing one episode must not reveal the whole season.
+    static func key(userID: String, itemID: String) -> String {
+        "\(userID)|\(itemID)"
+    }
+
+    func key(for item: JellyfinItem) -> String {
+        Self.key(userID: userID, itemID: item.id)
+    }
+
+    func isHidden(_ item: JellyfinItem) -> Bool {
+        guard enabled else { return false }
+        switch item.type {
+        case .episode where hideEpisodes: break
+        case .movie where hideMovies: break
+        default: return false
+        }
+        if item.userData?.played == true { return false }
+        // Started counts as revealed: every Continue Watching entry is in progress, so without
+        // this the one row users look at most would be a wall of blur.
+        if (item.userData?.playedPercentage ?? 0) > 0 { return false }
+        return !revealedKeys.contains(key(for: item))
+    }
+}
