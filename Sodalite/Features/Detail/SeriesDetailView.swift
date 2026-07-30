@@ -978,10 +978,21 @@ struct SeriesDetailView: View {
                                                 systemImage: vm.isFavorite(episode) ? "heart.fill" : "heart"
                                             )
                                         }
+
+                                        // Sodalite#50. For an episode without a synopsis the box is
+                                        // not focusable, so this is the only way to uncover its still.
+                                        if SpoilerReveal.isHidden(episode, dependencies: dependencies, appState: appState) {
+                                            Button {
+                                                SpoilerReveal.reveal(episode, dependencies: dependencies, appState: appState)
+                                            } label: {
+                                                Label("spoiler.reveal", systemImage: "eye")
+                                            }
+                                        }
                                     }
 
                                     // Per-card synopsis box; reserves a fixed three-line height even when empty so every column stays the same height.
                                     EpisodeSynopsisBox(
+                                        episode: episode,
                                         text: episode.overview?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
                                     )
                                 }

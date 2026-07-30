@@ -164,6 +164,10 @@ struct EpisodeLandscapeCard: View {
                         )
                 }
                 .frame(width: cardSize.width, height: cardSize.height)
+                // Sodalite#50: veiled before the clip, else the blur bleeds past the tile edge and
+                // eats the focus stroke. Progress bar and badges stay sharp, they are the user's
+                // own state rather than content.
+                .spoilerVeil(for: episode, style: .image)
                 .clipShape(RoundedRectangle(cornerRadius: 12))
                 .overlay(
                     // Outer stroke (MediaCard pattern): no inner bite, leaves the progress bar fully visible.
@@ -246,11 +250,18 @@ struct EpisodeLandscapeCard: View {
 
 /// Navigable per-card synopsis box (mirrors ExpandableTextBox). Always reserves three lines so columns stay equal height; an overview-less episode renders non-focusable reserved space, no focusable-but-empty dead end.
 struct EpisodeSynopsisBox: View {
+    let episode: JellyfinItem
     let text: String
     @State private var showFullText = false
     @FocusState private var isFocused: Bool
 
     @Environment(\.horizontalSizeClass) private var hSizeClass
+    @Environment(\.dependencies) private var dependencies
+    @Environment(\.appState) private var appState
+
+    private var isSpoilerHidden: Bool {
+        SpoilerReveal.isHidden(episode, dependencies: dependencies, appState: appState)
+    }
     /// Matches the episode card width (landscape art width minus the 14pt horizontal padding each side) so the synopsis column lines up under its card.
     private var synopsisWidth: CGFloat { LayoutMetrics.current(hSizeClass).landscapeSize.width - 28 }
 
@@ -271,6 +282,8 @@ struct EpisodeSynopsisBox: View {
             .lineLimit(3, reservesSpace: true)
             .multilineTextAlignment(.leading)
             .frame(width: synopsisWidth, alignment: .topLeading)
+            // Sodalite#50: only the text is veiled, so the material and the focus stroke stay sharp.
+            .spoilerVeil(for: episode, style: .text)
             .padding(.horizontal, 14)
             .padding(.vertical, 12)
             .background(
@@ -293,6 +306,12 @@ struct EpisodeSynopsisBox: View {
             .focused($isFocused)
             .stableTap(isFocused: isFocused) {
                 guard hasText else { return }
+                // Sodalite#50: the first Select uncovers, the second expands as before. One reveal
+                // covers this episode's still too, both resolve through the same key.
+                if isSpoilerHidden {
+                    SpoilerReveal.reveal(episode, dependencies: dependencies, appState: appState)
+                    return
+                }
                 showFullText = true
             }
             .fullScreenCover(isPresented: $showFullText) {
