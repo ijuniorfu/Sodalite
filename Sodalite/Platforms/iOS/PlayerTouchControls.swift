@@ -223,9 +223,15 @@ struct PlayerTouchControls: View {
 
     // MARK: - Icon row
 
+    // FlowLayout, not HStack: eight fixed 44pt targets with 20pt gaps need 492pt and the portrait
+    // chrome is 362pt, so the row clipped at both edges. Balanced so a wrap never leaves one lonely
+    // icon under a full row. Landscape and iPad still measure to a single row.
     private var iconRow: some View {
-        HStack(spacing: isPad ? 28 : 20) {
-            Spacer()
+        FlowLayout(alignment: .center, spacing: isPad ? 28 : 20, balanced: true) {
+            if !viewModel.isLiveSession {
+                iconButton("arrow.counterclockwise") { viewModel.restartFromBeginning() }
+                    .accessibilityLabel(Text("player.restart"))
+            }
             if viewModel.isInsideIntro {
                 iconButton("forward.end.fill") { viewModel.skipIntro() }
             }
@@ -248,7 +254,6 @@ struct PlayerTouchControls: View {
                     viewModel.showStatsOverlay.toggle()
                 }
             }
-            Spacer()
         }
     }
 

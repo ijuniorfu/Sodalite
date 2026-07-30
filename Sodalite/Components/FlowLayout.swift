@@ -12,8 +12,12 @@ enum FlowAlignment {
 struct FlowLayout: Layout {
     var alignment: FlowAlignment = .leading
     var spacing: CGFloat = 8
+    /// Spread items evenly across the rows the greedy pack needed. Off by default so the existing
+    /// consumers keep their left-to-right fill.
+    var balanced: Bool = false
 
-    static func packRows(widths: [CGFloat], spacing: CGFloat, maxWidth: CGFloat) -> [[Int]] {
+    static func packRows(widths: [CGFloat], spacing: CGFloat, maxWidth: CGFloat,
+                         balanced: Bool = false) -> [[Int]] {
         var rows: [[Int]] = []
         var current: [Int] = []
         var x: CGFloat = 0
@@ -27,12 +31,34 @@ struct FlowLayout: Layout {
             x += w + spacing
         }
         if !current.isEmpty { rows.append(current) }
-        return rows
+        guard balanced, rows.count > 1 else { return rows }
+        return balancedRows(count: widths.count, rowCount: rows.count, widths: widths,
+                            spacing: spacing, maxWidth: maxWidth) ?? rows
+    }
+
+    /// Even split across the row count greedy already proved sufficient, so a wrap never leaves a
+    /// near-empty last row (six equal items in a five-wide space read as 3+3, not 5+1). Equal widths
+    /// always fit, unequal ones may not, so an overflowing split returns nil and the caller keeps greedy.
+    private static func balancedRows(count: Int, rowCount: Int, widths: [CGFloat],
+                                     spacing: CGFloat, maxWidth: CGFloat) -> [[Int]]? {
+        var result: [[Int]] = []
+        var start = 0
+        for row in 0..<rowCount {
+            let remaining = rowCount - row
+            let take = (count - start + remaining - 1) / remaining
+            let slice = Array(start..<(start + take))
+            let width = slice.map { widths[$0] }.reduce(0, +) + spacing * CGFloat(max(0, slice.count - 1))
+            if width > maxWidth { return nil }
+            result.append(slice)
+            start += take
+        }
+        return result
     }
 
     func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout Void) -> CGSize {
         let widths = subviews.map { $0.sizeThatFits(.unspecified).width }
-        let rows = Self.packRows(widths: widths, spacing: spacing, maxWidth: proposal.width ?? .infinity)
+        let rows = Self.packRows(widths: widths, spacing: spacing,
+                                 maxWidth: proposal.width ?? .infinity, balanced: balanced)
         let height = rows.map { rowHeight($0, subviews) }.reduce(0, +) + spacing * CGFloat(max(0, rows.count - 1))
         let widest = rows.map { rowWidth($0, subviews) }.max() ?? 0
         return CGSize(width: proposal.width ?? widest, height: height)
@@ -41,7 +67,8 @@ struct FlowLayout: Layout {
     func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout Void) {
         let widths = subviews.map { $0.sizeThatFits(.unspecified).width }
         var y = bounds.minY
-        for row in Self.packRows(widths: widths, spacing: spacing, maxWidth: bounds.width) {
+        for row in Self.packRows(widths: widths, spacing: spacing,
+                                 maxWidth: bounds.width, balanced: balanced) {
             let rowH = rowHeight(row, subviews)
             var x: CGFloat
             switch alignment {

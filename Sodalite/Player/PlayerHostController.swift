@@ -950,23 +950,14 @@ final class PlayerHostController: AVPlayerViewController {
             if next >= 0 && next < order.count { viewModel.controlsFocus = order[next] }
             return
         }
-        var order: [PlayerViewModel.ControlsFocus] = []
-        if viewModel.isInsideIntro { order.append(.skipIntroButton) }
-        if viewModel.seasonEpisodes.count > 1 { order.append(.episodeButton) }
-        // Mirror TransportBar's chapter-button gate (hidden on series episodes), else focus lands on an unrendered button.
-        if viewModel.chapters.count > 1, viewModel.seasonEpisodes.count <= 1 {
-            order.append(.chapterButton)
-        }
-        if !viewModel.player.audioTracks.isEmpty { order.append(.audioButton) }
-        if !viewModel.subtitleStreams.isEmpty || viewModel.supportsSubtitleSearch {
-            order.append(.subtitleButton)
-        }
-        order.append(.speedButton)
-        order.append(.pictureButton)
-        if viewModel.isPiPAvailable { order.append(.pipButton) }
-        if viewModel.preferences.showStatsForNerds {
-            order.append(.infoButton)
-        }
+        let order = PlayerViewModel.transportFocusOrder(
+            isInsideIntro: viewModel.isInsideIntro,
+            episodeCount: viewModel.seasonEpisodes.count,
+            chapterCount: viewModel.chapters.count,
+            hasAudioTracks: !viewModel.player.audioTracks.isEmpty,
+            hasSubtitles: !viewModel.subtitleStreams.isEmpty || viewModel.supportsSubtitleSearch,
+            isPiPAvailable: viewModel.isPiPAvailable,
+            showsStats: viewModel.preferences.showStatsForNerds)
         guard let current = order.firstIndex(of: viewModel.controlsFocus) else { return }
         let next = current + direction
         if next >= 0 && next < order.count {
@@ -1009,7 +1000,7 @@ final class PlayerHostController: AVPlayerViewController {
                 else if hasSubs { viewModel.controlsFocus = .subtitleButton }
                 else { viewModel.controlsFocus = .speedButton }
                 viewModel.scheduleControlsHide()
-            case .skipIntroButton, .chapterButton, .episodeButton, .audioButton, .subtitleButton, .speedButton, .pictureButton, .pipButton, .infoButton, .returnToLiveButton:
+            case .restartButton, .skipIntroButton, .chapterButton, .episodeButton, .audioButton, .subtitleButton, .speedButton, .pictureButton, .pipButton, .infoButton, .returnToLiveButton:
                 viewModel.scheduleControlsHide()
             }
         } else {

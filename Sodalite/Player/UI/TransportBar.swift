@@ -73,6 +73,15 @@ struct TransportBar: View {
             HStack(alignment: .bottom, spacing: 16) {
                 Spacer()
 
+                trackButton(
+                    label: String(localized: "player.restart", defaultValue: "From Start"),
+                    icon: "arrow.counterclockwise",
+                    isFocused: controlsFocus == .restartButton,
+                    persistsLabel: false,
+                    dropdown: [],
+                    isOpen: false
+                )
+
                 if showSkipIntroButton {
                     trackButton(
                         label: String(localized: "player.skipIntro", defaultValue: "Skip Intro"),
