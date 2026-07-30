@@ -121,6 +121,7 @@ struct CloudSyncSettingsView: View {
                 Text(statusText)
                     .font(.caption)
                     .foregroundStyle(.secondary)
+                    .lineLimit(3)
             }
             Spacer()
         }
@@ -150,8 +151,13 @@ struct CloudSyncSettingsView: View {
             return String(localized: "settings.cloudSync.status.syncing", defaultValue: "Syncing…")
         case .noAccount:
             return String(localized: "settings.cloudSync.status.noAccount", defaultValue: "No iCloud account")
-        case .error:
-            return String(localized: "settings.cloudSync.status.error", defaultValue: "Sync error, retrying")
+        case .error(let message):
+            // Naming the CloudKit error is the whole point: "Sync error" alone made a stale
+            // record identity, an expired change token and a full iCloud look identical.
+            return String(
+                format: String(localized: "settings.cloudSync.status.error %@", defaultValue: "Sync error: %@"),
+                message
+            )
         case .disabled, nil:
             return String(localized: "settings.cloudSync.status.disabled", defaultValue: "Off")
         }
