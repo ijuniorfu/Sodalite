@@ -1,5 +1,12 @@
 import SwiftUI
 
+/// One buffered line. The buffer is a ring of plain strings and duplicate lines are normal in a
+/// log, so the index has to carry the identity.
+private struct LogLine: Identifiable {
+    let id: Int
+    let text: String
+}
+
 /// Settings > "Diagnostic Log": the lines `LogTap` collected this session.
 ///
 /// Deliberately not gated by `LogTap.isDiagnosticBuild`, unlike the in-player overlay. It is
@@ -11,15 +18,18 @@ struct DiagnosticLogView: View {
     @Environment(\.horizontalSizeClass) private var hSizeClass
     @ObservedObject private var tap = LogTap.shared
 
-    /// Identity for ForEach and for the scroll-to-bottom anchor. The buffer is a ring of plain
-    /// strings, and duplicate lines are normal in a log, so the index has to carry the identity.
-    private struct Line: Identifiable {
-        let id: Int
-        let text: String
+    /// tvOS groups the lines into focusable blocks (see LogBlock). 12 keeps a block roughly one
+    /// screenful, so one swipe of the remote is one page.
+    private static let blockSize = 12
+
+    private var lines: [LogLine] {
+        tap.lines.enumerated().map { LogLine(id: $0.offset, text: $0.element) }
     }
 
-    private var lines: [Line] {
-        tap.lines.enumerated().map { Line(id: $0.offset, text: $0.element) }
+    private var blocks: [[LogLine]] {
+        stride(from: 0, to: lines.count, by: Self.blockSize).map {
+            Array(lines[$0 ..< min($0 + Self.blockSize, lines.count)])
+        }
     }
 
     var body: some View {
@@ -35,16 +45,7 @@ struct DiagnosticLogView: View {
                             .frame(maxWidth: .infinity, alignment: .center)
                             .padding(.top, 40)
                     } else {
-                        LazyVStack(alignment: .leading, spacing: 6) {
-                            ForEach(lines) { line in
-                                Text(line.text)
-                                    .font(.system(.caption, design: .monospaced))
-                                    .foregroundStyle(.secondary)
-                                    .textSelectionCompat()
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                                    .id(line.id)
-                            }
-                        }
+                        content
                     }
                 }
                 .frame(maxWidth: 900, alignment: .leading)
@@ -60,6 +61,29 @@ struct DiagnosticLogView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .hidesNavigationBarChrome()
         .onExitCommandCompat { dismiss() }
+    }
+
+    @ViewBuilder
+    private var content: some View {
+        #if os(tvOS)
+        LazyVStack(alignment: .leading, spacing: 4) {
+            ForEach(blocks, id: \.first?.id) { block in
+                LogBlock(lines: block)
+                    .id(block.last?.id)
+            }
+        }
+        #else
+        LazyVStack(alignment: .leading, spacing: 6) {
+            ForEach(lines) { line in
+                Text(line.text)
+                    .font(.system(.caption, design: .monospaced))
+                    .foregroundStyle(.secondary)
+                    .textSelection(.enabled)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .id(line.id)
+            }
+        }
+        #endif
     }
 
     private var header: some View {
@@ -85,23 +109,23 @@ struct DiagnosticLogView: View {
     private var actions: some View {
         HStack(spacing: 16) {
             #if os(iOS)
-            Button {
+            LogActionButton(
+                titleKey: "settings.log.copy",
+                systemImage: "doc.on.doc",
+                isEnabled: !tap.lines.isEmpty
+            ) {
                 UIPasteboard.general.string = tap.lines.joined(separator: "\n")
-            } label: {
-                Label("settings.log.copy", systemImage: "doc.on.doc")
             }
-            .disabled(tap.lines.isEmpty)
             #endif
 
-            Button {
+            LogActionButton(
+                titleKey: "settings.log.clear",
+                systemImage: "trash",
+                isEnabled: !tap.lines.isEmpty
+            ) {
                 tap.clear()
-            } label: {
-                Label("settings.log.clear", systemImage: "trash")
             }
-            .disabled(tap.lines.isEmpty)
         }
-        .font(.callout)
-        .buttonStyle(.bordered)
     }
 
     private func scrollToEnd(_ proxy: ScrollViewProxy) {
@@ -110,14 +134,75 @@ struct DiagnosticLogView: View {
     }
 }
 
-private extension View {
-    /// tvOS has no text selection, and the modifier is unavailable there rather than a no-op.
-    @ViewBuilder
-    func textSelectionCompat() -> some View {
-        #if os(iOS)
-        self.textSelection(.enabled)
-        #else
-        self
-        #endif
+/// Compact action chip. Not a `Button` with a system style: on tvOS `.bordered` draws a filled
+/// pill in the accent colour whether or not it holds focus, which reads as permanently focused and
+/// swallows its own label. Mirrors `SettingsTileButtonStyle`'s fills and tinted focus border
+/// instead, so it looks like the rest of Settings on both platforms.
+private struct LogActionButton: View {
+    let titleKey: LocalizedStringKey
+    let systemImage: String
+    let isEnabled: Bool
+    let action: () -> Void
+
+    @FocusState private var isFocused: Bool
+
+    var body: some View {
+        Label(titleKey, systemImage: systemImage)
+            .font(.callout)
+            .fontWeight(.medium)
+            .padding(.horizontal, 24)
+            .padding(.vertical, 12)
+            .background(
+                RoundedRectangle(cornerRadius: 14)
+                    .fill(.white.opacity(isFocused ? 0.15 : 0.05))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 14)
+                    .strokeBorder(.tint, lineWidth: 3)
+                    .opacity(isFocused ? 1 : 0)
+            )
+            .scaleEffect(isFocused ? 1.03 : 1.0)
+            .opacity(isEnabled ? 1 : 0.4)
+            .focusable(isEnabled)
+            .focused($isFocused)
+            .stableTap(isFocused: isFocused) {
+                guard isEnabled else { return }
+                action()
+            }
     }
 }
+
+#if os(tvOS)
+/// A tvOS scroll view only scrolls when the focus engine has somewhere to move, and a `Text` is
+/// not focusable: with only Copy and Clear focusable, the log stood still. Blocks rather than
+/// single lines because 300 focusable rows would mean 300 swipes to reach the end of the buffer,
+/// while a block is one page per swipe.
+private struct LogBlock: View {
+    let lines: [LogLine]
+    @FocusState private var isFocused: Bool
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            ForEach(lines) { line in
+                Text(line.text)
+                    .font(.system(.caption, design: .monospaced))
+                    .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+        }
+        .padding(12)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(isFocused ? AnyShapeStyle(.tint.opacity(0.18)) : AnyShapeStyle(Color.clear))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .strokeBorder(.tint, lineWidth: 3)
+                .opacity(isFocused ? 1 : 0)
+        )
+        .focusable(true)
+        .focused($isFocused)
+    }
+}
+#endif
