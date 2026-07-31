@@ -72,7 +72,7 @@ struct CatalogDetailView: View {
         ZStack {
             DetailBackdrop(
                 imageURL: SeerrImageURL.backdrop(path: backdropPath),
-                posterFallbackURL: SeerrImageURL.poster(path: media.posterPath, size: .w780)
+                posterFallbackURL: SeerrImageURL.poster(path: posterPath, size: .w780)
             )
                 .id(backdropPath ?? "empty")
                 .ignoresSafeArea()
@@ -756,6 +756,11 @@ struct CatalogDetailView: View {
 
     private var backdropPath: String? {
         movieDetail?.backdropPath ?? tvDetail?.backdropPath ?? media.backdropPath
+    }
+
+    /// Same fetched-first order as `backdropPath`. Reading it off `media` alone left the hero blank for the whole visit when the screen was entered from My Requests, which navigates with a bare tmdb-id stub: the phone-portrait hero shows the poster ONLY, so the stub's nil poster was the entire hero.
+    private var posterPath: String? {
+        movieDetail?.posterPath ?? tvDetail?.posterPath ?? media.posterPath
     }
 
     private var mediaStatus: SeerrMediaStatus? {
