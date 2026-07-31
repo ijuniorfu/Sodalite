@@ -148,7 +148,12 @@ final class PlayerHostController: AVPlayerViewController {
                     // playlist exactly like wireless AirPlay: harmless here (127.0.0.1 fallback if no WiFi) but it drops
                     // the DV/HDR master signaling, so DV over a wired adapter comes out through the MEDIA playlist.
                     #if os(iOS)
-                    avPlayer.usesExternalPlaybackWhileExternalScreenIsActive = true
+                    // Sodalite#98: not while the app itself owns the external screen, or the reload
+                    // behind a next-episode/audio switch would take the display back mid-session.
+                    if !self.externalSubtitleWindow.ownsExternalScreen {
+                        avPlayer.usesExternalPlaybackWhileExternalScreenIsActive = true
+                    }
+                    self.externalSubtitleWindow.resetForNewPlayer()
                     #endif
                     #if os(tvOS)
                     // While the video lives in the PiP window AVKit stays unbound (it pauses a bound
@@ -226,6 +231,11 @@ final class PlayerHostController: AVPlayerViewController {
         viewModel.onPictureModeChanged = { [weak self] mode in
             self?.applyVideoGravity(for: mode)
         }
+
+        #if os(iOS)
+        // Sodalite#98: turning subtitles on or off mid-playback flips one of the decision's inputs.
+        viewModel.onSubtitleSelectionChanged = { [weak self] in self?.updateExternalSubtitleWindow() }
+        #endif
         // Seed initial gravity: applyPictureMode may have fired before the callback was wired, else AVKit stays at default .resizeAspect.
         applyVideoGravity(for: viewModel.pictureMode)
 
@@ -479,19 +489,44 @@ final class PlayerHostController: AVPlayerViewController {
     /// reach it (media-direct SDR external / DV P5). Recomputed on external-playback changes, screen
     /// connect/disconnect, and the engine's nativeSubtitleRenditionsServed signal.
     func updateExternalSubtitleWindow() {
+        let scenePresent = ExternalSubtitleWindowController.currentExternalScene() != nil
+        // While AVKit's external playback drives the display there is no scene to find, so a wired display
+        // has to be recognised by its audio route (the engine's own wired-vs-AirPlay discriminator).
+        // AirPlay is excluded by construction: it has no local screen to draw on.
+        let externalDisplayAttached = scenePresent || (externalPlaybackActive && Self.wiredHDMIRouteActive())
+        let subtitleSelected = viewModel.activeSubtitleIndex != nil
+        let nativeRenditionsServed = viewModel.player.nativeSubtitleRenditionsServed
+        let shouldOwn = ExternalSubtitleWindowDecision.shouldOwnExternalScreen(
+            externalDisplayAttached: externalDisplayAttached,
+            subtitleSelected: subtitleSelected,
+            nativeRenditionsServed: nativeRenditionsServed,
+            handoverFailed: externalSubtitleWindow.handoverFailed)
+        // Every decision input, so a reporter's log says which one blocked the takeover instead of
+        // leaving the silent no-op path unlogged.
+        LogTap.shared.note(
+            "[ExternalSubs] decide own=\(shouldOwn) attached=\(externalDisplayAttached) scene=\(scenePresent) sub=\(subtitleSelected) nativeServed=\(nativeRenditionsServed) extPlayback=\(externalPlaybackActive) failed=\(externalSubtitleWindow.handoverFailed) scenes=\(ExternalSubtitleWindowController.connectedSceneRoles())")
         externalSubtitleWindow.update(
-            externalScreenPresent: ExternalSubtitleWindowController.currentExternalScene() != nil,
-            subtitleSelected: viewModel.activeSubtitleIndex != nil,
-            nativeRenditionsServed: viewModel.player.nativeSubtitleRenditionsServed,
+            shouldOwnExternalScreen: shouldOwn,
+            player: viewModel.player.currentAVPlayer,
             viewModel: viewModel)
+    }
+
+    /// A wired HDMI adapter reports `.HDMI` as the audio output; a wireless AirPlay receiver reports
+    /// `.airPlay`. Mirrors AetherEngine's `isWiredHDMIExternalDisplay`.
+    private static func wiredHDMIRouteActive() -> Bool {
+        AVAudioSession.sharedInstance().currentRoute.outputs.contains { $0.portType == .HDMI }
     }
 
     private func registerExternalScreenObservers() {
         guard externalScreenObservers.isEmpty else { return }
         let center = NotificationCenter.default
         for name in [UIScene.willConnectNotification, UIScene.didDisconnectNotification] {
+            let event = name == UIScene.willConnectNotification ? "connect" : "disconnect"
             let token = center.addObserver(forName: name, object: nil, queue: .main) { [weak self] _ in
-                MainActor.assumeIsolated { self?.updateExternalSubtitleWindow() }
+                MainActor.assumeIsolated {
+                    LogTap.shared.note("[ExternalSubs] scene \(event)")
+                    self?.updateExternalSubtitleWindow()
+                }
             }
             externalScreenObservers.append(token)
         }

@@ -1431,6 +1431,11 @@ final class PlayerViewModel {
     /// AVPlayerViewController's own `videoGravity` (the native path's rendering).
     var onPictureModeChanged: ((PlaybackPreferences.PictureMode) -> Void)?
 
+    /// Fired after every primary-subtitle selection (including "off"). Sodalite#98: the external-display
+    /// subtitle window gates on a selection being active, so turning subtitles on mid-playback has to
+    /// re-evaluate that decision; without this it only re-ran on route or serving-state changes.
+    var onSubtitleSelectionChanged: (() -> Void)?
+
     /// In-player picker change; mutates session-local `pictureMode` and pushes to the engine. Not persisted.
     func selectPictureMode(_ mode: PlaybackPreferences.PictureMode) {
         pictureMode = mode
@@ -1857,6 +1862,7 @@ final class PlayerViewModel {
     }
 
     func selectSubtitleTrack(id: Int?, userInitiated: Bool = false) {
+        defer { onSubtitleSelectionChanged?() }
         // #32: the active subtitle changed, so the native rendition selection is stale; re-select on the next
         // PiP/external-display entry (also hides any currently-shown native track so it can't linger from a
         // prior pick).
