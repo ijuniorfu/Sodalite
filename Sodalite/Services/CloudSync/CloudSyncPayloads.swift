@@ -271,6 +271,22 @@ enum SettingsSyncPayload: Equatable {
         }
     }
 
+    /// Every field this build can write for this store, read off the stored properties rather than
+    /// off an encoding. An optional that is nil right now is missing from the JSON but is very
+    /// much known, and CloudSyncForwardCompat has to be able to tell those two apart.
+    /// Pinned against the encoders by CloudSyncForwardCompatTests.
+    var knownFields: Set<String> {
+        switch self {
+        case .playback(let p): CloudSyncForwardCompat.storedPropertyNames(of: p)
+        case .appearance(let p): CloudSyncForwardCompat.storedPropertyNames(of: p)
+        case .auth(let p): CloudSyncForwardCompat.storedPropertyNames(of: p)
+        case .seerrNotifications(let p): CloudSyncForwardCompat.storedPropertyNames(of: p)
+        case .parentalControls(let p): CloudSyncForwardCompat.storedPropertyNames(of: p)
+        case .trackMemory(let t): CloudSyncForwardCompat.storedPropertyNames(of: t)
+        case .spoilerReveals(let s): CloudSyncForwardCompat.storedPropertyNames(of: s)
+        }
+    }
+
     func restamped(_ stamp: Date) -> SettingsSyncPayload {
         switch self {
         case .playback(var p): p.updatedAt = stamp; return .playback(p)

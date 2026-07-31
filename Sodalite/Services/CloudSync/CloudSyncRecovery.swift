@@ -26,6 +26,16 @@ enum CloudSyncRecovery {
         case report
     }
 
+    /// What to do about one record whose delete the server rejected.
+    enum DeleteAction: Equatable {
+        /// The record is not there to delete, which is the state we wanted. Settle it.
+        case alreadyGone
+        /// Transient. Re-queue the delete.
+        case retry
+        /// Nothing actionable beyond the log line.
+        case report
+    }
+
     /// What to do about a fetch the server rejected.
     enum FetchAction: Equatable {
         /// Our change token no longer matches the server's history, which makes every cached
@@ -49,6 +59,17 @@ enum CloudSyncRecovery {
             .retry
         case .quotaExceeded:
             .surfaceQuota
+        default:
+            .report
+        }
+    }
+
+    static func deleteAction(for error: CKError) -> DeleteAction {
+        switch error.code {
+        case .unknownItem, .zoneNotFound, .userDeletedZone:
+            .alreadyGone
+        case .networkFailure, .networkUnavailable, .serviceUnavailable, .requestRateLimited, .zoneBusy:
+            .retry
         default:
             .report
         }

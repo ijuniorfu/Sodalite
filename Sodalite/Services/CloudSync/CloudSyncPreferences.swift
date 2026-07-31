@@ -17,6 +17,7 @@ final class CloudSyncPreferences {
         static let systemFields = "cloudSync.systemFields"
         static let pendingSaves = "cloudSync.pendingSaves"
         static let pendingDeletes = "cloudSync.pendingDeletes"
+        static let carriedFields = "cloudSync.carriedFields"
     }
 
     private let store: UserDefaults
@@ -47,6 +48,7 @@ final class CloudSyncPreferences {
     private var systemFieldsByRecord: [String: Data]
     private var pendingSaveNames: [String]
     private var pendingDeleteNames: [String]
+    private var carriedFieldsByRecord: [String: Data]
 
     init(store: UserDefaults = .standard) {
         self.store = store
@@ -60,6 +62,7 @@ final class CloudSyncPreferences {
         self.systemFieldsByRecord = (store.dictionary(forKey: Keys.systemFields) as? [String: Data]) ?? [:]
         self.pendingSaveNames = store.stringArray(forKey: Keys.pendingSaves) ?? []
         self.pendingDeleteNames = store.stringArray(forKey: Keys.pendingDeletes) ?? []
+        self.carriedFieldsByRecord = (store.dictionary(forKey: Keys.carriedFields) as? [String: Data]) ?? [:]
     }
 
     // MARK: Stamps
@@ -103,8 +106,10 @@ final class CloudSyncPreferences {
     func removeRecordCaches(for recordName: String) {
         localStamps.removeValue(forKey: recordName)
         systemFieldsByRecord.removeValue(forKey: recordName)
+        carriedFieldsByRecord.removeValue(forKey: recordName)
         store.set(localStamps, forKey: Keys.localStamps)
         store.set(systemFieldsByRecord, forKey: Keys.systemFields)
+        store.set(carriedFieldsByRecord, forKey: Keys.carriedFields)
     }
 
     /// Drops only the record identity, never the LWW stamp: a save rejected because our identity
@@ -115,10 +120,26 @@ final class CloudSyncPreferences {
     }
 
     /// Zone resync: every cached identity is suspect, the stamps are not. Keeping the stamps is
-    /// what stops a resync from degrading into a cloud-wins adoption.
+    /// what stops a resync from degrading into a cloud-wins adoption. Carried fields are content,
+    /// not identity, and are deliberately kept too.
     func forgetAllSystemFields() {
         systemFieldsByRecord = [:]
         store.removeObject(forKey: Keys.systemFields)
+    }
+
+    // MARK: Fields from newer builds, carried through this one's uploads
+
+    func carriedFields(for recordName: String) -> Data? {
+        carriedFieldsByRecord[recordName]
+    }
+
+    func setCarriedFields(_ data: Data?, for recordName: String) {
+        if let data {
+            carriedFieldsByRecord[recordName] = data
+        } else {
+            carriedFieldsByRecord.removeValue(forKey: recordName)
+        }
+        store.set(carriedFieldsByRecord, forKey: Keys.carriedFields)
     }
 
     // MARK: Pending changes stashed while the engine is unavailable
@@ -157,10 +178,12 @@ final class CloudSyncPreferences {
         lastSyncAt = nil
         localStamps = [:]
         systemFieldsByRecord = [:]
+        carriedFieldsByRecord = [:]
         pendingSaveNames = []
         pendingDeleteNames = []
         store.removeObject(forKey: Keys.localStamps)
         store.removeObject(forKey: Keys.systemFields)
+        store.removeObject(forKey: Keys.carriedFields)
         store.removeObject(forKey: Keys.pendingSaves)
         store.removeObject(forKey: Keys.pendingDeletes)
     }

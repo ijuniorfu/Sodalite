@@ -354,6 +354,9 @@ final class CloudSyncService: CloudSyncServiceProtocol {
         guard preferences.isEnabled else { return }
         let name = CloudSyncRecordName.server(id: serverID)
         preferences.removeRecordCaches(for: name)
+        // Also with a live engine, not just on the stashed path: a fetch landing between the
+        // queued delete and its confirmation would otherwise re-adopt the record we just removed.
+        recentLocalDeletes.insert(name)
         guard let engine else {
             preferences.stashPendingDelete(name)
             return
@@ -378,6 +381,7 @@ final class CloudSyncService: CloudSyncServiceProtocol {
         guard preferences.isEnabled else { return }
         let name = CloudSyncRecordName.securitySingleton
         preferences.removeRecordCaches(for: name)
+        recentLocalDeletes.insert(name)
         guard let engine else {
             preferences.stashPendingDelete(name)
             return
@@ -418,11 +422,25 @@ final class CloudSyncService: CloudSyncServiceProtocol {
     }
 
     func deleteCloudDataAndDisable() async {
+        var failure: Error?
         if let engine {
             engine.state.add(pendingDatabaseChanges: [.deleteZone(Self.zoneID)])
-            try? await engine.sendChanges()
+            do {
+                try await engine.sendChanges()
+            } catch {
+                failure = error
+            }
         }
         preferences.isEnabled = false
+        if let failure {
+            // The zone survived. Wiping the local bookkeeping now is precisely how the identities
+            // and the server drift apart, so keep it and say the deletion did not happen instead
+            // of reporting success and leaving an unsaveable zone behind.
+            teardownEngine()
+            status = .error(CloudSyncRecovery.describe(failure))
+            LogTap.shared.note("[CloudSync] cloud data delete failed, local state kept: \(failure)")
+            return
+        }
         preferences.resetForCloudDataDeletion()
         teardownEngine()
         status = .disabled
@@ -527,6 +545,14 @@ final class CloudSyncService: CloudSyncServiceProtocol {
 
     private func collectPayloadData(recordName: String) -> Data? {
         let stamp = preferences.localStamp(for: recordName) ?? preferences.nextStamp()
+        guard let encoded = encodeLocalPayload(recordName: recordName, stamp: stamp) else { return nil }
+        // Uploads stay additive across app versions: whatever a newer build wrote into this record
+        // and this one cannot decode rides along instead of being dropped, which last-writer-wins
+        // would otherwise hand to every newer device as an authoritative reset.
+        return CloudSyncForwardCompat.merged(local: encoded, carrying: preferences.carriedFields(for: recordName))
+    }
+
+    private func encodeLocalPayload(recordName: String, stamp: Date) -> Data? {
         if let serverID = CloudSyncRecordName.serverID(fromRecordName: recordName) {
             guard let payload = dependencies.collectServerPayload(serverID: serverID, stamp: stamp) else { return nil }
             return try? JSONEncoder().encode(payload)
@@ -536,6 +562,28 @@ final class CloudSyncService: CloudSyncServiceProtocol {
         }
         guard let payload = dependencies.collectSecurityPayload(stamp: stamp) else { return nil }
         return try? JSONEncoder().encode(payload)
+    }
+
+    /// Remember the fields of a remote payload this build cannot write, so the next upload from
+    /// here carries them instead of resetting them for every device that does understand them.
+    private func noteCarriedFields(remote: Data, recordName: String) {
+        guard let known = knownFields(forRecordName: recordName) else { return }
+        preferences.setCarriedFields(
+            CloudSyncForwardCompat.unknownFields(remote: remote, known: known),
+            for: recordName
+        )
+    }
+
+    private func knownFields(forRecordName recordName: String) -> Set<String>? {
+        if let serverID = CloudSyncRecordName.serverID(fromRecordName: recordName) {
+            return dependencies.collectServerPayload(serverID: serverID, stamp: .distantPast)
+                .map(CloudSyncForwardCompat.storedPropertyNames(of:))
+        }
+        if let key = CloudSyncRecordName.storeKey(fromRecordName: recordName) {
+            return dependencies.collectSettingsPayload(key, stamp: .distantPast).knownFields
+        }
+        return dependencies.collectSecurityPayload(stamp: .distantPast)
+            .map(CloudSyncForwardCompat.storedPropertyNames(of:))
     }
 
     private func buildRecord(recordName: String) -> CKRecord? {
@@ -568,6 +616,10 @@ final class CloudSyncService: CloudSyncServiceProtocol {
             return
         }
         preferences.setSystemFields(Self.encodeSystemFields(record), for: name)
+        // Deferred: a server record adopted for the first time is not in the local store until the
+        // branches below have applied it, and there is no known-field set to diff against before
+        // that. The union branches return early, so this cannot be a straight-line call.
+        defer { noteCarriedFields(remote: data, recordName: name) }
         let adopting = !preferences.adoptionCompleted
 
         if let serverID = CloudSyncRecordName.serverID(fromRecordName: name) {
@@ -722,6 +774,9 @@ extension CloudSyncService: CKSyncEngineDelegate {
             for failure in sent.failedRecordSaves {
                 handleSaveFailure(failure, syncEngine: syncEngine)
             }
+            for (recordID, error) in sent.failedRecordDeletes {
+                handleDeleteFailure(recordName: recordID.recordName, error: error, syncEngine: syncEngine)
+            }
             // Deletes actually confirmed sent no longer need resurrection protection.
             recentLocalDeletes.subtract(sent.deletedRecordIDs.map(\.recordName))
             if !sent.savedRecords.isEmpty {
@@ -770,6 +825,21 @@ extension CloudSyncService: CKSyncEngineDelegate {
     private func handlePartialSendFailure(_ error: Error, syncEngine: CKSyncEngine) {
         for (recordID, itemError) in CloudSyncRecovery.partialSaveErrors(in: error) {
             handleSaveFailure(recordName: recordID.recordName, error: itemError, syncEngine: syncEngine)
+        }
+    }
+
+    /// Nothing handled these before, so a delete that failed once was simply forgotten: the record
+    /// stayed in the cloud and came back on the next device's adoption, and its name stayed in the
+    /// resurrection guard for the rest of the session.
+    private func handleDeleteFailure(recordName: String, error: CKError, syncEngine: CKSyncEngine) {
+        switch CloudSyncRecovery.deleteAction(for: error) {
+        case .alreadyGone:
+            recentLocalDeletes.remove(recordName)
+            preferences.removeRecordCaches(for: recordName)
+        case .retry:
+            syncEngine.state.add(pendingRecordZoneChanges: [.deleteRecord(recordID(recordName))])
+        case .report:
+            LogTap.shared.note("[CloudSync] delete failed \(recordName): \(error.code.rawValue)")
         }
     }
 
