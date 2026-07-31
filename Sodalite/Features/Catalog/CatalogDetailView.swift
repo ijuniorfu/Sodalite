@@ -930,7 +930,7 @@ struct CatalogDetailView: View {
                     return
                 }
                 titlePresence = .present
-                // childCount rides on the seasons endpoint's ItemCounts field; a season Jellyfin lists with zero episode files, or doesn't list at all, was deleted.
+                // childCount rides on the seasons endpoint's ChildCount field (seasonListFields, and it has to be that exact field); a season Jellyfin lists with zero episode files, or doesn't list at all, was deleted.
                 let seasons = try await service.getSeasons(seriesID: series.id, userID: userID).items
                 var hasFiles: [Int: Bool] = [:]
                 for season in seasons {
