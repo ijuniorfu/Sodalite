@@ -11,9 +11,10 @@ struct SeerrDecodingTests {
         try decoder.decode(type, from: Data(json.utf8))
     }
 
+    /// 7 is the server's DELETED and must survive the decode; 6 (blocklisted) has no UI and stays unknown.
     @Test func mediaStatusMapsKnownAndFallsBackUnknown() throws {
         let values = try decode([SeerrMediaStatus].self, "[5, 2, 6, 7, 1000]")
-        #expect(values == [.available, .pending, .unknown, .unknown, .deleted])
+        #expect(values == [.available, .pending, .unknown, .deleted, .unknown])
     }
 
     @Test func mediaStatusOneBadElementDoesNotAbortArray() throws {

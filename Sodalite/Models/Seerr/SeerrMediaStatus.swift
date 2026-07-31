@@ -6,10 +6,10 @@ enum SeerrMediaStatus: Int, Codable, Sendable {
     case processing = 3
     case partiallyAvailable = 4
     case available = 5
-    /// Client-side only: set by the Jellyfin ground-truth reconcile when a Seerr-"available" title/season is absent from the library (deleted in Radarr/Sonarr, Seerr's cached status still stale). High sentinel so it never collides with a real server status; the server's own deleted/blocklisted values (6/7) decode to `.unknown` via the lenient init.
-    case deleted = 1000
+    /// The server's own DELETED. Jellyseerr stamps it on the media AND every season when `DELETE /media/{id}/file` removes the title from Radarr/Sonarr, which is exactly what Sodalite's delete flow calls. Decoding it as `.unknown` made the season fall through to the still-approved request and read as "downloading" forever. Doubles as the sentinel the Jellyfin ground-truth reconcile writes when a Seerr-"available" title is absent from the library. BLOCKLISTED (6) stays `.unknown`, it is a state of its own and no UI shows it.
+    case deleted = 7
 
-    // Lenient decode: newer Seerr adds states (deleted/blocklisted); an unknown int would abort the whole /movie|/tv decode, so fall back to `.unknown`.
+    // Lenient decode: newer Seerr may add states; an unknown int would abort the whole /movie|/tv decode, so fall back to `.unknown`.
     init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()
         let raw = try container.decode(Int.self)

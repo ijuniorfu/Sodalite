@@ -52,6 +52,17 @@ struct SeerrSeasonStatusResolverTests {
         #expect(SeerrSeasonStatusResolver.status(seasonNumber: 1, mediaInfo: info) == nil)
     }
 
+    /// Jellyseerr's own media-file delete (DELETE /media/:id/file, what Sodalite's delete flow calls) stamps every season DELETED but leaves the approved request untouched. The delete must win over that stale request.
+    @Test func deletedSeasonWinsOverStaleApprovedRequest() throws {
+        let info = try mediaInfo("""
+        {"id": 1, "tmdbId": 42, "status": 7,
+         "seasons": [{"id": 3, "seasonNumber": 1, "status": 7, "status4k": 1}],
+         "requests": [{"id": 7, "status": 2, "type": "tv",
+                       "seasons": [{"id": 11, "seasonNumber": 1, "status": 2}]}]}
+        """)
+        #expect(SeerrSeasonStatusResolver.status(seasonNumber: 1, mediaInfo: info) == .deleted)
+    }
+
     /// Sonarr-scan status wins over the in-flight request state.
     @Test func mediaSeasonStatusWinsOverRequest() throws {
         let info = try mediaInfo("""
