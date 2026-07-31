@@ -448,8 +448,9 @@ enum JellyfinEndpoint: APIEndpoint {
 
     static let defaultFields = "Overview,Genres,People,Studios,MediaStreams,MediaSources,CommunityRating,CriticRating,OfficialRating,ImageTags,BackdropImageTags,ParentBackdropImageTags,SeriesPrimaryImageTag,ProviderIds,Chapters,LocalTrailerCount,Trickplay"
 
-    /// Season bar: ItemCounts keeps childCount (skeleton sizing) without defaultFields' heavy arrays. Name/index/watched are base/UserData fields.
-    static let seasonListFields = "ItemCounts"
+    /// Season bar: ChildCount (episode count per season) without defaultFields' heavy arrays. Name/index/watched are base/UserData fields.
+    /// It must be `ChildCount`, NOT `ItemCounts`: Jellyfin's DtoService fills a Season's ChildCount only under `ItemFields.ChildCount`; `ItemCounts` sets it on the ItemsByName path (people/genres/studios) and leaves a Season's nil. With the wrong field every season read as zero episodes, which the catalog's Jellyfin ground-truth reconcile scores as "deleted".
+    static let seasonListFields = "ChildCount"
 
     /// Episode list: only synopsis + thumbnail; name/index/runtime/watched are base/UserData. Heavy per-episode arrays omitted, episode detail pulls them lazily on open.
     static let episodeListFields = "Overview,ImageTags"
