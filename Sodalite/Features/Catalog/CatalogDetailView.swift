@@ -834,7 +834,8 @@ struct CatalogDetailView: View {
     private func seasonStatusLabel(_ status: SeerrMediaStatus) -> LocalizedStringKey {
         switch status {
         case .available: return "catalog.seasons.alreadyAvailable"
-        case .processing: return "catalog.seasons.downloading"
+        // Same wording as the title badge: `.processing` is Jellyseerr's "in the pipeline", and the client cannot tell an active download from a request Sonarr has long stopped acting on, so it must not claim one.
+        case .processing: return "catalog.status.processing"
         case .pending: return "catalog.seasons.pendingApproval"
         case .partiallyAvailable: return "catalog.status.partiallyAvailable"
         case .deleted: return "catalog.status.removed"
