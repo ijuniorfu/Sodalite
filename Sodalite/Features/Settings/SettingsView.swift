@@ -247,6 +247,14 @@ struct SettingsView: View {
             ) {
                 LicensesView()
             }
+
+            SettingsTile(
+                icon: "text.alignleft",
+                title: "settings.log.title",
+                subtitle: "settings.log.subtitle"
+            ) {
+                DiagnosticLogView()
+            }
         }
     }
 

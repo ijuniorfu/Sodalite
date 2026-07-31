@@ -45,6 +45,7 @@
 		0EB6ED3EA157D27D6150A4C9 /* KeychainMigrator.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF726D36DBBC4684F872D139 /* KeychainMigrator.swift */; };
 		0F378F045BF7EE581D0BD581 /* LoginViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0608D8ACFF463F8E0B6556B8 /* LoginViewModel.swift */; };
 		103F528C7E8191984B059839 /* QuickConnectModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95AED89E085254B055C2735B /* QuickConnectModels.swift */; };
+		1132A0EEB25F705FC6DF36B7 /* DiagnosticLogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A84FFA0F16CB71960B207129 /* DiagnosticLogView.swift */; };
 		118BC52B1D1724D8C0B43CC7 /* OpenSourceLicenses.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C9FD615D950EA340BB597EF /* OpenSourceLicenses.swift */; };
 		11C77DAE12710DBA70F5DF02 /* NowPlayingWaveIcon.swift in Sources */ = {isa = PBXBuildFile; fileRef = A08DDD1EA2510104B724CB32 /* NowPlayingWaveIcon.swift */; };
 		127AFD07984D6DB0C515566C /* SeerrMediaTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E24C811D70DAAA13454A02EE /* SeerrMediaTests.swift */; };
@@ -91,6 +92,7 @@
 		2155B86FB8E0317746E49A12 /* SeerrServiceConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 090B5210D3ACA84E2E25E318 /* SeerrServiceConfig.swift */; };
 		21B2F185A416771BDE4FAC3B /* SpoilerPolicyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6787775FE56546B152B24ABD /* SpoilerPolicyTests.swift */; };
 		21F6A56F0A2B20C0B254A484 /* JellyfinEndpoints.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0E5CFBC331D8C9C23D2D0A4 /* JellyfinEndpoints.swift */; };
+		22056DCC1DEEAD590A13DF92 /* DiagnosticLogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A84FFA0F16CB71960B207129 /* DiagnosticLogView.swift */; };
 		220ECFD0EA61845A4CC696A8 /* MusicPlaybackCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2B5EC01B133010A8DEF1159 /* MusicPlaybackCoordinator.swift */; };
 		22EFDA502DA9F1A03824876C /* AccentColorPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 367B00A12CB554D4C5961786 /* AccentColorPickerView.swift */; };
 		2335E7F547AA09125FE5DB98 /* LiveTransportBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6F5CE78EAB9F5BC71D0CF0B /* LiveTransportBar.swift */; };
@@ -1004,6 +1006,7 @@
 		A4703CB0FED4DACCE7A447A6 /* PlaybackSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaybackSettingsView.swift; sourceTree = "<group>"; };
 		A62F1DBB63B1D0EDCBAA87A2 /* AppearanceTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppearanceTheme.swift; sourceTree = "<group>"; };
 		A6F5CE78EAB9F5BC71D0CF0B /* LiveTransportBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveTransportBar.swift; sourceTree = "<group>"; };
+		A84FFA0F16CB71960B207129 /* DiagnosticLogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagnosticLogView.swift; sourceTree = "<group>"; };
 		A8915E7229A24538FA098A0D /* TransportBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransportBar.swift; sourceTree = "<group>"; };
 		A8CA384FE492804EF1782A65 /* .gitkeep */ = {isa = PBXFileReference; path = .gitkeep; sourceTree = "<group>"; };
 		A8F9685F48162E2D506B820B /* HTTPMethod.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HTTPMethod.swift; sourceTree = "<group>"; };
@@ -1801,6 +1804,7 @@
 				9B1CB1F5F759254AF8CC812E /* Licenses */,
 				66C9CD2E63EB8F3E976288C8 /* ParentalControls */,
 				05912347F7F8EF15E83E5645 /* CloudSyncSettingsView.swift */,
+				A84FFA0F16CB71960B207129 /* DiagnosticLogView.swift */,
 				D42A8DD9098B66267D05CF17 /* DualURLEditSheet.swift */,
 				57DC6498B2FB8855EAD8A759 /* PlaybackPreferences.swift */,
 				A4703CB0FED4DACCE7A447A6 /* PlaybackSettingsView.swift */,
@@ -2208,6 +2212,7 @@
 				0368E6E01D3545255E065560 /* DetailRouterView.swift in Sources */,
 				B8859E83555491FE39146112 /* DetailSecondaryInfo.swift in Sources */,
 				C8B595BF4C192CE6F09E0C01 /* DetailViewModel.swift in Sources */,
+				1132A0EEB25F705FC6DF36B7 /* DiagnosticLogView.swift in Sources */,
 				27C4BFBA7335228B0E0A3D0F /* DirectPlayProfile.swift in Sources */,
 				68641A144E8EFBB4B8322B29 /* DualURLEditSheet.swift in Sources */,
 				AB8AE7DFAFF15B02B0C603BA /* DualURLPromptLatch.swift in Sources */,
@@ -2598,6 +2603,7 @@
 				075BFA51EE3EF9670505ED09 /* DetailRouterView.swift in Sources */,
 				96A3D146A758D14061FDF5F0 /* DetailSecondaryInfo.swift in Sources */,
 				072E639ACDCE716FC8F6E881 /* DetailViewModel.swift in Sources */,
+				22056DCC1DEEAD590A13DF92 /* DiagnosticLogView.swift in Sources */,
 				856E79C17D502C62DEA9BEB8 /* DirectPlayProfile.swift in Sources */,
 				BB88994715B1682477A2A2AE /* DualURLEditSheet.swift in Sources */,
 				FCA259ADE6D33830760E65FA /* DualURLPromptLatch.swift in Sources */,
