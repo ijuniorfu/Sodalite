@@ -1042,29 +1042,34 @@ final class PlayerViewModel {
                     // End-of-media on any backend: the engine surfaces .ended for native / software / audio
                     // alike (AetherEngine#63), so this fires uniformly without watching the AVPlayer directly.
                     self.isPlaying = false
-                    // currentTime can stall a few seconds short of duration (demux's 15-20s look-ahead); cap the
-                    // countdown at 10s so the overlay copy stays readable.
                     // PiP: with a next episode the auto-advance path swaps the item in place (native
                     // backend, 5.12.0); real end-of-content, a cancelled advance, or a SW-backend
                     // session (Phase A, no layer-stable reload yet) closes the window and ends the
                     // session, instead of parking a black frame in the corner.
-                    if self.hasStartedPlaying,
-                       self.player.pictureInPictureActive,
-                       self.nextEpisode == nil || self.nextEpisodeCancelled || !self.pipCanAdvanceCurrentBackend,
-                       let onPiPContentEnded = self.onPiPContentEnded {
-                        onPiPContentEnded()
-                    } else if self.hasStartedPlaying,
-                       self.nextEpisode != nil,
-                       !self.nextEpisodeCancelled,
-                       self.nextEpisodeTimer == nil {
+                    switch NextEpisodePolicy.endOfPlaybackOutcome(
+                        hasStartedPlaying: self.hasStartedPlaying,
+                        pictureInPictureActive: self.player.pictureInPictureActive,
+                        pictureInPictureCanAdvance: self.pipCanAdvanceCurrentBackend,
+                        hasNextEpisode: self.nextEpisode != nil,
+                        advanceCancelled: self.nextEpisodeCancelled,
+                        countdownRunning: self.nextEpisodeTimer != nil,
+                        overlayVisible: self.showNextEpisodeOverlay
+                    ) {
+                    case .ignore:
+                        break
+                    case .endPictureInPicture:
+                        self.onPiPContentEnded?()
+                    case .showOverlayAndAdvance:
+                        // currentTime can stall a few seconds short of duration (demux's 15-20s
+                        // look-ahead); cap the countdown at 10s so the overlay copy stays readable.
                         let remaining = self.effectiveDuration - self.playbackTime
                         let seconds = min(10, max(1, Int(ceil(max(0, remaining)))))
                         self.showNextEpisodeOverlay = true
                         self.startNextEpisodeCountdown(from: seconds)
-                    } else if self.hasStartedPlaying,
-                              self.nextEpisode == nil,
-                              !self.showNextEpisodeOverlay {
-                        // Real end-of-content (movie / last episode).
+                    case .dismissPlayer:
+                        // Real end-of-content (movie / last episode), or an advance the user rejected:
+                        // `.ended` is terminal in the engine (seek and play are no-ops), so an open
+                        // player here would be a dead screen.
                         self.onPlaybackReachedEnd?()
                     }
                 case .idle:
@@ -1137,26 +1142,33 @@ final class PlayerViewModel {
                     self.resetNextEpisodeOverlayState()
                 }
 
+                // outro.startSeconds is an absolute source-timeline marker, so the window reads
+                // sourceTime; `remaining` is on the AVPlayer clock.
+                let insideEndWindow = NextEpisodePolicy.isInsideTriggerWindow(
+                    outroStartSeconds: self.outroSegment?.startSeconds,
+                    sourceTime: self.player.sourceTime,
+                    remainingSeconds: remaining
+                )
+                // A dismissed overlay is cancelled for THIS pass through the end window, not for the
+                // session: scrubbing back out of the window releases the latch, so playing forward
+                // again re-shows the overlay and re-arms auto-advance. Without this the latch survived
+                // until the next episode switch, i.e. never within the current one.
+                if self.nextEpisodeCancelled, !insideEndWindow {
+                    self.nextEpisodeCancelled = false
+                }
+
                 if self.nextEpisode != nil && !self.nextEpisodeCancelled && dur > 0 && remaining > 0 {
                     // Outro available: show + fixed 10s countdown at outro.startSeconds, cutting through
                     // the credits. No outro: show at 30s remaining, countdown at 10s synced to the clock.
-                    if let outro = self.outroSegment {
-                        // sourceTime, not the AVPlayer clock: outro.startSeconds
-                        // is an absolute source-timeline marker.
-                        let pastOutroStart = self.player.sourceTime >= outro.startSeconds
-                        if pastOutroStart && !self.showNextEpisodeOverlay {
-                            self.showNextEpisodeOverlay = true
-                        }
-                        if pastOutroStart, self.nextEpisodeTimer == nil, self.showNextEpisodeOverlay {
+                    if insideEndWindow, !self.showNextEpisodeOverlay {
+                        self.showNextEpisodeOverlay = true
+                    }
+                    if self.outroSegment != nil {
+                        if insideEndWindow, self.nextEpisodeTimer == nil, self.showNextEpisodeOverlay {
                             self.startNextEpisodeCountdown()
                         }
-                    } else {
-                        if !self.showNextEpisodeOverlay && remaining < 30 {
-                            self.showNextEpisodeOverlay = true
-                        }
-                        if remaining <= 10, self.nextEpisodeTimer == nil, self.showNextEpisodeOverlay {
-                            self.startNextEpisodeCountdown(from: Int(ceil(remaining)))
-                        }
+                    } else if remaining <= 10, self.nextEpisodeTimer == nil, self.showNextEpisodeOverlay {
+                        self.startNextEpisodeCountdown(from: Int(ceil(remaining)))
                     }
                 }
                 // Time labels track the live playhead even while scrubbing (playback keeps running); the

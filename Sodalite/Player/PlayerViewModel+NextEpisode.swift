@@ -8,15 +8,14 @@ extension PlayerViewModel {
         let remaining = dur - playbackTime
         guard dur > 0, remaining > 0, !hasFetchedNextEpisode else { return }
 
-        // Use the server's outro marker (Jellyfin 10.10+/intro-skipper) to start the countdown at credits; else fall back to the 30s-before-end threshold.
-        let shouldFetch: Bool
-        if let outro = outroSegment {
-            // outro.startSeconds is absolute source time; compare against sourceTime, not the AVPlayer clock (playbackTime).
-            shouldFetch = player.sourceTime >= outro.startSeconds
-        } else {
-            shouldFetch = remaining < 30
-        }
-        guard shouldFetch else { return }
+        // Same window the overlay uses: the server's outro marker (Jellyfin 10.10+/intro-skipper) when
+        // present, else the 30s-before-end fallback. outro.startSeconds is absolute source time, so it
+        // compares against sourceTime, not the AVPlayer clock (playbackTime).
+        guard NextEpisodePolicy.isInsideTriggerWindow(
+            outroStartSeconds: outroSegment?.startSeconds,
+            sourceTime: player.sourceTime,
+            remainingSeconds: remaining
+        ) else { return }
 
         // Shuffle/play queue: next item is the next queue entry, resolved synchronously. Must run before the seriesId guard (queue items are often movies, no seriesId). Queue exhausted -> nextEpisode stays nil and the engine's .idle handler dismisses.
         if isQueuePlayback {
@@ -244,6 +243,13 @@ extension PlayerViewModel {
         showNextEpisodeOverlay = false
         isCountdownActive = false
         nextEpisodeCancelled = true
+        // Cancelling after the source already finished (overlay shown from the .ended handler, or
+        // autoplay off so it just parks there) leaves an engine session that is terminal: seek and
+        // play are both no-ops in `.ended`. Close like any other end-of-content instead of handing
+        // back a frozen last frame.
+        if hasStartedPlaying, player.state == .ended {
+            onPlaybackReachedEnd?()
+        }
     }
 
     /// Tear down overlay + countdown when the user scrubs back out of the end-window. Unlike `cancelNextEpisode` it does NOT set `nextEpisodeCancelled = true`, so the overlay re-triggers naturally on playing forward again.
