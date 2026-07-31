@@ -903,30 +903,22 @@ struct CatalogDetailView: View {
         switch media.mediaType {
         case .movie:
             do {
-                let item = try await service.findByProviderIDs(
-                    userID: userID,
-                    tmdbID: media.id,
-                    tvdbID: nil,
-                    imdbID: movieDetail?.externalIds?.imdbId,
-                    includeItemTypes: [.movie]
-                )
-                // Present only if the matched item carries a real media source; nil match or a shell with no file counts as gone.
-                titlePresence = (item?.mediaSources?.isEmpty == false) ? .present : .absent
+                let item = try await resolveLibraryItem(userID: userID, types: [.movie])
+                guard let item else {
+                    // Unresolvable, not proven gone: leave Seerr's own status standing.
+                    titlePresence = .unknown
+                    return
+                }
+                // Present only if the matched item carries a real media source; a shell with no file counts as gone.
+                titlePresence = (item.mediaSources?.isEmpty == false) ? .present : .absent
             } catch {
                 titlePresence = .unknown
             }
         case .tv:
             do {
-                let series = try await service.findByProviderIDs(
-                    userID: userID,
-                    tmdbID: media.id,
-                    tvdbID: tvDetail?.externalIds?.tvdbId,
-                    imdbID: tvDetail?.externalIds?.imdbId,
-                    includeItemTypes: [.series]
-                )
+                let series = try await resolveLibraryItem(userID: userID, types: [.series])
                 guard let series else {
-                    // Whole series absent from the library: every Seerr-available season is gone.
-                    titlePresence = .absent
+                    titlePresence = .unknown
                     return
                 }
                 titlePresence = .present
@@ -944,6 +936,29 @@ struct CatalogDetailView: View {
         case .person, .unknown:
             break
         }
+    }
+
+    /// Jellyseerr's own `jellyfinMediaId` first: it is an exact link, written by the scan that decided this title is available. A 404 on it is real proof the item is gone, which no provider-id guess can give.
+    /// Only when Seerr carries no link (Overseerr, or an unmatched title) does it fall back to the id-verified title search.
+    private func resolveLibraryItem(userID: String, types: [ItemType]) async throws -> JellyfinItem? {
+        let service = dependencies.jellyfinItemService
+        let info = movieDetail?.mediaInfo ?? tvDetail?.mediaInfo
+        if let linkedID = info?.jellyfinMediaId, !linkedID.isEmpty {
+            do {
+                return try await service.getItemDetail(userID: userID, itemID: linkedID)
+            } catch let error as APIError where error.isNotFound {
+                titlePresence = .absent
+                return nil
+            }
+        }
+        return try await service.findByProviderIDs(
+            userID: userID,
+            tmdbID: media.id,
+            tvdbID: tvDetail?.externalIds?.tvdbId,
+            imdbID: tvDetail?.externalIds?.imdbId ?? movieDetail?.externalIds?.imdbId,
+            includeItemTypes: types,
+            searchTerm: tvDetail?.name ?? movieDetail?.title ?? media.displayTitle
+        )
     }
 
     private func loadRecommendations() async {

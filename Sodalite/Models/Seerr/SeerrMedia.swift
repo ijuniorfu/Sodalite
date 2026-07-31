@@ -60,6 +60,8 @@ struct SeerrMediaInfo: Codable, Sendable, Equatable {
     let requests: [SeerrRequest]?
     /// Sonarr-scan per-season status, authoritative for "is season N on the server?" independent of `requests` (manual imports show `.available`, deleted files revert to `.unknown`).
     let seasons: [SeerrMediaSeason]?
+    /// Jellyfin item id, written by Jellyseerr's own library scan. The only exact Seerr-to-Jellyfin link there is: Jellyfin cannot filter by provider id, so resolving the title any other way is a title search plus verification. Absent on Overseerr and on titles Jellyseerr has not matched.
+    let jellyfinMediaId: String?
 }
 
 struct SeerrMediaSeason: Codable, Sendable, Equatable, Identifiable {

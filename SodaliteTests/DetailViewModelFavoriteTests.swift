@@ -39,9 +39,9 @@ struct DetailViewModelFavoriteTests {
         func getCollectionItems(userID: String, query: ItemQuery) async throws -> JellyfinItemsResponse {
             throw ServiceFailure()
         }
-        func findByTmdbID(userID: String, tmdbID: Int) async throws -> JellyfinItem? { nil }
+        func findByTmdbID(userID: String, tmdbID: Int, searchTerm: String?) async throws -> JellyfinItem? { nil }
         func findByProviderIDs(
-            userID: String, tmdbID: Int?, tvdbID: Int?, imdbID: String?, includeItemTypes: [ItemType]
+            userID: String, tmdbID: Int?, tvdbID: Int?, imdbID: String?, includeItemTypes: [ItemType], searchTerm: String?
         ) async throws -> JellyfinItem? { nil }
         func deleteItem(itemID: String) async throws {}
     }

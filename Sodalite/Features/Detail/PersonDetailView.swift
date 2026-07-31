@@ -247,7 +247,7 @@ struct PersonDetailView: View {
             if status == .available || status == .partiallyAvailable,
                let userID = appState.activeUser?.id,
                let item = try? await dependencies.jellyfinItemService.findByTmdbID(
-                   userID: userID, tmdbID: media.id
+                   userID: userID, tmdbID: media.id, searchTerm: media.displayTitle
                ) {
                 navigateToJellyfinItem = item
                 return

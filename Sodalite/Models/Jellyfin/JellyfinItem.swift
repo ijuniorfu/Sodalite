@@ -61,6 +61,17 @@ struct JellyfinItem: Codable, Sendable, Identifiable, Equatable, Hashable {
         return raw.flatMap(Int.init)
     }
 
+    /// Does this item actually carry `provider.value` (e.g. "tmdb.1399")? Jellyfin has no server-side
+    /// provider-id filter, so a query that looks like a lookup returns whatever the library sorts first;
+    /// every such "hit" has to be verified here or it is just an arbitrary item.
+    func carriesProviderID(_ qualified: String) -> Bool {
+        let parts = qualified.split(separator: ".", maxSplits: 1)
+        guard parts.count == 2, let ids = providerIds else { return false }
+        let provider = parts[0].lowercased()
+        let value = parts[1].lowercased()
+        return ids.contains { $0.key.lowercased() == provider && $0.value.lowercased() == value }
+    }
+
     enum CodingKeys: String, CodingKey {
         case id = "Id"
         case name = "Name"

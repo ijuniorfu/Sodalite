@@ -10,10 +10,10 @@ protocol JellyfinItemServiceProtocol: Sendable {
     func setFavorite(userID: String, itemID: String, isFavorite: Bool) async throws
     func setPlayed(userID: String, itemID: String, isPlayed: Bool) async throws
     func getCollectionItems(userID: String, query: ItemQuery) async throws -> JellyfinItemsResponse
-    /// Resolves a library item by TMDB id via `AnyProviderIdEquals`; first match or nil.
-    func findByTmdbID(userID: String, tmdbID: Int) async throws -> JellyfinItem?
-    /// Resolves a library item across several external ids (tmdb, then tvdb/imdb fallbacks), first hit wins. nil only when every supplied id misses, i.e. a confident "not in this library". Throws on query failure so callers can degrade to "trust Seerr" rather than a false absence.
-    func findByProviderIDs(userID: String, tmdbID: Int?, tvdbID: Int?, imdbID: String?, includeItemTypes: [ItemType]) async throws -> JellyfinItem?
+    /// Resolves a library item by TMDB id; first verified match or nil. `searchTerm` narrows the candidate set (see findByProviderIDs).
+    func findByTmdbID(userID: String, tmdbID: Int, searchTerm: String?) async throws -> JellyfinItem?
+    /// Resolves a library item across several external ids (tmdb, then tvdb/imdb fallbacks). Jellyfin cannot filter by provider id, so `searchTerm` narrows the candidates and each one is verified against the ids; nil means no candidate carried them, which is NOT proof of absence when the title search itself missed. Throws on query failure so callers can degrade to "trust Seerr" rather than a false absence.
+    func findByProviderIDs(userID: String, tmdbID: Int?, tvdbID: Int?, imdbID: String?, includeItemTypes: [ItemType], searchTerm: String?) async throws -> JellyfinItem?
     func deleteItem(itemID: String) async throws
 }
 
@@ -67,14 +67,15 @@ final class JellyfinItemService: JellyfinItemServiceProtocol {
         )
     }
 
-    func findByTmdbID(userID: String, tmdbID: Int) async throws -> JellyfinItem? {
-        let query = ItemQuery(
+    func findByTmdbID(userID: String, tmdbID: Int, searchTerm: String?) async throws -> JellyfinItem? {
+        try await findByProviderIDs(
+            userID: userID,
+            tmdbID: tmdbID,
+            tvdbID: nil,
+            imdbID: nil,
             includeItemTypes: [.movie, .series],
-            limit: 1,
-            anyProviderIdEquals: "tmdb.\(tmdbID)"
+            searchTerm: searchTerm
         )
-        let response = try await getCollectionItems(userID: userID, query: query)
-        return response.items.first
     }
 
     func findByProviderIDs(
@@ -82,26 +83,35 @@ final class JellyfinItemService: JellyfinItemServiceProtocol {
         tmdbID: Int?,
         tvdbID: Int?,
         imdbID: String?,
-        includeItemTypes: [ItemType]
+        includeItemTypes: [ItemType],
+        searchTerm: String?
     ) async throws -> JellyfinItem? {
-        // AnyProviderIdEquals takes one value per query, so try each id in turn and short-circuit on the first hit (tmdb usually matches movies in one call; Sonarr/TVDB-scanned series fall through to tvdb).
         var values: [String] = []
         if let tmdbID { values.append("tmdb.\(tmdbID)") }
         if let tvdbID { values.append("tvdb.\(tvdbID)") }
         if let imdbID, !imdbID.isEmpty { values.append("imdb.\(imdbID)") }
+        guard !values.isEmpty else { return nil }
 
+        // Jellyfin has NO server-side provider-id filter (AnyProviderIdEquals is an Emby parameter; Jellyfin drops unknown query items silently). A narrow title search is the only way to get the right item into the candidate set, and every candidate is verified against the ids below, so a miss returns nil instead of an arbitrary item.
+        let query = ItemQuery(
+            includeItemTypes: includeItemTypes,
+            limit: searchTerm == nil ? nil : candidateLimit,
+            searchTerm: searchTerm,
+            fields: "ProviderIds"
+        )
+        let candidates = try await getCollectionItems(userID: userID, query: query).items
         for value in values {
-            let query = ItemQuery(
-                includeItemTypes: includeItemTypes,
-                limit: 1,
-                anyProviderIdEquals: value
-            )
-            if let hit = try await getCollectionItems(userID: userID, query: query).items.first {
+            if let hit = candidates.first(where: { $0.carriesProviderID(value) }) {
                 return hit
             }
         }
         return nil
     }
+
+    /// Title search only narrows, it never decides: the provider-id check does. Wide enough to survive
+    /// a library with several same-named entries, small enough to stay one cheap round-trip. Callers
+    /// that pass no title get the full typed list instead, correct but a much heavier response.
+    private var candidateLimit: Int { 25 }
 
     func setFavorite(userID: String, itemID: String, isFavorite: Bool) async throws {
         let endpoint: JellyfinEndpoint = isFavorite
