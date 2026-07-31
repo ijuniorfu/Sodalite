@@ -11,8 +11,8 @@ extension Notification.Name {
     static let homeItemDidDelete = Notification.Name("homeItemDidDelete")
     /// Fires after LoginView completes; ProfileSettingsView pops its "Add another profile" branch, else the success screen hangs (already authenticated, AppRouter doesn't tear down TabRootView).
     static let loginDidComplete = Notification.Name("loginDidComplete")
-    /// Posted by CatalogDetailView after a Seerr request so CatalogView refreshes loaded request lists, else a new request doesn't appear until restart.
-    static let seerrRequestDidSubmit = Notification.Name("seerrRequestDidSubmit")
+    /// Posted whenever the set of Seerr requests changed (submitted, or removed from the catalog detail / by a cascading deletion) so CatalogView refreshes loaded request lists. Without it the list keeps its stale rows until an app restart.
+    static let seerrRequestsDidChange = Notification.Name("seerrRequestsDidChange")
 
     /// Posted after an admin approves/declines/deletes a request or the admin queue reloads its counts,
     /// so the pending-requests monitor recomputes the Catalog tab badge.

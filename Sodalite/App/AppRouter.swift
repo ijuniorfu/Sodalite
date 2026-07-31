@@ -124,7 +124,7 @@ struct AppRouter: View {
         .onReceive(NotificationCenter.default.publisher(for: .seerrPendingRequestsShouldRefresh)) { _ in
             Task { await refreshPending() }
         }
-        .onReceive(NotificationCenter.default.publisher(for: .seerrRequestDidSubmit)) { _ in
+        .onReceive(NotificationCenter.default.publisher(for: .seerrRequestsDidChange)) { _ in
             Task { await refreshPending() }
         }
         .onReceive(NotificationCenter.default.publisher(for: .cloudSyncDidApplyChanges)) { _ in

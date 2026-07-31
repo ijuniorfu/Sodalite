@@ -305,6 +305,8 @@ struct CatalogDetailView: View {
             for request in openRequests {
                 try await dependencies.seerrRequestService.deleteRequest(requestID: request.id)
             }
+            // My Requests / the admin queue hold their rows until told; without this the removed request sits in the list until an app restart.
+            NotificationCenter.default.post(name: .seerrRequestsDidChange, object: nil)
             await refreshDetailAfterRequest()
         } catch {
             requestError = error.localizedDescription
@@ -1099,7 +1101,7 @@ struct CatalogDetailView: View {
             )
             didRequest = true
             // Nudge request lists (My Requests / admin queue) to refresh; they only reload-when-empty on section switch.
-            NotificationCenter.default.post(name: .seerrRequestDidSubmit, object: nil)
+            NotificationCenter.default.post(name: .seerrRequestsDidChange, object: nil)
             // Refresh mediaInfo so chips/badges drop stale "not requested" state. NOT load(): that flips the full-screen loading state and re-runs config/recommendations.
             await refreshDetailAfterRequest()
         } catch {

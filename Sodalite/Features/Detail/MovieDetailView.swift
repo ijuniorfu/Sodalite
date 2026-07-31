@@ -227,6 +227,10 @@ struct MovieDetailView: View {
                             // Drop the on-disk filter cache so Library/Home rows don't keep showing the deleted movie until natural eviction.
                             FilterCache.shared.clearAll()
                             NotificationCenter.default.post(name: .homeItemDidDelete, object: nil)
+                            // The cascade also cleared the title's open Seerr requests, so the request lists are stale.
+                            if request.cascadeToArrStack {
+                                NotificationCenter.default.post(name: .seerrRequestsDidChange, object: nil)
+                            }
                             // Pop after the sheet's success-toast hold.
                             Task { @MainActor in
                                 try? await Task.sleep(for: .milliseconds(1100))

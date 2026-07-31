@@ -76,7 +76,7 @@ struct CatalogView: View {
                 break
             }
         }
-        .onReceive(NotificationCenter.default.publisher(for: .seerrRequestDidSubmit)) { _ in
+        .onReceive(NotificationCenter.default.publisher(for: .seerrRequestsDidChange)) { _ in
             // Section-switch handlers only load EMPTY lists, so refresh already-loaded ones here; empty lists load on next switch.
             guard let vm = viewModel else { return }
             if !vm.myRequests.isEmpty, let userID = appState.activeSeerrUser?.id {

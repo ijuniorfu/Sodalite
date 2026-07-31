@@ -430,6 +430,10 @@ struct SeriesDetailView: View {
                             // Drop the on-disk filter cache so Library/Home rows don't keep showing deleted items until natural eviction.
                             FilterCache.shared.clearAll()
                             NotificationCenter.default.post(name: .homeItemDidDelete, object: nil)
+                            // The cascade also cleared the title's open Seerr requests, so the request lists are stale.
+                            if request.cascadeToArrStack {
+                                NotificationCenter.default.post(name: .seerrRequestsDidChange, object: nil)
+                            }
                             // Only pop the detail on whole-series delete; seasons-only leaves something worth viewing.
                             if request.deleteEntireSeries {
                                 Task { @MainActor in
