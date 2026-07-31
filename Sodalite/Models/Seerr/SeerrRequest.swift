@@ -10,6 +10,11 @@ struct SeerrRequest: Codable, Sendable, Identifiable, Equatable {
     let media: SeerrRequestMedia?
     let seasons: [SeerrRequestSeason]?
     let requestedBy: SeerrUser?
+
+    /// Still in the pipeline as far as Jellyseerr is concerned. Declined, failed and completed requests are history: they keep their stale season entries forever (Jellyseerr never reverts them), so anything reading a pipeline state has to gate on this.
+    var isOpen: Bool {
+        status == .pendingApproval || status == .approved
+    }
 }
 
 struct SeerrRequestMedia: Codable, Sendable, Equatable {

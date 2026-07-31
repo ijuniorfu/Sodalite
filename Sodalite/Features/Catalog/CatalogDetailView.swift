@@ -17,6 +17,8 @@ struct CatalogDetailView: View {
     @State private var isSubmitting = false
     @State private var didRequest = false
     @State private var requestError: String?
+    @State private var showCancelRequestConfirm = false
+    @State private var isCancellingRequest = false
 
     /// Currently-viewed season; independent of the request set so the user can browse episodes without requesting.
     @State private var viewedSeasonNumber: Int?
@@ -255,7 +257,57 @@ struct CatalogDetailView: View {
                         .font(.caption)
                         .foregroundStyle(.red)
                 }
+
+                // Only offered while a request is actually open. Jellyseerr never revisits a request once it stops moving (its availability sync looks at available titles only), so a title pulled out of Sonarr elsewhere keeps reporting a pipeline state with no way to clear it from here.
+                if !openRequests.isEmpty {
+                    GlassActionButton(
+                        title: "catalog.request.cancel",
+                        systemImage: "xmark.circle",
+                        isDestructive: true,
+                        isLoading: isCancellingRequest,
+                        action: { showCancelRequestConfirm = true }
+                    )
+                    .frame(maxWidth: isPhonePortrait ? .infinity : nil)
+                }
             }
+        }
+        .confirmationDialog(
+            "catalog.request.cancel.confirm.title",
+            isPresented: $showCancelRequestConfirm,
+            titleVisibility: .visible
+        ) {
+            Button(role: .destructive) {
+                Task { await cancelOpenRequests() }
+            } label: {
+                Text("catalog.request.cancel.confirm.action")
+            }
+            Button(role: .cancel) { } label: {
+                Text("common.cancel")
+            }
+        } message: {
+            Text("catalog.request.cancel.confirm.message")
+        }
+    }
+
+    /// Open requests on the currently loaded detail; drives both the cancel action's visibility and what it deletes.
+    private var openRequests: [SeerrRequest] {
+        let info = movieDetail?.mediaInfo ?? tvDetail?.mediaInfo
+        return (info?.requests ?? []).filter(\.isOpen)
+    }
+
+    /// Deletes every open request for this title, then refreshes so the chips drop their pipeline state.
+    /// Jellyseerr rejects this with 403 for a user who may not touch the request; that message is surfaced rather than swallowed, since the row stays visible and the user would otherwise retry forever.
+    private func cancelOpenRequests() async {
+        isCancellingRequest = true
+        defer { isCancellingRequest = false }
+        requestError = nil
+        do {
+            for request in openRequests {
+                try await dependencies.seerrRequestService.deleteRequest(requestID: request.id)
+            }
+            await refreshDetailAfterRequest()
+        } catch {
+            requestError = error.localizedDescription
         }
     }
 

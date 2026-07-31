@@ -24,7 +24,7 @@ enum SeerrSeasonStatusResolver {
         guard let requests = mediaInfo?.requests else { return nil }
         var hasProcessing = false
         var hasPending = false
-        for request in requests where request.status == .pendingApproval || request.status == .approved {
+        for request in requests where request.isOpen {
             guard let seasons = request.seasons else { continue }
             // Request axis -> display axis. An approved season is already on its way to Sonarr, so it reads as processing; only an undecided one waits for approval. Completed seasons say nothing here, path #1 owns availability.
             for s in seasons where s.seasonNumber == n {
