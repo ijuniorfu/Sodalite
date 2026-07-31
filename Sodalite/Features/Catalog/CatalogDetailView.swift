@@ -827,39 +827,8 @@ struct CatalogDetailView: View {
         return seerr
     }
 
-    /// Seerr's own per-season status: (1) `mediaInfo.seasons`, authoritative Sonarr-scan status, the sole source of genuine availability. (2) `mediaInfo.requests[].seasons[]` for in-flight pipeline states (processing, pending approval) only from still-active requests.
     private func seerrSeasonStatus(_ n: Int) -> SeerrMediaStatus? {
-        // 1. Authoritative: server-derived per-season status.
-        if let mediaSeasons = tvDetail?.mediaInfo?.seasons {
-            for s in mediaSeasons where s.seasonNumber == n {
-                switch s.status {
-                case .available: return .available
-                case .partiallyAvailable: return .partiallyAvailable
-                case .processing: return .processing
-                case .pending: return .pending
-                case .deleted: return .deleted
-                case .unknown, .none: break
-                }
-            }
-        }
-
-        // 2. Fallback: in-flight states from still-active requests only. Jellyseerr never reverts request.seasons[].status, so a declined/failed/completed request keeps stale .pending/.processing entries; gating on request.status is required or a cancelled season stays pinned forever (overseerr#690). Availability is owned solely by path #1, so the request walk never surfaces .available.
-        guard let requests = tvDetail?.mediaInfo?.requests else { return nil }
-        var hasProcessing = false
-        var hasPending = false
-        for request in requests where request.status == .pendingApproval || request.status == .approved {
-            guard let seasons = request.seasons else { continue }
-            for s in seasons where s.seasonNumber == n {
-                switch s.status {
-                case .processing: hasProcessing = true
-                case .pending: hasPending = true
-                default: break
-                }
-            }
-        }
-        if hasProcessing { return .processing }
-        if hasPending { return .pending }
-        return nil
+        SeerrSeasonStatusResolver.status(seasonNumber: n, mediaInfo: tvDetail?.mediaInfo)
     }
 
     private func seasonStatusLabel(_ status: SeerrMediaStatus) -> LocalizedStringKey {

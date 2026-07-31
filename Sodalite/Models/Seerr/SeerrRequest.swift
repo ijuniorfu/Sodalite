@@ -24,7 +24,8 @@ struct SeerrRequestMedia: Codable, Sendable, Equatable {
 struct SeerrRequestSeason: Codable, Sendable, Identifiable, Equatable {
     let id: Int
     let seasonNumber: Int
-    let status: SeerrMediaStatus?
+    /// Request axis (MediaRequestStatus), NOT the MediaStatus that `SeerrMediaSeason.status` carries. The two overlap numerically (2 is APPROVED here, PENDING there), so decoding this as SeerrMediaStatus made every auto-approved season read as "waiting for approval".
+    let status: SeerrRequestStatus?
 }
 
 struct SeerrCreateRequestBody: Encodable, Sendable {
