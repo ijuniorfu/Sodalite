@@ -9,15 +9,20 @@ enum AccentPickerLayout {
     #if os(tvOS)
     static let columnSpacing: CGFloat = 24
     static let swatchSize: CGFloat = 80
-    /// Two lines of tvOS headline (38pt) plus leading.
+    static let contentSpacing: CGFloat = 12
+    /// Two lines of tvOS headline (38pt) plus leading. Long names in Ukrainian,
+    /// Finnish and Polish need the second line, so the row reserves it even
+    /// though most names fit on one. Both rows centre their content, otherwise
+    /// the reserve reads as a hole under the name.
     static let titleHeight: CGFloat = 96
-    /// Two lines of tvOS caption (25pt).
-    static let statusHeight: CGFloat = 64
+    /// One line of tvOS caption (25pt).
+    static let statusHeight: CGFloat = 32
     #else
     static let columnSpacing: CGFloat = 18
     static let swatchSize: CGFloat = 64
+    static let contentSpacing: CGFloat = 10
     static let titleHeight: CGFloat = 46
-    static let statusHeight: CGFloat = 34
+    static let statusHeight: CGFloat = 20
     #endif
 }
 
@@ -70,17 +75,25 @@ struct AccentColorPickerView: View {
                 ))
                 .font(.largeTitle.bold())
 
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 12) {
-                        ForEach(AccentCategory.allCases) { candidate in
-                            AccentCategoryButton(
-                                category: candidate,
-                                selected: category == candidate
-                            ) {
-                                category = candidate
+                ScrollViewReader { proxy in
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 12) {
+                            ForEach(AccentCategory.allCases) { candidate in
+                                AccentCategoryButton(
+                                    category: candidate,
+                                    selected: category == candidate
+                                ) {
+                                    category = candidate
+                                }
+                                .id(candidate)
                             }
                         }
                     }
+                    #if os(iOS)
+                    // The strip scrolls off screen on a phone, so an active
+                    // category further right would be marked but invisible.
+                    .onAppear { proxy.scrollTo(category, anchor: .center) }
+                    #endif
                 }
 
                 LazyVGrid(
@@ -133,6 +146,50 @@ struct AccentColorPickerView: View {
     }
 }
 
+/// The active category and the focused/pressed one are separate axes: fill and
+/// text colour carry "this is the category you are looking at", the border and
+/// the scale carry "this is what the remote is on". Encoding both as a border
+/// would leave the active category invisible the moment focus moves into the
+/// grid, which is what shipped before.
+private enum AccentCategoryChip {
+    static let cornerRadius: CGFloat = 16
+
+    static func foreground(selected: Bool, active: Bool) -> AnyShapeStyle {
+        if selected { return active ? AnyShapeStyle(.white) : AnyShapeStyle(.tint) }
+        return active ? AnyShapeStyle(.white) : AnyShapeStyle(.secondary)
+    }
+
+    static func background(selected: Bool, active: Bool) -> AnyShapeStyle {
+        if selected {
+            return AnyShapeStyle(TintShapeStyle.tint.opacity(active ? 0.4 : 0.2))
+        }
+        return AnyShapeStyle(Color.white.opacity(active ? 0.18 : 0.06))
+    }
+}
+
+#if os(iOS)
+private struct AccentCategoryChipStyle: ButtonStyle {
+    let selected: Bool
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .foregroundStyle(AccentCategoryChip.foreground(
+                selected: selected,
+                active: configuration.isPressed
+            ))
+            .background(
+                RoundedRectangle(cornerRadius: AccentCategoryChip.cornerRadius)
+                    .fill(AccentCategoryChip.background(
+                        selected: selected,
+                        active: configuration.isPressed
+                    ))
+            )
+            .animation(.easeInOut(duration: 0.15), value: configuration.isPressed)
+            .animation(.easeInOut(duration: 0.15), value: selected)
+    }
+}
+#endif
+
 private struct AccentCategoryButton: View {
     let category: AccentCategory
     let selected: Bool
@@ -145,12 +202,19 @@ private struct AccentCategoryButton: View {
     var body: some View {
         #if os(tvOS)
         label
+            .foregroundStyle(AccentCategoryChip.foreground(
+                selected: selected,
+                active: focused
+            ))
             .background(
-                RoundedRectangle(cornerRadius: 16)
-                    .fill(focused ? .white.opacity(0.15) : .white.opacity(0.05))
+                RoundedRectangle(cornerRadius: AccentCategoryChip.cornerRadius)
+                    .fill(AccentCategoryChip.background(
+                        selected: selected,
+                        active: focused
+                    ))
             )
             .overlay(
-                RoundedRectangle(cornerRadius: 16)
+                RoundedRectangle(cornerRadius: AccentCategoryChip.cornerRadius)
                     .strokeBorder(.tint, lineWidth: 3)
                     .opacity(focused ? 1 : 0)
             )
@@ -163,11 +227,12 @@ private struct AccentCategoryButton: View {
             .accessibilityAddTraits(selected ? .isSelected : [])
             .accessibilityAction { action() }
             .animation(.easeInOut(duration: 0.2), value: focused)
+            .animation(.easeInOut(duration: 0.2), value: selected)
         #else
         Button(action: action) {
             label
         }
-        .buttonStyle(SettingsTileButtonStyle())
+        .buttonStyle(AccentCategoryChipStyle(selected: selected))
         .accessibilityAddTraits(selected ? .isSelected : [])
         #endif
     }
@@ -175,6 +240,7 @@ private struct AccentCategoryButton: View {
     private var label: some View {
         HStack(spacing: 8) {
             Text(category.title)
+                .fontWeight(selected ? .semibold : .regular)
             if category != .basic {
                 Image(systemName: "crown.fill")
                     .accessibilityHidden(true)
@@ -192,7 +258,7 @@ private struct AccentPresetTile: View {
     let focused: Bool
 
     var body: some View {
-        VStack(spacing: 14) {
+        VStack(spacing: AccentPickerLayout.contentSpacing) {
             Circle()
                 .fill(preset.palette.control.color)
                 .frame(
@@ -205,27 +271,21 @@ private struct AccentPresetTile: View {
                 .lineLimit(2)
                 .minimumScaleFactor(0.6)
                 .multilineTextAlignment(.center)
-                .frame(height: AccentPickerLayout.titleHeight, alignment: .top)
-            VStack(spacing: 4) {
+                .frame(height: AccentPickerLayout.titleHeight)
+            HStack(spacing: 6) {
                 if selected {
-                    HStack(spacing: 6) {
-                        Image(systemName: "checkmark")
-                        Text(selectedLabel)
-                    }
+                    Image(systemName: "checkmark")
+                    Text(selectedLabel)
                 }
                 if locked {
-                    HStack(spacing: 6) {
-                        Image(systemName: "crown.fill")
-                        Text(lockedLabel)
-                    }
+                    Image(systemName: "crown.fill")
                 }
             }
             .font(.caption)
             .foregroundStyle(.secondary)
-            .lineLimit(2)
+            .lineLimit(1)
             .minimumScaleFactor(0.7)
-            .multilineTextAlignment(.center)
-            .frame(height: AccentPickerLayout.statusHeight, alignment: .top)
+            .frame(height: AccentPickerLayout.statusHeight)
         }
         .padding(18)
         .frame(maxWidth: .infinity)
