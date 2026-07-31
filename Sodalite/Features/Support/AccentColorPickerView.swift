@@ -1,5 +1,26 @@
 import SwiftUI
 
+enum AccentPickerLayout {
+    /// Every category ships at most five presets, so a fixed column count keeps
+    /// the tiles at one size across category switches and gives the titles the
+    /// full row width instead of the 219pt an adaptive grid settles on.
+    static let tvOSColumnCount = 5
+
+    #if os(tvOS)
+    static let columnSpacing: CGFloat = 24
+    static let swatchSize: CGFloat = 80
+    /// Two lines of tvOS headline (38pt) plus leading.
+    static let titleHeight: CGFloat = 96
+    /// Two lines of tvOS caption (25pt).
+    static let statusHeight: CGFloat = 64
+    #else
+    static let columnSpacing: CGFloat = 18
+    static let swatchSize: CGFloat = 64
+    static let titleHeight: CGFloat = 46
+    static let statusHeight: CGFloat = 34
+    #endif
+}
+
 struct AccentColorPickerView: View {
     @Environment(\.dependencies) private var dependencies
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
@@ -19,10 +40,25 @@ struct AccentColorPickerView: View {
     }
 
     private var columns: [GridItem] {
-        [GridItem(.adaptive(
-            minimum: horizontalSizeClass == .compact ? 118 : 190,
-            maximum: 260
-        ), spacing: 18)]
+        #if os(tvOS)
+        Array(
+            repeating: GridItem(
+                .flexible(),
+                spacing: AccentPickerLayout.columnSpacing,
+                alignment: .top
+            ),
+            count: AccentPickerLayout.tvOSColumnCount
+        )
+        #else
+        [GridItem(
+            .adaptive(
+                minimum: horizontalSizeClass == .compact ? 130 : 190,
+                maximum: 260
+            ),
+            spacing: AccentPickerLayout.columnSpacing,
+            alignment: .top
+        )]
+        #endif
     }
 
     var body: some View {
@@ -47,7 +83,10 @@ struct AccentColorPickerView: View {
                     }
                 }
 
-                LazyVGrid(columns: columns, spacing: 18) {
+                LazyVGrid(
+                    columns: columns,
+                    spacing: AccentPickerLayout.columnSpacing
+                ) {
                     ForEach(category.presets) { preset in
                         FocusableCard(
                             action: {
@@ -156,11 +195,17 @@ private struct AccentPresetTile: View {
         VStack(spacing: 14) {
             Circle()
                 .fill(preset.palette.control.color)
-                .frame(width: 64, height: 64)
+                .frame(
+                    width: AccentPickerLayout.swatchSize,
+                    height: AccentPickerLayout.swatchSize
+                )
                 .overlay(Circle().stroke(.white.opacity(0.18), lineWidth: 1))
             Text(preset.title)
                 .font(.headline)
-                .lineLimit(1)
+                .lineLimit(2)
+                .minimumScaleFactor(0.6)
+                .multilineTextAlignment(.center)
+                .frame(height: AccentPickerLayout.titleHeight, alignment: .top)
             VStack(spacing: 4) {
                 if selected {
                     HStack(spacing: 6) {
@@ -177,9 +222,13 @@ private struct AccentPresetTile: View {
             }
             .font(.caption)
             .foregroundStyle(.secondary)
+            .lineLimit(2)
+            .minimumScaleFactor(0.7)
+            .multilineTextAlignment(.center)
+            .frame(height: AccentPickerLayout.statusHeight, alignment: .top)
         }
         .padding(18)
-        .frame(maxWidth: .infinity, minHeight: 150)
+        .frame(maxWidth: .infinity)
         .background(
             RoundedRectangle(cornerRadius: 18)
                 .fill(.white.opacity(focused ? 0.12 : 0.05))
