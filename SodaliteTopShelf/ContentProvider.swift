@@ -44,9 +44,10 @@ final class ContentProvider: TVTopShelfContentProvider {
                           nextUp: nextUpItems).write()
         }
 
-        // Both rows, not just Continue Watching: a part-watched episode shows up in Next Up too,
-        // and leaving that row on the system bar puts two different bars in one shelf. Items
-        // without progress cost nothing, prepare() skips them before the cap.
+        // Both rows. Next Up should hold nothing part-watched now that the query sends
+        // EnableResumable=false, but older servers ignore that parameter, and one row on the
+        // accent bar while the other keeps the white system bar looks worse than either alone.
+        // Items without progress are skipped before the cap, so on a current server this is free.
         let bars = await ResumeBarArtwork.prepare(items: resumeItems + nextUpItems,
                                                   session: session,
                                                   accent: TopShelfAccent.read())
