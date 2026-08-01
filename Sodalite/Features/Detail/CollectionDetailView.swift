@@ -12,6 +12,12 @@ struct CollectionDetailView: View {
     @State private var playQueue: [JellyfinItem] = []
     /// Play resumes a partially watched film; Shuffle always starts its pick from the top.
     @State private var playFromBeginning = true
+    /// Value-based focus, keyed by item id: binding a per-row Bool would need a branch inside the
+    /// ForEach and hand the focus engine two different view shapes for row one.
+    @FocusState private var focusedItemID: String?
+    /// One shot: re-pushing focus on every appear would yank the viewer back to row one after
+    /// every return from a film or a pushed detail page.
+    @State private var didFocusFirstRow = false
 
     let item: JellyfinItem
 
@@ -60,6 +66,20 @@ struct CollectionDetailView: View {
         }
         .navigationDestination(item: $selectedItem) { item in
             DetailRouterView(item: item)
+        }
+        // task(id:), not onChange: the list can already be populated when this view first renders
+        // (warm cache), and onChange only sees transitions. No spinner gate here on purpose: isLoading
+        // flips at a 500ms snapshot deadline and hasFullDetail can take 10s+ on a slow library, so
+        // gating the view on either would reinstate the wait Sodalite#15 removed.
+        //
+        // The list shows every member while Play filters to playable leaves, so focus follows the
+        // list's first row, not the queue's.
+        .task(id: viewModel?.collectionItems.count) {
+            #if os(tvOS)
+            guard !didFocusFirstRow, let first = viewModel?.collectionItems.first else { return }
+            didFocusFirstRow = true
+            deferOnMain(by: 0.1) { focusedItemID = first.id }
+            #endif
         }
         .onAppear {
             if viewModel == nil, let userID = appState.activeUser?.id {
@@ -222,6 +242,7 @@ struct CollectionDetailView: View {
                         imageURL: dependencies.jellyfinImageService.posterURL(for: movie),
                         onSelect: { selectedItem = movie }
                     )
+                    .focused($focusedItemID, equals: movie.id)
                 }
             }
             .padding(.horizontal, metrics.rowInset)
