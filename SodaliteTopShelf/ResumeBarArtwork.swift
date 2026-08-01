@@ -14,9 +14,14 @@ enum ResumeBarArtwork {
     /// that already trips "-17102 decompressing image" when several cells decode at once.
     private static let maxPixelSize = 640
 
-    /// Past this many cells the win is not worth the budget; the rest fall back. Continue
-    /// Watching realistically holds a dozen.
-    private static let maxCells = 12
+    /// Past this many cells the win is not worth the budget; the rest fall back. Counts only
+    /// cells that actually get a bar, so a run of progress-less items cannot push the rest out.
+    private static let maxCells = 16
+
+    /// Bump whenever the drawing changes. It rides in the file name, so old artwork stops
+    /// matching, gets swept, and re-renders; without it a look change is invisible on every cell
+    /// whose progress and accent happen to be unchanged.
+    private static let renderVersion = 2
 
     /// Whole-pass budget. Renders are serial, so one unreachable image must not eat the
     /// extension's time slice and leave the shelf empty.
@@ -37,7 +42,11 @@ enum ResumeBarArtwork {
         var result: [String: URL] = [:]
         var live: Set<String> = []
 
-        for item in items.prefix(maxCells) {
+        // Filter before the cap: applying it to the raw list would let a stretch of items without
+        // progress eat the whole budget and leave real resume cells unrendered.
+        let candidates = items.filter { $0.topShelfProgress != nil }.prefix(maxCells)
+
+        for item in candidates {
             guard let fraction = item.topShelfProgress,
                   let remote = item.topShelfImageURL(baseURL: session.baseURL, token: session.accessToken)
             else { continue }
@@ -52,7 +61,7 @@ enum ResumeBarArtwork {
             }
 
             guard Date().timeIntervalSince(started) < deadline else {
-                log.notice("resume bar pass hit its deadline; \(items.count - result.count) cells fall back")
+                log.notice("resume bar pass hit its deadline; \(candidates.count - result.count) cells fall back")
                 break
             }
 
@@ -124,7 +133,7 @@ enum ResumeBarArtwork {
             .queryItems?
             .first { $0.name == "tag" }?
             .value ?? "notag"
-        return "bar-\(sanitized(itemID))-\(sanitized(tag))-\(percent)-\(String(format: "%06X", accent)).jpg"
+        return "bar\(renderVersion)-\(sanitized(itemID))-\(sanitized(tag))-\(percent)-\(String(format: "%06X", accent)).jpg"
     }
 
     private static func sanitized(_ value: String) -> String {

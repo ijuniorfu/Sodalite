@@ -44,11 +44,13 @@ final class ContentProvider: TVTopShelfContentProvider {
                           nextUp: nextUpItems).write()
         }
 
-        // Only Continue Watching carries progress, so only it pays for the burned-in bars.
-        let bars = await ResumeBarArtwork.prepare(items: resumeItems,
+        // Both rows, not just Continue Watching: a part-watched episode shows up in Next Up too,
+        // and leaving that row on the system bar puts two different bars in one shelf. Items
+        // without progress cost nothing, prepare() skips them before the cap.
+        let bars = await ResumeBarArtwork.prepare(items: resumeItems + nextUpItems,
                                                   session: session,
                                                   accent: TopShelfAccent.read())
-        log.info("resume bars rendered=\(bars.count)/\(resumeItems.count)")
+        log.info("resume bars rendered=\(bars.count)")
 
         TopShelfDiagnostics.record("bars=\(bars.count)/\(resumeItems.count)")
 
@@ -66,9 +68,8 @@ final class ContentProvider: TVTopShelfContentProvider {
         }
 
         if !nextUpItems.isEmpty {
-            // Next Up has no progress, so no bar and no render cost; these keep the remote URL.
             let collection = TVTopShelfItemCollection(items: nextUpItems.map {
-                makeItem(item: $0, session: session, barURL: nil)
+                makeItem(item: $0, session: session, barURL: bars[$0.id])
             })
             collection.title = String(
                 localized: "TopShelf.NextUp",
