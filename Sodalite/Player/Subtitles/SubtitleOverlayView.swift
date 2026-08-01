@@ -285,6 +285,9 @@ struct SubtitleOverlayView: View {
     /// out-of-range alignment takes the ASS default of 2, which is exactly where unplaced cues
     /// sit, so a track carrying `\an` on only some of its cues does not make the text jump.
     ///
+    /// An anchor outside the picture is ignored and the cue falls back to alignment-only, see
+    /// `isDrawableAnchor`.
+    ///
     /// `verticalShift` is the user's vertical-position dial, the same delta bitmap cues get.
     /// `bottomLimit` is the lowest the block may end, which lifts a low cue clear of the player
     /// chrome and leaves everything above it untouched.
@@ -301,7 +304,7 @@ struct SubtitleOverlayView: View {
 
         let x: CGFloat
         let y: CGFloat
-        if let position = placement.position {
+        if let position = placement.position, isDrawableAnchor(position) {
             let anchorX = frame.minX + position.x * frame.width
             let anchorY = frame.minY + position.y * frame.height
             x = column == 0 ? anchorX
@@ -319,6 +322,21 @@ struct SubtitleOverlayView: View {
                 : frame.minY + margin
         }
         return CGPoint(x: x, y: min(y + verticalShift, bottomLimit - blockSize.height))
+    }
+
+    /// Whether an anchor is inside the picture and can therefore be drawn. `SubtitleTextPlacement`
+    /// stopped promising a [0, 1] range in AetherEngine #261: a script may anchor outside the frame
+    /// on purpose, so the engine passes the value through instead of clamping it, which also keeps
+    /// a wrong normalization basis visible rather than absorbed. This overlay cannot draw
+    /// off-picture, so it makes that call here and drops the anchor, leaving the cue in the corner
+    /// its alignment asks for. A cue in the wrong corner is a visible defect; a cue drawn
+    /// off-picture is indistinguishable from one that never arrived.
+    ///
+    /// Both axes go together: a wrong basis is wrong on both, so an in-range axis next to an
+    /// out-of-range one is not evidence of anything and honouring it would only place the cue
+    /// confidently wrong.
+    nonisolated static func isDrawableAnchor(_ position: CGPoint) -> Bool {
+        (0...1).contains(position.x) && (0...1).contains(position.y)
     }
 
     /// Which corner of the block the placement is measured from, as the SwiftUI alignment that

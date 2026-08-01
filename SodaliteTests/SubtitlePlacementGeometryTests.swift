@@ -90,6 +90,50 @@ struct SubtitlePlacementGeometryTests {
         #expect(atEdge == CGPoint(x: 0, y: 0))
     }
 
+    // MARK: - Off-picture anchor: ignored, the cue falls back to alignment-only
+    //
+    // `SubtitleTextPlacement.position` stopped promising [0, 1] in AetherEngine #261: a script may
+    // anchor outside the frame on purpose, so the engine neither clamps nor drops such an anchor,
+    // because absorbing it there would hide the next wrong normalization basis the way it hid that
+    // one. This host cannot draw off-picture, so it makes that call itself. A cue that walks into a
+    // corner is a visible wrong basis; a cue drawn off-picture is indistinguishable from one that
+    // never arrived.
+
+    @Test func anchorBelowTheFrameIsIgnored() {
+        // The #261 shape: a 718x480 script normalized against libavcodec's 384x288 default put the
+        // anchor at y = 1.5 for a `\pos` that belongs at 0.9.
+        #expect(origin(alignment: 1, position: CGPoint(x: 0.776, y: 1.5)) == origin(alignment: 1))
+    }
+
+    @Test func anchorRightOfTheFrameIsIgnored() {
+        #expect(origin(alignment: 5, position: CGPoint(x: 1.4, y: 0.5)) == origin(alignment: 5))
+    }
+
+    @Test func negativeAnchorIsIgnored() {
+        #expect(origin(alignment: 8, position: CGPoint(x: 0.5, y: -0.2)) == origin(alignment: 8))
+        #expect(origin(alignment: 8, position: CGPoint(x: -0.1, y: 0.5)) == origin(alignment: 8))
+    }
+
+    @Test func nonFiniteAnchorIsIgnored() {
+        #expect(origin(alignment: 2, position: CGPoint(x: .nan, y: 0.5)) == origin(alignment: 2))
+        #expect(origin(alignment: 2, position: CGPoint(x: 0.5, y: .infinity)) == origin(alignment: 2))
+    }
+
+    /// One axis out of range condemns the whole anchor: a wrong basis is wrong on both axes, and in
+    /// the #261 case the in-range one read 0.776 where it belonged at 0.415. Keeping it would put
+    /// the cue confidently in the wrong column.
+    @Test func oneAxisOutOfRangeDropsTheWholeAnchor() {
+        // x alone is drawable here, so honouring it would move the cue off centre and only the
+        // vertical half of the placement would look wrong.
+        #expect(origin(alignment: 5, position: CGPoint(x: 0.2, y: 1.5)) == origin(alignment: 5))
+    }
+
+    /// The bound is the picture, not an inset of it, so a cue authored against the very edge keeps
+    /// its anchor instead of jumping to the margin.
+    @Test func anchorOnTheFrameEdgeIsStillHonoured() {
+        #expect(origin(alignment: 3, position: CGPoint(x: 1, y: 1)) == CGPoint(x: 800, y: 400))
+    }
+
     // MARK: - Frame: cues live in the aspect-fit video band, not the full screen
 
     @Test func originIsRelativeToTheVideoBand() {
@@ -215,5 +259,11 @@ struct SubtitlePlacementGeometryTests {
     @Test func offsetHonoursTheVerticalShiftAndBottomLimit() {
         #expect(offset(alignment: 2, verticalShift: -50) == CGSize(width: 0, height: -130))
         #expect(offset(alignment: 2, bottomLimit: 300) == CGSize(width: 0, height: -200))
+    }
+
+    /// The offset is the form the view actually applies, so the off-picture fallback has to hold
+    /// there too, not just in the origin the tests above measure.
+    @Test func offsetDropsAnOffPictureAnchor() {
+        #expect(offset(alignment: 2, position: CGPoint(x: 0.5, y: 1.5)) == offset(alignment: 2))
     }
 }
