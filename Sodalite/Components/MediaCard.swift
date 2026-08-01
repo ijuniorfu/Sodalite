@@ -128,20 +128,7 @@ struct MediaCard: View {
     @ViewBuilder
     private var progressOverlay: some View {
         if let playedPercentage = item.userData?.playedPercentage, playedPercentage > 0 {
-            GeometryReader { geo in
-                VStack {
-                    Spacer()
-                    ZStack(alignment: .leading) {
-                        Rectangle()
-                            .fill(.ultraThinMaterial)
-                            .frame(height: 10)
-                        Rectangle()
-                            .fill(Color.white.opacity(0.9))
-                            .frame(width: geo.size.width * playedPercentage / 100, height: 10)
-                    }
-                }
-            }
-            .clipShape(RoundedRectangle(cornerRadius: 12))
+            ResumeProgressBar(fraction: playedPercentage / 100)
         }
     }
 

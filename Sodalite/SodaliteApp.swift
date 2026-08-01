@@ -84,6 +84,12 @@ struct SodaliteApp: App {
                 .environment(\.appearanceTheme, theme)
                 .preferredColorScheme(.dark)
                 .tint(theme.palette.control.color)
+                // The extension draws the Top Shelf resume bar in this colour. Keyed on the
+                // resolved value, not the stored preset, so losing supporter status moves the
+                // shelf back to a free accent along with the rest of the app.
+                .task(id: theme.palette.control.hex) {
+                    TopShelfAccent.write(theme.palette.control.hex)
+                }
                 .onOpenURL { url in
                     handleDeepLink(url)
                 }

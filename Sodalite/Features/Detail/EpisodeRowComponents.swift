@@ -178,17 +178,8 @@ struct EpisodeLandscapeCard: View {
                 )
 
                 if let pct = episode.userData?.playedPercentage, pct > 0 {
-                    GeometryReader { geo in
-                        VStack {
-                            Spacer()
-                            ZStack(alignment: .leading) {
-                                Rectangle().fill(.ultraThinMaterial).frame(height: 10)
-                                Rectangle().fill(Color.white.opacity(0.9)).frame(width: geo.size.width * pct / 100, height: 10)
-                            }
-                        }
-                    }
-                    .frame(width: cardSize.width, height: cardSize.height)
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                    ResumeProgressBar(fraction: pct / 100)
+                        .frame(width: cardSize.width, height: cardSize.height)
                 }
 
                 // One stack for both badges: pinned separately they would land on the same point.

@@ -34,6 +34,10 @@ struct JellyfinAPI: Sendable {
                 "UserId": session.userID,
                 "Limit": "\(limit)",
                 "Fields": Self.fields,
+                // Matches the app's Next Up row (JellyfinEndpoints.nextUp). Without it a
+                // part-watched episode lands in both shelf sections, since Resume and Next Up are
+                // fetched independently and nothing dedups them. Older servers ignore it.
+                "EnableResumable": "false",
             ]
         )
         let response: ItemsResponse = try await get(url)
