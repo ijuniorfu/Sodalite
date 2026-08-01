@@ -611,7 +611,10 @@ struct CatalogDetailView: View {
         let viewedSeason: SeerrSeason? = viewedSeasonNumber.flatMap { n in
             seasons.first(where: { $0.seasonNumber == n })
         }
-        HStack(spacing: 12) {
+        // Wrapping row, not an HStack: on a phone in portrait the three chips exceed the line width and
+        // an HStack resolves that by wrapping each label's text internally (three ragged multi-line columns).
+        // FlowLayout keeps every chip on one text line and moves the overflow chip to a second row instead.
+        FlowLayout(alignment: .leading, spacing: 12) {
             if let season = viewedSeason {
                 // Status is informational and never blocks: show the pipeline state (if any) as a label, then always offer add/remove so a deleted-but-stale-available season stays re-requestable.
                 if let status = seasonStatus(season) {
@@ -658,8 +661,8 @@ struct CatalogDetailView: View {
                 }
                 .buttonStyle(SeasonChipButtonStyle())
             }
-            Spacer(minLength: 0)
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.leading, 4)
     }
 
@@ -688,11 +691,12 @@ struct CatalogDetailView: View {
                     ProgressView()
                     Spacer()
                 }
-                .frame(height: 220)
+                // Reserve the height the card row will actually take, so the swap from spinner to cards doesn't jump.
+                .frame(height: hSizeClass == .compact ? metrics.landscapeSize.height + 58 : 220)
                 .padding(.horizontal, 20)
             } else if let episodes, !episodes.isEmpty {
                 ScrollView(.horizontal, showsIndicators: false) {
-                    LazyHStack(spacing: 24) {
+                    LazyHStack(alignment: .top, spacing: hSizeClass == .compact ? metrics.itemSpacing : 24) {
                         ForEach(episodes) { ep in
                             FocusableCard(action: {}) { focused in
                                 SeerrEpisodeCard(episode: ep, isFocused: focused)

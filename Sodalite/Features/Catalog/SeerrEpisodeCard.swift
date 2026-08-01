@@ -5,10 +5,27 @@ struct SeerrEpisodeCard: View {
     let episode: SeerrEpisode
     let isFocused: Bool
 
-    private let width: CGFloat = 320
-    private let imageHeight: CGFloat = 180
-    // Reserves room for title + optional subtitle so cards stay equal height regardless of subtitle presence.
-    private let captionHeight: CGFloat = 58
+    @Environment(\.horizontalSizeClass) private var hSizeClass
+
+    /// Same landscape tier the Jellyfin series detail's EpisodeCard uses, so both episode rows match on a phone.
+    /// tvOS keeps its tuned catalog size rather than inheriting the (larger) browse landscape tier.
+    private var cardSize: CGSize {
+        #if os(tvOS)
+        CGSize(width: 320, height: 180)
+        #else
+        LayoutMetrics.current(hSizeClass).landscapeSize
+        #endif
+    }
+    private var width: CGFloat { cardSize.width }
+    private var imageHeight: CGFloat { cardSize.height }
+
+    private var titleFont: Font {
+        #if os(tvOS)
+        .body
+        #else
+        .caption
+        #endif
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -55,22 +72,20 @@ struct SeerrEpisodeCard: View {
                 )
             )
 
-            // Fixed-height caption block keeps cards equal total height (top-aligned in the row) with or without the subtitle.
+            // Both lines always render (blank subtitle falls back to a space) so cards keep equal
+            // total height without a hardcoded caption reserve that wouldn't survive a size-class change.
             VStack(alignment: .leading, spacing: 2) {
                 Text(episode.name ?? "")
-                    .font(.body)
+                    .font(titleFont)
                     .fontWeight(.medium)
                     .lineLimit(1)
-                    .frame(maxWidth: width, alignment: .leading)
 
-                if let subtitle {
-                    Text(subtitle)
-                        .font(.caption2)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
-                }
+                Text(subtitle ?? " ")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
             }
-            .frame(width: width, height: captionHeight, alignment: .topLeading)
+            .frame(width: width, alignment: .leading)
         }
         .frame(width: width)
         .scaleEffect(isFocused ? 1.04 : 1.0)
@@ -86,7 +101,7 @@ struct SeerrEpisodeCard: View {
                 endPoint: .bottomTrailing
             )
             Image(systemName: "tv")
-                .font(.system(size: 36))
+                .font(.system(size: min(36, imageHeight * 0.3)))
                 .foregroundStyle(.secondary)
         }
         .frame(width: width, height: imageHeight)
