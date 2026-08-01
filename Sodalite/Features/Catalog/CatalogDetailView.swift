@@ -38,6 +38,8 @@ struct CatalogDetailView: View {
     @State private var rtCriticsScore: Int?
     @State private var navigateToMedia: SeerrMedia?
     @State private var selectedCastMember: CastMember?
+    /// TMDB collection this movie belongs to; nil for standalone movies and for every series (Sodalite#52).
+    @State private var navigateToCollection: SeerrCollectionRef?
 
     // Advanced request options from /service/radarr|sonarr; nil = omit field, falls back to Seerr's server default.
     @State private var serviceDetails: SeerrServiceDetails?
@@ -45,11 +47,6 @@ struct CatalogDetailView: View {
     @State private var selectedRootFolder: String?
     /// Sonarr/Radarr tag ids; sent as nil when empty so older Jellyseerr builds that don't know the field still accept the body.
     @State private var selectedTagIDs: Set<Int> = []
-
-    /// Picker sheets use `.fullScreenCover` not SwiftUI `Menu`: Menu leaked the Menu-button press up the nav stack during its ~1s close animation and exited the app; the cover owns its own focus environment.
-    @State private var isProfilePickerPresented = false
-    @State private var isRootFolderPickerPresented = false
-    @State private var isTagPickerPresented = false
 
     /// Mandatory request-options sheet (quality profile, root folder, tags + final confirm).
     @State private var showRequestOptions = false
@@ -88,6 +85,9 @@ struct CatalogDetailView: View {
         }
         .navigationDestination(item: $selectedCastMember) { member in
             PersonDetailView(personID: member.personID ?? 0, personName: member.name)
+        }
+        .navigationDestination(item: $navigateToCollection) { collection in
+            CatalogCollectionView(collection: collection)
         }
         .sheet(isPresented: $showRequestOptions) {
             requestOptionsSheet
@@ -374,6 +374,13 @@ struct CatalogDetailView: View {
                 ExpandableTextBox(text: overview)
             }
 
+            // The stub rides along on `/movie/{id}`, so the entry point costs no extra request; the parts are fetched only once the collection is opened.
+            if let collection = movieDetail?.collection {
+                SeerrCollectionBanner(collection: collection) {
+                    navigateToCollection = collection
+                }
+            }
+
             if media.mediaType == .tv, let seasons = availableSeasons, !seasons.isEmpty {
                 seasonSelection(seasons: seasons)
             }
@@ -407,160 +414,13 @@ struct CatalogDetailView: View {
     @ViewBuilder
     private var advancedOptionsSection: some View {
         if let details = serviceDetails, !didRequest {
-            VStack(alignment: .leading, spacing: 16) {
-                Text("catalog.request.advanced")
-                    .font(.title3)
-                    .fontWeight(.semibold)
-
-                // Stacked full-width: quality-profile names get long ("[German] HD Bluray + WEB") and wrap in a half-width column.
-                profilePicker(details: details)
-                rootFolderPicker(details: details)
-
-                if let tags = details.tags, !tags.isEmpty {
-                    tagPicker(tags: tags)
-                }
-            }
+            SeerrRequestOptionsForm(
+                details: details,
+                selectedProfileID: $selectedProfileID,
+                selectedRootFolder: $selectedRootFolder,
+                selectedTagIDs: $selectedTagIDs
+            )
         }
-    }
-
-    private func profilePicker(details: SeerrServiceDetails) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text("catalog.request.qualityProfile")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-
-            Button {
-                isProfilePickerPresented = true
-            } label: {
-                HStack {
-                    Text(selectedProfileName(details: details))
-                        .fontWeight(.medium)
-                    Spacer()
-                    Image(systemName: "chevron.up.chevron.down")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-                .padding(.horizontal, 20)
-                .padding(.vertical, 14)
-                .frame(maxWidth: .infinity)
-                .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 12))
-            }
-            .buttonStyle(CatalogPickerButtonStyle())
-            .fullScreenCover(isPresented: $isProfilePickerPresented) {
-                CatalogPickerSheet(
-                    title: String(localized: "catalog.request.qualityProfile", defaultValue: "Quality profile"),
-                    options: details.profiles.map { .init(id: "\($0.id)", label: $0.name) },
-                    selectedID: selectedProfileID.map(String.init),
-                    onSelect: { rawID in
-                        if let id = Int(rawID) {
-                            selectedProfileID = id
-                        }
-                        isProfilePickerPresented = false
-                    },
-                    onCancel: { isProfilePickerPresented = false }
-                )
-            }
-        }
-        .frame(maxWidth: .infinity)
-    }
-
-    private func rootFolderPicker(details: SeerrServiceDetails) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text("catalog.request.rootFolder")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-
-            Button {
-                isRootFolderPickerPresented = true
-            } label: {
-                HStack {
-                    Text(selectedRootFolder ?? String(localized: "catalog.request.rootFolder.default", defaultValue: "Default"))
-                        .fontWeight(.medium)
-                        .lineLimit(1)
-                        .truncationMode(.middle)
-                    Spacer()
-                    Image(systemName: "chevron.up.chevron.down")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-                .padding(.horizontal, 20)
-                .padding(.vertical, 14)
-                .frame(maxWidth: .infinity)
-                .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 12))
-            }
-            .buttonStyle(CatalogPickerButtonStyle())
-            .fullScreenCover(isPresented: $isRootFolderPickerPresented) {
-                CatalogPickerSheet(
-                    title: String(localized: "catalog.request.rootFolder", defaultValue: "Root folder"),
-                    options: details.rootFolders.map { .init(id: $0.path, label: $0.path) },
-                    selectedID: selectedRootFolder,
-                    onSelect: { path in
-                        selectedRootFolder = path
-                        isRootFolderPickerPresented = false
-                    },
-                    onCancel: { isRootFolderPickerPresented = false }
-                )
-            }
-        }
-        .frame(maxWidth: .infinity)
-    }
-
-    private func selectedProfileName(details: SeerrServiceDetails) -> String {
-        if let id = selectedProfileID,
-           let profile = details.profiles.first(where: { $0.id == id }) {
-            return profile.name
-        }
-        return String(localized: "catalog.request.qualityProfile.default", defaultValue: "Default")
-    }
-
-    private func tagPicker(tags: [SeerrTag]) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text("catalog.request.tags")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-
-            Button {
-                isTagPickerPresented = true
-            } label: {
-                HStack {
-                    Text(selectedTagsLabel(tags: tags))
-                        .fontWeight(.medium)
-                        .lineLimit(1)
-                        .truncationMode(.tail)
-                    Spacer()
-                    Image(systemName: "chevron.up.chevron.down")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-                .padding(.horizontal, 20)
-                .padding(.vertical, 14)
-                .frame(maxWidth: .infinity)
-                .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 12))
-            }
-            .buttonStyle(CatalogPickerButtonStyle())
-            .fullScreenCover(isPresented: $isTagPickerPresented) {
-                CatalogMultiSelectSheet(
-                    title: String(localized: "catalog.request.tags", defaultValue: "Tags"),
-                    options: tags.map { .init(id: "\($0.id)", label: $0.label) },
-                    selectedIDs: Set(selectedTagIDs.map(String.init)),
-                    onCommit: { ids in
-                        selectedTagIDs = Set(ids.compactMap(Int.init))
-                        isTagPickerPresented = false
-                    }
-                )
-            }
-        }
-        .frame(maxWidth: .infinity)
-    }
-
-    private func selectedTagsLabel(tags: [SeerrTag]) -> String {
-        if selectedTagIDs.isEmpty {
-            return String(localized: "catalog.request.tags.none", defaultValue: "None")
-        }
-        let names = tags
-            .filter { selectedTagIDs.contains($0.id) }
-            .map(\.label)
-        return names.joined(separator: ", ")
     }
 
     private func seasonSelection(seasons: [SeerrSeason]) -> some View {
@@ -1048,37 +908,14 @@ struct CatalogDetailView: View {
     }
 
     private func loadServiceConfig() async {
-        let config = dependencies.seerrServiceConfigService
         do {
-            let servers: [SeerrServiceServer]
-            switch media.mediaType {
-            case .movie: servers = try await config.radarrServers()
-            case .tv: servers = try await config.sonarrServers()
-            case .person, .unknown: return
-            }
-            guard let chosen = servers.first(where: { $0.isDefault == true }) ?? servers.first else {
-                return
-            }
-            let details: SeerrServiceDetails
-            switch media.mediaType {
-            case .movie: details = try await config.radarrDetails(serverID: chosen.id)
-            case .tv: details = try await config.sonarrDetails(serverID: chosen.id)
-            case .person, .unknown: return
-            }
-            serviceDetails = details
-
-            // Validate the configured default against returned profiles, fall back to first. Jellyseerr's activeProfileId can be nil/0/stale; the old `?? first` only guarded nil, so a stale id shipped in the request and failed.
-            let validProfileIDs = Set(details.profiles.map(\.id))
-            selectedProfileID = [chosen.activeProfileId, details.server.activeProfileId]
-                .compactMap { $0 }
-                .first(where: validProfileIDs.contains)
-                ?? details.profiles.first?.id
-
-            let validRootFolders = Set(details.rootFolders.map(\.path))
-            selectedRootFolder = [chosen.activeDirectory, details.server.activeDirectory]
-                .compactMap { $0 }
-                .first(where: validRootFolders.contains)
-                ?? details.rootFolders.first?.path
+            guard let resolved = try await SeerrRequestDefaults.resolve(
+                service: dependencies.seerrServiceConfigService,
+                mediaType: media.mediaType
+            ) else { return }
+            serviceDetails = resolved.details
+            selectedProfileID = resolved.profileID
+            selectedRootFolder = resolved.rootFolder
         } catch {
             // Swallow, dropdowns simply won't appear and the request
             // will use Seerr's defaults.
