@@ -32,6 +32,11 @@ final class DetailViewModel {
         (item.localTrailerCount ?? 0) > 0
     }
 
+    /// Season the tab bar currently has selected; the season synopsis box reads its overview.
+    var selectedSeason: JellyfinItem? {
+        selectedSeasonID.flatMap { id in seasons.first(where: { $0.id == id }) }
+    }
+
     private let itemService: JellyfinItemServiceProtocol
     private let libraryService: JellyfinLibraryServiceProtocol?
     private let playbackService: JellyfinPlaybackServiceProtocol?
