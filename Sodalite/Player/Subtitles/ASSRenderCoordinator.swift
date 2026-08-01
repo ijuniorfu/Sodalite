@@ -107,6 +107,9 @@ final class ASSRenderCoordinator {
         renderer?.freeTrack()
         renderer = nil
         builder = nil
+        // The offered set is keyed against THIS builder's contents; a new track builds a new one.
+        // `activate` deactivates first, so clearing here covers both directions.
+        offered.reset()
         pendingEvents = false
         earliestPendingStart = .infinity
         lastReloadAt = .distantPast
@@ -121,11 +124,43 @@ final class ASSRenderCoordinator {
         flushPendingEventsIfDue()
     }
 
+    /// Which cues have already been handed to the builder, so a publication carrying the whole
+    /// cumulative array only pays for the new ones (AetherEngine#271).
+    ///
+    /// `ASSScriptBuilder.add` is not cheap per cue: it splits the raw event, splits its nine
+    /// fields, materializes a `start|end|line` dedupe key and hashes it. The engine publishes a
+    /// cumulative snapshot, which cannot say which of its elements are new, so this sink saw every
+    /// retained cue again on every publication and rebuilt all those keys to learn that nothing
+    /// changed. On a typeset track that is thousands of string builds per publication.
+    ///
+    /// The engine's retained store stamps every cue with a session-monotonic id it never reuses,
+    /// so an (id, endTime) pair already offered cannot describe a different event. `endTime` is
+    /// part of the key because a retained cue can be closed in place (AetherEngine#107 teletext
+    /// page semantics); such a cue is offered again, exactly as before this filter existed.
+    struct OfferedCues {
+        private struct Key: Hashable {
+            let id: Int
+            let endTime: Double
+        }
+        private var seen: Set<Key> = []
+
+        /// True the first time this exact cue is seen; false on every later publication of it.
+        mutating func take(_ cue: SubtitleCue) -> Bool {
+            seen.insert(Key(id: cue.id, endTime: cue.endTime)).inserted
+        }
+
+        mutating func reset() {
+            seen.removeAll(keepingCapacity: false)
+        }
+    }
+
+    private var offered = OfferedCues()
+
     private func consume(cues: [SubtitleCue]) {
         guard let builder else { return }
         var addedAny = false
         for cue in cues {
-            guard case .text(let raw) = cue.body else { continue }
+            guard case .text(let raw) = cue.body, offered.take(cue) else { continue }
             if builder.add(rawEventText: raw, start: cue.startTime, end: cue.endTime) {
                 addedAny = true
                 earliestPendingStart = min(earliestPendingStart, cue.startTime)
