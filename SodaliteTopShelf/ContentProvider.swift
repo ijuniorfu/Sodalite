@@ -53,8 +53,6 @@ final class ContentProvider: TVTopShelfContentProvider {
                                                   accent: TopShelfAccent.read())
         log.info("resume bars rendered=\(bars.count)")
 
-        TopShelfDiagnostics.record("bars=\(bars.count)/\(resumeItems.count)")
-
         var sections: [TVTopShelfItemCollection<TVTopShelfSectionedItem>] = []
 
         if !resumeItems.isEmpty {

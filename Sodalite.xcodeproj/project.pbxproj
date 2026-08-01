@@ -240,7 +240,6 @@
 		568102BCBD323D73B1DC5806 /* StoreKitService.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACD612B8B5146AAF6925E6A3 /* StoreKitService.swift */; };
 		571281CBAC69E4893F7AD868 /* TagRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9422C27A917981DB27265203 /* TagRow.swift */; };
 		572F05C2C72CB24801C2866B /* ServerAddressEntryViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D7940D0EDA65B631385D51B /* ServerAddressEntryViewModel.swift */; };
-		583F58ECD94C63F4483344A5 /* TopShelfDiagnostics.swift in Sources */ = {isa = PBXBuildFile; fileRef = F269188DC37873190366273B /* TopShelfDiagnostics.swift */; };
 		588843BE91C735C672414477 /* Color+Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C2FBEBB8926214D1253EA10 /* Color+Theme.swift */; };
 		5939CD9349B214F8A1020362 /* TransportBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8915E7229A24538FA098A0D /* TransportBar.swift */; };
 		594DC18DBE99B28BFEDBA4AC /* DeepLinkRoute.swift in Sources */ = {isa = PBXBuildFile; fileRef = B358C258474B9350188F12C6 /* DeepLinkRoute.swift */; };
@@ -1133,7 +1132,6 @@
 		F0775B7110033A2904C61B15 /* BackgroundRendererGeometryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundRendererGeometryTests.swift; sourceTree = "<group>"; };
 		F0AC027922382F10B2A84DD1 /* CloudSyncMergeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudSyncMergeTests.swift; sourceTree = "<group>"; };
 		F107F8B6AF976EDFD99B7792 /* PendingRequestsNotifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PendingRequestsNotifier.swift; sourceTree = "<group>"; };
-		F269188DC37873190366273B /* TopShelfDiagnostics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TopShelfDiagnostics.swift; sourceTree = "<group>"; };
 		F2A12C31D886E7C8BAB3764D /* ExternalSubtitleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExternalSubtitleView.swift; sourceTree = "<group>"; };
 		F2D94C696BD816FE0622F904 /* StoreProducts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreProducts.swift; sourceTree = "<group>"; };
 		F32D566B3DFE9143E274085A /* PINRecoveryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PINRecoveryView.swift; sourceTree = "<group>"; };
@@ -1766,7 +1764,6 @@
 				3E5B72CBD1742393EBDD5D1C /* ResumeBarRenderer.swift */,
 				EA7FF027C0B79969074919EB /* SharedSession.swift */,
 				602D5AFF859F3E9604F56EEE /* TopShelfCache.swift */,
-				F269188DC37873190366273B /* TopShelfDiagnostics.swift */,
 			);
 			path = SodaliteTopShelf;
 			sourceTree = "<group>";
@@ -2516,7 +2513,6 @@
 				B56A48C351B74F2161ADABFF /* TopShelfAccent.swift in Sources */,
 				33D616554964B1890780EB2D /* TopShelfCache.swift in Sources */,
 				4C0BAD9C34D5BDDD59997F29 /* TopShelfCachePolicy.swift in Sources */,
-				583F58ECD94C63F4483344A5 /* TopShelfDiagnostics.swift in Sources */,
 				9F6C0E5C1F7B49BA88F7D0F7 /* TopShelfProgress.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
