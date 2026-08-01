@@ -34,6 +34,7 @@ struct MediaDeletionRequestCleanupTests {
             try decodeTVDetail(requests: requests)
         }
         func tvSeasonDetail(tmdbID: Int, seasonNumber: Int) async throws -> SeerrSeasonDetail { throw Boom() }
+        func collection(collectionID: Int) async throws -> SeerrCollection { throw Boom() }
         func recommendations(mediaType: SeerrMediaType, tmdbID: Int) async throws -> [SeerrMedia] { [] }
         func similar(mediaType: SeerrMediaType, tmdbID: Int) async throws -> [SeerrMedia] { [] }
         func ratings(mediaType: SeerrMediaType, tmdbID: Int) async throws -> SeerrRTRating { throw Boom() }

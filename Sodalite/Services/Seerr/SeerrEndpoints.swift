@@ -22,6 +22,8 @@ enum SeerrEndpoint: APIEndpoint {
 
     case movieDetail(tmdbID: Int)
     case tvDetail(tmdbID: Int)
+    /// GET /api/v1/collection/{id}: a TMDB movie collection plus its parts, each with the same mediaInfo the discover rows carry.
+    case collection(collectionID: Int)
     case tvSeasonDetail(tmdbID: Int, seasonNumber: Int)
     case personDetail(tmdbID: Int)
     case personCombinedCredits(tmdbID: Int)
@@ -77,6 +79,7 @@ enum SeerrEndpoint: APIEndpoint {
         case .search: "/api/v1/search"
         case .movieDetail(let id): "/api/v1/movie/\(id)"
         case .tvDetail(let id): "/api/v1/tv/\(id)"
+        case .collection(let id): "/api/v1/collection/\(id)"
         case .tvSeasonDetail(let id, let n): "/api/v1/tv/\(id)/season/\(n)"
         case .personDetail(let id): "/api/v1/person/\(id)"
         case .personCombinedCredits(let id): "/api/v1/person/\(id)/combined_credits"

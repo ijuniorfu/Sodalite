@@ -16,6 +16,8 @@ struct SeerrMovieDetail: Codable, Sendable {
     let watchProviders: [SeerrWatchProviderRegion]?
     let releases: SeerrReleases?
     let externalIds: SeerrExternalIds?
+    /// TMDB's `belongs_to_collection`, present only for movies that are part of one; drives the collection entry point.
+    let collection: SeerrCollectionRef?
 
     var displayYear: String? {
         guard let releaseDate, releaseDate.count >= 4 else { return nil }

@@ -169,6 +169,7 @@ The Seerr integration isn't a tacked-on link to a web view. It's a first-class p
 ### 📨 Request what's missing
 - **Seerr integration**: browse trending and popular media right inside the app
 - **One-tap requests** for movies and full series
+- **Collections**: a movie that belongs to a series of films (Despicable Me, John Wick, Toy Story) links straight to its collection, showing every part with its availability and requesting all the ones you're missing in one go
 - **Track status**: see what's been approved, declined, or is already downloading
 - **Honest availability**: cross-checks your Jellyfin library so a title (or single season) deleted in Radarr / Sonarr shows as gone, not a stale "available", and stays re-requestable
 - **Single sign-on**: log in once, Sodalite handles your Seerr session
