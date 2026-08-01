@@ -57379,6 +57379,330 @@
         }
       }
     },
+    "changelog.1_0_0.collections.title" : {
+      "comment" : "Changelog 1.0.0: film collections headline",
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filmové kolekce"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filmsamlinger"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filmreihen"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Συλλογές ταινιών"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Film collections"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Colecciones de películas"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Elokuvakokoelmat"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Collections de films"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filmske kolekcije"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filmgyűjtemények"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Raccolte di film"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "映画コレクション"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "영화 컬렉션"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filmsamlinger"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filmcollecties"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kolekcje filmowe"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Coleções de filmes"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Coleções de filmes"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Colecții de filme"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Коллекции фильмов"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filmové kolekcie"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filmsamlingar"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Film koleksiyonları"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Колекції фільмів"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "电影合集"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "電影系列"
+          }
+        }
+      }
+    },
+    "changelog.1_0_0.collections.body" : {
+      "comment" : "Changelog 1.0.0: film collections detail",
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Film, který patří do filmové řady, vede přímo ke své kolekci: všechny díly s jejich dostupností a jedna akce pro vyžádání všeho, co v knihovně chybí."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En film, der er del af en filmrække, fører direkte til sin samling: alle dele med deres tilgængelighed og én handling til at anmode om alt, der mangler i biblioteket."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ein Film, der zu einer Reihe gehört, führt direkt zu seiner Sammlung: alle Teile mit ihrer Verfügbarkeit, und eine Aktion für alles, was in der Bibliothek fehlt."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Μια ταινία που ανήκει σε μια σειρά ταινιών οδηγεί απευθείας στη συλλογή της: όλα τα μέρη με τη διαθεσιμότητά τους και μία ενέργεια για να ζητηθούν όσα λείπουν από τη βιβλιοθήκη."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A movie that is part of a series of films links straight to its collection: every part with its availability, and one action to request all the ones missing from your library."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Una película que forma parte de una saga lleva directamente a su colección: todas las partes con su disponibilidad y una sola acción para solicitar las que faltan en la biblioteca."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Elokuva, joka kuuluu elokuvasarjaan, johtaa suoraan kokoelmaansa: kaikki osat saatavuuksineen ja yksi toiminto kaikkien kirjastosta puuttuvien pyytämiseen."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Un film qui fait partie d'une saga mène directement à sa collection : toutes les parties avec leur disponibilité, et une seule action pour demander celles qui manquent à la bibliothèque."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Film koji pripada filmskoj seriji vodi izravno do svoje kolekcije: svi dijelovi sa svojom dostupnošću i jedna radnja za traženje svega što nedostaje u biblioteci."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Egy filmsorozathoz tartozó film közvetlenül a gyűjteményéhez vezet: minden rész az elérhetőségével, és egyetlen művelet mindannak kérésére, ami hiányzik a könyvtárból."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Un film che fa parte di una serie porta direttamente alla sua raccolta: tutte le parti con la loro disponibilità e una sola azione per richiedere quelle che mancano nella libreria."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "シリーズ作品の映画から、そのコレクションへ直接移動できます。すべての作品が利用状況とともに並び、ライブラリにないものをまとめてリクエストできます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "시리즈에 속한 영화에서 해당 컬렉션으로 바로 이동합니다. 모든 작품이 이용 가능 여부와 함께 표시되고, 라이브러리에 없는 작품을 한 번에 요청할 수 있습니다."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En film som er del av en filmserie, fører rett til samlingen sin: alle delene med tilgjengeligheten sin, og én handling for å be om alt som mangler i biblioteket."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Een film die deel uitmaakt van een filmreeks leidt direct naar zijn collectie: alle delen met hun beschikbaarheid en één actie om alles aan te vragen wat in de bibliotheek ontbreekt."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Film należący do serii prowadzi prosto do swojej kolekcji: wszystkie części wraz z ich dostępnością i jedna akcja, aby poprosić o wszystko, czego brakuje w bibliotece."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Um filme que faz parte de uma série leva direto à sua coleção: todas as partes com sua disponibilidade e uma única ação para solicitar tudo o que falta na biblioteca."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Um filme que faz parte de uma série leva diretamente à sua coleção: todas as partes com a sua disponibilidade e uma única ação para pedir tudo o que falta na biblioteca."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Un film care face parte dintr-o serie duce direct la colecția sa: toate părțile cu disponibilitatea lor și o singură acțiune pentru a solicita tot ce lipsește din bibliotecă."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Фильм, входящий в серию, ведёт прямо к своей коллекции: все части с их доступностью и одно действие, чтобы запросить всё, чего нет в библиотеке."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Film, ktorý patrí do filmovej série, vedie priamo k svojej kolekcii: všetky časti s ich dostupnosťou a jedna akcia na vyžiadanie všetkého, čo v knižnici chýba."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En film som ingår i en filmserie leder direkt till sin samling: alla delar med sin tillgänglighet och en enda åtgärd för att begära allt som saknas i biblioteket."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bir seriye ait bir film doğrudan koleksiyonuna götürür: tüm filmler kullanılabilirlik durumlarıyla birlikte ve kitaplıkta eksik olanların tümünü istemek için tek bir eylem."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Фільм, що входить до серії, веде прямо до своєї колекції: усі частини з їхньою доступністю та одна дія, щоб запросити все, чого немає в бібліотеці."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "属于系列的电影可直接进入其合集：所有影片及其可观看状态一目了然，还能一次请求媒体库中缺少的全部影片。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "屬於系列的電影可直接進入其系列頁面：所有影片及其可觀看狀態一目了然，還能一次請求媒體庫中缺少的全部影片。"
+          }
+        }
+      }
+    },
     "changelog.1_0_0.dualUrl.body" : {
       "extractionState" : "manual",
       "localizations" : {
