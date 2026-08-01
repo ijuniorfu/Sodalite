@@ -877,13 +877,16 @@ struct SeriesDetailView: View {
             // metadata provider, so it renders only where the library actually has one. Placed below the
             // bar (it describes the season the tabs just selected) and above the focus bridge, so an
             // up-swipe out of the episode row still hits the bridge first and its redirect is unchanged.
-            if let seasonOverview = vm.selectedSeason?.overview, !seasonOverview.isEmpty {
-                ExpandableTextBox(text: seasonOverview)
+            if let season = vm.selectedSeason, let seasonOverview = season.overview, !seasonOverview.isEmpty {
+                ExpandableTextBox(text: seasonOverview, spoilerItem: season)
                     .padding(.horizontal, metrics.rowInset)
             }
 
             // Full-width invisible focus bridge between the season bar and episode row: an up-swipe from a far-right episode lands here before tvOS's picker continues up into the overview/tech-info cards, then redirects by which row the user came from on the next cycle.
             // Height 24pt: tvOS's geographic picker weights frame size on proximity ties and skips sub-10pt focusables near larger ones (1pt missed often, 8pt flaky on fast season-tab→down). 24pt is reliable.
+            // tvOS only: touch has no focus picker to redirect, so on iOS the bridge is 24pt of dead
+            // space plus two 20pt VStack gaps between the season block and the episode row.
+            #if os(tvOS)
             Color.clear
                 .frame(maxWidth: .infinity)
                 .frame(height: 24)
@@ -917,6 +920,7 @@ struct SeriesDetailView: View {
                         deferFocusWrite { focusedSeasonID = target }
                     }
                 }
+            #endif
 
             if vm.episodes.isEmpty && vm.isLoadingEpisodes {
                 episodeSkeletonRow(vm: vm)

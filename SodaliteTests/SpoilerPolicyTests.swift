@@ -8,13 +8,17 @@ struct SpoilerPolicyTests {
         id: String = "i1",
         type: String = "Episode",
         played: Bool? = nil,
-        percentage: Double? = nil
+        percentage: Double? = nil,
+        childCount: Int? = nil,
+        unplayed: Int? = nil
     ) throws -> JellyfinItem {
         var json = #"{"Id":"\#(id)","Name":"N","Type":"\#(type)""#
-        if played != nil || percentage != nil {
+        if let childCount { json += #","ChildCount":\#(childCount)"# }
+        if played != nil || percentage != nil || unplayed != nil {
             var parts: [String] = []
             if let played { parts.append(#""Played":\#(played)"#) }
             if let percentage { parts.append(#""PlayedPercentage":\#(percentage)"#) }
+            if let unplayed { parts.append(#""UnplayedItemCount":\#(unplayed)"#) }
             json += #","UserData":{"# + parts.joined(separator: ",") + "}"
         }
         json += "}"
@@ -54,11 +58,39 @@ struct SpoilerPolicyTests {
         #expect(policy(movies: false).isHidden(try item(type: "Episode")))
     }
 
-    @Test("kinds other than episode and movie are never hidden")
+    @Test("kinds other than episode, season and movie are never hidden")
     func otherKindsVisible() throws {
         #expect(!policy().isHidden(try item(type: "Series")))
-        #expect(!policy().isHidden(try item(type: "Season")))
         #expect(!policy().isHidden(try item(type: "BoxSet")))
+    }
+
+    // MARK: Seasons
+
+    @Test("an unwatched season's synopsis is hidden, under the episode switch")
+    func unwatchedSeasonHidden() throws {
+        #expect(policy().isHidden(try item(type: "Season")))
+        #expect(!policy(episodes: false).isHidden(try item(type: "Season")))
+    }
+
+    @Test("a fully played season reveals")
+    func playedSeasonReveals() throws {
+        #expect(!policy().isHidden(try item(type: "Season", played: true)))
+    }
+
+    @Test("one watched episode reveals the season, the percentage a season never carries")
+    func startedSeasonReveals() throws {
+        #expect(!policy().isHidden(try item(type: "Season", childCount: 10, unplayed: 9)))
+        #expect(policy().isHidden(try item(type: "Season", childCount: 10, unplayed: 10)))
+        // Counts missing (a caller that didn't ask for ChildCount): no evidence of a start, stay hidden.
+        #expect(policy().isHidden(try item(type: "Season", unplayed: 9)))
+        #expect(policy().isHidden(try item(type: "Season", childCount: 10)))
+    }
+
+    @Test("a season's artwork is never veiled, only its synopsis")
+    func seasonArtworkStaysVisible() throws {
+        let season = try item(type: "Season")
+        #expect(policy().isHidden(season, surface: .text))
+        #expect(!policy().isHidden(season, surface: .artwork))
     }
 
     @Test("played reveals")

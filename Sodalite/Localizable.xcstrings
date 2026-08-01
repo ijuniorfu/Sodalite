@@ -112876,157 +112876,157 @@
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Platí pro popisy epizod a obrázky epizod."
+            "value" : "Platí pro popisy epizod a sezón a pro obrázky epizod."
           }
         },
         "da" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Gælder for episodebeskrivelser og episodebilleder."
+            "value" : "Gælder for episode- og sæsonbeskrivelser og episodebilleder."
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Gilt für Episodenbeschreibungen und Episodenbilder."
+            "value" : "Gilt für Episoden- und Staffelbeschreibungen sowie Episodenbilder."
           }
         },
         "el" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ισχύει για περιγραφές και εικόνες επεισοδίων."
+            "value" : "Ισχύει για περιγραφές επεισοδίων και κύκλων, καθώς και για εικόνες επεισοδίων."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Applies to episode descriptions and episode images."
+            "value" : "Applies to episode and season descriptions and to episode images."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Se aplica a las descripciones y las imágenes de episodios."
+            "value" : "Se aplica a las descripciones de episodios y temporadas y a las imágenes de episodios."
           }
         },
         "fi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Koskee jaksojen kuvauksia ja jaksokuvia."
+            "value" : "Koskee jaksojen ja tuotantokausien kuvauksia sekä jaksokuvia."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "S'applique aux descriptions et aux images d'épisodes."
+            "value" : "S'applique aux descriptions d'épisodes et de saisons ainsi qu'aux images d'épisodes."
           }
         },
         "hr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Odnosi se na opise i slike epizoda."
+            "value" : "Odnosi se na opise epizoda i sezona te na slike epizoda."
           }
         },
         "hu" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Az epizódleírásokra és az epizódképekre vonatkozik."
+            "value" : "Az epizód- és évadleírásokra, valamint az epizódképekre vonatkozik."
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Si applica a descrizioni e immagini degli episodi."
+            "value" : "Si applica alle descrizioni di episodi e stagioni e alle immagini degli episodi."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "エピソードのあらすじと画像に適用されます。"
+            "value" : "エピソードとシーズンのあらすじ、およびエピソード画像に適用されます。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "에피소드 설명과 이미지에 적용됩니다."
+            "value" : "에피소드와 시즌 설명, 에피소드 이미지에 적용됩니다."
           }
         },
         "nb" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Gjelder for episodebeskrivelser og episodebilder."
+            "value" : "Gjelder for episode- og sesongbeskrivelser og episodebilder."
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Geldt voor afleveringsbeschrijvingen en afleveringsafbeeldingen."
+            "value" : "Geldt voor aflevering- en seizoensbeschrijvingen en afleveringsafbeeldingen."
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Dotyczy opisów i obrazów odcinków."
+            "value" : "Dotyczy opisów odcinków i sezonów oraz obrazów odcinków."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Aplica-se a descrições e imagens de episódios."
+            "value" : "Aplica-se a descrições de episódios e temporadas e a imagens de episódios."
           }
         },
         "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Aplica-se a descrições e imagens de episódios."
+            "value" : "Aplica-se a descrições de episódios e temporadas e a imagens de episódios."
           }
         },
         "ro" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Se aplică descrierilor și imaginilor episoadelor."
+            "value" : "Se aplică descrierilor episoadelor și sezoanelor, precum și imaginilor episoadelor."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Применяется к описаниям и кадрам эпизодов."
+            "value" : "Применяется к описаниям эпизодов и сезонов, а также к кадрам эпизодов."
           }
         },
         "sk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Platí pre popisy epizód a obrázky epizód."
+            "value" : "Platí pre popisy epizód a sezón, ako aj pre obrázky epizód."
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Gäller avsnittsbeskrivningar och avsnittsbilder."
+            "value" : "Gäller avsnitts- och säsongsbeskrivningar samt avsnittsbilder."
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bölüm açıklamaları ve bölüm görselleri için geçerlidir."
+            "value" : "Bölüm ve sezon açıklamaları ile bölüm görselleri için geçerlidir."
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Застосовується до описів і кадрів епізодів."
+            "value" : "Застосовується до описів епізодів і сезонів, а також до кадрів епізодів."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "适用于分集简介和分集剧照。"
+            "value" : "适用于分集和季的简介以及分集剧照。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "適用於分集簡介與分集劇照。"
+            "value" : "適用於分集和季的簡介以及分集劇照。"
           }
         }
       }
