@@ -10,6 +10,8 @@ struct CollectionDetailView: View {
     @State private var showPlayer = false
     @State private var playItem: JellyfinItem?
     @State private var playQueue: [JellyfinItem] = []
+    /// Play resumes a partially watched film; Shuffle always starts its pick from the top.
+    @State private var playFromBeginning = true
 
     let item: JellyfinItem
 
@@ -37,7 +39,7 @@ struct CollectionDetailView: View {
                 PlayerLauncher(
                     isPresented: $showPlayer,
                     item: showPlayer ? playItem : nil,
-                    startFromBeginning: true,
+                    startFromBeginning: playFromBeginning,
                     playbackService: dependencies.jellyfinPlaybackService,
                     userID: userID,
                     preferences: dependencies.playbackPreferences,
@@ -154,17 +156,32 @@ struct CollectionDetailView: View {
         }
     }
 
+    /// Plays the first unfinished film and queues the rest behind it. Until Sodalite#53 this
+    /// navigated to the first item's detail page, duplicating its own first list row.
     private func primaryActionButton(vm: DetailViewModel) -> some View {
-        GlassActionButton(
+        let queue = playableItems(vm: vm)
+        let start = CollectionPlaybackQueue.startIndex(
+            playedFlags: queue.map { $0.userData?.played == true }
+        )
+        return GlassActionButton(
             title: "detail.play",
             systemImage: "play.fill",
             isProminent: true,
+            subtitle: queue.indices.contains(start) ? queue[start].name : nil,
             action: {
-                if let first = vm.collectionItems.first {
-                    selectedItem = first
-                }
+                guard queue.indices.contains(start) else { return }
+                playItem = queue[start]
+                playQueue = Array(queue[start...])
+                playFromBeginning = false
+                showPlayer = true
             }
         )
+    }
+
+    /// Members already loaded; filtered to playable leaf types so a nested series can't seed an
+    /// unplayable queue entry.
+    private func playableItems(vm: DetailViewModel) -> [JellyfinItem] {
+        vm.collectionItems.filter { CollectionPlaybackQueue.playableTypes.contains($0.type) }
     }
 
     @ViewBuilder
@@ -173,13 +190,11 @@ struct CollectionDetailView: View {
             title: "action.shuffle",
             systemImage: "shuffle",
             action: {
-                // Members already loaded; shuffle client-side, filtered to playable leaf types so a nested series can't seed an unplayable queue entry.
-                let queue = vm.collectionItems
-                    .filter { $0.type == .movie || $0.type == .episode }
-                    .shuffled()
+                let queue = playableItems(vm: vm).shuffled()
                 guard let first = queue.first else { return }
                 playItem = first
                 playQueue = queue
+                playFromBeginning = true
                 showPlayer = true
             }
         )
