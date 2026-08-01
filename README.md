@@ -107,7 +107,7 @@ The Seerr integration isn't a tacked-on link to a web view. It's a first-class p
 - **Home**: Continue Watching, Next Up, a separate Latest row for each of your libraries, plus a My Media row to jump straight into any library; every row can be toggled and reordered, and Continue Watching and Next Up can optionally merge into a single row
 - **Library**: Movies, Series, Collections with poster grids, instant filtering and an All / Unwatched / Watched watch-status filter on every grid; a library grid follows your server's "Group movies into collections" setting, so a collection shows up as one tile, and you can override that per server in Settings → Customize Home
 - **Series view**: season picker, episode list, "Up Next" highlighting
-- **Playlists**: your Jellyfin playlists get their own Home row and a detail page that plays through in order
+- **Collections and playlists**: a detail page that opens straight on its film list and plays through in order, starting from the first title you haven't finished; playlists also get their own Home row
 - **Search**: across your whole server, results as you type
 - **Image caching & prefetching**: posters and backdrops load before you reach them
 - **Delete from the app**: remove movies, series, or individual seasons from your library, with optional cleanup of matching Radarr / Sonarr entries when Jellyseerr is connected

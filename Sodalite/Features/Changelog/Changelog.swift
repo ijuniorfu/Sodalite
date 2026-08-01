@@ -76,6 +76,12 @@ enum Changelog {
                 ),
                 ChangelogHighlight(
                     .improve,
+                    "changelog.1_0_0.detailNavigation.title",
+                    "changelog.1_0_0.detailNavigation.body",
+                    icon: "chevron.down.circle.fill"
+                ),
+                ChangelogHighlight(
+                    .improve,
                     "changelog.1_0_0.everyScreen.title",
                     "changelog.1_0_0.everyScreen.body",
                     icon: "apps.iphone"

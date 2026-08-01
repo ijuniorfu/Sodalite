@@ -57703,6 +57703,328 @@
         }
       }
     },
+    "changelog.1_0_0.detailNavigation.body" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stránky s detaily na Apple TV nyní označují spodní okraj plovoucí šipkou, takže vám nic pod ním neunikne. Kolekce a playlisty se otevírají rovnou na seznamu položek a Přehrát spustí první nedokončený titul."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Detaljesider på Apple TV markerer nu skærmkanten med en svævende pil, så intet nedenunder overses. Samlinger og afspilningslister åbner direkte på deres liste, og Afspil starter den første titel, du ikke har set færdig."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Detailseiten auf dem Apple TV markieren den unteren Bildschirmrand jetzt mit einem schwebenden Pfeil, damit nichts darunter übersehen wird. Sammlungen und Playlists öffnen direkt in ihrer Liste, und Wiedergabe startet den ersten noch nicht beendeten Titel."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Οι σελίδες λεπτομερειών στο Apple TV επισημαίνουν πλέον το κάτω όριο με ένα αιωρούμενο βέλος, ώστε να μην περνά τίποτα απαρατήρητο. Οι συλλογές και οι λίστες ανοίγουν κατευθείαν στη λίστα τους και η Αναπαραγωγή ξεκινά τον πρώτο τίτλο που δεν ολοκληρώσατε."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Detail pages on Apple TV now mark the bottom of the screen with a floating arrow, so nothing below it goes unnoticed. Collections and playlists open right on their item list, and Play starts the first title you have not finished."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Las páginas de detalles en Apple TV ahora marcan el borde inferior con una flecha flotante, para que nada de lo que hay debajo pase desapercibido. Las colecciones y listas se abren directamente en su lista, y Reproducir inicia el primer título que no has terminado."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple TV:n tietosivut merkitsevät nyt näytön alareunan kelluvalla nuolella, joten mikään sen alla ei jää huomaamatta. Kokoelmat ja soittolistat avautuvat suoraan listaansa, ja Toista aloittaa ensimmäisen kesken jääneen nimikkeen."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les pages de détail sur Apple TV signalent désormais le bas de l'écran par une flèche flottante, pour que rien en dessous ne passe inaperçu. Les collections et listes s'ouvrent directement sur leur liste, et Lire démarre le premier titre non terminé."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stranice s detaljima na Apple TV-u sada označavaju donji rub zaslona lebdećom strelicom, pa ništa ispod ne ostaje nezapaženo. Zbirke i playliste otvaraju se izravno na svom popisu, a Reproduciraj pokreće prvi nedovršeni naslov."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Az Apple TV részletes oldalai mostantól lebegő nyíllal jelölik a képernyő alját, így semmi nem marad észrevétlen. A gyűjtemények és lejátszási listák egyből a listájukon nyílnak meg, a Lejátszás pedig az első befejezetlen címet indítja."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le pagine di dettaglio su Apple TV ora segnalano il bordo inferiore con una freccia fluttuante, così nulla di ciò che sta sotto passa inosservato. Raccolte e playlist si aprono direttamente sul loro elenco e Riproduci avvia il primo titolo non finito."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple TV の詳細ページに、画面の下にまだ続きがあることを示す矢印が表示されるようになりました。コレクションとプレイリストは項目リストから開き、再生は見終わっていない最初の作品から始まります。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple TV의 상세 페이지가 이제 떠 있는 화살표로 화면 아래에 더 있음을 알려 줍니다. 컬렉션과 재생목록은 바로 항목 목록에서 열리고, 재생은 아직 다 보지 않은 첫 작품부터 시작합니다."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Detaljsider på Apple TV markerer nå nedre skjermkant med en svevende pil, så ingenting under blir oversett. Samlinger og spillelister åpnes rett på listen sin, og Spill av starter den første tittelen du ikke har sett ferdig."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Detailpagina's op Apple TV markeren de onderrand nu met een zwevende pijl, zodat niets eronder onopgemerkt blijft. Collecties en afspeellijsten openen direct op hun lijst, en Afspelen start de eerste titel die je niet hebt uitgekeken."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Strony szczegółów na Apple TV oznaczają teraz dolną krawędź unoszącą się strzałką, więc nic poniżej nie umknie uwadze. Kolekcje i playlisty otwierają się od razu na swojej liście, a Odtwórz uruchamia pierwszy nieukończony tytuł."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "As páginas de detalhes na Apple TV agora marcam a borda inferior com uma seta flutuante, para que nada abaixo passe despercebido. Coleções e playlists abrem direto na lista de itens, e Reproduzir inicia o primeiro título que você não terminou."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "As páginas de detalhes na Apple TV marcam agora o limite inferior do ecrã com uma seta flutuante, para que nada por baixo passe despercebido. Coleções e listas abrem diretamente na sua lista, e Reproduzir inicia o primeiro título que não terminou."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paginile de detalii pe Apple TV marchează acum marginea de jos a ecranului cu o săgeată plutitoare, astfel încât nimic de dedesubt să nu treacă neobservat. Colecțiile și listele se deschid direct pe lista lor, iar Redare pornește primul titlu neterminat."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Страницы с описанием на Apple TV теперь отмечают нижний край экрана плавающей стрелкой, чтобы ничего под ней не осталось незамеченным. Коллекции и плейлисты открываются сразу на списке, а «Воспроизвести» запускает первый незавершённый фильм."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stránky s detailmi na Apple TV teraz označujú spodný okraj obrazovky plávajúcou šípkou, takže nič pod ňou neunikne. Kolekcie a playlisty sa otvárajú priamo na svojom zozname a Prehrať spustí prvý nedokončený titul."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Detaljsidor på Apple TV markerar nu skärmens nederkant med en svävande pil, så att inget nedanför missas. Samlingar och spellistor öppnas direkt på sin lista, och Spela upp startar den första titeln du inte sett klart."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple TV'deki ayrıntı sayfaları artık ekranın alt sınırını süzülen bir okla işaretliyor, böylece altındakiler gözden kaçmıyor. Koleksiyonlar ve çalma listeleri doğrudan öğe listesinde açılıyor ve Oynat, bitirmediğiniz ilk yapımı başlatıyor."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сторінки з описом на Apple TV тепер позначають нижній край екрана плавною стрілкою, щоб нічого під нею не лишилося непоміченим. Колекції та плейлисти відкриваються одразу на своєму списку, а «Відтворити» запускає перший незавершений фільм."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple TV 上的详情页现在会用一个浮动箭头标出屏幕下缘，提示下面还有内容。合集和播放列表直接从条目列表打开，播放会从你尚未看完的第一部开始。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple TV 上的詳細資料頁現在會以浮動箭頭標示螢幕下緣，提示下方還有內容。合集與播放清單直接從項目列表開啟，播放會從你尚未看完的第一部開始。"
+          }
+        }
+      }
+    },
+    "changelog.1_0_0.detailNavigation.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Snazší prozkoumávání"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nemmere at udforske"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Leichter zu erkunden"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Πιο εύκολη εξερεύνηση"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Easier to explore"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Más fácil de explorar"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Helpompi tutkia"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Plus facile à explorer"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lakše istraživanje"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Könnyebb felfedezés"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Più facile da esplorare"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "見つけやすく"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "더 쉬운 탐색"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enklere å utforske"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Makkelijker verkennen"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Łatwiejsze przeglądanie"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mais fácil de explorar"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mais fácil de explorar"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mai ușor de explorat"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Удобнее исследовать"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ľahšie preskúmanie"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enklare att utforska"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keşfetmesi daha kolay"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Зручніше досліджувати"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更易于探索"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更易於探索"
+          }
+        }
+      }
+    },
     "changelog.1_0_0.dualUrl.body" : {
       "extractionState" : "manual",
       "localizations" : {
