@@ -87,7 +87,15 @@ struct CatalogDetailView: View {
             PersonDetailView(personID: member.personID ?? 0, personName: member.name)
         }
         .navigationDestination(item: $navigateToCollection) { collection in
-            CatalogCollectionView(collection: collection)
+            // Hand over the Radarr options this screen already resolved: re-deriving them there is two more round
+            // trips against a live Radarr, and the request button is the first focused element on that page, so its
+            // sheet regularly opened before they landed and silently offered no options at all.
+            CatalogCollectionView(
+                collection: collection,
+                serviceDetails: serviceDetails,
+                profileID: selectedProfileID,
+                rootFolder: selectedRootFolder
+            )
         }
         .sheet(isPresented: $showRequestOptions) {
             requestOptionsSheet
@@ -241,33 +249,18 @@ struct CatalogDetailView: View {
                 )
                 .focused($focusedField, equals: .request)
             } else if media.mediaType == .movie || media.mediaType == .tv {
-                GlassActionButton(
-                    title: requestButtonTitle,
-                    systemImage: "tray.and.arrow.down",
-                    isProminent: true,
-                    isLoading: isSubmitting,
-                    action: { requestButtonTapped() }
-                )
-                .focused($focusedField, equals: .request)
-                .disabled(isSubmitting)
-                .frame(maxWidth: isPhonePortrait ? .infinity : nil)
+                // Side by side wherever there is width (tvOS, iPad, phone landscape), matching the movie and series
+                // detail rows; only the narrow phone portrait stacks them full width.
+                if isPhonePortrait {
+                    VStack(spacing: 12) { requestButtons }
+                } else {
+                    HStack(spacing: 16) { requestButtons }
+                }
 
                 if let requestError {
                     Text(requestError)
                         .font(.caption)
                         .foregroundStyle(.red)
-                }
-
-                // Only offered while a request is actually open. Jellyseerr never revisits a request once it stops moving (its availability sync looks at available titles only), so a title pulled out of Sonarr elsewhere keeps reporting a pipeline state with no way to clear it from here.
-                if !openRequests.isEmpty {
-                    GlassActionButton(
-                        title: "catalog.request.cancel",
-                        systemImage: "xmark.circle",
-                        isDestructive: true,
-                        isLoading: isCancellingRequest,
-                        action: { showCancelRequestConfirm = true }
-                    )
-                    .frame(maxWidth: isPhonePortrait ? .infinity : nil)
                 }
             }
         }
@@ -286,6 +279,32 @@ struct CatalogDetailView: View {
             }
         } message: {
             Text("catalog.request.cancel.confirm.message")
+        }
+    }
+
+    @ViewBuilder
+    private var requestButtons: some View {
+        GlassActionButton(
+            title: requestButtonTitle,
+            systemImage: "tray.and.arrow.down",
+            isProminent: true,
+            isLoading: isSubmitting,
+            action: { requestButtonTapped() }
+        )
+        .focused($focusedField, equals: .request)
+        .disabled(isSubmitting)
+        .frame(maxWidth: isPhonePortrait ? .infinity : nil)
+
+        // Only offered while a request is actually open. Jellyseerr never revisits a request once it stops moving (its availability sync looks at available titles only), so a title pulled out of Sonarr elsewhere keeps reporting a pipeline state with no way to clear it from here.
+        if !openRequests.isEmpty {
+            GlassActionButton(
+                title: "catalog.request.cancel",
+                systemImage: "xmark.circle",
+                isDestructive: true,
+                isLoading: isCancellingRequest,
+                action: { showCancelRequestConfirm = true }
+            )
+            .frame(maxWidth: isPhonePortrait ? .infinity : nil)
         }
     }
 

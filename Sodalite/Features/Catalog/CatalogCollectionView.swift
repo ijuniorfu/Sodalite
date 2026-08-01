@@ -16,11 +16,14 @@ struct CatalogCollectionView: View {
     @State private var errorMessage: String?
     @State private var selectedMedia: SeerrMedia?
 
-    /// Radarr defaults for the bulk request; nil leaves the options section empty and submits with Seerr's own defaults.
+    /// Radarr defaults for the bulk request, seeded from the pushing movie detail so the options are on screen from
+    /// the first frame; only a cold entry has to resolve them here.
     @State private var serviceDetails: SeerrServiceDetails?
     @State private var selectedProfileID: Int?
     @State private var selectedRootFolder: String?
     @State private var selectedTagIDs: Set<Int> = []
+    /// Distinguishes "still resolving" from "this server offers no options", which an empty section cannot.
+    @State private var isLoadingOptions = false
 
     @State private var showRequestOptions = false
     @State private var isSubmitting = false
@@ -47,6 +50,29 @@ struct CatalogCollectionView: View {
         #else
         return [GridItem(.adaptive(minimum: metrics.gridMinimum), spacing: metrics.gridSpacing)]
         #endif
+    }
+
+    /// LazyVGrid centers fixed columns inside whatever width it is handed, so a five-poster row floated in the middle
+    /// of a 4K screen. Capping the grid at its own intrinsic width lets the leading alignment outside actually bite.
+    /// Adaptive columns (iOS) already fill the width, hence no cap there.
+    private var gridMaxWidth: CGFloat {
+        #if os(tvOS)
+        return 5 * 220 + 4 * 32
+        #else
+        return .infinity
+        #endif
+    }
+
+    init(
+        collection: SeerrCollectionRef,
+        serviceDetails: SeerrServiceDetails? = nil,
+        profileID: Int? = nil,
+        rootFolder: String? = nil
+    ) {
+        self.collection = collection
+        _serviceDetails = State(initialValue: serviceDetails)
+        _selectedProfileID = State(initialValue: profileID)
+        _selectedRootFolder = State(initialValue: rootFolder)
     }
 
     var body: some View {
@@ -175,6 +201,8 @@ struct CatalogCollectionView: View {
                     }
                 }
             }
+            .frame(maxWidth: gridMaxWidth, alignment: .leading)
+            .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, metrics.rowInset)
         }
     }
@@ -199,6 +227,15 @@ struct CatalogCollectionView: View {
                     selectedRootFolder: $selectedRootFolder,
                     selectedTagIDs: $selectedTagIDs
                 )
+            } else if isLoadingOptions {
+                // Never silently drop the options: an empty section reads as "this server has none" while the
+                // Radarr lookup is still in flight, which is exactly how it looked before the seeding above.
+                HStack(spacing: 12) {
+                    ProgressView()
+                    Text("catalog.allRequests.edit.loading")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
             }
 
             // Always closes: the outcome (count plus the first failure) is rendered on the page behind, so a partial
@@ -297,6 +334,10 @@ struct CatalogCollectionView: View {
     }
 
     private func loadServiceConfig() async {
+        // Seeded by the pushing detail view, nothing to resolve.
+        guard serviceDetails == nil else { return }
+        isLoadingOptions = true
+        defer { isLoadingOptions = false }
         do {
             guard let resolved = try await SeerrRequestDefaults.resolve(
                 service: dependencies.seerrServiceConfigService,
