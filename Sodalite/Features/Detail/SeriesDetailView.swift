@@ -26,6 +26,10 @@ struct SeriesDetailView: View {
     @State private var isShuffleLoading = false
     /// Outer vertical ScrollView proxy; player-dismiss scrolls back to the episode row else the nil-flicker focus restore leaves the page stuck at the top.
     @State private var episodeRowScrollProxy: ScrollViewProxy?
+    /// Whole-page scroll proxy, iOS only (see PageScrollProxyCapture). Captured outside DetailContentOverlay so it can reach the glass panel, which sits above the content block episodeRowScrollProxy covers.
+    @State private var pageScrollProxy: ScrollViewProxy?
+    /// Scroll target on the glass panel; "Show Details" brings the episode panel into view with it.
+    private static let pageTopAnchor = "detailPageTop"
     @FocusState private var focusedSeasonID: String?
     @FocusState private var focusedEpisodeID: String?
     @FocusState private var focusBridgeActive: Bool
@@ -159,6 +163,7 @@ struct SeriesDetailView: View {
                     // Glass panel + action buttons as the bottom-aligned first-page block (Sodalite#15 round 6), kept one unit so the id-rebuild and episode crossfade cover both.
                     VStack(alignment: .leading, spacing: 24) {
                         glassPanel(vm: vm)
+                            .id(Self.pageTopAnchor)
                         actionButtonRow(vm: vm)
                     }
                     .padding(.horizontal, metrics.rowInset)
@@ -231,6 +236,7 @@ struct SeriesDetailView: View {
                         }
                     }
                 }
+                .modifier(PageScrollProxyCapture(proxy: $pageScrollProxy))
                 .transition(.opacity)
             } else {
                 // Centred spinner; gating on isLoading avoids the field-fill repaint storm (play title + subtitle + progress all change in a 300ms window) and lands the user on one finished render.
@@ -958,6 +964,7 @@ struct SeriesDetailView: View {
                                             withAnimation(.easeInOut(duration: 0.3)) {
                                                 selectedEpisode = episode
                                             }
+                                            #if os(tvOS)
                                             // Context menu restores focus to this card on dismiss; flag it so the focusedEpisodeID observer bounces focus up to Play (a fixed delay lost the race against the restore). The delayed write is a fallback when focus never visibly cycles.
                                             pendingPlayFocusAfterMenu = true
                                             deferOnMain(by: 0.6) {
@@ -966,6 +973,14 @@ struct SeriesDetailView: View {
                                                 playButtonFocused = false
                                                 DispatchQueue.main.async { playButtonFocused = true }
                                             }
+                                            #else
+                                            // Touch has no focus engine, so the focus bounce above (the only thing that
+                                            // scrolls the episode panel into view on tvOS) is inert here: the state flipped
+                                            // correctly but the panel sits a viewport up and the tech info far below, so the
+                                            // action read as a no-op. Scroll there explicitly instead. The defer rides out
+                                            // the context menu's dismiss morph, which otherwise fights the scroll.
+                                            scrollToEpisodePanel()
+                                            #endif
                                         } label: {
                                             Label("detail.episode.showDetails", systemImage: "info.circle")
                                         }
@@ -1107,6 +1122,15 @@ struct SeriesDetailView: View {
         .allowsHitTesting(false)
     }
 
+    /// Brings the glass panel (now in episode mode) into view. Inert on tvOS, where pageScrollProxy stays nil and the focus engine does the scrolling.
+    private func scrollToEpisodePanel() {
+        deferOnMain(by: 0.35) {
+            withAnimation(.easeInOut(duration: 0.4)) {
+                pageScrollProxy?.scrollTo(Self.pageTopAnchor, anchor: .top)
+            }
+        }
+    }
+
     private func scrollToCurrentEpisode(proxy: ScrollViewProxy, vm: DetailViewModel) {
         guard let currentID = vm.currentEpisodeID,
               vm.episodes.contains(where: { $0.id == currentID }) else { return }
@@ -1115,5 +1139,26 @@ struct SeriesDetailView: View {
                 proxy.scrollTo(currentID, anchor: .center)
             }
         }
+    }
+}
+
+/// Hands the detail page's vertical scroll proxy back to the view, iOS only.
+///
+/// The proxy has to be captured outside DetailContentOverlay to reach the glass panel; the reader
+/// inside the content block only covers what sits below it. On tvOS this is a pass-through: the
+/// focus engine already scrolls, and wrapping the overlay there would put a container into the tree
+/// the focus picker walks for no gain.
+private struct PageScrollProxyCapture: ViewModifier {
+    @Binding var proxy: ScrollViewProxy?
+
+    func body(content: Content) -> some View {
+        #if os(tvOS)
+        content
+        #else
+        ScrollViewReader { pageProxy in
+            content
+                .onAppear { proxy = pageProxy }
+        }
+        #endif
     }
 }

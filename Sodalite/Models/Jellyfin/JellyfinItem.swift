@@ -218,10 +218,15 @@ struct JellyfinItem: Codable, Sendable, Identifiable, Equatable, Hashable {
         userData = base.with(playbackPositionTicks: ticks, playedPercentage: pct)
     }
 
-    static func == (lhs: JellyfinItem, rhs: JellyfinItem) -> Bool {
-        lhs.id == rhs.id
-    }
-
+    // `==` is deliberately the synthesized structural one, NOT `lhs.id == rhs.id`. An id-only `==`
+    // makes every enrichment of an already-loaded item invisible: SwiftUI skips the invalidation for
+    // an Equatable @State whose new value compares equal, so swapping a slim episode for its detailed
+    // twin (same id, now with MediaStreams) wrote the storage but never re-ran body. The tech-info
+    // strip then stayed hidden until some unrelated state change forced a render, which is why tvOS
+    // seemed fine (its post-menu focus bounce is that unrelated change) and iOS did not.
+    //
+    // Hashing stays id-only: it is the cheap bucket, and the Hashable contract only requires equal
+    // values to hash equally, which holds because structural equality implies equal ids.
     func hash(into hasher: inout Hasher) {
         hasher.combine(id)
     }
