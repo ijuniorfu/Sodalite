@@ -45,6 +45,15 @@ struct RGBColor: Equatable, Sendable {
         Color(.sRGB, red: red, green: green, blue: blue)
     }
 
+    /// Round-trips `init(hex:)`, for the handful of consumers that need the packed value back
+    /// (the Top Shelf accent mirror). Rounds rather than truncates so 0xFF stays 0xFF.
+    var hex: UInt32 {
+        func channel(_ value: Double) -> UInt32 {
+            UInt32(min(255, max(0, (value * 255).rounded())))
+        }
+        return channel(red) << 16 | channel(green) << 8 | channel(blue)
+    }
+
     func contrastRatio(with other: RGBColor) -> Double {
         let high = max(relativeLuminance, other.relativeLuminance)
         let low = min(relativeLuminance, other.relativeLuminance)
