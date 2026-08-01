@@ -10,6 +10,10 @@ struct PlaylistDetailView: View {
     @State private var showPlayer = false
     @State private var playItem: JellyfinItem?
     @State private var playQueue: [JellyfinItem] = []
+    /// Value-based focus, keyed by item id, same shape as CollectionDetailView.
+    @FocusState private var focusedItemID: String?
+    /// One shot: no yank back to row one on every return from a film.
+    @State private var didFocusFirstRow = false
 
     let item: JellyfinItem
 
@@ -59,6 +63,16 @@ struct PlaylistDetailView: View {
         .navigationDestination(item: $selectedItem) { item in
             DetailRouterView(item: item)
         }
+        // task(id:), not onChange: the list can already be populated at first render. Same reasoning
+        // as CollectionDetailView, no spinner gate.
+        .task(id: viewModel?.collectionItems.count) {
+            #if os(tvOS)
+            guard !didFocusFirstRow, let vm = viewModel,
+                  let first = videoItems(vm).first else { return }
+            didFocusFirstRow = true
+            deferOnMain(by: 0.1) { focusedItemID = first.id }
+            #endif
+        }
         .onAppear {
             if viewModel == nil, let userID = appState.activeUser?.id {
                 viewModel = DetailViewModel(
@@ -77,7 +91,7 @@ struct PlaylistDetailView: View {
 
     /// Playlist members restricted to playable video leaves; the list, count, and both play queues all read this so what's shown is exactly what Play/Shuffle enqueues.
     private func videoItems(_ vm: DetailViewModel) -> [JellyfinItem] {
-        vm.collectionItems.filter { $0.type == .movie || $0.type == .episode }
+        vm.collectionItems.filter { CollectionPlaybackQueue.playableTypes.contains($0.type) }
     }
 
     private func contentView(vm: DetailViewModel) -> some View {
@@ -210,6 +224,7 @@ struct PlaylistDetailView: View {
                         imageURL: dependencies.jellyfinImageService.posterURL(for: media),
                         onSelect: { selectedItem = media }
                     )
+                    .focused($focusedItemID, equals: media.id)
                 }
             }
             .padding(.horizontal, metrics.rowInset)

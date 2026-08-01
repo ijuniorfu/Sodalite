@@ -10,6 +10,14 @@ struct CollectionDetailView: View {
     @State private var showPlayer = false
     @State private var playItem: JellyfinItem?
     @State private var playQueue: [JellyfinItem] = []
+    /// Play resumes a partially watched film; Shuffle always starts its pick from the top.
+    @State private var playFromBeginning = true
+    /// Value-based focus, keyed by item id: binding a per-row Bool would need a branch inside the
+    /// ForEach and hand the focus engine two different view shapes for row one.
+    @FocusState private var focusedItemID: String?
+    /// One shot: re-pushing focus on every appear would yank the viewer back to row one after
+    /// every return from a film or a pushed detail page.
+    @State private var didFocusFirstRow = false
 
     let item: JellyfinItem
 
@@ -37,7 +45,7 @@ struct CollectionDetailView: View {
                 PlayerLauncher(
                     isPresented: $showPlayer,
                     item: showPlayer ? playItem : nil,
-                    startFromBeginning: true,
+                    startFromBeginning: playFromBeginning,
                     playbackService: dependencies.jellyfinPlaybackService,
                     userID: userID,
                     preferences: dependencies.playbackPreferences,
@@ -58,6 +66,20 @@ struct CollectionDetailView: View {
         }
         .navigationDestination(item: $selectedItem) { item in
             DetailRouterView(item: item)
+        }
+        // task(id:), not onChange: the list can already be populated when this view first renders
+        // (warm cache), and onChange only sees transitions. No spinner gate here on purpose: isLoading
+        // flips at a 500ms snapshot deadline and hasFullDetail can take 10s+ on a slow library, so
+        // gating the view on either would reinstate the wait Sodalite#15 removed.
+        //
+        // The list shows every member while Play filters to playable leaves, so focus follows the
+        // list's first row, not the queue's.
+        .task(id: viewModel?.collectionItems.count) {
+            #if os(tvOS)
+            guard !didFocusFirstRow, let first = viewModel?.collectionItems.first else { return }
+            didFocusFirstRow = true
+            deferOnMain(by: 0.1) { focusedItemID = first.id }
+            #endif
         }
         .onAppear {
             if viewModel == nil, let userID = appState.activeUser?.id {
@@ -154,17 +176,32 @@ struct CollectionDetailView: View {
         }
     }
 
+    /// Plays the first unfinished film and queues the rest behind it. Until Sodalite#53 this
+    /// navigated to the first item's detail page, duplicating its own first list row.
     private func primaryActionButton(vm: DetailViewModel) -> some View {
-        GlassActionButton(
+        let queue = playableItems(vm: vm)
+        let start = CollectionPlaybackQueue.startIndex(
+            playedFlags: queue.map { $0.userData?.played == true }
+        )
+        return GlassActionButton(
             title: "detail.play",
             systemImage: "play.fill",
             isProminent: true,
+            subtitle: queue.indices.contains(start) ? queue[start].name : nil,
             action: {
-                if let first = vm.collectionItems.first {
-                    selectedItem = first
-                }
+                guard queue.indices.contains(start) else { return }
+                playItem = queue[start]
+                playQueue = Array(queue[start...])
+                playFromBeginning = false
+                showPlayer = true
             }
         )
+    }
+
+    /// Members already loaded; filtered to playable leaf types so a nested series can't seed an
+    /// unplayable queue entry.
+    private func playableItems(vm: DetailViewModel) -> [JellyfinItem] {
+        vm.collectionItems.filter { CollectionPlaybackQueue.playableTypes.contains($0.type) }
     }
 
     @ViewBuilder
@@ -173,13 +210,11 @@ struct CollectionDetailView: View {
             title: "action.shuffle",
             systemImage: "shuffle",
             action: {
-                // Members already loaded; shuffle client-side, filtered to playable leaf types so a nested series can't seed an unplayable queue entry.
-                let queue = vm.collectionItems
-                    .filter { $0.type == .movie || $0.type == .episode }
-                    .shuffled()
+                let queue = playableItems(vm: vm).shuffled()
                 guard let first = queue.first else { return }
                 playItem = first
                 playQueue = queue
+                playFromBeginning = true
                 showPlayer = true
             }
         )
@@ -207,6 +242,7 @@ struct CollectionDetailView: View {
                         imageURL: dependencies.jellyfinImageService.posterURL(for: movie),
                         onSelect: { selectedItem = movie }
                     )
+                    .focused($focusedItemID, equals: movie.id)
                 }
             }
             .padding(.horizontal, metrics.rowInset)

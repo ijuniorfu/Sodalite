@@ -79,11 +79,34 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
     /// Scroll-driven full-screen dim: 0 at top, ramps to 0.3 one hero-window deep, restoring readability over bright artwork without losing the full-bleed look.
     @State private var scrollDim: Double = 0
 
+    /// tvOS fold marker state. The offset feeds off the same scroll-geometry hook as scrollDim.
+    @State private var scrollOffset: CGFloat = 0
+    @State private var belowFoldHeight: CGFloat = 0
+    @State private var hintSettled = false
+
     @Environment(\.horizontalSizeClass) private var hSizeClass
     @Environment(\.verticalSizeClass) private var vSizeClass
     private var metrics: LayoutMetrics { LayoutMetrics.current(hSizeClass) }
     /// Shorter clear hero window on a phone so content is reachable with one swipe.
     private var heroWindow: CGFloat { hSizeClass == .compact ? 320 : 500 }
+
+    /// The reserved band and the hint itself are tvOS only: a scrollable page is self-evident on a
+    /// touch device (Sodalite#53).
+    private var reservesScrollHint: Bool {
+        #if os(tvOS)
+        true
+        #else
+        false
+        #endif
+    }
+
+    private var showsScrollHint: Bool {
+        reservesScrollHint && ScrollHintPolicy.isVisible(
+            scrollOffset: scrollOffset,
+            belowFoldHeight: belowFoldHeight,
+            hasSettled: hintSettled
+        )
+    }
 
     /// Per-side window safe-area insets, used to push only the CONTENT clear of the Dynamic Island while
     /// the backdrop + scrims stay full-bleed. Read from the window (the overlay is full-bleed, so the
@@ -135,8 +158,15 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
                         .padding(.leading, safeLeading)
                         .padding(.trailing, safeTrailing)
                         .frame(maxWidth: .infinity, alignment: .leading)
-                        // 24 pt, matching the panel-to-buttons gap.
-                        .padding(.bottom, 24)
+                        // 24 pt matching the panel-to-buttons gap, widened on tvOS to a constant
+                        // band that holds the fold marker (Sodalite#53).
+                        .padding(.bottom, ScrollHintPolicy.primaryBottomInset(reservesHint: reservesScrollHint))
+                        .overlay(alignment: .bottom) {
+                            if reservesScrollHint {
+                                ScrollHintChevron(isVisible: showsScrollHint)
+                                    .padding(.bottom, 10)
+                            }
+                        }
                         .background(Color.black.opacity(0.55))
                     }
                     // iPhone landscape: do NOT force the first page to viewport height. In the short
@@ -148,6 +178,13 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
 
                 VStack(alignment: .leading, spacing: 40) {
                     content()
+                }
+                // Height of the real below-fold content. The 600pt trailing filler below makes every
+                // page technically scrollable, so the hint keys off this instead (Sodalite#53).
+                .onGeometryChange(for: CGFloat.self) { proxy in
+                    proxy.size.height
+                } action: { height in
+                    belowFoldHeight = height
                 }
                 // Inset the content past the island; the scrim stays full-width (no strip / margin).
                 .padding(.leading, safeLeading)
@@ -169,6 +206,13 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
         } action: { _, offset in
             // Linear ramp over the clear hero window, capped at 0.3.
             scrollDim = min(max(offset / heroWindow, 0), 1) * 0.3
+            scrollOffset = offset
+        }
+        // Hold the hint back through the cover's present transition, so a viewer who immediately
+        // presses down never sees it appear.
+        .task {
+            try? await Task.sleep(for: .milliseconds(800))
+            hintSettled = true
         }
     }
 
