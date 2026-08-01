@@ -678,11 +678,11 @@ struct CatalogDetailView: View {
                 .fontWeight(.semibold)
                 .padding(.horizontal, 4)
 
+            // Same box as the series overview above: a season synopsis is regularly longer than the
+            // three lines a plain Text could show, so it gets the identical focusable / tappable
+            // full-text overlay instead of a truncation the user cannot open.
             if let overview = season.overview, !overview.isEmpty {
-                Text(overview)
-                    .font(.callout)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(3)
+                ExpandableTextBox(text: overview)
                     .padding(.horizontal, 4)
             }
 
