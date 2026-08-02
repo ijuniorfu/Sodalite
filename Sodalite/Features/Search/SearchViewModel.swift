@@ -7,6 +7,8 @@ final class SearchViewModel {
     var query: String = ""
     var jellyfinResults: [JellyfinItem] = []
     var seerrResults: [SeerrMedia] = []
+    /// People from the same Seerr search; they route to the person page, not to a request (Sodalite#56).
+    var peopleResults: [SeerrPersonSearchResult] = []
     var isSearching = false
     var errorMessage: String?
 
@@ -39,6 +41,7 @@ final class SearchViewModel {
             currentSearchID &+= 1
             jellyfinResults = []
             seerrResults = []
+            peopleResults = []
             isSearching = false
             errorMessage = nil
             return
@@ -69,11 +72,12 @@ final class SearchViewModel {
 
         let jfItems = jfResult.items
         jellyfinResults = jfItems
-        seerrResults = deduplicate(seerr: seerrResult.items, against: jfItems)
+        seerrResults = deduplicate(seerr: seerrResult.media, against: jfItems)
+        peopleResults = seerrResult.people
         isSearching = false
 
-        // Connection failure vs "no results": Jellyfin is the primary signal; only its error + both lists empty means network problem. Seerr alone can't trigger this (may be intentionally disconnected).
-        if jfResult.error != nil && jellyfinResults.isEmpty && seerrResults.isEmpty {
+        // Connection failure vs "no results": Jellyfin is the primary signal; only its error + every list empty means network problem. Seerr alone can't trigger this (may be intentionally disconnected).
+        if jfResult.error != nil && jellyfinResults.isEmpty && seerrResults.isEmpty && peopleResults.isEmpty {
             errorMessage = String(
                 localized: "search.error.connection",
                 defaultValue: "Couldn't reach your server. Check the connection and try again."
@@ -102,15 +106,22 @@ final class SearchViewModel {
         }
     }
 
-    private func searchSeerr(query: String) async -> ServiceResult<SeerrMedia> {
-        guard let service = seerrSearchService else {
-            return ServiceResult(items: [], error: nil)
-        }
+    /// Two lists rather than one `ServiceResult`: the same response feeds the catalog row and the people row.
+    private struct SeerrSearchOutcome {
+        let media: [SeerrMedia]
+        let people: [SeerrPersonSearchResult]
+        let error: Error?
+
+        static let none = SeerrSearchOutcome(media: [], people: [], error: nil)
+    }
+
+    private func searchSeerr(query: String) async -> SeerrSearchOutcome {
+        guard let service = seerrSearchService else { return .none }
         do {
             let result = try await service.search(query: query, page: 1)
-            return ServiceResult(items: result.results, error: nil)
+            return SeerrSearchOutcome(media: result.media, people: result.people, error: nil)
         } catch {
-            return ServiceResult(items: [], error: error)
+            return SeerrSearchOutcome(media: [], people: [], error: error)
         }
     }
 

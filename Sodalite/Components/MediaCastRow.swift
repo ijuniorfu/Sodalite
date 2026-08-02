@@ -13,19 +13,25 @@ struct CastMember: Identifiable, Hashable, Sendable {
 
 /// Horizontal strip of cast portraits; `onSelect` nil makes the cards non-interactive.
 struct MediaCastRow: View {
-    var title: LocalizedStringKey = "detail.cast"
+    /// nil suppresses the built-in heading, for callers that draw their own section header.
+    var title: LocalizedStringKey? = "detail.cast"
     let members: [CastMember]
+    /// Overrides the tier's row inset so the row can line up with a host screen that insets differently.
+    var inset: CGFloat? = nil
     var onSelect: ((CastMember) -> Void)? = nil
 
     @Environment(\.horizontalSizeClass) private var hSizeClass
     private var metrics: LayoutMetrics { LayoutMetrics.current(hSizeClass) }
+    private var rowInset: CGFloat { inset ?? metrics.rowInset }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text(title)
-                .font(.title3)
-                .fontWeight(.semibold)
-                .padding(.horizontal, metrics.rowInset)
+            if let title {
+                Text(title)
+                    .font(.title3)
+                    .fontWeight(.semibold)
+                    .padding(.horizontal, rowInset)
+            }
 
             ScrollView(.horizontal, showsIndicators: false) {
                 // Top-aligned: a two-line role (or a member with no role at all) makes cards
@@ -40,7 +46,7 @@ struct MediaCastRow: View {
                         )
                     }
                 }
-                .padding(.horizontal, metrics.rowInset)
+                .padding(.horizontal, rowInset)
                 // The focused card grows around its centre and the scroll view clips whatever
                 // leaves its bounds. A 276pt tvOS card overshoots 6.9pt per side at 1.05, so the
                 // tier's row padding has to carry it; the flat 12pt here cut the ring off the top

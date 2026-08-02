@@ -4,9 +4,25 @@ struct SearchView: View {
     @Environment(\.appState) private var appState
     @Environment(\.dependencies) private var dependencies
     @Environment(\.horizontalSizeClass) private var hSizeClass
+    private var metrics: LayoutMetrics { LayoutMetrics.current(hSizeClass) }
     @State private var viewModel: SearchViewModel?
-    @State private var selectedJellyfinItem: JellyfinItem?
-    @State private var selectedSeerrMedia: SeerrMedia?
+    @State private var destination: Destination?
+
+    /// One cover for all three result kinds. Stacking a `fullScreenCover` per kind is the shape
+    /// where only the last one attached ever presents, and the older path dies without a warning.
+    private enum Destination: Identifiable {
+        case library(JellyfinItem)
+        case catalog(SeerrMedia)
+        case person(PersonRoute)
+
+        var id: String {
+            switch self {
+            case .library(let item): "library-\(item.id)"
+            case .catalog(let media): "catalog-\(media.stableKey)"
+            case .person(let route): "person-\(route.id)"
+            }
+        }
+    }
 
     var body: some View {
         ThemeNavigationStack {
@@ -14,7 +30,7 @@ struct SearchView: View {
                 searchBar
 
                 if let vm = viewModel {
-                    if vm.jellyfinResults.isEmpty && vm.seerrResults.isEmpty {
+                    if vm.jellyfinResults.isEmpty && vm.seerrResults.isEmpty && vm.peopleResults.isEmpty {
                         emptyState(vm: vm)
                     } else {
                         resultsView(vm: vm)
@@ -25,11 +41,19 @@ struct SearchView: View {
                 }
             }
             // Full-screen cover (over the tab bar) instead of a push: the bar is never hidden/removed, so it is never re-templated gray on return (tvOS 26). See detailCover.
-            .detailCover(item: $selectedJellyfinItem) { item in
-                DetailRouterView(item: item)
-            }
-            .detailCover(item: $selectedSeerrMedia) { media in
-                CatalogDetailView(media: media)
+            .detailCover(item: $destination) { destination in
+                switch destination {
+                case .library(let item):
+                    DetailRouterView(item: item)
+                case .catalog(let media):
+                    CatalogDetailView(media: media)
+                case .person(let route):
+                    PersonDetailView(
+                        personID: route.tmdbID,
+                        jellyfinPersonID: route.jellyfinPersonID,
+                        personName: route.name
+                    )
+                }
             }
         }
         .onAppear(perform: bootstrap)
@@ -52,6 +76,9 @@ struct SearchView: View {
         .onChange(of: viewModel?.seerrResults) { _, _ in
             prefetchSearchPosters()
         }
+        .onChange(of: viewModel?.peopleResults) { _, _ in
+            prefetchSearchPosters()
+        }
     }
 
     /// Hand current result poster URLs to `ImageCache.prefetch`; cached URLs are skipped, so only new posters pay network on each results-change.
@@ -65,6 +92,14 @@ struct SearchView: View {
         }
         for media in vm.seerrResults {
             if let url = SeerrImageURL.poster(path: media.posterPath) {
+                urls.append(url)
+            }
+        }
+        for person in vm.peopleResults {
+            if let url = SeerrImageURL.profile(
+                path: person.profilePath,
+                size: .covering(metrics.castImageWidth)
+            ) {
                 urls.append(url)
             }
         }
@@ -118,6 +153,11 @@ struct SearchView: View {
                 if !vm.jellyfinResults.isEmpty {
                     librarySection(items: vm.jellyfinResults)
                 }
+                // People sit between the two title rows: what the library already owns stays on top,
+                // and the person leads into the catalog titles they belong to.
+                if !vm.peopleResults.isEmpty {
+                    peopleSection(people: vm.peopleResults)
+                }
                 if !vm.seerrResults.isEmpty {
                     catalogSection(items: vm.seerrResults)
                 }
@@ -143,7 +183,7 @@ struct SearchView: View {
                 LazyHStack(spacing: 30) {
                     ForEach(items) { item in
                         FocusableCard {
-                            selectedJellyfinItem = item
+                            destination = .library(item)
                         } content: { isFocused in
                             MediaCard(
                                 item: item,
@@ -167,6 +207,35 @@ struct SearchView: View {
         }
     }
 
+    /// Reuses the cast strip, so the portraits, focus ring and tier sizing are the ones the detail
+    /// pages already ship; only the heading is drawn here to match the neighbouring sections.
+    private func peopleSection(people: [SeerrPersonSearchResult]) -> some View {
+        let members = people.map { person in
+            CastMember(
+                id: "person-\(person.id)",
+                name: person.name,
+                role: person.knownForSummary,
+                imageURL: SeerrImageURL.profile(
+                    path: person.profilePath,
+                    size: .covering(metrics.castImageWidth)
+                ),
+                personID: person.id,
+                jellyfinPersonID: nil
+            )
+        }
+
+        return VStack(alignment: .leading, spacing: 12) {
+            sectionHeader(icon: "person.2.fill", title: "search.section.people", tint: .purple)
+                .padding(.horizontal, 50)
+
+            MediaCastRow(title: nil, members: members, inset: 50) { member in
+                guard let tmdbID = member.personID else { return }
+                destination = .person(PersonRoute(tmdbID: tmdbID, name: member.name))
+            }
+        }
+        .focusSectionCompat()
+    }
+
     private func catalogSection(items: [SeerrMedia]) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             sectionHeader(icon: "tray.and.arrow.down", title: "search.section.catalog", tint: .orange)
@@ -176,7 +245,7 @@ struct SearchView: View {
                 LazyHStack(spacing: 30) {
                     ForEach(items) { media in
                         FocusableCard {
-                            selectedSeerrMedia = media
+                            destination = .catalog(media)
                         } content: { isFocused in
                             SeerrMediaCard(media: media, isFocused: isFocused)
                         }

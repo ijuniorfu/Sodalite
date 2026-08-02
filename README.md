@@ -108,7 +108,7 @@ The Seerr integration isn't a tacked-on link to a web view. It's a first-class p
 - **Library**: Movies, Series, Collections with poster grids, instant filtering and an All / Unwatched / Watched watch-status filter on every grid; a library grid follows your server's "Group movies into collections" setting, so a collection shows up as one tile, and you can override that per server in Settings → Customize Home
 - **Series view**: season picker, episode list, "Up Next" highlighting
 - **Collections and playlists**: a detail page that opens straight on its film list and plays through in order, starting from the first title you haven't finished; playlists also get their own Home row
-- **Search**: across your whole server, results as you type
+- **Search**: across your whole server, results as you type; with Jellyseerr connected, actors and directors come back as people of their own, and opening one lands on their photo, biography and full filmography
 - **Image caching & prefetching**: posters and backdrops load before you reach them
 - **Delete from the app**: remove movies, series, or individual seasons from your library, with optional cleanup of matching Radarr / Sonarr entries when Jellyseerr is connected
 - **Rich detail pages**: cast, ratings, where-to-watch and more-like-this on catalog titles; tagline, director, writer and studios on your own library
