@@ -191,7 +191,11 @@ struct MovieDetailView: View {
                 .hidesShellTabBar()
         }
         .navigationDestination(item: $navigateToPerson) { route in
-            PersonDetailView(personID: route.tmdbID, personName: route.name)
+            PersonDetailView(
+                personID: route.tmdbID,
+                jellyfinPersonID: route.jellyfinPersonID,
+                personName: route.name
+            )
         }
         .onAppear {
             if viewModel == nil, let userID = appState.activeUser?.id {
@@ -509,10 +513,6 @@ struct MovieDetailView: View {
 
     /// Resolve a cast member to a TMDB person id and open the person page; inert when the server has no TMDB id.
     private func handlePersonTap(_ member: CastMember) {
-        resolvePersonRoute(
-            for: member,
-            userID: appState.activeUser?.id,
-            itemService: dependencies.jellyfinItemService
-        ) { navigateToPerson = $0 }
+        navigateToPerson = PersonRoute(member: member)
     }
 }

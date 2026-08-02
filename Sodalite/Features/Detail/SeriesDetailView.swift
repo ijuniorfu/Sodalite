@@ -354,7 +354,11 @@ struct SeriesDetailView: View {
             DetailRouterView(item: item)
         }
         .navigationDestination(item: $navigateToPerson) { route in
-            PersonDetailView(personID: route.tmdbID, personName: route.name)
+            PersonDetailView(
+                personID: route.tmdbID,
+                jellyfinPersonID: route.jellyfinPersonID,
+                personName: route.name
+            )
         }
         .navigationDestination(item: $navigateToSeerrRequest) { media in
             CatalogDetailView(media: media)
@@ -803,11 +807,7 @@ struct SeriesDetailView: View {
 
     /// Resolve a cast member to a TMDB person id and open the person page; inert when the server has no TMDB id.
     private func handlePersonTap(_ member: CastMember) {
-        resolvePersonRoute(
-            for: member,
-            userID: appState.activeUser?.id,
-            itemService: dependencies.jellyfinItemService
-        ) { navigateToPerson = $0 }
+        navigateToPerson = PersonRoute(member: member)
     }
 
     // MARK: - Season Section

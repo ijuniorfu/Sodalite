@@ -2,9 +2,18 @@ import SwiftUI
 
 /// Person page: photo, biography, filmography grid. A filmography tap routes to Jellyfin detail when the library owns the title, else to Seerr detail to request it.
 struct PersonDetailView: View {
-    let personID: Int
+    /// TMDB id when the caller already knows it (Seerr cast); nil for Jellyfin cast, where `load()`
+    /// translates `jellyfinPersonID` first and the wait sits behind this view's own spinner.
+    let personID: Int?
+    let jellyfinPersonID: String?
     /// Shown in the header until the detail fetch lands; pass "" if unknown.
     let personName: String
+
+    init(personID: Int?, jellyfinPersonID: String? = nil, personName: String) {
+        self.personID = personID
+        self.jellyfinPersonID = jellyfinPersonID
+        self.personName = personName
+    }
 
     @Environment(\.appState) private var appState
     @Environment(\.dependencies) private var dependencies
@@ -12,6 +21,8 @@ struct PersonDetailView: View {
     @Environment(\.horizontalSizeClass) private var hSizeClass
 
     @State private var detail: SeerrPersonDetail?
+    /// Kept so the error state's retry button does not pay for the id translation a second time.
+    @State private var resolvedTMDBID: Int?
     /// Deduped/sorted filmography, computed once from the person credits in `load()`.
     @State private var filmography: [SeerrMedia] = []
     @State private var isLoading = true
@@ -47,8 +58,17 @@ struct PersonDetailView: View {
     @ViewBuilder
     private var content: some View {
         if isLoading {
-            ProgressView()
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            // The name is all this view knows before the fetches land, and showing it makes the
+            // push read as "this person is opening" rather than as a blank screen.
+            VStack(spacing: 20) {
+                ProgressView()
+                if !personName.isEmpty {
+                    Text(personName)
+                        .font(.title3)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
         } else if let errorMessage {
             errorState(message: errorMessage)
         } else {
@@ -234,14 +254,34 @@ struct PersonDetailView: View {
             )
             return
         }
+        guard let tmdbID = await personTMDBID() else {
+            errorMessage = String(
+                localized: "person.noTmdbID",
+                defaultValue: "This cast member has no TMDB id on the server, so there is no person page to show."
+            )
+            return
+        }
         do {
-            async let d = dependencies.seerrMediaService.personDetail(tmdbID: personID)
-            async let c = dependencies.seerrMediaService.personCredits(tmdbID: personID)
+            async let d = dependencies.seerrMediaService.personDetail(tmdbID: tmdbID)
+            async let c = dependencies.seerrMediaService.personCredits(tmdbID: tmdbID)
             detail = try await d
             filmography = Self.computeFilmography(from: try await c)
         } catch {
             errorMessage = error.localizedDescription
         }
+    }
+
+    /// Jellyfin's item response carries no provider ids for cast, so a Jellyfin-sourced person costs
+    /// one lookup to reach TMDB. Runs inside `load()` so the spinner covers it.
+    private func personTMDBID() async -> Int? {
+        if let personID { return personID }
+        if let resolvedTMDBID { return resolvedTMDBID }
+        guard let jellyfinPersonID, let userID = appState.activeUser?.id else { return nil }
+        let person = try? await dependencies.jellyfinItemService.getItemDetail(
+            userID: userID, itemID: jellyfinPersonID
+        )
+        resolvedTMDBID = person?.tmdbID
+        return resolvedTMDBID
     }
 
     /// Owned in Jellyfin routes to play; else to Seerr request. The library lookup runs only when Seerr marks the title available, so non-owned titles skip the query.

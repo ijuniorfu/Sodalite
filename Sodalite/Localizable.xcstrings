@@ -56737,6 +56737,330 @@
         }
       }
     },
+    "changelog.1_0_0.castCrew.title" : {
+      "comment" : "Changelog highlight for the 1.0.0 release",
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Herci zblízka"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rollelisten tættere på"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Besetzung aus der Nähe"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Πιο κοντά στους ηθοποιούς"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A closer look at the cast"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El reparto, más de cerca"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Näyttelijät lähempää"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La distribution de plus près"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Glumačka postava izbliza"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A szereplők közelebbről"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Il cast più da vicino"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "キャストをより大きく"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "출연진을 더 가까이"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rollelisten tettere på"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "De cast van dichterbij"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Obsada z bliska"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O elenco mais de perto"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O elenco mais de perto"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Distribuția mai de aproape"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Актёры крупнее"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Obsadenie zblízka"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rollistan närmare"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Oyuncular daha yakından"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Акторський склад ближче"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更清晰的演职员表"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更清晰的演職員表"
+          }
+        }
+      }
+    },
+    "changelog.1_0_0.castCrew.body" : {
+      "comment" : "Changelog highlight for the 1.0.0 release",
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fotky herců na Apple TV jsou výrazně větší, jména a role se nyní vejdou celé místo oříznutí po pár znacích, a otevření herce přejde rovnou na jeho stránku, která se načte na místě."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rollefotos på Apple TV er markant større, navne og roller er der nu plads til i stedet for at blive skåret af efter få tegn, og et tryk på en medvirkende åbner siden med det samme, mens den indlæses."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Besetzungsfotos auf dem Apple TV sind deutlich größer, Namen und Rollen passen jetzt hinein, statt nach wenigen Zeichen abgeschnitten zu werden, und eine Person öffnet ihre Seite sofort, während sie lädt."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Οι φωτογραφίες του καστ στο Apple TV είναι πολύ μεγαλύτερες, τα ονόματα και οι ρόλοι πλέον χωρούν αντί να κόβονται μετά από λίγους χαρακτήρες, και η επιλογή ενός ηθοποιού ανοίγει αμέσως τη σελίδα του ενώ φορτώνει."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cast portraits on Apple TV are much larger, names and roles now fit instead of being cut after a few characters, and opening a cast member goes straight to their page while it loads."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Las fotos del reparto en Apple TV son mucho más grandes, los nombres y los papeles ahora caben en lugar de cortarse tras unos pocos caracteres, y al abrir a alguien su página aparece de inmediato mientras se carga."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Näyttelijäkuvat Apple TV:ssä ovat huomattavasti isompia, nimet ja roolit mahtuvat nyt kokonaan sen sijaan että ne katkeaisivat muutaman merkin jälkeen, ja näyttelijän avaaminen vie suoraan hänen sivulleen sen latautuessa."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les portraits de la distribution sur l'Apple TV sont nettement plus grands, les noms et les rôles tiennent enfin au lieu d'être coupés après quelques caractères, et ouvrir une personne affiche sa page immédiatement pendant le chargement."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fotografije glumaca na Apple TV-u znatno su veće, imena i uloge sada stanu umjesto da se odsijeku nakon nekoliko znakova, a otvaranje osobe odmah prikazuje njezinu stranicu dok se učitava."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A szereplők fotói az Apple TV-n jóval nagyobbak, a nevek és szerepek már kiférnek ahelyett, hogy néhány karakter után levágódnának, és egy személy megnyitása azonnal az oldalára visz, amíg az betöltődik."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le foto del cast su Apple TV sono molto più grandi, nomi e ruoli ora ci stanno invece di essere troncati dopo pochi caratteri, e aprire una persona mostra subito la sua pagina mentre si carica."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple TV のキャスト写真が大きくなり、名前と役名が数文字で切れずに収まるようになりました。キャストを選ぶとページがすぐに開き、その場で読み込まれます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple TV의 출연진 사진이 훨씬 커졌고, 이름과 배역이 몇 글자 만에 잘리지 않고 모두 표시됩니다. 출연자를 선택하면 페이지가 즉시 열리며 그 자리에서 불러옵니다."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rollebildene på Apple TV er betydelig større, navn og roller får nå plass i stedet for å kuttes etter noen få tegn, og å åpne en person viser siden med én gang mens den lastes."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Castfoto's op de Apple TV zijn een stuk groter, namen en rollen passen nu in plaats van na een paar tekens te worden afgekapt, en een castlid openen toont de pagina meteen terwijl die laadt."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zdjęcia obsady na Apple TV są znacznie większe, nazwiska i role wreszcie się mieszczą zamiast urywać po kilku znakach, a otwarcie osoby od razu pokazuje jej stronę w trakcie wczytywania."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "As fotos do elenco na Apple TV estão bem maiores, nomes e papéis agora cabem em vez de serem cortados após alguns caracteres, e abrir alguém mostra a página na hora enquanto ela carrega."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "As fotografias do elenco na Apple TV estão bastante maiores, os nomes e papéis agora cabem em vez de serem cortados ao fim de alguns caracteres, e abrir alguém mostra a página de imediato enquanto carrega."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fotografiile distribuției pe Apple TV sunt mult mai mari, numele și rolurile încap acum în loc să fie tăiate după câteva caractere, iar deschiderea unei persoane afișează imediat pagina în timp ce se încarcă."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Фотографии актёров на Apple TV стали заметно крупнее, имена и роли теперь помещаются целиком, а не обрезаются после нескольких символов, и открытие актёра сразу показывает его страницу во время загрузки."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fotografie obsadenia na Apple TV sú výrazne väčšie, mená a úlohy sa teraz zmestia namiesto orezania po pár znakoch a otvorenie osoby zobrazí jej stránku okamžite počas načítania."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rollbilderna på Apple TV är betydligt större, namn och roller får nu plats i stället för att kapas efter några tecken, och att öppna en skådespelare visar sidan direkt medan den laddas."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple TV'deki oyuncu fotoğrafları çok daha büyük, adlar ve roller birkaç karakter sonra kesilmek yerine artık sığıyor ve bir oyuncuyu açmak sayfasını yüklenirken hemen gösteriyor."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Фотографії акторів на Apple TV помітно більші, імена та ролі тепер вміщуються повністю, а не обрізаються після кількох символів, а відкриття актора одразу показує його сторінку під час завантаження."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple TV 上的演员照片明显更大，姓名和角色不再几个字就被截断，选择演员会立即打开其页面并就地加载。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple TV 上的演員照片明顯更大，姓名與角色不再幾個字就被截斷，選擇演員會立即開啟其頁面並就地載入。"
+          }
+        }
+      }
+    },
     "changelog.1_0_0.childLock.body" : {
       "localizations" : {
         "cs" : {
@@ -97248,6 +97572,167 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "找不到作品"
+          }
+        }
+      }
+    },
+    "person.noTmdbID" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tento člen obsazení nemá na serveru TMDB ID, takže není co zobrazit."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Denne medvirkende har intet TMDB-id på serveren, så der er ingen personside at vise."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Für dieses Besetzungsmitglied ist auf dem Server keine TMDB-ID hinterlegt, deshalb gibt es keine Personenseite."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Αυτό το μέλος του καστ δεν έχει TMDB ID στον διακομιστή, επομένως δεν υπάρχει σελίδα προσώπου."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This cast member has no TMDB id on the server, so there is no person page to show."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Este miembro del reparto no tiene un ID de TMDB en el servidor, así que no hay página de persona que mostrar."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tällä näyttelijällä ei ole TMDB-tunnusta palvelimella, joten henkilösivua ei ole näytettäväksi."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ce membre de la distribution n'a pas d'identifiant TMDB sur le serveur, il n'y a donc aucune page de personne à afficher."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ovaj član glumačke postave nema TMDB ID na poslužitelju, pa nema stranice osobe za prikaz."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ehhez a szereplőhöz nincs TMDB-azonosító a kiszolgálón, ezért nincs megjeleníthető személyoldal."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Questo membro del cast non ha un ID TMDB sul server, quindi non c'è una pagina della persona da mostrare."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "このキャストにはサーバー上に TMDB ID がないため、表示できる人物ページがありません。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이 출연자는 서버에 TMDB ID가 없어 표시할 인물 페이지가 없습니다."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dette medlemmet av rollebesetningen har ingen TMDB-ID på serveren, så det finnes ingen personside å vise."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dit castlid heeft geen TMDB-id op de server, dus er is geen personenpagina om te tonen."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ten członek obsady nie ma identyfikatora TMDB na serwerze, więc nie ma strony osoby do wyświetlenia."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Este membro do elenco não tem um ID do TMDB no servidor, portanto não há página de pessoa para exibir."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Este membro do elenco não tem um ID do TMDB no servidor, por isso não há página de pessoa para mostrar."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Acest membru al distribuției nu are un ID TMDB pe server, așa că nu există o pagină de persoană de afișat."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "У этого актёра нет идентификатора TMDB на сервере, поэтому страницу человека показать нельзя."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tento člen obsadenia nemá na serveri TMDB ID, takže neexistuje stránka osoby na zobrazenie."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Den här skådespelaren har inget TMDB-id på servern, så det finns ingen personsida att visa."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bu oyuncunun sunucuda TMDB kimliği yok, bu yüzden gösterilecek bir kişi sayfası bulunmuyor."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "У цього актора немає ідентифікатора TMDB на сервері, тому сторінку особи показати неможливо."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "服务器上没有该演员的 TMDB ID，因此无法显示人物页面。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "伺服器上沒有這位演員的 TMDB ID，因此無法顯示人物頁面。"
           }
         }
       }
