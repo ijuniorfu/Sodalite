@@ -44,6 +44,7 @@ final class PlaybackPreferences {
         static let networkBufferDepth = "playback.networkBufferDepth"
         static let liveTeletextPage = "playback.liveTeletextPage"
         static let rememberTrackSelections = "playback.rememberTrackSelections"
+        static let selectTogglesPlayback = "playback.selectTogglesPlayback"
     }
 
     // MARK: - Allowed Values
@@ -355,6 +356,13 @@ final class PlaybackPreferences {
         didSet { store.set(rememberTrackSelections, forKey: Keys.rememberTrackSelections) }
     }
 
+    /// Sodalite#58 (tvOS): ON makes a click on hidden controls pause/resume straight away instead of
+    /// only waking the transport, for CEC remotes whose only usable key is Select. Up/Down still opens
+    /// the transport. Default OFF, the Siri Remote flow stays as it is.
+    var selectTogglesPlayback: Bool {
+        didSet { store.set(selectTogglesPlayback, forKey: Keys.selectTogglesPlayback) }
+    }
+
     var audioBridgeMode: AudioBridgeMode {
         preferLosslessAudioBridge ? .lossless : .surroundCompat
     }
@@ -419,5 +427,6 @@ final class PlaybackPreferences {
         self.liveTeletextPage = (store.string(forKey: Keys.liveTeletextPage))
             .flatMap(LiveTeletextPage.init(rawValue:)) ?? .auto
         self.rememberTrackSelections = store.object(forKey: Keys.rememberTrackSelections) as? Bool ?? true
+        self.selectTogglesPlayback = store.object(forKey: Keys.selectTogglesPlayback) as? Bool ?? false
     }
 }

@@ -137728,6 +137728,328 @@
         }
       }
     },
+    "settings.playback.selectTogglesPlayback" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kliknutí přepíná přehrávání"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Klik starter og pauser"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Klick pausiert die Wiedergabe"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Το κλικ εναλλάσσει την αναπαραγωγή"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Click Toggles Playback"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El clic pausa la reproducción"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Napsautus keskeyttää toiston"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le clic met en pause"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Klik pauzira reprodukciju"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kattintás szünetelteti a lejátszást"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Il clic mette in pausa"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "クリックで再生／一時停止"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "클릭으로 재생/일시정지"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Klikk pauser avspillingen"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Klik pauzeert het afspelen"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kliknięcie wstrzymuje odtwarzanie"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O clique pausa a reprodução"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O clique coloca em pausa"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clicul pune pauză"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Нажатие ставит на паузу"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kliknutie pozastaví prehrávanie"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Klick pausar uppspelningen"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tıklama oynatmayı duraklatır"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Натискання ставить на паузу"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "点按暂停或继续播放"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "點按暫停或繼續播放"
+          }
+        }
+      }
+    },
+    "settings.playback.selectTogglesPlayback.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jedním kliknutím pozastavíte nebo obnovíte přehrávání, místo abyste nejdřív vyvolali ovládání. Ovládání otevřete tlačítkem nahoru nebo dolů."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sæt på pause og fortsæt med ét enkelt klik i stedet for først at hente betjeningen frem. Op eller ned åbner stadig betjeningen."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pausiert und setzt mit einem einzigen Klick fort, statt zuerst die Steuerung einzublenden. Die Steuerung öffnet weiterhin Hoch oder Runter."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Παύση και συνέχιση με ένα κλικ, αντί να εμφανίζονται πρώτα τα χειριστήρια. Τα χειριστήρια ανοίγουν πάντα με πάνω ή κάτω."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pause and resume with a single click instead of waking the controls first. Up or Down still opens the controls."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pausa y reanuda con un solo clic, en lugar de mostrar primero los controles. Arriba o abajo sigue abriendo los controles."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keskeytä ja jatka yhdellä napsautuksella sen sijaan, että ohjaimet avautuisivat ensin. Ylös tai alas avaa edelleen ohjaimet."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Met en pause et reprend d'un seul clic au lieu d'afficher d'abord les commandes. Haut ou bas ouvre toujours les commandes."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pauzira i nastavlja jednim klikom umjesto da najprije prikaže kontrole. Kontrole se i dalje otvaraju tipkom gore ili dolje."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Egyetlen kattintással szünetel és folytat, ahelyett hogy előbb a vezérlők jelennének meg. A vezérlőket továbbra is a fel vagy le gomb nyitja meg."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mette in pausa e riprende con un solo clic invece di mostrare prima i comandi. Su o giù apre ancora i comandi."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "コントロールを表示せずに、1回のクリックで一時停止と再生を切り替えます。コントロールは上下ボタンで開けます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "컨트롤을 먼저 띄우지 않고 한 번의 클릭으로 일시정지하거나 다시 재생합니다. 컨트롤은 위 또는 아래 버튼으로 열 수 있습니다."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sett på pause og fortsett med ett klikk i stedet for å hente frem kontrollene først. Opp eller ned åpner fortsatt kontrollene."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pauzeert en hervat met één klik in plaats van eerst de bediening te tonen. Omhoog of omlaag opent de bediening nog steeds."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wstrzymuje i wznawia jednym kliknięciem, zamiast najpierw wyświetlać sterowanie. Sterowanie nadal otwiera przycisk w górę lub w dół."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pausa e retoma com um único clique, em vez de exibir primeiro os controles. Para cima ou para baixo continua abrindo os controles."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Coloca em pausa e retoma com um único clique, em vez de mostrar primeiro os controlos. Para cima ou para baixo continua a abrir os controlos."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pune pauză și reia cu un singur clic, în loc să afișeze mai întâi comenzile. Sus sau jos deschide în continuare comenzile."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Пауза и возобновление одним нажатием, вместо того чтобы сначала показывать элементы управления. Кнопки вверх и вниз по-прежнему открывают их."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pozastaví a obnoví prehrávanie jedným kliknutím namiesto toho, aby sa najprv zobrazili ovládacie prvky. Ovládanie stále otvoríte tlačidlom nahor alebo nadol."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pausa och återuppta med ett enda klick i stället för att först ta fram kontrollerna. Upp eller ner öppnar fortfarande kontrollerna."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Önce kontrolleri açmak yerine tek tıklamayla duraklatır ve devam ettirir. Kontroller yukarı veya aşağı tuşuyla yine açılır."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Пауза та відновлення одним натисканням замість того, щоб спершу показувати елементи керування. Кнопки вгору та вниз і далі відкривають їх."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "点按一次即可暂停或继续播放，无需先调出播放控制。播放控制仍可通过上下键打开。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "點按一次即可暫停或繼續播放，無需先叫出播放控制。播放控制仍可用上下鍵開啟。"
+          }
+        }
+      }
+    },
     "settings.playback.serverTrickplay" : {
       "extractionState" : "manual",
       "localizations" : {

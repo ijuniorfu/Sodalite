@@ -112,7 +112,8 @@ struct CloudSyncForwardCompatTests {
                 focusDiagnosticOverlayOnDV: false, preferLosslessAudioBridge: false,
                 showScrubPreview: true, preferServerTrickplay: true,
                 playerRotationLocked: false, networkBufferDepth: "balanced",
-                rememberTrackSelections: true, autoForcedSubtitles: true
+                rememberTrackSelections: true, autoForcedSubtitles: true,
+                selectTogglesPlayback: true
             ))
         case .appearance:
             return .appearance(AppearanceSettingsPayload(
