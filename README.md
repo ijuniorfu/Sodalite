@@ -116,7 +116,7 @@ The Seerr integration isn't a tacked-on link to a web view. It's a first-class p
 - **Full-bleed backdrops**: artwork shines through the whole detail page and dims as you scroll; titles without backdrop art get an ambient poster fill instead of a grey plate
 - **Watched tracking**: mark movies, episodes, seasons or whole series as watched or unwatched, with progress badges across Home and detail screens
 - **Favorites**: heart a movie, series, collection or a single episode; favorited episodes get their own Home row, alongside the Favorites row for everything else
-- **Cast & filmography**: open any cast member to see their photo, biography and full filmography, then jump straight to a title in your library or request it from the catalog
+- **Cast & filmography**: open any cast member to see their photo, biography and full filmography, then jump straight to a title in your library or request it from the catalog. The page leads with what you already own, movies, series and the single episodes they guest in, and an episode opens its series at exactly that episode. Without Jellyseerr the page keeps that library half instead of going blank
 
 ### 🎬 Watch
 - **Direct Play** for almost every codec on your server: H.264, HEVC, HEVC Main10, AV1, VP9, VP8, MPEG-4 Part 2 (XVID / DIVX), MPEG-2, VC-1. Containers: MKV, MP4, MOV, AVI, MPEG-TS, M2TS, VOB, 3GP, WebM, OGG, FLV. Server-side transcoding stays reserved for fringe codecs (WMV3, Theora, RealVideo).

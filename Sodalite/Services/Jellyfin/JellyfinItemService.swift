@@ -14,6 +14,8 @@ protocol JellyfinItemServiceProtocol: Sendable {
     func findByTmdbID(userID: String, tmdbID: Int, searchTerm: String?) async throws -> JellyfinItem?
     /// Resolves a library item across several external ids (tmdb, then tvdb/imdb fallbacks). Jellyfin cannot filter by provider id, so `searchTerm` narrows the candidates and each one is verified against the ids; nil means no candidate carried them, which is NOT proof of absence when the title search itself missed. Throws on query failure so callers can degrade to "trust Seerr" rather than a false absence.
     func findByProviderIDs(userID: String, tmdbID: Int?, tvdbID: Int?, imdbID: String?, includeItemTypes: [ItemType], searchTerm: String?) async throws -> JellyfinItem?
+    /// People matching a name, carrying ProviderIds so the caller can tell same-named people apart. People live in their own namespace, so an /Items search never returns them.
+    func searchPersons(userID: String, name: String, limit: Int) async throws -> [JellyfinItem]
     func deleteItem(itemID: String) async throws
 }
 
@@ -106,6 +108,14 @@ final class JellyfinItemService: JellyfinItemServiceProtocol {
             }
         }
         return nil
+    }
+
+    func searchPersons(userID: String, name: String, limit: Int) async throws -> [JellyfinItem] {
+        let response: JellyfinItemsResponse = try await client.request(
+            endpoint: JellyfinEndpoint.persons(userID: userID, searchTerm: name, limit: limit),
+            responseType: JellyfinItemsResponse.self
+        )
+        return response.items
     }
 
     /// Title search only narrows, it never decides: the provider-id check does. Wide enough to survive

@@ -28,6 +28,9 @@ enum JellyfinEndpoint: APIEndpoint {
     case seasons(seriesID: String, userID: String)
     case episodes(seriesID: String, seasonID: String, userID: String)
     case similarItems(itemID: String, userID: String, limit: Int)
+    /// GET /Persons by name. People are their own item namespace, so a person is not reachable
+    /// through the /Items search; this is the only way to a Jellyfin person id from a name.
+    case persons(userID: String, searchTerm: String, limit: Int)
     /// DELETE /Items/{itemID}; Jellyfin cascades series→seasons→episodes server-side, called once per item.
     case deleteItem(itemID: String)
 
@@ -115,6 +118,8 @@ enum JellyfinEndpoint: APIEndpoint {
             "/Shows/\(seriesID)/Episodes"
         case .similarItems(let itemID, _, _):
             "/Items/\(itemID)/Similar"
+        case .persons:
+            "/Persons"
         case .deleteItem(let itemID):
             "/Items/\(itemID)"
         case .genres:
@@ -312,6 +317,15 @@ enum JellyfinEndpoint: APIEndpoint {
                 URLQueryItem(name: "Limit", value: String(limit)),
             ]
 
+        case .persons(let userID, let searchTerm, let limit):
+            // ProviderIds is what decides which candidate is the right person; the name search only narrows.
+            return [
+                URLQueryItem(name: "UserId", value: userID),
+                URLQueryItem(name: "SearchTerm", value: searchTerm),
+                URLQueryItem(name: "Limit", value: String(limit)),
+                URLQueryItem(name: "Fields", value: "ProviderIds"),
+            ]
+
         case .genres(let userID):
             return [
                 URLQueryItem(name: "UserId", value: userID),
@@ -480,6 +494,9 @@ struct ItemQuery: Sendable {
     var filters: [String]?
     /// Single provider-id match ("tmdb.123"). `AnyProviderIdEquals` takes one value only, so the home smart-provider filter fans out multi-id lookups as parallel queries.
     var anyProviderIdEquals: String?
+    /// `PersonIds=`: every item a person is credited on. Unlike provider ids this one Jellyfin does
+    /// filter server-side, so the person page can ask for its library titles directly (Sodalite#57).
+    var personIDs: [String]?
     var fields: String?
     /// `CollapseBoxSetItems`: false (the default) keeps every movie standing alone, true forces
     /// BoxSet grouping, nil omits the param so the server's own "Group movies into collections"
@@ -514,6 +531,9 @@ struct ItemQuery: Sendable {
         }
         if let anyProviderIdEquals {
             items.append(URLQueryItem(name: "AnyProviderIdEquals", value: anyProviderIdEquals))
+        }
+        if let personIDs, !personIDs.isEmpty {
+            items.append(URLQueryItem(name: "PersonIds", value: personIDs.joined(separator: ",")))
         }
 
         let fields = fields ?? JellyfinEndpoint.defaultFields

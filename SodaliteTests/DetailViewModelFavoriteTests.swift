@@ -43,6 +43,7 @@ struct DetailViewModelFavoriteTests {
         func findByProviderIDs(
             userID: String, tmdbID: Int?, tvdbID: Int?, imdbID: String?, includeItemTypes: [ItemType], searchTerm: String?
         ) async throws -> JellyfinItem? { nil }
+        func searchPersons(userID: String, name: String, limit: Int) async throws -> [JellyfinItem] { [] }
         func deleteItem(itemID: String) async throws {}
     }
 

@@ -65,4 +65,11 @@ struct JellyfinItemsResponse: Codable, Sendable {
         items = raw.compactMap(\.value)
         totalRecordCount = try container.decode(Int.self, forKey: .totalRecordCount)
     }
+
+    /// The custom decoder suppresses the memberwise one; test doubles need a way to hand back a
+    /// response without round-tripping their items through JSON.
+    init(items: [JellyfinItem], totalRecordCount: Int) {
+        self.items = items
+        self.totalRecordCount = totalRecordCount
+    }
 }

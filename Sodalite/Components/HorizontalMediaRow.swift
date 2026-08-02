@@ -10,9 +10,12 @@ struct HorizontalMediaRow: View {
     var fallbackURLProvider: ((JellyfinItem) -> URL?)? = nil
     var onItemSelected: ((JellyfinItem) -> Void)?
     var cardStyle: MediaCardStyle = .poster
+    /// Overrides the tier's row inset so the row can line up with a host screen that insets differently.
+    var inset: CGFloat? = nil
 
     @Environment(\.horizontalSizeClass) private var hSizeClass
     private var metrics: LayoutMetrics { LayoutMetrics.current(hSizeClass) }
+    private var rowInset: CGFloat { inset ?? metrics.rowInset }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -25,7 +28,7 @@ struct HorizontalMediaRow: View {
             }
             .font(.title3)
             .fontWeight(.semibold)
-            .padding(.horizontal, metrics.rowInset)
+            .padding(.horizontal, rowInset)
 
             ScrollView(.horizontal, showsIndicators: false) {
                 LazyHStack(spacing: metrics.itemSpacing) {
@@ -43,7 +46,7 @@ struct HorizontalMediaRow: View {
                         }
                     }
                 }
-                .padding(.horizontal, metrics.rowInset)
+                .padding(.horizontal, rowInset)
                 .padding(.vertical, metrics.rowVerticalPadding)
             }
         }
