@@ -30,7 +30,10 @@ struct AppearanceSurfaceStructureTests {
             "Sodalite/Features/Settings/ProfileSettingsView.swift": 1,
             "Sodalite/Features/Settings/Licenses/LicensesView.swift": 1,
             "Sodalite/Features/Support/AccentColorPickerView.swift": 1,
-            "Sodalite/Features/Support/BackgroundPickerView.swift": 1
+            "Sodalite/Features/Support/BackgroundPickerView.swift": 1,
+            // Catalog's "Set up Seerr" pushes the same backdrop-less Seerr page as Settings does,
+            // and without this it rendered as a black page over the app background.
+            "Sodalite/Features/Catalog/CatalogView.swift": 1
         ]
 
         for (path, expectedCount) in expectedCounts {
