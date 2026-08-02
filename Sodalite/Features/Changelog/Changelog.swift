@@ -69,6 +69,12 @@ enum Changelog {
                     icon: "rectangle.stack.fill"
                 ),
                 ChangelogHighlight(
+                    .new,
+                    "changelog.1_0_0.peopleSearch.title",
+                    "changelog.1_0_0.peopleSearch.body",
+                    icon: "magnifyingglass.circle.fill"
+                ),
+                ChangelogHighlight(
                     .improve,
                     "changelog.1_0_0.playback.title",
                     "changelog.1_0_0.playback.body",

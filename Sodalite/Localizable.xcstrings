@@ -59639,6 +59639,330 @@
         }
       }
     },
+    "changelog.1_0_0.peopleSearch.title" : {
+      "comment" : "Changelog highlight for the 1.0.0 release",
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vyhledávání najde osobnosti"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Søgningen finder personer"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Suche findet Personen"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Η αναζήτηση βρίσκει πρόσωπα"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Search finds people"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La búsqueda encuentra personas"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Haku löytää henkilöt"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La recherche trouve les personnes"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pretraga pronalazi osobe"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A keresés megtalálja a személyeket"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La ricerca trova le persone"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "検索で人物が見つかる"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "검색에서 인물 찾기"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Søket finner personer"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zoeken vindt personen"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wyszukiwanie znajduje osoby"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A busca encontra pessoas"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A pesquisa encontra pessoas"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Căutarea găsește persoane"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Поиск находит персон"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vyhľadávanie nájde osobnosti"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sökningen hittar personer"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Arama kişileri buluyor"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Пошук знаходить персон"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "搜索可以找到人物"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "搜尋可以找到人物"
+          }
+        }
+      }
+    },
+    "changelog.1_0_0.peopleSearch.body" : {
+      "comment" : "Changelog highlight for the 1.0.0 release",
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hledání herce nebo režiséra teď vrátí i danou osobnost, nejen tituly s jejím jménem. Její stránka obsahuje fotku, životopis a celou filmografii a každý titul se otevře ve tvé knihovně nebo v katalogu."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Når du søger efter en skuespiller eller instruktør, får du nu selve personen frem, ikke kun titler med navnet i. Siden viser foto, biografi og hele filmografien, og hver titel åbner i dit bibliotek eller i kataloget."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Suche nach Schauspielern oder Regie liefert jetzt die Person selbst, nicht nur Titel mit ihrem Namen. Ihre Seite zeigt Foto, Biografie und die komplette Filmografie, und jeder Titel darin öffnet sich in deiner Bibliothek oder im Katalog."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Η αναζήτηση ενός ηθοποιού ή σκηνοθέτη επιστρέφει πλέον το ίδιο το πρόσωπο, όχι μόνο τίτλους με το όνομά του. Η σελίδα του έχει τη φωτογραφία, τη βιογραφία και όλη τη φιλμογραφία, και κάθε τίτλος ανοίγει στη βιβλιοθήκη σου ή στον κατάλογο."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Looking up an actor or director now returns the person, not just titles with their name in them. Their page carries the photo, biography and full filmography, and each title there opens in your library or in the catalog."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Buscar a un actor o director ahora devuelve a la persona, no solo títulos con su nombre. Su página incluye la foto, la biografía y la filmografía completa, y cada título se abre en tu biblioteca o en el catálogo."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Näyttelijän tai ohjaajan haku palauttaa nyt henkilön itsensä, ei vain nimen sisältäviä nimikkeitä. Sivulla on kuva, elämäkerta ja koko filmografia, ja jokainen nimike avautuu kirjastossasi tai luettelossa."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rechercher un acteur ou un réalisateur renvoie désormais la personne, et pas seulement les titres portant son nom. Sa page réunit la photo, la biographie et la filmographie complète, et chaque titre s'ouvre dans ta bibliothèque ou dans le catalogue."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pretraga glumca ili redatelja sada vraća i samu osobu, ne samo naslove s njezinim imenom. Njezina stranica ima fotografiju, biografiju i cijelu filmografiju, a svaki se naslov otvara u tvojoj biblioteci ili u katalogu."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Egy színész vagy rendező keresése mostantól magát a személyt is megtalálja, nemcsak a nevét tartalmazó címeket. Az oldalán fotó, életrajz és a teljes filmográfia szerepel, és minden cím a könyvtáradban vagy a katalógusban nyílik meg."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cercare un attore o un regista ora restituisce la persona, non solo i titoli che contengono il suo nome. La sua pagina raccoglie foto, biografia e filmografia completa, e ogni titolo si apre nella tua libreria o nel catalogo."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "俳優や監督を検索すると、名前を含む作品だけでなく人物そのものが表示されます。人物ページには写真、経歴、全フィルモグラフィーがあり、各作品はライブラリまたはカタログで開きます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "배우나 감독을 검색하면 이름이 들어간 작품뿐 아니라 인물 자체가 나옵니다. 인물 페이지에는 사진, 약력, 전체 필모그래피가 있으며 각 작품은 라이브러리나 카탈로그에서 열립니다."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Søk etter en skuespiller eller regissør gir nå selve personen, ikke bare titler med navnet i. Siden viser bilde, biografi og hele filmografien, og hver tittel åpnes i biblioteket ditt eller i katalogen."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zoeken op een acteur of regisseur levert nu de persoon zelf op, niet alleen titels met die naam erin. Hun pagina toont de foto, biografie en volledige filmografie, en elke titel opent in je bibliotheek of in de catalogus."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wyszukiwanie aktora lub reżysera zwraca teraz samą osobę, a nie tylko tytuły z jej nazwiskiem. Jej strona zawiera zdjęcie, biografię i pełną filmografię, a każdy tytuł otwiera się w twojej bibliotece lub w katalogu."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Buscar um ator ou diretor agora retorna a pessoa, não apenas títulos com o nome dela. A página traz a foto, a biografia e a filmografia completa, e cada título abre na sua biblioteca ou no catálogo."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pesquisar um ator ou realizador devolve agora a pessoa, não apenas títulos com o nome dela. A página tem a fotografia, a biografia e a filmografia completa, e cada título abre na tua biblioteca ou no catálogo."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Căutarea unui actor sau regizor returnează acum persoana, nu doar titluri care îi conțin numele. Pagina sa are fotografia, biografia și filmografia completă, iar fiecare titlu se deschide în biblioteca ta sau în catalog."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Поиск актёра или режиссёра теперь возвращает саму персону, а не только фильмы с её именем. На странице есть фото, биография и полная фильмография, а каждый фильм открывается в твоей библиотеке или в каталоге."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vyhľadanie herca alebo režiséra teraz vráti aj samotnú osobnosť, nielen tituly s jej menom. Jej stránka obsahuje fotku, životopis a celú filmografiu a každý titul sa otvorí v tvojej knižnici alebo v katalógu."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Att söka på en skådespelare eller regissör ger nu själva personen, inte bara titlar med namnet i. Sidan visar foto, biografi och hela filmografin, och varje titel öppnas i ditt bibliotek eller i katalogen."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bir oyuncuyu veya yönetmeni aradığında artık yalnızca adı geçen yapımlar değil, kişinin kendisi de geliyor. Sayfasında fotoğraf, biyografi ve tüm filmografi var; her yapım kitaplığında veya katalogda açılıyor."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Пошук актора чи режисера тепер повертає саму персону, а не лише фільми з її іменем. На сторінці є фото, біографія та повна фільмографія, а кожен фільм відкривається у твоїй бібліотеці або в каталозі."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "搜索演员或导演时，现在会直接返回人物，而不只是名字出现在其中的影片。人物页面包含照片、简介和完整作品列表，每部作品都可在你的媒体库或目录中打开。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "搜尋演員或導演時，現在會直接回傳人物，而不只是名字出現在其中的影片。人物頁面包含照片、簡介和完整作品列表，每部作品都可在你的媒體庫或目錄中開啟。"
+          }
+        }
+      }
+    },
     "changelog.1_0_0.pip.body" : {
       "comment" : "Changelog highlight for the 1.0.0 release",
       "extractionState" : "manual",
@@ -112214,6 +112538,168 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "在您的媒體庫中"
+          }
+        }
+      }
+    },
+    "search.section.people" : {
+      "comment" : "Heading for people found in the Seerr search results (tap opens the person page)",
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Osobnosti"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Personer"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Personen"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Πρόσωπα"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "People"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Personas"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Henkilöt"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Personnes"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Osobe"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Személyek"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Persone"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "人物"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "인물"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Personer"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Personen"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Osoby"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pessoas"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pessoas"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Persoane"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Персоны"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Osobnosti"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Personer"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kişiler"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Персони"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "人物"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "人物"
           }
         }
       }

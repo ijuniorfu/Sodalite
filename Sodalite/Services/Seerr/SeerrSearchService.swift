@@ -1,7 +1,7 @@
 import Foundation
 
 protocol SeerrSearchServiceProtocol: Sendable {
-    func search(query: String, page: Int) async throws -> SeerrDiscoverResult
+    func search(query: String, page: Int) async throws -> SeerrSearchResults
 }
 
 @MainActor
@@ -12,18 +12,12 @@ final class SeerrSearchService: SeerrSearchServiceProtocol {
         self.client = client
     }
 
-    func search(query: String, page: Int = 1) async throws -> SeerrDiscoverResult {
-        let raw = try await client.request(
+    /// `SeerrSearchResults` sorts the mixed `results` array into requestable media and people;
+    /// entries with no Sodalite destination (collections, unknown types) drop out during the decode.
+    func search(query: String, page: Int = 1) async throws -> SeerrSearchResults {
+        try await client.request(
             endpoint: SeerrEndpoint.search(query: query, page: page),
-            responseType: SeerrDiscoverResult.self
-        )
-        // Drop person results (catalog shows only requestable media); re-wrap to keep pagination metadata.
-        let filtered = raw.results.filter { $0.mediaType == .movie || $0.mediaType == .tv }
-        return SeerrDiscoverResult(
-            page: raw.page,
-            totalPages: raw.totalPages,
-            totalResults: raw.totalResults,
-            results: filtered
+            responseType: SeerrSearchResults.self
         )
     }
 }
