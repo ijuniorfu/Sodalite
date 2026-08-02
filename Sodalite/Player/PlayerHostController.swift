@@ -608,10 +608,10 @@ final class PlayerHostController: AVPlayerViewController {
     }
 
     #if os(iOS)
-    // The session mask applies only while a lock is engaged (during playback); when released for
-    // dismiss it widens to allButUpsideDown so the dismiss transition shares a common orientation
-    // with the portrait app and can rotate back instead of stalling on a black frame. Follow mode
-    // (mask nil) rotates freely the whole session. iPad allows all.
+    // The session mask applies while a lock is engaged (during playback) and, on the way out, while the
+    // exit rotation back to the entry orientation is in flight. Player and app root read that same mask,
+    // so the dismiss transition always shares a common orientation with the app it returns to instead of
+    // stalling on a black frame. Follow mode (mask nil) rotates freely the whole session. iPad allows all.
     override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
         if UIDevice.current.userInterfaceIdiom == .pad { return .all }
         return PlayerOrientation.playerMask ?? .allButUpsideDown
