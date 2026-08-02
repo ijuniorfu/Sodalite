@@ -1,9 +1,11 @@
 import SwiftUI
 
-/// Person page: photo, biography, filmography grid. A filmography tap routes to Jellyfin detail when the library owns the title, else to Seerr detail to request it.
+/// Person page: photo, biography, the person's own library titles, then the TMDB filmography.
+/// A filmography tap routes to Jellyfin detail when the library owns the title, else to Seerr
+/// detail to request it. Without Seerr the page keeps its Jellyfin half (Sodalite#57).
 struct PersonDetailView: View {
-    /// TMDB id when the caller already knows it (Seerr cast); nil for Jellyfin cast, where `load()`
-    /// translates `jellyfinPersonID` first and the wait sits behind this view's own spinner.
+    /// TMDB id when the caller already knows it (Seerr cast); nil for Jellyfin cast, where the view
+    /// model translates `jellyfinPersonID` first and the wait sits behind this view's own spinner.
     let personID: Int?
     let jellyfinPersonID: String?
     /// Shown in the header until the detail fetch lands; pass "" if unknown.
@@ -20,18 +22,13 @@ struct PersonDetailView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.horizontalSizeClass) private var hSizeClass
 
-    @State private var detail: SeerrPersonDetail?
-    /// Kept so the error state's retry button does not pay for the id translation a second time.
-    @State private var resolvedTMDBID: Int?
-    /// Deduped/sorted filmography, computed once from the person credits in `load()`.
-    @State private var filmography: [SeerrMedia] = []
-    @State private var isLoading = true
-    @State private var errorMessage: String?
+    @State private var viewModel: PersonDetailViewModel?
 
     @State private var navigateToJellyfinItem: JellyfinItem?
     @State private var navigateToSeerrMedia: SeerrMedia?
 
     private var metrics: LayoutMetrics { LayoutMetrics.current(hSizeClass) }
+    private var contentInset: CGFloat { hSizeClass == .compact ? metrics.gridInset : 80 }
 
     /// tvOS keeps the fixed five-up filmography grid; iOS/iPadOS wrap to as many adaptive columns as the width fits (fixed-five overflows an iPad in portrait).
     private var columns: [GridItem] {
@@ -52,12 +49,18 @@ struct PersonDetailView: View {
         .navigationDestination(item: $navigateToSeerrMedia) { media in
             CatalogDetailView(media: media)
         }
-        .task { await load() }
+        .task { await bootstrap() }
     }
 
     @ViewBuilder
     private var content: some View {
-        if isLoading {
+        if let viewModel, !viewModel.isLoading {
+            if let errorMessage = viewModel.errorMessage {
+                errorState(message: errorMessage)
+            } else {
+                loadedContent(viewModel)
+            }
+        } else {
             // The name is all this view knows before the fetches land, and showing it makes the
             // push read as "this person is opening" rather than as a blank screen.
             VStack(spacing: 20) {
@@ -69,14 +72,16 @@ struct PersonDetailView: View {
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-        } else if let errorMessage {
-            errorState(message: errorMessage)
-        } else {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 32) {
-                    header
+        }
+    }
 
-                    if let bio = detail?.biography, !bio.isEmpty {
+    private func loadedContent(_ viewModel: PersonDetailViewModel) -> some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 32) {
+                VStack(alignment: .leading, spacing: 32) {
+                    header(viewModel.profile)
+
+                    if let bio = viewModel.profile?.biography, !bio.isEmpty {
                         VStack(alignment: .leading, spacing: 8) {
                             Text("person.biography")
                                 .font(.title3)
@@ -84,31 +89,36 @@ struct PersonDetailView: View {
                             ExpandableTextBox(text: bio)
                         }
                     }
-
-                    filmographySection
                 }
-                .padding(.horizontal, hSizeClass == .compact ? metrics.gridInset : 80)
-                .padding(.vertical, hSizeClass == .compact ? 24 : 60)
-                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, contentInset)
+
+                // Outside the padded column: the rows carry the same inset themselves, so a
+                // focused card can grow into the margin instead of being clipped by it.
+                librarySections(viewModel.library)
+
+                // With no Seerr there is no filmography to be missing, so the heading goes too
+                // rather than reporting an empty one.
+                if !viewModel.filmographyUnavailable {
+                    filmographySection(viewModel.filmography)
+                        .padding(.horizontal, contentInset)
+                }
             }
+            .padding(.vertical, hSizeClass == .compact ? 24 : 60)
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
 
-    private var header: some View {
+    private func header(_ profile: PersonProfile?) -> some View {
         // Compact stacks the photo above the name so neither gets squeezed on a phone; wider tiers keep the side-by-side hero.
         let photoSide: CGFloat = hSizeClass == .compact ? 140 : 200
-        // The hero needs 400px+ on every tier (140pt at 3x on a phone, 200pt at 2x on a 4K TV),
-        // so w185 was always an upscale here.
-        let photo = AsyncCachedImage(
-            url: SeerrImageURL.profile(path: detail?.profilePath, size: .h632)
-        ) { image in
+        let photo = AsyncCachedImage(url: photoURL(profile)) { image in
             image
                 .resizable()
                 .aspectRatio(contentMode: .fill)
         } placeholder: {
             ZStack {
                 Circle().fill(.ultraThinMaterial)
-                Text(initials)
+                Text(initials(profile))
                     .font(.largeTitle)
                     .fontWeight(.semibold)
                     .foregroundStyle(.secondary)
@@ -118,11 +128,11 @@ struct PersonDetailView: View {
         .clipShape(Circle())
 
         let nameBlock = VStack(alignment: .leading, spacing: 8) {
-            Text(displayName)
+            Text(displayName(profile))
                 .font(.largeTitle)
                 .fontWeight(.bold)
 
-            if let dept = detail?.knownForDepartment, !dept.isEmpty {
+            if let dept = profile?.knownForDepartment, !dept.isEmpty {
                 Text(verbatim: "\(String(localized: "person.knownFor", defaultValue: "Known for")): \(dept)")
                     .font(.headline)
                     .foregroundStyle(.secondary)
@@ -146,7 +156,42 @@ struct PersonDetailView: View {
         }
     }
 
-    private var filmographySection: some View {
+    /// The person's own titles, above the filmography because a title already in the library beats
+    /// one that would have to be requested. Each row appears only when it has something to show.
+    @ViewBuilder
+    private func librarySections(_ library: PersonLibraryResults) -> some View {
+        if !library.movies.isEmpty {
+            HorizontalMediaRow(
+                title: "person.library.movies",
+                items: library.movies,
+                imageURLProvider: { dependencies.jellyfinImageService.posterURL(for: $0) },
+                onItemSelected: { navigateToJellyfinItem = $0 },
+                inset: contentInset
+            )
+        }
+        if !library.series.isEmpty {
+            HorizontalMediaRow(
+                title: "person.library.series",
+                items: library.series,
+                imageURLProvider: { dependencies.jellyfinImageService.posterURL(for: $0) },
+                onItemSelected: { navigateToJellyfinItem = $0 },
+                inset: contentInset
+            )
+        }
+        if !library.episodes.isEmpty {
+            HorizontalMediaRow(
+                title: "person.library.episodes",
+                items: library.episodes,
+                imageURLProvider: { dependencies.jellyfinImageService.episodeThumbnailURL(for: $0) },
+                fallbackURLProvider: { dependencies.jellyfinImageService.parentBackdropURL(for: $0) },
+                onItemSelected: { navigateToJellyfinItem = $0 },
+                cardStyle: .landscape,
+                inset: contentInset
+            )
+        }
+    }
+
+    private func filmographySection(_ filmography: [SeerrMedia]) -> some View {
         VStack(alignment: .leading, spacing: 16) {
             Text("person.filmography")
                 .font(.title3)
@@ -192,7 +237,7 @@ struct PersonDetailView: View {
                 .frame(maxWidth: 600)
             HStack(spacing: 16) {
                 Button {
-                    Task { await load() }
+                    Task { await reload() }
                 } label: {
                     Text("home.retry")
                         .padding(.horizontal, 24)
@@ -210,78 +255,55 @@ struct PersonDetailView: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .padding(.horizontal, hSizeClass == .compact ? metrics.gridInset : 80)
+        .padding(.horizontal, contentInset)
     }
 
     // MARK: - Derived
 
-    private var displayName: String {
-        detail?.name ?? (personName.isEmpty ? " " : personName)
+    private func displayName(_ profile: PersonProfile?) -> String {
+        profile?.name ?? (personName.isEmpty ? " " : personName)
     }
 
-    private var initials: String {
-        let parts = displayName.split(separator: " ")
+    /// TMDB portrait when Seerr supplied the profile, else Jellyfin's own person image. The hero
+    /// needs 400px+ on every tier (140pt at 3x on a phone, 200pt at 2x on a 4K TV).
+    private func photoURL(_ profile: PersonProfile?) -> URL? {
+        if let path = profile?.tmdbProfilePath {
+            return SeerrImageURL.profile(path: path, size: .h632)
+        }
+        guard let id = profile?.jellyfinPersonID else { return nil }
+        return dependencies.jellyfinImageService.personImageURL(
+            personID: id, tag: profile?.jellyfinImageTag, maxWidth: 400
+        )
+    }
+
+    private func initials(_ profile: PersonProfile?) -> String {
+        let parts = displayName(profile).split(separator: " ")
         if parts.count >= 2 {
             return "\(parts[0].prefix(1))\(parts[1].prefix(1))".uppercased()
         }
-        return String(displayName.prefix(2)).uppercased()
-    }
-
-    /// cast + crew, deduped by stableKey, poster-only, newest first. Computed once when credits load
-    /// (see `load()`) and cached in `filmography`, rather than re-deduped/re-sorted on every body pass.
-    private static func computeFilmography(from credits: SeerrPersonCredits?) -> [SeerrMedia] {
-        let all = (credits?.cast ?? []) + (credits?.crew ?? [])
-        var seen = Set<String>()
-        let deduped = all.filter { seen.insert($0.stableKey).inserted }
-        return deduped
-            .filter { $0.posterPath != nil }
-            .sorted {
-                ($0.releaseDate ?? $0.firstAirDate ?? "")
-                    > ($1.releaseDate ?? $1.firstAirDate ?? "")
-            }
+        return String(displayName(profile).prefix(2)).uppercased()
     }
 
     // MARK: - Actions
 
-    private func load() async {
-        isLoading = true
-        errorMessage = nil
-        defer { isLoading = false }
-        guard appState.isSeerrConnected else {
-            errorMessage = String(
-                localized: "person.seerrNotConnected",
-                defaultValue: "Seerr is not connected. Connect Seerr in Settings to view this page."
-            )
-            return
-        }
-        guard let tmdbID = await personTMDBID() else {
-            errorMessage = String(
-                localized: "person.noTmdbID",
-                defaultValue: "This cast member has no TMDB id on the server, so there is no person page to show."
-            )
-            return
-        }
-        do {
-            async let d = dependencies.seerrMediaService.personDetail(tmdbID: tmdbID)
-            async let c = dependencies.seerrMediaService.personCredits(tmdbID: tmdbID)
-            detail = try await d
-            filmography = Self.computeFilmography(from: try await c)
-        } catch {
-            errorMessage = error.localizedDescription
-        }
+    private func bootstrap() async {
+        guard viewModel == nil else { return }
+        let vm = PersonDetailViewModel(
+            itemService: dependencies.jellyfinItemService,
+            mediaService: dependencies.seerrMediaService,
+            isSeerrConnected: appState.isSeerrConnected,
+            userID: appState.activeUser?.id
+        )
+        viewModel = vm
+        await reload()
     }
 
-    /// Jellyfin's item response carries no provider ids for cast, so a Jellyfin-sourced person costs
-    /// one lookup to reach TMDB. Runs inside `load()` so the spinner covers it.
-    private func personTMDBID() async -> Int? {
-        if let personID { return personID }
-        if let resolvedTMDBID { return resolvedTMDBID }
-        guard let jellyfinPersonID, let userID = appState.activeUser?.id else { return nil }
-        let person = try? await dependencies.jellyfinItemService.getItemDetail(
-            userID: userID, itemID: jellyfinPersonID
+    private func reload() async {
+        await viewModel?.load(
+            tmdbID: personID,
+            jellyfinPersonID: jellyfinPersonID,
+            name: personName
         )
-        resolvedTMDBID = person?.tmdbID
-        return resolvedTMDBID
     }
 
     /// Owned in Jellyfin routes to play; else to Seerr request. The library lookup runs only when Seerr marks the title available, so non-owned titles skip the query.

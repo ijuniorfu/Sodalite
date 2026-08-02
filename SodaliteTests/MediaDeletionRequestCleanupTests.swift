@@ -20,6 +20,7 @@ struct MediaDeletionRequestCleanupTests {
         func getCollectionItems(userID: String, query: ItemQuery) async throws -> JellyfinItemsResponse { throw Boom() }
         func findByTmdbID(userID: String, tmdbID: Int, searchTerm: String?) async throws -> JellyfinItem? { nil }
         func findByProviderIDs(userID: String, tmdbID: Int?, tvdbID: Int?, imdbID: String?, includeItemTypes: [ItemType], searchTerm: String?) async throws -> JellyfinItem? { nil }
+        func searchPersons(userID: String, name: String, limit: Int) async throws -> [JellyfinItem] { [] }
         func deleteItem(itemID: String) async throws {
             if throwOnDelete { throw Boom() }
             deleted.append(itemID)

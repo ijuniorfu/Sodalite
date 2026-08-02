@@ -76,6 +76,12 @@ enum Changelog {
                 ),
                 ChangelogHighlight(
                     .improve,
+                    "changelog.1_0_0.personLibrary.title",
+                    "changelog.1_0_0.personLibrary.body",
+                    icon: "books.vertical.fill"
+                ),
+                ChangelogHighlight(
+                    .improve,
                     "changelog.1_0_0.playback.title",
                     "changelog.1_0_0.playback.body",
                     icon: "play.circle.fill"

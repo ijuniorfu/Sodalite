@@ -59963,6 +59963,330 @@
         }
       }
     },
+    "changelog.1_0_0.personLibrary.title" : {
+      "comment" : "Changelog highlight for the 1.0.0 release",
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tvá knihovna na stránce osobnosti"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dit bibliotek på personsiden"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deine Bibliothek auf der Personenseite"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Η βιβλιοθήκη σου στη σελίδα προσώπου"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your library on the person page"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu biblioteca en la página de la persona"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kirjastosi henkilösivulla"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ta bibliothèque sur la page de la personne"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tvoja biblioteka na stranici osobe"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A könyvtárad a személy oldalán"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La tua libreria nella pagina della persona"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "人物ページにライブラリの作品"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "인물 페이지의 내 라이브러리"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Biblioteket ditt på personsiden"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Je bibliotheek op de personenpagina"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Twoja biblioteka na stronie osoby"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sua biblioteca na página da pessoa"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A tua biblioteca na página da pessoa"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Biblioteca ta pe pagina persoanei"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Твоя библиотека на странице персоны"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tvoja knižnica na stránke osobnosti"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ditt bibliotek på personsidan"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kişi sayfasında kitaplığın"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Твоя бібліотека на сторінці персони"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "人物页面显示你的媒体库"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "人物頁面顯示你的媒體庫"
+          }
+        }
+      }
+    },
+    "changelog.1_0_0.personLibrary.body" : {
+      "comment" : "Changelog highlight for the 1.0.0 release",
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stránka osobnosti teď začíná tím, co o ní má tvá vlastní knihovna: filmy, seriály a jednotlivé epizody s hostující rolí, nad úplnou filmografií. Bez Jellyseerru zůstane aspoň tato část, místo aby se stránka změnila v chybu."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En personside starter nu med det, dit eget bibliotek har med vedkommende: film, serier og de enkelte afsnit med gæsteoptræden, over den fulde filmografi. Uden Jellyseerr bliver den del stående i stedet for en fejlmeddelelse."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Eine Personenseite zeigt jetzt zuerst, was deine eigene Bibliothek von ihr hat: Filme, Serien und die einzelnen Folgen mit Gastauftritt, über der vollständigen Filmografie. Ohne Jellyseerr bleibt dieser Teil erhalten, statt dass die Seite zur Fehlermeldung wird."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Η σελίδα ενός προσώπου ξεκινά πλέον με όσα έχει η δική σου βιβλιοθήκη: ταινίες, σειρές και τα μεμονωμένα επεισόδια όπου εμφανίζεται, πάνω από την πλήρη φιλμογραφία. Χωρίς το Jellyseerr αυτό το μέρος παραμένει, αντί για μήνυμα σφάλματος."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A person page now opens with what your own library holds for them, movies, series and the single episodes they guest in, above the full filmography. Without Jellyseerr that half stays instead of the page turning into an error."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La página de una persona ahora empieza por lo que tiene tu propia biblioteca: películas, series y los episodios sueltos en los que aparece, encima de la filmografía completa. Sin Jellyseerr esa parte se mantiene en lugar de convertirse en un error."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Henkilösivu alkaa nyt sillä, mitä oma kirjastosi hänestä sisältää: elokuvat, sarjat ja yksittäiset vierailujaksot, koko filmografian yläpuolella. Ilman Jellyseerriä tämä osa jää näkyviin virheilmoituksen sijaan."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La page d'une personne commence désormais par ce que ta propre bibliothèque possède d'elle: films, séries et les épisodes isolés où elle apparaît, au-dessus de la filmographie complète. Sans Jellyseerr, cette partie reste au lieu d'une page d'erreur."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stranica osobe sada počinje onim što o njoj ima tvoja biblioteka: filmovi, serije i pojedine epizode s gostujućom ulogom, iznad cijele filmografije. Bez Jellyseerra taj dio ostaje umjesto poruke o pogrešci."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A személy oldala mostantól azzal kezdődik, ami a saját könyvtáradban van tőle: filmek, sorozatok és az egyes epizódok, amelyekben feltűnik, a teljes filmográfia fölött. Jellyseerr nélkül ez a rész megmarad hibaüzenet helyett."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La pagina di una persona ora si apre con quello che la tua libreria ha di lei: film, serie e i singoli episodi in cui compare, sopra la filmografia completa. Senza Jellyseerr questa parte resta, invece di una pagina di errore."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "人物ページは、まず自分のライブラリにあるもの、映画、番組、ゲスト出演した単話を表示し、その下に全フィルモグラフィーが並びます。Jellyseerr がなくてもこの部分は残り、エラー画面にはなりません。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "인물 페이지가 이제 내 라이브러리에 있는 항목부터 보여줍니다. 영화, 시리즈, 그리고 게스트로 출연한 개별 에피소드가 전체 필모그래피 위에 표시됩니다. Jellyseerr가 없어도 이 부분은 그대로 남고 오류 화면이 되지 않습니다."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En personside starter nå med det ditt eget bibliotek har: filmer, serier og de enkelte episodene med gjesteopptreden, over hele filmografien. Uten Jellyseerr blir denne delen stående i stedet for en feilmelding."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Een personenpagina begint nu met wat je eigen bibliotheek van diegene heeft: films, series en de losse afleveringen met een gastrol, boven de volledige filmografie. Zonder Jellyseerr blijft dat deel staan in plaats van een foutmelding."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Strona osoby zaczyna się teraz od tego, co ma twoja własna biblioteka: filmy, seriale i pojedyncze odcinki z gościnnym udziałem, nad pełną filmografią. Bez Jellyseerra ta część zostaje, zamiast komunikatu o błędzie."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A página de uma pessoa agora começa pelo que a sua própria biblioteca tem dela: filmes, séries e os episódios avulsos em que aparece, acima da filmografia completa. Sem o Jellyseerr essa parte continua, em vez de a página virar um erro."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A página de uma pessoa começa agora pelo que a tua própria biblioteca tem dela: filmes, séries e os episódios avulsos em que aparece, acima da filmografia completa. Sem o Jellyseerr essa parte mantém-se, em vez de a página se tornar um erro."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pagina unei persoane începe acum cu ce are propria ta bibliotecă despre ea: filme, seriale și episoadele individuale în care apare, deasupra filmografiei complete. Fără Jellyseerr partea aceasta rămâne, în loc de un mesaj de eroare."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Страница персоны теперь начинается с того, что есть в твоей библиотеке: фильмы, сериалы и отдельные серии с её участием, над полной фильмографией. Без Jellyseerr эта часть остаётся, а не превращается в ошибку."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stránka osobnosti sa teraz začína tým, čo o nej má tvoja knižnica: filmy, seriály a jednotlivé epizódy s hosťujúcou úlohou, nad úplnou filmografiou. Bez Jellyseerru táto časť zostane namiesto chybovej hlášky."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En personsida börjar nu med det ditt eget bibliotek har: filmer, serier och de enskilda avsnitt personen gästar i, ovanför hela filmografin. Utan Jellyseerr blir den delen kvar i stället för ett felmeddelande."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kişi sayfası artık önce kendi kitaplığında olanları gösteriyor: filmler, diziler ve konuk olarak yer aldığı tek bölümler, tam filmografinin üstünde. Jellyseerr olmadan bu bölüm kalıyor, sayfa hata ekranına dönüşmüyor."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сторінка персони тепер починається з того, що є у твоїй бібліотеці: фільми, серіали та окремі епізоди з її участю, над повною фільмографією. Без Jellyseerr ця частина лишається, а не перетворюється на помилку."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "人物页面现在先显示你自己媒体库里的内容：电影、剧集，以及客串的单集，然后才是完整作品列表。没有 Jellyseerr 时这部分依然保留，不会变成错误页面。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "人物頁面現在會先顯示你自己媒體庫裡的內容：電影、影集，以及客串的單集，接著才是完整作品列表。沒有 Jellyseerr 時這部分依然保留，不會變成錯誤頁面。"
+          }
+        }
+      }
+    },
     "changelog.1_0_0.pip.body" : {
       "comment" : "Changelog highlight for the 1.0.0 release",
       "extractionState" : "manual",
@@ -97735,6 +98059,492 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "代表作品"
+          }
+        }
+      }
+    },
+    "person.library.movies" : {
+      "comment" : "Heading for a row of the person's own library titles on the person page",
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filmy ve tvé knihovně"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Film i dit bibliotek"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filme in deiner Bibliothek"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ταινίες στη βιβλιοθήκη σου"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Movies in Your Library"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Películas en tu biblioteca"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Elokuvat kirjastossasi"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Films dans ta bibliothèque"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filmovi u tvojoj biblioteci"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filmek a könyvtáradban"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Film nella tua libreria"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ライブラリの映画"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "내 라이브러리의 영화"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filmer i biblioteket ditt"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Films in je bibliotheek"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filmy w twojej bibliotece"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filmes na sua biblioteca"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filmes na tua biblioteca"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filme din biblioteca ta"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Фильмы в твоей библиотеке"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filmy v tvojej knižnici"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filmer i ditt bibliotek"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kitaplığındaki filmler"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Фільми у твоїй бібліотеці"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "媒体库中的电影"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "媒體庫中的電影"
+          }
+        }
+      }
+    },
+    "person.library.series" : {
+      "comment" : "Heading for a row of the person's own library titles on the person page",
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seriály ve tvé knihovně"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Serier i dit bibliotek"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Serien in deiner Bibliothek"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Σειρές στη βιβλιοθήκη σου"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Series in Your Library"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Series en tu biblioteca"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sarjat kirjastossasi"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Séries dans ta bibliothèque"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Serije u tvojoj biblioteci"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sorozatok a könyvtáradban"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Serie nella tua libreria"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ライブラリの番組"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "내 라이브러리의 시리즈"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Serier i biblioteket ditt"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Series in je bibliotheek"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seriale w twojej bibliotece"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Séries na sua biblioteca"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Séries na tua biblioteca"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seriale din biblioteca ta"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сериалы в твоей библиотеке"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seriály v tvojej knižnici"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Serier i ditt bibliotek"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kitaplığındaki diziler"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Серіали у твоїй бібліотеці"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "媒体库中的剧集"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "媒體庫中的影集"
+          }
+        }
+      }
+    },
+    "person.library.episodes" : {
+      "comment" : "Heading for a row of the person's own library titles on the person page",
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Epizody ve tvé knihovně"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Afsnit i dit bibliotek"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Folgen in deiner Bibliothek"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Επεισόδια στη βιβλιοθήκη σου"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Episodes in Your Library"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Episodios en tu biblioteca"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jaksot kirjastossasi"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Épisodes dans ta bibliothèque"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Epizode u tvojoj biblioteci"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Epizódok a könyvtáradban"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Episodi nella tua libreria"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ライブラリのエピソード"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "내 라이브러리의 에피소드"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Episoder i biblioteket ditt"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Afleveringen in je bibliotheek"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Odcinki w twojej bibliotece"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Episódios na sua biblioteca"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Episódios na tua biblioteca"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Episoade din biblioteca ta"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Серии в твоей библиотеке"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Epizódy v tvojej knižnici"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Avsnitt i ditt bibliotek"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kitaplığındaki bölümler"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Епізоди у твоїй бібліотеці"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "媒体库中的单集"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "媒體庫中的單集"
           }
         }
       }
