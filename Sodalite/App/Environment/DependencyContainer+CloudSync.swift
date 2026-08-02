@@ -23,20 +23,29 @@ extension DependencyContainer {
             rewatchNextUp: HomeRowConfig.enableRewatchingNextUp(serverID: serverID),
             collectionGrouping: HomeRowConfig.collectionGrouping(serverID: serverID).rawValue
         )
-        let password = try? keychainService.loadString(for: KeychainKeys.jellyfinPassword(serverID: serverID))
-        // Pre-feature installs stored the password without an owner entry. switchToUser
-        // deletes the password on every profile switch, so an existing password can only
-        // belong to the server's current user; backfill the owner from that.
-        var passwordUserID = try? keychainService.loadString(for: KeychainKeys.jellyfinPasswordUserID(serverID: serverID))
-        if password != nil, passwordUserID == nil {
-            passwordUserID = try? keychainService.loadString(for: KeychainKeys.userID(serverID: serverID))
+        // One password per profile. The active user is included explicitly: they may have signed in
+        // moments ago and not be in the remembered list yet.
+        var passwordUserIDs = Set(users.map(\.id))
+        let activeUserID = try? keychainService.loadString(for: KeychainKeys.userID(serverID: serverID))
+        if let activeUserID { passwordUserIDs.insert(activeUserID) }
+        var passwords: [String: String] = [:]
+        for userID in passwordUserIDs {
+            if let password = try? keychainService.loadString(
+                for: KeychainKeys.jellyfinPassword(serverID: serverID, userID: userID)
+            ) {
+                passwords[userID] = password
+            }
         }
+        // Legacy fields for devices that predate the per-user layout: give them the active
+        // profile's password, which is the one their single slot used to hold anyway.
+        let legacyUserID = activeUserID.flatMap { passwords[$0] != nil ? $0 : nil } ?? passwords.keys.sorted().first
         return ServerSyncPayload(
             updatedAt: stamp,
             server: server,
             rememberedUsers: users,
-            jellyfinPassword: password,
-            passwordUserID: passwordUserID,
+            jellyfinPassword: legacyUserID.flatMap { passwords[$0] },
+            passwordUserID: legacyUserID,
+            jellyfinPasswords: passwords.isEmpty ? nil : passwords,
             seerrSessions: sessions,
             homeRows: homeRows,
             defaultUserID: authPreferences.defaultUserID(serverID: serverID)
@@ -73,12 +82,19 @@ extension DependencyContainer {
             try? keychainService.save(data, for: KeychainKeys.rememberedUsers(serverID: serverID))
         }
 
+        // Additive on purpose: a password is device-local knowledge (a device signed in with Quick
+        // Connect or the picker never has one), so "the payload carries none" means "the sender does
+        // not know it", not "there is none". Deleting on that reading let one passwordless device
+        // strip the password from every other one. Only a local logout or forgetUser removes them.
+        var incomingPasswords = payload.jellyfinPasswords ?? [:]
         if let password = payload.jellyfinPassword, let owner = payload.passwordUserID {
-            try? keychainService.save(password, for: KeychainKeys.jellyfinPassword(serverID: serverID))
-            try? keychainService.save(owner, for: KeychainKeys.jellyfinPasswordUserID(serverID: serverID))
-        } else {
-            try? keychainService.delete(for: KeychainKeys.jellyfinPassword(serverID: serverID))
-            try? keychainService.delete(for: KeychainKeys.jellyfinPasswordUserID(serverID: serverID))
+            incomingPasswords[owner] = password
+        }
+        for (userID, password) in incomingPasswords {
+            try? keychainService.save(
+                password,
+                for: KeychainKeys.jellyfinPassword(serverID: serverID, userID: userID)
+            )
         }
 
         // Seerr sessions: payload is authoritative for this server's users. Sweep the

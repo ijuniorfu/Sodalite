@@ -30,6 +30,15 @@ enum CloudSyncMerge {
             merged.jellyfinPassword = local.jellyfinPassword
             merged.passwordUserID = local.passwordUserID
         }
+        // Union per profile, local wins: a password this device knows is first-hand knowledge, and
+        // the cloud copy can only be the same secret or a stale one.
+        if local.jellyfinPasswords?.isEmpty == false || merged.jellyfinPasswords?.isEmpty == false {
+            var passwords = merged.jellyfinPasswords ?? [:]
+            for (userID, password) in local.jellyfinPasswords ?? [:] {
+                passwords[userID] = password
+            }
+            merged.jellyfinPasswords = passwords.isEmpty ? nil : passwords
+        }
         return merged
     }
 

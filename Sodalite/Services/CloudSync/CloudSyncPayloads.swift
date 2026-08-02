@@ -54,10 +54,14 @@ struct ServerSyncPayload: Codable, Equatable {
     var updatedAt: Date
     var server: JellyfinServer
     var rememberedUsers: [RememberedUser]
+    /// Legacy single-password fields, still written so older builds keep working: they carry
+    /// whichever profile's password `jellyfinPasswords` holds for the sending device's active user.
     var jellyfinPassword: String?
-    /// The user the stored password belongs to; the silent re-login fallback
-    /// only fires when this matches the profile being restored.
+    /// The user the legacy `jellyfinPassword` belongs to.
     var passwordUserID: String?
+    /// Password per profile, keyed by Jellyfin user id. Optional: payloads written before the
+    /// per-user layout must still decode, and a missing value must not wipe a device's passwords.
+    var jellyfinPasswords: [String: String]?
     var seerrSessions: [RememberedSeerrSession]
     var homeRows: HomeRowsSyncState?
     /// Profile pinned as this server's default. Optional: payloads written before the pin moved out
