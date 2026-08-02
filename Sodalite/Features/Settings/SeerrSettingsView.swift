@@ -552,6 +552,14 @@ struct SeerrSettingsView: View {
                 forJellyfinUserID: appState.activeUser?.id,
                 jellyfinServerID: appState.activeServer?.id
             )
+
+            // The password just typed here is the Jellyfin one, so keep it: this screen is the only
+            // one that asks for it again, and without this it would ask on every reconnect.
+            if useJellyfinCredentials, hasJellyfinUser, !passwordText.isEmpty,
+               await dependencies.adoptJellyfinPassword(username: username, password: password) {
+                cachedJellyfinPassword = password
+            }
+
             passwordText = ""
             showSuccess = true
 

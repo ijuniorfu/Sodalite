@@ -288,6 +288,7 @@
 		656DA3EDA9558FEE0DC19D31 /* SeerrDiscoverResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74987CFA1D164691B62A7A89 /* SeerrDiscoverResult.swift */; };
 		65C04C74FFF2A2FCBE25F1DF /* Color+Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C2FBEBB8926214D1253EA10 /* Color+Theme.swift */; };
 		65DBD42F2403DAFE61E91020 /* WhatsNewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77F75B9F040C820A852BEBC8 /* WhatsNewView.swift */; };
+		66C72D2C7F5AD77FC8CF1EA5 /* JellyfinPasswordAdoptionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E8136D19ED8A02F5CA7A904 /* JellyfinPasswordAdoptionTests.swift */; };
 		676AECEBEB7272EA391EEC61 /* EnvironmentKeys.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58AF29A659F51ED292CF8D58 /* EnvironmentKeys.swift */; };
 		67946C2FED6A583BE7598C44 /* ServerDiscoveryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4001613D7E44F6797CCE86F /* ServerDiscoveryService.swift */; };
 		6812A22EB3301759F0492FD7 /* BackgroundPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E6F943062A404584A9A3AF7 /* BackgroundPickerView.swift */; };
@@ -946,6 +947,7 @@
 		5D67C0E479E49AEC10441E52 /* NowPlayingCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NowPlayingCard.swift; sourceTree = "<group>"; };
 		5DC9442A4D4AD7B3F96516B3 /* ViewConditional.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewConditional.swift; sourceTree = "<group>"; };
 		5DCCDE639EE071B54BD03C8B /* SupportDevelopmentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupportDevelopmentView.swift; sourceTree = "<group>"; };
+		5E8136D19ED8A02F5CA7A904 /* JellyfinPasswordAdoptionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JellyfinPasswordAdoptionTests.swift; sourceTree = "<group>"; };
 		5E97880F967A329D4C748338 /* RememberedSeerrSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RememberedSeerrSession.swift; sourceTree = "<group>"; };
 		5F89447C8C03E545E093583E /* EPGGuideViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EPGGuideViewModel.swift; sourceTree = "<group>"; };
 		5FAE153258CB34980ED7C41A /* GlassBackground.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassBackground.swift; sourceTree = "<group>"; };
@@ -1408,6 +1410,7 @@
 				B3FA4BC221395E91F05930AF /* HomeConfigReloadTests.swift */,
 				E5AB5D7618DDA0234AD98A97 /* HomeRowConfigTests.swift */,
 				C7D12A1E28286856D9BCD249 /* JellyfinItemTests.swift */,
+				5E8136D19ED8A02F5CA7A904 /* JellyfinPasswordAdoptionTests.swift */,
 				C028CB9919E5B1364C676009 /* JellyfinPasswordRetentionTests.swift */,
 				085AE11E14AD00C4B3627FD7 /* JellyfinProviderLookupTests.swift */,
 				FE555FE545E2C2CBAA6E6340 /* JellyfinSeasonFieldsTests.swift */,
@@ -2628,6 +2631,7 @@
 				A6AE635DECAA881C8F220D21 /* HomeConfigReloadTests.swift in Sources */,
 				1850F56524FF34FE989BE56D /* HomeRowConfigTests.swift in Sources */,
 				3C6E101361ED5F9E62FBEDD8 /* JellyfinItemTests.swift in Sources */,
+				66C72D2C7F5AD77FC8CF1EA5 /* JellyfinPasswordAdoptionTests.swift in Sources */,
 				93535A689407F1BA9EFE5998 /* JellyfinPasswordRetentionTests.swift in Sources */,
 				DC0A3BEA24E73DA7164F109F /* JellyfinProviderLookupTests.swift in Sources */,
 				B3A8359B648774E07E4A75F2 /* JellyfinSeasonFieldsTests.swift in Sources */,

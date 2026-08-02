@@ -11,13 +11,20 @@ enum KeychainKeys {
         "userID_\(serverID)"
     }
 
-    static func jellyfinPassword(serverID: String) -> String {
+    /// A password belongs to one profile, so the key carries the profile. Scoped per server too,
+    /// because the same account name can exist on several servers with different passwords.
+    static func jellyfinPassword(serverID: String, userID: String) -> String {
+        "jellyfinPassword_\(serverID)_\(userID)"
+    }
+
+    /// Pre-per-user layout: one password per server, with the owner in a second entry. Both are
+    /// migrated into `jellyfinPassword(serverID:userID:)` on launch and then removed.
+    static func legacyJellyfinPassword(serverID: String) -> String {
         "jellyfinPassword_\(serverID)"
     }
 
-    /// The user id `jellyfinPassword_<serverID>` belongs to. Written beside every
-    /// password save so cloud sync's silent re-login only fires for that profile.
-    static func jellyfinPasswordUserID(serverID: String) -> String {
+    /// The user id the legacy per-server password belonged to.
+    static func legacyJellyfinPasswordUserID(serverID: String) -> String {
         "jellyfinPasswordUserID_\(serverID)"
     }
 

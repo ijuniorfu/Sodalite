@@ -169,6 +169,9 @@ final class DependencyContainer {
                 return try? capturedKeychain.loadString(for: KeychainKeys.userID(serverID: serverID))
             }
         )
+
+        // Idempotent, and cheap once the legacy entries are gone (one miss per known server).
+        migrateLegacyJellyfinPasswords()
     }
 
     /// Connect the pending-requests monitor to the live session. Called once from SodaliteApp.init
@@ -201,11 +204,11 @@ final class DependencyContainer {
             return user
         } catch APIError.unauthorized {
             // Cloud-synced (or locally stored) password: mint a fresh device-own
-            // token instead of dropping the profile. Only for the user the
-            // password belongs to.
-            if let password = try? keychainService.loadString(for: KeychainKeys.jellyfinPassword(serverID: server.id)),
-               let owner = try? keychainService.loadString(for: KeychainKeys.jellyfinPasswordUserID(serverID: server.id)),
-               owner == userID,
+            // token instead of dropping the profile. The key is scoped to this
+            // profile, so a password here is by definition theirs.
+            if let password = try? keychainService.loadString(
+                   for: KeychainKeys.jellyfinPassword(serverID: server.id, userID: userID)
+               ),
                let name = listRememberedUsers(serverID: server.id).first(where: { $0.id == userID })?.name,
                let auth = try? await jellyfinAuthService.login(username: name, password: password),
                auth.user.id == userID {
@@ -289,8 +292,10 @@ final class DependencyContainer {
         }
 
         if let password, !password.isEmpty {
-            try keychainService.save(password, for: KeychainKeys.jellyfinPassword(serverID: server.id))
-            try keychainService.save(user.id, for: KeychainKeys.jellyfinPasswordUserID(serverID: server.id))
+            try keychainService.save(
+                password,
+                for: KeychainKeys.jellyfinPassword(serverID: server.id, userID: user.id)
+            )
         }
 
         let sessionURL = preferredURL(for: server)
@@ -520,9 +525,8 @@ final class DependencyContainer {
             )
         }
 
+        deleteJellyfinPasswords(serverID: serverID)
         try? keychainService.delete(for: KeychainKeys.accessToken(serverID: serverID))
-        try? keychainService.delete(for: KeychainKeys.jellyfinPassword(serverID: serverID))
-        try? keychainService.delete(for: KeychainKeys.jellyfinPasswordUserID(serverID: serverID))
         try? keychainService.delete(for: KeychainKeys.userID(serverID: serverID))
         try? keychainService.delete(for: KeychainKeys.rememberedUsers(serverID: serverID))
 
@@ -615,9 +619,10 @@ final class DependencyContainer {
                 for: KeychainKeys.rememberedUsers(serverID: serverID)
             )
         }
-        // Drop the profile-scoped Seerr session too so a forgotten
-        // user doesn't leave a dangling Seerr cookie in the keychain.
+        // Drop the profile-scoped Seerr session and Jellyfin password too so a forgotten
+        // user doesn't leave dangling credentials in the keychain.
         forgetRememberedSeerr(forJellyfinUserID: id, jellyfinServerID: serverID)
+        try? keychainService.delete(for: KeychainKeys.jellyfinPassword(serverID: serverID, userID: id))
         tvProfileMappings.removeMapping(forUser: id, on: serverID)
         cloudSyncMarkServer(serverID)
     }
@@ -643,17 +648,8 @@ final class DependencyContainer {
             try? keychainService.delete(for: KeychainKeys.activeUserImageTag)
         }
 
-        // The password entry is keyed per server but belongs to one user, so it only survives a
-        // switch that lands on its own owner (picking your own profile out of the launch picker is
-        // the common case). A missing owner entry compares unequal and drops the password too:
-        // pre-owner-entry installs give no way to tell whose it is.
-        let passwordOwner = try? keychainService.loadString(
-            for: KeychainKeys.jellyfinPasswordUserID(serverID: server.id)
-        )
-        if passwordOwner != remembered.id {
-            try? keychainService.delete(for: KeychainKeys.jellyfinPassword(serverID: server.id))
-            try? keychainService.delete(for: KeychainKeys.jellyfinPasswordUserID(serverID: server.id))
-        }
+        // Nothing to drop here: every profile's password lives under its own key, so a switch can
+        // neither leak one to the next profile nor lose the one it is switching to.
 
         if previousIdentity?.serverID != server.id || previousIdentity?.userID != remembered.id {
             // Same reason as switchServer, plus: rows and thumbnails were fetched under the previous profile's token, so they carry its library permissions and watched flags.
@@ -770,9 +766,81 @@ final class DependencyContainer {
         return nil
     }
 
+    /// Adopts a password typed into the Seerr sign-in as the active profile's Jellyfin password, so
+    /// the one place that asks for it again is also the place that stops having to ask.
+    ///
+    /// It is verified against Jellyfin first and only kept when the login comes back as the profile
+    /// that is actually active. Jellyseerr may authenticate against a different Jellyfin instance
+    /// than the one this session is on, and an unverified password would sit in the keychain until
+    /// the token refresh path used it, failing the refresh and spending a wrong-password attempt
+    /// against the server. The fresh token from that check replaces the current one, the same trade
+    /// the refresh path already makes. Best effort: false means nothing was written.
+    @discardableResult
+    func adoptJellyfinPassword(username: String, password: String) async -> Bool {
+        guard !password.isEmpty,
+              let serverID = activeJellyfinServerID,
+              let server = listKnownServers().first(where: { $0.id == serverID }),
+              let userID = try? keychainService.loadString(for: KeychainKeys.userID(serverID: serverID)),
+              (try? keychainService.loadString(
+                  for: KeychainKeys.jellyfinPassword(serverID: serverID, userID: userID)
+              )) == nil,
+              let auth = try? await jellyfinAuthService.login(username: username, password: password),
+              auth.user.id == userID
+        else { return false }
+        try? saveSession(server: server, user: auth.user, token: auth.accessToken, password: password)
+        return true
+    }
+
+    /// Every profile's password for one server, for paths that drop the server itself. Covers the
+    /// active session's user too, who may not be in the remembered list yet, plus any legacy
+    /// per-server entry in case migration never ran on this install.
+    private func deleteJellyfinPasswords(serverID: String) {
+        var userIDs = Set(listRememberedUsers(serverID: serverID).map(\.id))
+        if let active = try? keychainService.loadString(for: KeychainKeys.userID(serverID: serverID)) {
+            userIDs.insert(active)
+        }
+        for userID in userIDs {
+            try? keychainService.delete(
+                for: KeychainKeys.jellyfinPassword(serverID: serverID, userID: userID)
+            )
+        }
+        try? keychainService.delete(for: KeychainKeys.legacyJellyfinPassword(serverID: serverID))
+        try? keychainService.delete(for: KeychainKeys.legacyJellyfinPasswordUserID(serverID: serverID))
+    }
+
+    /// Moves a pre-per-user password onto its owner's key. The owner entry names it; without one,
+    /// the old layout guarantees it belonged to the server's current user, because every profile
+    /// switch deleted it. No owner and no current user leaves nothing to attribute it to, so it goes.
+    func migrateLegacyJellyfinPasswords() {
+        for server in listKnownServers() {
+            let legacyKey = KeychainKeys.legacyJellyfinPassword(serverID: server.id)
+            guard let password = try? keychainService.loadString(for: legacyKey), !password.isEmpty else {
+                try? keychainService.delete(for: KeychainKeys.legacyJellyfinPasswordUserID(serverID: server.id))
+                continue
+            }
+            let owner = (try? keychainService.loadString(
+                for: KeychainKeys.legacyJellyfinPasswordUserID(serverID: server.id)
+            )) ?? (try? keychainService.loadString(for: KeychainKeys.userID(serverID: server.id)))
+
+            if let owner {
+                try? keychainService.save(
+                    password,
+                    for: KeychainKeys.jellyfinPassword(serverID: server.id, userID: owner)
+                )
+            }
+            try? keychainService.delete(for: legacyKey)
+            try? keychainService.delete(for: KeychainKeys.legacyJellyfinPasswordUserID(serverID: server.id))
+        }
+    }
+
+    /// The active profile's password, nil when that profile never signed in with one.
     func loadJellyfinPassword() -> String? {
-        guard let server = activeJellyfinServerID else { return nil }
-        return try? keychainService.loadString(for: KeychainKeys.jellyfinPassword(serverID: server))
+        guard let server = activeJellyfinServerID,
+              let userID = try? keychainService.loadString(for: KeychainKeys.userID(serverID: server))
+        else { return nil }
+        return try? keychainService.loadString(
+            for: KeychainKeys.jellyfinPassword(serverID: server, userID: userID)
+        )
     }
 
     private var activeJellyfinServerID: String? {
@@ -793,9 +861,8 @@ final class DependencyContainer {
                     jellyfinServerID: known.id
                 )
             }
+            deleteJellyfinPasswords(serverID: known.id)
             try? keychainService.delete(for: KeychainKeys.accessToken(serverID: known.id))
-            try? keychainService.delete(for: KeychainKeys.jellyfinPassword(serverID: known.id))
-            try? keychainService.delete(for: KeychainKeys.jellyfinPasswordUserID(serverID: known.id))
             try? keychainService.delete(for: KeychainKeys.userID(serverID: known.id))
             try? keychainService.delete(for: KeychainKeys.rememberedUsers(serverID: known.id))
         }
