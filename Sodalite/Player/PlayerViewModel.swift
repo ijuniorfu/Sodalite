@@ -765,14 +765,17 @@ final class PlayerViewModel {
             // DV P7). Format detection, HDMI HDR handshake, layer ownership, refresh-rate matching all
             // inside engine.load now.
             LogTap.shared.note("[PlayerVM] engine.load url=\(url.absoluteString)")
-            // matchContentEnabled (tvOS Match Content master toggle) + panelIsInHDRMode (EDR active)
-            // feed the engine's master-vs-media playlist routing: panel-in-HDR makes master routing safe
-            // regardless of the match flag (SUPPLEMENTAL-CODECS=dvh1 upgrade per AetherEngine#4), else
-            // HDR sources fall back to media to avoid AVPlayer asset-open -11848 on an SDR panel.
-            // AVKit is the sole criteria writer (appliesPreferredDisplayCriteriaAutomatically=true on
-            // PlayerHostController); it reads live AVPlayerItem.formatDescription (dvcC from the fMP4
-            // sample entry) and writes the DV criteria, engine only GATES play() on the panel handshake
-            // (AetherEngine 5d60dbb). See PlayerHostController init for full rationale.
+            // The ENGINE is the sole criteria writer here: suppressDisplayCriteria false below,
+            // appliesPreferredDisplayCriteriaAutomatically false on PlayerHostController. It writes the
+            // criteria pre-flight, before the AVPlayerItem exists, which is the ordering DV P5 cold start
+            // and the tvOS 26.5+ variant validator both need. The two flags must move together; see
+            // PlayerHostController init for the full rationale.
+            // matchContentEnabled (tvOS Match Content master toggle) feeds the engine's master-vs-media
+            // playlist routing: panel-in-HDR makes master routing safe regardless of the match flag
+            // (SUPPLEMENTAL-CODECS=dvh1 upgrade per AetherEngine#4), else HDR sources fall back to media
+            // to avoid AVPlayer asset-open -11848 on an SDR panel. panelIsInHDRMode is the pre-load
+            // snapshot the engine consults only on the suppressed path; ours reads live EDR headroom after
+            // its own handshake instead, so we pass it for completeness, not because it is consumed.
             // Cap the engine's open-time probe on sized server-file direct-play/-stream remuxes so a sparse PGS
             // / cover-art tail doesn't drag find_stream_info to the 50 MB default before first frame (#68).
             // Live/infinite/external-URL sources (remote .strm IPTV) are exempt: the cap truncates their
