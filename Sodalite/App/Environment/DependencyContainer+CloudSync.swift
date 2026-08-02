@@ -24,9 +24,9 @@ extension DependencyContainer {
             collectionGrouping: HomeRowConfig.collectionGrouping(serverID: serverID).rawValue
         )
         let password = try? keychainService.loadString(for: KeychainKeys.jellyfinPassword(serverID: serverID))
-        // Pre-feature installs stored the password without an owner entry. switchToUser
-        // deletes the password on every profile switch, so an existing password can only
-        // belong to the server's current user; backfill the owner from that.
+        // Pre-feature installs stored the password without an owner entry. switchToUser deletes an
+        // owner-less password on every profile switch, so one that is still here can only belong to
+        // the server's current user; backfill the owner from that.
         var passwordUserID = try? keychainService.loadString(for: KeychainKeys.jellyfinPasswordUserID(serverID: serverID))
         if password != nil, passwordUserID == nil {
             passwordUserID = try? keychainService.loadString(for: KeychainKeys.userID(serverID: serverID))

@@ -622,7 +622,7 @@ final class DependencyContainer {
         cloudSyncMarkServer(serverID)
     }
 
-    /// Swaps to a remembered profile: reuses cached token, updates active-session keychain, reconfigures client. Drops the cached Jellyfin password (per-server, not per-user) so Seerr auto-fill doesn't carry the previous user's password.
+    /// Swaps to a remembered profile: reuses cached token, updates active-session keychain, reconfigures client. Drops the cached Jellyfin password unless the target profile is the one it belongs to, so Seerr auto-fill never carries another user's password but survives re-picking your own.
     func switchToUser(_ remembered: RememberedUser, server: JellyfinServer) throws {
         let previousIdentity = activeSessionIdentity()
         try addServer(server)
@@ -643,8 +643,17 @@ final class DependencyContainer {
             try? keychainService.delete(for: KeychainKeys.activeUserImageTag)
         }
 
-        try? keychainService.delete(for: KeychainKeys.jellyfinPassword(serverID: server.id))
-        try? keychainService.delete(for: KeychainKeys.jellyfinPasswordUserID(serverID: server.id))
+        // The password entry is keyed per server but belongs to one user, so it only survives a
+        // switch that lands on its own owner (picking your own profile out of the launch picker is
+        // the common case). A missing owner entry compares unequal and drops the password too:
+        // pre-owner-entry installs give no way to tell whose it is.
+        let passwordOwner = try? keychainService.loadString(
+            for: KeychainKeys.jellyfinPasswordUserID(serverID: server.id)
+        )
+        if passwordOwner != remembered.id {
+            try? keychainService.delete(for: KeychainKeys.jellyfinPassword(serverID: server.id))
+            try? keychainService.delete(for: KeychainKeys.jellyfinPasswordUserID(serverID: server.id))
+        }
 
         if previousIdentity?.serverID != server.id || previousIdentity?.userID != remembered.id {
             // Same reason as switchServer, plus: rows and thumbnails were fetched under the previous profile's token, so they carry its library permissions and watched flags.

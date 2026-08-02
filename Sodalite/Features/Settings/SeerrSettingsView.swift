@@ -201,7 +201,7 @@ struct SeerrSettingsView: View {
                     passwordCachedNote
                 } else {
                     if useJellyfinCredentials && hasJellyfinUser && cachedJellyfinPassword == nil {
-                        quickConnectNote
+                        passwordNeededNote
                     }
                     SecureField(
                         String(localized: "auth.login.password", defaultValue: "Password"),
@@ -297,9 +297,12 @@ struct SeerrSettingsView: View {
         )
     }
 
-    private var quickConnectNote: some View {
+    /// Shown whenever the toggle is on but no password is cached. The app does not record how the
+    /// user signed in, so this states the fact rather than guessing a cause (it used to blame Quick
+    /// Connect, which was wrong for anyone whose password a profile switch had dropped).
+    private var passwordNeededNote: some View {
         Label {
-            Text("settings.seerr.quickConnectNote")
+            Text("settings.seerr.passwordNeededNote")
                 .font(.caption)
                 .foregroundStyle(.secondary)
         } icon: {

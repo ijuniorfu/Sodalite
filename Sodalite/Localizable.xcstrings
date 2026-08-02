@@ -149668,164 +149668,164 @@
         }
       }
     },
-    "settings.seerr.quickConnectNote" : {
-      "comment" : "Explanation shown when Jellyfin-credentials toggle is on but no password cached (Quick Connect user)",
+    "settings.seerr.passwordNeededNote" : {
+      "comment" : "Shown when the Jellyfin-credentials toggle is on but no Jellyfin password is cached, whatever the reason",
       "extractionState" : "manual",
       "localizations" : {
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Do Jellyfin jste se přihlásili pomocí Quick Connect, takže vaše heslo neznáme. Zadejte ho pro přihlášení do Seerr."
+            "value" : "Sodalite nemá uložené tvé heslo k Jellyfinu. Zadej ho jednou, aby ses přihlásil k Seerr."
           }
         },
         "da" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Du loggede ind på Jellyfin med Quick Connect, så vi har ikke din adgangskode. Indtast den for at logge ind på Seerr."
+            "value" : "Sodalite har ikke gemt din Jellyfin-adgangskode. Indtast den én gang for at logge ind på Seerr."
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Du hast dich bei Jellyfin mit Quick Connect angemeldet, daher kennen wir dein Passwort nicht. Bitte gib es ein, um dich bei Seerr anzumelden."
+            "value" : "Sodalite hat dein Jellyfin-Passwort nicht gespeichert. Gib es einmal ein, um dich bei Seerr anzumelden."
           }
         },
         "el" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Συνδεθήκατε στο Jellyfin με Quick Connect, οπότε δεν έχουμε τον κωδικό σας. Εισαγάγετέ τον για να συνδεθείτε στο Seerr."
+            "value" : "Το Sodalite δεν έχει αποθηκευμένο τον κωδικό σου για το Jellyfin. Δώσ' τον μία φορά για να συνδεθείς στο Seerr."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "You signed in to Jellyfin with Quick Connect, so we don't have your password. Please enter it to sign in to Seerr."
+            "value" : "Sodalite doesn't have your Jellyfin password saved. Enter it once to sign in to Seerr."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Iniciaste sesión en Jellyfin con Quick Connect, por lo que no tenemos tu contraseña. Introdúcela para iniciar sesión en Seerr."
+            "value" : "Sodalite no tiene guardada tu contraseña de Jellyfin. Introdúcela una vez para iniciar sesión en Seerr."
           }
         },
         "fi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Kirjauduit Jellyfiniin Quick Connectilla, joten meillä ei ole salasanaasi. Anna se kirjautuaksesi Seerriin."
+            "value" : "Sodalite ei ole tallentanut Jellyfin-salasanaasi. Anna se kerran, niin kirjaudut Seerriin."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Vous vous êtes connecté à Jellyfin avec Quick Connect, nous n'avons donc pas votre mot de passe. Veuillez le saisir pour vous connecter à Seerr."
+            "value" : "Sodalite n'a pas enregistré ton mot de passe Jellyfin. Saisis-le une fois pour te connecter à Seerr."
           }
         },
         "hr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Prijavili ste se na Jellyfin putem Quick Connect, pa nemamo vašu lozinku. Unesite je za prijavu na Seerr."
+            "value" : "Sodalite nema spremljenu tvoju Jellyfin lozinku. Unesi je jednom za prijavu na Seerr."
           }
         },
         "hu" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Quick Connecttel jelentkeztél be a Jellyfinbe, ezért nincs meg a jelszavad. Add meg a Seerr-be való bejelentkezéshez."
+            "value" : "A Sodalite nem tárolta el a Jellyfin-jelszavadat. Add meg egyszer a Seerr-bejelentkezéshez."
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Hai effettuato l'accesso a Jellyfin con Quick Connect, quindi non abbiamo la tua password. Inseriscila per accedere a Seerr."
+            "value" : "Sodalite non ha salvato la tua password di Jellyfin. Inseriscila una volta per accedere a Seerr."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Quick Connect で Jellyfin にサインインしたため、パスワードが保存されていません。Seerr にサインインするには入力してください。"
+            "value" : "Sodalite には Jellyfin のパスワードが保存されていません。Seerr にサインインするには一度入力してください。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Quick Connect로 Jellyfin에 로그인하셨기 때문에 비밀번호가 저장되지 않았습니다. Seerr에 로그인하려면 비밀번호를 입력하세요."
+            "value" : "Sodalite에 Jellyfin 비밀번호가 저장되어 있지 않습니다. Seerr에 로그인하려면 한 번 입력해 주세요."
           }
         },
         "nb" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Du logget på Jellyfin med Quick Connect, så vi har ikke passordet ditt. Skriv det inn for å logge på Seerr."
+            "value" : "Sodalite har ikke lagret Jellyfin-passordet ditt. Skriv det inn én gang for å logge på Seerr."
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Je bent bij Jellyfin aangemeld met Quick Connect, dus we hebben je wachtwoord niet. Voer het in om je bij Seerr aan te melden."
+            "value" : "Sodalite heeft je Jellyfin-wachtwoord niet opgeslagen. Voer het één keer in om in te loggen bij Seerr."
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Zalogowałeś się do Jellyfin przez Quick Connect, więc nie mamy Twojego hasła. Wprowadź je, aby zalogować się do Seerr."
+            "value" : "Sodalite nie ma zapisanego twojego hasła do Jellyfina. Podaj je raz, aby zalogować się do Seerr."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Você entrou no Jellyfin com Quick Connect, então não temos sua senha. Digite-a para entrar no Seerr."
+            "value" : "O Sodalite não tem sua senha do Jellyfin salva. Digite-a uma vez para entrar no Seerr."
           }
         },
         "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Iniciou sessão no Jellyfin com Quick Connect, por isso não temos a sua palavra-passe. Introduza-a para iniciar sessão no Seerr."
+            "value" : "O Sodalite não tem a tua palavra-passe do Jellyfin guardada. Introdu-la uma vez para entrares no Seerr."
           }
         },
         "ro" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Te-ai autentificat în Jellyfin cu Quick Connect, așa că nu avem parola ta. Introdu-o pentru a te autentifica în Seerr."
+            "value" : "Sodalite nu are parola ta de Jellyfin salvată. Introdu-o o dată pentru a te conecta la Seerr."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Вы вошли в Jellyfin через Быстрое подключение, поэтому у нас нет вашего пароля. Введите его для входа в Seerr."
+            "value" : "Sodalite не хранит твой пароль от Jellyfin. Введи его один раз, чтобы войти в Seerr."
           }
         },
         "sk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Do Jellyfin ste sa prihlásili cez Quick Connect, preto nemáme vaše heslo. Zadajte ho na prihlásenie do Seerr."
+            "value" : "Sodalite nemá uložené tvoje heslo k Jellyfinu. Zadaj ho raz, aby si sa prihlásil do Seerr."
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Du loggade in på Jellyfin med Quick Connect, så vi har inte ditt lösenord. Ange det för att logga in på Seerr."
+            "value" : "Sodalite har inte sparat ditt Jellyfin-lösenord. Ange det en gång för att logga in på Seerr."
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Jellyfin'e Quick Connect ile giriş yaptınız, bu yüzden parolanız bizde yok. Seerr'e giriş yapmak için lütfen parolanızı girin."
+            "value" : "Sodalite, Jellyfin parolanı kaydetmedi. Seerr'e giriş yapmak için bir kez gir."
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ви ввійшли в Jellyfin через Quick Connect, тому у нас немає вашого пароля. Введіть його, щоб увійти в Seerr."
+            "value" : "Sodalite не зберігає твій пароль від Jellyfin. Введи його один раз, щоб увійти в Seerr."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "你通过 Quick Connect 登录了 Jellyfin,因此我们没有你的密码。请输入密码以登录 Seerr。"
+            "value" : "Sodalite 没有保存你的 Jellyfin 密码。请输入一次以登录 Seerr。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "您透過 Quick Connect 登入了 Jellyfin,因此我們沒有您的密碼。請輸入密碼以登入 Seerr。"
+            "value" : "Sodalite 沒有儲存你的 Jellyfin 密碼。請輸入一次以登入 Seerr。"
           }
         }
       }
