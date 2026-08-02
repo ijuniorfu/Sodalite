@@ -23,6 +23,14 @@ struct LayoutMetrics: Equatable {
     var screenHInset: CGFloat
     var screenVInset: CGFloat
     var profileCardSize: CGSize
+    /// Cast portrait diameter and the label column under it. These are separate because tvOS
+    /// text styles are roughly double the phone's (caption1 25pt vs 12pt), so a single shared
+    /// card width fits 15 characters on a phone and 8 on a TV (Sodalite#55).
+    var castPortrait: CGFloat
+    var castLabelWidth: CGFloat
+    /// Pixel width to request for the portrait: diameter times the tier's screen scale
+    /// (tvOS 4K renders 2x, iPhone 3x), so enlarging the circle can't leave the source behind.
+    var castImageWidth: Int
 
     func size(for style: MediaCardStyle) -> CGSize {
         switch style {
@@ -43,7 +51,8 @@ struct LayoutMetrics: Equatable {
         gridMinimum: 220, gridSpacing: 40, gridInset: 60,
         genreTileSize: CGSize(width: 320, height: 180),
         screenHInset: 80, screenVInset: 60,
-        profileCardSize: CGSize(width: 180, height: 180)
+        profileCardSize: CGSize(width: 180, height: 180),
+        castPortrait: 180, castLabelWidth: 220, castImageWidth: 400
     )
     /// iPad regular tier.
     static let regular = LayoutMetrics(
@@ -56,7 +65,8 @@ struct LayoutMetrics: Equatable {
         gridMinimum: 160, gridSpacing: 28, gridInset: 24,
         genreTileSize: CGSize(width: 240, height: 135),
         screenHInset: 40, screenVInset: 32,
-        profileCardSize: CGSize(width: 160, height: 160)
+        profileCardSize: CGSize(width: 160, height: 160),
+        castPortrait: 120, castLabelWidth: 140, castImageWidth: 300
     )
     /// iPhone compact tier.
     static let compact = LayoutMetrics(
@@ -69,7 +79,8 @@ struct LayoutMetrics: Equatable {
         gridMinimum: 108, gridSpacing: 16, gridInset: 16,
         genreTileSize: CGSize(width: 200, height: 112),
         screenHInset: 16, screenVInset: 16,
-        profileCardSize: CGSize(width: 120, height: 120)
+        profileCardSize: CGSize(width: 120, height: 120),
+        castPortrait: 100, castLabelWidth: 100, castImageWidth: 300
     )
 
     /// Platform-independent selector (testable on any target).

@@ -142,6 +142,7 @@
 		2FCE52B6FC0E4B1BE0DFDA4C /* ProgramInfoPopover.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA3BB5EFEF275EE874D6DD3E /* ProgramInfoPopover.swift */; };
 		3007F51D011B031E7A0900DC /* ResumeTimeFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A377CDB4D5AD8C205148883 /* ResumeTimeFormatter.swift */; };
 		3025683A94FFECD6059355DF /* FilteredGridView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC9E7E3CFDA7723780F5C45F /* FilteredGridView.swift */; };
+		311F02E5A3915E83DBCC603B /* SeerrImageURLTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A939025FF52393099530C53 /* SeerrImageURLTests.swift */; };
 		31320CDC1751CFC82C7C850B /* SwiftAssRenderer in Frameworks */ = {isa = PBXBuildFile; productRef = 04A757954F2383E93C99137E /* SwiftAssRenderer */; };
 		3184A43C5D900CEC7F5AA80C /* JellyfinLibrary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C70AF39F350B8FBC30EDFF0 /* JellyfinLibrary.swift */; };
 		31AB6A905C425FD79222B6FD /* PlayerTouchControls.swift in Sources */ = {isa = PBXBuildFile; fileRef = 197C056F3F41EFB53CDD2345 /* PlayerTouchControls.swift */; };
@@ -815,6 +816,7 @@
 		194B5AEB74D5B8FE374A0C3E /* SubtitlePlacementGeometryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubtitlePlacementGeometryTests.swift; sourceTree = "<group>"; };
 		197C056F3F41EFB53CDD2345 /* PlayerTouchControls.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerTouchControls.swift; sourceTree = "<group>"; };
 		1A0FE73FC03DB46281475278 /* SeerrRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeerrRequest.swift; sourceTree = "<group>"; };
+		1A939025FF52393099530C53 /* SeerrImageURLTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeerrImageURLTests.swift; sourceTree = "<group>"; };
 		1B0AF18F7475A04D2A6EF1A2 /* ASSRenderCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ASSRenderCoordinator.swift; sourceTree = "<group>"; };
 		1B93131C12D5A906B43BD4F1 /* EPGCollectionViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EPGCollectionViewController.swift; sourceTree = "<group>"; };
 		1BBB8E5E9C80E873A883AAC3 /* ParentalControlsPreferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParentalControlsPreferences.swift; sourceTree = "<group>"; };
@@ -1410,6 +1412,7 @@
 				9E7B70D689AAB2F6EEC80FC4 /* ScrollHintPolicyTests.swift */,
 				E22D02CCB243103E21F36E05 /* SeerrCollectionTests.swift */,
 				0385E1379FFACA0B7CD56111 /* SeerrDecodingTests.swift */,
+				1A939025FF52393099530C53 /* SeerrImageURLTests.swift */,
 				E24C811D70DAAA13454A02EE /* SeerrMediaTests.swift */,
 				DBF59220491892D96D7C7ECB /* SeerrNotificationPreferencesTests.swift */,
 				F50568950874ADE4F7B451F0 /* SeerrRequestServiceTests.swift */,
@@ -2619,6 +2622,7 @@
 				E36F24AD81B56F08E18EF983 /* ScrollHintPolicyTests.swift in Sources */,
 				C370B460980C28A3F9D5D312 /* SeerrCollectionTests.swift in Sources */,
 				1F6AE771CDD3C9E30ADA22CF /* SeerrDecodingTests.swift in Sources */,
+				311F02E5A3915E83DBCC603B /* SeerrImageURLTests.swift in Sources */,
 				127AFD07984D6DB0C515566C /* SeerrMediaTests.swift in Sources */,
 				7ACE7F6103BCEB73D7F6E8DE /* SeerrNotificationPreferencesTests.swift in Sources */,
 				9AFD51D8A8A07F3AF6D1417B /* SeerrRequestServiceTests.swift in Sources */,

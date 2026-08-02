@@ -281,7 +281,8 @@ struct MovieDetailView: View {
                     MediaCastRow(
                         members: jellyfinCastMembers(
                             from: people,
-                            imageService: dependencies.jellyfinImageService
+                            imageService: dependencies.jellyfinImageService,
+                            imageWidth: metrics.castImageWidth
                         ),
                         onSelect: { handlePersonTap($0) }
                     )

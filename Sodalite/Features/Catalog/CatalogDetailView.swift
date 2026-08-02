@@ -738,7 +738,10 @@ struct CatalogDetailView: View {
                 id: "\(member.id)",
                 name: member.name,
                 role: member.character,
-                imageURL: SeerrImageURL.profile(path: member.profilePath),
+                imageURL: SeerrImageURL.profile(
+                    path: member.profilePath,
+                    size: .covering(metrics.castImageWidth)
+                ),
                 personID: member.id,
                 jellyfinPersonID: nil
             )

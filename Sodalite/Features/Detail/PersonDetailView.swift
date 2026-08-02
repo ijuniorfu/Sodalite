@@ -77,7 +77,11 @@ struct PersonDetailView: View {
     private var header: some View {
         // Compact stacks the photo above the name so neither gets squeezed on a phone; wider tiers keep the side-by-side hero.
         let photoSide: CGFloat = hSizeClass == .compact ? 140 : 200
-        let photo = AsyncCachedImage(url: SeerrImageURL.profile(path: detail?.profilePath)) { image in
+        // The hero needs 400px+ on every tier (140pt at 3x on a phone, 200pt at 2x on a 4K TV),
+        // so w185 was always an upscale here.
+        let photo = AsyncCachedImage(
+            url: SeerrImageURL.profile(path: detail?.profilePath, size: .h632)
+        ) { image in
             image
                 .resizable()
                 .aspectRatio(contentMode: .fill)

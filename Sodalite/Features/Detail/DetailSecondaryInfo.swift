@@ -27,9 +27,11 @@ func resolvePersonRoute(
 }
 
 /// Map Jellyfin cast people to CastMember (Jellyfin person id stored, TMDB personID nil until tap-resolved). Capped at 15.
+/// `imageWidth` comes from the caller's LayoutMetrics tier so the requested pixels track the rendered circle.
 func jellyfinCastMembers(
     from people: [PersonInfo],
-    imageService: JellyfinImageService
+    imageService: JellyfinImageService,
+    imageWidth: Int
 ) -> [CastMember] {
     people.prefix(15).map { person in
         CastMember(
@@ -38,7 +40,8 @@ func jellyfinCastMembers(
             role: person.role,
             imageURL: imageService.personImageURL(
                 personID: person.id,
-                tag: person.primaryImageTag
+                tag: person.primaryImageTag,
+                maxWidth: imageWidth
             ),
             personID: nil,
             jellyfinPersonID: person.id
