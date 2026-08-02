@@ -84,7 +84,7 @@ struct CatalogDetailView: View {
             CatalogDetailView(media: media)
         }
         .navigationDestination(item: $selectedCastMember) { member in
-            PersonDetailView(personID: member.personID ?? 0, personName: member.name)
+            PersonDetailView(personID: member.personID, personName: member.name)
         }
         .navigationDestination(item: $navigateToCollection) { collection in
             // Hand over the Radarr options this screen already resolved: re-deriving them there is two more round

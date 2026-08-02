@@ -1,28 +1,28 @@
 import SwiftUI
 
-/// Person-page navigation target, set after async TMDB-id resolution (the id isn't known until the person item is fetched).
+/// Person-page navigation target. Jellyfin cast carries no TMDB id, and resolving one costs a round
+/// trip, so the route is pushed with `tmdbID` nil and PersonDetailView resolves it behind its own
+/// loading state. Resolving before the push meant a tap with no feedback at all, for as long as the
+/// server took, and permanent silence when the person had no TMDB id (Sodalite#55).
 struct PersonRoute: Identifiable, Hashable {
-    let tmdbID: Int
+    let tmdbID: Int?
+    let jellyfinPersonID: String?
     let name: String
-    var id: Int { tmdbID }
-}
+    var id: String { jellyfinPersonID ?? tmdbID.map(String.init) ?? name }
 
-/// Resolve a cast member to a TMDB person id and hand the route to the caller; inert when the server has no TMDB id. Shared by Movie/SeriesDetailView cast-row taps.
-func resolvePersonRoute(
-    for member: CastMember,
-    userID: String?,
-    itemService: JellyfinItemServiceProtocol,
-    onResolved: @escaping (PersonRoute) -> Void
-) {
-    guard let jid = member.jellyfinPersonID,
-          let userID else { return }
-    Task {
-        if let person = try? await itemService.getItemDetail(
-               userID: userID, itemID: jid
-           ),
-           let tmdb = person.tmdbID {
-            onResolved(PersonRoute(tmdbID: tmdb, name: member.name))
-        }
+    init(tmdbID: Int? = nil, jellyfinPersonID: String? = nil, name: String) {
+        self.tmdbID = tmdbID
+        self.jellyfinPersonID = jellyfinPersonID
+        self.name = name
+    }
+
+    /// Route for a cast-row tap, keeping whichever id the source knows.
+    init(member: CastMember) {
+        self.init(
+            tmdbID: member.personID,
+            jellyfinPersonID: member.jellyfinPersonID,
+            name: member.name
+        )
     }
 }
 
