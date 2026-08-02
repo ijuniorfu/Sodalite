@@ -28,13 +28,24 @@ struct MediaCastRow: View {
                 .padding(.horizontal, metrics.rowInset)
 
             ScrollView(.horizontal, showsIndicators: false) {
-                LazyHStack(spacing: metrics.itemSpacing) {
+                // Top-aligned: a two-line role (or a member with no role at all) makes cards
+                // differ in height, and centering would push their portraits out of line.
+                LazyHStack(alignment: .top, spacing: metrics.itemSpacing) {
                     ForEach(members) { member in
-                        MediaCastCard(member: member, onSelect: onSelect.map { cb in { cb(member) } })
+                        MediaCastCard(
+                            member: member,
+                            portrait: metrics.castPortrait,
+                            labelWidth: metrics.castLabelWidth,
+                            onSelect: onSelect.map { cb in { cb(member) } }
+                        )
                     }
                 }
                 .padding(.horizontal, metrics.rowInset)
-                .padding(.vertical, 12)
+                // The focused card grows around its centre and the scroll view clips whatever
+                // leaves its bounds. A 276pt tvOS card overshoots 6.9pt per side at 1.05, so the
+                // tier's row padding has to carry it; the flat 12pt here cut the ring off the top
+                // of the enlarged portrait (Sodalite#55 device round).
+                .padding(.vertical, metrics.rowVerticalPadding)
             }
         }
     }
@@ -42,6 +53,8 @@ struct MediaCastRow: View {
 
 private struct MediaCastCard: View {
     let member: CastMember
+    let portrait: CGFloat
+    let labelWidth: CGFloat
     var onSelect: (() -> Void)? = nil
     @FocusState private var isFocused: Bool
 
@@ -60,7 +73,7 @@ private struct MediaCastCard: View {
                         .foregroundStyle(.secondary)
                 }
             }
-            .frame(width: 100, height: 100)
+            .frame(width: portrait, height: portrait)
             .clipShape(Circle())
             .overlay(
                 MediaFocusRing(
@@ -70,19 +83,23 @@ private struct MediaCastCard: View {
             )
 
             VStack(spacing: 2) {
+                // Four of the 24 measured cast names still overrun the tvOS label at 25pt;
+                // shrinking those beats an ellipsis after seven characters.
                 Text(member.name)
                     .font(.caption)
                     .lineLimit(1)
+                    .minimumScaleFactor(0.85)
                 if let role = member.role, !role.isEmpty {
                     Text(role)
                         .font(.caption2)
                         .foregroundStyle(.tertiary)
-                        .lineLimit(1)
+                        .lineLimit(2)
+                        .multilineTextAlignment(.center)
                 }
             }
-            .frame(width: 100)
+            .frame(width: labelWidth)
         }
-        .scaleEffect(isFocused ? 1.1 : 1.0)
+        .scaleEffect(isFocused ? 1.05 : 1.0)
         .shadow(color: .black.opacity(isFocused ? 0.3 : 0), radius: 10, y: 5)
         .animation(.easeInOut(duration: 0.15), value: isFocused)
         .focusable()

@@ -34,7 +34,13 @@ enum SeerrImageURL {
     }
 
     enum ProfileSize: String {
-        case w185
+        case w185, h632
+
+        /// Smallest rendition that still covers `pixelWidth`. TMDB offers nothing between the two,
+        /// so anything past 185 jumps to h632 (about 421pt wide at the 2:3 profile ratio).
+        static func covering(_ pixelWidth: Int) -> ProfileSize {
+            pixelWidth <= 185 ? .w185 : .h632
+        }
     }
 
     static func profile(path: String?, size: ProfileSize = .w185) -> URL? {
