@@ -60,6 +60,18 @@ struct PlaybackSettingsView: View {
                     label: { seconds in "\(seconds) s" }
                 )
 
+                #if os(tvOS)
+                boolRow(
+                    icon: "playpause.circle",
+                    title: "settings.playback.selectTogglesPlayback",
+                    subtitle: "settings.playback.selectTogglesPlayback.subtitle",
+                    value: Binding(
+                        get: { prefs.selectTogglesPlayback },
+                        set: { prefs.selectTogglesPlayback = $0 }
+                    )
+                )
+                #endif
+
                 boolRow(
                     icon: "rectangle.center.inset.filled.badge.plus",
                     title: "settings.playback.scrubPreview",

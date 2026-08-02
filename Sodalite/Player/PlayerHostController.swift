@@ -869,6 +869,11 @@ final class PlayerHostController: AVPlayerViewController {
             viewModel.commitScrub()
         } else if viewModel.showControls {
             viewModel.togglePlayPause()
+        } else if viewModel.preferences.selectTogglesPlayback {
+            // Sodalite#58: CEC remotes reach the Apple TV with Select as their only usable key, so the
+            // wake-the-transport click costs them a second press per pause. togglePlayPause raises the
+            // transport itself, and Up/Down still opens it without touching playback.
+            viewModel.togglePlayPause()
         } else {
             viewModel.showControlsTemporarily()
         }

@@ -174,7 +174,8 @@ extension DependencyContainer {
                 playerRotationLocked: p.playerRotationLocked,
                 networkBufferDepth: p.networkBufferDepth.rawValue,
                 rememberTrackSelections: p.rememberTrackSelections,
-                autoForcedSubtitles: p.autoForcedSubtitles
+                autoForcedSubtitles: p.autoForcedSubtitles,
+                selectTogglesPlayback: p.selectTogglesPlayback
             ))
         case .appearance:
             let a = appearancePreferences
@@ -260,6 +261,7 @@ extension DependencyContainer {
             }
             if let remember = p.rememberTrackSelections { store.rememberTrackSelections = remember }
             if let forced = p.autoForcedSubtitles { store.autoForcedSubtitles = forced }
+            if let selectToggles = p.selectTogglesPlayback { store.selectTogglesPlayback = selectToggles }
         case .appearance(let a):
             let store = appearancePreferences
             if let accentChoice = AppearancePreferences.AccentChoice(rawValue: a.accentChoice) {
