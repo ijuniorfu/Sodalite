@@ -136,9 +136,13 @@ struct CatalogView: View {
                 .frame(maxWidth: 600)
 
             // Quick-jump into Seerr setup so first-time users have a path forward; pushed inside Catalog's own NavigationStack so back returns to the tab.
+            // themedNavigationDestination for the same reason every Settings push carries it: the
+            // pushed host paints its own opaque background on iOS, which shows as a black page over
+            // the app backdrop.
             NavigationLink {
                 SeerrSettingsView()
                     .hidesShellTabBar()
+                    .themedNavigationDestination()
             } label: {
                 Label {
                     Text(String(
