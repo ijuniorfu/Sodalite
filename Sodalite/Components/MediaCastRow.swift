@@ -41,7 +41,11 @@ struct MediaCastRow: View {
                     }
                 }
                 .padding(.horizontal, metrics.rowInset)
-                .padding(.vertical, 12)
+                // The focused card grows around its centre and the scroll view clips whatever
+                // leaves its bounds. A 276pt tvOS card overshoots 6.9pt per side at 1.05, so the
+                // tier's row padding has to carry it; the flat 12pt here cut the ring off the top
+                // of the enlarged portrait (Sodalite#55 device round).
+                .padding(.vertical, metrics.rowVerticalPadding)
             }
         }
     }
@@ -95,7 +99,7 @@ private struct MediaCastCard: View {
             }
             .frame(width: labelWidth)
         }
-        .scaleEffect(isFocused ? 1.1 : 1.0)
+        .scaleEffect(isFocused ? 1.05 : 1.0)
         .shadow(color: .black.opacity(isFocused ? 0.3 : 0), radius: 10, y: 5)
         .animation(.easeInOut(duration: 0.15), value: isFocused)
         .focusable()
