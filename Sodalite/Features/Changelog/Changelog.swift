@@ -75,6 +75,24 @@ enum Changelog {
                     icon: "magnifyingglass.circle.fill"
                 ),
                 ChangelogHighlight(
+                    .new,
+                    "changelog.1_0_0.favorites.title",
+                    "changelog.1_0_0.favorites.body",
+                    icon: "heart.fill"
+                ),
+                ChangelogHighlight(
+                    .new,
+                    "changelog.1_0_0.restart.title",
+                    "changelog.1_0_0.restart.body",
+                    icon: "backward.end.fill"
+                ),
+                ChangelogHighlight(
+                    .new,
+                    "changelog.1_0_0.clickToPause.title",
+                    "changelog.1_0_0.clickToPause.body",
+                    icon: "hand.tap.fill"
+                ),
+                ChangelogHighlight(
                     .improve,
                     "changelog.1_0_0.personLibrary.title",
                     "changelog.1_0_0.personLibrary.body",
@@ -97,6 +115,12 @@ enum Changelog {
                     "changelog.1_0_0.castCrew.title",
                     "changelog.1_0_0.castCrew.body",
                     icon: "person.2.fill"
+                ),
+                ChangelogHighlight(
+                    .improve,
+                    "changelog.1_0_0.topShelf.title",
+                    "changelog.1_0_0.topShelf.body",
+                    icon: "rectangle.topthird.inset.filled"
                 ),
                 ChangelogHighlight(
                     .improve,

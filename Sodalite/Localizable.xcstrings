@@ -117726,6 +117726,1286 @@
         }
       }
     },
+    "changelog.1_0_0.clickToPause.title" : {
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kliknutí pozastaví"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Klik for at sætte på pause"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Klick pausiert"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Κλικ για παύση"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Click to pause"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clic para pausar"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Napsautus keskeyttää"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le clic met en pause"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Klik pauzira"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kattintás szüneteltet"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Il clic mette in pausa"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "クリックで一時停止"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "클릭으로 일시정지"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Klikk for pause"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Klik om te pauzeren"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kliknięcie wstrzymuje"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clique para pausar"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clique para pausar"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clic pentru pauză"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Нажатие ставит на паузу"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kliknutie pozastaví"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Klick pausar"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tıklayarak duraklatma"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Натискання ставить на паузу"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "点按即可暂停"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "點按即可暫停"
+          }
+        }
+      }
+    },
+    "changelog.1_0_0.clickToPause.body" : {
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pro televizní ovladače, které se k Apple TV dostanou přes HDMI-CEC a kde často projde jen Select: kliknutí hned pozastaví a zase spustí. Volitelné v Nastavení, Přehrávání."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Til tv-fjernbetjeninger, der når Apple TV via HDMI-CEC, hvor Vælg ofte er den eneste tast, der kommer igennem: et klik sætter straks på pause og fortsætter igen. Valgfrit under Indstillinger, Afspilning."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Für Fernbedienungen, die den Apple TV über HDMI-CEC erreichen und bei denen oft nur Select durchkommt: Ein Klick pausiert und setzt sofort fort. Optional unter Einstellungen, Wiedergabe."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Για τηλεχειριστήρια τηλεόρασης που φτάνουν στο Apple TV μέσω HDMI-CEC, όπου συχνά περνά μόνο το Select: ένα κλικ κάνει αμέσως παύση και συνέχεια. Προαιρετικό, στις Ρυθμίσεις, Αναπαραγωγή."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "For TV remotes that reach the Apple TV over HDMI-CEC, where Select is often the only key that gets through: a click pauses and resumes right away. Optional, in Settings, Playback."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Para mandos de televisor que llegan al Apple TV por HDMI-CEC, donde a menudo solo pasa Select: un clic pausa y reanuda al instante. Opcional, en Ajustes, Reproducción."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Television kaukosäätimille, jotka ohjaavat Apple TV:tä HDMI-CEC:n kautta ja joista usein menee läpi vain Select: napsautus keskeyttää ja jatkaa heti. Valinnainen kohdassa Asetukset, Toisto."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pour les télécommandes de téléviseur qui pilotent l'Apple TV via HDMI-CEC, où seul Select passe souvent: un clic met en pause et relance aussitôt. Facultatif, dans Réglages, Lecture."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Za televizijske daljinske upravljače koji Apple TV dosežu preko HDMI-CEC-a, gdje često prolazi samo Select: klik odmah pauzira i nastavlja. Opcionalno u Postavkama, Reprodukcija."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Azokhoz a tévétávirányítókhoz, amelyek HDMI-CEC-en át érik el az Apple TV-t, és ahol gyakran csak a Select jut át: egy kattintás azonnal szüneteltet és folytat. Választható a Beállítások, Lejátszás alatt."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Per i telecomandi TV che raggiungono l'Apple TV via HDMI-CEC, dove spesso passa solo Select: un clic mette in pausa e riprende subito. Opzionale, in Impostazioni, Riproduzione."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "HDMI-CECでApple TVを操作するテレビのリモコンでは、通ってくるのがSelectだけということがよくあります。その場合でもクリックだけで一時停止と再開ができます。設定の再生からオンにできます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "HDMI-CEC로 Apple TV를 조작하는 TV 리모컨은 대개 Select만 전달됩니다. 이때 클릭 한 번으로 바로 일시정지하고 다시 재생할 수 있습니다. 설정의 재생에서 켜세요."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "For TV-fjernkontroller som når Apple TV via HDMI-CEC, der Select ofte er den eneste tasten som slipper gjennom: et klikk setter på pause og fortsetter med én gang. Valgfritt under Innstillinger, Avspilling."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Voor tv-afstandsbedieningen die de Apple TV via HDMI-CEC bedienen, waarbij vaak alleen Select doorkomt: een klik pauzeert en hervat meteen. Optioneel, in Instellingen, Afspelen."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dla pilotów telewizyjnych sterujących Apple TV przez HDMI-CEC, gdzie często przechodzi tylko Select: kliknięcie od razu wstrzymuje i wznawia. Opcjonalnie w Ustawieniach, Odtwarzanie."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Para controles de TV que chegam ao Apple TV por HDMI-CEC, em que muitas vezes só o Select passa: um clique pausa e retoma na hora. Opcional, em Ajustes, Reprodução."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Para comandos de TV que chegam à Apple TV por HDMI-CEC, onde muitas vezes só o Select passa: um clique coloca em pausa e retoma de imediato. Opcional, em Definições, Reprodução."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pentru telecomenzile de televizor care ajung la Apple TV prin HDMI-CEC, unde adesea trece doar Select: un clic pune imediat pauză și reia. Opțional, în Setări, Redare."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Для телевизионных пультов, которые управляют Apple TV по HDMI-CEC, где часто проходит только Select: нажатие сразу ставит на паузу и снимает с неё. По желанию, в разделе Настройки, Воспроизведение."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pre televízne ovládače, ktoré sa k Apple TV dostanú cez HDMI-CEC a kde často prejde len Select: kliknutie hneď pozastaví a znova spustí. Voliteľné v Nastaveniach, Prehrávanie."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "För tv-fjärrkontroller som når Apple TV via HDMI-CEC, där Select ofta är den enda knappen som kommer fram: ett klick pausar och fortsätter direkt. Valfritt under Inställningar, Uppspelning."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple TV'ye HDMI-CEC üzerinden ulaşan ve çoğu zaman yalnızca Select tuşunun geçtiği TV kumandaları için: tek tıklama hemen duraklatır ve sürdürür. İsteğe bağlı, Ayarlar, Oynatma altında."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Для телевізійних пультів, які керують Apple TV через HDMI-CEC, де часто проходить лише Select: натискання одразу ставить на паузу і знімає з неї. За бажанням, у розділі Параметри, Відтворення."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "有些电视遥控器通过 HDMI-CEC 控制 Apple TV，往往只有 Select 能传过来。开启后点按一下就能暂停和继续，在设置的播放里打开。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "有些電視遙控器透過 HDMI-CEC 控制 Apple TV，往往只有 Select 傳得過來。開啟後點按一下就能暫停和繼續，在設定的播放裡開啟。"
+          }
+        }
+      }
+    },
+    "changelog.1_0_0.favorites.title" : {
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Oblíbené jednotlivé epizody"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enkelte favoritafsnit"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Einzelne Lieblingsfolgen"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Αγαπημένα μεμονωμένα επεισόδια"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Favorite single episodes"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Episodios sueltos como favoritos"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yksittäiset suosikkijaksot"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Des épisodes en favoris"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pojedinačne omiljene epizode"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kedvenc egyes epizódok"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Episodi singoli tra i preferiti"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "エピソード単位のお気に入り"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "에피소드 하나씩 즐겨찾기"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enkeltepisoder som favoritt"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Losse afleveringen als favoriet"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ulubione pojedyncze odcinki"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Episódios avulsos como favoritos"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Episódios individuais como favoritos"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Episoade individuale la favorite"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Избранное для отдельных эпизодов"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Obľúbené jednotlivé epizódy"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enskilda favoritavsnitt"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tek tek favori bölümler"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Улюблені окремі епізоди"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "单集也能收藏"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "單集也能收藏"
+          }
+        }
+      }
+    },
+    "changelog.1_0_0.favorites.body" : {
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Srdíčko teď funguje i u jedné epizody a ty dostanou na úvodní obrazovce vlastní řádek Oblíbené epizody, vedle Oblíbených pro všechno ostatní."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hjertet virker nu også på et enkelt afsnit, og de får deres egen række Favoritafsnit på forsiden, ved siden af Favoritter for alt andet."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Das Herz funktioniert jetzt auch bei einer einzelnen Folge, und die bekommen auf der Startseite ihre eigene Zeile Lieblingsfolgen, neben den Favoriten für alles andere."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Η καρδιά λειτουργεί πλέον και σε ένα μόνο επεισόδιο, και αυτά αποκτούν δική τους σειρά Αγαπημένα επεισόδια στην αρχική, δίπλα στα Αγαπημένα για όλα τα υπόλοιπα."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A heart now works on a single episode too, and those get their own Favorite Episodes row on Home, next to Favorites for everything else."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El corazón ahora también funciona en un episodio suelto, y esos tienen su propia fila Episodios favoritos en el inicio, junto a Favoritos para todo lo demás."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sydän toimii nyt myös yksittäiselle jaksolle, ja ne saavat aloitusnäytölle oman Suosikkijaksot-rivin, Suosikkien viereen kaikelle muulle."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le cœur fonctionne désormais aussi sur un seul épisode, et ceux-ci ont leur propre rangée Épisodes favoris sur l'accueil, à côté de Favoris pour tout le reste."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Srce sada radi i na pojedinoj epizodi, a one dobivaju vlastiti redak Omiljene epizode na početnom zaslonu, uz Favorite za sve ostalo."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A szív már egyetlen epizódnál is működik, és ezek külön Kedvenc epizódok sort kapnak a kezdőképernyőn, a Kedvencek mellett minden máshoz."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Il cuore ora funziona anche su un singolo episodio, e questi hanno una riga Episodi preferiti tutta loro nella schermata iniziale, accanto ai Preferiti per tutto il resto."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ハートは1話単位でも使えるようになり、ホームには「お気に入りのエピソード」の行が加わります。ほかはこれまでどおりお気に入りの行にまとまります。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "하트를 에피소드 하나에도 표시할 수 있고, 홈에 즐겨찾는 에피소드 줄이 따로 생깁니다. 나머지는 그대로 즐겨찾기 줄에 모입니다."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hjertet virker nå også på en enkelt episode, og de får sin egen rad Favorittepisoder på startsiden, ved siden av Favoritter for alt annet."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Het hartje werkt nu ook op één aflevering, en die krijgen een eigen rij Favoriete afleveringen op het startscherm, naast Favorieten voor al het andere."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Serce działa teraz również na pojedynczym odcinku, a te trafiają na ekranie głównym do własnego wiersza Ulubione odcinki, obok Ulubionych dla całej reszty."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O coração agora funciona também em um episódio avulso, e eles ganham a própria fileira Episódios favoritos na tela inicial, ao lado de Favoritos para todo o resto."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O coração funciona agora também num episódio individual, e estes ganham a sua própria fila Episódios favoritos no início, ao lado de Favoritos para tudo o resto."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Inima funcționează acum și pentru un singur episod, iar acestea primesc propriul rând Episoade favorite pe ecranul principal, lângă Favorite pentru tot restul."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сердечко теперь работает и для одного эпизода, а такие эпизоды получают на главном экране собственный ряд Избранные эпизоды, рядом с Избранным для всего остального."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Srdce teraz funguje aj pri jednej epizóde a tie dostanú na úvodnej obrazovke vlastný riadok Obľúbené epizódy, vedľa Obľúbených pre všetko ostatné."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hjärtat fungerar nu även på ett enskilt avsnitt, och de får en egen rad Favoritavsnitt på startsidan, bredvid Favoriter för allt annat."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kalp artık tek bir bölümde de çalışıyor ve bunlar ana ekranda kendi Favori Bölümler satırını alıyor; geri kalan her şey Favoriler satırında kalıyor."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сердечко тепер працює й для окремого епізоду, а такі епізоди отримують на головному екрані власний ряд Улюблені епізоди, поруч з Улюбленим для решти."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "爱心现在也能标在单集上，主页会多出一行收藏的剧集，其余内容仍留在收藏行里。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "愛心現在也能標在單集上，首頁會多出一行最愛的劇集，其餘內容仍留在最愛那一行。"
+          }
+        }
+      }
+    },
+    "changelog.1_0_0.restart.title" : {
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Přehrání od začátku"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Afspil fra start"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Von vorn abspielen"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Αναπαραγωγή από την αρχή"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Play from the start"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reproducir desde el inicio"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toisto alusta"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lire depuis le début"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reprodukcija od početka"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lejátszás elölről"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Riprodurre dall'inizio"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "最初から再生"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "처음부터 재생"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spill fra start"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Afspelen vanaf begin"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Odtwarzanie od początku"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reproduzir do início"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reproduzir do início"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Redare de la început"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Воспроизведение с начала"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Prehrávanie od začiatku"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spela från början"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Baştan oynatma"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Відтворення спочатку"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "从头播放"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "從頭播放"
+          }
+        }
+      }
+    },
+    "changelog.1_0_0.restart.body" : {
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ovládací prvek Od začátku v přehrávači vrátí film nebo epizodu na začátek, aniž bys opustil přehrávání, a bod pokračování se posune hned s ním."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Knappen Fra start i afspilleren sender en film eller et afsnit tilbage til begyndelsen uden at forlade afspilningen, og dit fortsæt-punkt følger med det samme."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ein Von vorn im Player springt einen Film oder eine Folge zurück an den Anfang, ohne die Wiedergabe zu verlassen, und der Fortsetzungspunkt zieht sofort mit."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Το κουμπί Από την αρχή στο πρόγραμμα αναπαραγωγής γυρίζει μια ταινία ή ένα επεισόδιο στην αρχή χωρίς να βγεις από την αναπαραγωγή, και το σημείο συνέχισης ακολουθεί αμέσως."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A From Start control in the player jumps a movie or episode back to the beginning without leaving playback, and your resume point follows immediately."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El control Desde el inicio del reproductor devuelve una película o un episodio al principio sin salir de la reproducción, y tu punto de continuación se actualiza al momento."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Soittimen Alusta-painike palauttaa elokuvan tai jakson alkuun poistumatta toistosta, ja jatkamiskohta seuraa heti perässä."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La commande Depuis le début du lecteur ramène un film ou un épisode au commencement sans quitter la lecture, et votre point de reprise suit immédiatement."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kontrola Od početka u reproduktoru vraća film ili epizodu na početak bez izlaska iz reprodukcije, a mjesto nastavka odmah se pomiče s njom."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A lejátszó Elölről gombja a film vagy epizód elejére ugrik anélkül, hogy kilépnél a lejátszásból, és a folytatási pont azonnal követi."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Il comando Dall'inizio nel player riporta un film o un episodio al principio senza uscire dalla riproduzione, e il punto di ripresa si aggiorna subito."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "プレーヤーの「最初から」で、再生を終えずに映画やエピソードを先頭に戻せます。続きの位置もすぐに追従します。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "플레이어의 처음부터 버튼으로 재생을 벗어나지 않고 영화나 에피소드를 맨 앞으로 되돌릴 수 있고, 이어보기 지점도 바로 따라옵니다."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Knappen Fra start i spilleren sender en film eller en episode tilbake til begynnelsen uten å forlate avspillingen, og fortsettelsespunktet følger med umiddelbart."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "De knop Vanaf begin in de speler zet een film of aflevering terug naar het begin zonder het afspelen te verlaten, en je hervatpunt gaat meteen mee."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Przycisk Od początku w odtwarzaczu cofa film lub odcinek na sam początek bez opuszczania odtwarzania, a miejsce wznowienia od razu podąża za nim."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O controle Do início no player leva um filme ou episódio de volta ao começo sem sair da reprodução, e seu ponto de continuação acompanha na hora."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O controlo Do início no leitor leva um filme ou episódio de volta ao começo sem sair da reprodução, e o teu ponto de continuação acompanha de imediato."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Comanda De la început din player readuce un film sau un episod la începutul lui fără să ieși din redare, iar punctul de reluare se mută imediat."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Кнопка С начала в плеере возвращает фильм или эпизод к началу, не выходя из воспроизведения, а точка продолжения сразу следует за ней."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ovládací prvok Od začiatku v prehrávači vráti film alebo epizódu na začiatok bez opustenia prehrávania a bod pokračovania sa hneď posunie s ním."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Knappen Från början i spelaren tar en film eller ett avsnitt tillbaka till starten utan att lämna uppspelningen, och din fortsättningspunkt följer direkt med."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Oynatıcıdaki Baştan denetimi, oynatmadan çıkmadan bir filmi veya bölümü başa alır ve kaldığınız yer hemen buna uyar."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Кнопка Спочатку в програвачі повертає фільм або епізод на початок, не виходячи з відтворення, а точка продовження одразу переходить разом з нею."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "播放器里的从头播放可以把影片或剧集拉回开头，不用退出播放，续播位置也会立刻跟着更新。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "播放器裡的從頭播放可以把影片或分集拉回開頭，不用退出播放，續看位置也會立刻跟著更新。"
+          }
+        }
+      }
+    },
+    "changelog.1_0_0.topShelf.title" : {
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Užitečnější Top Shelf"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En mere nyttig Top Shelf"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nützlicherer Top Shelf"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Πιο χρήσιμο Top Shelf"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A more useful Top Shelf"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Un Top Shelf más útil"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hyödyllisempi Top Shelf"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Un Top Shelf plus utile"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Korisniji Top Shelf"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hasznosabb Top Shelf"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Un Top Shelf più utile"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使いやすくなったTop Shelf"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "더 쓸모 있어진 Top Shelf"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Et mer nyttig Top Shelf"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Een nuttiger Top Shelf"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bardziej przydatny Top Shelf"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Um Top Shelf mais útil"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Um Top Shelf mais útil"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Un Top Shelf mai util"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Более полезный Top Shelf"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Užitočnejší Top Shelf"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En mer användbar Top Shelf"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Daha kullanışlı bir Top Shelf"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Корисніший Top Shelf"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更好用的 Top Shelf"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更好用的 Top Shelf"
+          }
+        }
+      }
+    },
+    "changelog.1_0_0.topShelf.body" : {
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pokračovat ve sledování a Další na domovské obrazovce Apple TV ukazují ve tvé barvě zvýraznění, jak daleko titul je, a výběrem se přehrávání spustí hned."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fortsæt med at se og Næste på Apple TV's hjemmeskærm viser i din accentfarve, hvor langt du er i en titel, og et valg starter afspilningen med det samme."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Weiterschauen und Als Nächstes auf dem Home-Bildschirm des Apple TV zeigen in deiner Akzentfarbe, wie weit ein Titel ist, und eine Auswahl startet die Wiedergabe sofort."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Το Συνέχιση παρακολούθησης και το Επόμενο στην αρχική οθόνη του Apple TV δείχνουν στο χρώμα τονισμού σου πόσο έχει προχωρήσει ένας τίτλος, και η επιλογή ξεκινά αμέσως την αναπαραγωγή."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continue Watching and Next Up on the Apple TV home screen show how far into a title you are, in your accent colour, and selecting one starts playback right away."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seguir viendo y Siguiente en la pantalla de inicio del Apple TV muestran con tu color de acento por dónde vas, y al elegir uno la reproducción empieza al instante."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jatka katselua ja Seuraavaksi Apple TV:n aloitusnäytöllä näyttävät korostusvärilläsi, kuinka pitkällä nimike on, ja valinta käynnistää toiston heti."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continuer à regarder et À suivre sur l'écran d'accueil de l'Apple TV indiquent votre avancement dans votre couleur d'accent, et une sélection lance la lecture aussitôt."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nastavi gledanje i Sljedeće na početnom zaslonu Apple TV-a u tvojoj boji naglaska pokazuju dokle si stigao, a odabir odmah pokreće reprodukciju."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A Folytatás és a Következő az Apple TV kezdőképernyőjén a kiemelőszíneddel mutatja, hol tartasz, és a kiválasztás azonnal elindítja a lejátszást."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continua a guardare e Prossimo nella schermata Home dell'Apple TV mostrano con il tuo colore d'accento a che punto sei, e selezionandone uno la riproduzione parte subito."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple TVのホーム画面の「視聴を続ける」と「次の再生」が、アクセントカラーで再生位置を示します。選ぶとすぐに再生が始まります。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple TV 홈 화면의 계속 시청과 다음 항목이 강조 색상으로 어디까지 봤는지 보여주고, 선택하면 바로 재생이 시작됩니다."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fortsett å se og Neste på hjemmeskjermen til Apple TV viser i aksentfargen din hvor langt du er kommet, og et valg starter avspillingen med en gang."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verder kijken en Volgende op het beginscherm van de Apple TV laten in je accentkleur zien hoe ver je bent, en een keuze start het afspelen meteen."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kontynuuj oglądanie i Następne na ekranie głównym Apple TV pokazują w twoim kolorze akcentu, jak daleko jesteś, a wybór od razu uruchamia odtwarzanie."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continuar assistindo e Próximo na tela de início do Apple TV mostram na sua cor de destaque em que ponto você está, e escolher um já começa a reprodução."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continuar a ver e A seguir no ecrã principal da Apple TV mostram na tua cor de destaque em que ponto estás, e escolher um inicia logo a reprodução."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continuă vizionarea și Următorul de pe ecranul principal Apple TV arată în culoarea ta de accent unde ai rămas, iar selectarea pornește imediat redarea."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Продолжить просмотр и Далее на главном экране Apple TV показывают акцентным цветом, на чём вы остановились, а выбор сразу запускает воспроизведение."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pokračovať v sledovaní a Ďalšie na domovskej obrazovke Apple TV ukazujú v tvojej farbe zvýraznenia, kde si skončil, a výberom sa prehrávanie spustí hneď."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fortsätt titta och Nästa på Apple TV:s hemskärm visar i din accentfärg hur långt du har kommit, och ett val startar uppspelningen direkt."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple TV ana ekranındaki İzlemeye Devam Et ve Sırada, vurgu renginizle nerede kaldığınızı gösterir; birini seçmek oynatmayı hemen başlatır."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Продовжити перегляд і Наступне на головному екрані Apple TV показують акцентним кольором, де ви зупинилися, а вибір одразу запускає відтворення."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple TV 主屏幕上的继续观看和接下来会用强调色标出看到哪里，选中即可立刻开始播放。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple TV 主畫面上的繼續觀看和接下來會用強調色標出看到哪裡，選取即可立刻開始播放。"
+          }
+        }
+      }
+    },
     "settings.appearance.showLogos" : {
       "comment" : "Appearance toggle: show the title logo on detail pages",
       "extractionState" : "manual",
