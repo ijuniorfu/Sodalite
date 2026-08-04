@@ -5,7 +5,7 @@ struct LiveTVTabView: View {
     @Environment(\.horizontalSizeClass) private var hSizeClass
     // Late-bound once the active user is known, then stable across re-renders (matches MusicHomeView);
     // an inline expression would hand State a fresh throwaway vm each render.
-    @State private var model: EPGGuideViewModel?
+    @State private var guideModel: GuideViewModel?
     @State private var timers: LiveTimerStore?
     @State private var recordingsModel: RecordingsViewModel?
     @State private var programsModel: LiveProgramsViewModel?
@@ -26,9 +26,10 @@ struct LiveTVTabView: View {
                 .padding(.top, 20)
             ZStack {
                 Group {
-                    if let model {
-                        EPGGuideView(
-                            model: model,
+                    if let guideModel {
+                        GuideView(
+                            model: guideModel,
+                            tint: tint,
                             onWatchLive: { context in
                                 liveContext = context
                                 // Launcher polls for the info sheet to finish dismissing before
@@ -45,11 +46,11 @@ struct LiveTVTabView: View {
                 .opacity(section == .guide ? 1 : 0)
                 .allowsHitTesting(section == .guide)
 
-                if section == .overview, let programsModel, let model, let timers {
+                if section == .overview, let programsModel, let guideModel, let timers {
                     LiveProgramsView(
                         model: programsModel,
                         timers: timers,
-                        guideChannels: model.channels,
+                        guideChannels: guideModel.channels,
                         tint: tint,
                         onWatchLive: { context in
                             liveContext = context
@@ -63,12 +64,11 @@ struct LiveTVTabView: View {
             }
         }
         .task {
-            guard model == nil, let userID = dependencies.activeUserID else { return }
+            guard guideModel == nil, let userID = dependencies.activeUserID else { return }
             let store = LiveTimerStore(service: dependencies.jellyfinLiveTvService, userID: userID)
             timers = store
-            model = EPGGuideViewModel(
-                service: dependencies.jellyfinLiveTvService, userID: userID, timers: store,
-                metrics: EPGMetrics.current(hSizeClass))
+            guideModel = GuideViewModel(
+                service: dependencies.jellyfinLiveTvService, userID: userID, timers: store)
             recordingsModel = RecordingsViewModel(
                 liveTvService: dependencies.jellyfinLiveTvService,
                 itemService: dependencies.jellyfinItemService,
@@ -80,8 +80,8 @@ struct LiveTVTabView: View {
             // Recordings can cancel timers/rules the overlay doesn't know; resync on the way back so
             // dots/actions match the server. Übersicht shares the model (and is the default landing), so resync it too.
             guard newValue == .guide || newValue == .overview,
-                  let model, let timers else { return }
-            Task { await timers.syncWithServer(knownPrograms: model.allLoadedPrograms) }
+                  let guideModel, let timers else { return }
+            Task { await timers.syncWithServer(knownPrograms: guideModel.allLoadedPrograms) }
         }
         .overlay {
             // Guard userID at the call site (mirrors MovieDetailView) so the live player never launches blank.

@@ -1,0 +1,209 @@
+import SwiftUI
+
+/// Filter chips on the leading side, time targets on the trailing side. Raw `.focusable` surfaces
+/// rather than Buttons, matching `PopoverActionButton`: a tvOS Button over this chrome renders only
+/// the focused label and leaves the rest as blank tinted pills.
+struct GuideControlsView: View {
+    let model: GuideViewModel
+    let metrics: GuideMetrics
+    let tint: Color
+
+    @State private var isSearching = false
+
+    /// `detailCover` takes an Identifiable item; the search cover carries no payload of its own.
+    private struct SearchRequest: Identifiable { let id = "guide.search" }
+
+    var body: some View {
+        HStack(spacing: 12) {
+            filterChips
+            Spacer(minLength: 20)
+            timeTargets
+        }
+        .padding(.horizontal, 40)
+        .frame(height: metrics.controlsHeight)
+        .detailCover(item: searchBinding) { _ in
+            GuideSearchCover(model: model, tint: tint)
+        }
+    }
+
+    private var searchBinding: Binding<SearchRequest?> {
+        Binding(
+            get: { isSearching ? SearchRequest() : nil },
+            set: { isSearching = $0 != nil })
+    }
+
+    @ViewBuilder
+    private var filterChips: some View {
+        GuideChip(title: Text("livetv.guide.filter.favorites"),
+                  systemImage: model.filter.favoritesOnly ? "star.fill" : "star",
+                  isOn: model.filter.favoritesOnly,
+                  tint: tint) {
+            var next = model.filter
+            next.favoritesOnly.toggle()
+            Task { await model.apply(filter: next) }
+        }
+
+        ForEach(GuideFilter.Category.allCases) { category in
+            GuideChip(title: Text(category.titleKey),
+                      systemImage: category.systemImage,
+                      isOn: model.filter.category == category,
+                      tint: tint) {
+                var next = model.filter
+                // Tapping the active category clears it, so the chips behave as one radio group
+                // with an off state rather than trapping the user in a filter.
+                next.category = next.category == category ? nil : category
+                Task { await model.apply(filter: next) }
+            }
+        }
+
+        if model.hasRadioChannels {
+            GuideChip(title: Text("livetv.guide.filter.radio"),
+                      systemImage: "radio",
+                      isOn: model.filter.kind == .radio,
+                      tint: tint) {
+                var next = model.filter
+                next.kind = next.kind == .radio ? .tv : .radio
+                Task { await model.apply(filter: next) }
+            }
+        }
+
+        // Text(verbatim:), NOT LocalizedStringKey(model.searchText): a runtime string wrapped in a
+        // key is looked up in the catalog, so a search for "ARD" would render whatever "ARD"
+        // happens to translate to, or the raw key when it misses.
+        GuideChip(title: model.searchText.isEmpty
+                    ? Text("livetv.guide.filter.search")
+                    : Text(verbatim: model.searchText),
+                  systemImage: "magnifyingglass",
+                  isOn: !model.searchText.isEmpty,
+                  tint: tint) {
+            isSearching = true
+        }
+    }
+
+    @ViewBuilder
+    private var timeTargets: some View {
+        GuideChip(title: Text("livetv.guide.jump.now"),
+                  systemImage: "dot.radiowaves.left.and.right",
+                  isOn: false, tint: tint) {
+            model.jumpToNow()
+        }
+        // Both prime-time chips hide when their target is past or outside the axis, rather than
+        // offering a jump that does nothing.
+        if model.axis.primeTime(days: 0, from: Date()) != nil {
+            GuideChip(title: Text("livetv.guide.jump.primetime"), systemImage: "moon.stars",
+                      isOn: false, tint: tint) {
+                model.jumpToPrimeTime(days: 0)
+            }
+        }
+        if model.axis.primeTime(days: 1, from: Date()) != nil {
+            GuideChip(title: Text("livetv.guide.jump.tomorrow"), systemImage: "calendar",
+                      isOn: false, tint: tint) {
+                model.jumpToPrimeTime(days: 1)
+            }
+        }
+    }
+}
+
+extension GuideFilter.Category {
+    var titleKey: LocalizedStringKey {
+        switch self {
+        case .sports: "livetv.guide.filter.sports"
+        case .kids: "livetv.guide.filter.kids"
+        case .news: "livetv.guide.filter.news"
+        case .movies: "livetv.guide.filter.movies"
+        }
+    }
+
+    var systemImage: String {
+        switch self {
+        case .sports: "sportscourt"
+        case .kids: "figure.and.child.holdinghands"
+        case .news: "newspaper"
+        case .movies: "film"
+        }
+    }
+}
+
+/// One control pill. Fills tinted when focused (black label, the app convention), keeps a tinted
+/// outline while merely active.
+private struct GuideChip: View {
+    /// Text, not LocalizedStringKey: the search chip renders the user's live query, which must not
+    /// go through the string catalog.
+    let title: Text
+    let systemImage: String
+    let isOn: Bool
+    let tint: Color
+    let action: () -> Void
+
+    @FocusState private var focused: Bool
+
+    var body: some View {
+        Label { title } icon: { Image(systemName: systemImage) }
+            .font(.caption)
+            .fontWeight(.semibold)
+            .lineLimit(1)
+            .foregroundStyle(focused ? Color.black : .white)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 8)
+            .background(
+                Capsule().fill(focused
+                    ? AnyShapeStyle(tint)
+                    : AnyShapeStyle(isOn ? tint.opacity(0.24) : Color.white.opacity(0.10)))
+            )
+            .overlay(
+                Capsule().strokeBorder(isOn ? tint : Color.clear, lineWidth: focused ? 0 : 2)
+            )
+            .scaleEffect(focused ? 1.06 : 1)
+            .focusable(true)
+            .focused($focused)
+            .animation(.easeInOut(duration: 0.15), value: focused)
+            .stableTap(isFocused: focused) { action() }
+    }
+}
+
+/// Channel search. Typing narrows the grid live, so dismissing leaves the filter in place and the
+/// chip shows the active query.
+private struct GuideSearchCover: View {
+    let model: GuideViewModel
+    let tint: Color
+
+    @State private var text = ""
+    @FocusState private var fieldFocused: Bool
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 24) {
+            Text("livetv.guide.search.title")
+                .font(.title2)
+                .fontWeight(.semibold)
+
+            TextField("livetv.guide.search.placeholder", text: $text)
+                .font(.title3)
+                .padding(16)
+                .background(RoundedRectangle(cornerRadius: 12).fill(Color.Theme.surfaceElevated))
+                .focused($fieldFocused)
+                .onChange(of: text) { _, newValue in
+                    model.apply(searchText: newValue)
+                }
+
+            Text("livetv.guide.search.results \(model.channels.count)")
+                .font(.headline)
+                .foregroundStyle(.secondary)
+
+            // The prefetch runs in the background, so an early search sees a partial set. Saying so
+            // beats letting the user conclude a channel does not exist.
+            if !model.channelsComplete {
+                Label("livetv.guide.search.loading", systemImage: "arrow.down.circle")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
+
+            Spacer()
+        }
+        .padding(60)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .onAppear {
+            text = model.searchText
+            fieldFocused = true
+        }
+    }
+}
