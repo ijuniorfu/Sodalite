@@ -1,7 +1,8 @@
 import Foundation
 
 protocol JellyfinLiveTvServiceProtocol: Sendable {
-    func getChannels(userID: String, startIndex: Int, limit: Int) async throws -> LiveTvChannelsResponse
+    func getChannels(userID: String, startIndex: Int, limit: Int,
+                     filter: GuideFilter) async throws -> LiveTvChannelsResponse
     func getPrograms(channelIDs: [String], userID: String, start: Date, end: Date) async throws -> [JellyfinProgram]
     func getGuideInfo() async throws -> JellyfinGuideInfo
     /// Channels are BaseItemDto, so favorite reuses the generic FavoriteItems endpoint.
@@ -24,9 +25,11 @@ final class JellyfinLiveTvService: JellyfinLiveTvServiceProtocol {
         self.client = client
     }
 
-    func getChannels(userID: String, startIndex: Int, limit: Int) async throws -> LiveTvChannelsResponse {
+    func getChannels(userID: String, startIndex: Int, limit: Int,
+                     filter: GuideFilter) async throws -> LiveTvChannelsResponse {
         try await client.request(
-            endpoint: JellyfinEndpoint.liveTvChannels(userID: userID, startIndex: startIndex, limit: limit),
+            endpoint: JellyfinEndpoint.liveTvChannels(
+                userID: userID, startIndex: startIndex, limit: limit, filter: filter),
             responseType: LiveTvChannelsResponse.self,
             decoder: .jellyfinLiveTv
         )

@@ -140,7 +140,7 @@ final class EPGGuideViewModel {
         do {
             let pageSize = 50
             let response = try await service.getChannels(
-                userID: userID, startIndex: nextChannelIndex, limit: pageSize)
+                userID: userID, startIndex: nextChannelIndex, limit: pageSize, filter: .default)
             channels.append(contentsOf: response.items)
             for ch in response.items where ch.isFavorite { favoriteChannelIDs.insert(ch.id) }
             nextChannelIndex += response.items.count

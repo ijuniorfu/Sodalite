@@ -240,7 +240,7 @@ final class DependencyContainer {
     func serverHasLiveTV(userID: String) async -> Bool {
         do {
             let response = try await jellyfinLiveTvService.getChannels(
-                userID: userID, startIndex: 0, limit: 1)
+                userID: userID, startIndex: 0, limit: 1, filter: .any)
             return !response.items.isEmpty
         } catch {
             return false
