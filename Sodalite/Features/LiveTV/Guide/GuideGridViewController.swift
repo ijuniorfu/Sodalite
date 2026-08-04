@@ -145,6 +145,7 @@ final class GuideGridViewController: UIViewController,
         observeFavorites()
         observeTimerState()
         observeScrollRequests()
+        installGestures()
     }
 
     override func viewWillAppear(_ animated: Bool) {
