@@ -75,11 +75,7 @@ struct GuideView: View {
     /// not jump when a filter empties the grid: only the canvas area swaps.
     @ViewBuilder
     private var content: some View {
-        if model.channels.isEmpty, model.isLoadingChannels, model.loadError == nil,
-           model.searchText.isEmpty, model.filter.isDefault {
-            ProgressView()
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-        } else if model.channels.isEmpty, let error = model.loadError {
+        if model.channels.isEmpty, let error = model.loadError {
             ContentUnavailableView("livetv.loadFailed.title", systemImage: "tv.slash",
                                    description: Text(error))
         } else {
@@ -95,11 +91,18 @@ struct GuideView: View {
     @ViewBuilder
     private var canvas: some View {
         if model.channels.isEmpty {
-            // A filter or a search that matched nothing, not a failure. Naming the cause beats an
-            // empty grid that reads as a broken server, and the chips above stay reachable.
-            ContentUnavailableView("livetv.guide.empty.filtered",
-                                   systemImage: "line.3.horizontal.decrease.circle")
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            if model.channelsComplete {
+                // A filter or a search that matched nothing, not a failure. Naming the cause beats
+                // an empty grid that reads as a broken server, and the chips stay reachable above.
+                ContentUnavailableView("livetv.guide.empty.filtered",
+                                       systemImage: "line.3.horizontal.decrease.circle")
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else {
+                // Still fetching. isLoadingChannels is not the test: it stays false while the
+                // guide-info and radio probes run ahead of the first channel page.
+                ProgressView()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
         } else {
             GuideGridContainer(
                 model: model,

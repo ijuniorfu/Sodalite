@@ -31,7 +31,6 @@ struct ChannelListView: View {
 
     var body: some View {
         content
-            .searchable(text: $searchText, prompt: Text("livetv.guide.search.placeholder"))
             .onChange(of: searchText) { _, newValue in model.apply(searchText: newValue) }
             .task { await model.load() }
             .sheet(item: $channelSelection) { selected in
@@ -50,8 +49,13 @@ struct ChannelListView: View {
         } else {
             List {
                 Section {
+                    // Inline field, not .searchable: the Live TV tab is not inside a
+                    // NavigationStack, and .searchable silently renders nothing without one.
+                    searchField
+                        .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 4, trailing: 16))
+                        .listRowBackground(Color.clear)
                     filterChips
-                        .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
+                        .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 8, trailing: 16))
                         .listRowBackground(Color.clear)
                 }
                 if model.channels.isEmpty {
@@ -80,6 +84,24 @@ struct ChannelListView: View {
             }
             .listStyle(.plain)
         }
+    }
+
+    private var searchField: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "magnifyingglass").foregroundStyle(.secondary)
+            TextField("livetv.guide.search.placeholder", text: $searchText)
+                .textInputAutocapitalization(.never)
+                .autocorrectionDisabled()
+            if !searchText.isEmpty {
+                Button { searchText = "" } label: {
+                    Image(systemName: "xmark.circle.fill").foregroundStyle(.secondary)
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+        .background(RoundedRectangle(cornerRadius: 10).fill(Color.Theme.surfaceElevated))
     }
 
     private var filterChips: some View {

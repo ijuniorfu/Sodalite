@@ -76,6 +76,7 @@ final class GuideGridViewController: UIViewController,
     override func viewDidLoad() {
         super.viewDidLoad()
         slots = model.axis.slots
+        lastScrollRequestVersion = model.scrollRequestVersion
 
         gridLayout.delegate = self
         gridLayout.rowHeight = metrics.rowHeight
@@ -186,9 +187,10 @@ final class GuideGridViewController: UIViewController,
 
         if !didInitialScroll, gridView.bounds.width > 0, model.axis.totalWidth > 0 {
             didInitialScroll = true
-            // Open with "now" near the left edge, keeping a little of the current program's
-            // already-aired part visible for context.
-            scrollGrid(to: Date(), animated: false)
+            // The anchor, not Date(): a jump requested before this controller existed (a category
+            // snap while the list was still empty) is already sitting in anchorTime, and the
+            // observer only fires on a CHANGE, so it would otherwise be dropped.
+            scrollGrid(to: model.anchorTime, animated: false)
         }
     }
 
@@ -531,6 +533,6 @@ struct GuideGridContainer: UIViewControllerRepresentable {
         // isUserInteractionEnabled, not opacity or allowsHitTesting: only this removes a UIKit
         // subtree from the tvOS focus engine, and without it the hidden guide stays focusable
         // behind the other segments.
-        controller.isActive = isActive
+        if controller.isActive != isActive { controller.isActive = isActive }
     }
 }
