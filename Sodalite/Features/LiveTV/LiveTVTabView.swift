@@ -6,6 +6,7 @@ struct LiveTVTabView: View {
     // Late-bound once the active user is known, then stable across re-renders (matches MusicHomeView);
     // an inline expression would hand State a fresh throwaway vm each render.
     @State private var guideModel: GuideViewModel?
+    @State private var channelListModel: ChannelListViewModel?
     @State private var timers: LiveTimerStore?
     @State private var recordingsModel: RecordingsViewModel?
     @State private var programsModel: LiveProgramsViewModel?
@@ -26,7 +27,16 @@ struct LiveTVTabView: View {
                 .padding(.top, 20)
             ZStack {
                 Group {
-                    if let guideModel {
+                    #if os(iOS)
+                    // Compact gets the channel list: a 2D grid behind a channel column does not fit
+                    // a phone, and shrinking it further does not fix that.
+                    if hSizeClass == .compact, let channelListModel {
+                        ChannelListView(model: channelListModel, tint: tint,
+                                        onWatchLive: { context in
+                                            liveContext = context
+                                            isPlayerPresented = true
+                                        })
+                    } else if let guideModel {
                         GuideView(
                             model: guideModel,
                             tint: tint,
@@ -41,6 +51,21 @@ struct LiveTVTabView: View {
                     } else {
                         ProgressView()
                     }
+                    #else
+                    if let guideModel {
+                        GuideView(
+                            model: guideModel,
+                            tint: tint,
+                            onWatchLive: { context in
+                                liveContext = context
+                                isPlayerPresented = true
+                            },
+                            isActive: section == .guide
+                        )
+                    } else {
+                        ProgressView()
+                    }
+                    #endif
                 }
                 // Keep the UIKit grid alive across the toggle (scroll + focus state survive); just hide it.
                 .opacity(section == .guide ? 1 : 0)
@@ -68,6 +93,8 @@ struct LiveTVTabView: View {
             let store = LiveTimerStore(service: dependencies.jellyfinLiveTvService, userID: userID)
             timers = store
             guideModel = GuideViewModel(
+                service: dependencies.jellyfinLiveTvService, userID: userID, timers: store)
+            channelListModel = ChannelListViewModel(
                 service: dependencies.jellyfinLiveTvService, userID: userID, timers: store)
             recordingsModel = RecordingsViewModel(
                 liveTvService: dependencies.jellyfinLiveTvService,
