@@ -8,11 +8,13 @@ private struct ProgramSelection: Identifiable {
     var id: String { "\(channel.id)-\(program.id)" }
 }
 
-/// Live TV "Übersicht": recommended programs in category rows. Reuses the shared `EPGGuideViewModel`
-/// for record/favorite/timer state so the optimistic overlay stays consistent across segments.
+/// Live TV "Übersicht": recommended programs in category rows. Reads the shared `LiveTimerStore`
+/// for record/favorite state so the optimistic overlay stays consistent across segments.
 struct LiveProgramsView: View {
     @State private var model: LiveProgramsViewModel
-    let guideModel: EPGGuideViewModel
+    let timers: LiveTimerStore
+    /// The guide's channel list, used to upgrade a tapped program's synthesized channel to the real one.
+    let guideChannels: [JellyfinChannel]
     let tint: Color
     var onWatchLive: ((LivePlaybackContext) -> Void)?
 
@@ -21,11 +23,13 @@ struct LiveProgramsView: View {
     @State private var selection: ProgramSelection?
 
     init(model: LiveProgramsViewModel,
-         guideModel: EPGGuideViewModel,
+         timers: LiveTimerStore,
+         guideChannels: [JellyfinChannel],
          tint: Color,
          onWatchLive: ((LivePlaybackContext) -> Void)? = nil) {
         _model = State(initialValue: model)
-        self.guideModel = guideModel
+        self.timers = timers
+        self.guideChannels = guideChannels
         self.tint = tint
         self.onWatchLive = onWatchLive
     }
@@ -55,7 +59,7 @@ struct LiveProgramsView: View {
                                     },
                                     onSelect: { program in
                                         guard let channel = model.channel(
-                                            for: program, guideChannels: guideModel.channels)
+                                            for: program, guideChannels: guideChannels)
                                         else { return }
                                         selection = ProgramSelection(channel: channel, program: program)
                                     }
@@ -73,22 +77,22 @@ struct LiveProgramsView: View {
             ProgramInfoPopover(
                 program: sel.program, channel: sel.channel, tint: tint,
                 onWatchLive: onWatchLive,
-                channelIsFavorite: guideModel.isFavorite(sel.channel.id),
-                onToggleFavorite: { guideModel.toggleFavorite(channelID: sel.channel.id) },
-                hasTimer: guideModel.effectiveTimerState(for: sel.program).timerId != nil,
-                hasSeriesTimer: guideModel.effectiveTimerState(for: sel.program).seriesTimerId != nil,
-                onToggleRecord: { guideModel.toggleRecord(program: sel.program) },
-                onToggleSeriesRecord: { guideModel.toggleSeriesRecord(program: sel.program) })
+                channelIsFavorite: timers.isFavorite(sel.channel.id),
+                onToggleFavorite: { timers.toggleFavorite(channelID: sel.channel.id) },
+                hasTimer: timers.effectiveTimerState(for: sel.program).timerId != nil,
+                hasSeriesTimer: timers.effectiveTimerState(for: sel.program).seriesTimerId != nil,
+                onToggleRecord: { timers.toggleRecord(program: sel.program) },
+                onToggleSeriesRecord: { timers.toggleSeriesRecord(program: sel.program) })
             .alert(
                 Text("livetv.recording.error.title"),
                 isPresented: Binding(
-                    get: { guideModel.recordingError != nil },
-                    set: { if !$0 { guideModel.recordingError = nil } }
+                    get: { timers.recordingError != nil },
+                    set: { if !$0 { timers.recordingError = nil } }
                 )
             ) {
                 Button("common.ok", role: .cancel) {}
             } message: {
-                Text(guideModel.recordingError ?? "")
+                Text(timers.recordingError ?? "")
             }
         }
     }

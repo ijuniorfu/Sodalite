@@ -64,25 +64,25 @@ struct EPGGuideView: View {
             ProgramInfoPopover(
                 program: sel.program, channel: sel.channel, tint: tint,
                 onWatchLive: onWatchLive,
-                channelIsFavorite: model.isFavorite(sel.channel.id),
-                onToggleFavorite: { model.toggleFavorite(channelID: sel.channel.id) },
-                hasTimer: model.effectiveTimerState(for: sel.program).timerId != nil,
-                hasSeriesTimer: model.effectiveTimerState(for: sel.program).seriesTimerId != nil,
-                onToggleRecord: { model.toggleRecord(program: sel.program) },
-                onToggleSeriesRecord: { model.toggleSeriesRecord(program: sel.program) })
+                channelIsFavorite: model.timers.isFavorite(sel.channel.id),
+                onToggleFavorite: { model.timers.toggleFavorite(channelID: sel.channel.id) },
+                hasTimer: model.timers.effectiveTimerState(for: sel.program).timerId != nil,
+                hasSeriesTimer: model.timers.effectiveTimerState(for: sel.program).seriesTimerId != nil,
+                onToggleRecord: { model.timers.toggleRecord(program: sel.program) },
+                onToggleSeriesRecord: { model.timers.toggleSeriesRecord(program: sel.program) })
             // Alert attached INSIDE the sheet: SwiftUI won't present an alert and a sheet from the
             // same node at once, so a fast record-toggle failure was dropped while the popover
             // stayed up with its optimistically flipped button.
             .alert(
                 Text("livetv.recording.error.title"),
                 isPresented: Binding(
-                    get: { model.recordingError != nil },
-                    set: { if !$0 { model.recordingError = nil } }
+                    get: { model.timers.recordingError != nil },
+                    set: { if !$0 { model.timers.recordingError = nil } }
                 )
             ) {
                 Button("common.ok", role: .cancel) {}
             } message: {
-                Text(model.recordingError ?? "")
+                Text(model.timers.recordingError ?? "")
             }
         }
         // Gated on `selection == nil`: while the sheet is up its inner alert owns presentation;
@@ -90,13 +90,13 @@ struct EPGGuideView: View {
         .alert(
             Text("livetv.recording.error.title"),
             isPresented: Binding(
-                get: { selection == nil && model.recordingError != nil },
-                set: { if !$0 { model.recordingError = nil } }
+                get: { selection == nil && model.timers.recordingError != nil },
+                set: { if !$0 { model.timers.recordingError = nil } }
             )
         ) {
             Button("common.ok", role: .cancel) {}
         } message: {
-            Text(model.recordingError ?? "")
+            Text(model.timers.recordingError ?? "")
         }
     }
 }

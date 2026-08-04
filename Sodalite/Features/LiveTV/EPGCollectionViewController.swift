@@ -318,7 +318,7 @@ final class EPGCollectionViewController: UIViewController,
     /// refresh the visible channel-column stars in place.
     private func observeFavorites() {
         withObservationTracking {
-            _ = model.favoriteChannelIDs
+            _ = model.timers.favoriteChannelIDs
         } onChange: { [weak self] in
             Task { @MainActor in
                 guard let self else { return }
@@ -332,14 +332,14 @@ final class EPGCollectionViewController: UIViewController,
         for indexPath in columnView.indexPathsForVisibleItems {
             guard indexPath.item < rows.count,
                   let cell = columnView.cellForItem(at: indexPath) as? EPGChannelCell else { continue }
-            cell.setFavorite(model.isFavorite(rows[indexPath.item].channel.id))
+            cell.setFavorite(model.timers.isFavorite(rows[indexPath.item].channel.id))
         }
     }
 
     /// Track timer-state separately: a record toggle doesn't change rows, only each cell's red dot.
     private func observeTimerState() {
         withObservationTracking {
-            _ = model.timerStateVersion
+            _ = model.timers.timerStateVersion
         } onChange: { [weak self] in
             Task { @MainActor in
                 guard let self else { return }
@@ -355,7 +355,7 @@ final class EPGCollectionViewController: UIViewController,
                   let cell = gridView.cellForItem(at: indexPath) as? EPGProgramCollectionCell else { continue }
             let row = rows[indexPath.section]
             guard !row.programs.isEmpty, indexPath.item < row.programs.count else { continue }
-            cell.setTimer(model.hasTimer(programID: row.programs[indexPath.item].id))
+            cell.setTimer(model.timers.hasTimer(programID: row.programs[indexPath.item].id))
         }
     }
 
@@ -440,7 +440,7 @@ final class EPGCollectionViewController: UIViewController,
                 withReuseIdentifier: EPGChannelCell.reuseID, for: indexPath) as! EPGChannelCell
             let channel = rows[indexPath.item].channel
             cell.configure(name: channel.name, number: channel.channelNumber,
-                           logoURL: logoURLProvider(channel), isFavorite: model.isFavorite(channel.id),
+                           logoURL: logoURLProvider(channel), isFavorite: model.timers.isFavorite(channel.id),
                            metrics: metrics)
             return cell
         }
@@ -454,7 +454,7 @@ final class EPGCollectionViewController: UIViewController,
             let program = row.programs[indexPath.item]
             cell.configure(title: program.name, subtitle: timeRange(program),
                            tint: tintColor, isOnNow: isProgramOnNow(program),
-                           hasTimer: model.hasTimer(programID: program.id))
+                           hasTimer: model.timers.hasTimer(programID: program.id))
         }
         return cell
     }
