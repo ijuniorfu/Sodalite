@@ -46,6 +46,23 @@ enum GuideGeometryProbe {
         append("[focus \(Self.stamp.string(from: Date()))] \(message)\n")
     }
 
+    /// The focused row, program by program, with the geometry each one was given. The bubble at the
+    /// left edge has an outer rounded corner of its own, so it is a genuinely narrow cell rather than
+    /// a clipped one, and only the row's own numbers say where such a cell comes from.
+    static func logRow(section: Int, item: Int, offset: CGFloat, viewport: CGFloat,
+                       entries: [(name: String, times: String, x: CGFloat, width: CGFloat)]) {
+        guard focusLines < 120 else { return }
+        focusLines += 1
+        var text = String(format: "[row %@] section=%d item=%d offset=%.0f viewport=%.0f\n",
+                          Self.stamp.string(from: Date()), section, item, offset, viewport)
+        for (index, entry) in entries.enumerated() {
+            text += String(format: "    %d%@ x=%.0f w=%.0f  %@  %@\n",
+                           index, index == item ? "*" : " ", entry.x, entry.width,
+                           entry.times, entry.name)
+        }
+        append(text)
+    }
+
     /// What the focus engine currently has, so a denied request can be told from one that never ran.
     static func focusedDescription(near view: UIView) -> String {
         guard let item = UIFocusSystem.focusSystem(for: view)?.focusedItem else { return "none" }

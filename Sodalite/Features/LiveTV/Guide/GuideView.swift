@@ -17,6 +17,9 @@ struct GuideView: View {
     var isActive: Bool = true
     /// Bumped by the tab when the live player closes. See `GuideGridViewController.requestGridFocus`.
     var focusRequest: Int = 0
+    /// Set while the player runs and briefly after, so the chips do not compete for the restored
+    /// focus with the grid.
+    var chromeFocusSuppressed: Bool = false
 
     @State private var selection: GuideSelection?
     /// Names the grid as this screen's default focus target. Coming back from the player, the
@@ -29,12 +32,14 @@ struct GuideView: View {
          tint: Color,
          onWatchLive: ((LivePlaybackContext) -> Void)? = nil,
          isActive: Bool = true,
-         focusRequest: Int = 0) {
+         focusRequest: Int = 0,
+         chromeFocusSuppressed: Bool = false) {
         _model = State(initialValue: model)
         self.tint = tint
         self.onWatchLive = onWatchLive
         self.isActive = isActive
         self.focusRequest = focusRequest
+        self.chromeFocusSuppressed = chromeFocusSuppressed
     }
 
     var body: some View {
@@ -91,7 +96,8 @@ struct GuideView: View {
             VStack(spacing: 0) {
                 GuideHeroView(program: model.heroProgram, channel: model.heroChannel,
                               metrics: model.metrics, tint: tint)
-                GuideControlsView(model: model, metrics: model.metrics, tint: tint)
+                GuideControlsView(model: model, metrics: model.metrics, tint: tint,
+                                  isFocusable: !chromeFocusSuppressed)
                 canvas
             }
             .tvFocusScope(guideFocus)

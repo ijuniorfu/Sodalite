@@ -591,8 +591,8 @@ final class GuideGridViewController: UIViewController,
             itemID: channel.id, imageType: .primary,
             tag: channel.primaryImageTag, maxHeight: Int(metrics.channelLogoSize * 2))
         cell.configure(name: channel.name, number: channel.channelNumber, logoURL: logoURL,
-                       isFavorite: model.timers.isFavorite(channel.id), metrics: metrics,
-                       dependencies: dependencies, theme: theme)
+                       isFavorite: model.timers.isFavorite(channel.id), tint: tint,
+                       metrics: metrics, dependencies: dependencies, theme: theme)
     }
 
     private func configure(_ cell: GuideRulerCell, at indexPath: IndexPath) {

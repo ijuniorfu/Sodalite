@@ -7,6 +7,9 @@ struct GuideControlsView: View {
     let model: GuideViewModel
     let metrics: GuideMetrics
     let tint: Color
+    /// False while the player runs and briefly after: the chips must not compete with the grid for
+    /// the focus the system restores when the player closes.
+    var isFocusable: Bool = true
 
     @State private var isSearching = false
 
@@ -36,7 +39,7 @@ struct GuideControlsView: View {
     private var filterChips: some View {
         GuideChip(title: Text("livetv.guide.filter.favorites"),
                   isOn: model.filter.favoritesOnly,
-                  tint: tint) {
+                  tint: tint, isFocusable: isFocusable) {
             var next = model.filter
             next.favoritesOnly.toggle()
             Task { await model.apply(filter: next) }
@@ -45,7 +48,7 @@ struct GuideControlsView: View {
         ForEach(GuideFilter.Category.allCases) { category in
             GuideChip(title: Text(category.titleKey),
                       isOn: model.filter.category == category,
-                      tint: tint) {
+                      tint: tint, isFocusable: isFocusable) {
                 var next = model.filter
                 // Tapping the active category clears it, so the chips behave as one radio group
                 // with an off state rather than trapping the user in a filter.
@@ -57,7 +60,7 @@ struct GuideControlsView: View {
         if model.hasRadioChannels {
             GuideChip(title: Text("livetv.guide.filter.radio"),
                       isOn: model.filter.kind == .radio,
-                      tint: tint) {
+                      tint: tint, isFocusable: isFocusable) {
                 var next = model.filter
                 next.kind = next.kind == .radio ? .tv : .radio
                 Task { await model.apply(filter: next) }
@@ -71,7 +74,7 @@ struct GuideControlsView: View {
                     ? Text("livetv.guide.filter.search")
                     : Text(verbatim: model.searchText),
                   isOn: !model.searchText.isEmpty,
-                  tint: tint) {
+                  tint: tint, isFocusable: isFocusable) {
             isSearching = true
         }
     }
@@ -79,20 +82,20 @@ struct GuideControlsView: View {
     @ViewBuilder
     private var timeTargets: some View {
         GuideChip(title: Text("livetv.guide.jump.now"),
-                  isOn: false, tint: tint) {
+                  isOn: false, tint: tint, isFocusable: isFocusable) {
             model.jumpToNow()
         }
         // Both prime-time chips hide when their target is past or outside the axis, rather than
         // offering a jump that does nothing.
         if model.axis.primeTime(days: 0, from: Date()) != nil {
             GuideChip(title: Text("livetv.guide.jump.primetime"),
-                      isOn: false, tint: tint) {
+                      isOn: false, tint: tint, isFocusable: isFocusable) {
                 model.jumpToPrimeTime(days: 0)
             }
         }
         if model.axis.primeTime(days: 1, from: Date()) != nil {
             GuideChip(title: Text("livetv.guide.jump.tomorrow"),
-                      isOn: false, tint: tint) {
+                      isOn: false, tint: tint, isFocusable: isFocusable) {
                 model.jumpToPrimeTime(days: 1)
             }
         }
@@ -118,6 +121,7 @@ private struct GuideChip: View {
     let title: Text
     let isOn: Bool
     let tint: Color
+    var isFocusable: Bool = true
     let action: () -> Void
 
     @FocusState private var focused: Bool
@@ -142,7 +146,7 @@ private struct GuideChip: View {
                 Capsule().strokeBorder(isOn ? tint : Color.clear, lineWidth: focused ? 0 : 2)
             )
             .scaleEffect(focused ? 1.06 : 1)
-            .focusable(true)
+            .focusable(isFocusable)
             .focused($focused)
             .animation(.easeInOut(duration: 0.15), value: focused)
             .stableTap(isFocused: focused) { action() }

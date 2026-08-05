@@ -21,6 +21,12 @@ struct LiveTVTabView: View {
     /// UIKit-side UIFocusSystem.requestFocusUpdate into the grid is denied from there. So the
     /// preference has to be declared where the restore actually looks.
     @Namespace private var liveTVFocus
+    /// Takes the picker and the filter chips out of the focus engine while the player runs and for a
+    /// moment after it closes. Measured: the restore lands on the segment picker and every
+    /// UIFocusSystem.requestFocusUpdate into the grid is denied for as long as it holds focus. With
+    /// nothing else offering itself, the restore has only the grid and the channel column to pick.
+    @State private var chromeFocusSuppressed = false
+    @State private var chromeFocusRelease: Task<Void, Never>?
 
     private enum LiveTVSection { case overview, guide, recordings }
 
@@ -55,7 +61,8 @@ struct LiveTVTabView: View {
                                 isPlayerPresented = true
                             },
                             isActive: section == .guide,
-                            focusRequest: guideFocusRequest
+                            focusRequest: guideFocusRequest,
+                            chromeFocusSuppressed: chromeFocusSuppressed
                         )
                     } else {
                         ProgressView()
@@ -70,7 +77,8 @@ struct LiveTVTabView: View {
                                 isPlayerPresented = true
                             },
                             isActive: section == .guide,
-                            focusRequest: guideFocusRequest
+                            focusRequest: guideFocusRequest,
+                            chromeFocusSuppressed: chromeFocusSuppressed
                         )
                     } else {
                         ProgressView()
@@ -116,10 +124,25 @@ struct LiveTVTabView: View {
                 service: dependencies.jellyfinLiveTvService, userID: userID)
         }
         .onChange(of: isPlayerPresented) { wasPresented, isPresented in
+            chromeFocusRelease?.cancel()
+            if isPresented {
+                chromeFocusSuppressed = true
+                return
+            }
             // Closing the player, not opening it. SwiftUI restores focus to the segment picker at
             // that point, which is not where the user left it.
-            guard wasPresented, !isPresented, section == .guide else { return }
+            guard wasPresented, section == .guide else {
+                chromeFocusSuppressed = false
+                return
+            }
             guideFocusRequest += 1
+            // Long enough to outlast the dismissal and the restore that follows it, short enough
+            // that the chrome is reachable again before anyone reaches for it.
+            chromeFocusRelease = Task {
+                try? await Task.sleep(for: .milliseconds(1200))
+                guard !Task.isCancelled else { return }
+                chromeFocusSuppressed = false
+            }
         }
         .onChange(of: section) { _, newValue in
             // Recordings can cancel timers/rules the overlay doesn't know; resync on the way back so
@@ -156,6 +179,7 @@ struct LiveTVTabView: View {
             Text("livetv.segment.recordings").tag(LiveTVSection.recordings)
         }
         .pickerStyle(.segmented)
+        .focusable(!chromeFocusSuppressed)
         // tvOS/iPad keep the wide inset; compact uses a phone-scale margin so the control fits ~393pt.
         .padding(.horizontal, hSizeClass == .compact ? 16 : 80)
     }

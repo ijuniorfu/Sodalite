@@ -57,12 +57,16 @@ struct GuideProgramCellContent: View {
 
 /// Channel column cell. Card-shaped, so it takes the semantic focus ring rather than the program
 /// block's tint fill.
+/// Focus fills tinted with black text, the same convention as a program block. It used to draw a
+/// rectangular focus ring instead, which on a full-width row reads as two stray lines running across
+/// the column rather than as a selection.
 struct GuideChannelCellContent: View {
     let name: String
     let number: String?
     let logoURL: URL?
     let isFavorite: Bool
     let isFocused: Bool
+    let tint: Color
     let metrics: GuideMetrics
 
     var body: some View {
@@ -72,7 +76,8 @@ struct GuideChannelCellContent: View {
             } placeholder: {
                 Image(systemName: "tv")
                     .font(.system(size: metrics.channelLogoSize * 0.5))
-                    .foregroundStyle(.tertiary)
+                    .foregroundStyle(isFocused ? AnyShapeStyle(Color.black.opacity(0.4))
+                                               : AnyShapeStyle(.tertiary))
             }
             .frame(width: metrics.channelLogoSize, height: metrics.channelLogoSize)
 
@@ -84,8 +89,12 @@ struct GuideChannelCellContent: View {
                     .font(.headline)
                     .lineLimit(2)
                     .minimumScaleFactor(0.8)
+                    .foregroundStyle(isFocused ? Color.black : Color.white)
                 if let number {
-                    Text(number).font(.caption).foregroundStyle(.secondary)
+                    Text(number)
+                        .font(.caption)
+                        .foregroundStyle(isFocused ? AnyShapeStyle(Color.black.opacity(0.7))
+                                                   : AnyShapeStyle(.secondary))
                 }
             }
             Spacer(minLength: 0)
@@ -93,14 +102,13 @@ struct GuideChannelCellContent: View {
                 Image(systemName: "star.fill")
                     .resizable()
                     .scaledToFit()
-                    .foregroundStyle(.yellow)
+                    .foregroundStyle(isFocused ? Color.black : .yellow)
                     .frame(width: metrics.favoriteIconSize, height: metrics.favoriteIconSize)
             }
         }
         .padding(.horizontal, 12)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color.Theme.surface)
-        .overlay(MediaFocusRing(shape: Rectangle(), isFocused: isFocused))
+        .background(isFocused ? AnyShapeStyle(tint) : AnyShapeStyle(Color.Theme.surface))
     }
 }
 
@@ -189,13 +197,13 @@ final class GuideChannelCell: UICollectionViewCell {
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
 
     func configure(name: String, number: String?, logoURL: URL?, isFavorite: Bool,
-                   metrics: GuideMetrics, dependencies: DependencyContainer,
+                   tint: Color, metrics: GuideMetrics, dependencies: DependencyContainer,
                    theme: ResolvedAppearanceTheme) {
         configurationUpdateHandler = { cell, state in
             cell.contentConfiguration = UIHostingConfiguration {
                 GuideChannelCellContent(
                     name: name, number: number, logoURL: logoURL, isFavorite: isFavorite,
-                    isFocused: state.isFocused, metrics: metrics)
+                    isFocused: state.isFocused, tint: tint, metrics: metrics)
                     .guideCellEnvironment(dependencies, theme)
             }
             .margins(.all, 0)
