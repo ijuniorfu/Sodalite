@@ -50,6 +50,12 @@ final class GuideGridViewController: UIViewController,
     /// that a time anchor always materializes its target, and Vincent's Apple TV disagreed.
     var lastVetoedMove: (previous: IndexPath, next: IndexPath)?
 
+    /// Alpha ramp over the last rows so the bottom edge fades out instead of cutting a row in half.
+    /// A mask rather than an overlay: the guide sits on the app's themed background, so anything
+    /// opaque painted over it would read as a band.
+    private let bottomFade = CAGradientLayer()
+    private static let bottomFadeHeight: CGFloat = 56
+
     private var nowLineTimer: Timer?
     private var didInitialScroll = false
     private var lastScrollRequestVersion = 0
@@ -98,7 +104,11 @@ final class GuideGridViewController: UIViewController,
         gridView.clipsToBounds = true
         gridView.dataSource = self
         gridView.delegate = self
-        gridView.remembersLastFocusedIndexPath = true
+        // false, deliberately: with it on, tvOS restores the grid to its remembered item and
+        // undoes a programmatic jump made while focus sits on a chip outside the grid.
+        // indexPathForPreferredFocusedView already returns the anchored cell, which is better
+        // anyway because it follows the time the user chose rather than the last one they touched.
+        gridView.remembersLastFocusedIndexPath = false
         gridView.contentInsetAdjustmentBehavior = .never
         gridView.register(GuideProgramCell.self, forCellWithReuseIdentifier: GuideProgramCell.reuseID)
         view.addSubview(gridView)
@@ -133,6 +143,8 @@ final class GuideGridViewController: UIViewController,
         rulerView.backgroundColor = .clear
         rulerView.clipsToBounds = true
         rulerView.showsHorizontalScrollIndicator = false
+        // Passive axis: it follows the grid and never drives it. See GuideRulerCellContent.
+        rulerView.isUserInteractionEnabled = false
         rulerView.contentInsetAdjustmentBehavior = .never
         rulerView.dataSource = self
         rulerView.delegate = self
@@ -141,6 +153,10 @@ final class GuideGridViewController: UIViewController,
 
         cornerView.backgroundColor = .clear
         view.addSubview(cornerView)
+
+        bottomFade.colors = [UIColor.white.cgColor, UIColor.clear.cgColor]
+        bottomFade.startPoint = CGPoint(x: 0.5, y: 0)
+        bottomFade.endPoint = CGPoint(x: 0.5, y: 1)
 
         rebuildRows()
         gridView.reloadData()
@@ -189,6 +205,7 @@ final class GuideGridViewController: UIViewController,
         columnView.frame = CGRect(x: leftInset, y: ruler, width: column, height: height - ruler)
         gridView.frame = CGRect(x: leftInset + column, y: ruler,
                                 width: width - column, height: height - ruler)
+        applyBottomFade()
 
         if !didInitialScroll, gridView.bounds.width > 0, model.axis.totalWidth > 0 {
             didInitialScroll = true
@@ -197,6 +214,24 @@ final class GuideGridViewController: UIViewController,
             // observer only fires on a CHANGE, so it would otherwise be dropped.
             scrollGrid(to: model.anchorTime, animated: false)
         }
+    }
+
+    /// One gradient over both vertical scrollers, so the channel column and its programs fade
+    /// together. `locations` is derived from the frame so the ramp is a constant 56pt whatever the
+    /// view height is.
+    private func applyBottomFade() {
+        let host = view.bounds
+        guard host.height > Self.bottomFadeHeight else {
+            view.layer.mask = nil
+            return
+        }
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        bottomFade.frame = host
+        let fadeStart = (host.height - Self.bottomFadeHeight) / host.height
+        bottomFade.locations = [NSNumber(value: Double(fadeStart)), 1.0]
+        view.layer.mask = bottomFade
+        CATransaction.commit()
     }
 
     // MARK: - Scroll sync
@@ -211,8 +246,6 @@ final class GuideGridViewController: UIViewController,
         if scrollView === gridView {
             columnView.contentOffset.y = gridView.contentOffset.y
             rulerView.contentOffset.x = gridView.contentOffset.x
-        } else if scrollView === rulerView {
-            gridView.contentOffset.x = rulerView.contentOffset.x
         } else if scrollView === columnView {
             gridView.contentOffset.y = columnView.contentOffset.y
         }
@@ -224,8 +257,10 @@ final class GuideGridViewController: UIViewController,
         let leading = gridView.bounds.width * leadingFraction
         let maxOffset = max(0, model.axis.totalWidth - gridView.bounds.width)
         let target = min(max(0, model.axis.x(for: date) - leading), maxOffset)
+        // Only the grid animates. The ruler follows it through scrollViewDidScroll; animating
+        // both meant two curves racing to the same target and writing over each other.
+        rulerView.setContentOffset(CGPoint(x: target, y: 0), animated: false)
         gridView.setContentOffset(CGPoint(x: target, y: gridView.contentOffset.y), animated: animated)
-        rulerView.setContentOffset(CGPoint(x: target, y: 0), animated: animated)
     }
 
     // MARK: - Now line
@@ -491,7 +526,7 @@ final class GuideGridViewController: UIViewController,
             || !Calendar.current.isDate(slot, inSameDayAs: slots[indexPath.item - 1])
         cell.configure(label: Self.timeFormatter.string(from: slot),
                        dayLabel: isFirstOfDay ? Self.weekdayFormatter.string(from: slot) : nil,
-                       tint: tint, dependencies: dependencies, theme: theme)
+                       dependencies: dependencies, theme: theme)
     }
 
     // MARK: - Formatting

@@ -104,6 +104,25 @@ struct GuideAxisTests {
                 == date(20, 15, day: 5))
     }
 
+    /// Reported from the Apple TV: the evening chips jumped about a day instead of to prime time.
+    @Test("prime time lands on 20:15 of the intended day, not a day later")
+    func primeTimeLandsOnTheIntendedDay() {
+        let morning = date(9, 23)
+        let a = axis(now: morning)
+        #expect(a.primeTime(days: 0, from: morning, calendar: calendar) == date(20, 15))
+        #expect(a.primeTime(days: 1, from: morning, calendar: calendar) == date(20, 15, day: 5))
+    }
+
+    /// After 20:15 today's target is gone, and tomorrow's must still be tomorrow's, not the day
+    /// after. A forward-searching date lookup rolls both by a day here.
+    @Test("after prime time, today's chip hides and tomorrow's stays tomorrow")
+    func primeTimeAfterTheEvening() {
+        let late = date(21, 0)
+        let a = axis(now: late)
+        #expect(a.primeTime(days: 0, from: late, calendar: calendar) == nil)
+        #expect(a.primeTime(days: 1, from: late, calendar: calendar) == date(20, 15, day: 5))
+    }
+
     @Test("prime time outside a clamped axis is nil so the chip can hide instead of dead-ending")
     func primeTimeOutsideClampedAxis() {
         let start = date(17, 0)

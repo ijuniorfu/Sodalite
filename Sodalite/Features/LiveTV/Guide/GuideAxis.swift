@@ -86,8 +86,14 @@ struct GuideAxis: Equatable, Sendable {
     /// 20:15 on the day `days` after `reference`. nil when that moment is already past or falls
     /// outside the axis, so the caller hides the chip rather than offering a dead jump.
     func primeTime(days: Int, from reference: Date, calendar: Calendar = .current) -> Date? {
-        guard let day = calendar.date(byAdding: .day, value: days, to: reference),
-              let candidate = calendar.date(bySettingHour: 20, minute: 15, second: 0, of: day),
+        // Built from the target day's components, NOT date(bySettingHour:of:), which searches
+        // forward: past 20:15 it silently answers with the NEXT day, so "tonight" would mean
+        // tomorrow and "tomorrow" the day after.
+        guard let day = calendar.date(byAdding: .day, value: days, to: reference) else { return nil }
+        var components = calendar.dateComponents([.year, .month, .day], from: day)
+        components.hour = 20
+        components.minute = 15
+        guard let candidate = calendar.date(from: components),
               candidate > reference,
               contains(candidate)
         else { return nil }

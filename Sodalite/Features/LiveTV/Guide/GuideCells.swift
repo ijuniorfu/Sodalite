@@ -104,33 +104,25 @@ struct GuideChannelCellContent: View {
     }
 }
 
-/// One half-hour chip. Exactly one slot wide, so its edges meet the grid's lines.
+/// One half-hour tick. Exactly one slot wide, so its edge meets the grid's line.
+///
+/// Passive: the ruler is not focusable. It was, on the theory that left and right on it would step
+/// the axis in half hours, but reaching it means walking up through every channel row, so it was a
+/// time control that disappeared exactly when the list got long enough to need one. Holding left or
+/// right in the grid does the same job at finer granularity and from where the user already is.
 struct GuideRulerCellContent: View {
     let label: String
-    /// Set on the first chip of a day so a 48h axis does not show two unlabelled "00:00".
+    /// Prefixed on the first tick of a day, INLINE: stacked over the time it needed more than the
+    /// 44pt ruler and both lines were clipped top and bottom.
     let dayLabel: String?
-    let isFocused: Bool
-    let tint: Color
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            if let dayLabel {
-                Text(dayLabel)
-                    .font(.caption2)
-                    .foregroundStyle(isFocused ? Color.black.opacity(0.7) : Color.secondary)
-            }
-            Text(label)
-                .font(.caption)
-                .fontWeight(isFocused ? .semibold : .regular)
-                .foregroundStyle(isFocused ? Color.black : Color.secondary)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
-        .padding(.horizontal, 8)
-        .background(
-            RoundedRectangle(cornerRadius: 8)
-                .fill(isFocused ? AnyShapeStyle(tint) : AnyShapeStyle(Color.clear))
-        )
-        .padding(.vertical, 4)
+        Text(dayLabel.map { "\($0) \(label)" } ?? label)
+            .font(.caption)
+            .lineLimit(1)
+            .foregroundStyle(.secondary)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+            .padding(.horizontal, 8)
     }
 }
 
@@ -191,17 +183,15 @@ final class GuideChannelCell: UICollectionViewCell {
 final class GuideRulerCell: UICollectionViewCell {
     static let reuseID = "GuideRulerCell"
 
-    func configure(label: String, dayLabel: String?, tint: Color,
+    override var canBecomeFocused: Bool { false }
+
+    func configure(label: String, dayLabel: String?,
                    dependencies: DependencyContainer, theme: ResolvedAppearanceTheme) {
-        configurationUpdateHandler = { cell, state in
-            cell.contentConfiguration = UIHostingConfiguration {
-                GuideRulerCellContent(
-                    label: label, dayLabel: dayLabel, isFocused: state.isFocused, tint: tint)
-                    .guideCellEnvironment(dependencies, theme)
-            }
-            .margins(.all, 0)
+        contentConfiguration = UIHostingConfiguration {
+            GuideRulerCellContent(label: label, dayLabel: dayLabel)
+                .guideCellEnvironment(dependencies, theme)
         }
-        setNeedsUpdateConfiguration()
+        .margins(.all, 0)
     }
 }
 
