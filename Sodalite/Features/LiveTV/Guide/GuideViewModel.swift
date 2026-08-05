@@ -194,9 +194,13 @@ final class GuideViewModel {
                 grouped[channelID, default: []].append(program)
             }
             for channelID in missing {
-                grouped[channelID]?.sort {
-                    ($0.startDate ?? .distantPast) < ($1.startDate ?? .distantPast)
-                }
+                guard var row = grouped[channelID] else { continue }
+                row.sort { ($0.startDate ?? .distantPast) < ($1.startDate ?? .distantPast) }
+                // Overlapping EPG entries stack two cells on the same pixels, and the one behind
+                // stays focusable while being invisible. Sanitized here, not in the grid, so the
+                // anchor's program index and the rendered cells count the same programs.
+                let kept = GuideRowMath.keptIndices(row.map(\.guideTimeRange))
+                grouped[channelID] = kept.map { row[$0] }
             }
             programsByChannel = grouped
             timers.seedTimers(from: programs)

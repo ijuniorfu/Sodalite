@@ -38,21 +38,26 @@ struct GuideHeroView: View {
         .frame(height: metrics.heroHeight, alignment: .top)
     }
 
+    /// A program still is 16:9 and fills the thumb. A channel logo is not: filling it cropped the
+    /// top and bottom clean off, which for a logo is the whole content. So the fallback fits and
+    /// letterboxes against the surface colour instead.
+    private var showsChannelLogo: Bool { programImageURL == nil }
+
     private var artwork: some View {
         AsyncCachedImage(
             url: programImageURL,
             fallbackURL: channelLogoURL
         ) { image in
-            image.resizable().aspectRatio(contentMode: .fill)
+            image.resizable()
+                .aspectRatio(contentMode: showsChannelLogo ? .fit : .fill)
+                .padding(showsChannelLogo ? 8 : 0)
         } placeholder: {
-            ZStack {
-                Rectangle().fill(Color.Theme.surface)
-                Image(systemName: "tv")
-                    .font(.system(size: metrics.heroThumbSize.height * 0.3))
-                    .foregroundStyle(.tertiary)
-            }
+            Image(systemName: "tv")
+                .font(.system(size: metrics.heroThumbSize.height * 0.3))
+                .foregroundStyle(.tertiary)
         }
         .frame(width: metrics.heroThumbSize.width, height: metrics.heroThumbSize.height)
+        .background(Color.Theme.surface)
         .clipShape(RoundedRectangle(cornerRadius: 10))
     }
 

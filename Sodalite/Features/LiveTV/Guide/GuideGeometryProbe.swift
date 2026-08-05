@@ -36,6 +36,22 @@ enum GuideGeometryProbe {
         append(lines.joined(separator: "\n") + "\n")
     }
 
+    /// Focus trace. Separate budget from the geometry samples: the question is where the chain from
+    /// "player closed" to "grid focused" breaks, and one round trip must fit in the file.
+    private static var focusLines = 0
+
+    static func logFocus(_ message: String) {
+        guard focusLines < 120 else { return }
+        focusLines += 1
+        append("[focus \(Self.stamp.string(from: Date()))] \(message)\n")
+    }
+
+    /// What the focus engine currently has, so a denied request can be told from one that never ran.
+    static func focusedDescription(near view: UIView) -> String {
+        guard let item = UIFocusSystem.focusSystem(for: view)?.focusedItem else { return "none" }
+        return String(describing: type(of: item))
+    }
+
     private static func describe(_ name: String, _ view: UICollectionView) -> String {
         "\(name) frame=\(fmt(view.frame)) bounds=\(fmt(view.bounds)) "
             + "content=\(fmt(view.contentSize)) offset=\(fmt(view.contentOffset)) "

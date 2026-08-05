@@ -14,6 +14,10 @@ final class GuideGridViewController: UIViewController,
     struct Row {
         let channel: JellyfinChannel
         let programs: [JellyfinProgram]
+        /// Content-space geometry per program, computed once per rebuild with overlaps resolved.
+        /// The layout asks for this per cell, so deriving it from dates on every call would be the
+        /// same walk repeated for every visible column.
+        let spans: [(x: CGFloat, width: CGFloat)]
     }
 
     let model: GuideViewModel
@@ -239,8 +243,22 @@ final class GuideGridViewController: UIViewController,
     /// was being watched rather than on the first cell.
     func requestGridFocus(attempt: Int = 0) {
         #if os(tvOS)
-        guard isActive, gridView != nil, attempt < 4, !gridHasFocus else { return }
-        if let system = UIFocusSystem.focusSystem(for: gridView) {
+        guard isActive, gridView != nil, attempt < 4, !gridHasFocus else {
+            #if DEBUG
+            GuideGeometryProbe.logFocus(
+                "request stop attempt=\(attempt) active=\(isActive) "
+                + "gridHasFocus=\(gridView == nil ? false : gridHasFocus)")
+            #endif
+            return
+        }
+        let system = UIFocusSystem.focusSystem(for: gridView)
+        #if DEBUG
+        GuideGeometryProbe.logFocus(
+            "request attempt=\(attempt) system=\(system != nil) "
+            + "focused=\(GuideGeometryProbe.focusedDescription(near: gridView)) "
+            + "preferred=\(String(describing: indexPathForPreferredFocusedView(in: gridView)))")
+        #endif
+        if let system {
             system.requestFocusUpdate(to: gridView)
             system.updateFocusIfNeeded()
         }
@@ -426,7 +444,9 @@ final class GuideGridViewController: UIViewController,
 
     private func rebuildRows() {
         rows = model.channels.map { channel in
-            Row(channel: channel, programs: model.programs(for: channel.id))
+            let programs = model.programs(for: channel.id)
+            return Row(channel: channel, programs: programs,
+                       spans: GuideRowMath.spans(programs.map(\.guideTimeRange), axis: model.axis))
         }
     }
 
@@ -487,12 +507,8 @@ final class GuideGridViewController: UIViewController,
             let x = CGFloat(item) * slot
             return (x, min(slot, max(0, gridLayout.totalWidth - x)))
         }
-        guard item < row.programs.count else { return (0, gridLayout.totalWidth) }
-        let program = row.programs[item]
-        guard let start = program.startDate, let end = program.endDate else {
-            return (0, gridLayout.totalWidth)
-        }
-        return (max(0, model.axis.x(for: start)), model.axis.width(from: start, to: end))
+        guard item < row.spans.count else { return (0, gridLayout.totalWidth) }
+        return row.spans[item]
     }
 
     // MARK: - Data source
@@ -666,6 +682,9 @@ struct GuideGridContainer: UIViewControllerRepresentable {
         if controller.isActive != isActive { controller.isActive = isActive }
         if controller.lastFocusRequest != focusRequest {
             controller.lastFocusRequest = focusRequest
+            #if DEBUG
+            GuideGeometryProbe.logFocus("container saw focusRequest=\(focusRequest)")
+            #endif
             // Not on the first pass: 0 is the initial value, and taking focus at launch would pull it
             // off whatever the tab itself wants focused.
             if focusRequest > 0 { controller.requestGridFocus() }

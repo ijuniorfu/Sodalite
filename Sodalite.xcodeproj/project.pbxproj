@@ -74,6 +74,7 @@
 		1850F56524FF34FE989BE56D /* HomeRowConfigTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5AB5D7618DDA0234AD98A97 /* HomeRowConfigTests.swift */; };
 		191E0BBCF974305E422CDAD7 /* CloudSyncSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05912347F7F8EF15E83E5645 /* CloudSyncSettingsView.swift */; };
 		19534051393FA4A734ACC9E4 /* PersonRouteTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13CBA535F5E1308F6F2B4EE8 /* PersonRouteTests.swift */; };
+		19CF76923AF87572EAF63951 /* GuideRowMathTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CEA6778D4D7308C1217ED52 /* GuideRowMathTests.swift */; };
 		1A1312208911D80DF1239BAC /* AsyncCachedImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 701C10265C5C32AA946482DC /* AsyncCachedImage.swift */; };
 		1A2302E0B16B633B5C6E63A1 /* PlayerViewModel+Scrubbing.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0B281014661348826CF938E /* PlayerViewModel+Scrubbing.swift */; };
 		1A258231407BFFA4097EDC12 /* PlayerModalDismisser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2866E3279048E699E940339D /* PlayerModalDismisser.swift */; };
@@ -487,6 +488,7 @@
 		9EB5374F1D8318854E3EE8F7 /* CatalogDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F1F9A57DDFC28E9FD37BB2C /* CatalogDetailView.swift */; };
 		9F6C0E5C1F7B49BA88F7D0F7 /* TopShelfProgress.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C1986FAE23765CA9C8B1537 /* TopShelfProgress.swift */; };
 		9FBB2EF8013CC55EA333152B /* FocusableCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = C631A6EC153641E1CAF0F5A3 /* FocusableCard.swift */; };
+		A0320818A9CE1682DB6A8E0B /* GuideRowMath.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E0197F5DC608396AB89AE1F /* GuideRowMath.swift */; };
 		A095FFB4CDB6FBE78052CA4A /* SodaliteShortcuts.swift in Sources */ = {isa = PBXBuildFile; fileRef = B211E0C4ACD1D88E8763E7CC /* SodaliteShortcuts.swift */; };
 		A0C910E3D7491389F8478BE9 /* JellyfinUser.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD8C86911CAC2C3C5F103774 /* JellyfinUser.swift */; };
 		A14A6EF82BA9A7F01F9DDF06 /* AtkinsonHyperlegible-BoldItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = CD0A81C3E831093174A0085A /* AtkinsonHyperlegible-BoldItalic.ttf */; };
@@ -689,6 +691,7 @@
 		E1CDCE4D37EDE1287C1C2FFB /* CatalogDetailComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 768B47D4A956A499B68C6795 /* CatalogDetailComponents.swift */; };
 		E233AA1BA5490425A0448A2A /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 67C2B7AED1B1E7DFFFFFC4AA /* AppState.swift */; };
 		E27512A0AB65EFDAC93CE743 /* FavoriteEpisodesRowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C64A4591C61D8E396F471CC3 /* FavoriteEpisodesRowTests.swift */; };
+		E29AF744E1F43DB6893C5B33 /* GuideRowMath.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E0197F5DC608396AB89AE1F /* GuideRowMath.swift */; };
 		E31FAA3E076D59D2C89273E8 /* SpoilerSettingsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3443879CF209349E6E920E51 /* SpoilerSettingsTests.swift */; };
 		E3572B2008FC401C267BAED0 /* ProfileSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 466C8906B6D1952207FC6730 /* ProfileSettingsView.swift */; };
 		E36F24AD81B56F08E18EF983 /* ScrollHintPolicyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E7B70D689AAB2F6EEC80FC4 /* ScrollHintPolicyTests.swift */; };
@@ -940,6 +943,7 @@
 		4B8A9D90F21B8186EDDE6925 /* PlayerHUD.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerHUD.swift; sourceTree = "<group>"; };
 		4C01A1DB2E58B09133252977 /* AppBackgroundView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppBackgroundView.swift; sourceTree = "<group>"; };
 		4DC0FDC4142C0649A5D2E785 /* PlayerTouchInput.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerTouchInput.swift; sourceTree = "<group>"; };
+		4E0197F5DC608396AB89AE1F /* GuideRowMath.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuideRowMath.swift; sourceTree = "<group>"; };
 		4E0CF7D73882EA9DC56407E8 /* HomeViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeViewModel.swift; sourceTree = "<group>"; };
 		4E1FB527AFBC2EF233653E73 /* ChangelogListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChangelogListView.swift; sourceTree = "<group>"; };
 		4E46636B059F74492348E235 /* PendingRequestsMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PendingRequestsMonitor.swift; sourceTree = "<group>"; };
@@ -970,6 +974,7 @@
 		5C0E521708A7EBC3D396F706 /* ServerRouteResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServerRouteResolver.swift; sourceTree = "<group>"; };
 		5C2FBEBB8926214D1253EA10 /* Color+Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Color+Theme.swift"; sourceTree = "<group>"; };
 		5CA101AEE2DA1D2D4A2957A9 /* MediaFocusRing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaFocusRing.swift; sourceTree = "<group>"; };
+		5CEA6778D4D7308C1217ED52 /* GuideRowMathTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuideRowMathTests.swift; sourceTree = "<group>"; };
 		5D67C0E479E49AEC10441E52 /* NowPlayingCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NowPlayingCard.swift; sourceTree = "<group>"; };
 		5DC9442A4D4AD7B3F96516B3 /* ViewConditional.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewConditional.swift; sourceTree = "<group>"; };
 		5DCCDE639EE071B54BD03C8B /* SupportDevelopmentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupportDevelopmentView.swift; sourceTree = "<group>"; };
@@ -1454,6 +1459,7 @@
 				6E1CBDC8FD675B2A490D1A34 /* GuideEdgeFadeTests.swift */,
 				ADEF73FE46A03A9182049B99 /* GuideFilterTests.swift */,
 				DA7E22BEEF031B2E69A802D5 /* GuideMetricsTests.swift */,
+				5CEA6778D4D7308C1217ED52 /* GuideRowMathTests.swift */,
 				B3FA4BC221395E91F05930AF /* HomeConfigReloadTests.swift */,
 				E5AB5D7618DDA0234AD98A97 /* HomeRowConfigTests.swift */,
 				C7D12A1E28286856D9BCD249 /* JellyfinItemTests.swift */,
@@ -1632,6 +1638,7 @@
 				E248152FCA9B2C490E641934 /* GuideGridViewController.swift */,
 				738420967340B61047A9600C /* GuideHeroView.swift */,
 				F27244EE1DB132527CE338F1 /* GuideMetrics.swift */,
+				4E0197F5DC608396AB89AE1F /* GuideRowMath.swift */,
 				6A4B143BEE303D1937555CAA /* GuideView.swift */,
 				C7CBA5844F0A3FB37651620C /* GuideViewModel.swift */,
 			);
@@ -2424,6 +2431,7 @@
 				C30FD948903C0A0327851E24 /* GuideGridViewController.swift in Sources */,
 				E78867CC660A7C9CE32304F6 /* GuideHeroView.swift in Sources */,
 				68CA525BF75441289DB54677 /* GuideMetrics.swift in Sources */,
+				A0320818A9CE1682DB6A8E0B /* GuideRowMath.swift in Sources */,
 				F7A17C86FD188DFF1D987AFA /* GuideView.swift in Sources */,
 				EC7782AE40E233924A6D56F4 /* GuideViewModel.swift in Sources */,
 				C628C9EE150187F76C251E45 /* HTTPClient.swift in Sources */,
@@ -2709,6 +2717,7 @@
 				30FA53AE69FCCD0C55CEDF2F /* GuideEdgeFadeTests.swift in Sources */,
 				7097EE02B21646A9F196EF07 /* GuideFilterTests.swift in Sources */,
 				4376EDBF905AF9AEEBD61C54 /* GuideMetricsTests.swift in Sources */,
+				19CF76923AF87572EAF63951 /* GuideRowMathTests.swift in Sources */,
 				A6AE635DECAA881C8F220D21 /* HomeConfigReloadTests.swift in Sources */,
 				1850F56524FF34FE989BE56D /* HomeRowConfigTests.swift in Sources */,
 				3C6E101361ED5F9E62FBEDD8 /* JellyfinItemTests.swift in Sources */,
@@ -2862,6 +2871,7 @@
 				387878240BDDE410249A84A0 /* GuideGridViewController.swift in Sources */,
 				3538C2CE135E73BA63D101F7 /* GuideHeroView.swift in Sources */,
 				1FBF39D105D5E75EFB97F2D0 /* GuideMetrics.swift in Sources */,
+				E29AF744E1F43DB6893C5B33 /* GuideRowMath.swift in Sources */,
 				7306E685E0484728808FBE7F /* GuideView.swift in Sources */,
 				C199590477B22F646C0C29A8 /* GuideViewModel.swift in Sources */,
 				C79A003530C19DF0252ACD0F /* HTTPClient.swift in Sources */,

@@ -74,6 +74,13 @@ extension GuideGridViewController {
     func collectionView(_ collectionView: UICollectionView,
                         didUpdateFocusIn context: UICollectionViewFocusUpdateContext,
                         with coordinator: UIFocusAnimationCoordinator) {
+        #if DEBUG
+        let which = collectionView === gridView ? "grid"
+            : (collectionView === columnView ? "column" : "ruler")
+        GuideGeometryProbe.logFocus(
+            "didUpdate \(which) \(String(describing: context.previouslyFocusedIndexPath))"
+            + " -> \(String(describing: context.nextFocusedIndexPath))")
+        #endif
         guard let indexPath = context.nextFocusedIndexPath else { return }
 
         if collectionView === rulerView {
