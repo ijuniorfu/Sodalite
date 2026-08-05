@@ -35,7 +35,15 @@ struct ChannelListView: View {
             .task { await model.load() }
             .sheet(item: $channelSelection) { selected in
                 ChannelScheduleSheet(model: model, channel: selected.channel, tint: tint,
-                                     onWatchLive: onWatchLive)
+                                     onWatchLive: { context in
+                                         // Close this sheet before the player is asked for. The
+                                         // player is a fullScreenCover on the tab view and cannot
+                                         // present while anything else is up; the launcher polls
+                                         // two seconds and then gives up silently, which reads as
+                                         // a dead button.
+                                         channelSelection = nil
+                                         onWatchLive?(context)
+                                     })
             }
     }
 
@@ -302,7 +310,13 @@ private struct ChannelScheduleSheet: View {
             .sheet(item: $selection) { selected in
                 ProgramInfoPopover(
                     program: selected.program, channel: selected.channel, tint: tint,
-                    onWatchLive: onWatchLive,
+                    onWatchLive: { context in
+                        // Two sheets deep: the popover dismisses itself, this dismisses the
+                        // schedule sheet, and ChannelListView clears the item binding. All three
+                        // are needed before the player can present.
+                        dismiss()
+                        onWatchLive?(context)
+                    },
                     channelIsFavorite: model.timers.isFavorite(selected.channel.id),
                     onToggleFavorite: { model.timers.toggleFavorite(channelID: selected.channel.id) },
                     hasTimer: model.timers.effectiveTimerState(for: selected.program).timerId != nil,
