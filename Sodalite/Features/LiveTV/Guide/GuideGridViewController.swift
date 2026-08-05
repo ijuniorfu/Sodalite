@@ -191,11 +191,21 @@ final class GuideGridViewController: UIViewController,
         let column = metrics.channelColumnWidth
         let ruler = metrics.rulerHeight
 
+        // Snap the scrollers to a whole number of rows. Left at the raw height, the row the bottom
+        // edge lands in renders compressed rather than merely clipped (its content sits far closer
+        // to its own top border than a full row's does). Why a hosting-configuration cell behaves
+        // that way at the boundary is not diagnosed; not having a boundary row at rest removes the
+        // question. Focus-driven scrolling lands on cell edges, so at rest the grid is always
+        // whole, and the per-cell fade covers what passes the edge mid-scroll.
+        let available = height - ruler
+        let wholeRows = max(1, (available / metrics.rowHeight).rounded(.down))
+        let bodyHeight = min(available, wholeRows * metrics.rowHeight)
+
         cornerView.frame = CGRect(x: leftInset, y: 0, width: column, height: ruler)
         rulerView.frame = CGRect(x: leftInset + column, y: 0, width: width - column, height: ruler)
-        columnView.frame = CGRect(x: leftInset, y: ruler, width: column, height: height - ruler)
+        columnView.frame = CGRect(x: leftInset, y: ruler, width: column, height: bodyHeight)
         gridView.frame = CGRect(x: leftInset + column, y: ruler,
-                                width: width - column, height: height - ruler)
+                                width: width - column, height: bodyHeight)
         applyEdgeFade()
 
         if !didInitialScroll, gridView.bounds.width > 0, model.axis.totalWidth > 0 {
