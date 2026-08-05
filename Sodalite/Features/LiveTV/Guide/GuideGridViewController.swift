@@ -456,15 +456,20 @@ final class GuideGridViewController: UIViewController,
         if row.programs.isEmpty {
             cell.configure(title: NSLocalizedString("livetv.noProgramInfo", comment: ""),
                            timeRange: nil, isAiring: false, hasTimer: false,
-                           tint: tint, dependencies: dependencies, theme: theme)
+                           tint: tint, isNarrow: false,
+                           dependencies: dependencies, theme: theme)
             return
         }
         guard indexPath.item < row.programs.count else { return }
         let program = row.programs[indexPath.item]
+        // Below three quarters of a slot there is no room for both lines; the ruler already states
+        // the time, so the title takes the space.
+        let width = programXWidth(section: indexPath.section, item: indexPath.item).width
         cell.configure(title: program.name, timeRange: timeRange(program),
                        isAiring: program.isAiring(at: Date()),
                        hasTimer: model.timers.hasTimer(programID: program.id),
-                       tint: tint, dependencies: dependencies, theme: theme)
+                       tint: tint, isNarrow: width < metrics.slotWidth * 0.75,
+                       dependencies: dependencies, theme: theme)
     }
 
     private func configure(_ cell: GuideChannelCell, at indexPath: IndexPath) {

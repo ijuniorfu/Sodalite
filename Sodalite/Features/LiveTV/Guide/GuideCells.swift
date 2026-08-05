@@ -13,6 +13,9 @@ struct GuideProgramCellContent: View {
     let hasTimer: Bool
     let isFocused: Bool
     let tint: Color
+    /// Too narrow to carry both lines. A 15-minute block showed "GRI..." over a time the ruler
+    /// already states; the title deserves that room instead.
+    var isNarrow: Bool = false
 
     var body: some View {
         HStack(spacing: 6) {
@@ -22,9 +25,10 @@ struct GuideProgramCellContent: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text(title)
                     .font(.headline)
-                    .lineLimit(1)
+                    .lineLimit(isNarrow ? 2 : 1)
+                    .minimumScaleFactor(0.85)
                     .foregroundStyle(isFocused ? Color.black : Color.white)
-                if let timeRange {
+                if let timeRange, !isNarrow {
                     Text(timeRange)
                         .font(.caption)
                         .lineLimit(1)
@@ -62,7 +66,7 @@ struct GuideChannelCellContent: View {
     let metrics: GuideMetrics
 
     var body: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: 10) {
             AsyncCachedImage(url: logoURL) { image in
                 image.resizable().aspectRatio(contentMode: .fit)
             } placeholder: {
@@ -73,7 +77,13 @@ struct GuideChannelCellContent: View {
             .frame(width: metrics.channelLogoSize, height: metrics.channelLogoSize)
 
             VStack(alignment: .leading, spacing: 2) {
-                Text(name).font(.headline).lineLimit(1)
+                // Two lines and a scale floor: IPTV providers suffix names with "(1080p)" and
+                // similar, and one line at headline size truncated them to about six characters,
+                // which made neighbouring channels indistinguishable on the device.
+                Text(name)
+                    .font(.headline)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.8)
                 if let number {
                     Text(number).font(.caption).foregroundStyle(.secondary)
                 }
@@ -87,7 +97,7 @@ struct GuideChannelCellContent: View {
                     .frame(width: metrics.favoriteIconSize, height: metrics.favoriteIconSize)
             }
         }
-        .padding(.horizontal, 16)
+        .padding(.horizontal, 12)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color.Theme.surface)
         .overlay(MediaFocusRing(shape: Rectangle(), isFocused: isFocused))
@@ -141,7 +151,7 @@ final class GuideProgramCell: UICollectionViewCell {
     static let reuseID = "GuideProgramCell"
 
     func configure(title: String, timeRange: String?, isAiring: Bool, hasTimer: Bool,
-                   tint: Color, dependencies: DependencyContainer,
+                   tint: Color, isNarrow: Bool, dependencies: DependencyContainer,
                    theme: ResolvedAppearanceTheme) {
         // configurationUpdateHandler reruns on every state change, which is how the focus fill
         // tracks without a manual didUpdateFocus override.
@@ -149,7 +159,8 @@ final class GuideProgramCell: UICollectionViewCell {
             cell.contentConfiguration = UIHostingConfiguration {
                 GuideProgramCellContent(
                     title: title, timeRange: timeRange, isAiring: isAiring,
-                    hasTimer: hasTimer, isFocused: state.isFocused, tint: tint)
+                    hasTimer: hasTimer, isFocused: state.isFocused, tint: tint,
+                    isNarrow: isNarrow)
                     .guideCellEnvironment(dependencies, theme)
             }
             .margins(.all, 0)

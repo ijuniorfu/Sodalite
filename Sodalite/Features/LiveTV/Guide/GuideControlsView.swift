@@ -35,7 +35,6 @@ struct GuideControlsView: View {
     @ViewBuilder
     private var filterChips: some View {
         GuideChip(title: Text("livetv.guide.filter.favorites"),
-                  systemImage: model.filter.favoritesOnly ? "star.fill" : "star",
                   isOn: model.filter.favoritesOnly,
                   tint: tint) {
             var next = model.filter
@@ -45,7 +44,6 @@ struct GuideControlsView: View {
 
         ForEach(GuideFilter.Category.allCases) { category in
             GuideChip(title: Text(category.titleKey),
-                      systemImage: category.systemImage,
                       isOn: model.filter.category == category,
                       tint: tint) {
                 var next = model.filter
@@ -58,7 +56,6 @@ struct GuideControlsView: View {
 
         if model.hasRadioChannels {
             GuideChip(title: Text("livetv.guide.filter.radio"),
-                      systemImage: "radio",
                       isOn: model.filter.kind == .radio,
                       tint: tint) {
                 var next = model.filter
@@ -73,7 +70,6 @@ struct GuideControlsView: View {
         GuideChip(title: model.searchText.isEmpty
                     ? Text("livetv.guide.filter.search")
                     : Text(verbatim: model.searchText),
-                  systemImage: "magnifyingglass",
                   isOn: !model.searchText.isEmpty,
                   tint: tint) {
             isSearching = true
@@ -83,20 +79,19 @@ struct GuideControlsView: View {
     @ViewBuilder
     private var timeTargets: some View {
         GuideChip(title: Text("livetv.guide.jump.now"),
-                  systemImage: "dot.radiowaves.left.and.right",
                   isOn: false, tint: tint) {
             model.jumpToNow()
         }
         // Both prime-time chips hide when their target is past or outside the axis, rather than
         // offering a jump that does nothing.
         if model.axis.primeTime(days: 0, from: Date()) != nil {
-            GuideChip(title: Text("livetv.guide.jump.primetime"), systemImage: "moon.stars",
+            GuideChip(title: Text("livetv.guide.jump.primetime"),
                       isOn: false, tint: tint) {
                 model.jumpToPrimeTime(days: 0)
             }
         }
         if model.axis.primeTime(days: 1, from: Date()) != nil {
-            GuideChip(title: Text("livetv.guide.jump.tomorrow"), systemImage: "calendar",
+            GuideChip(title: Text("livetv.guide.jump.tomorrow"),
                       isOn: false, tint: tint) {
                 model.jumpToPrimeTime(days: 1)
             }
@@ -113,15 +108,6 @@ extension GuideFilter.Category {
         case .movies: "livetv.guide.filter.movies"
         }
     }
-
-    var systemImage: String {
-        switch self {
-        case .sports: "sportscourt"
-        case .kids: "figure.and.child.holdinghands"
-        case .news: "newspaper"
-        case .movies: "film"
-        }
-    }
 }
 
 /// One control pill. Fills tinted when focused (black label, the app convention), keeps a tinted
@@ -130,7 +116,6 @@ private struct GuideChip: View {
     /// Text, not LocalizedStringKey: the search chip renders the user's live query, which must not
     /// go through the string catalog.
     let title: Text
-    let systemImage: String
     let isOn: Bool
     let tint: Color
     let action: () -> Void
@@ -138,7 +123,10 @@ private struct GuideChip: View {
     @FocusState private var focused: Bool
 
     var body: some View {
-        Label { title } icon: { Image(systemName: systemImage) }
+        // Text only. Ten chips with their SF Symbols overflowed 1840pt of tvOS width and truncated
+        // every label ("Favo...", "Nac...", "Morge..."); the icons cost about 360pt for decoration
+        // while the words are what is actually read from the couch.
+        title
             .font(.caption)
             .fontWeight(.semibold)
             .lineLimit(1)
