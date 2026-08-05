@@ -100,6 +100,7 @@ extension GuideGridViewController {
         guard indexPath.section < rows.count else { return }
         model.anchorChannelID = rows[indexPath.section].channel.id
         updateHero(section: indexPath.section, item: indexPath.item)
+        recordGeometry("focus")
 
         let vertical = context.focusHeading.contains(.up) || context.focusHeading.contains(.down)
         guard !vertical else { return }

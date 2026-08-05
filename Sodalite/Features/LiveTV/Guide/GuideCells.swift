@@ -136,11 +136,29 @@ private extension View {
                               _ theme: ResolvedAppearanceTheme) -> some View {
         environment(\.dependencies, dependencies)
             .environment(\.appearanceTheme, theme)
+            // A cell overlapping the bottom safe area otherwise has its SwiftUI content squeezed by
+            // exactly the overlapping part, so the last row rendered at half height with its rounded
+            // bottom fully drawn instead of being cut by the viewport. Measured off a photo of the
+            // device: 246px drawn where the row pitch was 446.
+            .ignoresSafeArea()
     }
+}
+
+/// Cells must not inset themselves to the safe area either. `UITableView` exposes this as
+/// `insetsContentViewsToSafeArea`; `UICollectionView` has no equivalent, so it is set per cell.
+private func disableSafeAreaInsetting(_ cell: UICollectionViewCell) {
+    cell.insetsLayoutMarginsFromSafeArea = false
+    cell.contentView.insetsLayoutMarginsFromSafeArea = false
 }
 
 final class GuideProgramCell: UICollectionViewCell {
     static let reuseID = "GuideProgramCell"
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        disableSafeAreaInsetting(self)
+    }
+    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
 
     func configure(title: String, timeRange: String?, isAiring: Bool, hasTimer: Bool,
                    tint: Color, isNarrow: Bool, dependencies: DependencyContainer,
@@ -163,6 +181,12 @@ final class GuideProgramCell: UICollectionViewCell {
 
 final class GuideChannelCell: UICollectionViewCell {
     static let reuseID = "GuideChannelCell"
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        disableSafeAreaInsetting(self)
+    }
+    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
 
     func configure(name: String, number: String?, logoURL: URL?, isFavorite: Bool,
                    metrics: GuideMetrics, dependencies: DependencyContainer,

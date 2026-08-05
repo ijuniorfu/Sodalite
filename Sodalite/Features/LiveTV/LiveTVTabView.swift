@@ -13,6 +13,9 @@ struct LiveTVTabView: View {
     @State private var liveContext: LivePlaybackContext?
     @State private var isPlayerPresented = false
     @State private var section: LiveTVSection = .overview
+    /// Bumped when the player closes. The guide grid uses it to pull focus back off the segment
+    /// picker and onto the channel that was being watched.
+    @State private var guideFocusRequest = 0
 
     private enum LiveTVSection { case overview, guide, recordings }
 
@@ -46,7 +49,8 @@ struct LiveTVTabView: View {
                                 // presenting the player, so flipping this immediately is safe.
                                 isPlayerPresented = true
                             },
-                            isActive: section == .guide
+                            isActive: section == .guide,
+                            focusRequest: guideFocusRequest
                         )
                     } else {
                         ProgressView()
@@ -60,7 +64,8 @@ struct LiveTVTabView: View {
                                 liveContext = context
                                 isPlayerPresented = true
                             },
-                            isActive: section == .guide
+                            isActive: section == .guide,
+                            focusRequest: guideFocusRequest
                         )
                     } else {
                         ProgressView()
@@ -102,6 +107,12 @@ struct LiveTVTabView: View {
                 userID: userID)
             programsModel = LiveProgramsViewModel(
                 service: dependencies.jellyfinLiveTvService, userID: userID)
+        }
+        .onChange(of: isPlayerPresented) { wasPresented, isPresented in
+            // Closing the player, not opening it. SwiftUI restores focus to the segment picker at
+            // that point, which is not where the user left it.
+            guard wasPresented, !isPresented, section == .guide else { return }
+            guideFocusRequest += 1
         }
         .onChange(of: section) { _, newValue in
             // Recordings can cancel timers/rules the overlay doesn't know; resync on the way back so

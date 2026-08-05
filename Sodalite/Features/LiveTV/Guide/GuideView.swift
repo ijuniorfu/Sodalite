@@ -15,6 +15,8 @@ struct GuideView: View {
     let tint: Color
     var onWatchLive: ((LivePlaybackContext) -> Void)?
     var isActive: Bool = true
+    /// Bumped by the tab when the live player closes. See `GuideGridViewController.requestGridFocus`.
+    var focusRequest: Int = 0
 
     @State private var selection: GuideSelection?
     /// Names the grid as this screen's default focus target. Coming back from the player, the
@@ -26,11 +28,13 @@ struct GuideView: View {
     init(model: GuideViewModel,
          tint: Color,
          onWatchLive: ((LivePlaybackContext) -> Void)? = nil,
-         isActive: Bool = true) {
+         isActive: Bool = true,
+         focusRequest: Int = 0) {
         _model = State(initialValue: model)
         self.tint = tint
         self.onWatchLive = onWatchLive
         self.isActive = isActive
+        self.focusRequest = focusRequest
     }
 
     var body: some View {
@@ -114,6 +118,7 @@ struct GuideView: View {
                 model: model,
                 tint: tint,
                 isActive: isActive,
+                focusRequest: focusRequest,
                 onSelect: { channel, program in
                     selection = GuideSelection(channel: channel, program: program)
                 },

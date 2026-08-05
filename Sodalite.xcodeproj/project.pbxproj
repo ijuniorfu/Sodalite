@@ -626,6 +626,7 @@
 		CFECBC913388A0BBB6142DE1 /* SearchViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B82D8F1E51EB10C19C9627EA /* SearchViewModel.swift */; };
 		D01A3CB7234B476C64068136 /* ProbeBudgetTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CA61D2C186BB798C1ABACDF /* ProbeBudgetTests.swift */; };
 		D0D7E727AA72B9C274C94EB9 /* JellyfinMusicService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 555AA07D21B9D2B17B41C147 /* JellyfinMusicService.swift */; };
+		D10A7CA37B5869719A28E8BC /* GuideGeometryProbe.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1CFFD6C20049748FE59D127 /* GuideGeometryProbe.swift */; };
 		D11BD3AA1F8C0F33F936E330 /* ParentalControlsSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7279B6C934F14AEABE549641 /* ParentalControlsSettingsView.swift */; };
 		D11DDB91CCDF3E877EAD8683 /* TrackDisplayFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA4E2D3105F03481EC52A653 /* TrackDisplayFormatter.swift */; };
 		D1B1EB5A7477D4DDC812D788 /* PlaybackModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE05BAE4F20A7C12D4F92363 /* PlaybackModels.swift */; };
@@ -651,6 +652,7 @@
 		D75975BCCFE9B17857A3847C /* SpoilerVeil.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E78738385037844F707C771 /* SpoilerVeil.swift */; };
 		D7887FCCEBCA1A51A8BB7290 /* JSONValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A4F6464C543DFF6027F96CB /* JSONValue.swift */; };
 		D7D1CB793DA1D3B733D664F1 /* SodaliteIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 97F52845EFD489AE02A52FF2 /* SodaliteIntents.swift */; };
+		D87E9CE35D35B4A4DF8DD0B5 /* GuideGeometryProbe.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1CFFD6C20049748FE59D127 /* GuideGeometryProbe.swift */; };
 		D8980C2DA8F047F5D447E1A9 /* AppRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8CEBCF0AA238DAB1924A48D3 /* AppRouter.swift */; };
 		D8B12B81603F12CAAC620B56 /* CloudSyncMerge.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0ADC46D81A9CF7F465A5A05 /* CloudSyncMerge.swift */; };
 		D8C6D6D1274B493C2CFDF33C /* ServerAddressEntryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4C48991F0DF61EC9BFAC208 /* ServerAddressEntryView.swift */; };
@@ -1142,6 +1144,7 @@
 		C0D955E208D3CD0779141D95 /* TopShelfCachePolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TopShelfCachePolicy.swift; sourceTree = "<group>"; };
 		C0E5CFBC331D8C9C23D2D0A4 /* JellyfinEndpoints.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JellyfinEndpoints.swift; sourceTree = "<group>"; };
 		C1118E47E5B52924CC5C4CBF /* MediaCastRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaCastRow.swift; sourceTree = "<group>"; };
+		C1CFFD6C20049748FE59D127 /* GuideGeometryProbe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuideGeometryProbe.swift; sourceTree = "<group>"; };
 		C2080A79A7BCF42A714B4B67 /* JellyfinClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JellyfinClient.swift; sourceTree = "<group>"; };
 		C4C48991F0DF61EC9BFAC208 /* ServerAddressEntryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServerAddressEntryView.swift; sourceTree = "<group>"; };
 		C4FB40C07FFEE9A5267F2892 /* SeerrSeasonStatusResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeerrSeasonStatusResolver.swift; sourceTree = "<group>"; };
@@ -1623,6 +1626,7 @@
 				6733091F24DDFD26F129BDD6 /* GuideCells.swift */,
 				3D5633624A3EA3F64C0B47CD /* GuideControlsView.swift */,
 				56D8EEF3C03148CFDABEFD32 /* GuideFilter.swift */,
+				C1CFFD6C20049748FE59D127 /* GuideGeometryProbe.swift */,
 				D2B2BC92FD669158893FC018 /* GuideGridFocus.swift */,
 				E1880A3F02893B1FBE1825FB /* GuideGridLayout.swift */,
 				E248152FCA9B2C490E641934 /* GuideGridViewController.swift */,
@@ -2414,6 +2418,7 @@
 				8F0EF61BD4A156B9CB07F8D1 /* GuideCells.swift in Sources */,
 				44AFB5042A23F110A12FF926 /* GuideControlsView.swift in Sources */,
 				259B79B451528C5FF81A56F9 /* GuideFilter.swift in Sources */,
+				D10A7CA37B5869719A28E8BC /* GuideGeometryProbe.swift in Sources */,
 				BFD8F69D7D6E4B27A5F919B8 /* GuideGridFocus.swift in Sources */,
 				009C8D5D1E16862D5EB9E993 /* GuideGridLayout.swift in Sources */,
 				C30FD948903C0A0327851E24 /* GuideGridViewController.swift in Sources */,
@@ -2851,6 +2856,7 @@
 				77BDB66D7B8BB9E41E00773A /* GuideCells.swift in Sources */,
 				03376AF52AD5EC8D5688232A /* GuideControlsView.swift in Sources */,
 				FB3C19CD53327511C67690C0 /* GuideFilter.swift in Sources */,
+				D87E9CE35D35B4A4DF8DD0B5 /* GuideGeometryProbe.swift in Sources */,
 				983E3782B461D1B1D1076308 /* GuideGridFocus.swift in Sources */,
 				860B8D0F161AA83F3589AA75 /* GuideGridLayout.swift in Sources */,
 				387878240BDDE410249A84A0 /* GuideGridViewController.swift in Sources */,

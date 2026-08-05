@@ -35,6 +35,15 @@ final class GuideGridViewController: UIViewController,
     private(set) var rulerView: UICollectionView!
     private let cornerView = UIView()
 
+    /// Reports no safe area to its cells. The guide deliberately extends past the bottom safe area,
+    /// and a cell that overlaps it otherwise has its hosted SwiftUI content squeezed by exactly the
+    /// overlapping amount, which is what made the bottom row render at half height with its rounded
+    /// bottom fully drawn instead of being cut. `UITableView` has `insetsContentViewsToSafeArea` for
+    /// this; `UICollectionView` does not, so the inset is removed at the source.
+    final class SafeAreaFreeCollectionView: UICollectionView {
+        override var safeAreaInsets: UIEdgeInsets { .zero }
+    }
+
     private(set) var rows: [Row] = []
     /// Cached from the axis once. Not private: the focus extension reads it on every ruler move, and
     /// `axis.slots` rebuilds a 96-element array on each call.
@@ -53,6 +62,7 @@ final class GuideGridViewController: UIViewController,
     private var nowLineTimer: Timer?
     private var didInitialScroll = false
     private var lastScrollRequestVersion = 0
+    var lastFocusRequest = 0
 
     let metrics: GuideMetrics
 
@@ -93,7 +103,7 @@ final class GuideGridViewController: UIViewController,
         gridLayout.register(GuideGridLineView.self,
                             forDecorationViewOfKind: GuideGridLayout.gridLineKind)
 
-        gridView = UICollectionView(frame: .zero, collectionViewLayout: gridLayout)
+        gridView = SafeAreaFreeCollectionView(frame: .zero, collectionViewLayout: gridLayout)
         gridView.backgroundColor = .clear
         gridView.clipsToBounds = true
         gridView.dataSource = self
@@ -115,7 +125,7 @@ final class GuideGridViewController: UIViewController,
         columnLayout.minimumLineSpacing = 0
         columnLayout.minimumInteritemSpacing = 0
         columnLayout.itemSize = CGSize(width: metrics.channelColumnWidth, height: metrics.rowHeight)
-        columnView = UICollectionView(frame: .zero, collectionViewLayout: columnLayout)
+        columnView = SafeAreaFreeCollectionView(frame: .zero, collectionViewLayout: columnLayout)
         columnView.backgroundColor = .clear
         columnView.clipsToBounds = true
         columnView.showsVerticalScrollIndicator = false
@@ -133,7 +143,7 @@ final class GuideGridViewController: UIViewController,
         rulerLayout.minimumLineSpacing = 0
         rulerLayout.minimumInteritemSpacing = 0
         rulerLayout.itemSize = CGSize(width: metrics.slotWidth, height: metrics.rulerHeight)
-        rulerView = UICollectionView(frame: .zero, collectionViewLayout: rulerLayout)
+        rulerView = SafeAreaFreeCollectionView(frame: .zero, collectionViewLayout: rulerLayout)
         rulerView.backgroundColor = .clear
         rulerView.clipsToBounds = true
         rulerView.showsHorizontalScrollIndicator = false
@@ -209,11 +219,47 @@ final class GuideGridViewController: UIViewController,
 
         if !didInitialScroll, gridView.bounds.width > 0, model.axis.totalWidth > 0 {
             didInitialScroll = true
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [weak self] in
+                self?.recordGeometry("initial-layout")
+            }
             // The anchor, not Date(): a jump requested before this controller existed (a category
             // snap while the list was still empty) is already sitting in anchorTime, and the
             // observer only fires on a CHANGE, so it would otherwise be dropped.
             scrollGrid(to: model.anchorTime, animated: false)
         }
+    }
+
+    /// Take focus back into the grid after the live player closes.
+    ///
+    /// Declaring the grid as the preferred focus environment was not enough. When the player's cover
+    /// dismisses, focus is restored from the SwiftUI side and lands on the segment picker above the
+    /// guide, and from there neither `preferredFocusEnvironments` nor `remembersLastFocusedIndexPath`
+    /// is consulted. `requestFocusUpdate` moves focus across that boundary explicitly, and
+    /// `indexPathForPreferredFocusedView` answers from the anchor, so it lands on the channel that
+    /// was being watched rather than on the first cell.
+    func requestGridFocus(attempt: Int = 0) {
+        #if os(tvOS)
+        guard isActive, gridView != nil, attempt < 4, !gridHasFocus else { return }
+        if let system = UIFocusSystem.focusSystem(for: gridView) {
+            system.requestFocusUpdate(to: gridView)
+            system.updateFocusIfNeeded()
+        }
+        // The cover's dismissal animation is still running on the first pass, so retry until it takes.
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) { [weak self] in
+            self?.requestGridFocus(attempt: attempt + 1)
+        }
+        #endif
+    }
+
+    private var gridHasFocus: Bool {
+        gridView.indexPathsForVisibleItems.contains { gridView.cellForItem(at: $0)?.isFocused == true }
+    }
+
+    /// Ground truth for the bottom-row defect. DEBUG only, see `GuideGeometryProbe`.
+    func recordGeometry(_ label: String) {
+        #if DEBUG
+        GuideGeometryProbe.record(label, controller: self, grid: gridView, column: columnView)
+        #endif
     }
 
     /// Fade the row the bottom edge cuts through, instead of leaving it chopped in half.
@@ -597,6 +643,8 @@ struct GuideGridContainer: UIViewControllerRepresentable {
     let model: GuideViewModel
     let tint: Color
     var isActive: Bool = true
+    /// Bumped when the live player closes, so the grid can take focus back from the segment picker.
+    var focusRequest: Int = 0
     let onSelect: (JellyfinChannel, JellyfinProgram) -> Void
     let onPlayChannel: (JellyfinChannel, JellyfinProgram?) -> Void
     let onToggleFavorite: (JellyfinChannel) -> Void
@@ -616,5 +664,11 @@ struct GuideGridContainer: UIViewControllerRepresentable {
         // subtree from the tvOS focus engine, and without it the hidden guide stays focusable
         // behind the other segments.
         if controller.isActive != isActive { controller.isActive = isActive }
+        if controller.lastFocusRequest != focusRequest {
+            controller.lastFocusRequest = focusRequest
+            // Not on the first pass: 0 is the initial value, and taking focus at launch would pull it
+            // off whatever the tab itself wants focused.
+            if focusRequest > 0 { controller.requestGridFocus() }
+        }
     }
 }
