@@ -25,16 +25,16 @@ struct GuideEdgeFadeTests {
         #expect(GuideGridViewController.edgeAlpha(for: row(y: 500), visibleBottom: 600) == 1)
     }
 
-    @Test("a half-cut row is dimmed")
+    /// Half cut has to LOOK half faded. The first curve answered 0.88 here, which is a fade on
+    /// paper and nothing on a television.
+    @Test("a half-cut row is visibly, not arithmetically, faded")
     func halfCut() {
-        let alpha = GuideGridViewController.edgeAlpha(for: row(y: 550), visibleBottom: 600)
-        #expect(alpha > 0.6 && alpha < 0.9)
+        #expect(GuideGridViewController.edgeAlpha(for: row(y: 550), visibleBottom: 600) == 0.5)
     }
 
     @Test("a row barely peeking in is nearly gone")
     func barelyVisible() {
-        let alpha = GuideGridViewController.edgeAlpha(for: row(y: 595), visibleBottom: 600)
-        #expect(alpha < 0.15)
+        #expect(GuideGridViewController.edgeAlpha(for: row(y: 595), visibleBottom: 600) < 0.1)
     }
 
     @Test("a row entirely below the edge is fully transparent, never negative")

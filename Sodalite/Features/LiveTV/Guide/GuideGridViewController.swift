@@ -161,6 +161,12 @@ final class GuideGridViewController: UIViewController,
         installGestures()
     }
 
+    /// The grid, not the ruler or the column. Paired with indexPathForPreferredFocusedView, which
+    /// answers from the anchor, this puts focus back on the channel the user was watching.
+    override var preferredFocusEnvironments: [UIFocusEnvironment] {
+        gridView.map { [$0] } ?? super.preferredFocusEnvironments
+    }
+
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         refreshNow()
@@ -191,21 +197,14 @@ final class GuideGridViewController: UIViewController,
         let column = metrics.channelColumnWidth
         let ruler = metrics.rulerHeight
 
-        // Snap the scrollers to a whole number of rows. Left at the raw height, the row the bottom
-        // edge lands in renders compressed rather than merely clipped (its content sits far closer
-        // to its own top border than a full row's does). Why a hosting-configuration cell behaves
-        // that way at the boundary is not diagnosed; not having a boundary row at rest removes the
-        // question. Focus-driven scrolling lands on cell edges, so at rest the grid is always
-        // whole, and the per-cell fade covers what passes the edge mid-scroll.
-        let available = height - ruler
-        let wholeRows = max(1, (available / metrics.rowHeight).rounded(.down))
-        let bodyHeight = min(available, wholeRows * metrics.rowHeight)
-
+        // Full height on purpose. Snapping to whole rows removed the cut row but left an empty
+        // strip, and the cut row carries the "there is more below" signal; the alpha ramp is what
+        // makes it read cleanly.
         cornerView.frame = CGRect(x: leftInset, y: 0, width: column, height: ruler)
         rulerView.frame = CGRect(x: leftInset + column, y: 0, width: width - column, height: ruler)
-        columnView.frame = CGRect(x: leftInset, y: ruler, width: column, height: bodyHeight)
+        columnView.frame = CGRect(x: leftInset, y: ruler, width: column, height: height - ruler)
         gridView.frame = CGRect(x: leftInset + column, y: ruler,
-                                width: width - column, height: bodyHeight)
+                                width: width - column, height: height - ruler)
         applyEdgeFade()
 
         if !didInitialScroll, gridView.bounds.width > 0, model.axis.totalWidth > 0 {
@@ -235,12 +234,13 @@ final class GuideGridViewController: UIViewController,
         }
     }
 
-    /// Full opacity until the row is actually being cut, then down with the visible fraction. The
-    /// 1.6 factor keeps a row that is merely touching the edge from dimming for no reason.
+    /// Full opacity until the row is actually being cut, then straight down with the visible
+    /// fraction. The first attempt boosted this by 1.6, which left a half-cut row at 0.88 alpha:
+    /// arithmetically a fade, visually nothing.
     static func edgeAlpha(for frame: CGRect, visibleBottom: CGFloat) -> CGFloat {
         guard frame.height > 0, frame.maxY > visibleBottom else { return 1 }
-        let visible = max(0, visibleBottom - frame.minY) / frame.height
-        return min(1, max(0, visible * 1.6))
+        let visible = (visibleBottom - frame.minY) / frame.height
+        return min(1, max(0, visible))
     }
 
     // MARK: - Scroll sync

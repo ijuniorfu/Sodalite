@@ -17,6 +17,11 @@ struct GuideView: View {
     var isActive: Bool = true
 
     @State private var selection: GuideSelection?
+    /// Names the grid as this screen's default focus target. Coming back from the player, the
+    /// remembered cell can be gone (programs finish loading while it runs and the grid reloads),
+    /// and the fallback was the segment picker at the very top rather than the channel being
+    /// watched. remembersLastFocusedIndexPath alone did not cover that.
+    @Namespace private var guideFocus
 
     init(model: GuideViewModel,
          tint: Color,
@@ -85,6 +90,7 @@ struct GuideView: View {
                 GuideControlsView(model: model, metrics: model.metrics, tint: tint)
                 canvas
             }
+            .guideFocusScope(guideFocus)
         }
     }
 
@@ -121,6 +127,29 @@ struct GuideView: View {
                 })
             // Keep the top safe area so the grid starts below the tab bar.
             .ignoresSafeArea(edges: [.horizontal, .bottom])
+            .guidePrefersDefaultFocus(in: guideFocus)
         }
+    }
+}
+
+/// tvOS-only focus plumbing. iPad renders the same grid but has no focus engine to direct, and
+/// both modifiers are unavailable there.
+private extension View {
+    @ViewBuilder
+    func guideFocusScope(_ namespace: Namespace.ID) -> some View {
+        #if os(tvOS)
+        focusScope(namespace)
+        #else
+        self
+        #endif
+    }
+
+    @ViewBuilder
+    func guidePrefersDefaultFocus(in namespace: Namespace.ID) -> some View {
+        #if os(tvOS)
+        prefersDefaultFocus(true, in: namespace)
+        #else
+        self
+        #endif
     }
 }
