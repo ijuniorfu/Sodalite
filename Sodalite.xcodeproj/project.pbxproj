@@ -353,6 +353,7 @@
 		747905DEE82B08A96EFD7B22 /* FocusableCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = C631A6EC153641E1CAF0F5A3 /* FocusableCard.swift */; };
 		74B9E15D08B06A8C9790AE03 /* PlayerModalDismisser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2866E3279048E699E940339D /* PlayerModalDismisser.swift */; };
 		750EBD3ABF18891C6BE33F0E /* APIEndpoint.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3118800CEC44D1F94EBBFCF7 /* APIEndpoint.swift */; };
+		75A617D331D218ED85080EEE /* TVFocus.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50E131DFB558CDF9D9C03024 /* TVFocus.swift */; };
 		75C679F2F4217D355A1A934D /* PlaybackSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4703CB0FED4DACCE7A447A6 /* PlaybackSettingsView.swift */; };
 		75F014CB9EEC83C90914BD49 /* MainQueueDefer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2009D3A6B35520280B2E8329 /* MainQueueDefer.swift */; };
 		76240562D4F654545BCFEBC6 /* SeerrMediaService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04547B5AAA8453CDCBF40F1B /* SeerrMediaService.swift */; };
@@ -605,6 +606,7 @@
 		C8606BD7F2913B7C4A1DAC6B /* NetworkBufferDepthTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 741F6735F2BBBAF0C5648BFB /* NetworkBufferDepthTests.swift */; };
 		C8B595BF4C192CE6F09E0C01 /* DetailViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 418106DEDECD6A1D03537314 /* DetailViewModel.swift */; };
 		C8F92989D72F320B546A0588 /* SpoilerPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB9579683524F530414AE85D /* SpoilerPolicy.swift */; };
+		C9F1805CF95508EBC0E0D37E /* TVFocus.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50E131DFB558CDF9D9C03024 /* TVFocus.swift */; };
 		CA3A6764F3D749299F52D127 /* StatComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C5F720268CD227ED7671274 /* StatComponents.swift */; };
 		CA94C16ECC7A49B1479BFE23 /* DetailCover.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B1E8FDE55D8F67C402AE221 /* DetailCover.swift */; };
 		CB2E9781EF364F0DFF5CF252 /* ExternalSubtitleMappingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 330F8013CF2D5BFB7DD3C3FF /* ExternalSubtitleMappingTests.swift */; };
@@ -951,6 +953,7 @@
 		5010D9C8B7FF35BAD3E1408B /* TrackSelectionMemoryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackSelectionMemoryTests.swift; sourceTree = "<group>"; };
 		507BD61D174F40D1EAE62DE4 /* TrackSelectionMatcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackSelectionMatcher.swift; sourceTree = "<group>"; };
 		50D44D64EE3E9EBE69B65698 /* SeerrMediaStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeerrMediaStatus.swift; sourceTree = "<group>"; };
+		50E131DFB558CDF9D9C03024 /* TVFocus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TVFocus.swift; sourceTree = "<group>"; };
 		50ECB1F4714BE9BDB90243F1 /* DualURLPromptLatch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DualURLPromptLatch.swift; sourceTree = "<group>"; };
 		51A8283C9A660B2731DC9B99 /* CatalogFilter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CatalogFilter.swift; sourceTree = "<group>"; };
 		51C8ACDBF478C0267CFAE44C /* LicenseText-WTFPL.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "LicenseText-WTFPL.txt"; sourceTree = "<group>"; };
@@ -1359,6 +1362,7 @@
 				71D7377FE2EE2770A0460BA8 /* StableTap.swift */,
 				9422C27A917981DB27265203 /* TagRow.swift */,
 				40485493236BBADEB869CA40 /* TechInfoBox.swift */,
+				50E131DFB558CDF9D9C03024 /* TVFocus.swift */,
 				8664B5BA137C95F39514A7ED /* ValuePickerRow.swift */,
 				E57A7B5E3ACBEA39B9DF2941 /* VersionPickerSheet.swift */,
 			);
@@ -2631,6 +2635,7 @@
 				F17DF67CBB42ACF6D8280931 /* SubtitleOverlayView.swift in Sources */,
 				863DA31B92070976C49E11BB /* SubtitleSearchView.swift in Sources */,
 				E4333721A6579565BCA27BC7 /* SupportDevelopmentView.swift in Sources */,
+				C9F1805CF95508EBC0E0D37E /* TVFocus.swift in Sources */,
 				CD452D30CACB03AFE784063C /* TVProfileMappings.swift in Sources */,
 				A1E579F4E5D91B1BB4AED0AF /* TVUserContext.swift in Sources */,
 				B840F6D43B75698FFCD3A954 /* TabBarImmersion.swift in Sources */,
@@ -3062,6 +3067,7 @@
 				01CEB262E9546D056F039E5F /* SubtitleOverlayView.swift in Sources */,
 				BCCA98F65EB9930E16778303 /* SubtitleSearchView.swift in Sources */,
 				13ED94198C07BDF38F985E9D /* SupportDevelopmentView.swift in Sources */,
+				75A617D331D218ED85080EEE /* TVFocus.swift in Sources */,
 				BCF130B463CEF6CF7F5FAF9E /* TVProfileMappings.swift in Sources */,
 				3A04D10B00C9A5321FE6C6E4 /* TVUserContext.swift in Sources */,
 				7E2A4C5014438C29C0FFF30F /* TabBarImmersion.swift in Sources */,

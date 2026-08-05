@@ -243,7 +243,7 @@ final class GuideGridViewController: UIViewController,
     /// was being watched rather than on the first cell.
     func requestGridFocus(attempt: Int = 0) {
         #if os(tvOS)
-        guard isActive, gridView != nil, attempt < 4, !gridHasFocus else {
+        guard isActive, gridView != nil, attempt < 8, !gridHasFocus else {
             #if DEBUG
             GuideGeometryProbe.logFocus(
                 "request stop attempt=\(attempt) active=\(isActive) "
@@ -259,7 +259,12 @@ final class GuideGridViewController: UIViewController,
             + "preferred=\(String(describing: indexPathForPreferredFocusedView(in: gridView)))")
         #endif
         if let system {
-            system.requestFocusUpdate(to: gridView)
+            // The cell when it exists, not the collection view: a request aimed at a container has
+            // to be resolved to a focusable item by the engine, and on the device that resolution
+            // lost to the segment picker every time.
+            let target = indexPathForPreferredFocusedView(in: gridView)
+                .flatMap { gridView.cellForItem(at: $0) as UIFocusEnvironment? }
+            system.requestFocusUpdate(to: target ?? gridView)
             system.updateFocusIfNeeded()
         }
         // The cover's dismissal animation is still running on the first pass, so retry until it takes.

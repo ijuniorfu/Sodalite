@@ -16,6 +16,11 @@ struct LiveTVTabView: View {
     /// Bumped when the player closes. The guide grid uses it to pull focus back off the segment
     /// picker and onto the channel that was being watched.
     @State private var guideFocusRequest = 0
+    /// Names the content area as this tab's default focus target. Measured on the device: when the
+    /// live player closes, focus is restored from the SwiftUI side onto the segment picker, and a
+    /// UIKit-side UIFocusSystem.requestFocusUpdate into the grid is denied from there. So the
+    /// preference has to be declared where the restore actually looks.
+    @Namespace private var liveTVFocus
 
     private enum LiveTVSection { case overview, guide, recordings }
 
@@ -92,7 +97,9 @@ struct LiveTVTabView: View {
                     RecordingsView(model: recordingsModel, tint: tint)
                 }
             }
+            .tvPrefersDefaultFocus(in: liveTVFocus)
         }
+        .tvFocusScope(liveTVFocus)
         .task {
             guard guideModel == nil, let userID = dependencies.activeUserID else { return }
             let store = LiveTimerStore(service: dependencies.jellyfinLiveTvService, userID: userID)

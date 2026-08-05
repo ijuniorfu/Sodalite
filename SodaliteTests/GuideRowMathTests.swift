@@ -76,6 +76,62 @@ struct GuideRowMathTests {
         #expect(spans[0].width == CGFloat(30 * 8))
     }
 
+    // MARK: - Revealing a barely visible focused cell
+
+    /// The reported symptom: focus on a program that ends a hair inside the viewport draws a rounded
+    /// stub against the channel column while the hero describes the whole program.
+    private func reveal(x: CGFloat, width: CGFloat, offset: CGFloat) -> CGFloat? {
+        GuideRowMath.offsetToReveal(span: (x: x, width: width), offset: offset,
+                                    viewport: 1600, minimumVisible: 120, maxOffset: 20000)
+    }
+
+    @Test("a cell reaching only just into the viewport is scrolled into view")
+    func stubAtLeadingEdgeIsRevealed() {
+        let result = reveal(x: 1000, width: 248, offset: 1240)
+        let expected: CGFloat = 1000 - 128
+        #expect(result == expected)
+    }
+
+    @Test("a fully visible cell is left alone")
+    func visibleCellNotScrolled() {
+        let result = reveal(x: 1000, width: 248, offset: 900)
+        #expect(result == nil)
+    }
+
+    @Test("a wide block showing enough of itself is left alone")
+    func wideBlockPartiallyVisibleIsEnough() {
+        // Three hours wide, starting far to the left, but 600pt of it are on screen.
+        let result = reveal(x: 0, width: 1440, offset: 840)
+        #expect(result == nil)
+    }
+
+    @Test("a narrow cell only has to be fully visible, not to fill the threshold")
+    func narrowCellNeedsOnlyItself() {
+        let result = reveal(x: 1000, width: 40, offset: 900)
+        #expect(result == nil)
+    }
+
+    @Test("a cell past the trailing edge pulls its end in, not its start")
+    func stubAtTrailingEdgeIsRevealed() {
+        // Viewport [1000, 2600], so only 40pt of the cell is on screen.
+        let result = reveal(x: 2560, width: 480, offset: 1000)
+        let expected: CGFloat = 3040 - 1472
+        #expect(result == expected)
+    }
+
+    @Test("the target never leaves the scrollable range")
+    func targetClampedToRange() {
+        let result = reveal(x: 20, width: 40, offset: 400)
+        let expected: CGFloat = 0
+        #expect(result == expected)
+    }
+
+    @Test("a zero-width span asks for nothing")
+    func zeroWidthIgnored() {
+        let result = reveal(x: 1000, width: 0, offset: 0)
+        #expect(result == nil)
+    }
+
     @Test("a program covered by its predecessor's span collapses instead of stacking")
     func coveredSpanCollapses() {
         // keptIndices removes these, but spans must not stack even if one slips through.

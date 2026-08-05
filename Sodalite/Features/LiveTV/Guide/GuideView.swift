@@ -94,7 +94,7 @@ struct GuideView: View {
                 GuideControlsView(model: model, metrics: model.metrics, tint: tint)
                 canvas
             }
-            .guideFocusScope(guideFocus)
+            .tvFocusScope(guideFocus)
         }
     }
 
@@ -132,29 +132,7 @@ struct GuideView: View {
                 })
             // Keep the top safe area so the grid starts below the tab bar.
             .ignoresSafeArea(edges: [.horizontal, .bottom])
-            .guidePrefersDefaultFocus(in: guideFocus)
+            .tvPrefersDefaultFocus(in: guideFocus)
         }
-    }
-}
-
-/// tvOS-only focus plumbing. iPad renders the same grid but has no focus engine to direct, and
-/// both modifiers are unavailable there.
-private extension View {
-    @ViewBuilder
-    func guideFocusScope(_ namespace: Namespace.ID) -> some View {
-        #if os(tvOS)
-        focusScope(namespace)
-        #else
-        self
-        #endif
-    }
-
-    @ViewBuilder
-    func guidePrefersDefaultFocus(in namespace: Namespace.ID) -> some View {
-        #if os(tvOS)
-        prefersDefaultFocus(true, in: namespace)
-        #else
-        self
-        #endif
     }
 }

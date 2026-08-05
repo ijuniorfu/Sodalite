@@ -110,14 +110,36 @@ extension GuideGridViewController {
         recordGeometry("focus")
 
         let vertical = context.focusHeading.contains(.up) || context.focusHeading.contains(.down)
-        guard !vertical else { return }
-        // Horizontal or first focus: re-anchor on the cell's VISIBLE midpoint, so a three-hour block
+        if vertical || context.previouslyFocusedIndexPath == nil {
+            // Vertical moves keep the time position, so focus can land on a program that only just
+            // reaches into the viewport. The focus engine does not scroll for that, and the result
+            // is a rounded stub hugging the channel column while the hero describes a program the
+            // user cannot see anywhere.
+            ensureFocusedCellVisible(section: indexPath.section, item: indexPath.item)
+            return
+        }
+        // Horizontal focus: re-anchor on the cell's VISIBLE midpoint, so a three-hour block
         // anchors where the user is looking, not at its possibly off-screen centre.
         let (x, width) = programXWidth(section: indexPath.section, item: indexPath.item)
         let visibleMin = max(x, gridView.contentOffset.x)
         let visibleMax = min(x + width, gridView.contentOffset.x + gridView.bounds.width)
         let anchorX = visibleMax > visibleMin ? (visibleMin + visibleMax) / 2 : x + width / 2
         model.anchorTime = model.axis.date(atX: anchorX)
+    }
+
+    /// Scroll so the focused program is actually readable. The decision lives in `GuideRowMath` so
+    /// it can be tested without a collection view.
+    func ensureFocusedCellVisible(section: Int, item: Int) {
+        let viewport = gridView.bounds.width
+        guard let target = GuideRowMath.offsetToReveal(
+            span: programXWidth(section: section, item: item),
+            offset: gridView.contentOffset.x,
+            viewport: viewport,
+            minimumVisible: model.metrics.slotWidth * 0.5,
+            maxOffset: max(0, model.axis.totalWidth - viewport))
+        else { return }
+        rulerView.setContentOffset(CGPoint(x: target, y: 0), animated: false)
+        gridView.setContentOffset(CGPoint(x: target, y: gridView.contentOffset.y), animated: true)
     }
 
     /// Feed the hero. `item` nil means focus is on the channel column, where the hero shows what is

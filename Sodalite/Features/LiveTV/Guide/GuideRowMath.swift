@@ -60,6 +60,32 @@ enum GuideRowMath {
     }
 }
 
+extension GuideRowMath {
+    /// Content offset that makes a focused span readable, or nil when it already is.
+    ///
+    /// Vertical moves in the grid keep the time position rather than following the cell, so focus
+    /// can land on a program that only just reaches into the viewport. The focus engine does not
+    /// scroll for that: the program shows as a rounded stub at the very edge while the hero
+    /// describes it in full.
+    static func offsetToReveal(span: (x: CGFloat, width: CGFloat),
+                               offset: CGFloat,
+                               viewport: CGFloat,
+                               minimumVisible: CGFloat,
+                               maxOffset: CGFloat) -> CGFloat? {
+        guard span.width > 0, viewport > 0 else { return nil }
+        let visible = min(span.x + span.width, offset + viewport) - max(span.x, offset)
+        // A cell narrower than the threshold only has to be fully visible.
+        guard visible < min(span.width, minimumVisible) else { return nil }
+        // Reached from the left: start it where a jump would. From the right: pull its end in, so a
+        // long block does not scroll the user past everything they were looking at.
+        let target = span.x < offset
+            ? span.x - viewport * 0.08
+            : span.x + span.width - viewport * 0.92
+        let clamped = min(max(0, target), maxOffset)
+        return abs(clamped - offset) > 1 ? clamped : nil
+    }
+}
+
 extension JellyfinProgram {
     /// nil when either end is missing, which is what the row-wide fallback keys off.
     var guideTimeRange: GuideTimeRange? {
