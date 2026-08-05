@@ -152,6 +152,11 @@ extension GuideGridViewController {
 
     func collectionView(_ collectionView: UICollectionView,
                         willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
+        // A reused cell carries the previous occupant's alpha, so set it before it is on screen.
+        if collectionView === gridView || collectionView === columnView {
+            cell.alpha = GuideGridViewController.edgeAlpha(
+                for: cell.frame, visibleBottom: collectionView.bounds.maxY)
+        }
         guard collectionView === gridView, indexPath.section < rows.count else { return }
         let section = indexPath.section
         let ids = (section..<min(section + 8, rows.count)).map { rows[$0].channel.id }

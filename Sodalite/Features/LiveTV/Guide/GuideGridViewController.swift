@@ -50,12 +50,6 @@ final class GuideGridViewController: UIViewController,
     /// that a time anchor always materializes its target, and Vincent's Apple TV disagreed.
     var lastVetoedMove: (previous: IndexPath, next: IndexPath)?
 
-    /// Alpha ramp over the last rows so the bottom edge fades out instead of cutting a row in half.
-    /// A mask rather than an overlay: the guide sits on the app's themed background, so anything
-    /// opaque painted over it would read as a band.
-    private let bottomFade = CAGradientLayer()
-    private static let bottomFadeHeight: CGFloat = 56
-
     private var nowLineTimer: Timer?
     private var didInitialScroll = false
     private var lastScrollRequestVersion = 0
@@ -104,11 +98,11 @@ final class GuideGridViewController: UIViewController,
         gridView.clipsToBounds = true
         gridView.dataSource = self
         gridView.delegate = self
-        // false, deliberately: with it on, tvOS restores the grid to its remembered item and
-        // undoes a programmatic jump made while focus sits on a chip outside the grid.
-        // indexPathForPreferredFocusedView already returns the anchored cell, which is better
-        // anyway because it follows the time the user chose rather than the last one they touched.
-        gridView.remembersLastFocusedIndexPath = false
+        // On, and it has to be: without it, coming back from the player drops focus out of the
+        // grid entirely and it lands on the segment picker instead of the channel being watched.
+        // A programmatic jump is not at risk from it, because indexPathForPreferredFocusedView
+        // takes priority over the remembered path and answers from the anchor.
+        gridView.remembersLastFocusedIndexPath = true
         gridView.contentInsetAdjustmentBehavior = .never
         gridView.register(GuideProgramCell.self, forCellWithReuseIdentifier: GuideProgramCell.reuseID)
         view.addSubview(gridView)
@@ -154,9 +148,6 @@ final class GuideGridViewController: UIViewController,
         cornerView.backgroundColor = .clear
         view.addSubview(cornerView)
 
-        bottomFade.colors = [UIColor.white.cgColor, UIColor.clear.cgColor]
-        bottomFade.startPoint = CGPoint(x: 0.5, y: 0)
-        bottomFade.endPoint = CGPoint(x: 0.5, y: 1)
 
         rebuildRows()
         gridView.reloadData()
@@ -205,7 +196,7 @@ final class GuideGridViewController: UIViewController,
         columnView.frame = CGRect(x: leftInset, y: ruler, width: column, height: height - ruler)
         gridView.frame = CGRect(x: leftInset + column, y: ruler,
                                 width: width - column, height: height - ruler)
-        applyBottomFade()
+        applyEdgeFade()
 
         if !didInitialScroll, gridView.bounds.width > 0, model.axis.totalWidth > 0 {
             didInitialScroll = true
@@ -216,22 +207,30 @@ final class GuideGridViewController: UIViewController,
         }
     }
 
-    /// One gradient over both vertical scrollers, so the channel column and its programs fade
-    /// together. `locations` is derived from the frame so the ramp is a constant 56pt whatever the
-    /// view height is.
-    private func applyBottomFade() {
-        let host = view.bounds
-        guard host.height > Self.bottomFadeHeight else {
-            view.layer.mask = nil
-            return
+    /// Fade the row the bottom edge cuts through, instead of leaving it chopped in half.
+    ///
+    /// Per-cell alpha, not a gradient mask on the view: the guide ignores the bottom safe area, so
+    /// where a mask's ramp actually lands on screen is not something this controller can know, and
+    /// the first attempt was invisible. A cell's own frame against the scroller's visible rect is
+    /// geometry that is knowable here. It is also cheaper: no offscreen compositing pass.
+    private func applyEdgeFade() {
+        fade(cellsOf: gridView)
+        fade(cellsOf: columnView)
+    }
+
+    private func fade(cellsOf collectionView: UICollectionView) {
+        let visibleBottom = collectionView.bounds.maxY
+        for cell in collectionView.visibleCells {
+            cell.alpha = Self.edgeAlpha(for: cell.frame, visibleBottom: visibleBottom)
         }
-        CATransaction.begin()
-        CATransaction.setDisableActions(true)
-        bottomFade.frame = host
-        let fadeStart = (host.height - Self.bottomFadeHeight) / host.height
-        bottomFade.locations = [NSNumber(value: Double(fadeStart)), 1.0]
-        view.layer.mask = bottomFade
-        CATransaction.commit()
+    }
+
+    /// Full opacity until the row is actually being cut, then down with the visible fraction. The
+    /// 1.6 factor keeps a row that is merely touching the edge from dimming for no reason.
+    static func edgeAlpha(for frame: CGRect, visibleBottom: CGFloat) -> CGFloat {
+        guard frame.height > 0, frame.maxY > visibleBottom else { return 1 }
+        let visible = max(0, visibleBottom - frame.minY) / frame.height
+        return min(1, max(0, visible * 1.6))
     }
 
     // MARK: - Scroll sync
@@ -249,6 +248,7 @@ final class GuideGridViewController: UIViewController,
         } else if scrollView === columnView {
             gridView.contentOffset.y = columnView.contentOffset.y
         }
+        applyEdgeFade()
     }
 
     /// Scroll the grid (and with it the ruler) so `date` sits `leadingFraction` into the viewport.
