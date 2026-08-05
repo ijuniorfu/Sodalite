@@ -32,6 +32,9 @@ final class GuideGridViewController: UIViewController,
     let onSelect: (JellyfinChannel, JellyfinProgram) -> Void
     let onPlayChannel: (JellyfinChannel, JellyfinProgram?) -> Void
     let onToggleFavorite: (JellyfinChannel) -> Void
+    /// Fires when the grid takes focus, so the tab can hand the chrome back to the focus engine the
+    /// moment it is no longer in the way rather than after a fixed wait.
+    var onGridFocused: (() -> Void)?
 
     let gridLayout = GuideGridLayout()
     private(set) var gridView: UICollectionView!
@@ -672,6 +675,7 @@ struct GuideGridContainer: UIViewControllerRepresentable {
     let onSelect: (JellyfinChannel, JellyfinProgram) -> Void
     let onPlayChannel: (JellyfinChannel, JellyfinProgram?) -> Void
     let onToggleFavorite: (JellyfinChannel) -> Void
+    var onGridFocused: () -> Void = {}
 
     @Environment(\.dependencies) private var dependencies
     @Environment(\.appearanceTheme) private var appearanceTheme
@@ -683,6 +687,7 @@ struct GuideGridContainer: UIViewControllerRepresentable {
     }
 
     func updateUIViewController(_ controller: GuideGridViewController, context: Context) {
+        controller.onGridFocused = onGridFocused
         if controller.tint != tint { controller.tint = tint }
         // isUserInteractionEnabled, not opacity or allowsHitTesting: only this removes a UIKit
         // subtree from the tvOS focus engine, and without it the hidden guide stays focusable

@@ -20,12 +20,27 @@ struct LiveTVTabView: View {
     /// live player closes, focus is restored from the SwiftUI side onto the segment picker, and a
     /// UIKit-side UIFocusSystem.requestFocusUpdate into the grid is denied from there. So the
     /// preference has to be declared where the restore actually looks.
-    /// Takes the filter chips out of the focus engine while the player runs and for a moment after
-    /// it closes, so they do not compete with the grid for the focus the system restores.
+    /// Takes the segment picker and the filter chips out of the focus engine while the player covers
+    /// the screen and for a moment after it closes.
+    ///
+    /// Measured on the device: on tvOS 26 SwiftUI owns focus. After the player is dismissed it puts
+    /// focus on the segment picker, and a UIKit UIFocusSystem.requestFocusUpdate into the grid is
+    /// refused for as long as it holds it, with the target cell present and focusable, no ancestor
+    /// out of the focus engine, and every controller reporting restoresFocusAfterTransition. Focus
+    /// cannot be taken here, only given, so the chrome stops offering itself for that moment and the
+    /// grid is what is left. Its remembered index path then does the rest.
     @State private var chromeFocusSuppressed = false
     @State private var chromeFocusRelease: Task<Void, Never>?
 
     private enum LiveTVSection { case overview, guide, recordings }
+
+    /// Hand the chrome back as soon as the grid has focus, so the picker is only ever disabled for
+    /// the handful of frames the restore needs.
+    private func releaseChromeFocus() {
+        guard chromeFocusSuppressed else { return }
+        chromeFocusRelease?.cancel()
+        chromeFocusSuppressed = false
+    }
 
     private var tint: Color {
         dependencies.appearancePreferences.effectiveTint(
@@ -59,7 +74,8 @@ struct LiveTVTabView: View {
                             },
                             isActive: section == .guide,
                             focusRequest: guideFocusRequest,
-                            chromeFocusSuppressed: chromeFocusSuppressed
+                            chromeFocusSuppressed: chromeFocusSuppressed,
+                            onGridFocused: releaseChromeFocus
                         )
                     } else {
                         ProgressView()
@@ -75,7 +91,8 @@ struct LiveTVTabView: View {
                             },
                             isActive: section == .guide,
                             focusRequest: guideFocusRequest,
-                            chromeFocusSuppressed: chromeFocusSuppressed
+                            chromeFocusSuppressed: chromeFocusSuppressed,
+                            onGridFocused: releaseChromeFocus
                         )
                     } else {
                         ProgressView()
@@ -131,10 +148,10 @@ struct LiveTVTabView: View {
                 return
             }
             guideFocusRequest += 1
-            // Long enough to outlast the dismissal and the restore that follows it, short enough
-            // that the chrome is reachable again before anyone reaches for it.
+            // Normally released the moment the grid reports focus. This is only the backstop for the
+            // case where it never does, so the chrome cannot stay disabled.
             chromeFocusRelease = Task {
-                try? await Task.sleep(for: .milliseconds(1200))
+                try? await Task.sleep(for: .milliseconds(1500))
                 guard !Task.isCancelled else { return }
                 chromeFocusSuppressed = false
             }
@@ -174,8 +191,11 @@ struct LiveTVTabView: View {
             Text("livetv.segment.recordings").tag(LiveTVSection.recordings)
         }
         .pickerStyle(.segmented)
-        // No .focusable() here, at any value: it makes SwiftUI treat the segmented control as one
-        // focus item and its own left/right segment selection stops working.
+        // Disabled, not .focusable(false): the latter makes SwiftUI treat the segmented control as a
+        // single focus item and its own left/right segment selection dies with it, at any value.
+        // Only while the player covers the screen and for a moment after it closes, see
+        // chromeFocusSuppressed.
+        .disabled(chromeFocusSuppressed)
         // tvOS/iPad keep the wide inset; compact uses a phone-scale margin so the control fits ~393pt.
         .padding(.horizontal, hSizeClass == .compact ? 16 : 80)
     }

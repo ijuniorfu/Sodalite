@@ -20,6 +20,8 @@ struct GuideView: View {
     /// Set while the player runs and briefly after, so the chips do not compete for the restored
     /// focus with the grid.
     var chromeFocusSuppressed: Bool = false
+    /// Called when the grid takes focus, so the tab can un-suppress the chrome immediately.
+    var onGridFocused: () -> Void = {}
 
     @State private var selection: GuideSelection?
 
@@ -28,13 +30,15 @@ struct GuideView: View {
          onWatchLive: ((LivePlaybackContext) -> Void)? = nil,
          isActive: Bool = true,
          focusRequest: Int = 0,
-         chromeFocusSuppressed: Bool = false) {
+         chromeFocusSuppressed: Bool = false,
+         onGridFocused: @escaping () -> Void = {}) {
         _model = State(initialValue: model)
         self.tint = tint
         self.onWatchLive = onWatchLive
         self.isActive = isActive
         self.focusRequest = focusRequest
         self.chromeFocusSuppressed = chromeFocusSuppressed
+        self.onGridFocused = onGridFocused
     }
 
     var body: some View {
@@ -129,7 +133,8 @@ struct GuideView: View {
                 },
                 onToggleFavorite: { channel in
                     model.timers.toggleFavorite(channelID: channel.id)
-                })
+                },
+                onGridFocused: onGridFocused)
             // Keep the top safe area so the grid starts below the tab bar.
             .ignoresSafeArea(edges: [.horizontal, .bottom])
         }

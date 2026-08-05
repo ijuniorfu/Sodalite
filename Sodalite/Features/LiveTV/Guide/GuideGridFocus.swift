@@ -107,6 +107,7 @@ extension GuideGridViewController {
         }
 
         guard collectionView === gridView else { return }
+        onGridFocused?()
         // Focus actually moved, so the redirect is healthy: clear the hatch so it only fires on a
         // genuinely repeated (failed) proposal.
         pendingFocusRedirect = nil
