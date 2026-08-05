@@ -245,8 +245,8 @@ final class GuideGridViewController: UIViewController,
         #if os(tvOS)
         guard isActive, gridView != nil, attempt < 8, !gridHasFocus else {
             #if DEBUG
-            GuideGeometryProbe.logFocus(
-                "request stop attempt=\(attempt) active=\(isActive) "
+            GuideGeometryProbe.logRequest(
+                "stop attempt=\(attempt) active=\(isActive) "
                 + "gridHasFocus=\(gridView == nil ? false : gridHasFocus)")
             #endif
             return
@@ -257,13 +257,14 @@ final class GuideGridViewController: UIViewController,
         let preferred = indexPathForPreferredFocusedView(in: gridView)
         let cell = preferred.flatMap { gridView.cellForItem(at: $0) }
         #if DEBUG
-        GuideGeometryProbe.logFocus(
-            "request attempt=\(attempt) system=\(system != nil) "
+        GuideGeometryProbe.logRequest(
+            "attempt=\(attempt) system=\(system != nil) "
             + "focused=\(GuideGeometryProbe.focusedDescription(near: gridView)) "
             + "preferred=\(String(describing: preferred)) "
             + "cell=\(cell == nil ? "nil" : "yes") "
             + "cellCanFocus=\(cell?.canBecomeFocused ?? false) "
-            + "gridCanFocus=\(gridView.canBecomeFocused)")
+            + "gridCanFocus=\(gridView.canBecomeFocused) "
+            + GuideGeometryProbe.environmentSummary(for: gridView))
         #endif
         if let system {
             system.requestFocusUpdate(to: cell ?? gridView)
@@ -690,7 +691,7 @@ struct GuideGridContainer: UIViewControllerRepresentable {
         if controller.lastFocusRequest != focusRequest {
             controller.lastFocusRequest = focusRequest
             #if DEBUG
-            GuideGeometryProbe.logFocus("container saw focusRequest=\(focusRequest)")
+            GuideGeometryProbe.logRequest("container saw focusRequest=\(focusRequest)")
             #endif
             // Not on the first pass: 0 is the initial value, and taking focus at launch would pull it
             // off whatever the tab itself wants focused.

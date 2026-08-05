@@ -80,6 +80,13 @@ extension GuideGridViewController {
         GuideGeometryProbe.logFocus(
             "didUpdate \(which) \(String(describing: context.previouslyFocusedIndexPath))"
             + " -> \(String(describing: context.nextFocusedIndexPath))")
+        // Entering or leaving the grid goes in the reserved budget too: whether focus came back
+        // after the player is the whole question, and navigation chatter must not bury it.
+        if context.previouslyFocusedIndexPath == nil || context.nextFocusedIndexPath == nil {
+            GuideGeometryProbe.logRequest(
+                "\(which) \(String(describing: context.previouslyFocusedIndexPath))"
+                + " -> \(String(describing: context.nextFocusedIndexPath))")
+        }
         #endif
         guard let indexPath = context.nextFocusedIndexPath else { return }
 
@@ -108,7 +115,6 @@ extension GuideGridViewController {
         model.anchorChannelID = rows[indexPath.section].channel.id
         updateHero(section: indexPath.section, item: indexPath.item)
         recordGeometry("focus")
-        recordRow(section: indexPath.section, item: indexPath.item)
 
         let vertical = context.focusHeading.contains(.up) || context.focusHeading.contains(.down)
         if vertical || context.previouslyFocusedIndexPath == nil {
@@ -126,25 +132,6 @@ extension GuideGridViewController {
         let visibleMax = min(x + width, gridView.contentOffset.x + gridView.bounds.width)
         let anchorX = visibleMax > visibleMin ? (visibleMin + visibleMax) / 2 : x + width / 2
         model.anchorTime = model.axis.date(atX: anchorX)
-    }
-
-    /// DEBUG dump of the focused row, see `GuideGeometryProbe.logRow`.
-    func recordRow(section: Int, item: Int) {
-        #if DEBUG
-        guard section < rows.count else { return }
-        let row = rows[section]
-        let formatter = GuideGridViewController.timeFormatter
-        let entries = row.programs.enumerated().map { index, program in
-            (name: program.name,
-             times: [program.startDate, program.endDate]
-                .map { $0.map(formatter.string(from:)) ?? "-" }.joined(separator: "-"),
-             x: index < row.spans.count ? row.spans[index].x : -1,
-             width: index < row.spans.count ? row.spans[index].width : -1)
-        }
-        GuideGeometryProbe.logRow(section: section, item: item,
-                                  offset: gridView.contentOffset.x,
-                                  viewport: gridView.bounds.width, entries: entries)
-        #endif
     }
 
     /// Scroll so the focused program is actually readable. The decision lives in `GuideRowMath` so

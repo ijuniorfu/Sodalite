@@ -12,8 +12,8 @@ import UIKit
 enum GuideGeometryProbe {
     private static var writes = 0
     private static var lastWrite = Date.distantPast
-    /// Enough samples to cover a few scroll positions, few enough that the file stays readable.
-    private static let maxWrites = 30
+    /// The safe-area question these answered is settled, so a couple of samples are plenty.
+    private static let maxWrites = 6
     private static let throttle: TimeInterval = 1.5
 
     static func record(_ label: String, controller: UIViewController,
@@ -41,32 +41,54 @@ enum GuideGeometryProbe {
     private static var focusLines = 0
 
     static func logFocus(_ message: String) {
-        guard focusLines < 120 else { return }
+        // Navigation chatter, capped low on purpose: it is context, not the measurement.
+        guard focusLines < 40 else { return }
         focusLines += 1
         append("[focus \(Self.stamp.string(from: Date()))] \(message)\n")
     }
 
-    /// The focused row, program by program, with the geometry each one was given. The bubble at the
-    /// left edge has an outer rounded corner of its own, so it is a genuinely narrow cell rather than
-    /// a clipped one, and only the row's own numbers say where such a cell comes from.
-    static func logRow(section: Int, item: Int, offset: CGFloat, viewport: CGFloat,
-                       entries: [(name: String, times: String, x: CGFloat, width: CGFloat)]) {
-        guard focusLines < 120 else { return }
-        focusLines += 1
-        var text = String(format: "[row %@] section=%d item=%d offset=%.0f viewport=%.0f\n",
-                          Self.stamp.string(from: Date()), section, item, offset, viewport)
-        for (index, entry) in entries.enumerated() {
-            text += String(format: "    %d%@ x=%.0f w=%.0f  %@  %@\n",
-                           index, index == item ? "*" : " ", entry.x, entry.width,
-                           entry.times, entry.name)
-        }
-        append(text)
+    /// The one trace that matters, on its own budget. Navigation chatter used to share a counter
+    /// with it and burned the whole allowance before the player round trip was even reached, so the
+    /// run that was supposed to answer the question logged nothing at all.
+    private static var requestLines = 0
+
+    static func logRequest(_ message: String) {
+        guard requestLines < 80 else { return }
+        requestLines += 1
+        append("[req \(Self.stamp.string(from: Date()))] \(message)\n")
     }
 
     /// What the focus engine currently has, so a denied request can be told from one that never ran.
     static func focusedDescription(near view: UIView) -> String {
         guard let item = UIFocusSystem.focusSystem(for: view)?.focusedItem else { return "none" }
         return String(describing: type(of: item))
+    }
+
+    /// Where a focus request could be getting stopped: an ancestor that has left the focus engine,
+    /// and what the controllers above the grid say about restoring focus after a transition.
+    static func environmentSummary(for view: UIView) -> String {
+        var blocked = "none"
+        var cursor: UIView? = view
+        while let current = cursor {
+            if !current.isUserInteractionEnabled {
+                blocked = String(describing: type(of: current))
+            }
+            cursor = current.superview
+        }
+        var controllers: [String] = []
+        var responder: UIResponder? = view
+        while let next = responder?.next, controllers.count < 5 {
+            if let controller = next as? UIViewController {
+                #if os(tvOS)
+                controllers.append("\(type(of: controller))"
+                    + ":restores=\(controller.restoresFocusAfterTransition)")
+                #else
+                controllers.append("\(type(of: controller))")
+                #endif
+            }
+            responder = next
+        }
+        return "blocked=\(blocked) vcs=[\(controllers.joined(separator: " "))]"
     }
 
     private static func describe(_ name: String, _ view: UICollectionView) -> String {
