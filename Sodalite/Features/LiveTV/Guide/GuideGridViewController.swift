@@ -252,19 +252,21 @@ final class GuideGridViewController: UIViewController,
             return
         }
         let system = UIFocusSystem.focusSystem(for: gridView)
+        // The cell when it exists, not the collection view: a request aimed at a container has to be
+        // resolved to a focusable item by the engine, and that resolution lost to the segment picker.
+        let preferred = indexPathForPreferredFocusedView(in: gridView)
+        let cell = preferred.flatMap { gridView.cellForItem(at: $0) }
         #if DEBUG
         GuideGeometryProbe.logFocus(
             "request attempt=\(attempt) system=\(system != nil) "
             + "focused=\(GuideGeometryProbe.focusedDescription(near: gridView)) "
-            + "preferred=\(String(describing: indexPathForPreferredFocusedView(in: gridView)))")
+            + "preferred=\(String(describing: preferred)) "
+            + "cell=\(cell == nil ? "nil" : "yes") "
+            + "cellCanFocus=\(cell?.canBecomeFocused ?? false) "
+            + "gridCanFocus=\(gridView.canBecomeFocused)")
         #endif
         if let system {
-            // The cell when it exists, not the collection view: a request aimed at a container has
-            // to be resolved to a focusable item by the engine, and on the device that resolution
-            // lost to the segment picker every time.
-            let target = indexPathForPreferredFocusedView(in: gridView)
-                .flatMap { gridView.cellForItem(at: $0) as UIFocusEnvironment? }
-            system.requestFocusUpdate(to: target ?? gridView)
+            system.requestFocusUpdate(to: cell ?? gridView)
             system.updateFocusIfNeeded()
         }
         // The cover's dismissal animation is still running on the first pass, so retry until it takes.

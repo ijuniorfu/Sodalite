@@ -22,11 +22,6 @@ struct GuideView: View {
     var chromeFocusSuppressed: Bool = false
 
     @State private var selection: GuideSelection?
-    /// Names the grid as this screen's default focus target. Coming back from the player, the
-    /// remembered cell can be gone (programs finish loading while it runs and the grid reloads),
-    /// and the fallback was the segment picker at the very top rather than the channel being
-    /// watched. remembersLastFocusedIndexPath alone did not cover that.
-    @Namespace private var guideFocus
 
     init(model: GuideViewModel,
          tint: Color,
@@ -100,7 +95,6 @@ struct GuideView: View {
                                   isFocusable: !chromeFocusSuppressed)
                 canvas
             }
-            .tvFocusScope(guideFocus)
         }
     }
 
@@ -138,7 +132,6 @@ struct GuideView: View {
                 })
             // Keep the top safe area so the grid starts below the tab bar.
             .ignoresSafeArea(edges: [.horizontal, .bottom])
-            .tvPrefersDefaultFocus(in: guideFocus)
         }
     }
 }

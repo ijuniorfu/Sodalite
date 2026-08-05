@@ -20,11 +20,8 @@ struct LiveTVTabView: View {
     /// live player closes, focus is restored from the SwiftUI side onto the segment picker, and a
     /// UIKit-side UIFocusSystem.requestFocusUpdate into the grid is denied from there. So the
     /// preference has to be declared where the restore actually looks.
-    @Namespace private var liveTVFocus
-    /// Takes the picker and the filter chips out of the focus engine while the player runs and for a
-    /// moment after it closes. Measured: the restore lands on the segment picker and every
-    /// UIFocusSystem.requestFocusUpdate into the grid is denied for as long as it holds focus. With
-    /// nothing else offering itself, the restore has only the grid and the channel column to pick.
+    /// Takes the filter chips out of the focus engine while the player runs and for a moment after
+    /// it closes, so they do not compete with the grid for the focus the system restores.
     @State private var chromeFocusSuppressed = false
     @State private var chromeFocusRelease: Task<Void, Never>?
 
@@ -105,9 +102,7 @@ struct LiveTVTabView: View {
                     RecordingsView(model: recordingsModel, tint: tint)
                 }
             }
-            .tvPrefersDefaultFocus(in: liveTVFocus)
         }
-        .tvFocusScope(liveTVFocus)
         .task {
             guard guideModel == nil, let userID = dependencies.activeUserID else { return }
             let store = LiveTimerStore(service: dependencies.jellyfinLiveTvService, userID: userID)
@@ -179,7 +174,8 @@ struct LiveTVTabView: View {
             Text("livetv.segment.recordings").tag(LiveTVSection.recordings)
         }
         .pickerStyle(.segmented)
-        .focusable(!chromeFocusSuppressed)
+        // No .focusable() here, at any value: it makes SwiftUI treat the segmented control as one
+        // focus item and its own left/right segment selection stops working.
         // tvOS/iPad keep the wide inset; compact uses a phone-scale margin so the control fits ~393pt.
         .padding(.horizontal, hSizeClass == .compact ? 16 : 80)
     }
