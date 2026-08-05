@@ -15,6 +15,17 @@ struct GuideHeroView: View {
             artwork
             if let program {
                 details(for: program)
+            } else if let channel {
+                // A channel with no EPG data still has an identity; a blank hero reads as a bug.
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(channel.name)
+                        .font(.title3)
+                        .fontWeight(.semibold)
+                        .lineLimit(1)
+                    Text("livetv.noProgramInfo")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
             } else {
                 Text("livetv.guide.hero.empty")
                     .font(.headline)

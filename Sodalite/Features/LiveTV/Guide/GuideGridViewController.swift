@@ -44,6 +44,11 @@ final class GuideGridViewController: UIViewController,
     var isSyncingScroll = false
     /// One-shot focus redirect, served by the focus extension.
     var pendingFocusRedirect: IndexPath?
+    /// Last vetoed (previous, next) pair. The same proposal arriving twice means the redirect did
+    /// not take, and re-vetoing it strands focus with no way out in ANY direction. Accept the
+    /// engine's pick instead. The old guide had this hatch; the rebuild dropped it on the theory
+    /// that a time anchor always materializes its target, and Vincent's Apple TV disagreed.
+    var lastVetoedMove: (previous: IndexPath, next: IndexPath)?
 
     private var nowLineTimer: Timer?
     private var didInitialScroll = false
@@ -364,7 +369,18 @@ final class GuideGridViewController: UIViewController,
 
     func guideItemCount(section: Int) -> Int {
         guard section < rows.count else { return 0 }
-        return rows[section].programs.isEmpty ? 1 : rows[section].programs.count
+        return rows[section].programs.isEmpty ? placeholderCount : rows[section].programs.count
+    }
+
+    /// A channel with no EPG data used to be ONE cell spanning the whole axis. With nothing to its
+    /// left or right, focus had nowhere to go and left/right did nothing at all: the row read as a
+    /// frozen app. It is also the cell the old guide blamed for teleporting focus hours away on a
+    /// vertical move. Hourly segments fix both.
+    private static let placeholderMinutes = 60
+
+    private var placeholderCount: Int {
+        let minutes = model.axis.end.timeIntervalSince(model.axis.start) / 60
+        return max(1, Int(ceil(minutes / Double(Self.placeholderMinutes))))
     }
 
     func guideItemXWidth(section: Int, item: Int) -> (x: CGFloat, width: CGFloat) {
@@ -375,9 +391,12 @@ final class GuideGridViewController: UIViewController,
     func programXWidth(section: Int, item: Int) -> (x: CGFloat, width: CGFloat) {
         guard section < rows.count else { return (0, gridLayout.totalWidth) }
         let row = rows[section]
-        guard !row.programs.isEmpty, item < row.programs.count else {
-            return (0, gridLayout.totalWidth)
+        if row.programs.isEmpty {
+            let slot = CGFloat(Self.placeholderMinutes) * model.axis.pointsPerMinute
+            let x = CGFloat(item) * slot
+            return (x, min(slot, max(0, gridLayout.totalWidth - x)))
         }
+        guard item < row.programs.count else { return (0, gridLayout.totalWidth) }
         let program = row.programs[item]
         guard let start = program.startDate, let end = program.endDate else {
             return (0, gridLayout.totalWidth)
@@ -416,6 +435,19 @@ final class GuideGridViewController: UIViewController,
             withReuseIdentifier: GuideProgramCell.reuseID, for: indexPath) as! GuideProgramCell
         configure(cell, at: indexPath)
         return cell
+    }
+
+    /// Item to focus in `section` for the current anchor time. Placeholder rows have no programs,
+    /// so their index comes from the axis instead of the program list.
+    func anchoredItemIndex(section: Int) -> Int? {
+        guard section < rows.count else { return nil }
+        let row = rows[section]
+        if row.programs.isEmpty {
+            let minutes = model.anchorTime.timeIntervalSince(model.axis.start) / 60
+            let index = Int(minutes / Double(Self.placeholderMinutes))
+            return min(max(0, index), placeholderCount - 1)
+        }
+        return model.programIndex(coveringOrNearest: model.anchorTime, in: row.channel.id)
     }
 
     private func configure(_ cell: GuideProgramCell, at indexPath: IndexPath) {

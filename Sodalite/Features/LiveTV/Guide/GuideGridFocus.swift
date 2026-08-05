@@ -25,8 +25,7 @@ extension GuideGridViewController {
               context.focusHeading.contains(.up) || context.focusHeading.contains(.down)
         else { return true }
         guard next.section < rows.count else { return true }
-        let channelID = rows[next.section].channel.id
-        guard let desired = model.programIndex(coveringOrNearest: model.anchorTime, in: channelID),
+        guard let desired = anchoredItemIndex(section: next.section),
               desired != next.item
         else {
             // The engine already picked the anchored cell; drop the stale redirect so the async
@@ -34,6 +33,14 @@ extension GuideGridViewController {
             pendingFocusRedirect = nil
             return true
         }
+        if let last = lastVetoedMove, last.previous == previous, last.next == next {
+            // Second time we are offered this exact move: the redirect did not take. Vetoing again
+            // leaves focus with nowhere to go at all, which is worse than an unanchored move.
+            lastVetoedMove = nil
+            pendingFocusRedirect = nil
+            return true
+        }
+        lastVetoedMove = (previous, next)
         materialize(section: next.section, item: desired)
         pendingFocusRedirect = IndexPath(item: desired, section: next.section)
         DispatchQueue.main.async { [weak self] in
@@ -59,7 +66,7 @@ extension GuideGridViewController {
         // at the time the ruler is showing.
         guard let channelID = model.anchorChannelID,
               let section = rows.firstIndex(where: { $0.channel.id == channelID }),
-              let item = model.programIndex(coveringOrNearest: model.anchorTime, in: channelID)
+              let item = anchoredItemIndex(section: section)
         else { return nil }
         return IndexPath(item: item, section: section)
     }
@@ -86,7 +93,10 @@ extension GuideGridViewController {
         }
 
         guard collectionView === gridView else { return }
+        // Focus actually moved, so the redirect is healthy: clear the hatch so it only fires on a
+        // genuinely repeated (failed) proposal.
         pendingFocusRedirect = nil
+        lastVetoedMove = nil
         guard indexPath.section < rows.count else { return }
         model.anchorChannelID = rows[indexPath.section].channel.id
         updateHero(section: indexPath.section, item: indexPath.item)
