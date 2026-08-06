@@ -12,6 +12,7 @@ struct LivePlayerLauncher: UIViewControllerRepresentable {
     let liveTvService: JellyfinLiveTvServiceProtocol
     let userID: String
     let preferences: PlaybackPreferences
+    let directStreamMemory: LiveDirectStreamMemory
     var tintColor: Color?
 
     func makeUIViewController(context: Context) -> PlayerLauncherHostVC {
@@ -80,7 +81,8 @@ struct LivePlayerLauncher: UIViewControllerRepresentable {
             preferences: preferences,
             isLiveSession: true,
             liveChannel: liveContext.channel,
-            liveTvService: liveTvService
+            liveTvService: liveTvService,
+            directStreamMemory: directStreamMemory
         )
         let playerVC = PlayerHostController(
             viewModel: vm,

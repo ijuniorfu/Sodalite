@@ -29,6 +29,8 @@ final class DependencyContainer {
     let jellyfinPlaybackService: JellyfinPlaybackServiceProtocol
     let playbackPreferences: PlaybackPreferences
     let trackSelectionMemory: TrackSelectionMemory
+    /// Remembered provider URLs for direct-played live channels, so a zap skips Jellyfin's tuner open.
+    let liveDirectStreamMemory: LiveDirectStreamMemory
     let spoilerRevealMemory: SpoilerRevealMemory
     let storeKitService: StoreKitServiceProtocol
     let appearancePreferences: AppearancePreferences
@@ -120,6 +122,7 @@ final class DependencyContainer {
         self.jellyfinPlaybackService = JellyfinPlaybackService(client: jellyfinClient)
         self.playbackPreferences = PlaybackPreferences()
         self.trackSelectionMemory = TrackSelectionMemory()
+        self.liveDirectStreamMemory = LiveDirectStreamMemory(keychain: keychainService)
         self.spoilerRevealMemory = SpoilerRevealMemory()
         self.storeKitService = StoreKitService()
         self.appearancePreferences = AppearancePreferences()
@@ -523,6 +526,7 @@ final class DependencyContainer {
                 forJellyfinUserID: remembered.id,
                 jellyfinServerID: serverID
             )
+            liveDirectStreamMemory.forgetAll(userID: remembered.id)
         }
 
         deleteJellyfinPasswords(serverID: serverID)
@@ -623,6 +627,8 @@ final class DependencyContainer {
         // user doesn't leave dangling credentials in the keychain.
         forgetRememberedSeerr(forJellyfinUserID: id, jellyfinServerID: serverID)
         try? keychainService.delete(for: KeychainKeys.jellyfinPassword(serverID: serverID, userID: id))
+        // Same reason: a remembered live upstream carries the IPTV provider's credentials in its path.
+        liveDirectStreamMemory.forgetAll(userID: id)
         tvProfileMappings.removeMapping(forUser: id, on: serverID)
         cloudSyncMarkServer(serverID)
     }

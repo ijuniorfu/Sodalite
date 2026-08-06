@@ -6,6 +6,37 @@ extension PlayerViewModel {
 
     /// Live load: try the tuner's HLS upstream directly first (engine ingest, Jellyfin out of the data path), fall back to the Jellyfin-mediated path once per session. TS/static channels and those without a usable upstream URL go straight to the server path. Design: docs/superpowers/specs/2026-06-11-live-hls-ingest-direct-play-design.md.
     func loadLiveStream() async throws {
+        // A channel that direct-played before needs nothing from Jellyfin but its upstream URL, and that
+        // URL is remembered. Skipping stage-1 drops the two serialized server round trips a zap otherwise
+        // pays: AutoOpenLiveStream (Jellyfin connects to the provider itself and ffprobes it) and the
+        // awaited tuner close that has to follow it.
+        if !didAttemptLiveFallback,
+           let memory = directStreamMemory,
+           let remembered = memory.upstream(userID: userID, channelID: item.id) {
+            let reader = HLSLiveIngestReader(playlistURL: remembered)
+            do {
+                LogTap.shared.note("[LiveDirect] route=direct source=remembered upstream=\(remembered.absoluteString)")
+                // No tuner was opened, so there is nothing to release and no transcode to correlate. The
+                // synthesized ids exist purely so the Jellyfin session reports still form one session.
+                try await startDirectIngest(
+                    reader: reader,
+                    playSessionID: UUID().uuidString,
+                    mediaSourceID: item.id
+                )
+                return
+            } catch is CancellationError {
+                throw CancellationError()
+            } catch {
+                // A provider can re-point a channel in its m3u without the Jellyfin item id changing. Drop
+                // the stale URL and negotiate a fresh one in THIS tune; the once-per-session server
+                // fallback is for a freshly negotiated URL failing, not for a stale remembered one.
+                usedDirectLivePath = false
+                memory.forget(userID: userID, channelID: item.id)
+                let detail = reader.terminalError.map { " ingest=\($0)" } ?? ""
+                LogTap.shared.note("[LiveDirect] remembered upstream failed, renegotiating: \(error)\(detail)")
+            }
+        }
+
         // Stage-1 PlaybackInfo: copy ceiling + the tuner upstream URL (MediaSource.Path) for the direct attempt.
         let info = try await playbackService.getLivePlaybackInfo(
             itemID: item.id, userID: userID,
@@ -74,11 +105,29 @@ extension PlayerViewModel {
                 LogTap.shared.note("[LiveDirect] tuner close timed out, server will reap it")
             }
         }
-        playSessionID = info.playSessionId
-        mediaSourceID = source.id
+        LogTap.shared.note("[LiveDirect] route=direct upstream=\(upstream.absoluteString)")
+        try await startDirectIngest(
+            reader: reader,
+            playSessionID: info.playSessionId,
+            mediaSourceID: source.id
+        )
+        // Only a URL that actually played is worth remembering; the next tune of this channel skips
+        // stage-1 entirely and goes straight to the ingest above.
+        directStreamMemory?.remember(upstream, userID: userID, channelID: item.id)
+    }
+
+    /// Hand an upstream playlist to the engine's HLS ingest and wire the live session state around it.
+    /// Shared by the negotiated direct path and the remembered-URL shortcut, which differ only in where
+    /// the URL and the session ids come from.
+    private func startDirectIngest(
+        reader: HLSLiveIngestReader,
+        playSessionID: String?,
+        mediaSourceID: String
+    ) async throws {
+        self.playSessionID = playSessionID
+        self.mediaSourceID = mediaSourceID
         activeLiveStreamID = nil
         usedDirectLivePath = true
-        LogTap.shared.note("[LiveDirect] route=direct upstream=\(upstream.absoluteString)")
 
         observeLiveEdge()
         try await player.load(
