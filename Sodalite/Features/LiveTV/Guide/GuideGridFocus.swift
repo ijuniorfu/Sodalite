@@ -112,6 +112,7 @@ extension GuideGridViewController {
         if collectionView === columnView {
             // The column is where the restore actually lands, so it releases the chrome as well.
             onGridFocused?()
+            if correctRestoreLanding(in: collectionView, landed: indexPath) { return }
             guard indexPath.item < rows.count else { return }
             model.anchorChannelID = rows[indexPath.item].channel.id
             updateHero(section: indexPath.item, item: nil)
@@ -120,6 +121,7 @@ extension GuideGridViewController {
 
         guard collectionView === gridView else { return }
         onGridFocused?()
+        if correctRestoreLanding(in: collectionView, landed: indexPath) { return }
         // Focus actually moved, so the redirect is healthy: clear the hatch so it only fires on a
         // genuinely repeated (failed) proposal.
         pendingFocusRedirect = nil
@@ -160,6 +162,30 @@ extension GuideGridViewController {
         else { return }
         rulerView.setContentOffset(CGPoint(x: target, y: 0), animated: false)
         gridView.setContentOffset(CGPoint(x: target, y: gridView.contentOffset.y), animated: true)
+    }
+
+    /// Put the restored focus on the channel that was playing, once.
+    ///
+    /// Coming back from the player, the focus engine picks a focusable item geometrically and never
+    /// asks `indexPathForPreferredFocusedView`, so it lands a few channels off. Focus is on one of
+    /// our own cells by then, and `setNeedsFocusUpdate` on the view that holds it re-resolves through
+    /// the delegate, which does answer from the anchor.
+    ///
+    /// Returns true when a correction is under way, so the caller leaves the anchor alone: adopting
+    /// the wrong landing is what made every later attempt aim at the wrong row as well.
+    func correctRestoreLanding(in collectionView: UICollectionView, landed: IndexPath) -> Bool {
+        guard let deadline = restoreCorrectionDeadline else { return false }
+        restoreCorrectionDeadline = nil
+        guard Date() < deadline,
+              let desired = indexPathForPreferredFocusedView(in: collectionView),
+              desired != landed
+        else { return false }
+        #if DEBUG
+        GuideGeometryProbe.logRequest("correcting landing \(landed) -> \(desired)")
+        #endif
+        collectionView.setNeedsFocusUpdate()
+        collectionView.updateFocusIfNeeded()
+        return true
     }
 
     /// Feed the hero. `item` nil means focus is on the channel column, where the hero shows what is

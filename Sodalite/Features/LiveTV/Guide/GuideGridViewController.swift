@@ -70,6 +70,11 @@ final class GuideGridViewController: UIViewController,
     private var didInitialScroll = false
     private var lastScrollRequestVersion = 0
     var lastFocusRequest = 0
+    /// Set when the player closes, cleared by the first focus that arrives in the guide. The restore
+    /// picks its item geometrically and asks nobody, so the landing has to be corrected afterwards.
+    /// A deadline, not a plain flag: if focus never arrives, an unrelated move minutes later must not
+    /// be treated as the restore.
+    var restoreCorrectionDeadline: Date?
 
     let metrics: GuideMetrics
 
@@ -705,7 +710,10 @@ struct GuideGridContainer: UIViewControllerRepresentable {
             #endif
             // Not on the first pass: 0 is the initial value, and taking focus at launch would pull it
             // off whatever the tab itself wants focused.
-            if focusRequest > 0 { controller.requestGridFocus() }
+            if focusRequest > 0 {
+                controller.restoreCorrectionDeadline = Date().addingTimeInterval(3)
+                controller.requestGridFocus()
+            }
         }
     }
 }
