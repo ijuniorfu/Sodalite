@@ -84,20 +84,6 @@ extension GuideGridViewController {
     func collectionView(_ collectionView: UICollectionView,
                         didUpdateFocusIn context: UICollectionViewFocusUpdateContext,
                         with coordinator: UIFocusAnimationCoordinator) {
-        #if DEBUG
-        let which = collectionView === gridView ? "grid"
-            : (collectionView === columnView ? "column" : "ruler")
-        GuideGeometryProbe.logFocus(
-            "didUpdate \(which) \(String(describing: context.previouslyFocusedIndexPath))"
-            + " -> \(String(describing: context.nextFocusedIndexPath))")
-        // Entering or leaving the grid goes in the reserved budget too: whether focus came back
-        // after the player is the whole question, and navigation chatter must not bury it.
-        if context.previouslyFocusedIndexPath == nil || context.nextFocusedIndexPath == nil {
-            GuideGeometryProbe.logRequest(
-                "\(which) \(String(describing: context.previouslyFocusedIndexPath))"
-                + " -> \(String(describing: context.nextFocusedIndexPath))")
-        }
-        #endif
         guard let indexPath = context.nextFocusedIndexPath else { return }
 
         if collectionView === rulerView {
@@ -129,7 +115,6 @@ extension GuideGridViewController {
         guard indexPath.section < rows.count else { return }
         model.anchorChannelID = rows[indexPath.section].channel.id
         updateHero(section: indexPath.section, item: indexPath.item)
-        recordGeometry("focus")
 
         let vertical = context.focusHeading.contains(.up) || context.focusHeading.contains(.down)
         if vertical || context.previouslyFocusedIndexPath == nil {
@@ -180,9 +165,6 @@ extension GuideGridViewController {
               let desired = indexPathForPreferredFocusedView(in: collectionView),
               desired != landed
         else { return false }
-        #if DEBUG
-        GuideGeometryProbe.logRequest("correcting landing \(landed) -> \(desired)")
-        #endif
         collectionView.setNeedsFocusUpdate()
         collectionView.updateFocusIfNeeded()
         return true

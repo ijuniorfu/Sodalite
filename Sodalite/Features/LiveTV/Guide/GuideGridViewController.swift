@@ -120,10 +120,8 @@ final class GuideGridViewController: UIViewController,
         gridView.clipsToBounds = true
         gridView.dataSource = self
         gridView.delegate = self
-        // On, and it has to be: without it, coming back from the player drops focus out of the
-        // grid entirely and it lands on the segment picker instead of the channel being watched.
-        // A programmatic jump is not at risk from it, because indexPathForPreferredFocusedView
-        // takes priority over the remembered path and answers from the anchor.
+        // Not what brings focus back from the player (see LiveTVTabView.chromeFocusSuppressed and
+        // correctRestoreLanding), but it keeps the row when focus merely steps out to the ruler.
         gridView.remembersLastFocusedIndexPath = true
         gridView.contentInsetAdjustmentBehavior = .never
         gridView.register(GuideProgramCell.self, forCellWithReuseIdentifier: GuideProgramCell.reuseID)
@@ -231,74 +229,11 @@ final class GuideGridViewController: UIViewController,
 
         if !didInitialScroll, gridView.bounds.width > 0, model.axis.totalWidth > 0 {
             didInitialScroll = true
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [weak self] in
-                self?.recordGeometry("initial-layout")
-            }
             // The anchor, not Date(): a jump requested before this controller existed (a category
             // snap while the list was still empty) is already sitting in anchorTime, and the
             // observer only fires on a CHANGE, so it would otherwise be dropped.
             scrollGrid(to: model.anchorTime, animated: false)
         }
-    }
-
-    /// Take focus back into the grid after the live player closes.
-    ///
-    /// Declaring the grid as the preferred focus environment was not enough. When the player's cover
-    /// dismisses, focus is restored from the SwiftUI side and lands on the segment picker above the
-    /// guide, and from there neither `preferredFocusEnvironments` nor `remembersLastFocusedIndexPath`
-    /// is consulted. `requestFocusUpdate` moves focus across that boundary explicitly, and
-    /// `indexPathForPreferredFocusedView` answers from the anchor, so it lands on the channel that
-    /// was being watched rather than on the first cell.
-    func requestGridFocus(attempt: Int = 0) {
-        #if os(tvOS)
-        guard isActive, gridView != nil, attempt < 8, !gridHasFocus else {
-            #if DEBUG
-            GuideGeometryProbe.logRequest(
-                "stop attempt=\(attempt) active=\(isActive) "
-                + "gridHasFocus=\(gridView == nil ? false : gridHasFocus)")
-            #endif
-            return
-        }
-        let system = UIFocusSystem.focusSystem(for: gridView)
-        // The cell when it exists, not the collection view: a request aimed at a container has to be
-        // resolved to a focusable item by the engine, and that resolution lost to the segment picker.
-        let preferred = indexPathForPreferredFocusedView(in: gridView)
-        let cell = preferred.flatMap { gridView.cellForItem(at: $0) }
-        #if DEBUG
-        GuideGeometryProbe.logRequest(
-            "attempt=\(attempt) system=\(system != nil) "
-            + "focused=\(GuideGeometryProbe.focusedDescription(near: gridView)) "
-            + "preferred=\(String(describing: preferred)) "
-            + "cell=\(cell == nil ? "nil" : "yes") "
-            + "cellCanFocus=\(cell?.canBecomeFocused ?? false) "
-            + "gridCanFocus=\(gridView.canBecomeFocused) "
-            + GuideGeometryProbe.environmentSummary(for: gridView))
-        #endif
-        if let system {
-            system.requestFocusUpdate(to: cell ?? gridView)
-            system.updateFocusIfNeeded()
-        }
-        // The cover's dismissal animation is still running on the first pass, so retry until it takes.
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) { [weak self] in
-            self?.requestGridFocus(attempt: attempt + 1)
-        }
-        #endif
-    }
-
-    /// Grid or channel column: either is a good landing place, and both keep the anchor honest. Only
-    /// the chrome above the guide is worth chasing focus away from.
-    private var gridHasFocus: Bool {
-        [gridView, columnView].contains { view in
-            guard let view else { return false }
-            return view.indexPathsForVisibleItems.contains { view.cellForItem(at: $0)?.isFocused == true }
-        }
-    }
-
-    /// Ground truth for the bottom-row defect. DEBUG only, see `GuideGeometryProbe`.
-    func recordGeometry(_ label: String) {
-        #if DEBUG
-        GuideGeometryProbe.record(label, controller: self, grid: gridView, column: columnView)
-        #endif
     }
 
     /// Fade the row the bottom edge cuts through, instead of leaving it chopped in half.
@@ -705,14 +640,12 @@ struct GuideGridContainer: UIViewControllerRepresentable {
         if controller.isActive != isActive { controller.isActive = isActive }
         if controller.lastFocusRequest != focusRequest {
             controller.lastFocusRequest = focusRequest
-            #if DEBUG
-            GuideGeometryProbe.logRequest("container saw focusRequest=\(focusRequest)")
-            #endif
             // Not on the first pass: 0 is the initial value, and taking focus at launch would pull it
             // off whatever the tab itself wants focused.
+            // Arms the one-shot landing correction. Nothing is asked of the focus engine here:
+            // requesting focus into the grid was measured to be refused every single time.
             if focusRequest > 0 {
                 controller.restoreCorrectionDeadline = Date().addingTimeInterval(3)
-                controller.requestGridFocus()
             }
         }
     }

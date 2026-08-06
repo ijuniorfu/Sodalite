@@ -15,7 +15,8 @@ struct GuideView: View {
     let tint: Color
     var onWatchLive: ((LivePlaybackContext) -> Void)?
     var isActive: Bool = true
-    /// Bumped by the tab when the live player closes. See `GuideGridViewController.requestGridFocus`.
+    /// Bumped by the tab when the live player closes, arming the one-shot correction of where the
+    /// restored focus lands. See `GuideGridViewController.correctRestoreLanding`.
     var focusRequest: Int = 0
     /// Set while the player runs and briefly after, so the chips do not compete for the restored
     /// focus with the grid.
