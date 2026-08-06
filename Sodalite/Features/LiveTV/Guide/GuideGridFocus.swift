@@ -60,6 +60,16 @@ extension GuideGridViewController {
     }
 
     func indexPathForPreferredFocusedView(in collectionView: UICollectionView) -> IndexPath? {
+        // The column has to answer too. Coming back from the player the restore lands here, not in
+        // the grid, and with no answer it picks geometrically: measured two channels off the one
+        // that was playing. Worse, the wrong cell then overwrote the anchor, so every later attempt
+        // aimed at the wrong row as well.
+        if collectionView === columnView {
+            guard let channelID = model.anchorChannelID,
+                  let index = rows.firstIndex(where: { $0.channel.id == channelID })
+            else { return nil }
+            return IndexPath(item: index, section: 0)
+        }
         guard collectionView === gridView else { return nil }
         if let pendingFocusRedirect { return pendingFocusRedirect }
         // Coming down from the ruler, or in from anywhere else: land on the channel the user left,
@@ -100,6 +110,8 @@ extension GuideGridViewController {
         }
 
         if collectionView === columnView {
+            // The column is where the restore actually lands, so it releases the chrome as well.
+            onGridFocused?()
             guard indexPath.item < rows.count else { return }
             model.anchorChannelID = rows[indexPath.item].channel.id
             updateHero(section: indexPath.item, item: nil)

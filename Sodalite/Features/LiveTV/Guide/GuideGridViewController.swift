@@ -280,8 +280,13 @@ final class GuideGridViewController: UIViewController,
         #endif
     }
 
+    /// Grid or channel column: either is a good landing place, and both keep the anchor honest. Only
+    /// the chrome above the guide is worth chasing focus away from.
     private var gridHasFocus: Bool {
-        gridView.indexPathsForVisibleItems.contains { gridView.cellForItem(at: $0)?.isFocused == true }
+        [gridView, columnView].contains { view in
+            guard let view else { return false }
+            return view.indexPathsForVisibleItems.contains { view.cellForItem(at: $0)?.isFocused == true }
+        }
     }
 
     /// Ground truth for the bottom-row defect. DEBUG only, see `GuideGeometryProbe`.
