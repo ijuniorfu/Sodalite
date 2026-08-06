@@ -66,7 +66,7 @@ enum JellyfinEndpoint: APIEndpoint {
     case deleteSubtitle(itemID: String, index: Int)
 
     // Live TV
-    case liveTvChannels(userID: String, startIndex: Int, limit: Int)
+    case liveTvChannels(userID: String, startIndex: Int, limit: Int, filter: GuideFilter)
     case liveTvPrograms(channelIDs: [String], userID: String, minEndDate: Date, maxStartDate: Date)
     case liveTvRecommendedPrograms(userID: String, category: LiveProgramCategory, limit: Int)
     case liveTvGuideInfo
@@ -354,7 +354,7 @@ enum JellyfinEndpoint: APIEndpoint {
                 URLQueryItem(name: "includeSegmentTypes", value: "Outro"),
             ]
 
-        case .liveTvChannels(let userID, let startIndex, let limit):
+        case .liveTvChannels(let userID, let startIndex, let limit, let filter):
             return [
                 URLQueryItem(name: "UserId", value: userID),
                 URLQueryItem(name: "StartIndex", value: String(startIndex)),
@@ -364,7 +364,7 @@ enum JellyfinEndpoint: APIEndpoint {
                 // Server-side favorite sorting (via UserData IsFavorite) keeps StartIndex pagination + incremental diffing intact, which a client re-sort would break.
                 URLQueryItem(name: "EnableUserData", value: "true"),
                 URLQueryItem(name: "EnableFavoriteSorting", value: "true"),
-            ]
+            ] + filter.queryItems
 
         case .liveTvPrograms(let channelIDs, let userID, let minEnd, let maxStart):
             // Local formatter: ISO8601DateFormatter isn't Sendable so can't be a shared static; these requests are low-frequency.

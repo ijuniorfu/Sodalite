@@ -31,9 +31,24 @@ struct LivePlayerLauncher: UIViewControllerRepresentable {
         }
     }
 
-    /// Present only once the info popover (a SwiftUI sheet from this host) has
-    /// finished dismissing; presenting mid-dismiss fails ("view is not in the
-    /// window hierarchy"), so poll (40 x 50ms) until host has nothing presented.
+    /// Anything still presented ANYWHERE above the window root blocks the player: UIKit refuses to
+    /// present from a controller whose chain is already presenting. Checking only the host missed
+    /// the iPhone channel list, which can be two sheets deep and is not presenting from the host,
+    /// so the poll passed instantly and the present failed silently (a dead "Watch live" button).
+    /// Strictly more conservative than the old check: it can only wait longer, never shorter.
+    private func blockingPresentation(above host: PlayerLauncherHostVC) -> UIViewController? {
+        var cursor: UIViewController? = host.view.window?.rootViewController ?? host
+        var blocker: UIViewController?
+        while let presented = cursor?.presentedViewController {
+            if !(presented is PlayerHostController) { blocker = presented }
+            cursor = presented
+        }
+        return blocker
+    }
+
+    /// Present only once the info popover (a SwiftUI sheet) has finished dismissing; presenting
+    /// mid-dismiss fails ("view is not in the window hierarchy"), so poll (40 x 50ms) until
+    /// nothing above the host is presented.
     private func attemptPresent(host: PlayerLauncherHostVC, liveContext: LivePlaybackContext, attempt: Int) {
         // Binding can flip false during the poll (user backed out); don't
         // launch a player nobody asked for.
@@ -41,7 +56,7 @@ struct LivePlayerLauncher: UIViewControllerRepresentable {
             host.pendingLivePresent = false
             return
         }
-        if let presented = host.presentedViewController, !(presented is PlayerHostController) {
+        if blockingPresentation(above: host) != nil {
             guard attempt < 40 else { host.pendingLivePresent = false; return }
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
                 attemptPresent(host: host, liveContext: liveContext, attempt: attempt + 1)
