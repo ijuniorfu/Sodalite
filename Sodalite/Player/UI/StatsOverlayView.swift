@@ -174,13 +174,26 @@ struct StatsOverlayView: View {
                     average: telemetry?.averageBitrateMbps
                 )
             )
-            row(
-                "player.stats.buffer",
-                value: Self.formatBufferPair(
-                    seconds: telemetry?.forwardBufferSeconds,
-                    cachedBytes: telemetry?.cachedBytes
+            // Both halves are native-only, so on the software path the row would read "— · — cached".
+            // The two rows below carry what that path holds instead (AetherEngine#306).
+            if telemetry?.forwardBufferSeconds != nil || telemetry?.cachedBytes != nil {
+                row(
+                    "player.stats.buffer",
+                    value: Self.formatBufferPair(
+                        seconds: telemetry?.forwardBufferSeconds,
+                        cachedBytes: telemetry?.cachedBytes
+                    )
                 )
-            )
+            }
+            // Decoded video queued past the clock. Sub-second on a healthy software session: the
+            // demux loop reads on renderer back-pressure, so this is a cushion, not a buffer.
+            if let cushion = telemetry?.displayCushionSeconds {
+                row("player.stats.decodeCushion", value: String(format: "%.2f s", cushion))
+            }
+            // Fetched but not yet demuxed: the runway that does exist ahead of the read cursor.
+            if let ahead = telemetry?.readerWindowAheadBytes {
+                row("player.stats.readerAhead", value: Self.formatByteCount(Int64(ahead)))
+            }
             row(
                 "player.stats.network",
                 value: Self.formatNetworkPair(
@@ -190,6 +203,9 @@ struct StatsOverlayView: View {
             )
             if let dropped = telemetry?.droppedFrameCount {
                 row("player.stats.droppedFrames", value: "\(dropped)")
+            }
+            if let delay = telemetry?.accumulatedFrameDelaySeconds {
+                row("player.stats.frameDelay", value: String(format: "%.2f s", delay))
             }
             if let fps = telemetry?.observedFps {
                 row("player.stats.fpsObserved", value: String(format: "%.2f fps", fps))
