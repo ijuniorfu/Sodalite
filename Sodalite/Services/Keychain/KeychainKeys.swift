@@ -46,6 +46,9 @@ enum KeychainKeys {
     /// Active user's avatar PrimaryImageTag, same lifecycle as `activeUserName`.
     static let activeUserImageTag = "activeUserImageTag"
 
+    /// JSON `[String: LiveDirectStreamMemory.Entry]` keyed by `userID|channelID`: the provider URL each live channel last direct-played from. Keychain, not UserDefaults, because an Xtream-style upstream carries the provider's credentials in its path.
+    static let liveDirectStreams = "liveDirectStreams"
+
     /// JSON `GuardianPINCrypto.Blob`. Device-global (one household PIN, not per-server); absent = no PIN. Keychain so wiping UserDefaults can't reset the lock or its throttle.
     static let guardianPINBlob = "guardianPINBlob"
 

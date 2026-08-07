@@ -534,6 +534,8 @@ final class PlayerViewModel {
     var usedDirectLivePath = false
     /// Latch: the once-per-session direct-to-Jellyfin fallback has been consumed.
     var didAttemptLiveFallback = false
+    /// Remembered upstream URLs, so a repeat tune of a direct channel skips Jellyfin entirely. Nil for VOD.
+    let directStreamMemory: LiveDirectStreamMemory?
 
     init(
         item: JellyfinItem,
@@ -548,7 +550,8 @@ final class PlayerViewModel {
         playQueue: [JellyfinItem] = [],
         isLiveSession: Bool = false,
         liveChannel: JellyfinChannel? = nil,
-        liveTvService: JellyfinLiveTvServiceProtocol? = nil
+        liveTvService: JellyfinLiveTvServiceProtocol? = nil,
+        directStreamMemory: LiveDirectStreamMemory? = nil
     ) {
         self.item = item
         self.player = DependencyContainer.playerEngine
@@ -566,6 +569,7 @@ final class PlayerViewModel {
         self.isLiveSession = isLiveSession
         self.liveChannel = liveChannel
         self.liveTvService = liveTvService
+        self.directStreamMemory = directStreamMemory
     }
 
     // MARK: - Lifecycle

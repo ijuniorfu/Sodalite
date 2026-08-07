@@ -173,6 +173,7 @@ struct LiveTVTabView: View {
                     liveTvService: dependencies.jellyfinLiveTvService,
                     userID: userID,
                     preferences: dependencies.playbackPreferences,
+                    directStreamMemory: dependencies.liveDirectStreamMemory,
                     tintColor: tint
                 )
                 .allowsHitTesting(false)
