@@ -63,6 +63,14 @@ struct CloudSyncRecoveryTests {
         #expect(CloudSyncRecovery.saveAction(for: CKError(.permissionFailure)) == .report)
     }
 
+    /// The reported defect: every record came back `Invalid Arguments (12/2006)`, "Cannot create
+    /// new type SyncSettingsStore in production schema". The request is malformed for the server
+    /// as sent, so the identical retry it used to get can only fail identically.
+    @Test("a request the server rejects as invalid is surfaced, not retried")
+    func invalidArgumentsSurfaces() {
+        #expect(CloudSyncRecovery.saveAction(for: CKError(.invalidArguments)) == .surfaceRejection)
+    }
+
     /// A whole batch that fails carries its per-record errors only in the partial error, so
     /// unpacking it is what lets the recovery above run at all.
     @Test("per-record errors are unpacked from a failed batch")

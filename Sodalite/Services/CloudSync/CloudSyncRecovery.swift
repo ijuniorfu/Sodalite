@@ -22,6 +22,10 @@ enum CloudSyncRecovery {
         case retry
         /// Out of iCloud storage. Surfacing it is all we can do.
         case surfaceQuota
+        /// The server rejected the request itself, not its content, so the same record sent again
+        /// is rejected again. The case that shipped: the container's production schema has no
+        /// record type to save into, which no client-side recovery can create.
+        case surfaceRejection
         /// Nothing actionable beyond the log line.
         case report
     }
@@ -59,6 +63,8 @@ enum CloudSyncRecovery {
             .retry
         case .quotaExceeded:
             .surfaceQuota
+        case .invalidArguments:
+            .surfaceRejection
         default:
             .report
         }
@@ -103,5 +109,28 @@ enum CloudSyncRecovery {
         guard let ckError = error as? CKError else { return error.localizedDescription }
         guard let first = partialSaveErrors(in: error).values.first else { return ckError.localizedDescription }
         return "\(ckError.localizedDescription) (\(first.localizedDescription))"
+    }
+}
+
+/// Keeps a permanently failing upload visible until an upload actually lands.
+///
+/// Downloading and uploading fail independently, but only one status row reports both, and a fetch
+/// succeeds even against a zone this device has never managed to write a record into. Every such
+/// fetch used to settle the row back to "Active, last synced …", so a device whose every upload the
+/// server rejected still claimed a recent sync. That is what made the defect behind #45 invisible
+/// across three devices for two weeks.
+struct CloudSyncStatusLatch {
+    private var failure: String?
+
+    mutating func latch(_ message: String) { failure = message }
+
+    mutating func clear() { failure = nil }
+
+    /// The status to actually show. A healthy candidate cannot clear the latch, only a save that
+    /// lands can, and the transient and terminal states pass through so an in-flight push still
+    /// reads as in-flight and a missing account still names itself.
+    func resolve(_ candidate: CloudSyncStatus) -> CloudSyncStatus {
+        guard let failure, case .active = candidate else { return candidate }
+        return .error(failure)
     }
 }

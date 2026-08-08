@@ -84,6 +84,9 @@ final class CloudSyncService: CloudSyncServiceProtocol {
     /// instead of spinning fetch/send forever.
     private var resyncCount = 0
     private static let maxResyncsPerSession = 2
+    /// Holds an upload failure the server will keep rejecting, so the next fetch (which succeeds
+    /// against a zone this device has never written to) cannot report the row back to healthy.
+    private var statusLatch = CloudSyncStatusLatch()
 
     init(dependencies: DependencyContainer, preferences: CloudSyncPreferences = CloudSyncPreferences()) {
         self.dependencies = dependencies
@@ -104,8 +107,21 @@ final class CloudSyncService: CloudSyncServiceProtocol {
         startTask = Task { await startEngine() }
     }
 
+    /// Every settled "healthy" status goes through here so a latched upload failure survives it.
+    private func settleActive() {
+        status = statusLatch.resolve(.active(lastSyncAt: preferences.lastSyncAt))
+    }
+
+    /// An upload failure the server will repeat for the same record: show it, and keep showing it
+    /// until an upload actually lands.
+    private func latchFailure(_ message: String) {
+        statusLatch.latch(message)
+        status = .error(message)
+    }
+
     func setEnabled(_ enabled: Bool) {
         preferences.isEnabled = enabled
+        statusLatch.clear()
         if enabled {
             start()
         } else {
@@ -166,7 +182,7 @@ final class CloudSyncService: CloudSyncServiceProtocol {
             let engine = CKSyncEngine(config)
             self.engine = engine
             engine.state.add(pendingDatabaseChanges: [.saveZone(CKRecordZone(zoneID: Self.zoneID))])
-            status = .active(lastSyncAt: preferences.lastSyncAt)
+            settleActive()
 
             // Replay anything queued while the engine was unavailable (signed out,
             // failed start, or before this start() completed) so it isn't lost.
@@ -315,7 +331,7 @@ final class CloudSyncService: CloudSyncServiceProtocol {
             // it now rather than leaving the user's push to the automatic scheduler.
             try? await engine.sendChanges()
             if case .syncing = self.status {
-                self.status = .active(lastSyncAt: self.preferences.lastSyncAt)
+                self.settleActive()
             }
         }
     }
@@ -334,7 +350,7 @@ final class CloudSyncService: CloudSyncServiceProtocol {
         await fetchNow()
         // A fetch that changed nothing never posts .fetchedRecordZoneChanges, so settle
         // the transient state here instead of leaving it stuck on "Syncing…".
-        if case .syncing = status { status = .active(lastSyncAt: preferences.lastSyncAt) }
+        if case .syncing = status { settleActive() }
         return CloudSyncLoadOutcome.resolve(
             status: status,
             hasServers: !dependencies.listKnownServers().isEmpty
@@ -416,7 +432,7 @@ final class CloudSyncService: CloudSyncServiceProtocol {
             // records were saved; only settle a push that sent nothing back itself.
             guard let self else { return }
             if case .syncing = self.status {
-                self.status = .active(lastSyncAt: self.preferences.lastSyncAt)
+                self.settleActive()
             }
         }
     }
@@ -443,6 +459,7 @@ final class CloudSyncService: CloudSyncServiceProtocol {
         }
         preferences.resetForCloudDataDeletion()
         teardownEngine()
+        statusLatch.clear()
         status = .disabled
         LogTap.shared.note("[CloudSync] cloud data deleted, sync disabled")
     }
@@ -453,6 +470,7 @@ final class CloudSyncService: CloudSyncServiceProtocol {
         preferences.isEnabled = false
         preferences.resetForCloudDataDeletion()
         teardownEngine()
+        statusLatch.clear()
         status = .disabled
     }
 
@@ -740,6 +758,7 @@ extension CloudSyncService: CKSyncEngineDelegate {
             case .signOut, .switchAccounts:
                 preferences.resetForAccountChange()
                 teardownEngine()
+                statusLatch.clear()
                 status = .noAccount
             default:
                 break
@@ -764,13 +783,17 @@ extension CloudSyncService: CKSyncEngineDelegate {
                 applyRemoteDeletion(recordName: deletion.recordID.recordName)
             }
             preferences.lastSyncAt = Date()
-            status = .active(lastSyncAt: preferences.lastSyncAt)
+            settleActive()
             NotificationCenter.default.post(name: .cloudSyncDidApplyChanges, object: nil)
 
         case .sentRecordZoneChanges(let sent):
             for saved in sent.savedRecords {
                 preferences.setSystemFields(Self.encodeSystemFields(saved), for: saved.recordID.recordName)
             }
+            // An upload that lands is the only evidence that clears a latched rejection, and it
+            // has to clear before this batch's own failures are handled: a batch that saved some
+            // records and had others permanently rejected must come out latched, not healthy.
+            if !sent.savedRecords.isEmpty { statusLatch.clear() }
             for failure in sent.failedRecordSaves {
                 handleSaveFailure(failure, syncEngine: syncEngine)
             }
@@ -781,7 +804,7 @@ extension CloudSyncService: CKSyncEngineDelegate {
             recentLocalDeletes.subtract(sent.deletedRecordIDs.map(\.recordName))
             if !sent.savedRecords.isEmpty {
                 preferences.lastSyncAt = Date()
-                status = .active(lastSyncAt: preferences.lastSyncAt)
+                settleActive()
             }
 
         default:
@@ -867,8 +890,17 @@ extension CloudSyncService: CKSyncEngineDelegate {
         case .retry:
             addPendingSave(recordName: recordName)
         case .surfaceQuota:
-            status = .error(error.localizedDescription)
+            latchFailure(error.localizedDescription)
             LogTap.shared.note("[CloudSync] iCloud quota exceeded, save deferred: \(recordName)")
+        case .surfaceRejection:
+            // CloudKit's own text here is "Invalid Arguments", which tells a user nothing; the
+            // part worth reading ("Cannot create new type … in production schema") is a server
+            // message and goes to the diagnostic log, where a bug report can carry it.
+            latchFailure(String(
+                localized: "cloudSync.error.rejected",
+                defaultValue: "iCloud rejected this device's data. This is a fault in Sodalite, not on your device."
+            ))
+            LogTap.shared.note("[CloudSync] save rejected as invalid \(recordName): \(error)")
         case .report:
             LogTap.shared.note("[CloudSync] save failed \(recordName): \(error.code.rawValue)")
         }

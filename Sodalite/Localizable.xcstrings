@@ -62706,6 +62706,167 @@
         }
       }
     },
+    "cloudSync.error.rejected" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iCloud odmítl data tohoto zařízení. Jde o chybu v Sodalite, ne ve tvém zařízení."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iCloud afviste denne enheds data. Det er en fejl i Sodalite, ikke på din enhed."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iCloud hat die Daten dieses Geräts abgelehnt. Das ist ein Fehler in Sodalite, nicht auf deinem Gerät."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Το iCloud απέρριψε τα δεδομένα αυτής της συσκευής. Πρόκειται για σφάλμα του Sodalite, όχι της συσκευής σου."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iCloud rejected this device's data. This is a fault in Sodalite, not on your device."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iCloud rechazó los datos de este dispositivo. Es un fallo de Sodalite, no de tu dispositivo."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iCloud hylkäsi tämän laitteen tiedot. Vika on Sodalitessa, ei laitteessasi."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iCloud a refusé les données de cet appareil. C'est un défaut de Sodalite, pas de votre appareil."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iCloud je odbio podatke ovog uređaja. Riječ je o grešci u Sodaliteu, ne na tvom uređaju."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Az iCloud elutasította ennek az eszköznek az adatait. Ez a Sodalite hibája, nem az eszközödé."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iCloud ha rifiutato i dati di questo dispositivo. È un difetto di Sodalite, non del tuo dispositivo."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iCloudがこのデバイスのデータを拒否しました。デバイス側ではなくSodalite側の不具合です。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iCloud가 이 기기의 데이터를 거부했습니다. 기기 문제가 아니라 Sodalite의 결함입니다."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iCloud avviste dataene fra denne enheten. Det er en feil i Sodalite, ikke på enheten din."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iCloud heeft de gegevens van dit apparaat geweigerd. Dit is een fout in Sodalite, niet op je apparaat."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iCloud odrzucił dane tego urządzenia. To błąd w Sodalite, a nie w Twoim urządzeniu."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O iCloud rejeitou os dados deste dispositivo. É uma falha do Sodalite, não do seu dispositivo."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O iCloud rejeitou os dados deste dispositivo. É uma falha do Sodalite, não do seu dispositivo."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iCloud a respins datele acestui dispozitiv. Este o eroare în Sodalite, nu la dispozitivul tău."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iCloud отклонил данные этого устройства. Это ошибка в Sodalite, а не в вашем устройстве."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iCloud odmietol dáta tohto zariadenia. Ide o chybu v Sodalite, nie v tvojom zariadení."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iCloud avvisade den här enhetens data. Det är ett fel i Sodalite, inte på din enhet."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iCloud bu cihazın verilerini reddetti. Bu, cihazında değil Sodalite'de bir hatadır."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iCloud відхилив дані цього пристрою. Це помилка в Sodalite, а не у вашому пристрої."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iCloud 拒绝了此设备的数据。这是 Sodalite 的问题，与你的设备无关。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iCloud 拒絕了此裝置的資料。這是 Sodalite 的問題，與你的裝置無關。"
+          }
+        }
+      }
+    },
     "cloudSync.launch.loading" : {
       "extractionState" : "manual",
       "localizations" : {
