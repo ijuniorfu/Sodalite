@@ -90,6 +90,17 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
     /// Shorter clear hero window on a phone so content is reachable with one swipe.
     private var heroWindow: CGFloat { hSizeClass == .compact ? 320 : 500 }
 
+    /// Everything past the content block is scroll the viewer can travel with nothing to see, and the
+    /// filler used to be 600pt of it. On tvOS that is not just dead travel: the focus engine parks a
+    /// focused row ~180pt above the bottom edge, but the LAST row can only get as far as the maximum
+    /// scroll offset allows, so 680pt of trailing space (filler plus the 80pt padding) pinned a 400pt
+    /// poster row 2pt below the top edge and clipped its focus scale and ring (Sodalite#52, measured
+    /// in a tvOS focus probe). Keeping the trailing space near that ~180pt lands the last row where
+    /// every other row lands. Shorter still on a phone, where the same filler was most of a screen.
+    private var trailingFiller: CGFloat {
+        hSizeClass == .compact ? 60 : 120
+    }
+
     /// The reserved band and the hint itself are tvOS only: a scrollable page is self-evident on a
     /// touch device (Sodalite#53).
     private var reservesScrollHint: Bool {
@@ -179,8 +190,8 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
                 VStack(alignment: .leading, spacing: 40) {
                     content()
                 }
-                // Height of the real below-fold content. The 600pt trailing filler below makes every
-                // page technically scrollable, so the hint keys off this instead (Sodalite#53).
+                // Height of the real below-fold content. The trailing filler below makes every page
+                // technically scrollable, so the hint keys off this instead (Sodalite#53).
                 .onGeometryChange(for: CGFloat.self) { proxy in
                     proxy.size.height
                 } action: { height in
@@ -197,7 +208,7 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
                 .background(Color.black.opacity(0.55))
 
                 // Trailing filler so a short content block doesn't end in a hard gradient edge; same scrim, sized past any 4K tvOS safe-area inset.
-                Color.black.opacity(0.55).frame(minHeight: 600)
+                Color.black.opacity(0.55).frame(minHeight: trailingFiller)
             }
         }
         .background(Color.black.opacity(scrollDim).ignoresSafeArea())
