@@ -71,12 +71,25 @@ struct ExpandableTextBoxPlaceholder: View {
 struct TextOverlay: View {
     let text: String
     @Binding var isPresented: Bool
-    @FocusState private var isFocused: Bool
 
     var body: some View {
         ZStack {
             Color.black.opacity(0.85).ignoresSafeArea()
 
+            #if os(tvOS)
+            // A focusable ScrollView does not scroll on the remote; focus moving between its
+            // children does. One long Text is a single target, so a biography that overflows the
+            // screen simply stood still (Sodalite#57).
+            ScrollView {
+                VStack(alignment: .leading, spacing: 12) {
+                    ForEach(Array(TextBlockSplitter.split(text).enumerated()), id: \.offset) { _, block in
+                        FocusableTextBlock(text: block)
+                    }
+                }
+                .padding(60)
+                .frame(maxWidth: 1200)
+            }
+            #else
             ScrollView {
                 Text(text)
                     .font(.body)
@@ -84,8 +97,6 @@ struct TextOverlay: View {
                     .padding(60)
                     .frame(maxWidth: 1200)
             }
-            .focusable()
-            .focused($isFocused)
 
             VStack {
                 HStack {
@@ -102,6 +113,102 @@ struct TextOverlay: View {
                 }
                 Spacer()
             }
+            #endif
         }
+        // tvOS leaves with Menu, like the licences and changelog readers; a close button would only
+        // take the focus the text needs.
+        .onExitCommandCompat { isPresented = false }
+    }
+}
+
+#if os(tvOS)
+/// One block of the overlay text, focusable so the remote can step (and thereby scroll) through it.
+private struct FocusableTextBlock: View {
+    let text: String
+
+    // @FocusState not @Environment(\.isFocused): the latter doesn't propagate into a plain
+    // .focusable() View on tvOS.
+    @FocusState private var isFocused: Bool
+
+    var body: some View {
+        Text(text)
+            .font(.body)
+            .foregroundStyle(.primary)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+            .background(
+                RoundedRectangle(cornerRadius: 14)
+                    .fill(isFocused ? .white.opacity(0.12) : .clear)
+            )
+            .animation(.easeInOut(duration: 0.2), value: isFocused)
+            .focusable()
+            .focused($isFocused)
+    }
+}
+#endif
+
+/// Cuts long text into blocks a single tvOS focus step can show. Focus scrolls a block's *top* into
+/// view, so a block taller than the screen hides its own tail, which is the whole defect this
+/// exists to avoid: paragraphs first, sentences inside a paragraph that is still too long, words
+/// inside a sentence that is (an unpunctuated wall of text still has to scroll).
+enum TextBlockSplitter {
+    /// Well under a screen of tvOS body text at 1200pt wide (~2000 characters), and large enough to
+    /// leave ordinary prose paragraphs whole.
+    static let maxBlockLength = 700
+
+    static func split(_ text: String) -> [String] {
+        let blocks = text
+            .components(separatedBy: "\n\n")
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
+            .flatMap { pack(units(of: $0)) }
+        // Never nothing: blank text would leave the overlay without a focus target, and on tvOS
+        // that is a screen the Menu button cannot leave.
+        return blocks.isEmpty ? [text] : blocks
+    }
+
+    /// Sentences, and words for a sentence that is longer than a block on its own.
+    private static func units(of paragraph: String) -> [String] {
+        guard paragraph.count > maxBlockLength else { return [paragraph] }
+        var sentences: [String] = []
+        // The enclosing range, not the substring: it carries the separators, so the pieces rejoin
+        // into the paragraph exactly.
+        paragraph.enumerateSubstrings(in: paragraph.startIndex..., options: .bySentences) { _, _, enclosing, _ in
+            sentences.append(String(paragraph[enclosing]))
+        }
+        if sentences.isEmpty { sentences = [paragraph] }
+        return sentences.flatMap { $0.count > maxBlockLength ? splitOnWords($0) : [$0] }
+    }
+
+    private static func splitOnWords(_ sentence: String) -> [String] {
+        var blocks: [String] = []
+        var current = ""
+        for word in sentence.split(separator: " ", omittingEmptySubsequences: false) {
+            let candidate = current.isEmpty ? String(word) : current + " " + word
+            if candidate.count > maxBlockLength, !current.isEmpty {
+                blocks.append(current)
+                current = String(word)
+            } else {
+                current = candidate
+            }
+        }
+        if !current.isEmpty { blocks.append(current) }
+        return blocks
+    }
+
+    private static func pack(_ units: [String]) -> [String] {
+        var blocks: [String] = []
+        var current = ""
+        for unit in units {
+            if !current.isEmpty, current.count + unit.count > maxBlockLength {
+                blocks.append(current.trimmingCharacters(in: .whitespacesAndNewlines))
+                current = ""
+            }
+            current += unit
+        }
+        let last = current.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !last.isEmpty { blocks.append(last) }
+        return blocks
     }
 }
