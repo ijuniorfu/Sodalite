@@ -390,7 +390,9 @@ struct CatalogDetailView: View {
     private var trailingBody: some View {
         VStack(alignment: .leading, spacing: 24) {
             if let overview, !overview.isEmpty {
-                ExpandableTextBox(text: overview)
+                // Up out of the box lands on the row's last button, here Withdraw request, unless it
+                // is corrected: the engine resolves it from the box's centre (Sodalite#53).
+                ExpandableTextBox(text: overview, onFocusMovedUp: { focusedField = .request })
             }
 
             // The stub rides along on `/movie/{id}`, so the entry point costs no extra request; the parts are fetched only once the collection is opened.

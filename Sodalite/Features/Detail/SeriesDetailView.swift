@@ -179,9 +179,15 @@ struct SeriesDetailView: View {
                                 // displayItem is the series in series mode and the selected episode
                                 // in episode mode, so the series overview stays visible (the policy
                                 // ignores .series) while the episode overview is veiled.
-                                ExpandableTextBox(text: overview, spoilerItem: displayItem)
-                                    .padding(.horizontal, metrics.rowInset)
-                                    .id(displayItem.id)
+                                // Up out of the box lands on the row's last button, Delete, unless it
+                                // is corrected: the engine resolves it from the box's centre (Sodalite#53).
+                                ExpandableTextBox(
+                                    text: overview,
+                                    spoilerItem: displayItem,
+                                    onFocusMovedUp: { playButtonFocused = true }
+                                )
+                                .padding(.horizontal, metrics.rowInset)
+                                .id(displayItem.id)
                             } else if !isShowingEpisode && !vm.hasFullDetail {
                                 // Slim-snapshot paint, overview in flight: reserve the footprint so it doesn't pop in and shove the season row down (Sodalite#15).
                                 ExpandableTextBoxPlaceholder()

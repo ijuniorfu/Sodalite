@@ -105,8 +105,12 @@ struct CatalogCollectionView: View {
                 .padding(.horizontal, metrics.rowInset)
             }) {
                 if let overview = detail?.overview, !overview.isEmpty {
-                    ExpandableTextBox(text: overview)
-                        .padding(.horizontal, metrics.rowInset)
+                    // Up out of the box lands on the row's last button unless corrected (Sodalite#53).
+                    ExpandableTextBox(
+                        text: overview,
+                        onFocusMovedUp: { focusedField = .action }
+                    )
+                    .padding(.horizontal, metrics.rowInset)
                 }
 
                 partsGrid

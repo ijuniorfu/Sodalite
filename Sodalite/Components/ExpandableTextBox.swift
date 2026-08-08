@@ -4,6 +4,9 @@ struct ExpandableTextBox: View {
     let text: String
     /// Sodalite#50. nil keeps the component exactly as it was for callers with nothing to spoil.
     var spoilerItem: JellyfinItem?
+    /// tvOS: where focus goes when the viewer moves up out of the box (see onFocusMoveUp). Detail
+    /// pages hand it their play button; nil keeps stock navigation for every other caller.
+    var onFocusMovedUp: (() -> Void)?
 
     @State private var showFullText = false
     @FocusState private var isFocused: Bool
@@ -52,6 +55,7 @@ struct ExpandableTextBox: View {
                 }
                 showFullText = true
             }
+            .onFocusMoveUp(onFocusMovedUp)
             .fullScreenCover(isPresented: $showFullText) {
                 TextOverlay(text: text, isPresented: $showFullText)
             }
