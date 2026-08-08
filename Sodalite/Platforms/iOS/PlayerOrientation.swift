@@ -84,12 +84,13 @@ enum PlayerOrientation {
     /// The exit picks no target of its own, on purpose. Rotating back to the orientation the session
     /// started in is wrong the moment the user turns the phone during playback: the app snaps to the
     /// entry orientation and the device attitude immediately pulls it back out, one visible bounce per
-    /// exit, in both directions. Releasing the mask is the whole job, because for any screen that is
-    /// not the player the system already resolves this correctly, the attitude when rotation is free
-    /// and the locked orientation when the system rotation lock is on.
+    /// exit, in both directions. The system resolves this correctly for every screen that is not the
+    /// player, the attitude when rotation is free and the locked orientation when the system rotation
+    /// lock is on, and it is the only party that can, the app cannot read the rotation lock. So it
+    /// gets asked (`releaseToSystem`) instead of second-guessed.
     ///
-    /// It only resolves correctly once the player is gone, which is the other half of Sodalite#54:
-    /// release the mask while the dismissal is still running and the decision goes back to a modal
+    /// The ask only resolves correctly once the player is gone, which is the other half of
+    /// Sodalite#54: hand the decision back while the dismissal is still running and it goes to a modal
     /// that is still on screen and still asks for landscape, after which nothing re-resolves and the
     /// app sits in landscape until it is backgrounded. Holding the session mask that long costs
     /// nothing, player and app root read the same mask, so the transition never lacks a common
@@ -118,8 +119,22 @@ enum PlayerOrientation {
             }
             guard generation == restoreGeneration, isRestoring else { return }
             endRestore()
-            refreshSupportedOrientations()
+            releaseToSystem()
         }
+    }
+
+    /// Handing the orientation back is an explicit request, not the absence of one.
+    ///
+    /// Dropping the mask only widens what is allowed, and the system keeps an orientation that is
+    /// still allowed, so the app stays in the landscape the player forced. With rotation free the
+    /// device attitude pulls it out a moment later and the defect is invisible; with the system
+    /// rotation lock on there is no attitude input left, and the app sits in landscape until the lock
+    /// is switched off or the app is backgrounded, which is the original Sodalite#54 report. The wide
+    /// geometry request makes the system re-resolve, and it lands on the attitude or on the locked
+    /// orientation depending on which of the two applies, without the app having to know which.
+    private static func releaseToSystem() {
+        refreshSupportedOrientations()
+        scene?.requestGeometryUpdate(.iOS(interfaceOrientations: .allButUpsideDown))
     }
 
     private static func endRestore() {
