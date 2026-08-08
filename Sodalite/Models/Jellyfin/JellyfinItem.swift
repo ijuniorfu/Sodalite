@@ -33,6 +33,10 @@ struct JellyfinItem: Codable, Sendable, Identifiable, Equatable, Hashable {
     let people: [PersonInfo]?
     let studios: [StudioInfo]?
     let collectionType: String?
+    /// Jellyfin `LocationType`. Carried on every /Items response without asking for a Field, and
+    /// "Virtual" is the only value that matters here (see `isVirtual`). `var` with a default so the
+    /// hand-written inits below stay untouched.
+    var locationType: String?
     let childCount: Int?
     /// Local trailer count (requires LocalTrailerCount in Fields); gates the detail Trailer button. nil if unrequested.
     let localTrailerCount: Int?
@@ -59,6 +63,14 @@ struct JellyfinItem: Codable, Sendable, Identifiable, Equatable, Hashable {
         guard let ids = providerIds else { return nil }
         let raw = ids["Tmdb"] ?? ids["tmdb"] ?? ids["TMDB"]
         return raw.flatMap(Int.init)
+    }
+
+    /// An entry the library lists but holds no file for: a missing or an unaired episode. Jellyfin
+    /// returns those alongside real ones whenever the user has "display missing episodes" on, and
+    /// they cannot be opened or played, so any row that promises library content drops them
+    /// (Sodalite#57).
+    var isVirtual: Bool {
+        locationType?.caseInsensitiveCompare("Virtual") == .orderedSame
     }
 
     /// Does this item actually carry `provider.value` (e.g. "tmdb.1399")? Jellyfin has no server-side
@@ -103,6 +115,7 @@ struct JellyfinItem: Codable, Sendable, Identifiable, Equatable, Hashable {
         case people = "People"
         case studios = "Studios"
         case collectionType = "CollectionType"
+        case locationType = "LocationType"
         case childCount = "ChildCount"
         case localTrailerCount = "LocalTrailerCount"
         case seriesPrimaryImageTag = "SeriesPrimaryImageTag"

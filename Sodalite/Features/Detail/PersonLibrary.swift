@@ -100,11 +100,20 @@ enum PersonLibrary {
             sortOrder: sortOrder,
             limit: rowLimit,
             personIDs: [personID],
+            // Asked for on the wire so the row limit is spent on titles the library actually holds.
+            isMissing: type == .episode ? false : nil,
             // Card rows need image tags only; a tap re-fetches full fields in the detail view.
             fields: JellyfinEndpoint.homeRowFields
         )
         let response = try? await itemService.getCollectionItems(userID: userID, query: query)
-        return response?.items ?? []
+        return presentable(response?.items ?? [])
+    }
+
+    /// "In Your Library" has to mean it. A server with "display missing episodes" on lists episodes
+    /// it holds no file for, and Jellyfin's `IsMissing` filter covers the missing ones but not the
+    /// unaired ones, so the location decides here rather than the query (Sodalite#57).
+    static func presentable(_ items: [JellyfinItem]) -> [JellyfinItem] {
+        items.filter { !$0.isVirtual }
     }
 
     private static func normalized(_ value: String) -> String {

@@ -497,6 +497,10 @@ struct ItemQuery: Sendable {
     /// `PersonIds=`: every item a person is credited on. Unlike provider ids this one Jellyfin does
     /// filter server-side, so the person page can ask for its library titles directly (Sodalite#57).
     var personIDs: [String]?
+    /// `IsMissing=false` keeps episodes the server lists without holding a file out of the response.
+    /// Jellyfin applies it to episodes only, and it covers missing but not unaired ones, so callers
+    /// still check `isVirtual` on what comes back (Sodalite#57).
+    var isMissing: Bool?
     var fields: String?
     /// `CollapseBoxSetItems`: false (the default) keeps every movie standing alone, true forces
     /// BoxSet grouping, nil omits the param so the server's own "Group movies into collections"
@@ -535,6 +539,7 @@ struct ItemQuery: Sendable {
         if let personIDs, !personIDs.isEmpty {
             items.append(URLQueryItem(name: "PersonIds", value: personIDs.joined(separator: ",")))
         }
+        if let isMissing { items.append(URLQueryItem(name: "IsMissing", value: String(isMissing))) }
 
         let fields = fields ?? JellyfinEndpoint.defaultFields
         items.append(URLQueryItem(name: "Fields", value: fields))

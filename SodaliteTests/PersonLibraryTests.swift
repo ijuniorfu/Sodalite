@@ -131,10 +131,57 @@ struct PersonLibraryTests {
         #expect(results.isEmpty)
     }
 
-    private func item(_ id: String, type: String) throws -> JellyfinItem {
-        try JSONDecoder().decode(
+    // MARK: - Missing entries
+
+    /// A server with "display missing episodes" on returns episodes it holds no file for. They
+    /// cannot be opened or played, so a row headed "in Your Library" must not carry them.
+    @Test func virtualEpisodesAreKeptOutOfTheRows() async throws {
+        let spy = ItemsSpy()
+        spy.itemsByType = [
+            .episode: [
+                try item("real", type: "Episode", locationType: "FileSystem"),
+                try item("missing", type: "Episode", locationType: "Virtual"),
+            ],
+        ]
+
+        let results = await PersonLibrary.load(itemService: spy, userID: "u", personID: "p1")
+
+        #expect(results.episodes.map(\.id) == ["real"])
+    }
+
+    /// The row is gone rather than showing a title that isn't there, which is what the reporter saw.
+    @Test func aRowOfNothingButMissingEpisodesDisappears() async throws {
+        let spy = ItemsSpy()
+        spy.itemsByType = [.episode: [try item("missing", type: "Episode", locationType: "Virtual")]]
+
+        let results = await PersonLibrary.load(itemService: spy, userID: "u", personID: "p1")
+
+        #expect(results.episodes.isEmpty)
+        #expect(results.isEmpty)
+    }
+
+    /// Cheaper than filtering a full row away afterwards; the row limit gets spent on real titles.
+    @Test func theEpisodeQueryAsksTheServerToDropMissingOnes() async throws {
+        let spy = ItemsSpy()
+        _ = await PersonLibrary.load(itemService: spy, userID: "u", personID: "p1")
+
+        let episodeQuery = spy.queries.first { $0.includeItemTypes == [.episode] }
+        #expect(episodeQuery?.isMissing == false)
+        // IsMissing is an episode filter; sending it on the other two would be noise.
+        #expect(spy.queries.filter { $0.includeItemTypes != [.episode] }.allSatisfy { $0.isMissing == nil })
+    }
+
+    @Test func locationTypeDecodesFromTheServerField() throws {
+        #expect(try item("a", type: "Episode", locationType: "Virtual").isVirtual)
+        #expect(try !item("b", type: "Episode", locationType: "FileSystem").isVirtual)
+        #expect(try !item("c", type: "Episode").isVirtual)
+    }
+
+    private func item(_ id: String, type: String, locationType: String? = nil) throws -> JellyfinItem {
+        let location = locationType.map { #","LocationType":"\#($0)""# } ?? ""
+        return try JSONDecoder().decode(
             JellyfinItem.self,
-            from: Data(#"{"Id":"\#(id)","Name":"\#(id)","Type":"\#(type)"}"#.utf8)
+            from: Data(#"{"Id":"\#(id)","Name":"\#(id)","Type":"\#(type)"\#(location)}"#.utf8)
         )
     }
 
