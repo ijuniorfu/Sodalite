@@ -105,12 +105,10 @@ struct CatalogCollectionView: View {
                 .padding(.horizontal, metrics.rowInset)
             }) {
                 if let overview = detail?.overview, !overview.isEmpty {
-                    // Up out of the box lands on the row's last button unless corrected (Sodalite#53).
-                    ExpandableTextBox(
-                        text: overview,
-                        onFocusMovedUp: { focusedField = .action }
-                    )
-                    .padding(.horizontal, metrics.rowInset)
+                    // No correction needed here, unlike the other detail pages: the action block holds
+                    // exactly one focusable button, so an up-move has nowhere else to land (Sodalite#53).
+                    ExpandableTextBox(text: overview)
+                        .padding(.horizontal, metrics.rowInset)
                 }
 
                 partsGrid

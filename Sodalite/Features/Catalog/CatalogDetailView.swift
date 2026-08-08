@@ -53,6 +53,9 @@ struct CatalogDetailView: View {
 
     /// First-screen focus. Seeded to `.request` once loaded so no focus lands below the fold and triggers an on-open auto-scroll (old tab-bar-stuck-hidden bug). Request with no seasons picked moves focus to `.seasons` to scroll the picker into view.
     @FocusState private var focusedField: DetailFocus?
+    /// Overview box below the fold holds focus: Withdraw request leaves the focus engine for that
+    /// time so an up-move can only land on the request button (Sodalite#53 follow-up).
+    @State private var overviewHasFocus = false
     private enum DetailFocus: Hashable { case request, seasons }
 
     /// Result of the Jellyfin library cross-check. .unknown degrades to trusting Seerr; never a false .absent.
@@ -305,6 +308,7 @@ struct CatalogDetailView: View {
                 action: { showCancelRequestConfirm = true }
             )
             .frame(maxWidth: isPhonePortrait ? .infinity : nil)
+            .focusSuppressed(overviewHasFocus)
         }
     }
 
@@ -392,7 +396,11 @@ struct CatalogDetailView: View {
             if let overview, !overview.isEmpty {
                 // Up out of the box lands on the row's last button, here Withdraw request, unless it
                 // is corrected: the engine resolves it from the box's centre (Sodalite#53).
-                ExpandableTextBox(text: overview, onFocusMovedUp: { focusedField = .request })
+                ExpandableTextBox(
+                    text: overview,
+                    onFocusMovedUp: { focusedField = .request },
+                    onFocusChanged: { overviewHasFocus = $0 }
+                )
             }
 
             // The stub rides along on `/movie/{id}`, so the entry point costs no extra request; the parts are fetched only once the collection is opened.

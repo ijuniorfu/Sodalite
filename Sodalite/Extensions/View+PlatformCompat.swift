@@ -95,6 +95,28 @@ extension View {
         #endif
     }
 
+    /// Takes these controls out of the focus engine while focus sits below the fold, so an up-move
+    /// out of the content has only the primary action left to land on and never touches the last
+    /// button in the row (Sodalite#53). Correcting the landing afterwards also works, but the engine
+    /// moves first and the button it passes through starts its 0.32s focus spring, which is visible
+    /// as a twitch on Delete, more so while the page is still scrolling back.
+    ///
+    /// `.disabled` and not `.focusable(false)`: both keep focus off the button, but .focusable at any
+    /// value collapses the row's sideways navigation (measured, five presses right never left Play),
+    /// the same failure the picker in reference_tvos26_swiftui_owns_focus shows. With a custom
+    /// ButtonStyle, disabling changes nothing visually, it reads isFocused and isPressed only.
+    ///
+    /// tvOS only, and deliberately so: on iOS these buttons are tapped, and disabling them would
+    /// take the action away rather than a focus candidate.
+    @ViewBuilder
+    func focusSuppressed(_ suppressed: Bool) -> some View {
+        #if os(tvOS)
+        disabled(suppressed)
+        #else
+        self
+        #endif
+    }
+
     /// Same correction for one row of a ForEach: the modifier is applied unconditionally and the
     /// flag is checked inside, so row one keeps the exact view shape of its siblings. Branching the
     /// modifier itself hands the focus engine two different shapes in one list, which is what the

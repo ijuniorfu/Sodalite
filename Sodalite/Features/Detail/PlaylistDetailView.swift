@@ -14,6 +14,11 @@ struct PlaylistDetailView: View {
     @FocusState private var focusedItemID: String?
     /// Target for the up-move correction below the fold (Sodalite#53 follow-up).
     @FocusState private var playButtonFocused: Bool
+    /// Overview box holds focus. The list needs no equivalent flag, focusedItemID already says it.
+    @State private var overviewHasFocus = false
+    /// Anything below the fold has focus, so the secondary buttons leave the focus engine and an
+    /// up-move has only Play left to land on.
+    private var belowFoldHasFocus: Bool { overviewHasFocus || focusedItemID != nil }
     /// One shot: no yank back to row one on every return from a film.
     @State private var didFocusFirstRow = false
 
@@ -116,7 +121,8 @@ struct PlaylistDetailView: View {
                     // Up out of the box lands on the row's last button unless corrected (Sodalite#53).
                     ExpandableTextBox(
                         text: overview,
-                        onFocusMovedUp: { playButtonFocused = true }
+                        onFocusMovedUp: { playButtonFocused = true },
+                        onFocusChanged: { overviewHasFocus = $0 }
                     )
                     .padding(.horizontal, metrics.rowInset)
                 }
@@ -174,6 +180,7 @@ struct PlaylistDetailView: View {
                 HStack(spacing: 16) {
                     primaryActionButton(vm: vm)
                     secondaryActionButtons(vm: vm)
+                        .focusSuppressed(belowFoldHasFocus)
                 }
                 .collapsesActionButtonLabel()
                 .compactScrollableRow(hSizeClass)
