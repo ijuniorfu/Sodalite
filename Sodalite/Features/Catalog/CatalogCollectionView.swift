@@ -43,24 +43,11 @@ struct CatalogCollectionView: View {
         #endif
     }
 
-    /// tvOS keeps the fixed five-up grid; iOS/iPadOS wrap to as many adaptive columns as the width fits.
+    /// Adaptive on every tier, the same definition the filmography and the catalog grid use: five
+    /// fixed 220pt columns left a third of a 4K row empty and needed a width cap to stay left-bound,
+    /// adaptive fills the row on its own and still wraps to what an iPad in portrait fits (Sodalite#57).
     private var columns: [GridItem] {
-        #if os(tvOS)
-        return Array(repeating: GridItem(.fixed(220), spacing: 32), count: 5)
-        #else
-        return [GridItem(.adaptive(minimum: metrics.gridMinimum), spacing: metrics.gridSpacing)]
-        #endif
-    }
-
-    /// LazyVGrid centers fixed columns inside whatever width it is handed, so a five-poster row floated in the middle
-    /// of a 4K screen. Capping the grid at its own intrinsic width lets the leading alignment outside actually bite.
-    /// Adaptive columns (iOS) already fill the width, hence no cap there.
-    private var gridMaxWidth: CGFloat {
-        #if os(tvOS)
-        return 5 * 220 + 4 * 32
-        #else
-        return .infinity
-        #endif
+        [GridItem(.adaptive(minimum: metrics.gridMinimum), spacing: metrics.gridSpacing)]
     }
 
     init(
@@ -191,7 +178,8 @@ struct CatalogCollectionView: View {
                 .foregroundStyle(.secondary)
                 .padding(.horizontal, metrics.rowInset)
         } else {
-            LazyVGrid(columns: columns, spacing: metrics.gridSpacing) {
+            // .leading so a short last row keeps the left edge of the rows above it.
+            LazyVGrid(columns: columns, alignment: .leading, spacing: metrics.gridSpacing) {
                 // stableKey, not Identifiable's id: the grid shape is shared with mixed movie/tv grids where TMDB ids collide.
                 ForEach(parts, id: \.stableKey) { part in
                     FocusableCard {
@@ -201,7 +189,6 @@ struct CatalogCollectionView: View {
                     }
                 }
             }
-            .frame(maxWidth: gridMaxWidth, alignment: .leading)
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, metrics.rowInset)
         }

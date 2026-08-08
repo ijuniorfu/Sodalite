@@ -90,6 +90,17 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
     /// Shorter clear hero window on a phone so content is reachable with one swipe.
     private var heroWindow: CGFloat { hSizeClass == .compact ? 320 : 500 }
 
+    /// Everything past the content block is scroll the viewer can travel with nothing to see, and the
+    /// filler used to be 600pt of it. On tvOS that is not just dead travel: the focus engine parks a
+    /// focused row ~180pt above the bottom edge, but the LAST row can only get as far as the maximum
+    /// scroll offset allows, so 680pt of trailing space (filler plus the 80pt padding) pinned a 400pt
+    /// poster row 2pt below the top edge and clipped its focus scale and ring (Sodalite#52, measured
+    /// in a tvOS focus probe). Keeping the trailing space near that ~180pt lands the last row where
+    /// every other row lands. Shorter still on a phone, where the same filler was most of a screen.
+    private var trailingFiller: CGFloat {
+        hSizeClass == .compact ? 60 : 120
+    }
+
     /// The reserved band and the hint itself are tvOS only: a scrollable page is self-evident on a
     /// touch device (Sodalite#53).
     private var reservesScrollHint: Bool {
@@ -129,6 +140,29 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
         #endif
     }
 
+    /// iPhone portrait is the one tier that keeps the safe area on this page (the detail views pass
+    /// `ignoresSafeArea(when: !isPhonePortrait)`), so the scrolling scrim stopped 34pt above the
+    /// screen edge while the backdrop behind it ran to the edge: a hard bright band under the home
+    /// indicator on every detail page (measured on an iPhone 17 Pro and reproduced in a simulator
+    /// probe, brightness 61 to 134 at exactly 34pt). The scroll view now bleeds past that edge and
+    /// the primary block pays the inset back, so the first page stands where it stood.
+    private var isPhonePortrait: Bool {
+        #if os(iOS)
+        hSizeClass == .compact && vSizeClass != .compact
+        #else
+        false
+        #endif
+    }
+    private var bottomBleed: CGFloat {
+        #if os(iOS)
+        guard isPhonePortrait else { return 0 }
+        return UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }.first?.keyWindow?.safeAreaInsets.bottom ?? 0
+        #else
+        return 0
+        #endif
+    }
+
     init(
         @ViewBuilder hero: @escaping () -> Hero = { EmptyView() },
         @ViewBuilder primary: @escaping () -> Primary,
@@ -160,7 +194,7 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                         // 24 pt matching the panel-to-buttons gap, widened on tvOS to a constant
                         // band that holds the fold marker (Sodalite#53).
-                        .padding(.bottom, ScrollHintPolicy.primaryBottomInset(reservesHint: reservesScrollHint))
+                        .padding(.bottom, ScrollHintPolicy.primaryBottomInset(reservesHint: reservesScrollHint) + bottomBleed)
                         .overlay(alignment: .bottom) {
                             if reservesScrollHint {
                                 ScrollHintChevron(isVisible: showsScrollHint)
@@ -179,8 +213,8 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
                 VStack(alignment: .leading, spacing: 40) {
                     content()
                 }
-                // Height of the real below-fold content. The 600pt trailing filler below makes every
-                // page technically scrollable, so the hint keys off this instead (Sodalite#53).
+                // Height of the real below-fold content. The trailing filler below makes every page
+                // technically scrollable, so the hint keys off this instead (Sodalite#53).
                 .onGeometryChange(for: CGFloat.self) { proxy in
                     proxy.size.height
                 } action: { height in
@@ -197,9 +231,24 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
                 .background(Color.black.opacity(0.55))
 
                 // Trailing filler so a short content block doesn't end in a hard gradient edge; same scrim, sized past any 4K tvOS safe-area inset.
-                Color.black.opacity(0.55).frame(minHeight: 600)
+                Color.black.opacity(0.55)
+                    .frame(minHeight: trailingFiller)
+                    .overlay(alignment: .bottom) {
+                        // Rubber-band overscroll pulls the content clear of the bottom edge and would
+                        // uncover the bare backdrop there. This band hangs below the content end and
+                        // scrolls with it, so it is off screen at rest and covers exactly the gap the
+                        // bounce opens. An overlay on purpose: it carries no layout weight, so it adds
+                        // no scroll travel of its own. Reading the overscroll from scroll geometry and
+                        // sizing a fixed band instead does not work, the state update never reaches the
+                        // overlay while the drag is in flight (measured, height stayed 0).
+                        Color.black.opacity(0.55)
+                            .frame(height: 600)
+                            .offset(y: 600)
+                            .allowsHitTesting(false)
+                    }
             }
         }
+        .ignoresSafeArea(when: isPhonePortrait, edges: .bottom)
         .background(Color.black.opacity(scrollDim).ignoresSafeArea())
         .onScrollGeometryChange(for: Double.self) { geometry in
             geometry.contentOffset.y + geometry.contentInsets.top
