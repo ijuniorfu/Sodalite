@@ -140,6 +140,29 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
         #endif
     }
 
+    /// iPhone portrait is the one tier that keeps the safe area on this page (the detail views pass
+    /// `ignoresSafeArea(when: !isPhonePortrait)`), so the scrolling scrim stopped 34pt above the
+    /// screen edge while the backdrop behind it ran to the edge: a hard bright band under the home
+    /// indicator on every detail page (measured on an iPhone 17 Pro and reproduced in a simulator
+    /// probe, brightness 61 to 134 at exactly 34pt). The scroll view now bleeds past that edge and
+    /// the primary block pays the inset back, so the first page stands where it stood.
+    private var isPhonePortrait: Bool {
+        #if os(iOS)
+        hSizeClass == .compact && vSizeClass != .compact
+        #else
+        false
+        #endif
+    }
+    private var bottomBleed: CGFloat {
+        #if os(iOS)
+        guard isPhonePortrait else { return 0 }
+        return UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }.first?.keyWindow?.safeAreaInsets.bottom ?? 0
+        #else
+        return 0
+        #endif
+    }
+
     init(
         @ViewBuilder hero: @escaping () -> Hero = { EmptyView() },
         @ViewBuilder primary: @escaping () -> Primary,
@@ -171,7 +194,7 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                         // 24 pt matching the panel-to-buttons gap, widened on tvOS to a constant
                         // band that holds the fold marker (Sodalite#53).
-                        .padding(.bottom, ScrollHintPolicy.primaryBottomInset(reservesHint: reservesScrollHint))
+                        .padding(.bottom, ScrollHintPolicy.primaryBottomInset(reservesHint: reservesScrollHint) + bottomBleed)
                         .overlay(alignment: .bottom) {
                             if reservesScrollHint {
                                 ScrollHintChevron(isVisible: showsScrollHint)
@@ -211,6 +234,7 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
                 Color.black.opacity(0.55).frame(minHeight: trailingFiller)
             }
         }
+        .ignoresSafeArea(when: isPhonePortrait, edges: .bottom)
         .background(Color.black.opacity(scrollDim).ignoresSafeArea())
         .onScrollGeometryChange(for: Double.self) { geometry in
             geometry.contentOffset.y + geometry.contentInsets.top

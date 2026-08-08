@@ -72,9 +72,9 @@ extension View {
     /// tvOS/iPad while its scroll content respects the safe area on iPhone portrait (so the
     /// content is not clipped under the status bar / home indicator).
     @ViewBuilder
-    func ignoresSafeArea(when active: Bool) -> some View {
+    func ignoresSafeArea(when active: Bool, edges: Edge.Set = .all) -> some View {
         if active {
-            ignoresSafeArea()
+            ignoresSafeArea(edges: edges)
         } else {
             self
         }
