@@ -211,7 +211,9 @@ struct PersonDetailView: View {
                     .buttonStyle(SettingsTileButtonStyle())
                 }
             } else {
-                LazyVGrid(columns: columns, spacing: metrics.gridSpacing) {
+                // .leading, else the fixed tvOS columns sit centred in the row width while the
+                // library rows above start at the inset, and the page reads as two layouts.
+                LazyVGrid(columns: columns, alignment: .leading, spacing: metrics.gridSpacing) {
                     // stableKey, not Identifiable's id: a filmography mixes
                     // movie and tv credits whose TMDB ids can collide.
                     ForEach(filmography, id: \.stableKey) { media in
