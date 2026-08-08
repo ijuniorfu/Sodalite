@@ -231,7 +231,21 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
                 .background(Color.black.opacity(0.55))
 
                 // Trailing filler so a short content block doesn't end in a hard gradient edge; same scrim, sized past any 4K tvOS safe-area inset.
-                Color.black.opacity(0.55).frame(minHeight: trailingFiller)
+                Color.black.opacity(0.55)
+                    .frame(minHeight: trailingFiller)
+                    .overlay(alignment: .bottom) {
+                        // Rubber-band overscroll pulls the content clear of the bottom edge and would
+                        // uncover the bare backdrop there. This band hangs below the content end and
+                        // scrolls with it, so it is off screen at rest and covers exactly the gap the
+                        // bounce opens. An overlay on purpose: it carries no layout weight, so it adds
+                        // no scroll travel of its own. Reading the overscroll from scroll geometry and
+                        // sizing a fixed band instead does not work, the state update never reaches the
+                        // overlay while the drag is in flight (measured, height stayed 0).
+                        Color.black.opacity(0.55)
+                            .frame(height: 600)
+                            .offset(y: 600)
+                            .allowsHitTesting(false)
+                    }
             }
         }
         .ignoresSafeArea(when: isPhonePortrait, edges: .bottom)
