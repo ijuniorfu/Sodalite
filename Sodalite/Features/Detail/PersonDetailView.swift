@@ -30,13 +30,11 @@ struct PersonDetailView: View {
     private var metrics: LayoutMetrics { LayoutMetrics.current(hSizeClass) }
     private var contentInset: CGFloat { hSizeClass == .compact ? metrics.gridInset : 80 }
 
-    /// tvOS keeps the fixed five-up filmography grid; iOS/iPadOS wrap to as many adaptive columns as the width fits (fixed-five overflows an iPad in portrait).
+    /// Adaptive on every tier, the same definition the catalog grid uses: five fixed 220pt columns
+    /// left a third of a 4K row empty, adaptive fills it (six 233pt columns on tvOS, measured), and
+    /// an iPad in portrait still wraps to what it fits.
     private var columns: [GridItem] {
-        #if os(tvOS)
-        return Array(repeating: GridItem(.fixed(220), spacing: 32), count: 5)
-        #else
-        return [GridItem(.adaptive(minimum: metrics.gridMinimum), spacing: metrics.gridSpacing)]
-        #endif
+        [GridItem(.adaptive(minimum: metrics.gridMinimum), spacing: metrics.gridSpacing)]
     }
 
     var body: some View {
@@ -211,8 +209,7 @@ struct PersonDetailView: View {
                     .buttonStyle(SettingsTileButtonStyle())
                 }
             } else {
-                // .leading, else the fixed tvOS columns sit centred in the row width while the
-                // library rows above start at the inset, and the page reads as two layouts.
+                // .leading so a short last row keeps the left edge the rows above have.
                 LazyVGrid(columns: columns, alignment: .leading, spacing: metrics.gridSpacing) {
                     // stableKey, not Identifiable's id: a filmography mixes
                     // movie and tv credits whose TMDB ids can collide.
