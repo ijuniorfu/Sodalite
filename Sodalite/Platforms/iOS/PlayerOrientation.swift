@@ -11,9 +11,7 @@ enum PlayerOrientation {
     /// Player session up with rotation following the device (lock icon open).
     static private(set) var isFollowing = false
 
-    /// Interface orientation the app held when the session engaged; the exit rotates back to it.
-    private static var entryOrientation: UIInterfaceOrientation = .portrait
-    /// Exit rotation in flight: the mask stays pinned to `entryOrientation` until it lands.
+    /// Exit in flight: the session mask stays in force until the player modal is off screen.
     private static var isRestoring = false
     private static var restoreGeneration = 0
     /// Monotonic player-session identity, handed out by `newSession()`.
@@ -26,8 +24,8 @@ enum PlayerOrientation {
 
     /// Identity for one player session, minted by `PlayerHostController` and passed to
     /// `engage`/`unlock`. The exit is terminal for that session: a late lifecycle callback from the
-    /// view controller that is going away must not re-engage the lock, which would cancel the exit
-    /// rotation and pin landscape with no player on screen.
+    /// view controller that is going away must not re-engage the lock, which would pin landscape
+    /// again with no player on screen.
     static func newSession() -> Int {
         sessionCounter += 1
         return sessionCounter
@@ -40,7 +38,6 @@ enum PlayerOrientation {
         // A pending exit restore still owns the mask; drop it so a relaunch inside that window engages.
         if isRestoring { endRestore() }
         guard playerMask == nil, !isFollowing else { return }
-        entryOrientation = currentOrientation
         if locked { lock() } else { follow() }
     }
 
@@ -82,14 +79,21 @@ enum PlayerOrientation {
         apply(target)
     }
 
-    /// Session exit: rotate back to the orientation the app came in with.
+    /// Session exit: hand the orientation decision back to the system, once the player is off screen.
     ///
-    /// The mask is narrowed to that orientation BEFORE the request, exactly as `lock()` narrows to
-    /// landscape on the way in. Releasing it to nil first (allButUpsideDown) leaves the landscape the
-    /// player sits in a supported orientation, so the system has no reason to leave it and resolves the
-    /// exit right back to landscape. The device attitude used to paper over that, which is why the app
-    /// stayed landscape only with the system rotation lock on: with no attitude to fall back on nothing
-    /// pulled it out again, and short of backgrounding the app there was no way back (Sodalite#54).
+    /// The exit picks no target of its own, on purpose. Rotating back to the orientation the session
+    /// started in is wrong the moment the user turns the phone during playback: the app snaps to the
+    /// entry orientation and the device attitude immediately pulls it back out, one visible bounce per
+    /// exit, in both directions. Releasing the mask is the whole job, because for any screen that is
+    /// not the player the system already resolves this correctly, the attitude when rotation is free
+    /// and the locked orientation when the system rotation lock is on.
+    ///
+    /// It only resolves correctly once the player is gone, which is the other half of Sodalite#54:
+    /// release the mask while the dismissal is still running and the decision goes back to a modal
+    /// that is still on screen and still asks for landscape, after which nothing re-resolves and the
+    /// app sits in landscape until it is backgrounded. Holding the session mask that long costs
+    /// nothing, player and app root read the same mask, so the transition never lacks a common
+    /// orientation.
     static func unlock(session: Int) {
         guard isPhone else { return }
         exitedSession = max(exitedSession, session)
@@ -97,27 +101,18 @@ enum PlayerOrientation {
         isFollowing = false
         stopAttitudeTracking()
         isRestoring = true
-        let target = mask(for: entryOrientation)
-        playerMask = target
-        apply(target)
-        releaseWhenSettled()
+        releaseWhenPlayerIsGone()
     }
 
-    /// The pin holds until the rotation has landed AND the player modal is really gone: a permanently
-    /// portrait-pinned app would kill landscape browsing, but releasing it while the dismissal is still
-    /// in flight hands the decision back to a view controller that is still on screen and still asks for
-    /// landscape. `effectiveGeometry` reports the target well before the dismiss transition ends, so on
-    /// a slower phone that release lands after the portrait rotation is already visible: the app flicks
-    /// straight back to landscape and, with no further event to re-resolve it, stays there until it is
-    /// backgrounded (Sodalite#54 retest, invisible on faster hardware where the modal wins the race).
-    /// The timeout releases a rotation that never arrives rather than stranding it.
-    private static func releaseWhenSettled() {
+    /// `isPlayerActive` stays true for the length of the dismiss transition, which is exactly the
+    /// window the release has to sit out. The 2 s cap releases a modal that never leaves rather than
+    /// stranding the app in the session mask.
+    private static func releaseWhenPlayerIsGone() {
         restoreGeneration += 1
         let generation = restoreGeneration
-        let target = entryOrientation
         Task { @MainActor in
             for _ in 0..<40 {
-                if currentOrientation == target, !PlayerModalPresence.isPlayerActive { break }
+                if !PlayerModalPresence.isPlayerActive { break }
                 try? await Task.sleep(for: .milliseconds(50))
                 guard generation == restoreGeneration else { return }
             }
@@ -134,12 +129,11 @@ enum PlayerOrientation {
     }
 
     /// Presentation orientation for the player modal: landscape when locked, whatever the user holds
-    /// when following, and the exit target while a restore runs. UIKit keeps consulting the dismissing
+    /// when following or while the session is on its way out. UIKit keeps consulting the dismissing
     /// controller for the length of the transition, and a modal that asks for landscape there argues
-    /// against the rotation its own exit just requested.
+    /// against the orientation the app is actually in.
     static var presentationOrientation: UIInterfaceOrientation {
-        if isRestoring { return entryOrientation }
-        return isFollowing ? currentOrientation : .landscapeRight
+        (isFollowing || isRestoring) ? currentOrientation : .landscapeRight
     }
 
     // MARK: - Attitude tracking (follow mode)

@@ -1121,8 +1121,9 @@ final class PlayerHostController: AVPlayerViewController {
 
     private func dismissPlayer() {
         #if os(iOS)
-        // Release the landscape lock first so the VC reports a portrait-compatible orientation for the
-        // dismiss transition (else the rotation back can stall, leaving the video black + the modal up).
+        // End the orientation session before the dismissal starts. The mask itself stays in force until
+        // the modal is off screen, so this VC and the app root keep agreeing on an orientation for the
+        // whole transition (a disagreement there stalls the rotation, leaving the video black + the modal up).
         PlayerOrientation.unlock(session: orientationSession)
         viewModel.stopVolumeObservation()
         #endif
