@@ -15,6 +15,13 @@ struct CollectionDetailView: View {
     /// Value-based focus, keyed by item id: binding a per-row Bool would need a branch inside the
     /// ForEach and hand the focus engine two different view shapes for row one.
     @FocusState private var focusedItemID: String?
+    /// Target for the up-move correction below the fold (Sodalite#53 follow-up).
+    @FocusState private var playButtonFocused: Bool
+    /// Overview box holds focus. The list needs no equivalent flag, focusedItemID already says it.
+    @State private var overviewHasFocus = false
+    /// Anything below the fold has focus, so the secondary buttons leave the focus engine and an
+    /// up-move has only Play left to land on.
+    private var belowFoldHasFocus: Bool { overviewHasFocus || focusedItemID != nil }
     /// One shot: re-pushing focus on every appear would yank the viewer back to row one after
     /// every return from a film or a pushed detail page.
     @State private var didFocusFirstRow = false
@@ -114,13 +121,21 @@ struct CollectionDetailView: View {
                 }
                 .padding(.horizontal, metrics.rowInset)
             }) {
+                let hasOverview = !(vm.item.overview?.isEmpty ?? true)
                 if let overview = vm.item.overview, !overview.isEmpty {
-                    ExpandableTextBox(text: overview)
-                        .padding(.horizontal, metrics.rowInset)
+                    // Up out of the box lands on the row's last button unless corrected (Sodalite#53).
+                    ExpandableTextBox(
+                        text: overview,
+                        onFocusMovedUp: { playButtonFocused = true },
+                        onFocusChanged: { overviewHasFocus = $0 }
+                    )
+                    .padding(.horizontal, metrics.rowInset)
                 }
 
                 if !vm.collectionItems.isEmpty {
-                    collectionList(vm: vm)
+                    // With no overview above it the first row is what sits under the fold, and the
+                    // page opens focused on it, so it carries the correction instead.
+                    collectionList(vm: vm, correctsUpMove: !hasOverview)
                 }
             }
         }
@@ -169,6 +184,7 @@ struct CollectionDetailView: View {
                 HStack(spacing: 16) {
                     primaryActionButton(vm: vm)
                     secondaryActionButtons(vm: vm)
+                        .focusSuppressed(belowFoldHasFocus)
                 }
                 .collapsesActionButtonLabel()
                 .compactScrollableRow(hSizeClass)
@@ -196,6 +212,7 @@ struct CollectionDetailView: View {
                 showPlayer = true
             }
         )
+        .focused($playButtonFocused)
     }
 
     /// Members already loaded; filtered to playable leaf types so a nested series can't seed an
@@ -228,7 +245,9 @@ struct CollectionDetailView: View {
 
     // MARK: - Collection Items (vertical list)
 
-    private func collectionList(vm: DetailViewModel) -> some View {
+    /// `correctsUpMove` sends the first row's up-move back to Play; only set when no overview box
+    /// sits between the row and the button row, which would otherwise become unreachable.
+    private func collectionList(vm: DetailViewModel, correctsUpMove: Bool) -> some View {
         VStack(alignment: .leading, spacing: 16) {
             Text("detail.collection.items")
                 .font(.title3)
@@ -236,13 +255,16 @@ struct CollectionDetailView: View {
                 .padding(.horizontal, metrics.rowInset)
 
             VStack(spacing: 12) {
-                ForEach(vm.collectionItems) { movie in
+                ForEach(Array(vm.collectionItems.enumerated()), id: \.element.id) { index, movie in
                     CollectionItemRow(
                         item: movie,
                         imageURL: dependencies.jellyfinImageService.posterURL(for: movie),
                         onSelect: { selectedItem = movie }
                     )
                     .focused($focusedItemID, equals: movie.id)
+                    .onFocusMoveUp(active: correctsUpMove && index == 0) {
+                        playButtonFocused = true
+                    }
                 }
             }
             .padding(.horizontal, metrics.rowInset)

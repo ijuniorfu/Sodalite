@@ -4,6 +4,12 @@ struct ExpandableTextBox: View {
     let text: String
     /// Sodalite#50. nil keeps the component exactly as it was for callers with nothing to spoil.
     var spoilerItem: JellyfinItem?
+    /// tvOS: where focus goes when the viewer moves up out of the box (see onFocusMoveUp). Detail
+    /// pages hand it their play button; nil keeps stock navigation for every other caller.
+    var onFocusMovedUp: (() -> Void)?
+    /// tvOS: reports whether the box holds focus, so a detail page can suppress its secondary
+    /// buttons for that time (see focusSuppressed) and the up-move has nowhere wrong to land.
+    var onFocusChanged: ((Bool) -> Void)?
 
     @State private var showFullText = false
     @FocusState private var isFocused: Bool
@@ -52,6 +58,11 @@ struct ExpandableTextBox: View {
                 }
                 showFullText = true
             }
+            .onFocusMoveUp(onFocusMovedUp)
+            .onChange(of: isFocused) { _, focused in onFocusChanged?(focused) }
+            // The box can leave the tree while it holds focus (the series page rebuilds it per
+            // episode); without this the caller would keep its buttons suppressed for good.
+            .onDisappear { onFocusChanged?(false) }
             .fullScreenCover(isPresented: $showFullText) {
                 TextOverlay(text: text, isPresented: $showFullText)
             }

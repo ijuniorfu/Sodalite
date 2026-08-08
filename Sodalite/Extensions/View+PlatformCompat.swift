@@ -68,6 +68,70 @@ extension View {
         #endif
     }
 
+    /// Hands focus back to a caller-chosen control when the viewer moves up out of this view.
+    ///
+    /// The focus engine resolves an up-move geometrically, from the centre of the view holding
+    /// focus, and consults nothing else: a full-width element under a short left-aligned button
+    /// row therefore lands on the row's LAST button, which on a detail page is Delete (Sodalite#53).
+    /// Measured in a tvOS focus probe; .focusSection, a section on both sides of the boundary, and
+    /// focusScope + prefersDefaultFocus all leave the landing unchanged, so the correction has to be
+    /// explicit. The engine still moves first and this runs ~30ms behind it, which is why `action`
+    /// must only hand focus somewhere, never act on it.
+    ///
+    /// Passing nil keeps stock navigation, so shared components stay unchanged for callers with no
+    /// primary control to return to.
+    @ViewBuilder
+    func onFocusMoveUp(_ action: (() -> Void)?) -> some View {
+        #if os(tvOS)
+        if let action {
+            onMoveCommand { direction in
+                if direction == .up { action() }
+            }
+        } else {
+            self
+        }
+        #else
+        self
+        #endif
+    }
+
+    /// Takes these controls out of the focus engine while focus sits below the fold, so an up-move
+    /// out of the content has only the primary action left to land on and never touches the last
+    /// button in the row (Sodalite#53). Correcting the landing afterwards also works, but the engine
+    /// moves first and the button it passes through starts its 0.32s focus spring, which is visible
+    /// as a twitch on Delete, more so while the page is still scrolling back.
+    ///
+    /// `.disabled` and not `.focusable(false)`: both keep focus off the button, but .focusable at any
+    /// value collapses the row's sideways navigation (measured, five presses right never left Play),
+    /// the same failure the picker in reference_tvos26_swiftui_owns_focus shows. With a custom
+    /// ButtonStyle, disabling changes nothing visually, it reads isFocused and isPressed only.
+    ///
+    /// tvOS only, and deliberately so: on iOS these buttons are tapped, and disabling them would
+    /// take the action away rather than a focus candidate.
+    @ViewBuilder
+    func focusSuppressed(_ suppressed: Bool) -> some View {
+        #if os(tvOS)
+        disabled(suppressed)
+        #else
+        self
+        #endif
+    }
+
+    /// Same correction for one row of a ForEach: the modifier is applied unconditionally and the
+    /// flag is checked inside, so row one keeps the exact view shape of its siblings. Branching the
+    /// modifier itself hands the focus engine two different shapes in one list, which is what the
+    /// value-based focus binding in CollectionDetailView already works around.
+    @ViewBuilder
+    func onFocusMoveUp(active: Bool, _ action: @escaping () -> Void) -> some View {
+        #if os(tvOS)
+        onMoveCommand { direction in
+            if direction == .up, active { action() }
+        }
+        #else
+        self
+        #endif
+    }
+
     /// Applies .ignoresSafeArea only when `active`. Lets a detail screen stay full-bleed on
     /// tvOS/iPad while its scroll content respects the safe area on iPhone portrait (so the
     /// content is not clipped under the status bar / home indicator).

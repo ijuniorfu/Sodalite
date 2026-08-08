@@ -20,6 +20,9 @@ struct MovieDetailView: View {
     @State private var trailerItem: JellyfinItem?
     @State private var isPresentingDeleteSheet: Bool = false
     @FocusState private var playButtonFocused: Bool
+    /// Overview box below the fold holds focus: the secondary buttons leave the focus engine for
+    /// that time so an up-move can only land on Play (Sodalite#53 follow-up).
+    @State private var overviewHasFocus = false
     /// Gates the isLoading crossfade so it stays inert during the cover's present transition. The viewModel is built lazily in onAppear, so isLoading flips several times (nil->false->true->false) WHILE the fullScreenCover is dissolving in; animating those flips interpolates the content's not-yet-laid-out frame (origin top-left) and reads as an ugly fly-in. Enabled ~0.35s after appear so the later, deliberate slow-server spinner->content fade still animates.
     @State private var didSettleIn = false
 
@@ -270,8 +273,15 @@ struct MovieDetailView: View {
                 .padding(.horizontal, metrics.rowInset)
             }) {
                 if let overview = vm.item.overview, !overview.isEmpty {
-                    ExpandableTextBox(text: overview, spoilerItem: vm.item)
-                        .padding(.horizontal, metrics.rowInset)
+                    // Coming back up from the overview lands on the row's last button, Delete, unless
+                    // it is corrected: the engine resolves the move from the box's centre (Sodalite#53).
+                    ExpandableTextBox(
+                        text: overview,
+                        spoilerItem: vm.item,
+                        onFocusMovedUp: { playButtonFocused = true },
+                        onFocusChanged: { overviewHasFocus = $0 }
+                    )
+                    .padding(.horizontal, metrics.rowInset)
                 } else if !vm.hasFullDetail {
                     // Overview in flight after a snapshot paint: reserve the footprint (Sodalite#15).
                     ExpandableTextBoxPlaceholder()
@@ -387,6 +397,7 @@ struct MovieDetailView: View {
                 HStack(spacing: 16) {
                     primaryActionButton(vm: vm)
                     secondaryActionButtons(vm: vm)
+                        .focusSuppressed(overviewHasFocus)
                 }
                 .collapsesActionButtonLabel()
                 .compactScrollableRow(hSizeClass)

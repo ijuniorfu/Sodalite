@@ -35,6 +35,9 @@ struct SeriesDetailView: View {
     @FocusState private var focusBridgeActive: Bool
     /// Play button enters the hierarchy only after isLoading flips false, so the focus engine has nothing to auto-land on at first paint; pushed explicitly via .onChange below.
     @FocusState private var playButtonFocused: Bool
+    /// Overview box below the fold holds focus: the secondary buttons leave the focus engine for
+    /// that time so an up-move can only land on Play (Sodalite#53 follow-up).
+    @State private var overviewHasFocus = false
     @State private var isPresentingDeleteSheet: Bool = false
     /// Set on episode "Show Details": the context menu restores focus to its anchor card on dismiss, so the focusedEpisodeID observer bounces focus up to the play button.
     @State private var pendingPlayFocusAfterMenu = false
@@ -179,9 +182,16 @@ struct SeriesDetailView: View {
                                 // displayItem is the series in series mode and the selected episode
                                 // in episode mode, so the series overview stays visible (the policy
                                 // ignores .series) while the episode overview is veiled.
-                                ExpandableTextBox(text: overview, spoilerItem: displayItem)
-                                    .padding(.horizontal, metrics.rowInset)
-                                    .id(displayItem.id)
+                                // Up out of the box lands on the row's last button, Delete, unless it
+                                // is corrected: the engine resolves it from the box's centre (Sodalite#53).
+                                ExpandableTextBox(
+                                    text: overview,
+                                    spoilerItem: displayItem,
+                                    onFocusMovedUp: { playButtonFocused = true },
+                                    onFocusChanged: { overviewHasFocus = $0 }
+                                )
+                                .padding(.horizontal, metrics.rowInset)
+                                .id(displayItem.id)
                             } else if !isShowingEpisode && !vm.hasFullDetail {
                                 // Slim-snapshot paint, overview in flight: reserve the footprint so it doesn't pop in and shove the season row down (Sodalite#15).
                                 ExpandableTextBoxPlaceholder()
@@ -575,6 +585,7 @@ struct SeriesDetailView: View {
                 HStack(spacing: 16) {
                     primaryActionButton(vm: vm)
                     secondaryActionButtons(vm: vm)
+                        .focusSuppressed(overviewHasFocus)
                 }
                 .collapsesActionButtonLabel()
                 .compactScrollableRow(hSizeClass)

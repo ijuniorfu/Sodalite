@@ -105,6 +105,8 @@ struct CatalogCollectionView: View {
                 .padding(.horizontal, metrics.rowInset)
             }) {
                 if let overview = detail?.overview, !overview.isEmpty {
+                    // No correction needed here, unlike the other detail pages: the action block holds
+                    // exactly one focusable button, so an up-move has nowhere else to land (Sodalite#53).
                     ExpandableTextBox(text: overview)
                         .padding(.horizontal, metrics.rowInset)
                 }

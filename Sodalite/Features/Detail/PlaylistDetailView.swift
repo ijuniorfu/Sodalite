@@ -12,6 +12,13 @@ struct PlaylistDetailView: View {
     @State private var playQueue: [JellyfinItem] = []
     /// Value-based focus, keyed by item id, same shape as CollectionDetailView.
     @FocusState private var focusedItemID: String?
+    /// Target for the up-move correction below the fold (Sodalite#53 follow-up).
+    @FocusState private var playButtonFocused: Bool
+    /// Overview box holds focus. The list needs no equivalent flag, focusedItemID already says it.
+    @State private var overviewHasFocus = false
+    /// Anything below the fold has focus, so the secondary buttons leave the focus engine and an
+    /// up-move has only Play left to land on.
+    private var belowFoldHasFocus: Bool { overviewHasFocus || focusedItemID != nil }
     /// One shot: no yank back to row one on every return from a film.
     @State private var didFocusFirstRow = false
 
@@ -109,13 +116,21 @@ struct PlaylistDetailView: View {
                 }
                 .padding(.horizontal, metrics.rowInset)
             }) {
+                let hasOverview = !(vm.item.overview?.isEmpty ?? true)
                 if let overview = vm.item.overview, !overview.isEmpty {
-                    ExpandableTextBox(text: overview)
-                        .padding(.horizontal, metrics.rowInset)
+                    // Up out of the box lands on the row's last button unless corrected (Sodalite#53).
+                    ExpandableTextBox(
+                        text: overview,
+                        onFocusMovedUp: { playButtonFocused = true },
+                        onFocusChanged: { overviewHasFocus = $0 }
+                    )
+                    .padding(.horizontal, metrics.rowInset)
                 }
 
                 if !videoItems(vm).isEmpty {
-                    playlistList(vm: vm)
+                    // No overview above it: the first row is what sits under the fold, and the page
+                    // opens focused on it, so it carries the correction instead.
+                    playlistList(vm: vm, correctsUpMove: !hasOverview)
                 }
             }
         }
@@ -165,6 +180,7 @@ struct PlaylistDetailView: View {
                 HStack(spacing: 16) {
                     primaryActionButton(vm: vm)
                     secondaryActionButtons(vm: vm)
+                        .focusSuppressed(belowFoldHasFocus)
                 }
                 .collapsesActionButtonLabel()
                 .compactScrollableRow(hSizeClass)
@@ -185,6 +201,7 @@ struct PlaylistDetailView: View {
                 showPlayer = true
             }
         )
+        .focused($playButtonFocused)
     }
 
     @ViewBuilder
@@ -210,7 +227,8 @@ struct PlaylistDetailView: View {
 
     // MARK: - Playlist Items (vertical list)
 
-    private func playlistList(vm: DetailViewModel) -> some View {
+    /// `correctsUpMove`: see CollectionDetailView, same rule.
+    private func playlistList(vm: DetailViewModel, correctsUpMove: Bool) -> some View {
         VStack(alignment: .leading, spacing: 16) {
             Text("detail.collection.items")
                 .font(.title3)
@@ -218,13 +236,16 @@ struct PlaylistDetailView: View {
                 .padding(.horizontal, metrics.rowInset)
 
             VStack(spacing: 12) {
-                ForEach(videoItems(vm)) { media in
+                ForEach(Array(videoItems(vm).enumerated()), id: \.element.id) { index, media in
                     CollectionItemRow(
                         item: media,
                         imageURL: dependencies.jellyfinImageService.posterURL(for: media),
                         onSelect: { selectedItem = media }
                     )
                     .focused($focusedItemID, equals: media.id)
+                    .onFocusMoveUp(active: correctsUpMove && index == 0) {
+                        playButtonFocused = true
+                    }
                 }
             }
             .padding(.horizontal, metrics.rowInset)
