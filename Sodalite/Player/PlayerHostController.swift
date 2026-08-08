@@ -26,6 +26,12 @@ final class PlayerHostController: AVPlayerViewController {
 
     private var hasLaunched = false
 
+    #if os(iOS)
+    /// Orientation-session identity. The exit is terminal for it, so a lifecycle callback that still
+    /// reaches this controller while it is going away cannot re-engage the landscape lock (Sodalite#54).
+    let orientationSession = PlayerOrientation.newSession()
+    #endif
+
     /// Engine render surface, mounted into `contentOverlayView` only for the SW (dav1d) backend; the native path renders off `self.player`'s own AVPlayerLayer.
     private let aetherView = AetherPlayerView()
     private var aetherViewMounted = false
@@ -626,7 +632,7 @@ final class PlayerHostController: AVPlayerViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         #if os(iOS)
-        PlayerOrientation.engage(locked: viewModel.preferences.playerRotationLocked)
+        PlayerOrientation.engage(locked: viewModel.preferences.playerRotationLocked, session: orientationSession)
         viewModel.startVolumeObservation()
         #endif
         // Kick off playback as the modal starts appearing so network/demuxer work overlaps the present-then-layout sequence.
@@ -740,7 +746,7 @@ final class PlayerHostController: AVPlayerViewController {
         // so skip the stop while PiP is active (else the engine idles and PiP closes instantly).
         guard (isBeingDismissed || isMovingFromParent), !pipActive else { return }
         #if os(iOS)
-        PlayerOrientation.unlock()
+        PlayerOrientation.unlock(session: orientationSession)
         #endif
         unmountAetherViewIfNeeded()
         player = nil
@@ -1115,9 +1121,10 @@ final class PlayerHostController: AVPlayerViewController {
 
     private func dismissPlayer() {
         #if os(iOS)
-        // Release the landscape lock first so the VC reports a portrait-compatible orientation for the
-        // dismiss transition (else the rotation back can stall, leaving the video black + the modal up).
-        PlayerOrientation.unlock()
+        // End the orientation session before the dismissal starts. The mask itself stays in force until
+        // the modal is off screen, so this VC and the app root keep agreeing on an orientation for the
+        // whole transition (a disagreement there stalls the rotation, leaving the video black + the modal up).
+        PlayerOrientation.unlock(session: orientationSession)
         viewModel.stopVolumeObservation()
         #endif
         unmountAetherViewIfNeeded()
