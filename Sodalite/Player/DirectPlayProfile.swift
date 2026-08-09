@@ -67,14 +67,17 @@ enum DirectPlayProfile {
             "MaxStaticBitrate": 200_000_000,
             "MusicStreamingTranscodingBitrate": 384_000,
 
-            // VideoCodec list matches the engine dispatch table in
-            // AetherEngine.swift; listing them stops Jellyfin transcoding
-            // XVID/DivX, MPEG-2 remuxes, and VC-1 BD rips.
+            // VideoCodec list mirrors what FFmpegBuild compiles a decoder for,
+            // not the engine dispatch table: since AetherEngine 6.18.0 the
+            // engine routes every non-native codec to libavcodec, so the
+            // question is no longer "does the table name it" but "can the
+            // bundled build decode it". Listing them stops Jellyfin transcoding
+            // XVID/DivX, MPEG-2 remuxes, VC-1 BD rips and qtrle screen grabs.
             "DirectPlayProfiles": [
                 [
                     "Container": "mp4,m4v,mov,mkv,matroska,avi,mpegts,ts,m2ts,mts,3gp,3g2,vob,ogg,webm,flv",
                     "Type": "Video",
-                    "VideoCodec": "h264,hevc,av1,vp9,vp8,mpeg4,mpeg2video,vc1",
+                    "VideoCodec": "h264,hevc,av1,vp9,vp8,mpeg4,mpeg2video,vc1,qtrle",
                     // DTS spelled every way Jellyfin reports it (dts/dca/dts-hd
                     // vary by build) so it won't transcode DTS-HD MA over a
                     // string mismatch. mp2 pairs with MPEG-2 (broadcast/VOB).
