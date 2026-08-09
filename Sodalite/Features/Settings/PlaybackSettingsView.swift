@@ -62,6 +62,16 @@ struct PlaybackSettingsView: View {
 
                 #if os(tvOS)
                 boolRow(
+                    icon: "arrow.left.arrow.right",
+                    title: "settings.playback.instantSkip",
+                    subtitle: "settings.playback.instantSkip.subtitle",
+                    value: Binding(
+                        get: { prefs.instantSkipSeek },
+                        set: { prefs.instantSkipSeek = $0 }
+                    )
+                )
+
+                boolRow(
                     icon: "playpause.circle",
                     title: "settings.playback.selectTogglesPlayback",
                     subtitle: "settings.playback.selectTogglesPlayback.subtitle",
