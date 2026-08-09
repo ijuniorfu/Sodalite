@@ -128856,6 +128856,1302 @@
         }
       }
     },
+    "settings.tabs.title" : {
+      "comment" : "Tab visibility settings screen title",
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Karty"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Faner"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tabs"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Καρτέλες"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tabs"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pestañas"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Välilehdet"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Onglets"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kartice"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lapok"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Schede"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "タブ"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "탭"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Faner"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tabbladen"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Karty"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abas"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Separadores"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "File"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Вкладки"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Karty"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Flikar"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sekmeler"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Вкладки"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "标签页"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "標籤頁"
+          }
+        }
+      }
+    },
+    "settings.tabs.subtitle" : {
+      "comment" : "Tab visibility screen description",
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vyber, které karty se zobrazí v navigační liště."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vælg, hvilke faner navigationslinjen viser."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wähle, welche Tabs die Navigationsleiste zeigt."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Επίλεξε ποιες καρτέλες εμφανίζει η γραμμή πλοήγησης."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose which tabs the navigation bar shows."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Elige qué pestañas muestra la barra de navegación."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Valitse, mitkä välilehdet navigointipalkki näyttää."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choisis les onglets affichés dans la barre de navigation."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Odaberi koje kartice prikazuje navigacijska traka."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Válaszd ki, mely lapok jelenjenek meg a navigációs sávon."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scegli quali schede mostra la barra di navigazione."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ナビゲーションバーに表示するタブを選びます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "탐색 막대에 표시할 탭을 선택합니다."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Velg hvilke faner navigasjonslinjen viser."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kies welke tabbladen de navigatiebalk toont."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wybierz, które karty pokazuje pasek nawigacji."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Escolha quais abas a barra de navegação mostra."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Escolhe que separadores a barra de navegação mostra."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alege ce file afișează bara de navigare."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Выберите, какие вкладки показывать в панели навигации."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vyber, ktoré karty zobrazí navigačná lišta."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Välj vilka flikar navigeringsfältet visar."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gezinme çubuğunda hangi sekmelerin görüneceğini seç."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Обери, які вкладки показує панель навігації."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "选择导航栏显示哪些标签页。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "選擇導覽列顯示哪些標籤頁。"
+          }
+        }
+      }
+    },
+    "settings.tabs.subtitle.short" : {
+      "comment" : "Subtitle for the tab visibility settings tile",
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vyber zobrazené karty"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vælg viste faner"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sichtbare Tabs wählen"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Επιλογή ορατών καρτελών"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose which tabs are shown"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Elige las pestañas visibles"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Valitse näkyvät välilehdet"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choisir les onglets affichés"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Odaberi prikazane kartice"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Megjelenő lapok kiválasztása"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scegli le schede visibili"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "表示するタブを選択"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "표시할 탭 선택"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Velg viste faner"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kies zichtbare tabbladen"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wybierz widoczne karty"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Escolha as abas visíveis"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Escolher separadores visíveis"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alege filele afișate"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Выбор видимых вкладок"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vyber zobrazené karty"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Välj visade flikar"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Görünen sekmeleri seç"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Вибір видимих вкладок"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "选择显示的标签页"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "選擇顯示的標籤頁"
+          }
+        }
+      }
+    },
+    "settings.tabs.footer" : {
+      "comment" : "Footer note on the tab visibility screen",
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Domů a Nastavení jsou zobrazeny vždy. Navigační lišta se aktualizuje, když tuto obrazovku opustíš."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hjem og Indstillinger vises altid. Navigationslinjen opdateres, når du forlader denne skærm."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Startseite und Einstellungen werden immer angezeigt. Die Navigationsleiste aktualisiert sich, wenn du diesen Bildschirm verlässt."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Η Αρχική και οι Ρυθμίσεις εμφανίζονται πάντα. Η γραμμή πλοήγησης ενημερώνεται όταν φύγεις από αυτήν την οθόνη."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Home and Settings are always shown. The navigation bar updates when you leave this screen."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Inicio y Ajustes se muestran siempre. La barra de navegación se actualiza al salir de esta pantalla."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Koti ja Asetukset näkyvät aina. Navigointipalkki päivittyy, kun poistut tästä näkymästä."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Accueil et Réglages sont toujours affichés. La barre de navigation se met à jour quand tu quittes cet écran."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Početna i Postavke uvijek su prikazane. Navigacijska traka osvježava se kad napustiš ovaj zaslon."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A Kezdőlap és a Beállítások mindig látszanak. A navigációs sáv akkor frissül, amikor elhagyod ezt a képernyőt."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Home e Impostazioni sono sempre visibili. La barra di navigazione si aggiorna quando esci da questa schermata."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ホームと設定は常に表示されます。ナビゲーションバーはこの画面を離れると更新されます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "홈과 설정은 항상 표시됩니다. 탐색 막대는 이 화면을 나갈 때 갱신됩니다."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hjem og Innstillinger vises alltid. Navigasjonslinjen oppdateres når du forlater denne skjermen."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Home en Instellingen zijn altijd zichtbaar. De navigatiebalk wordt bijgewerkt als je dit scherm verlaat."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Główna i Ustawienia są zawsze widoczne. Pasek nawigacji odświeża się po opuszczeniu tego ekranu."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Início e Configurações aparecem sempre. A barra de navegação é atualizada ao sair desta tela."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Início e Definições aparecem sempre. A barra de navegação é atualizada ao sair deste ecrã."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Acasă și Setări sunt mereu afișate. Bara de navigare se actualizează când ieși din acest ecran."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Главная и Настройки показываются всегда. Панель навигации обновится, когда вы покинете этот экран."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Domov a Nastavenia sú zobrazené vždy. Navigačná lišta sa aktualizuje, keď opustíš túto obrazovku."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hem och Inställningar visas alltid. Navigeringsfältet uppdateras när du lämnar den här skärmen."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ana Sayfa ve Ayarlar her zaman görünür. Gezinme çubuğu bu ekrandan çıktığında güncellenir."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Головна та Налаштування показуються завжди. Панель навігації оновиться, коли ти вийдеш із цього екрана."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "首页和设置始终显示。离开此页面后导航栏会更新。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "首頁與設定一律顯示。離開此頁面後導覽列會更新。"
+          }
+        }
+      }
+    },
+    "settings.tabs.catalog.subtitle" : {
+      "comment" : "Row subtitle for the Catalog tab toggle",
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Procházení a žádosti v Jellyseerru. Vypnuto skryje i výsledky katalogu v Hledat a na stránkách osob."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gennemse og anmod via Jellyseerr. Fra skjuler også katalogresultater i Søg og på personsider."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jellyseerr durchstöbern und anfragen. Aus blendet auch Katalog-Treffer in der Suche und auf Personenseiten aus."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Περιήγηση και αιτήματα Jellyseerr. Απενεργοποιημένο κρύβει και τα αποτελέσματα καταλόγου στην Αναζήτηση και στις σελίδες προσώπων."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jellyseerr browsing and requests. Off also hides catalog results in Search and on person pages."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Explorar y solicitar en Jellyseerr. Desactivado también oculta los resultados del catálogo en Buscar y en las páginas de personas."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jellyseerr-selailu ja -pyynnöt. Pois piilottaa myös luettelotulokset Haussa ja henkilösivuilla."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Navigation et demandes Jellyseerr. Désactivé, les résultats du catalogue disparaissent aussi de la Recherche et des pages de personnes."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pregledavanje i zahtjevi putem Jellyseerra. Isključeno skriva i rezultate kataloga u Pretrazi te na stranicama osoba."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jellyseerr böngészés és kérések. Kikapcsolva a katalógustalálatok a Keresésben és a személyoldalakon is eltűnnek."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esplorazione e richieste Jellyseerr. Disattivata nasconde anche i risultati del catalogo in Cerca e nelle pagine delle persone."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jellyseerr の閲覧とリクエスト。オフにすると検索と人物ページのカタログ結果も非表示になります。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jellyseerr 둘러보기와 요청. 끄면 검색과 인물 페이지의 카탈로그 결과도 숨겨집니다."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Utforsking og forespørsler via Jellyseerr. Av skjuler også katalogtreff i Søk og på personsider."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bladeren en aanvragen via Jellyseerr. Uit verbergt ook catalogusresultaten in Zoeken en op personenpagina's."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Przeglądanie i prośby w Jellyseerr. Wyłączenie ukrywa też wyniki katalogu w Szukaj i na stronach osób."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Navegação e pedidos no Jellyseerr. Desativado, os resultados do catálogo também somem da Busca e das páginas de pessoas."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Navegação e pedidos no Jellyseerr. Desativado, os resultados do catálogo também desaparecem da Pesquisa e das páginas de pessoas."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Explorare și cereri Jellyseerr. Dezactivat, rezultatele din catalog dispar și din Căutare și de pe paginile persoanelor."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Просмотр и запросы Jellyseerr. При выключении результаты каталога исчезают также из Поиска и со страниц персон."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Prehliadanie a žiadosti cez Jellyseerr. Vypnuté skryje aj výsledky katalógu v Hľadať a na stránkach osôb."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bläddra och begär via Jellyseerr. Av döljer även katalogträffar i Sök och på personsidor."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jellyseerr'de gezinme ve istekler. Kapalıyken katalog sonuçları Ara sekmesinde ve kişi sayfalarında da gizlenir."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Перегляд і запити Jellyseerr. Вимкнено приховує також результати каталогу в Пошуку та на сторінках персон."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jellyseerr 浏览与请求。关闭后，搜索和人物页面中的目录结果也会隐藏。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jellyseerr 瀏覽與請求。關閉後，搜尋與人物頁面中的目錄結果也會隱藏。"
+          }
+        }
+      }
+    },
+    "settings.tabs.liveTV.subtitle" : {
+      "comment" : "Row subtitle for the Live TV tab toggle",
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Živé kanály, program a nahrávky. Zobrazí se jen, pokud server nabízí Živou TV."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Live-kanaler, guide og optagelser. Vises kun, hvis serveren tilbyder Live-tv."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Live-Kanäle, Guide und Aufnahmen. Erscheint nur, wenn der Server Live-TV anbietet."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ζωντανά κανάλια, πρόγραμμα και εγγραφές. Εμφανίζεται μόνο αν ο διακομιστής προσφέρει Ζωντανή TV."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Live channels, guide and recordings. Appears only if the server offers Live TV."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Canales en directo, guía y grabaciones. Solo aparece si el servidor ofrece TV en directo."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Suorat kanavat, opas ja tallenteet. Näkyy vain, jos palvelin tarjoaa Suora-TV:n."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chaînes en direct, guide et enregistrements. Apparaît seulement si le serveur propose la TV en direct."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kanali uživo, vodič i snimke. Pojavljuje se samo ako poslužitelj nudi TV uživo."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Élő csatornák, műsorújság és felvételek. Csak akkor jelenik meg, ha a kiszolgáló kínál Élő TV-t."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Canali in diretta, guida e registrazioni. Appare solo se il server offre la TV in diretta."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ライブチャンネル、番組表、録画。サーバーがライブTVに対応している場合のみ表示されます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "라이브 채널, 편성표, 녹화. 서버가 라이브 TV를 제공할 때만 표시됩니다."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Direktekanaler, guide og opptak. Vises bare hvis serveren tilbyr Direkte-TV."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Live kanalen, gids en opnames. Verschijnt alleen als de server Live-tv biedt."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kanały na żywo, program i nagrania. Pojawia się tylko, gdy serwer oferuje telewizję na żywo."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Canais ao vivo, guia e gravações. Aparece só se o servidor oferecer TV ao vivo."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Canais em direto, guia e gravações. Aparece só se o servidor oferecer TV em direto."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Canale live, ghid și înregistrări. Apare doar dacă serverul oferă TV în direct."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Прямые каналы, телепрограмма и записи. Появляется, только если сервер поддерживает прямой эфир."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Živé kanály, program a nahrávky. Zobrazí sa len vtedy, ak server ponúka Živú TV."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Direktkanaler, tablå och inspelningar. Visas bara om servern erbjuder Direkt-TV."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Canlı kanallar, rehber ve kayıtlar. Yalnızca sunucu Canlı TV sunuyorsa görünür."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Прямі канали, телепрограма та записи. З'являється, лише якщо сервер підтримує прямий ефір."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "直播频道、节目单和录制。仅在服务器提供直播电视时显示。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "直播頻道、節目表與錄影。僅在伺服器提供直播電視時顯示。"
+          }
+        }
+      }
+    },
+    "settings.tabs.search.subtitle" : {
+      "comment" : "Row subtitle for the Search tab toggle",
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Prohledá tvou knihovnu, a Jellyseerr, když je Katalog zapnutý."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Søger i dit bibliotek, og i Jellyseerr når Katalog er slået til."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Durchsucht deine Bibliothek, und Jellyseerr, wenn Katalog an ist."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Αναζήτηση στη βιβλιοθήκη σου και στο Jellyseerr όταν ο Κατάλογος είναι ενεργός."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Searches your library, and Jellyseerr when Catalog is on."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Busca en tu biblioteca y en Jellyseerr cuando Catálogo está activado."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hakee kirjastostasi, ja Jellyseerristä kun Luettelo on käytössä."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cherche dans ta bibliothèque, et dans Jellyseerr quand Catalogue est activé."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pretražuje tvoju biblioteku, i Jellyseerr kada je Katalog uključen."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A könyvtáradban keres, és a Jellyseerrben, ha a Katalógus be van kapcsolva."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cerca nella tua libreria, e in Jellyseerr quando Catalogo è attivo."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ライブラリを検索します。カタログがオンのときは Jellyseerr も検索します。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "라이브러리를 검색하고, 카탈로그가 켜져 있으면 Jellyseerr도 검색합니다."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Søker i biblioteket ditt, og i Jellyseerr når Katalog er på."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Doorzoekt je bibliotheek, en Jellyseerr als Catalogus aan staat."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Przeszukuje twoją bibliotekę, a przy włączonym Katalogu także Jellyseerr."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Busca na sua biblioteca e no Jellyseerr quando o Catálogo está ativo."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pesquisa na tua biblioteca e no Jellyseerr quando o Catálogo está ativo."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Caută în biblioteca ta și în Jellyseerr când Catalog este activat."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ищет в вашей библиотеке, а при включённом Каталоге и в Jellyseerr."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Prehľadá tvoju knižnicu a Jellyseerr, keď je Katalóg zapnutý."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Söker i ditt bibliotek, och i Jellyseerr när Katalog är på."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kitaplığında arar, Katalog açıkken Jellyseerr'de de arar."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Шукає у твоїй бібліотеці, а з увімкненим Каталогом і в Jellyseerr."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "搜索你的媒体库；目录开启时也搜索 Jellyseerr。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "搜尋你的媒體庫；目錄開啟時也搜尋 Jellyseerr。"
+          }
+        }
+      }
+    },
+    "settings.tabs.music.subtitle" : {
+      "comment" : "Row subtitle for the Music tab toggle",
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tvá hudební knihovna. Zobrazí se jen, pokud ji server má."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dit musikbibliotek. Vises kun, hvis serveren har et."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deine Musikbibliothek. Erscheint nur, wenn der Server eine hat."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Η μουσική σου βιβλιοθήκη. Εμφανίζεται μόνο αν ο διακομιστής έχει μία."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your music library. Appears only if the server has one."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu biblioteca de música. Solo aparece si el servidor tiene una."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Musiikkikirjastosi. Näkyy vain, jos palvelimella on sellainen."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ta bibliothèque musicale. Apparaît seulement si le serveur en a une."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tvoja glazbena biblioteka. Pojavljuje se samo ako je poslužitelj ima."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A zenei könyvtárad. Csak akkor jelenik meg, ha a kiszolgálón van ilyen."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La tua libreria musicale. Appare solo se il server ne ha una."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "音楽ライブラリ。サーバーに音楽ライブラリがある場合のみ表示されます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "음악 라이브러리. 서버에 음악 라이브러리가 있을 때만 표시됩니다."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Musikkbiblioteket ditt. Vises bare hvis serveren har ett."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Je muziekbibliotheek. Verschijnt alleen als de server er een heeft."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Twoja biblioteka muzyki. Pojawia się tylko, gdy serwer ją ma."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sua biblioteca de música. Aparece só se o servidor tiver uma."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A tua biblioteca de música. Aparece só se o servidor tiver uma."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Biblioteca ta de muzică. Apare doar dacă serverul are una."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ваша музыкальная библиотека. Появляется, только если она есть на сервере."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tvoja hudobná knižnica. Zobrazí sa len vtedy, ak ju server má."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ditt musikbibliotek. Visas bara om servern har ett."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Müzik kitaplığın. Yalnızca sunucuda müzik kitaplığı varsa görünür."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Твоя музична бібліотека. З'являється, лише якщо вона є на сервері."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你的音乐库。仅在服务器有音乐库时显示。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你的音樂庫。僅在伺服器有音樂庫時顯示。"
+          }
+        }
+      }
+    },
     "settings.licenses.footer" : {
       "extractionState" : "manual",
       "localizations" : {

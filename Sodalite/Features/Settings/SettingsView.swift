@@ -177,6 +177,18 @@ struct SettingsView: View {
                 HomeCustomizeView()
             }
 
+            // Gated: hiding the Catalog tab is a parental measure (Sodalite#62), so an unlocked
+            // profile must not be able to switch it back on.
+            GatedSettingsTile(
+                icon: "rectangle.3.group",
+                title: "settings.tabs.title",
+                subtitle: "settings.tabs.subtitle.short",
+                reason: .openParentalSettings,
+                requiresPIN: { dependencies.parentalGateRequiredForSessionAction() }
+            ) {
+                TabVisibilitySettingsView()
+            }
+
             SettingsTile(
                 icon: "play.circle",
                 title: "settings.playback.title",

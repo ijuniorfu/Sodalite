@@ -87,7 +87,7 @@ struct CloudSyncPayloadsTests {
         let object = try #require(
             JSONSerialization.jsonObject(with: reencoded) as? [String: Any]
         )
-        #expect(object["schemaVersion"] as? Int == 3)
+        #expect(object["schemaVersion"] as? Int == 4)
     }
 
     @Test("record names round-trip to ids")

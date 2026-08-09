@@ -190,7 +190,8 @@ extension DependencyContainer {
                 nowPlayingUsesSeriesPoster: a.nowPlayingUsesSeriesPoster,
                 spoilerProtectionEnabled: a.spoilerProtectionEnabled,
                 spoilerHideEpisodes: a.spoilerHideEpisodes,
-                spoilerHideMovies: a.spoilerHideMovies
+                spoilerHideMovies: a.spoilerHideMovies,
+                hiddenTabs: a.hiddenTabs.map(\.rawValue).sorted()
             ))
         case .auth:
             return .auth(AuthSettingsPayload(
@@ -279,6 +280,10 @@ extension DependencyContainer {
             store.spoilerProtectionEnabled = a.spoilerProtectionEnabled
             store.spoilerHideEpisodes = a.spoilerHideEpisodes
             store.spoilerHideMovies = a.spoilerHideMovies
+            // Absent field = sender predates tab visibility, so it carries no opinion; applying an empty set would silently unhide the receiver's tabs (Sodalite#62).
+            if let tabs = a.hiddenTabs {
+                store.hiddenTabs = Set(tabs.compactMap(AppTab.init(rawValue:)).filter(\.isHideable))
+            }
         case .auth(let a):
             authPreferences.launchBehavior = AuthPreferences.LaunchBehavior(rawValue: a.launchBehavior) ?? authPreferences.launchBehavior
             // a.defaultUserID is the retired global pin, deliberately not applied: it carries no server, so applying it would pin the wrong server's profile. The per-server value rides the server record.
