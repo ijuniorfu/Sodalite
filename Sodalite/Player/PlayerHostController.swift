@@ -223,10 +223,11 @@ final class PlayerHostController: AVPlayerViewController {
         #endif
 
         #if os(iOS)
-        // Sodalite#98: the external-subtitle window reacts to the engine's master-vs-media serving state
-        // (native renditions reach an HDR external display; not an SDR one). Set up once (not per player
-        // bind) so rebinds don't stack duplicate subscriptions. Screen connect/disconnect observers are
-        // tied to the bound-player lifecycle instead (registered on bind, removed on unbind, both here).
+        // Sodalite#98: a master-vs-media serving change means the engine rebuilt the item, so the window
+        // has to be re-decided against the new player. The serving state itself is no longer an input
+        // (see ExternalSubtitleWindowDecision). Set up once (not per player bind) so rebinds don't stack
+        // duplicate subscriptions. Screen connect/disconnect observers are tied to the bound-player
+        // lifecycle instead (registered on bind, removed on unbind, both here).
         engine.$nativeSubtitleRenditionsServed
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in self?.updateExternalSubtitleWindow() }
@@ -491,9 +492,10 @@ final class PlayerHostController: AVPlayerViewController {
         }
     }
 
-    /// Sodalite#98: draw the subtitle overlay on a wired external screen when native renditions do not
-    /// reach it (media-direct SDR external / DV P5). Recomputed on external-playback changes, screen
-    /// connect/disconnect, and the engine's nativeSubtitleRenditionsServed signal.
+    /// Sodalite#98: draw the subtitle overlay on a wired external screen, which the app can only do by
+    /// owning that screen. Recomputed on external-playback changes, screen connect/disconnect, subtitle
+    /// selection, and the engine's nativeSubtitleRenditionsServed signal (a serving change means a
+    /// rebuilt item, so the decision is re-run against the new player).
     func updateExternalSubtitleWindow() {
         let scenePresent = ExternalSubtitleWindowController.currentExternalScene() != nil
         // While AVKit's external playback drives the display there is no scene to find, so a wired display
@@ -501,16 +503,16 @@ final class PlayerHostController: AVPlayerViewController {
         // AirPlay is excluded by construction: it has no local screen to draw on.
         let externalDisplayAttached = scenePresent || (externalPlaybackActive && Self.wiredHDMIRouteActive())
         let subtitleSelected = viewModel.activeSubtitleIndex != nil
-        let nativeRenditionsServed = viewModel.player.nativeSubtitleRenditionsServed
         let shouldOwn = ExternalSubtitleWindowDecision.shouldOwnExternalScreen(
             externalDisplayAttached: externalDisplayAttached,
             subtitleSelected: subtitleSelected,
-            nativeRenditionsServed: nativeRenditionsServed,
             handoverFailed: externalSubtitleWindow.handoverFailed)
         // Every decision input, so a reporter's log says which one blocked the takeover instead of
-        // leaving the silent no-op path unlogged.
+        // leaving the silent no-op path unlogged. The serving state and the audio route are no longer
+        // inputs but stay in the line: they are what tells a report on a display with no audio apart
+        // from one where the route was fine and the scene never arrived.
         LogTap.shared.note(
-            "[ExternalSubs] decide own=\(shouldOwn) attached=\(externalDisplayAttached) scene=\(scenePresent) sub=\(subtitleSelected) nativeServed=\(nativeRenditionsServed) extPlayback=\(externalPlaybackActive) failed=\(externalSubtitleWindow.handoverFailed) scenes=\(ExternalSubtitleWindowController.connectedSceneRoles())")
+            "[ExternalSubs] decide own=\(shouldOwn) attached=\(externalDisplayAttached) scene=\(scenePresent) sub=\(subtitleSelected) extPlayback=\(externalPlaybackActive) failed=\(externalSubtitleWindow.handoverFailed) nativeServed=\(viewModel.player.nativeSubtitleRenditionsServed) route=\(Self.audioRoutePorts()) scenes=\(ExternalSubtitleWindowController.connectedSceneRoles())")
         externalSubtitleWindow.update(
             shouldOwnExternalScreen: shouldOwn,
             player: viewModel.player.currentAVPlayer,
@@ -521,6 +523,14 @@ final class PlayerHostController: AVPlayerViewController {
     /// `.airPlay`. Mirrors AetherEngine's `isWiredHDMIExternalDisplay`.
     private static func wiredHDMIRouteActive() -> Bool {
         AVAudioSession.sharedInstance().currentRoute.outputs.contains { $0.portType == .HDMI }
+    }
+
+    /// Current audio output ports, for the decision log: an external display whose audio stays on the
+    /// device (a monitor with no speakers) leaves `attached` false until its scene arrives, and only the
+    /// route tells that apart from a display the app was simply never handed a scene for.
+    private static func audioRoutePorts() -> String {
+        let ports = AVAudioSession.sharedInstance().currentRoute.outputs.map { $0.portType.rawValue }
+        return ports.isEmpty ? "none" : ports.joined(separator: ",")
     }
 
     private func registerExternalScreenObservers() {

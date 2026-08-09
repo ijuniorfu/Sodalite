@@ -71,7 +71,7 @@ The high-value areas, what we most want feedback on:
 - Rotate the device during playback: does the video follow, and does the rotation-lock toggle pin it where you want?
 - Picture in Picture: start PiP, leave the app, come back. Do text subtitles show in the PiP window and stay in sync when you seek both directions?
 - AirPlay: send a title to an AirPlay display, does it start, and do HDR / surround survive?
-- Wired HDMI out: plug in a USB-C to HDMI adapter. Does playback fill the connected screen, does HDR / Dolby Vision pass through, and do subtitles show on the external screen and stay in sync when you seek?
+- Wired HDMI out: plug in a USB-C to HDMI adapter. Does playback fill the connected screen, does HDR / Dolby Vision pass through, and do subtitles show on the external screen and stay in sync when you seek? With subtitles on the app takes the screen over (the phone keeps its own picture then): does HDR / Dolby Vision still come through in that state?
 - Portrait and landscape: are the player controls fully visible, nothing clipped behind the notch or home indicator?
 - iPad multitasking (Split View / Slide Over) if you use it
 
@@ -105,7 +105,7 @@ Bugs already known live in the [open issues](https://github.com/superuser404notf
 ## What you should NOT expect from a beta
 
 - **Crashes are possible.** Your device won't be damaged, but you may have to relaunch.
-- **Some features may be incomplete.** For example, HDR display switching depends on TV model and the Match Content setting. On a wired external display, subtitles for HDR or Dolby Vision content that the platform cannot carry natively are now drawn by the app, which takes over the external screen to do it (video included). If the takeover does not produce a picture the app hands the screen straight back, so playback continues without the external subtitles. This is new and being verified. AirPlay keeps its native subtitle path.
+- **Some features may be incomplete.** For example, HDR display switching depends on TV model and the Match Content setting. On a wired external display, subtitles are drawn by the app, which takes the external screen over to do it (video included, and the phone keeps its own picture); the system's own external playback leaves subtitles on the phone, so this is the only way they reach the screen. It happens only while a subtitle is switched on, and if the takeover does not produce a picture the app hands the screen straight back, so playback continues without the external subtitles. Whether HDR / Dolby Vision mode matching survives the takeover is still being verified. AirPlay keeps its native subtitle path.
 - **TestFlight builds expire after 90 days.** You'll get a new invite when a fresh build lands.
 - **Your watch progress is stored on your Jellyfin server**, not in the app. If you reinstall you keep all your progress.
 

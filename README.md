@@ -149,7 +149,7 @@ The Seerr integration isn't a tacked-on link to a web view. It's a first-class p
 
 ### 📱 On iPhone & iPad
 - **AirPlay**: send any title to an AirPlay display, with HDR and surround metadata preserved
-- **Wired HDMI out**: plug in a USB-C to HDMI adapter and playback fills the connected screen instead of showing the mirrored phone window, with HDR / Dolby Vision and match-frame-rate passed through; subtitles render on the external screen too
+- **Wired HDMI out**: plug in a USB-C to HDMI adapter and playback fills the connected screen instead of showing the mirrored phone window, with HDR / Dolby Vision and match-frame-rate passed through. With subtitles switched on the app takes the screen over to draw them there, video included, since the system's own external playback keeps subtitles on the phone
 - **Rotation lock**: a one-tap toggle in the player pins landscape (or lets it follow the device), with a lock indicator so you always know which mode you're in
 - **Child lock**: one tap in the player disables every touch, so a child can watch without accidentally skipping, pausing, or leaving; release it by pressing and holding the on-screen pill for a moment
 - **Format badge**: the top bar surfaces the live format (Dolby Vision, HDR10+, Atmos and friends) so you can confirm at a glance what's actually playing

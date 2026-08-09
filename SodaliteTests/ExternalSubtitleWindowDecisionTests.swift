@@ -6,22 +6,15 @@ import Testing
 @Suite("External subtitle window decision (Sodalite#98)")
 struct ExternalSubtitleWindowDecisionTests {
     private func decide(
-        attached: Bool = true, subtitle: Bool = true,
-        nativeServed: Bool = false, failed: Bool = false
+        attached: Bool = true, subtitle: Bool = true, failed: Bool = false
     ) -> Bool {
         ExternalSubtitleWindowDecision.shouldOwnExternalScreen(
-            externalDisplayAttached: attached, subtitleSelected: subtitle,
-            nativeRenditionsServed: nativeServed, handoverFailed: failed)
+            externalDisplayAttached: attached, subtitleSelected: subtitle, handoverFailed: failed)
     }
 
-    @Test("takes the screen for a selected subtitle the renditions cannot reach")
+    @Test("takes the screen for a selected subtitle on an attached display")
     func takesTheScreen() {
         #expect(decide())
-    }
-
-    @Test("leaves the screen to AVKit when native renditions already carry the subtitles")
-    func nativeRenditionsWin() {
-        #expect(!decide(nativeServed: true))
     }
 
     @Test("never takes a screen that is not attached, or with no subtitle selected")
