@@ -79,12 +79,13 @@ struct MediaSegment: Codable, Sendable, Identifiable {
     var endSeconds: Double { Double(endTicks) / 10_000_000 }
 }
 
-/// Paired result for one item's intro + outro markers, returned in a
-/// single request to `/MediaSegments/{itemId}`. Either (or both) may
-/// be nil if the server didn't detect that segment type.
+/// Paired result for one item's intro + outro + recap markers, returned in a
+/// single request to `/MediaSegments/{itemId}`. Any of them may be nil if the
+/// server didn't detect that segment type.
 struct EpisodeSegments: Sendable {
     let intro: MediaSegment?
     let outro: MediaSegment?
+    let recap: MediaSegment?
 }
 
 enum SegmentType: String, Codable, Sendable {
