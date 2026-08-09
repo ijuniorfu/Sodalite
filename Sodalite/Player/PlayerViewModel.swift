@@ -1343,6 +1343,18 @@ final class PlayerViewModel {
             scrubPreview.update(fraction: scrubProgress, durationSeconds: dur)
         } else { updateLiveScrubPreview() }
 
+        // Instant skip (Sodalite#60): commit the jump on a short idle instead of waiting for Select.
+        // The delay is what makes three quick presses one seek rather than three restarts, and it keeps
+        // a press that lands mid-seek from computing its target off a stale position.
+        if preferences.instantSkipSeek {
+            controlsTimer = Task {
+                try? await Task.sleep(for: .seconds(Self.instantSkipCommitDelay))
+                guard !Task.isCancelled else { return }
+                commitScrub()
+            }
+            return
+        }
+
         // Auto-cancel on idle (matches scrubPanEnded): discard the scrub + fade controls after 5s if the
         // user taps left/right and walks away without committing via Select.
         controlsTimer = Task {
@@ -1353,6 +1365,10 @@ final class PlayerViewModel {
             hideControls()
         }
     }
+
+    /// Idle window a left/right press waits before an instant skip seeks, so a burst of presses
+    /// coalesces into a single seek.
+    static let instantSkipCommitDelay: Double = 0.3
 
     /// Reset the error trio so a fresh `startPlayback` shows nothing stale while loading.
     func clearError() {

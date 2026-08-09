@@ -45,6 +45,7 @@ final class PlaybackPreferences {
         static let liveTeletextPage = "playback.liveTeletextPage"
         static let rememberTrackSelections = "playback.rememberTrackSelections"
         static let selectTogglesPlayback = "playback.selectTogglesPlayback"
+        static let instantSkipSeek = "playback.instantSkipSeek"
     }
 
     // MARK: - Allowed Values
@@ -363,6 +364,14 @@ final class PlaybackPreferences {
         didSet { store.set(selectTogglesPlayback, forKey: Keys.selectTogglesPlayback) }
     }
 
+    /// Sodalite#60 (tvOS): ON seeks straight after a left/right press instead of parking the target on
+    /// the bar until Select commits it, for CEC remotes where the extra click is a chore. Presses inside
+    /// `PlayerViewModel.instantSkipCommitDelay` still coalesce into one seek. Default OFF, the Siri
+    /// Remote preview-then-confirm flow stays as it is.
+    var instantSkipSeek: Bool {
+        didSet { store.set(instantSkipSeek, forKey: Keys.instantSkipSeek) }
+    }
+
     var audioBridgeMode: AudioBridgeMode {
         preferLosslessAudioBridge ? .lossless : .surroundCompat
     }
@@ -428,5 +437,6 @@ final class PlaybackPreferences {
             .flatMap(LiveTeletextPage.init(rawValue:)) ?? .auto
         self.rememberTrackSelections = store.object(forKey: Keys.rememberTrackSelections) as? Bool ?? true
         self.selectTogglesPlayback = store.object(forKey: Keys.selectTogglesPlayback) as? Bool ?? false
+        self.instantSkipSeek = store.object(forKey: Keys.instantSkipSeek) as? Bool ?? false
     }
 }
