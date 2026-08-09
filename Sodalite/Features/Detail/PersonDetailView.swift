@@ -290,7 +290,11 @@ struct PersonDetailView: View {
         let vm = PersonDetailViewModel(
             itemService: dependencies.jellyfinItemService,
             mediaService: dependencies.seerrMediaService,
-            isSeerrConnected: appState.isSeerrConnected,
+            // Follows the Catalog tab: with it hidden, the filmography would be the same catalog one level deeper (Sodalite#62).
+            isSeerrConnected: SeerrSurfacePolicy.browsingEnabled(
+                appState: appState,
+                appearance: dependencies.appearancePreferences
+            ),
             userID: appState.activeUser?.id
         )
         viewModel = vm

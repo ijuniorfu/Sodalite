@@ -43,6 +43,7 @@ final class AppearancePreferences {
         static let spoilerProtectionEnabled = "appearance.spoilerProtection"
         static let spoilerHideEpisodes = "appearance.spoilerHideEpisodes"
         static let spoilerHideMovies = "appearance.spoilerHideMovies"
+        static let hiddenTabs = "appearance.hiddenTabs"
     }
 
     /// 1.3: noticeably bigger Apple TV-style card without dropping so many cards per row that rows feel empty.
@@ -89,8 +90,27 @@ final class AppearancePreferences {
         didSet { store.set(spoilerHideMovies, forKey: Keys.spoilerHideMovies) }
     }
 
+    /// Sodalite#62. Tabs the user switched off; only hideable ones ever land here, so Home and
+    /// Settings cannot be stored away even by a synced payload from a future build.
+    var hiddenTabs: Set<AppTab> {
+        didSet { store.set(hiddenTabs.map(\.rawValue).sorted(), forKey: Keys.hiddenTabs) }
+    }
+
     var cardScale: CGFloat {
         largeCards ? Self.largeCardScale : 1.0
+    }
+
+    func isTabHidden(_ tab: AppTab) -> Bool {
+        hiddenTabs.contains(tab)
+    }
+
+    func setTab(_ tab: AppTab, hidden: Bool) {
+        guard tab.isHideable else { return }
+        if hidden {
+            hiddenTabs.insert(tab)
+        } else {
+            hiddenTabs.remove(tab)
+        }
     }
 
     var storedAccentRawValue: String {
@@ -122,6 +142,8 @@ final class AppearancePreferences {
         self.spoilerProtectionEnabled = store.object(forKey: Keys.spoilerProtectionEnabled) as? Bool ?? false
         self.spoilerHideEpisodes = store.object(forKey: Keys.spoilerHideEpisodes) as? Bool ?? true
         self.spoilerHideMovies = store.object(forKey: Keys.spoilerHideMovies) as? Bool ?? false
+        let storedTabs = store.array(forKey: Keys.hiddenTabs) as? [String] ?? []
+        self.hiddenTabs = Set(storedTabs.compactMap(AppTab.init(rawValue:)).filter(\.isHideable))
     }
 
     func resolvedTheme(isSupporter: Bool) -> ResolvedAppearanceTheme {

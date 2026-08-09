@@ -139,9 +139,12 @@ struct AppearanceSettingsPayload: Codable, Equatable {
     var spoilerProtectionEnabled: Bool
     var spoilerHideEpisodes: Bool
     var spoilerHideMovies: Bool
+    /// nil from a device on a build without tab visibility (Sodalite#62); applying nil would reset
+    /// the receiver's hidden tabs, so it means "no opinion", not "nothing hidden".
+    var hiddenTabs: [String]?
 
     init(
-        schemaVersion: Int = 3,
+        schemaVersion: Int = 4,
         updatedAt: Date,
         accentChoice: String,
         backgroundStyle: String,
@@ -151,7 +154,8 @@ struct AppearanceSettingsPayload: Codable, Equatable {
         nowPlayingUsesSeriesPoster: Bool,
         spoilerProtectionEnabled: Bool = false,
         spoilerHideEpisodes: Bool = true,
-        spoilerHideMovies: Bool = false
+        spoilerHideMovies: Bool = false,
+        hiddenTabs: [String]? = nil
     ) {
         self.schemaVersion = schemaVersion
         self.updatedAt = updatedAt
@@ -164,6 +168,7 @@ struct AppearanceSettingsPayload: Codable, Equatable {
         self.spoilerProtectionEnabled = spoilerProtectionEnabled
         self.spoilerHideEpisodes = spoilerHideEpisodes
         self.spoilerHideMovies = spoilerHideMovies
+        self.hiddenTabs = hiddenTabs
     }
 
     private enum CodingKeys: String, CodingKey {
@@ -178,6 +183,7 @@ struct AppearanceSettingsPayload: Codable, Equatable {
         case spoilerProtectionEnabled
         case spoilerHideEpisodes
         case spoilerHideMovies
+        case hiddenTabs
     }
 
     init(from decoder: Decoder) throws {
@@ -197,11 +203,12 @@ struct AppearanceSettingsPayload: Codable, Equatable {
         spoilerProtectionEnabled = try values.decodeIfPresent(Bool.self, forKey: .spoilerProtectionEnabled) ?? false
         spoilerHideEpisodes = try values.decodeIfPresent(Bool.self, forKey: .spoilerHideEpisodes) ?? true
         spoilerHideMovies = try values.decodeIfPresent(Bool.self, forKey: .spoilerHideMovies) ?? false
+        hiddenTabs = try values.decodeIfPresent([String].self, forKey: .hiddenTabs)
     }
 
     func encode(to encoder: Encoder) throws {
         var values = encoder.container(keyedBy: CodingKeys.self)
-        try values.encode(3, forKey: .schemaVersion)
+        try values.encode(4, forKey: .schemaVersion)
         try values.encode(updatedAt, forKey: .updatedAt)
         try values.encode(accentChoice, forKey: .accentChoice)
         try values.encode(backgroundStyle, forKey: .backgroundStyle)
@@ -212,6 +219,7 @@ struct AppearanceSettingsPayload: Codable, Equatable {
         try values.encode(spoilerProtectionEnabled, forKey: .spoilerProtectionEnabled)
         try values.encode(spoilerHideEpisodes, forKey: .spoilerHideEpisodes)
         try values.encode(spoilerHideMovies, forKey: .spoilerHideMovies)
+        try values.encodeIfPresent(hiddenTabs, forKey: .hiddenTabs)
     }
 }
 

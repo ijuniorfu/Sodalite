@@ -1,37 +1,6 @@
 import SwiftUI
 import UIKit
 
-enum AppTab: String, CaseIterable, Sendable {
-    case home
-    case liveTV
-    case catalog
-    case search
-    case music
-    case settings
-
-    var labelKey: LocalizedStringKey {
-        switch self {
-        case .home: "tab.home"
-        case .liveTV: "tab.liveTV"
-        case .catalog: "tab.catalog"
-        case .search: "tab.search"
-        case .music: "tab.music"
-        case .settings: "tab.settings"
-        }
-    }
-
-    var systemImage: String {
-        switch self {
-        case .home: "house"
-        case .liveTV: "tv"
-        case .catalog: "film.stack"
-        case .search: "magnifyingglass"
-        case .music: "music.note"
-        case .settings: "gearshape"
-        }
-    }
-}
-
 struct TabRootView: View {
     @State private var selectedTab: AppTab = .home
     @State private var availableTabs: [AppTab] = AppTab.allCases.filter { $0 != .music && $0 != .liveTV }
@@ -47,6 +16,10 @@ struct TabRootView: View {
 
     private var iconColor: Color {
         appearanceTheme.palette.navigation.color
+    }
+
+    private var appearance: AppearancePreferences {
+        dependencies.appearancePreferences
     }
 
     @ViewBuilder
@@ -72,14 +45,17 @@ struct TabRootView: View {
         #endif
     }
 
-    /// iPhone (compact) drops Settings from the tab bar so the 6 tabs do not overflow into
+    /// The probed tab set minus the ones the user switched off in settings (Sodalite#62).
+    ///
+    /// iPhone (compact) also drops Settings from the tab bar so the 6 tabs do not overflow into
     /// the iOS "More" tab, whose nested navigation controller skips the Settings root on back.
     /// Settings is reached via the gear overlay instead. tvOS + iPad keep it as a tab/sidebar item.
     private var displayedTabs: [AppTab] {
+        var tabs = availableTabs.filter { !appearance.isTabHidden($0) }
         #if os(iOS)
-        if hSizeClass == .compact { return availableTabs.filter { $0 != .settings } }
+        if hSizeClass == .compact { tabs = tabs.filter { $0 != .settings } }
         #endif
-        return availableTabs
+        return tabs
     }
 
     var body: some View {
@@ -211,7 +187,13 @@ struct TabRootView: View {
             // Re-apply on accent change; UITabBarItem.appearance() reads at configure time, not live.
             configureTabBarItemAppearance()
         }
-        .onChange(of: availableTabs) { _, _ in
+        // Keyed on the DISPLAYED set, not the probed one: a tab the user switched off changes no bar,
+        // and switching one back on inserts an item that needs the same re-tint as a probed insertion.
+        .onChange(of: displayedTabs) { _, tabs in
+            // Hiding the tab you are standing on has to land somewhere that still exists.
+            if !tabs.contains(selectedTab) {
+                selectedTab = .home
+            }
             // Async Live TV / Music insertion rebuilds the UITabBar; re-apply the tint next tick once the new bar exists.
             DispatchQueue.main.async {
                 configureTabBarItemAppearance()

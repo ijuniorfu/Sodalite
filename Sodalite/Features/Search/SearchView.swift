@@ -8,6 +8,13 @@ struct SearchView: View {
     @State private var viewModel: SearchViewModel?
     @State private var destination: Destination?
 
+    private var seerrBrowsingEnabled: Bool {
+        SeerrSurfacePolicy.browsingEnabled(
+            appState: appState,
+            appearance: dependencies.appearancePreferences
+        )
+    }
+
     /// One cover for all three result kinds. Stacking a `fullScreenCover` per kind is the shape
     /// where only the last one attached ever presents, and the older path dies without a warning.
     private enum Destination: Identifiable {
@@ -57,9 +64,9 @@ struct SearchView: View {
             }
         }
         .onAppear(perform: bootstrap)
-        // Reactive Seerr hookup: bootstrap captures isSeerrConnected once, so hitting Search before restoreSession finishes the Seerr part would pin a nil service for the session. Re-sync on flag change keeps the catalog half live.
-        .onChange(of: appState.isSeerrConnected) { _, connected in
-            viewModel?.seerrSearchService = connected ? dependencies.seerrSearchService : nil
+        // Reactive Seerr hookup: bootstrap captures the flag once, so hitting Search before restoreSession finishes the Seerr part would pin a nil service for the session. Re-sync on change keeps the catalog half live, and it follows the Catalog tab's visibility too (Sodalite#62).
+        .onChange(of: seerrBrowsingEnabled) { _, enabled in
+            viewModel?.seerrSearchService = enabled ? dependencies.seerrSearchService : nil
             // Re-run the active query so the Seerr half catches up without retyping.
             viewModel?.scheduleSearch()
         }
@@ -321,7 +328,7 @@ struct SearchView: View {
         guard viewModel == nil, let userID = appState.activeUser?.id else { return }
         viewModel = SearchViewModel(
             itemService: dependencies.jellyfinItemService,
-            seerrSearchService: appState.isSeerrConnected ? dependencies.seerrSearchService : nil,
+            seerrSearchService: seerrBrowsingEnabled ? dependencies.seerrSearchService : nil,
             userID: userID
         )
     }
