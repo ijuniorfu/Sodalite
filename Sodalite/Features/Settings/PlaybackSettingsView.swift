@@ -35,6 +35,16 @@ struct PlaybackSettingsView: View {
                 )
 
                 boolRow(
+                    icon: "forward.frame.fill",
+                    title: "settings.playback.autoSkipRecap",
+                    subtitle: "settings.playback.autoSkipRecap.subtitle",
+                    value: Binding(
+                        get: { prefs.autoSkipRecap },
+                        set: { prefs.autoSkipRecap = $0 }
+                    )
+                )
+
+                boolRow(
                     icon: "forward.end.alt.fill",
                     title: "settings.playback.autoSkipOutro",
                     subtitle: "settings.playback.autoSkipOutro.subtitle",

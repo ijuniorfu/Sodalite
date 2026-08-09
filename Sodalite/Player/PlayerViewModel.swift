@@ -113,7 +113,7 @@ final class PlayerViewModel {
     enum ControlsFocus: Hashable {
         case progressBar
         case restartButton
-        case skipIntroButton
+        case skipSegmentButton
         case chapterButton
         case episodeButton
         case audioButton
@@ -304,22 +304,25 @@ final class PlayerViewModel {
     /// changes, cutting ~9/10 redundant string allocations and label invalidations per second.
     @ObservationIgnored private var lastDisplayedSecond: Int = -1
 
-    // Intro + outro markers, both from Jellyfin Media Segments / intro-skipper plugin in one call.
+    // Intro + outro + recap markers, all from Jellyfin Media Segments / intro-skipper plugin in one call.
     var introSegment: MediaSegment?
     var outroSegment: MediaSegment?
-    /// True while playbackTime is inside the intro; shows Skip Intro even when controls are closed.
-    var isInsideIntro: Bool = false
-    /// Set once per episode after auto-skip fires; keeps the time subscriber from re-triggering
-    /// before the seek moves currentTime past introEnd.
+    var recapSegment: MediaSegment?
+    /// The segment the player currently offers to skip (intro or recap), nil when there is nothing to
+    /// skip. Shows the skip pill even when controls are closed, and carries the seek target.
+    var activeSkipSegment: ActiveSkipSegment?
+    /// Set once per episode after auto-skip fires; keeps the time subscriber from re-triggering before
+    /// the seek moves currentTime past the segment end. One latch per kind: a shared one would let the
+    /// intro's auto-skip swallow a recap that follows it in the same episode.
     var didAutoSkipCurrentIntro: Bool = false
-    /// Outro equivalent of `didAutoSkipCurrentIntro`; prevents repeat auto-skip while currentTime
-    /// ticks toward outro.endSeconds.
+    var didAutoSkipCurrentRecap: Bool = false
+    /// Outro equivalent; prevents repeat auto-skip while currentTime ticks toward outro.endSeconds.
     var didAutoSkipCurrentOutro: Bool = false
-    /// Skip-lockout latch: while set, `updateIntroVisibility` refuses to re-flip `isInsideIntro` true
-    /// so stale pre-seek ticks (between skipIntro's flag flip and the seek landing) can't revive the
-    /// pill mid-fade. Cleared 500ms after `player.seek` returns (absorbs post-seek jitter), on episode
-    /// change, and as a fast path when a tick arrives with `time < seg.startSeconds`.
-    var didSkipCurrentIntro: Bool = false
+    /// Skip-lockout latch: while it names a kind, `updateSkipSegmentVisibility` refuses to re-offer that
+    /// kind, so stale pre-seek ticks (between the flag flip and the seek landing) can't revive the pill
+    /// mid-fade. A different kind resolves immediately, which is what chains a recap into the intro
+    /// behind it. Cleared 500ms after `player.seek` returns (absorbs post-seek jitter) and on episode change.
+    var didSkipCurrentSegment: SkipSegmentKind?
 
     // MARK: - Dependencies
 
@@ -1133,9 +1136,9 @@ final class PlayerViewModel {
             .sink { [weak self] time in
                 guard let self else { return }
                 self.playbackTime = time
-                // Intro/outro markers are absolute source-timeline values; currentTime is the AVPlayer
+                // Intro/outro/recap markers are absolute source-timeline values; currentTime is the AVPlayer
                 // clock (source - playlistShiftSeconds on native HLS), so compare against sourceTime.
-                self.updateIntroVisibility(time: self.player.sourceTime)
+                self.updateSkipSegmentVisibility(time: self.player.sourceTime)
                 self.updateOutroAutoSkip(time: self.player.sourceTime)
                 self.checkForNextEpisode()
                 let dur = self.effectiveDuration
@@ -1788,66 +1791,72 @@ final class PlayerViewModel {
         ["sr", "srp"], ["pt-br", "por"], ["pt-pt", "por"],
     ]
 
-    // MARK: - Intro Skip
+    // MARK: - Segment Skip
 
-    /// Toggles `isInsideIntro` from the playback-time sink so the UI shows/hides Skip Intro.
-    func updateIntroVisibility(time: Double) {
-        guard let seg = introSegment else {
-            if isInsideIntro { setInsideIntro(false) }
-            didSkipCurrentIntro = false
+    /// Resolves the currently skippable segment from the playback-time sink so the UI shows or hides
+    /// the skip pill, and fires the opt-in auto-skips.
+    func updateSkipSegmentVisibility(time: Double) {
+        let resolved = SkipSegmentResolver.active(intro: introSegment, recap: recapSegment, time: time)
+
+        // Skip-lockout: a stale pre-seek tick still inside the segment we just skipped must not revive
+        // the pill. A different kind falls through, so a recap chains into its intro at once.
+        if let locked = didSkipCurrentSegment, resolved?.kind == locked {
+            if activeSkipSegment != nil { setActiveSkipSegment(nil) }
             return
         }
 
-        // Skip-lockout: keep the pill hidden after a skip; clears only when the playhead moves below
-        // intro start. Without it, stale pre-seek ticks revive the pill for a frame after the tap.
-        if didSkipCurrentIntro {
-            if time < seg.startSeconds {
-                didSkipCurrentIntro = false
-            } else {
-                if isInsideIntro { setInsideIntro(false) }
-                return
-            }
-        }
-
-        // Plugin sometimes reports introStart=0 on cold-opens; the 0.5s floor stops the pill popping
-        // before titles play.
-        let inside = time >= max(seg.startSeconds, 0.5)
-                  && time < seg.endSeconds - 1   // hide 1s before end
-
-        // Auto-skip on the first tick inside the intro (opt-in), guarded to fire once per episode.
-        if inside && preferences.autoSkipIntro && !didAutoSkipCurrentIntro {
-            didAutoSkipCurrentIntro = true
-            skipIntro()
+        // Auto-skip on the first tick inside the segment (opt-in), guarded to fire once per kind.
+        if let resolved, shouldAutoSkip(resolved) {
+            markAutoSkipped(resolved.kind)
+            skip(resolved)
             return
         }
 
-        if inside != isInsideIntro {
-            setInsideIntro(inside)
+        if resolved != activeSkipSegment {
+            setActiveSkipSegment(resolved)
         }
     }
 
-    /// Update the flag and move focus off the Skip Intro button if it just vanished, else the user is stuck on it.
-    private func setInsideIntro(_ newValue: Bool) {
-        isInsideIntro = newValue
-        if !newValue && controlsFocus == .skipIntroButton {
+    private func shouldAutoSkip(_ segment: ActiveSkipSegment) -> Bool {
+        switch segment.kind {
+        case .intro: preferences.autoSkipIntro && !didAutoSkipCurrentIntro
+        case .recap: preferences.autoSkipRecap && !didAutoSkipCurrentRecap
+        }
+    }
+
+    private func markAutoSkipped(_ kind: SkipSegmentKind) {
+        switch kind {
+        case .intro: didAutoSkipCurrentIntro = true
+        case .recap: didAutoSkipCurrentRecap = true
+        }
+    }
+
+    /// Update the state and move focus off the skip button if it just vanished, else the user is stuck on it.
+    private func setActiveSkipSegment(_ newValue: ActiveSkipSegment?) {
+        activeSkipSegment = newValue
+        if newValue == nil && controlsFocus == .skipSegmentButton {
             if !player.audioTracks.isEmpty { controlsFocus = .audioButton }
             else if !subtitleStreams.isEmpty { controlsFocus = .subtitleButton }
             else { controlsFocus = .speedButton }
         }
     }
 
-    /// Jump past the intro. Triggered by the Skip Intro button.
-    func skipIntro() {
-        guard let seg = introSegment else { return }
-        isInsideIntro = false
-        didSkipCurrentIntro = true
+    /// Jump past the segment currently on offer. Triggered by the skip button and the Select gate.
+    func skipActiveSegment() {
+        guard let segment = activeSkipSegment else { return }
+        skip(segment)
+    }
+
+    private func skip(_ segment: ActiveSkipSegment) {
+        setActiveSkipSegment(nil)
+        didSkipCurrentSegment = segment.kind
         Task { [weak self] in
-            // seg.endSeconds is absolute source time; seek(to:) is source-PTS based and applies the clock shift itself.
-            await self?.player.seek(to: seg.endSeconds)
+            // endSeconds is absolute source time; seek(to:) is source-PTS based and applies the clock shift itself.
+            await self?.player.seek(to: segment.endSeconds)
             // Clear the lockout after a 500ms settle (absorbs post-seek jitter) so a deliberate
             // backward scrub re-offers the pill; without it the lockout persists the whole episode.
             try? await Task.sleep(for: .milliseconds(500))
-            self?.didSkipCurrentIntro = false
+            self?.didSkipCurrentSegment = nil
         }
     }
 
@@ -1870,22 +1879,25 @@ final class PlayerViewModel {
         }
     }
 
-    /// Fetch intro + outro markers once on startup. Safe if the server lacks the endpoint (empty struct,
-    /// features stay off).
+    /// Fetch intro + outro + recap markers once on startup. Safe if the server lacks the endpoint
+    /// (empty struct, features stay off).
     func loadEpisodeSegments() async {
         didAutoSkipCurrentIntro = false
+        didAutoSkipCurrentRecap = false
         didAutoSkipCurrentOutro = false
-        didSkipCurrentIntro = false
+        didSkipCurrentSegment = nil
         do {
             let segments = try await playbackService.getEpisodeSegments(itemID: item.id)
             introSegment = segments.intro
             outroSegment = segments.outro
+            recapSegment = segments.recap
         } catch {
             #if DEBUG
             print("[MediaSegments] Fetch failed: \(error)")
             #endif
             introSegment = nil
             outroSegment = nil
+            recapSegment = nil
         }
     }
 
@@ -2259,7 +2271,7 @@ final class PlayerViewModel {
     func activateControl(_ focus: ControlsFocus) {
         switch focus {
         case .restartButton: restartFromBeginning()
-        case .skipIntroButton: skipIntro()
+        case .skipSegmentButton: skipActiveSegment()
         case .chapterButton: openChapterDropdown()
         case .episodeButton: openEpisodeDropdown()
         case .audioButton: openAudioDropdown()

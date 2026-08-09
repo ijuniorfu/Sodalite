@@ -851,12 +851,12 @@ final class PlayerHostController: AVPlayerViewController {
             viewModel.showStatsOverlay = false
             return
         }
-        // Skip Intro over a transient scrub: the touchpad reports a tiny pan before its click, past the 40pt threshold, flipping isScrubbing/showControls; without this the tap-to-skip lands in commit-scrub. scrubMovedMeaningfully separates a deliberate drag (which must commit to its target) from the pre-click jitter, so only jitter skips here.
-        if viewModel.isInsideIntro && !viewModel.isDropdownOpen
+        // Segment skip over a transient scrub: the touchpad reports a tiny pan before its click, past the 40pt threshold, flipping isScrubbing/showControls; without this the tap-to-skip lands in commit-scrub. scrubMovedMeaningfully separates a deliberate drag (which must commit to its target) from the pre-click jitter, so only jitter skips here.
+        if viewModel.activeSkipSegment != nil && !viewModel.isDropdownOpen
            && (!viewModel.showControls || viewModel.controlsFocus == .progressBar)
            && !viewModel.scrubMovedMeaningfully {
             if viewModel.isScrubbing { viewModel.cancelScrub() }
-            viewModel.skipIntro()
+            viewModel.skipActiveSegment()
             return
         }
 
@@ -997,7 +997,7 @@ final class PlayerHostController: AVPlayerViewController {
             return
         }
         let order = PlayerViewModel.transportFocusOrder(
-            isInsideIntro: viewModel.isInsideIntro,
+            hasSkippableSegment: viewModel.activeSkipSegment != nil,
             episodeCount: viewModel.seasonEpisodes.count,
             chapterCount: viewModel.chapters.count,
             hasAudioTracks: !viewModel.player.audioTracks.isEmpty,
@@ -1039,14 +1039,14 @@ final class PlayerHostController: AVPlayerViewController {
                 let hasEpisodes = viewModel.seasonEpisodes.count > 1
                 // Mirror TransportBar gate: chapter button suppressed for series episodes.
                 let hasChapters = viewModel.chapters.count > 1 && !hasEpisodes
-                if viewModel.isInsideIntro { viewModel.controlsFocus = .skipIntroButton }
+                if viewModel.activeSkipSegment != nil { viewModel.controlsFocus = .skipSegmentButton }
                 else if hasEpisodes { viewModel.controlsFocus = .episodeButton }
                 else if hasChapters { viewModel.controlsFocus = .chapterButton }
                 else if hasAudio { viewModel.controlsFocus = .audioButton }
                 else if hasSubs { viewModel.controlsFocus = .subtitleButton }
                 else { viewModel.controlsFocus = .speedButton }
                 viewModel.scheduleControlsHide()
-            case .restartButton, .skipIntroButton, .chapterButton, .episodeButton, .audioButton, .subtitleButton, .speedButton, .pictureButton, .pipButton, .infoButton, .returnToLiveButton:
+            case .restartButton, .skipSegmentButton, .chapterButton, .episodeButton, .audioButton, .subtitleButton, .speedButton, .pictureButton, .pipButton, .infoButton, .returnToLiveButton:
                 viewModel.scheduleControlsHide()
             }
         } else {

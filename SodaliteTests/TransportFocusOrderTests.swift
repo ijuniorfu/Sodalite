@@ -4,11 +4,11 @@ import Testing
 @Suite("Transport focus order")
 @MainActor
 struct TransportFocusOrderTests {
-    private func order(isInsideIntro: Bool = false, episodeCount: Int = 1, chapterCount: Int = 0,
+    private func order(hasSkippableSegment: Bool = false, episodeCount: Int = 1, chapterCount: Int = 0,
                        hasAudioTracks: Bool = true, hasSubtitles: Bool = true,
                        isPiPAvailable: Bool = false, showsStats: Bool = false) -> [PlayerViewModel.ControlsFocus] {
         PlayerViewModel.transportFocusOrder(
-            isInsideIntro: isInsideIntro, episodeCount: episodeCount, chapterCount: chapterCount,
+            hasSkippableSegment: hasSkippableSegment, episodeCount: episodeCount, chapterCount: chapterCount,
             hasAudioTracks: hasAudioTracks, hasSubtitles: hasSubtitles,
             isPiPAvailable: isPiPAvailable, showsStats: showsStats)
     }
@@ -16,13 +16,13 @@ struct TransportFocusOrderTests {
     @Test("restart leads the order and is always present")
     func restartAlwaysFirst() {
         #expect(order().first == .restartButton)
-        #expect(order(isInsideIntro: true, episodeCount: 12, isPiPAvailable: true, showsStats: true).first == .restartButton)
+        #expect(order(hasSkippableSegment: true, episodeCount: 12, isPiPAvailable: true, showsStats: true).first == .restartButton)
         #expect(order(hasAudioTracks: false, hasSubtitles: false).first == .restartButton)
     }
 
-    @Test("skip intro sits between restart and the track buttons")
-    func introPosition() {
-        #expect(order(isInsideIntro: true) == [.restartButton, .skipIntroButton, .audioButton, .subtitleButton, .speedButton, .pictureButton])
+    @Test("the skip button sits between restart and the track buttons")
+    func skipSegmentPosition() {
+        #expect(order(hasSkippableSegment: true) == [.restartButton, .skipSegmentButton, .audioButton, .subtitleButton, .speedButton, .pictureButton])
     }
 
     @Test("a bare stream still has restart, speed and picture")

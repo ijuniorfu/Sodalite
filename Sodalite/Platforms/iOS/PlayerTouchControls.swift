@@ -232,8 +232,8 @@ struct PlayerTouchControls: View {
                 iconButton("arrow.counterclockwise") { viewModel.restartFromBeginning() }
                     .accessibilityLabel(Text("player.restart"))
             }
-            if viewModel.isInsideIntro {
-                iconButton("forward.end.fill") { viewModel.skipIntro() }
+            if viewModel.activeSkipSegment != nil {
+                iconButton("forward.end.fill") { viewModel.skipActiveSegment() }
             }
             if viewModel.seasonEpisodes.count > 1 {
                 iconButton("list.bullet") { activePicker = .episodes }
