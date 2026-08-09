@@ -129349,157 +129349,157 @@
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Domů a Nastavení jsou zobrazeny vždy."
+            "value" : "Domů a Nastavení jsou zobrazeny vždy. Navigační lišta se aktualizuje, když tuto obrazovku opustíš."
           }
         },
         "da" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Hjem og Indstillinger vises altid."
+            "value" : "Hjem og Indstillinger vises altid. Navigationslinjen opdateres, når du forlader denne skærm."
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Startseite und Einstellungen werden immer angezeigt."
+            "value" : "Startseite und Einstellungen werden immer angezeigt. Die Navigationsleiste aktualisiert sich, wenn du diesen Bildschirm verlässt."
           }
         },
         "el" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Η Αρχική και οι Ρυθμίσεις εμφανίζονται πάντα."
+            "value" : "Η Αρχική και οι Ρυθμίσεις εμφανίζονται πάντα. Η γραμμή πλοήγησης ενημερώνεται όταν φύγεις από αυτήν την οθόνη."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Home and Settings are always shown."
+            "value" : "Home and Settings are always shown. The navigation bar updates when you leave this screen."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Inicio y Ajustes se muestran siempre."
+            "value" : "Inicio y Ajustes se muestran siempre. La barra de navegación se actualiza al salir de esta pantalla."
           }
         },
         "fi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Koti ja Asetukset näkyvät aina."
+            "value" : "Koti ja Asetukset näkyvät aina. Navigointipalkki päivittyy, kun poistut tästä näkymästä."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Accueil et Réglages sont toujours affichés."
+            "value" : "Accueil et Réglages sont toujours affichés. La barre de navigation se met à jour quand tu quittes cet écran."
           }
         },
         "hr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Početna i Postavke uvijek su prikazane."
+            "value" : "Početna i Postavke uvijek su prikazane. Navigacijska traka osvježava se kad napustiš ovaj zaslon."
           }
         },
         "hu" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "A Kezdőlap és a Beállítások mindig látszanak."
+            "value" : "A Kezdőlap és a Beállítások mindig látszanak. A navigációs sáv akkor frissül, amikor elhagyod ezt a képernyőt."
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Home e Impostazioni sono sempre visibili."
+            "value" : "Home e Impostazioni sono sempre visibili. La barra di navigazione si aggiorna quando esci da questa schermata."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ホームと設定は常に表示されます。"
+            "value" : "ホームと設定は常に表示されます。ナビゲーションバーはこの画面を離れると更新されます。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "홈과 설정은 항상 표시됩니다."
+            "value" : "홈과 설정은 항상 표시됩니다. 탐색 막대는 이 화면을 나갈 때 갱신됩니다."
           }
         },
         "nb" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Hjem og Innstillinger vises alltid."
+            "value" : "Hjem og Innstillinger vises alltid. Navigasjonslinjen oppdateres når du forlater denne skjermen."
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Home en Instellingen zijn altijd zichtbaar."
+            "value" : "Home en Instellingen zijn altijd zichtbaar. De navigatiebalk wordt bijgewerkt als je dit scherm verlaat."
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Główna i Ustawienia są zawsze widoczne."
+            "value" : "Główna i Ustawienia są zawsze widoczne. Pasek nawigacji odświeża się po opuszczeniu tego ekranu."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Início e Configurações aparecem sempre."
+            "value" : "Início e Configurações aparecem sempre. A barra de navegação é atualizada ao sair desta tela."
           }
         },
         "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Início e Definições aparecem sempre."
+            "value" : "Início e Definições aparecem sempre. A barra de navegação é atualizada ao sair deste ecrã."
           }
         },
         "ro" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Acasă și Setări sunt mereu afișate."
+            "value" : "Acasă și Setări sunt mereu afișate. Bara de navigare se actualizează când ieși din acest ecran."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Главная и Настройки показываются всегда."
+            "value" : "Главная и Настройки показываются всегда. Панель навигации обновится, когда вы покинете этот экран."
           }
         },
         "sk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Domov a Nastavenia sú zobrazené vždy."
+            "value" : "Domov a Nastavenia sú zobrazené vždy. Navigačná lišta sa aktualizuje, keď opustíš túto obrazovku."
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Hem och Inställningar visas alltid."
+            "value" : "Hem och Inställningar visas alltid. Navigeringsfältet uppdateras när du lämnar den här skärmen."
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ana Sayfa ve Ayarlar her zaman görünür."
+            "value" : "Ana Sayfa ve Ayarlar her zaman görünür. Gezinme çubuğu bu ekrandan çıktığında güncellenir."
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Головна та Налаштування показуються завжди."
+            "value" : "Головна та Налаштування показуються завжди. Панель навігації оновиться, коли ти вийдеш із цього екрана."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "首页和设置始终显示。"
+            "value" : "首页和设置始终显示。离开此页面后导航栏会更新。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "首頁與設定一律顯示。"
+            "value" : "首頁與設定一律顯示。離開此頁面後導覽列會更新。"
           }
         }
       }

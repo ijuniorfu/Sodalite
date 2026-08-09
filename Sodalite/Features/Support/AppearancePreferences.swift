@@ -106,11 +106,21 @@ final class AppearancePreferences {
 
     func setTab(_ tab: AppTab, hidden: Bool) {
         guard tab.isHideable else { return }
+        var next = hiddenTabs
         if hidden {
-            hiddenTabs.insert(tab)
+            next.insert(tab)
         } else {
-            hiddenTabs.remove(tab)
+            next.remove(tab)
         }
+        setHiddenTabs(next)
+    }
+
+    /// One assignment for a whole set, so the settings screen's deferred commit rebuilds the tab
+    /// bar once instead of once per row.
+    func setHiddenTabs(_ tabs: Set<AppTab>) {
+        let filtered = tabs.filter(\.isHideable)
+        guard filtered != hiddenTabs else { return }
+        hiddenTabs = filtered
     }
 
     var storedAccentRawValue: String {

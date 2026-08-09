@@ -9,6 +9,11 @@ struct TabVisibilitySettingsView: View {
 
     private var appearance: AppearancePreferences { dependencies.appearancePreferences }
 
+    /// Edits are collected here and written on the way out. Writing them live changes the tab set
+    /// under this screen, and rebuilding the TabView's tab list drops the navigation stack of the
+    /// Settings tab, which threw the user back to the settings root on every single toggle.
+    @State private var draft: Set<AppTab>?
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 8) {
@@ -26,10 +31,7 @@ struct TabVisibilitySettingsView: View {
                         title: tab.labelKey,
                         subtitle: subtitleKey(for: tab),
                         options: [false, true],
-                        selection: Binding(
-                            get: { !appearance.isTabHidden(tab) },
-                            set: { appearance.setTab(tab, hidden: !$0) }
-                        ),
+                        selection: visibilityBinding(for: tab),
                         label: { visible in
                             visible
                                 ? String(localized: "settings.playback.on", defaultValue: "On")
@@ -50,6 +52,32 @@ struct TabVisibilitySettingsView: View {
         .hidesShellTabBar()
         // Suppress the floating tvOS nav-title; the inline header below is the screen's own.
         .hidesNavigationBarChrome()
+        .onAppear {
+            if draft == nil { draft = appearance.hiddenTabs }
+        }
+        .onDisappear(perform: commit)
+    }
+
+    private var editedTabs: Set<AppTab> { draft ?? appearance.hiddenTabs }
+
+    private func visibilityBinding(for tab: AppTab) -> Binding<Bool> {
+        Binding(
+            get: { !editedTabs.contains(tab) },
+            set: { visible in
+                var next = editedTabs
+                if visible {
+                    next.remove(tab)
+                } else {
+                    next.insert(tab)
+                }
+                draft = next
+            }
+        )
+    }
+
+    private func commit() {
+        guard let draft else { return }
+        appearance.setHiddenTabs(draft)
     }
 
     private var header: some View {

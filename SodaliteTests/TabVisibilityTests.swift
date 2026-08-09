@@ -56,6 +56,24 @@ struct TabVisibilityTests {
         #expect(reloaded.hiddenTabs == [.catalog])
     }
 
+    @Test("setHiddenTabs replaces the whole set and drops the non-hideable tabs")
+    func setHiddenTabsFilters() {
+        let prefs = AppearancePreferences(store: defaults("setAll"))
+        prefs.setHiddenTabs([.catalog, .home, .settings, .music])
+        #expect(prefs.hiddenTabs == [.catalog, .music])
+    }
+
+    /// Writing live changed the tab set under the open settings screen, and rebuilding the
+    /// TabView's tab list drops the Settings tab's navigation stack: every toggle threw the user
+    /// back to the settings root. The commit belongs on the way out.
+    @Test("the settings screen commits on the way out, not on every toggle")
+    func deferredCommit() throws {
+        let source = try sourceFile("Sodalite/Features/Settings/TabVisibilitySettingsView.swift")
+        #expect(source.contains(".onDisappear(perform: commit)"))
+        #expect(source.contains("appearance.setHiddenTabs(draft)"))
+        #expect(!source.contains("appearance.setTab("))
+    }
+
     @Test("a payload without the field carries no opinion, so an old device cannot unhide tabs")
     func payloadOmitsFieldWhenAbsent() throws {
         let json = """
