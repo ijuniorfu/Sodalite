@@ -860,7 +860,7 @@ final class PlayerViewModel {
             await reportStart()
             startProgressReporting()
 
-            // Background fetch, doesn't block start; the next tick flips isInsideIntro once the marker lands.
+            // Background fetch, doesn't block start; the next tick resolves the skip pill once the markers land.
             Task { [weak self] in await self?.loadEpisodeSegments() }
 
             // Powers the transport-bar episode picker; stays empty (picker hidden) for movies / single-episode.
