@@ -348,10 +348,11 @@ enum JellyfinEndpoint: APIEndpoint {
             ]
 
         case .mediaSegments:
-            // Intro (skip button) + Outro (early next-episode overlay). Repeated same-name items bind ASP.NET's list parameter.
+            // Intro + Recap (skip button) + Outro (early next-episode overlay). Repeated same-name items bind ASP.NET's list parameter.
             return [
                 URLQueryItem(name: "includeSegmentTypes", value: "Intro"),
                 URLQueryItem(name: "includeSegmentTypes", value: "Outro"),
+                URLQueryItem(name: "includeSegmentTypes", value: "Recap"),
             ]
 
         case .liveTvChannels(let userID, let startIndex, let limit, let filter):

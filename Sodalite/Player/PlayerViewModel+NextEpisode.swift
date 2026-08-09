@@ -231,10 +231,12 @@ extension PlayerViewModel {
         resumePositionTicks = 0
         introSegment = nil
         outroSegment = nil
-        isInsideIntro = false
+        recapSegment = nil
+        activeSkipSegment = nil
         didAutoSkipCurrentIntro = false
+        didAutoSkipCurrentRecap = false
         didAutoSkipCurrentOutro = false
-        didSkipCurrentIntro = false
+        didSkipCurrentSegment = nil
     }
 
     func cancelNextEpisode() {

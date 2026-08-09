@@ -39,8 +39,9 @@ struct TransportBar: View {
     let activeSpeedIndex: Int
     let controlsFocus: PlayerViewModel.ControlsFocus
     let trackDropdown: PlayerViewModel.TrackDropdown
-    /// Skip Intro button at the leftmost slot; the floating glass version is suppressed then.
-    let showSkipIntroButton: Bool
+    /// Label of the skippable segment (intro or recap) at the leftmost slot, nil when there is nothing
+    /// to skip; the floating glass version is suppressed while the transport is open.
+    let skipSegmentLabel: String?
     /// Current season's episodes; button suppressed when count <= 1.
     let seasonEpisodes: [JellyfinItem]
     let activeEpisodeID: String?
@@ -82,11 +83,11 @@ struct TransportBar: View {
                     isOpen: false
                 )
 
-                if showSkipIntroButton {
+                if let skipSegmentLabel {
                     trackButton(
-                        label: String(localized: "player.skipIntro", defaultValue: "Skip Intro"),
+                        label: skipSegmentLabel,
                         icon: "forward.end.fill",
-                        isFocused: controlsFocus == .skipIntroButton,
+                        isFocused: controlsFocus == .skipSegmentButton,
                         persistsLabel: false,
                         dropdown: [],
                         isOpen: false

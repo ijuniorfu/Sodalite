@@ -5,7 +5,7 @@ extension PlayerViewModel {
     /// renders with: the two must agree, else left/right focus lands on an unrendered button.
     /// Live has its own two-button row (LiveTransportBar) and does not use this.
     static func transportFocusOrder(
-        isInsideIntro: Bool,
+        hasSkippableSegment: Bool,
         episodeCount: Int,
         chapterCount: Int,
         hasAudioTracks: Bool,
@@ -14,7 +14,7 @@ extension PlayerViewModel {
         showsStats: Bool
     ) -> [ControlsFocus] {
         var order: [ControlsFocus] = [.restartButton]
-        if isInsideIntro { order.append(.skipIntroButton) }
+        if hasSkippableSegment { order.append(.skipSegmentButton) }
         if episodeCount > 1 { order.append(.episodeButton) }
         if chapterCount > 1, episodeCount <= 1 { order.append(.chapterButton) }
         if hasAudioTracks { order.append(.audioButton) }

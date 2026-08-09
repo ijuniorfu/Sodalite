@@ -101,12 +101,12 @@ struct PlayerOverlayView: View {
                 DiagnosticLogOverlay(focusOnDV: viewModel.preferences.focusDiagnosticOverlayOnDV)
             }
 
-            // Floating Skip Intro hint, only while controls are hidden; once they open, the skip action is a focusable button inside TransportBar instead.
-            if viewModel.isInsideIntro
-                && !viewModel.showControls
-                && viewModel.errorMessage == nil
-                && !viewModel.showNextEpisodeOverlay {
-                introSkipOverlay
+            // Floating skip hint (intro or recap), only while controls are hidden; once they open, the skip action is a focusable button inside TransportBar instead.
+            if let skipSegment = viewModel.activeSkipSegment,
+               !viewModel.showControls,
+               viewModel.errorMessage == nil,
+               !viewModel.showNextEpisodeOverlay {
+                segmentSkipOverlay(label: skipSegment.kind.buttonLabel)
             }
 
             if viewModel.showNextEpisodeOverlay,
@@ -157,7 +157,7 @@ struct PlayerOverlayView: View {
         .animation(.easeInOut(duration: 0.3), value: viewModel.isLoading)
         .animation(.easeInOut(duration: 0.3), value: viewModel.showControls)
         .animation(.easeInOut(duration: 0.3), value: viewModel.showNextEpisodeOverlay)
-        .animation(.easeInOut(duration: 0.25), value: viewModel.isInsideIntro)
+        .animation(.easeInOut(duration: 0.25), value: viewModel.activeSkipSegment)
         .animation(.easeInOut(duration: 0.25), value: viewModel.showStatsOverlay)
         .animation(.easeInOut(duration: 0.3), value: viewModel.subtitleSearchVisible)
         .animation(.easeInOut(duration: 0.25), value: viewModel.isSubtitleDeletePromptVisible)
@@ -248,12 +248,12 @@ struct PlayerOverlayView: View {
     }
     #endif
 
-    private var introSkipOverlay: some View {
+    private func segmentSkipOverlay(label: String) -> some View {
         VStack {
             Spacer()
             HStack {
                 Spacer()
-                skipIntroHint
+                skipSegmentHint(label: label)
                     #if os(iOS)
                     .padding(.trailing, 24)
                     .padding(.bottom, 28)
@@ -271,7 +271,7 @@ struct PlayerOverlayView: View {
         #endif
     }
 
-    private var skipIntroHint: some View {
+    private func skipSegmentHint(label: String) -> some View {
         #if os(iOS)
         let labelFont = Font.subheadline
         let hPad: CGFloat = 18
@@ -284,7 +284,7 @@ struct PlayerOverlayView: View {
         let content = HStack(spacing: 10) {
             Image(systemName: "forward.end.fill")
                 .font(labelFont)
-            Text(String(localized: "player.skipIntro", defaultValue: "Skip Intro"))
+            Text(label)
                 .font(labelFont)
                 .fontWeight(.semibold)
         }
@@ -302,7 +302,7 @@ struct PlayerOverlayView: View {
         )
         .shadow(color: .black.opacity(0.45), radius: 14, y: 6)
         #if os(iOS)
-        return Button { viewModel.skipIntro() } label: { content }.buttonStyle(.plain)
+        return Button { viewModel.skipActiveSegment() } label: { content }.buttonStyle(.plain)
         #else
         return content
         #endif
@@ -554,7 +554,7 @@ struct PlayerOverlayView: View {
                     activeSpeedIndex: viewModel.activeSpeedIndex,
                     controlsFocus: viewModel.controlsFocus,
                     trackDropdown: viewModel.trackDropdown,
-                    showSkipIntroButton: viewModel.isInsideIntro,
+                    skipSegmentLabel: viewModel.activeSkipSegment?.kind.buttonLabel,
                     seasonEpisodes: viewModel.seasonEpisodes,
                     activeEpisodeID: viewModel.item.id,
                     episodeImageURL: { episodeThumbnailURL(for: $0) },
