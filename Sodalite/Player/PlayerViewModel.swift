@@ -502,6 +502,11 @@ final class PlayerViewModel {
     /// user switches or disables the subtitle track so a stale load can't clobber the new selection.
     @ObservationIgnored private var subtitleLoadTask: Task<Void, Never>?
 
+    /// Live only: the automatic subtitle pick runs once per session, when the engine's track list
+    /// first arrives. A latch rather than a time guard, so a republished list cannot override a pick
+    /// the user has made since.
+    @ObservationIgnored private var didAutoSelectLiveSubtitle = false
+
     /// Sodalite#63: playhead before the current burst of backward jumps, recorded on press and consumed
     /// by the commit. Nil means the next commit is not a skip back (a pan, a hold-seek, a forward jump).
     /// Internal, not private: the scrub commits live in extensions in other files.
@@ -630,9 +635,12 @@ final class PlayerViewModel {
                 }
                 // The engine picked the preferred-language audio on the first frame (#72), so there is
                 // no live selectAudioTrack reload here (it used to misfire on single-track channels:
-                // Das Erste, frozen frame). Read its pick to drive the matching subtitle.
-                let chosenAudio = player.audioTracks.first(where: { $0.id == player.activeAudioTrackIndex })
-                applyPreferredSubtitle(forAudioLanguage: chosenAudio?.language)
+                // Das Erste, frozen frame).
+                // The subtitle pick is NOT made here: live has no stream list yet at this point, so
+                // the call that used to sit here resolved over an empty array and did nothing. The
+                // $subtitleTracks sink in startObserving owns it, and re-arms per channel.
+                didAutoSelectLiveSubtitle = false
+                subtitleStreams = []
                 hostLoadActive = false
                 isPlaying = true
                 startObserving()
@@ -1290,6 +1298,27 @@ final class PlayerViewModel {
             .receive(on: DispatchQueue.main)
             .sink { [weak self] index in
                 self?.activeAudioIndex = index
+            }
+            .store(in: &cancellables)
+
+        // Live has no Jellyfin stream list (the live load returns before the VOD mapping), so the
+        // engine's own table is the session's subtitle source. Reactive, not a read after load: a
+        // broadcast stream can surface a subtitle track late, and a channel switch replaces the list.
+        player.$subtitleTracks
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] tracks in
+                guard let self, self.isLiveSession else { return }
+                let mapped = LiveSubtitleTracks.mediaStreams(from: tracks)
+                guard mapped.map(\.index) != self.subtitleStreams.map(\.index) else { return }
+                self.subtitleStreams = mapped
+                // First real list of the session: apply the same automatic pick VOD gets. The audio
+                // track is settled by now, so the foreign-audio rule works here; as a pre-load
+                // LoadOptions language list it could not have been expressed at all.
+                guard !mapped.isEmpty, !self.didAutoSelectLiveSubtitle else { return }
+                self.didAutoSelectLiveSubtitle = true
+                let audioLanguage = self.player.audioTracks
+                    .first(where: { $0.id == self.player.activeAudioTrackIndex })?.language
+                self.applyPreferredSubtitle(forAudioLanguage: audioLanguage)
             }
             .store(in: &cancellables)
     }
