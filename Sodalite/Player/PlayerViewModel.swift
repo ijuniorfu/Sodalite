@@ -502,6 +502,15 @@ final class PlayerViewModel {
     /// user switches or disables the subtitle track so a stale load can't clobber the new selection.
     @ObservationIgnored private var subtitleLoadTask: Task<Void, Never>?
 
+    /// Live only: the automatic subtitle pick runs once per session, when the engine's track list
+    /// first arrives. A latch rather than a time guard, so a republished list cannot override a pick
+    /// the user has made since.
+    @ObservationIgnored private var didAutoSelectLiveSubtitle = false
+    /// Index signature of the last engine track list taken over on live. nil until the first publish
+    /// of a session, so an empty first list still counts as a change and gets logged: a channel that
+    /// carries no subtitle stream must not look like a sink that never fired.
+    @ObservationIgnored private var lastLiveSubtitleIndices: [Int]?
+
     /// Sodalite#63: playhead before the current burst of backward jumps, recorded on press and consumed
     /// by the commit. Nil means the next commit is not a skip back (a pan, a hold-seek, a forward jump).
     /// Internal, not private: the scrub commits live in extensions in other files.
@@ -630,9 +639,13 @@ final class PlayerViewModel {
                 }
                 // The engine picked the preferred-language audio on the first frame (#72), so there is
                 // no live selectAudioTrack reload here (it used to misfire on single-track channels:
-                // Das Erste, frozen frame). Read its pick to drive the matching subtitle.
-                let chosenAudio = player.audioTracks.first(where: { $0.id == player.activeAudioTrackIndex })
-                applyPreferredSubtitle(forAudioLanguage: chosenAudio?.language)
+                // Das Erste, frozen frame).
+                // The subtitle pick is NOT made here: live has no stream list yet at this point, so
+                // the call that used to sit here resolved over an empty array and did nothing. The
+                // $subtitleTracks sink in startObserving owns it, and re-arms per channel.
+                didAutoSelectLiveSubtitle = false
+                lastLiveSubtitleIndices = nil
+                subtitleStreams = []
                 hostLoadActive = false
                 isPlaying = true
                 startObserving()
@@ -1292,6 +1305,36 @@ final class PlayerViewModel {
                 self?.activeAudioIndex = index
             }
             .store(in: &cancellables)
+
+        // Live has no Jellyfin stream list (the live load returns before the VOD mapping), so the
+        // engine's own table is the session's subtitle source. Reactive, not a read after load: a
+        // broadcast stream can surface a subtitle track late, and a channel switch replaces the list.
+        player.$subtitleTracks
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] tracks in
+                guard let self, self.isLiveSession else { return }
+                let mapped = LiveSubtitleTracks.mediaStreams(from: tracks)
+                let indices = mapped.map(\.index)
+                guard indices != self.lastLiveSubtitleIndices else { return }
+                self.lastLiveSubtitleIndices = indices
+                self.subtitleStreams = mapped
+                // The empty case is logged too. A channel delivered as a server transcode carries no
+                // subtitle stream at all, which is a routing answer, not a failure, and a diagnostic
+                // that stays silent there reads exactly like a sink that never fired.
+                let detail = mapped.isEmpty ? "" : ": " + mapped
+                    .map { "\($0.index):\($0.codec ?? "?")/\($0.language ?? "und")" }
+                    .joined(separator: ", ")
+                LogTap.shared.note("[LiveSubs] engine published \(mapped.count) subtitle track(s)\(detail)")
+                // First real list of the session: apply the same automatic pick VOD gets. The audio
+                // track is settled by now, so the foreign-audio rule works here; as a pre-load
+                // LoadOptions language list it could not have been expressed at all.
+                guard !mapped.isEmpty, !self.didAutoSelectLiveSubtitle else { return }
+                self.didAutoSelectLiveSubtitle = true
+                let audioLanguage = self.player.audioTracks
+                    .first(where: { $0.id == self.player.activeAudioTrackIndex })?.language
+                self.applyPreferredSubtitle(forAudioLanguage: audioLanguage)
+            }
+            .store(in: &cancellables)
     }
 
     // MARK: - Controls
@@ -1598,7 +1641,7 @@ final class PlayerViewModel {
         }
         guard preferences.autoSubtitleForForeignAudio,
               let preferredAudio = effectivePreferredAudioLanguage(),
-              !Self.languagesMatch(audioLanguage, preferredAudio)
+              Self.audioCountsAsForeign(audioLanguage: audioLanguage, preferredAudio: preferredAudio)
         else { return }
         if let match = bestSubtitleMatch(forLanguage: preferredAudio) {
             selectSubtitleTrack(id: match.index)
@@ -1785,6 +1828,21 @@ final class PlayerViewModel {
             return explicit
         }
         return Locale.current.language.languageCode?.identifier
+    }
+
+    /// Whether the audio should count as foreign for the automatic-subtitle rule.
+    ///
+    /// Unknown is NOT foreign. `languagesMatch` answers false for a missing tag, so an untagged track
+    /// satisfied "the audio is not in your language" and pulled subtitles up on any stream that
+    /// carries no language at all. Live HLS audio renditions never carry one, so every channel came up
+    /// with subtitles on for a viewer who had merely left everything on automatic.
+    static func audioCountsAsForeign(audioLanguage: String?, preferredAudio: String?) -> Bool {
+        guard let preferredAudio,
+              let audioLanguage,
+              !audioLanguage.isEmpty,
+              audioLanguage.lowercased() != "und"
+        else { return false }
+        return !languagesMatch(audioLanguage, preferredAudio)
     }
 
     /// Loose language-tag comparison so settings ("ger"), container metadata ("deu"), and BCP-47 ("de")
