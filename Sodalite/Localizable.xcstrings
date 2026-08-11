@@ -132571,6 +132571,330 @@
         }
       }
     },
+    "settings.playback.subtitlesOnSkipBack" : {
+      "comment" : "Boolean playback preference title",
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Titulky při skoku zpět"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Undertekster ved spring tilbage"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Untertitel beim Zurückspringen"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Υπότιτλοι στη μετάβαση πίσω"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Subtitles on Skip Back"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Subtítulos al retroceder"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tekstitys taaksepäin siirryttäessä"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sous-titres lors d'un retour arrière"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Titlovi pri skoku unatrag"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Feliratok visszaugráskor"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sottotitoli al salto indietro"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "スキップバック時の字幕"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "뒤로 건너뛸 때 자막"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Undertekster ved hopp bakover"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ondertiteling bij terugspringen"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Napisy przy skoku wstecz"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Legendas ao voltar"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Legendas ao recuar"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Subtitrări la saltul înapoi"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Субтитры при перемотке назад"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Titulky pri skoku späť"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Undertexter vid hopp bakåt"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Geri atlamada altyazılar"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Субтитри під час перемотки назад"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "快退时显示字幕"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "快退時顯示字幕"
+          }
+        }
+      }
+    },
+    "settings.playback.subtitlesOnSkipBack.subtitle" : {
+      "comment" : "Subtitle for the subtitlesOnSkipBack preference",
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Po skoku zpět krátce zobrazí titulky, dokud se přehrávání nevrátí na původní místo."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Viser kortvarigt undertekster efter et spring tilbage, indtil afspilningen har indhentet det."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zeigt nach einem Sprung zurück kurz Untertitel, bis die Wiedergabe wieder aufgeholt hat."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Εμφανίζει σύντομα υπότιτλους μετά από μετάβαση πίσω, μέχρι η αναπαραγωγή να φτάσει ξανά στο ίδιο σημείο."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Briefly show subtitles after skipping back, until playback catches up."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Muestra brevemente los subtítulos tras retroceder, hasta que la reproducción vuelva al punto anterior."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Näyttää tekstityksen hetken taaksepäin siirtymisen jälkeen, kunnes toisto saavuttaa lähtökohdan."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Affiche brièvement les sous-titres après un retour arrière, jusqu'à ce que la lecture rattrape le point de départ."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nakratko prikazuje titlove nakon skoka unatrag, dok reprodukcija ne dostigne polazište."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Visszaugrás után rövid ideig megjeleníti a feliratokat, amíg a lejátszás utol nem éri a kiindulási pontot."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostra brevemente i sottotitoli dopo un salto indietro, finché la riproduzione non torna al punto di partenza."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "スキップバック後、再生が元の位置に追いつくまで字幕を一時的に表示します。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "뒤로 건너뛴 후 재생이 원래 위치를 따라잡을 때까지 자막을 잠시 표시합니다."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Viser undertekster en kort stund etter et hopp bakover, til avspillingen har tatt igjen."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toont kort ondertiteling na het terugspringen, totdat het afspelen weer is bijgelopen."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Po skoku wstecz na chwilę pokazuje napisy, dopóki odtwarzanie nie nadrobi dystansu."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostra as legendas brevemente após voltar, até a reprodução recuperar o ponto anterior."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostra as legendas brevemente após recuar, até a reprodução recuperar o ponto anterior."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Afișează pentru scurt timp subtitrările după un salt înapoi, până când redarea revine la punctul anterior."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "После перемотки назад субтитры ненадолго включаются, пока воспроизведение не дойдёт до прежнего места."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Po skoku späť nakrátko zobrazí titulky, kým sa prehrávanie nevráti na pôvodné miesto."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Visar undertexter en kort stund efter ett hopp bakåt, tills uppspelningen kommit ikapp."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Geri atladıktan sonra oynatma eski konuma ulaşana kadar altyazıları kısa süre gösterir."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Після перемотки назад субтитри ненадовго вмикаються, доки відтворення не дійде до попереднього місця."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "快退后短暂显示字幕，直到播放回到原来的位置。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "快退後短暫顯示字幕，直到播放回到原來的位置。"
+          }
+        }
+      }
+    },
     "settings.playback.autoplayNextEp" : {
       "extractionState" : "manual",
       "localizations" : {

@@ -113,6 +113,7 @@ extension PlayerViewModel {
         let dur = effectiveDuration
         guard isScrubbing, dur > 0 else {
             isScrubbing = false
+            pendingSkipBackOrigin = nil
             return
         }
         let targetTime = Double(scrubProgress) * dur
@@ -121,6 +122,7 @@ extension PlayerViewModel {
         progress = scrubProgress
         isScrubbing = false
         scrubPreview.clear()
+        openSkipBackSubtitlesIfNeeded(targetTime: targetTime)
         Task {
             await player.seek(to: targetTime)
             reportProgressIfNeeded()
@@ -130,6 +132,7 @@ extension PlayerViewModel {
 
     func cancelScrub() {
         isScrubbing = false
+        pendingSkipBackOrigin = nil
         scrubPreview.clear()
         scheduleControlsHide()
     }
@@ -140,6 +143,7 @@ extension PlayerViewModel {
     func beginContinuousSeek(direction: Int) {
         let dur = scrubReferenceDuration
         guard dur > 0 else { return }
+        pendingSkipBackOrigin = nil
 
         if !isScrubbing {
             isScrubbing = true

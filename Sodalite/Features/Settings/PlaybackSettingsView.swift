@@ -173,6 +173,16 @@ struct PlaybackSettingsView: View {
                 )
 
                 boolRow(
+                    icon: "gobackward",
+                    title: "settings.playback.subtitlesOnSkipBack",
+                    subtitle: "settings.playback.subtitlesOnSkipBack.subtitle",
+                    value: Binding(
+                        get: { prefs.subtitlesOnSkipBack },
+                        set: { prefs.subtitlesOnSkipBack = $0 }
+                    )
+                )
+
+                boolRow(
                     icon: "bookmark",
                     title: "settings.playback.rememberTracks",
                     subtitle: "settings.playback.rememberTracks.subtitle",

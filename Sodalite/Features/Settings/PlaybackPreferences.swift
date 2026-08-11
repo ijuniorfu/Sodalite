@@ -47,6 +47,7 @@ final class PlaybackPreferences {
         static let rememberTrackSelections = "playback.rememberTrackSelections"
         static let selectTogglesPlayback = "playback.selectTogglesPlayback"
         static let instantSkipSeek = "playback.instantSkipSeek"
+        static let subtitlesOnSkipBack = "playback.subtitlesOnSkipBack"
     }
 
     // MARK: - Allowed Values
@@ -377,6 +378,13 @@ final class PlaybackPreferences {
         didSet { store.set(instantSkipSeek, forKey: Keys.instantSkipSeek) }
     }
 
+    /// Sodalite#63: after a backward jump, show subtitles until playback reaches the position the jump
+    /// started from, like the tvOS system setting. Default ON, which is what the request asked for; a
+    /// user who deliberately watches without subtitles turns it off here.
+    var subtitlesOnSkipBack: Bool {
+        didSet { store.set(subtitlesOnSkipBack, forKey: Keys.subtitlesOnSkipBack) }
+    }
+
     var audioBridgeMode: AudioBridgeMode {
         preferLosslessAudioBridge ? .lossless : .surroundCompat
     }
@@ -444,5 +452,6 @@ final class PlaybackPreferences {
         self.rememberTrackSelections = store.object(forKey: Keys.rememberTrackSelections) as? Bool ?? true
         self.selectTogglesPlayback = store.object(forKey: Keys.selectTogglesPlayback) as? Bool ?? false
         self.instantSkipSeek = store.object(forKey: Keys.instantSkipSeek) as? Bool ?? false
+        self.subtitlesOnSkipBack = store.object(forKey: Keys.subtitlesOnSkipBack) as? Bool ?? true
     }
 }
