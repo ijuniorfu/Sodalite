@@ -165,7 +165,8 @@ The Seerr integration isn't a tacked-on link to a web view. It's a first-class p
 - **Recordings & timers**: record a program or a whole series from the guide, manage scheduled timers, and play finished or still-recording shows
 - **Direct from the source**: most channels play straight from their upstream, starting in seconds with no server transcoding, with automatic fallback through Jellyfin when a source needs it
 - **Same engine as movies**: H.264 / HEVC channels ride the native pipeline, MPEG-2 / VC-1 and friends decode in software, and dead sources fail fast with a clear message instead of an endless spinner
-- **Broadcast picture**: interlaced channels (1080i, 576i and the like) are hardware-deinterlaced on the fly for a clean progressive image, and DVB Teletext subtitle pages render in the subtitle menu with their broadcast colors intact
+- **Broadcast picture**: interlaced channels (1080i, 576i and the like) are hardware-deinterlaced on the fly for a clean progressive image
+- **Live subtitles**: channels that carry a subtitle track offer it in the player like any other title, including the WebVTT renditions the public broadcasters ship alongside their HLS streams, drawn on the frame with your own font, size and position settings. Your preferred subtitle language applies to channels too, and a channel whose audio carries no language is left alone rather than treated as foreign. The Teletext page used for decoding broadcast transport streams is set in Settings, Playback
 
 ### 🎵 Listen
 - **Music library**: browse your Jellyfin music by album and play it back through the same engine, with a native Now Playing screen, cover art, scrubbing and background playback
