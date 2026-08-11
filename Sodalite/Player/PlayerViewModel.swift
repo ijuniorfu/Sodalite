@@ -1738,7 +1738,7 @@ final class PlayerViewModel {
     /// descriptor axis (full > SDH > forced > signs/songs) dominant, codec (text < bitmap) a tiebreaker:
     /// full bitmap beats forced text (coverage > styling), full text beats full bitmap (user styling
     /// only applies to text cues).
-    private static func subtitleAutoPickRank(_ stream: MediaStream) -> Int {
+    static func subtitleAutoPickRank(_ stream: MediaStream) -> Int {
         let title = stream.title?.lowercased() ?? ""
         let descriptorRank: Int = {
             let isSpecialPurpose = ["signs", "songs", "music", "musik", "commentary"]
