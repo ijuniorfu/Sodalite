@@ -293,6 +293,7 @@ extension PlayerViewModel {
               let range = liveSeekableRange,
               range.upperBound > range.lowerBound else {
             isScrubbing = false
+            pendingSkipBackOrigin = nil
             return
         }
         let p = scrubProgress
@@ -302,6 +303,7 @@ extension PlayerViewModel {
         scrubPreview.clear()
 
         if p >= 0.99 {
+            pendingSkipBackOrigin = nil
             returnToLiveEdge()
             scheduleControlsHide()
             return
@@ -312,6 +314,7 @@ extension PlayerViewModel {
             max(range.lowerBound + Double(p) * span, range.lowerBound),
             range.upperBound
         )
+        openSkipBackSubtitlesIfNeeded(targetTime: target)
         Task {
             await player.seek(to: target)
             scheduleControlsHide()

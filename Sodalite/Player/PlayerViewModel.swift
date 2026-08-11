@@ -502,6 +502,13 @@ final class PlayerViewModel {
     /// user switches or disables the subtitle track so a stale load can't clobber the new selection.
     @ObservationIgnored private var subtitleLoadTask: Task<Void, Never>?
 
+    /// Sodalite#63: playhead before the current burst of backward jumps, recorded on press and consumed
+    /// by the commit. Nil means the next commit is not a skip back (a pan, a hold-seek, a forward jump).
+    /// Internal, not private: the scrub commits live in extensions in other files.
+    @ObservationIgnored var pendingSkipBackOrigin: Double?
+    /// The open skip-back window: the track it switched on and the position that ends it.
+    @ObservationIgnored var skipBackSubtitleWindow: SkipBackSubtitleWindow.State?
+
     /// AE#88: Jellyfin stream index -> engine external track id, rebuilt per load; late downloads
     /// register lazily on first select.
     @ObservationIgnored var externalEngineTrackIDs: [Int: Int] = [:]
@@ -848,6 +855,8 @@ final class PlayerViewModel {
             // rendition is served but stays UNSELECTED here; it is selected only when the video leaves the app
             // (PiP / external display, #32 / #34), so the two never double up. Fullscreen behaviour is identical to main.
             resetNativeSubtitleRenderingState()
+            pendingSkipBackOrigin = nil
+            skipBackSubtitleWindow = nil
             resolveInitialTracks(audioLanguage: chosenAudio?.language)
             applyForcedSubtitleFallback()
 
@@ -1136,6 +1145,7 @@ final class PlayerViewModel {
             .sink { [weak self] time in
                 guard let self else { return }
                 self.playbackTime = time
+                self.closeSkipBackSubtitlesIfReached(time: time)
                 // Intro/outro/recap markers are absolute source-timeline values; currentTime is the AVPlayer
                 // clock (source - playlistShiftSeconds on native HLS), so compare against sourceTime.
                 self.updateSkipSegmentVisibility(time: self.player.sourceTime)
@@ -1327,6 +1337,15 @@ final class PlayerViewModel {
     func seekJump(seconds: Double) {
         let dur = scrubReferenceDuration
         guard dur > 0 else { return }
+
+        // Sodalite#63: remember where a backward jump started so the commit can open the subtitle
+        // window. A forward jump abandons a pending origin rather than extending it. Both jump gestures
+        // pass through here (tvOS interval press, iOS double tap); pan and hold-to-seek do not.
+        if seconds < 0 {
+            pendingSkipBackOrigin = SkipBackSubtitleWindow.mergedOrigin(pendingSkipBackOrigin, playbackTime)
+        } else {
+            pendingSkipBackOrigin = nil
+        }
 
         if !isScrubbing {
             isScrubbing = true
@@ -1910,6 +1929,9 @@ final class PlayerViewModel {
 
     func selectSubtitleTrack(id: Int?, userInitiated: Bool = false) {
         defer { onSubtitleSelectionChanged?() }
+        // Sodalite#63: the user's own pick ends the temporary skip-back window; their selection stands
+        // and is never switched off behind their back.
+        if userInitiated { skipBackSubtitleWindow = nil }
         // #32: the active subtitle changed, so the native rendition selection is stale; re-select on the next
         // PiP/external-display entry (also hides any currently-shown native track so it can't linger from a
         // prior pick).
@@ -2006,6 +2028,63 @@ final class PlayerViewModel {
         if player.pictureInPictureActive {
             enterNativeSubtitleRendering()
         }
+    }
+
+    /// Sodalite#63: open the temporary subtitle window for a committed backward jump. Consumes the
+    /// pending origin either way, so an abandoned or forward commit cannot open one later. A window
+    /// that is already open is extended rather than restarted, which is what makes a burst of presses
+    /// one window ending where the user actually left.
+    func openSkipBackSubtitlesIfNeeded(targetTime: Double) {
+        let pendingOrigin = pendingSkipBackOrigin
+        pendingSkipBackOrigin = nil
+
+        guard let pendingOrigin else {
+            // A commit that is not a backward jump (pan, hold-seek, forward jump) voids the catch-up
+            // contract, so it ends an open window here. Leaving it open would hand the closing
+            // condition to a playhead that may not reach the origin again for half an hour.
+            endSkipBackSubtitleWindow()
+            return
+        }
+        if var open = skipBackSubtitleWindow {
+            open.origin = SkipBackSubtitleWindow.mergedOrigin(open.origin, pendingOrigin)
+            skipBackSubtitleWindow = open
+            return
+        }
+        guard SkipBackSubtitleWindow.shouldOpen(
+            pendingOrigin: pendingOrigin,
+            targetTime: targetTime,
+            subtitlesActive: activeSubtitleIndex != nil,
+            enabled: preferences.subtitlesOnSkipBack
+        ) else { return }
+
+        let audioLanguage = player.audioTracks
+            .first(where: { $0.id == player.activeAudioTrackIndex })?.language
+        guard let streamIndex = SkipBackSubtitleWindow.resolveTrack(
+            streams: subtitleStreams,
+            preferredSubtitleLanguage: preferences.preferredSubtitleLanguage,
+            audioLanguage: audioLanguage
+        ) else { return }
+
+        // userInitiated stays false: this is an automatic pick, and recording it would bake a
+        // temporary track into the remembered selection (Sodalite#46).
+        selectSubtitleTrack(id: streamIndex)
+        skipBackSubtitleWindow = SkipBackSubtitleWindow.State(origin: pendingOrigin, streamIndex: streamIndex)
+    }
+
+    /// Close the window once playback has caught up with where the jump started. Driven by the clock
+    /// sink rather than a timer, so playback speed and pauses need no handling of their own.
+    func closeSkipBackSubtitlesIfReached(time: Double) {
+        guard SkipBackSubtitleWindow.shouldClose(state: skipBackSubtitleWindow, playhead: time) else { return }
+        endSkipBackSubtitleWindow()
+    }
+
+    private func endSkipBackSubtitleWindow() {
+        guard let window = skipBackSubtitleWindow else { return }
+        skipBackSubtitleWindow = nil
+        // Only ever switch off the track this window switched on; anything else belongs to someone
+        // else, and selecting nil would drop their pick with it.
+        guard activeSubtitleIndex == window.streamIndex else { return }
+        selectSubtitleTrack(id: nil)
     }
 
     /// Select the SECONDARY companion subtitle track (issue #47). Text-only, session-only: no styled-ASS,
