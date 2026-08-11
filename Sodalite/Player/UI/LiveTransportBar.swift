@@ -30,6 +30,15 @@ struct LiveTransportBar: View {
     /// Same rows the VOD bar shows, which on live means Off plus whatever the channel carries: no
     /// secondary track, no online search. The menu itself is the shared component, only the chip
     /// differs, because this bar speaks in capsules.
+    /// Same label the VOD bar shows on its subtitle chip: the active track, else Off.
+    private var activeSubtitleLabel: String {
+        guard let idx = viewModel.activeSubtitleIndex,
+              let stream = viewModel.displaySubtitleStreams.first(where: { $0.index == idx }) else {
+            return String(localized: "player.subtitles.off", defaultValue: "Off")
+        }
+        return TrackDisplayFormatter.subtitleShortName(for: stream)
+    }
+
     private var subtitleDropdownItems: [DropdownItem] {
         guard case .subtitle(let highlighted) = viewModel.trackDropdown else { return [] }
         return viewModel.subtitleMenuRows.enumerated().compactMap { index, row in
@@ -66,23 +75,12 @@ struct LiveTransportBar: View {
                 Spacer()
 
                 if !viewModel.isAtLiveEdge {
-                    Text("livetv.returnToLive")
-                        .font(.caption.bold())
-                        .foregroundStyle(returnToLiveFocused ? Color.black : .white)
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 8)
-                        .background(
-                            Capsule().fill(
-                                returnToLiveFocused
-                                    ? AnyShapeStyle(.tint)
-                                    : AnyShapeStyle(.white.opacity(0.2))
-                            )
-                        )
-                        .overlay(
-                            Capsule().strokeBorder(.tint, lineWidth: returnToLiveFocused ? 0 : 2)
-                        )
-                        .scaleEffect(returnToLiveFocused ? 1.08 : 1.0)
-                        .animation(.easeInOut(duration: 0.15), value: returnToLiveFocused)
+                    TransportTrackLabel(
+                        label: String(localized: "livetv.returnToLive", defaultValue: "Return to Live"),
+                        icon: "forward.end.alt.fill",
+                        showsLabel: true,
+                        isFocused: returnToLiveFocused
+                    )
                 }
 
                 if !viewModel.displaySubtitleStreams.isEmpty {
@@ -90,39 +88,23 @@ struct LiveTransportBar: View {
                         if isSubtitleDropdownOpen {
                             PlayerTrackDropdownList(items: subtitleDropdownItems)
                         }
-                        Image(systemName: "captions.bubble")
-                            .font(.caption.bold())
-                            .foregroundStyle(subtitleFocused ? Color.black : .white)
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 8)
-                            .background(
-                                Capsule().fill(
-                                    subtitleFocused
-                                        ? AnyShapeStyle(.tint)
-                                        : AnyShapeStyle(.white.opacity(0.2))
-                                )
-                            )
-                            .scaleEffect(subtitleFocused ? 1.08 : 1.0)
-                            .animation(.easeInOut(duration: 0.15), value: subtitleFocused)
+                        TransportTrackLabel(
+                            label: activeSubtitleLabel,
+                            icon: "captions.bubble",
+                            showsLabel: true,
+                            isFocused: subtitleFocused
+                        )
                     }
                 }
 
                 if viewModel.isPiPAvailable {
-                    Image(systemName: "pip.enter")
-                        .font(.caption.bold())
-                        .foregroundStyle(pipFocused ? Color.black : .white)
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 8)
-                        .background(
-                            Capsule().fill(
-                                pipFocused
-                                    ? AnyShapeStyle(.tint)
-                                    : AnyShapeStyle(.white.opacity(0.2))
-                            )
-                        )
-                        .opacity(viewModel.isPiPPossible ? 1.0 : 0.4)
-                        .scaleEffect(pipFocused ? 1.08 : 1.0)
-                        .animation(.easeInOut(duration: 0.15), value: pipFocused)
+                    TransportTrackLabel(
+                        label: String(localized: "player.pip", defaultValue: "Picture in Picture"),
+                        icon: "pip.enter",
+                        showsLabel: false,
+                        isFocused: pipFocused
+                    )
+                    .opacity(viewModel.isPiPPossible ? 1.0 : 0.4)
                 }
 
                 liveBadge
