@@ -173,6 +173,7 @@
 		3597A65B0A4EFDE1257BDC92 /* MediaDeletionSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84A366A9666BD16A484E1F50 /* MediaDeletionSheet.swift */; };
 		35ACF8026C06CE26BD8652F3 /* ASSRenderCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B0AF18F7475A04D2A6EF1A2 /* ASSRenderCoordinator.swift */; };
 		35C72E5705E96CBF0E85B1CA /* ProfileRepromptPreferenceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 045D26559530D2BA2F3268FF /* ProfileRepromptPreferenceTests.swift */; };
+		3669E2C67CF333A48E7DF67A /* PlayerTrackDropdown.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A8630F13AD6A7B6C4F5C33E /* PlayerTrackDropdown.swift */; };
 		36BAF82C411A5AF2A35EDD2B /* QuickConnectModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95AED89E085254B055C2735B /* QuickConnectModels.swift */; };
 		36EFF4A704EA7ED4B03A495E /* CatalogDiscoverView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AD9ABED7A1DFC74DB2CBB3A /* CatalogDiscoverView.swift */; };
 		386E0F8F8EE6F5699360EC56 /* PendingRequestsBackgroundRefresh.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03A0444AD166BAEE0F237FBF /* PendingRequestsBackgroundRefresh.swift */; };
@@ -261,6 +262,7 @@
 		54BD7CC18171A72D174427BA /* Changelog.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF85D7F0021838472DCD2F72 /* Changelog.swift */; };
 		54F470BF65D1060F75165393 /* ServerURLClassifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6BDE8AC81E42D549C5C602E /* ServerURLClassifier.swift */; };
 		5508504F0EB3C65C9859E8AC /* PendingRequestsMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E46636B059F74492348E235 /* PendingRequestsMonitor.swift */; };
+		5551B8838EECC94A5399EEE6 /* PlayerTrackDropdown.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A8630F13AD6A7B6C4F5C33E /* PlayerTrackDropdown.swift */; };
 		5564BD1BD5A7FE4CEE4CEDB7 /* AppBackgroundView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C01A1DB2E58B09133252977 /* AppBackgroundView.swift */; };
 		558F3B89F98A6B7C3A9804D1 /* NetworkPathObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4FCC0AD2AA3F895C4DE7EE5F /* NetworkPathObserver.swift */; };
 		55E2B3C115B23DC8A05B7830 /* SkipBackSubtitleWindowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8CC2B044B670A6CF7B701C10 /* SkipBackSubtitleWindowTests.swift */; };
@@ -856,6 +858,7 @@
 		098DC40DFD22F68568CF8CE9 /* SeerrRequestService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeerrRequestService.swift; sourceTree = "<group>"; };
 		0A4F6464C543DFF6027F96CB /* JSONValue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSONValue.swift; sourceTree = "<group>"; };
 		0A67A85813AA4FE94C9DF9D5 /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
+		0A8630F13AD6A7B6C4F5C33E /* PlayerTrackDropdown.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerTrackDropdown.swift; sourceTree = "<group>"; };
 		0B0D6DF76D26CB39C5D10E0A /* DependencyContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DependencyContainer.swift; sourceTree = "<group>"; };
 		0B1A47884F1F377AE81C780B /* PiPSessionMachineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PiPSessionMachineTests.swift; sourceTree = "<group>"; };
 		0B1FB619B1F615A7F27C1C90 /* DirectPlayProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DirectPlayProfile.swift; sourceTree = "<group>"; };
@@ -2075,6 +2078,7 @@
 			children = (
 				A6F5CE78EAB9F5BC71D0CF0B /* LiveTransportBar.swift */,
 				44AD184DF6BCAAD832065C41 /* PlayerOverlayView.swift */,
+				0A8630F13AD6A7B6C4F5C33E /* PlayerTrackDropdown.swift */,
 				256CE5DE2B1273662AB9F398 /* StatsOverlayView.swift */,
 				4B03B17EFE49D8718C924101 /* SubtitleDeletePromptView.swift */,
 				40ACBA3D2A39D41E0D6463FB /* SubtitleSearchView.swift */,
@@ -2591,6 +2595,7 @@
 				9CD7CDE71FF7444B06418E18 /* PlayerSystemVolume.swift in Sources */,
 				31AB6A905C425FD79222B6FD /* PlayerTouchControls.swift in Sources */,
 				5B3AB057C2C8A59360212D82 /* PlayerTouchInput.swift in Sources */,
+				3669E2C67CF333A48E7DF67A /* PlayerTrackDropdown.swift in Sources */,
 				A1570D935F19BC0F36F0BEAE /* PlayerViewModel+Live.swift in Sources */,
 				3E11324A7FC8A51A0F0945BD /* PlayerViewModel+NextEpisode.swift in Sources */,
 				41A0402D6E22510F65EB753B /* PlayerViewModel+NowPlaying.swift in Sources */,
@@ -3038,6 +3043,7 @@
 				3BB29A9518AFEA02EC8196E8 /* PlayerModalPresence.swift in Sources */,
 				09914478D057722C2E7E2231 /* PlayerOverlayView.swift in Sources */,
 				7FD848A2EF7366D2AD517E46 /* PlayerPiPController.swift in Sources */,
+				5551B8838EECC94A5399EEE6 /* PlayerTrackDropdown.swift in Sources */,
 				81ECB5BE681882F45FC199FD /* PlayerViewModel+Live.swift in Sources */,
 				561BCFDFE49D966D069D6FC9 /* PlayerViewModel+NextEpisode.swift in Sources */,
 				A62E1B42D06DD3E469093F69 /* PlayerViewModel+NowPlaying.swift in Sources */,
