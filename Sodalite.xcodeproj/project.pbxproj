@@ -792,6 +792,7 @@
 		FD94A165F98524A24CFBDD6A /* PlayerLockOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 772CB8FF2DA2804951AEA725 /* PlayerLockOverlay.swift */; };
 		FDB314297ACFCD6E71CB6159 /* ServerDiscoveryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9848335F9C1937CA6571F69 /* ServerDiscoveryView.swift */; };
 		FDD6E4BC5039CBB8C3AFBDE7 /* TransportFocusOrderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 052CEAFD6EA4A3004EC38E52 /* TransportFocusOrderTests.swift */; };
+		FDE1CD26CDE9D8B258A4648C /* ForeignAudioSubtitleRuleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F923494CDFC892548434921A /* ForeignAudioSubtitleRuleTests.swift */; };
 		FEC7094E718910B6D04487EA /* LicenseText-AetherEngine.txt in Resources */ = {isa = PBXBuildFile; fileRef = 65525527BDEE7CBB5EC35778 /* LicenseText-AetherEngine.txt */; };
 		FEF0180CC2897F7032D68187 /* TopShelfProgress.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C1986FAE23765CA9C8B1537 /* TopShelfProgress.swift */; };
 		FFD9B14B553A72E8B7232399 /* AlbumDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DAA0282AF1C282F923158406 /* AlbumDetailView.swift */; };
@@ -1275,6 +1276,7 @@
 		F7BD8B6E3869668E8D374D2B /* CloudSyncForwardCompat.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudSyncForwardCompat.swift; sourceTree = "<group>"; };
 		F8AFD18467EFC7535B275979 /* JellyfinServerDiscovery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JellyfinServerDiscovery.swift; sourceTree = "<group>"; };
 		F8E8471B0A8EB90E76396E7C /* PlayerGestureCatcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerGestureCatcher.swift; sourceTree = "<group>"; };
+		F923494CDFC892548434921A /* ForeignAudioSubtitleRuleTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForeignAudioSubtitleRuleTests.swift; sourceTree = "<group>"; };
 		F97AEA4D44C9409BAE991953 /* SeerrImageURL.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeerrImageURL.swift; sourceTree = "<group>"; };
 		FA0BD9A994EB62F1AC2E7558 /* DetailRouterView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetailRouterView.swift; sourceTree = "<group>"; };
 		FA334990CFAE3DF5B20A3C80 /* PersonDetailViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersonDetailViewModelTests.swift; sourceTree = "<group>"; };
@@ -1495,6 +1497,7 @@
 				8ECD6229FC42DA4622DCC4A8 /* FlowLayoutPackingTests.swift */,
 				4A21F99D17CDC050C5CD490B /* ForcedSubtitleFallbackTests.swift */,
 				EE4C9FBD5F7D9120B46B71E0 /* ForegroundReloadGateTests.swift */,
+				F923494CDFC892548434921A /* ForeignAudioSubtitleRuleTests.swift */,
 				E14D3464C7E129B3F2C36E08 /* GuideAxisTests.swift */,
 				939138CECC6FB0BF0B9E2B05 /* GuideChannelSearchTests.swift */,
 				6E1CBDC8FD675B2A490D1A34 /* GuideEdgeFadeTests.swift */,
@@ -2770,6 +2773,7 @@
 				4DCE9F66CB79F359486E3ED7 /* FlowLayoutPackingTests.swift in Sources */,
 				87AD6691102764C558EAD457 /* ForcedSubtitleFallbackTests.swift in Sources */,
 				F09184FDC2FFDF2EFDCAF938 /* ForegroundReloadGateTests.swift in Sources */,
+				FDE1CD26CDE9D8B258A4648C /* ForeignAudioSubtitleRuleTests.swift in Sources */,
 				01A9AC45054B22178B172FE3 /* GuideAxisTests.swift in Sources */,
 				81037655426C4431ED7C3341 /* GuideChannelSearchTests.swift in Sources */,
 				30FA53AE69FCCD0C55CEDF2F /* GuideEdgeFadeTests.swift in Sources */,

@@ -506,6 +506,10 @@ final class PlayerViewModel {
     /// first arrives. A latch rather than a time guard, so a republished list cannot override a pick
     /// the user has made since.
     @ObservationIgnored private var didAutoSelectLiveSubtitle = false
+    /// Index signature of the last engine track list taken over on live. nil until the first publish
+    /// of a session, so an empty first list still counts as a change and gets logged: a channel that
+    /// carries no subtitle stream must not look like a sink that never fired.
+    @ObservationIgnored private var lastLiveSubtitleIndices: [Int]?
 
     /// Sodalite#63: playhead before the current burst of backward jumps, recorded on press and consumed
     /// by the commit. Nil means the next commit is not a skip back (a pan, a hold-seek, a forward jump).
@@ -640,6 +644,7 @@ final class PlayerViewModel {
                 // the call that used to sit here resolved over an empty array and did nothing. The
                 // $subtitleTracks sink in startObserving owns it, and re-arms per channel.
                 didAutoSelectLiveSubtitle = false
+                lastLiveSubtitleIndices = nil
                 subtitleStreams = []
                 hostLoadActive = false
                 isPlaying = true
@@ -1309,8 +1314,17 @@ final class PlayerViewModel {
             .sink { [weak self] tracks in
                 guard let self, self.isLiveSession else { return }
                 let mapped = LiveSubtitleTracks.mediaStreams(from: tracks)
-                guard mapped.map(\.index) != self.subtitleStreams.map(\.index) else { return }
+                let indices = mapped.map(\.index)
+                guard indices != self.lastLiveSubtitleIndices else { return }
+                self.lastLiveSubtitleIndices = indices
                 self.subtitleStreams = mapped
+                // The empty case is logged too. A channel delivered as a server transcode carries no
+                // subtitle stream at all, which is a routing answer, not a failure, and a diagnostic
+                // that stays silent there reads exactly like a sink that never fired.
+                let detail = mapped.isEmpty ? "" : ": " + mapped
+                    .map { "\($0.index):\($0.codec ?? "?")/\($0.language ?? "und")" }
+                    .joined(separator: ", ")
+                LogTap.shared.note("[LiveSubs] engine published \(mapped.count) subtitle track(s)\(detail)")
                 // First real list of the session: apply the same automatic pick VOD gets. The audio
                 // track is settled by now, so the foreign-audio rule works here; as a pre-load
                 // LoadOptions language list it could not have been expressed at all.
@@ -1627,7 +1641,7 @@ final class PlayerViewModel {
         }
         guard preferences.autoSubtitleForForeignAudio,
               let preferredAudio = effectivePreferredAudioLanguage(),
-              !Self.languagesMatch(audioLanguage, preferredAudio)
+              Self.audioCountsAsForeign(audioLanguage: audioLanguage, preferredAudio: preferredAudio)
         else { return }
         if let match = bestSubtitleMatch(forLanguage: preferredAudio) {
             selectSubtitleTrack(id: match.index)
@@ -1814,6 +1828,21 @@ final class PlayerViewModel {
             return explicit
         }
         return Locale.current.language.languageCode?.identifier
+    }
+
+    /// Whether the audio should count as foreign for the automatic-subtitle rule.
+    ///
+    /// Unknown is NOT foreign. `languagesMatch` answers false for a missing tag, so an untagged track
+    /// satisfied "the audio is not in your language" and pulled subtitles up on any stream that
+    /// carries no language at all. Live HLS audio renditions never carry one, so every channel came up
+    /// with subtitles on for a viewer who had merely left everything on automatic.
+    static func audioCountsAsForeign(audioLanguage: String?, preferredAudio: String?) -> Bool {
+        guard let preferredAudio,
+              let audioLanguage,
+              !audioLanguage.isEmpty,
+              audioLanguage.lowercased() != "und"
+        else { return false }
+        return !languagesMatch(audioLanguage, preferredAudio)
     }
 
     /// Loose language-tag comparison so settings ("ger"), container metadata ("deu"), and BCP-47 ("de")
