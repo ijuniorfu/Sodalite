@@ -177,7 +177,8 @@ extension DependencyContainer {
                 autoForcedSubtitles: p.autoForcedSubtitles,
                 selectTogglesPlayback: p.selectTogglesPlayback,
                 instantSkipSeek: p.instantSkipSeek,
-                autoSkipRecap: p.autoSkipRecap
+                autoSkipRecap: p.autoSkipRecap,
+                subtitlesOnSkipBack: p.subtitlesOnSkipBack
             ))
         case .appearance:
             let a = appearancePreferences
@@ -267,6 +268,7 @@ extension DependencyContainer {
             if let selectToggles = p.selectTogglesPlayback { store.selectTogglesPlayback = selectToggles }
             if let instantSkip = p.instantSkipSeek { store.instantSkipSeek = instantSkip }
             if let autoSkipRecap = p.autoSkipRecap { store.autoSkipRecap = autoSkipRecap }
+            if let skipBackSubs = p.subtitlesOnSkipBack { store.subtitlesOnSkipBack = skipBackSubs }
         case .appearance(let a):
             let store = appearancePreferences
             if let accentChoice = AppearancePreferences.AccentChoice(rawValue: a.accentChoice) {

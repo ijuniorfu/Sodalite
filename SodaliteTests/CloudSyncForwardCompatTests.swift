@@ -113,7 +113,8 @@ struct CloudSyncForwardCompatTests {
                 showScrubPreview: true, preferServerTrickplay: true,
                 playerRotationLocked: false, networkBufferDepth: "balanced",
                 rememberTrackSelections: true, autoForcedSubtitles: true,
-                selectTogglesPlayback: true, instantSkipSeek: true, autoSkipRecap: true
+                selectTogglesPlayback: true, instantSkipSeek: true, autoSkipRecap: true,
+                subtitlesOnSkipBack: true
             ))
         case .appearance:
             return .appearance(AppearanceSettingsPayload(
