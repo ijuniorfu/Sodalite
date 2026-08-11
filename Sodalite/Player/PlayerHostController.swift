@@ -973,11 +973,11 @@ final class PlayerHostController: AVPlayerViewController {
     @objc private func selectHeld(_ gesture: UILongPressGestureRecognizer) {
         guard gesture.state == .began else { return }
         guard case .subtitle(let idx) = viewModel.trackDropdown else { return }
-        let streams = viewModel.displaySubtitleStreams
-        let streamIdx = idx - 2 // 0 = header, 1 = Off, 2...n+1 = streams, n+2 = Search
-        guard streamIdx >= 0, streamIdx < streams.count,
-              streams[streamIdx].isExternal == true else { return }
-        viewModel.requestSubtitleDeletion(streamIndex: streams[streamIdx].index)
+        let rows = viewModel.subtitleMenuRows
+        guard idx >= 0, idx < rows.count, case .track(let streamIndex) = rows[idx],
+              viewModel.displaySubtitleStreams.first(where: { $0.index == streamIndex })?.isExternal == true
+        else { return }
+        viewModel.requestSubtitleDeletion(streamIndex: streamIndex)
     }
 
     /// Continuous hold-to-seek spool from a directional long press; gated like the tap-skip path so a hold while navigating buttons or with stats/dropdown up is ignored.
@@ -1000,6 +1000,7 @@ final class PlayerHostController: AVPlayerViewController {
         if viewModel.isLiveSession {
             var order: [PlayerViewModel.ControlsFocus] = []
             if !viewModel.isAtLiveEdge { order.append(.returnToLiveButton) }
+            if !viewModel.displaySubtitleStreams.isEmpty { order.append(.subtitleButton) }
             if viewModel.isPiPAvailable { order.append(.pipButton) }
             guard let current = order.firstIndex(of: viewModel.controlsFocus) else { return }
             let next = current + direction
@@ -1038,6 +1039,8 @@ final class PlayerHostController: AVPlayerViewController {
                 if viewModel.isLiveSession {
                     if !viewModel.isAtLiveEdge {
                         viewModel.controlsFocus = .returnToLiveButton
+                    } else if !viewModel.displaySubtitleStreams.isEmpty {
+                        viewModel.controlsFocus = .subtitleButton
                     } else if viewModel.isPiPAvailable {
                         viewModel.controlsFocus = .pipButton
                     }
@@ -1105,8 +1108,7 @@ final class PlayerHostController: AVPlayerViewController {
             let newIdx = max(0, min(count - 1, idx + offset))
             viewModel.trackDropdown = .audio(highlighted: newIdx)
         case .subtitle(let idx):
-            // header(Secondary) + Off + streams + Search online
-            let count = viewModel.displaySubtitleStreams.count + 3
+            let count = viewModel.subtitleMenuRows.count
             guard count > 0 else { return }
             let newIdx = max(0, min(count - 1, idx + offset))
             viewModel.trackDropdown = .subtitle(highlighted: newIdx)

@@ -16,6 +16,40 @@ struct LiveTransportBar: View {
         viewModel.controlsFocus == .pipButton
     }
 
+    private var subtitleFocused: Bool {
+        viewModel.controlsFocus == .subtitleButton
+    }
+
+    /// TransportBar keeps its own `isSubtitleDropdownOpen` private to that file, so derive it rather
+    /// than widening the view model with a second spelling of the same state.
+    private var isSubtitleDropdownOpen: Bool {
+        if case .subtitle = viewModel.trackDropdown { return true }
+        return false
+    }
+
+    /// Same rows the VOD bar shows, which on live means Off plus whatever the channel carries: no
+    /// secondary track, no online search. The menu itself is the shared component, only the chip
+    /// differs, because this bar speaks in capsules.
+    private var subtitleDropdownItems: [DropdownItem] {
+        guard case .subtitle(let highlighted) = viewModel.trackDropdown else { return [] }
+        return viewModel.subtitleMenuRows.enumerated().compactMap { index, row in
+            switch row {
+            case .off:
+                return DropdownItem(title: String(localized: "player.subtitles.off", defaultValue: "Off"),
+                                    isActive: viewModel.activeSubtitleIndex == nil,
+                                    isHighlighted: highlighted == index)
+            case .track(let streamIndex):
+                guard let stream = viewModel.displaySubtitleStreams
+                    .first(where: { $0.index == streamIndex }) else { return nil }
+                return DropdownItem(title: TrackDisplayFormatter.subtitleStreamDisplayName(for: stream),
+                                    isActive: streamIndex == viewModel.activeSubtitleIndex,
+                                    isHighlighted: highlighted == index)
+            case .secondaryHeader, .searchOnline:
+                return nil
+            }
+        }
+    }
+
     var body: some View {
         VStack(spacing: 16) {
             if viewModel.isScrubbing, let preview = viewModel.scrubPreview.previewImage {
@@ -49,6 +83,28 @@ struct LiveTransportBar: View {
                         )
                         .scaleEffect(returnToLiveFocused ? 1.08 : 1.0)
                         .animation(.easeInOut(duration: 0.15), value: returnToLiveFocused)
+                }
+
+                if !viewModel.displaySubtitleStreams.isEmpty {
+                    VStack(spacing: 6) {
+                        if isSubtitleDropdownOpen {
+                            PlayerTrackDropdownList(items: subtitleDropdownItems)
+                        }
+                        Image(systemName: "captions.bubble")
+                            .font(.caption.bold())
+                            .foregroundStyle(subtitleFocused ? Color.black : .white)
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 8)
+                            .background(
+                                Capsule().fill(
+                                    subtitleFocused
+                                        ? AnyShapeStyle(.tint)
+                                        : AnyShapeStyle(.white.opacity(0.2))
+                                )
+                            )
+                            .scaleEffect(subtitleFocused ? 1.08 : 1.0)
+                            .animation(.easeInOut(duration: 0.15), value: subtitleFocused)
+                    }
                 }
 
                 if viewModel.isPiPAvailable {

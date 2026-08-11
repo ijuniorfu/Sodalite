@@ -209,6 +209,16 @@ final class PlayerViewModel {
         return streams.filter { $0.isDefault == true } + streams.filter { $0.isDefault != true }
     }
 
+    /// Row order of the in-player subtitle menu, the one description every consumer reads: the item
+    /// builders in both transport bars, the highlight navigation, the Select commit and hold-to-delete.
+    /// Live drops the secondary header (a VOD feature) and the search footer (no library item to
+    /// search against).
+    var subtitleMenuRows: [SubtitleMenuRow] {
+        SubtitleMenuLayout.rows(streams: displaySubtitleStreams,
+                                supportsSecondary: !isLiveSession,
+                                supportsSearch: supportsSubtitleSearch)
+    }
+
     /// In-player subtitle-search reachability; VOD-only (live has no searchable library item).
     /// Also shows the subtitle button on files with zero tracks so the download entry exists (issue #15).
     var supportsSubtitleSearch: Bool { !isLiveSession }
@@ -2445,14 +2455,10 @@ final class PlayerViewModel {
 
     func openSubtitleDropdown() {
         controlsTimer?.cancel()
-        let currentIdx: Int
-        if let activeId = activeSubtitleIndex,
-           let streamIdx = displaySubtitleStreams.firstIndex(where: { $0.index == activeId }) {
-            currentIdx = streamIdx + 1
-        } else {
-            currentIdx = 0
-        }
-        trackDropdown = .subtitle(highlighted: currentIdx)
+        trackDropdown = .subtitle(
+            highlighted: SubtitleMenuLayout.highlightIndex(forActive: activeSubtitleIndex,
+                                                           in: subtitleMenuRows)
+        )
     }
 
     func openSpeedDropdown() {
@@ -2501,23 +2507,22 @@ final class PlayerViewModel {
             trackDropdown = .none
             scheduleControlsHide()
         case .subtitle(let idx):
-            let streams = displaySubtitleStreams
-            if idx == 0 {
+            let rows = subtitleMenuRows
+            guard idx >= 0, idx < rows.count else { return }
+            switch rows[idx] {
+            case .secondaryHeader:
                 trackDropdown = .secondarySubtitle(highlighted: 0)
-            } else if idx == 1 {
+            case .off:
                 selectSubtitleTrack(id: nil, userInitiated: true)
                 trackDropdown = .none
                 scheduleControlsHide()
-            } else if idx == streams.count + 2 {
-                trackDropdown = .none
-                presentSubtitleSearch()
-            } else {
-                let streamIdx = idx - 2
-                if streamIdx < streams.count {
-                    selectSubtitleTrack(id: streams[streamIdx].index, userInitiated: true)
-                }
+            case .track(let streamIndex):
+                selectSubtitleTrack(id: streamIndex, userInitiated: true)
                 trackDropdown = .none
                 scheduleControlsHide()
+            case .searchOnline:
+                trackDropdown = .none
+                presentSubtitleSearch()
             }
         case .secondarySubtitle(let idx):
             let candidates = secondarySubtitleCandidates

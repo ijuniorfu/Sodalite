@@ -474,40 +474,36 @@ struct TransportBar: View {
             return String(format: String(localized: "player.subtitle.secondary.value", defaultValue: "Secondary: %@"),
                           TrackDisplayFormatter.subtitleStreamDisplayName(for: stream))
         }()
-        var items: [DropdownItem] = [
-            DropdownItem(
-                title: secondaryName,
-                isActive: false,
-                isHighlighted: highlighted == 0,
-                isPinnedHeader: true,
-                separatorBelow: true
-            ),
-            DropdownItem(
-                title: String(localized: "player.subtitles.off", defaultValue: "Off"),
-                isActive: activeSubtitleIndex == nil,
-                isHighlighted: highlighted == 1
-            )
-        ]
-        items += subtitleStreams.enumerated().map { idx, stream in
-            DropdownItem(
-                title: TrackDisplayFormatter.subtitleStreamDisplayName(for: stream),
-                isActive: stream.index == activeSubtitleIndex,
-                isHighlighted: idx + 2 == highlighted,
-                hint: stream.isExternal == true
-                    ? String(localized: "player.subtitle.delete.hint", defaultValue: "Hold to delete")
-                    : nil
-            )
+        return viewModel.subtitleMenuRows.enumerated().map { index, row in
+            switch row {
+            case .secondaryHeader:
+                return DropdownItem(title: secondaryName, isActive: false,
+                                    isHighlighted: highlighted == index,
+                                    isPinnedHeader: true, separatorBelow: true)
+            case .off:
+                return DropdownItem(title: String(localized: "player.subtitles.off", defaultValue: "Off"),
+                                    isActive: activeSubtitleIndex == nil,
+                                    isHighlighted: highlighted == index)
+            case .track(let streamIndex):
+                let stream = subtitleStreams.first(where: { $0.index == streamIndex })
+                return DropdownItem(
+                    title: stream.map(TrackDisplayFormatter.subtitleStreamDisplayName(for:)) ?? "",
+                    isActive: streamIndex == activeSubtitleIndex,
+                    isHighlighted: highlighted == index,
+                    hint: stream?.isExternal == true
+                        ? String(localized: "player.subtitle.delete.hint", defaultValue: "Hold to delete")
+                        : nil
+                )
+            case .searchOnline:
+                return DropdownItem(
+                    title: String(localized: "player.subtitle.searchOnline", defaultValue: "Search online..."),
+                    isActive: false,
+                    isHighlighted: highlighted == index,
+                    isPinnedFooter: true,
+                    separatorAbove: true
+                )
+            }
         }
-        items.append(
-            DropdownItem(
-                title: String(localized: "player.subtitle.searchOnline", defaultValue: "Search online..."),
-                isActive: false,
-                isHighlighted: highlighted == subtitleStreams.count + 2,
-                isPinnedFooter: true,
-                separatorAbove: true
-            )
-        )
-        return items
     }
 
     private var secondarySubtitleDropdownItems: [DropdownItem] {
