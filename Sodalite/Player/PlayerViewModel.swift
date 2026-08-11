@@ -2080,11 +2080,18 @@ final class PlayerViewModel {
 
     private func endSkipBackSubtitleWindow() {
         guard let window = skipBackSubtitleWindow else { return }
+        // Drop the window synchronously so the next clock tick cannot queue a second teardown,
+        // then do the work itself one main-actor turn later. The identical teardown does not stutter
+        // when a manual pick triggers it; inside the 10 Hz tick it shares a block with
+        // scrubPreview.warm, which spins up its own demuxer while this one closes a side demuxer.
         skipBackSubtitleWindow = nil
-        // Only ever switch off the track this window switched on; anything else belongs to someone
-        // else, and selecting nil would drop their pick with it.
-        guard activeSubtitleIndex == window.streamIndex else { return }
-        selectSubtitleTrack(id: nil)
+        Task { @MainActor [weak self] in
+            guard let self else { return }
+            // Only ever switch off the track this window switched on; anything else belongs to
+            // someone else, and selecting nil would drop their pick with it.
+            guard self.activeSubtitleIndex == window.streamIndex else { return }
+            self.selectSubtitleTrack(id: nil)
+        }
     }
 
     /// Select the SECONDARY companion subtitle track (issue #47). Text-only, session-only: no styled-ASS,
