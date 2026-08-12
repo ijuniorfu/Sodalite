@@ -406,6 +406,23 @@ extension PlayerViewModel {
             guard let self else { return }
             await self.retuneLiveStream()
             self.liveRetuneInFlight = false
+            self.stateLiveAudioSwitchOutcome(requested: streamIndex)
+        }
+    }
+
+    /// Say where the switch landed. The engine validates the index against the re-opened container and
+    /// falls back to its own pick when it does not name a real track there, which is the right
+    /// behaviour and an invisible one: the viewer sees a re-join that ends on the same track and has
+    /// nothing to read. A channel whose stream indices move between tunes fails exactly that way.
+    private func stateLiveAudioSwitchOutcome(requested: Int) {
+        let landed = player.activeAudioTrackIndex
+        if landed == requested {
+            LogTap.shared.note("[Live] audio switch: now on stream \(requested)")
+        } else {
+            LogTap.shared.note(
+                "[Live] audio switch: asked for stream \(requested), landed on "
+                + "\(landed.map(String.init) ?? "none") (tracks=\(player.audioTracks.map { $0.id }))"
+            )
         }
     }
 
