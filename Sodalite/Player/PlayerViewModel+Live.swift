@@ -345,6 +345,14 @@ extension PlayerViewModel {
             LogTap.shared.note("[Live] retune skipped: not a live session")
             return
         }
+        // A server the outage watchdog has confirmed dead cannot serve a retune either: it would open a
+        // tuner nobody answers and end in the retune-exhausted message, three attempts and a minute later.
+        // The outage error is already on screen with its retry.
+        guard !serverConfirmedUnreachable else {
+            LogTap.shared.note("[Live] retune skipped: server confirmed unreachable")
+            hostLoadActive = false
+            return
+        }
         guard !liveRetuneInFlight else {
             // A second reset rides on the in-flight retune; logged so a STUCK latch (hung loadLiveStream) is visible rather than silently swallowing all future recovery.
             LogTap.shared.note("[Live] retune skipped: already in flight (count=\(liveRetuneCount))")

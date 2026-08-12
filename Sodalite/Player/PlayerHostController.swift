@@ -765,6 +765,9 @@ final class PlayerHostController: AVPlayerViewController {
 
     @objc private func appDidEnterBackground() {
         wasFullyBackgrounded = true
+        // Background audio / PiP keep the session running on purpose; the outage watchdog must not end one
+        // the viewer cannot see, so it stops probing until we are back.
+        viewModel.setAppActive(false)
     }
 
     /// AetherEngine #127 host adoption: the engine's paused-background grace window (and PiP keepalive)
@@ -775,6 +778,9 @@ final class PlayerHostController: AVPlayerViewController {
     }
 
     @objc private func appDidBecomeActive() {
+        // Before every early return below: the watchdog is armed by the engine phase, not by this routine,
+        // and it must resume probing on any return to the foreground.
+        viewModel.setAppActive(true)
         guard viewModel.hasStartedPlaying else { return }
 
         // App switcher lands here without didEnterBackground; decoders + audio are still alive, so nothing to rebuild.
