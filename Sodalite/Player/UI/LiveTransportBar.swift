@@ -1,3 +1,4 @@
+import AetherEngine
 import SwiftUI
 
 /// DVR transport for live playback: scrubber over the engine's moving seekable
@@ -20,11 +21,40 @@ struct LiveTransportBar: View {
         viewModel.controlsFocus == .subtitleButton
     }
 
+    private var audioFocused: Bool {
+        viewModel.controlsFocus == .audioButton
+    }
+
     /// TransportBar keeps its own `isSubtitleDropdownOpen` private to that file, so derive it rather
     /// than widening the view model with a second spelling of the same state.
     private var isSubtitleDropdownOpen: Bool {
         if case .subtitle = viewModel.trackDropdown { return true }
         return false
+    }
+
+    private var isAudioDropdownOpen: Bool {
+        if case .audio = viewModel.trackDropdown { return true }
+        return false
+    }
+
+    /// Same label the VOD bar shows on its audio chip: the active track, else the generic word.
+    private var activeAudioLabel: String {
+        guard let track = viewModel.displayAudioTracks
+            .first(where: { $0.id == viewModel.activeAudioIndex }) else {
+            return String(localized: "player.audio", defaultValue: "Audio")
+        }
+        return TrackDisplayFormatter.shortName(for: track)
+    }
+
+    /// Rows of the audio menu: every track the channel carries, in picker order. The highlight index
+    /// is the host's (`moveDropdownHighlight` walks `displayAudioTracks`), so this maps the same list.
+    private var audioDropdownItems: [DropdownItem] {
+        guard case .audio(let highlighted) = viewModel.trackDropdown else { return [] }
+        return viewModel.displayAudioTracks.enumerated().map { index, track in
+            DropdownItem(title: TrackDisplayFormatter.audioDisplayName(for: track),
+                         isActive: track.id == viewModel.activeAudioIndex,
+                         isHighlighted: highlighted == index)
+        }
     }
 
     /// Same rows the VOD bar shows, which on live means Off plus whatever the channel carries: no
@@ -81,6 +111,20 @@ struct LiveTransportBar: View {
                         showsLabel: true,
                         isFocused: returnToLiveFocused
                     )
+                }
+
+                if !viewModel.displayAudioTracks.isEmpty {
+                    VStack(spacing: 6) {
+                        if isAudioDropdownOpen {
+                            PlayerTrackDropdownList(items: audioDropdownItems)
+                        }
+                        TransportTrackLabel(
+                            label: activeAudioLabel,
+                            icon: "speaker.wave.2",
+                            showsLabel: true,
+                            isFocused: audioFocused
+                        )
+                    }
                 }
 
                 if !viewModel.displaySubtitleStreams.isEmpty {
