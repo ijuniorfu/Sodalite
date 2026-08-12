@@ -36,6 +36,23 @@ struct TrackDisplayFormatterTests {
         #expect(TrackDisplayFormatter.shortName(for: audio(language: "")).contains("AAC"))
     }
 
+    @Test("und is the container saying it does not know, not a language to name")
+    func undeterminedIsUntagged() {
+        // Locale renders "und" as "Unknown language", which reads like a language on the chip and
+        // is what a live channel would have shown, since broadcasters tag their streams that way.
+        for code in ["und", "UND", "unknown"] {
+            #expect(TrackDisplayFormatter.shortName(for: audio(language: code)).contains("AAC"),
+                    "\(code) must not resolve to a language name")
+        }
+    }
+
+    @Test("und drops out of the menu row too, leaving the format alone")
+    func undeterminedInMenuRow() {
+        let name = TrackDisplayFormatter.audioDisplayName(for: audio(language: "und"))
+        #expect(name.contains("AAC"))
+        #expect(name.contains("·") == false)
+    }
+
     @Test("Atmos names itself rather than its bed layout")
     func atmosOverridesLayout() {
         let track = audio(language: nil, codec: "eac3", channels: 6, isAtmos: true)

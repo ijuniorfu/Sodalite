@@ -148,7 +148,11 @@ extension PlayerViewModel {
                 // post-load selectAudioTrack reload that misfired on single-track channels.
                 preferredAudioLanguages: effectivePreferredAudioLanguage().map { [$0] } ?? [],
                 teletextPage: preferences.liveTeletextPage.page
-            )
+            ),
+            // #64: the viewer's audio pick, named at load. It is the only way onto a track other than
+            // the container default here, because the ingest is forward-only and the engine refuses
+            // to re-point such a session in place (it logs the refusal).
+            audioSourceStreamIndex: pendingLiveAudioStreamIndex.map(Int32.init)
         )
 
         let engine = player
@@ -238,7 +242,10 @@ extension PlayerViewModel {
                 // post-load selectAudioTrack reload that misfired on single-track channels.
                 preferredAudioLanguages: effectivePreferredAudioLanguage().map { [$0] } ?? [],
                 teletextPage: preferences.liveTeletextPage.page
-            )
+            ),
+            // #64: same pick on the server route, where the engine could re-point in place but a
+            // re-tune is what the viewer asked for either way. One spelling, one behaviour.
+            audioSourceStreamIndex: pendingLiveAudioStreamIndex.map(Int32.init)
         )
 
         // Live scrub preview frames come from the engine's DVR segment cache (liveScrubThumbnail), not a FrameExtractor (live source is forward-only, FFmpeg has no network). Retune-safe: configureLive resets first.
@@ -369,6 +376,32 @@ extension PlayerViewModel {
         liveRetuneCount += 1
         lastLiveRetuneAt = Date()
         hostLoadActive = true
+        Task { [weak self] in
+            guard let self else { return }
+            await self.retuneLiveStream()
+            self.liveRetuneInFlight = false
+        }
+    }
+
+    /// Live audio switch (#64): re-tune the channel with the picked stream named at load.
+    ///
+    /// Not a whim of the UI. The engine cannot re-point the audio of a live session on the direct
+    /// route, because the ingest reader is forward-only and rebuilding that pipeline would re-consume
+    /// a drained FIFO; `selectAudioTrack` refuses it and logs the refusal. Naming the stream at load
+    /// works on exactly that kind of source, measured on the CLI, so a switch is a re-join: a few
+    /// seconds of black, then the channel back at the live edge on the chosen track.
+    ///
+    /// The pick outlives this call: every later load of the session, including a recovery retune,
+    /// carries it, so a dropped connection cannot quietly put the viewer back on the default track.
+    func switchLiveAudioTrack(streamIndex: Int) {
+        guard isLiveSession, !liveRetuneInFlight else { return }
+        pendingLiveAudioStreamIndex = streamIndex
+        // The live subtitle pick re-arms per load; without clearing its latches the $subtitleTracks
+        // sink would treat the new session's list as one it has already handled.
+        resetLiveSubtitleAutoSelect()
+        liveRetuneInFlight = true
+        hostLoadActive = true
+        LogTap.shared.note("[Live] audio switch: retuning with stream \(streamIndex)")
         Task { [weak self] in
             guard let self else { return }
             await self.retuneLiveStream()

@@ -78,15 +78,21 @@ enum TrackDisplayFormatter {
     // MARK: - Private
 
     private static func streamLanguageName(for stream: MediaStream) -> String? {
-        guard let code = stream.language, !code.isEmpty else { return nil }
-        if let name = Locale.current.localizedString(forLanguageCode: code) {
-            return name.prefix(1).uppercased() + name.dropFirst()
-        }
-        return code.uppercased()
+        languageName(forCode: stream.language)
     }
 
     private static func languageName(for track: TrackInfo) -> String? {
-        guard let code = track.language, !code.isEmpty else { return nil }
+        languageName(forCode: track.language)
+    }
+
+    /// The viewer's name for a language tag, or nil when the tag carries no language. "und" is the
+    /// ISO code for undetermined, i.e. the container stating it does not know, and Locale turns that
+    /// into "Unknown language", which reads like a language and is worse on a chip than the format.
+    /// Live channels tag their streams that way routinely.
+    private static func languageName(forCode code: String?) -> String? {
+        guard let code, !code.isEmpty else { return nil }
+        let normalized = code.lowercased()
+        guard normalized != "und", normalized != "unknown" else { return nil }
         if let name = Locale.current.localizedString(forLanguageCode: code) {
             return name.prefix(1).uppercased() + name.dropFirst()
         }

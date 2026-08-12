@@ -95,7 +95,9 @@ struct LiveTransportBar: View {
                 liveScrubPreviewArea(image: preview)
             }
 
-            HStack(spacing: 16) {
+            // .bottom, as in the VOD bar: an open menu grows its own column upward, and a centred
+            // row would lift every sibling off the baseline to meet it.
+            HStack(alignment: .bottom, spacing: 16) {
                 Text(positionLabel)
                     .font(.callout)
                     .fontWeight(.medium)
@@ -153,6 +155,12 @@ struct LiveTransportBar: View {
 
                 liveBadge
             }
+            // Same treatment as the VOD row, and for the same reason: a transaction (not
+            // .animation(value:), which lags a frame so only the immediate neighbour glides) puts
+            // menu open/close, label reveal, pill scale and sibling reflow on one curve.
+            .transaction { txn in
+                txn.animation = .smooth(duration: 0.32)
+            }
 
             scrubber
         }
@@ -160,6 +168,8 @@ struct LiveTransportBar: View {
         .padding(.bottom, 60)
         .animation(.easeInOut(duration: 0.2), value: viewModel.isScrubbing)
         .animation(.easeInOut(duration: 0.2), value: viewModel.isAtLiveEdge)
+        .animation(.smooth(duration: 0.32), value: viewModel.controlsFocus)
+        .animation(.smooth(duration: 0.32), value: viewModel.trackDropdown)
     }
 
     // MARK: - Live Badge
