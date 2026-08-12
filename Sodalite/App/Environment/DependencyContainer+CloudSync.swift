@@ -101,12 +101,16 @@ extension DependencyContainer {
             )
         }
 
-        // Seerr sessions: payload is authoritative for this server's users. Sweep the
-        // union of previous + payload users so a user dropped from the payload does not
-        // leave a dangling rememberedSeerr_* entry behind.
-        let sessionUserIDs = Set(payload.seerrSessions.map(\.jellyfinUserID))
-        let sweepUserIDs = Set(previousUsers.map(\.id)).union(payload.rememberedUsers.map(\.id))
-        for userID in sweepUserIDs where !sessionUserIDs.contains(userID) {
+        // Seerr sessions are additive for profiles the payload still lists, on the same reading as
+        // the passwords above: a device where nobody ever signed into Jellyseerr collects no session
+        // at all, so "the payload carries none" means the sender does not know one, not that there
+        // is none (Sodalite#45). Sweeping on that reading let one Seerr-less device sign every other
+        // device out of Jellyseerr. A profile the payload dropped is still swept, else its
+        // rememberedSeerr_* entry dangles; a real sign-out reaches other devices through the 401 on
+        // the next restore, which already drops the entry there.
+        let droppedUserIDs = Set(previousUsers.map(\.id))
+            .subtracting(payload.rememberedUsers.map(\.id))
+        for userID in droppedUserIDs {
             forgetRememberedSeerr(forJellyfinUserID: userID, jellyfinServerID: serverID)
         }
         for session in payload.seerrSessions {
@@ -182,7 +186,8 @@ extension DependencyContainer {
                 selectTogglesPlayback: p.selectTogglesPlayback,
                 instantSkipSeek: p.instantSkipSeek,
                 autoSkipRecap: p.autoSkipRecap,
-                subtitlesOnSkipBack: p.subtitlesOnSkipBack
+                subtitlesOnSkipBack: p.subtitlesOnSkipBack,
+                liveTeletextPage: p.liveTeletextPage.rawValue
             ))
         case .appearance:
             let a = appearancePreferences
@@ -206,7 +211,8 @@ extension DependencyContainer {
                 // Legacy mirror for devices still on a build without the per-server pin: the default server's is the one they would have used.
                 defaultUserID: authPreferences.defaultServerID
                     .flatMap { authPreferences.defaultUserID(serverID: $0) },
-                defaultServerID: authPreferences.defaultServerID
+                defaultServerID: authPreferences.defaultServerID,
+                profileReprompt: authPreferences.profileReprompt.rawValue
             ))
         case .seerrNotifications:
             return .seerrNotifications(SeerrNotificationSettingsPayload(
@@ -273,6 +279,9 @@ extension DependencyContainer {
             if let instantSkip = p.instantSkipSeek { store.instantSkipSeek = instantSkip }
             if let autoSkipRecap = p.autoSkipRecap { store.autoSkipRecap = autoSkipRecap }
             if let skipBackSubs = p.subtitlesOnSkipBack { store.subtitlesOnSkipBack = skipBackSubs }
+            if let teletextPage = p.liveTeletextPage {
+                store.liveTeletextPage = PlaybackPreferences.LiveTeletextPage(rawValue: teletextPage) ?? store.liveTeletextPage
+            }
         case .appearance(let a):
             let store = appearancePreferences
             if let accentChoice = AppearancePreferences.AccentChoice(rawValue: a.accentChoice) {
@@ -296,6 +305,10 @@ extension DependencyContainer {
             authPreferences.launchBehavior = AuthPreferences.LaunchBehavior(rawValue: a.launchBehavior) ?? authPreferences.launchBehavior
             // a.defaultUserID is the retired global pin, deliberately not applied: it carries no server, so applying it would pin the wrong server's profile. The per-server value rides the server record.
             authPreferences.defaultServerID = a.defaultServerID
+            // Absent on payloads from builds before the reprompt interval existed; keep-current, else those builds would read as "off".
+            if let reprompt = a.profileReprompt {
+                authPreferences.profileReprompt = AuthPreferences.ProfileRepromptInterval(rawValue: reprompt) ?? authPreferences.profileReprompt
+            }
         case .seerrNotifications(let s):
             seerrNotificationPreferences.notifyPendingRequests = s.notifyPendingRequests
         case .parentalControls(let p):

@@ -109,6 +109,8 @@ struct PlaybackSettingsPayload: Codable, Equatable {
     var instantSkipSeek: Bool?
     var autoSkipRecap: Bool?
     var subtitlesOnSkipBack: Bool?
+    /// Shipped after the payload, so optional for the same reason as the eight above.
+    var liveTeletextPage: String?
 }
 
 /// Sodalite#46. Unlike the other settings payloads this one is NOT last-writer-wins:
@@ -233,6 +235,8 @@ struct AuthSettingsPayload: Codable, Equatable {
     /// default server's pin) so a device on an older build keeps working; never applied on this build.
     var defaultUserID: String?
     var defaultServerID: String?
+    /// Shipped after the payload, so a missing value means keep-current, not "off".
+    var profileReprompt: String?
 }
 
 struct SeerrNotificationSettingsPayload: Codable, Equatable {

@@ -114,7 +114,7 @@ struct CloudSyncForwardCompatTests {
                 playerRotationLocked: false, networkBufferDepth: "balanced",
                 rememberTrackSelections: true, autoForcedSubtitles: true,
                 selectTogglesPlayback: true, instantSkipSeek: true, autoSkipRecap: true,
-                subtitlesOnSkipBack: true
+                subtitlesOnSkipBack: true, liveTeletextPage: "auto"
             ))
         case .appearance:
             return .appearance(AppearanceSettingsPayload(
@@ -124,7 +124,8 @@ struct CloudSyncForwardCompatTests {
             ))
         case .auth:
             return .auth(AuthSettingsPayload(
-                updatedAt: stamp, launchBehavior: "picker", defaultUserID: "u", defaultServerID: "s"
+                updatedAt: stamp, launchBehavior: "picker", defaultUserID: "u", defaultServerID: "s",
+                profileReprompt: "off"
             ))
         case .seerrNotifications:
             return .seerrNotifications(SeerrNotificationSettingsPayload(updatedAt: stamp, notifyPendingRequests: true))
