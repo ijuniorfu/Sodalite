@@ -64,9 +64,15 @@ enum TrackDisplayFormatter {
         streamLanguageName(for: stream) ?? stream.displayTitle ?? "Sub"
     }
 
-    /// Transport-bar label: language only, no codec.
+    /// Transport-bar label: the language, which is what a viewer picks by. Live channels routinely
+    /// tag no language at all, and the container's own name for such a track is "Track 0 (aac)", so
+    /// the fallback is the format description the menu row also carries. `track.name` is the last
+    /// resort, for a track that has neither.
     static func shortName(for track: TrackInfo) -> String {
-        languageName(for: track) ?? track.name
+        if let lang = languageName(for: track) { return lang }
+        if track.isAtmos { return "Dolby Atmos" }
+        let quality = audioQuality(codec: track.codec, channels: track.channels)
+        return quality.isEmpty ? track.name : quality
     }
 
     // MARK: - Private
