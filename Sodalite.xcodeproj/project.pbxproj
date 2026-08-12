@@ -558,6 +558,7 @@
 		AE4CFDA4655642AB94E5438B /* PlayerViewModel+SubtitleSearch.swift in Sources */ = {isa = PBXBuildFile; fileRef = 038BBEAE0097DCB4283CD8BD /* PlayerViewModel+SubtitleSearch.swift */; };
 		AE90C481C858A3982B3523EB /* LoginViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0608D8ACFF463F8E0B6556B8 /* LoginViewModel.swift */; };
 		AEA71AA90A3708DDA006FFBF /* LiveTVTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 973120A7DD065FCEB8706D3D /* LiveTVTabView.swift */; };
+		AEB8A371368F211C25D33840 /* BitmapSubtitleCanvasTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEA2CF2E69FD9FD5D5D8E747 /* BitmapSubtitleCanvasTests.swift */; };
 		AEFE56E6ACBF2FD08C05BB38 /* AppearanceTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = A62F1DBB63B1D0EDCBAA87A2 /* AppearanceTheme.swift */; };
 		AF30CA9DF8793B32973C7C66 /* SkipBackSubtitleWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AB8B7D07A1B990DF0036F63 /* SkipBackSubtitleWindow.swift */; };
 		AF4415D2C0FDBCEF20E81839 /* SpoilerRevealMemory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36F43F707952CA5FA82A9367 /* SpoilerRevealMemory.swift */; };
@@ -1187,6 +1188,7 @@
 		AD92F70D67DC2DE192A24567 /* ServerManagementView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServerManagementView.swift; sourceTree = "<group>"; };
 		ADEF73FE46A03A9182049B99 /* GuideFilterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuideFilterTests.swift; sourceTree = "<group>"; };
 		AE687783643BAC165016644A /* ActiveUserBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActiveUserBadge.swift; sourceTree = "<group>"; };
+		AEA2CF2E69FD9FD5D5D8E747 /* BitmapSubtitleCanvasTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BitmapSubtitleCanvasTests.swift; sourceTree = "<group>"; };
 		AEAABD2FB5B0BD5670877864 /* PendingRequestsMonitorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PendingRequestsMonitorTests.swift; sourceTree = "<group>"; };
 		AF726D36DBBC4684F872D139 /* KeychainMigrator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainMigrator.swift; sourceTree = "<group>"; };
 		B07E95DC61BDDF80C17F37F5 /* DeepLinkRouteTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeepLinkRouteTests.swift; sourceTree = "<group>"; };
@@ -1512,6 +1514,7 @@
 				588112BFC0A31A2AA0D4CD08 /* BackgroundPickerLayoutTests.swift */,
 				F0775B7110033A2904C61B15 /* BackgroundRendererGeometryTests.swift */,
 				34D645BDAC050F8D2C30C5A3 /* BackgroundRendererMotionTests.swift */,
+				AEA2CF2E69FD9FD5D5D8E747 /* BitmapSubtitleCanvasTests.swift */,
 				55F3667ADD69A9E32E9CF83B /* BufferedProgressTests.swift */,
 				1ABB54BA5E94C8A309B6849A /* ChannelListRowTests.swift */,
 				3CEF15F18D201FFB609B9CE8 /* CloudSyncForwardCompatTests.swift */,
@@ -2803,6 +2806,7 @@
 				CF4EC28EDB43B31A93892C1A /* BackgroundPickerLayoutTests.swift in Sources */,
 				FD73728C6E7EEFEFB25A6098 /* BackgroundRendererGeometryTests.swift in Sources */,
 				28F6E65D5A04655537B7A03B /* BackgroundRendererMotionTests.swift in Sources */,
+				AEB8A371368F211C25D33840 /* BitmapSubtitleCanvasTests.swift in Sources */,
 				4C1CFA98092A985FCF100E60 /* BufferedProgressTests.swift in Sources */,
 				F68119DB72333EA512C8C7D6 /* ChannelListRowTests.swift in Sources */,
 				F74FDF2DD75F0066DA3F366D /* CloudSyncForwardCompatTests.swift in Sources */,
