@@ -521,39 +521,54 @@ struct SubtitleOverlayView: View {
     // MARK: - Image branch
 
     private func imageOverlay(_ image: SubtitleImage, in size: CGSize) -> some View {
-        // Bitmap cue positions are normalized to the subtitle CANVAS (PGS/DVB composition
-        // canvas, often 16:9 even when the video is cropped to scope). Map the canvas onto
-        // the aspect-fit video rect: width-aligned in coded pixels, center-anchored, so
-        // cues land where the disc authored them, including the lower letterbox bar. On a
-        // 16:9 screen with a 16:9 canvas this reduces to the previous full-bounds layout;
-        // on iPhone portrait it pins cues to the video band instead of the screen bottom.
-        let videoRect = Self.aspectFitRect(videoSize: videoSize, in: size)
-        let canvas = image.canvasSize
+        let frame = Self.bitmapCueFrame(position: image.position,
+                                        canvas: image.canvasSize,
+                                        videoSize: videoSize,
+                                        in: size,
+                                        verticalShift: bitmapVerticalShift(in: size))
+        return Image(decorative: image.cgImage, scale: 1, orientation: .up)
+            .resizable()
+            .interpolation(.high)
+            .frame(width: frame.width, height: frame.height)
+            .offset(x: frame.minX, y: frame.minY)
+    }
+
+    /// Screen frame for one bitmap cue. Positions are normalized to the subtitle CANVAS (the
+    /// PGS/DVB composition plane, often 16:9 even when the video is cropped to scope), so the
+    /// canvas maps onto the aspect-fit video rect, center-anchored, and the cue rides along.
+    /// Cues land where the disc authored them, including the lower letterbox bar.
+    nonisolated static func bitmapCueFrame(position: CGRect,
+                                           canvas: CGSize,
+                                           videoSize: CGSize,
+                                           in bounds: CGSize,
+                                           verticalShift: CGFloat = 0) -> CGRect {
+        let videoRect = aspectFitRect(videoSize: videoSize, in: bounds)
         let canvasRect: CGRect
         if videoRect.width > 0, canvas.width > 0, canvas.height > 0, videoSize.width > 0 {
-            let scale = videoRect.width / videoSize.width
+            // Scale the canvas so it COVERS the video rect: the video is a crop of the plane
+            // (scope cropped out of a 16:9 canvas) or a rescale of it, and either way its picture
+            // fills the canvas. Scaling by coded video pixels instead assumed canvas and video
+            // share a pixel grid, which a downscaled encode breaks: a 720p rip carrying the disc's
+            // 1920x1080 PGS plane blew the canvas up 1.5x, so lines rendered 1.5x too wide and ran
+            // off the bottom edge of the screen.
+            let scale = max(videoRect.width / canvas.width, videoRect.height / canvas.height)
             let w = canvas.width * scale
             let h = canvas.height * scale
             canvasRect = CGRect(x: videoRect.midX - w / 2, y: videoRect.midY - h / 2,
                                 width: w, height: h)
         } else {
-            canvasRect = CGRect(origin: .zero, size: size)
+            // Unknown dims (pre-load or an older engine cue): the historical full-bounds layout.
+            canvasRect = CGRect(origin: .zero, size: bounds)
         }
-        let frameW = image.position.width * canvasRect.width
-        let frameH = image.position.height * canvasRect.height
-        let originX = canvasRect.minX + image.position.minX * canvasRect.width
-        let originY = canvasRect.minY + image.position.minY * canvasRect.height + bitmapVerticalShift(in: size)
-
-        return Image(decorative: image.cgImage, scale: 1, orientation: .up)
-            .resizable()
-            .interpolation(.high)
-            .frame(width: frameW, height: frameH)
-            .offset(x: originX, y: originY)
+        return CGRect(x: canvasRect.minX + position.minX * canvasRect.width,
+                      y: canvasRect.minY + position.minY * canvasRect.height + verticalShift,
+                      width: position.width * canvasRect.width,
+                      height: position.height * canvasRect.height)
     }
 
     /// Aspect-fit rect of the video plane within the overlay bounds. Full bounds when the
     /// video dims are unknown (pre-load or older engine cues).
-    private static func aspectFitRect(videoSize: CGSize, in bounds: CGSize) -> CGRect {
+    nonisolated private static func aspectFitRect(videoSize: CGSize, in bounds: CGSize) -> CGRect {
         guard videoSize.width > 0, videoSize.height > 0, bounds.width > 0, bounds.height > 0 else {
             return CGRect(origin: .zero, size: bounds)
         }
