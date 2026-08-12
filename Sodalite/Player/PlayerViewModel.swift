@@ -33,6 +33,9 @@ final class PlayerViewModel {
     /// True while the error on screen is a confirmed server outage, i.e. the one error worth offering a
     /// retry for (the server is expected back; nothing about the item changed).
     var canRetryAfterOutage = false
+    /// Which error-screen button is highlighted. The overlay is display-only inside the player on tvOS, so
+    /// the cursor lives here and `PlayerHostController`'s press handlers move it.
+    var errorFocus: PlayerErrorFocus = .back
     var errorMessage: String?
     /// SF Symbol for the active error, set with `errorMessage` via `setError(from:)`.
     var errorIcon: String?
@@ -1508,6 +1511,24 @@ final class PlayerViewModel {
         errorIcon = nil
         errorTitle = nil
         canRetryAfterOutage = false
+        errorFocus = .back
+    }
+
+    // MARK: - Error screen input (tvOS press machine)
+
+    /// Horizontal step on the error screen.
+    func moveErrorFocus(by direction: Int) {
+        errorFocus = errorFocus.stepped(by: direction, hasRetry: canRetryAfterOutage)
+    }
+
+    /// What the Select press on the error screen resolved to. Retry is performed here; dismissing the
+    /// player belongs to the host, which owns the modal.
+    enum ErrorAction { case retried, dismiss }
+
+    func commitErrorFocus() -> ErrorAction {
+        guard errorFocus == .retry, canRetryAfterOutage else { return .dismiss }
+        retryAfterOutage()
+        return .retried
     }
 
     /// Categorise a playback-start error into an icon + title + body trio for the overlay; body stays
@@ -1664,6 +1685,7 @@ final class PlayerViewModel {
             host
         )
         canRetryAfterOutage = true
+        errorFocus = .initial(hasRetry: true)
     }
 
     /// "Try again" on the outage screen: re-runs the whole session against the server, resuming where the

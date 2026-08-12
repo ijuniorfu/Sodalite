@@ -862,6 +862,12 @@ final class PlayerHostController: AVPlayerViewController {
     @objc private func selectPressed() {
         if viewModel.isSubtitleDeletePromptVisible { viewModel.subtitleDeletePromptConfirm(); return }
         if viewModel.subtitleSearchVisible { viewModel.subtitleSearchConfirm(); return }
+        // Error screen: its buttons are SwiftUI, and the overlay takes no interaction on tvOS, so the press
+        // machine has to press them. Below the subtitle overlays on purpose, they render above the error.
+        if viewModel.errorMessage != nil {
+            if viewModel.commitErrorFocus() == .dismiss { dismissPlayer() }
+            return
+        }
         // Stats panel open: Select closes it (like Menu); the transport chip still toggles only when closed.
         if statsOverlayCapturesPresses {
             viewModel.showStatsOverlay = false
@@ -943,6 +949,8 @@ final class PlayerHostController: AVPlayerViewController {
     @objc private func leftPressed() {
         if viewModel.isSubtitleDeletePromptVisible { viewModel.subtitleDeletePromptToggleFocus(); return }
         if viewModel.subtitleSearchVisible { viewModel.subtitleSearchMoveLeft(); return }
+        // Behind an error screen the session is over; without this the press seeks a dead player.
+        if viewModel.errorMessage != nil { viewModel.moveErrorFocus(by: -1); return }
         // Stats panel: horizontal nav is inert (no rows behind it to target).
         if statsOverlayCapturesPresses { return }
         if viewModel.isDropdownOpen { return }
@@ -957,6 +965,7 @@ final class PlayerHostController: AVPlayerViewController {
     @objc private func rightPressed() {
         if viewModel.isSubtitleDeletePromptVisible { viewModel.subtitleDeletePromptToggleFocus(); return }
         if viewModel.subtitleSearchVisible { viewModel.subtitleSearchMoveRight(); return }
+        if viewModel.errorMessage != nil { viewModel.moveErrorFocus(by: 1); return }
         if statsOverlayCapturesPresses { return }
         if viewModel.isDropdownOpen { return }
         if viewModel.showControls && viewModel.controlsFocus != .progressBar {
@@ -1028,6 +1037,7 @@ final class PlayerHostController: AVPlayerViewController {
     @objc private func upPressed() {
         if viewModel.isSubtitleDeletePromptVisible { return }
         if viewModel.subtitleSearchVisible { viewModel.subtitleSearchMoveUp(); return }
+        if viewModel.errorMessage != nil { return }
         // Stats panel: step the section cursor (advanceStatsCursor skips unrendered anchors, see availableStatsSectionIndices).
         if statsOverlayCapturesPresses {
             advanceStatsCursor(by: -1)
@@ -1070,6 +1080,7 @@ final class PlayerHostController: AVPlayerViewController {
     @objc private func downPressed() {
         if viewModel.isSubtitleDeletePromptVisible { return }
         if viewModel.subtitleSearchVisible { viewModel.subtitleSearchMoveDown(); return }
+        if viewModel.errorMessage != nil { return }
         if statsOverlayCapturesPresses {
             advanceStatsCursor(by: 1)
             return
