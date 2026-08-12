@@ -344,11 +344,18 @@ final class DependencyContainer {
     }
 
     /// Upsert by id, prepending so a re-added server (e.g. changed URL) updates in place and floats to the top of pickers.
+    /// URL slots the incoming server leaves empty are carried over from the stored entry (Sodalite#45):
+    /// every login path knows one address only, and this upsert marks the record dirty, so a plain
+    /// re-login used to erase the other slot on every device. tvOS has no URL editor at all.
     func addServer(_ server: JellyfinServer) throws {
-        var servers = listKnownServers().filter { $0.id != server.id }
-        servers.insert(server, at: 0)
+        let stored = listKnownServers()
+        let merged = stored.first(where: { $0.id == server.id })
+            .map { server.fillingEmptyURLSlots(from: $0) } ?? server
+        var servers = stored.filter { $0.id != server.id }
+        servers.insert(merged, at: 0)
         let data = try JSONEncoder().encode(servers)
         try keychainService.save(data, for: KeychainKeys.knownServers)
+        appState?.updateActiveServer(merged)
         cloudSyncMarkServer(server.id)
     }
 
@@ -1041,11 +1048,35 @@ final class DependencyContainer {
         return server
     }
 
+    /// The Seerr server currently stored for a profile (else the legacy global entry), so a re-sign-in
+    /// can keep the URL slot it does not carry.
+    private func storedSeerrServer(
+        forJellyfinUserID jellyfinUserID: String?,
+        jellyfinServerID: String?
+    ) -> SeerrServer? {
+        if let jellyfinUserID, let jellyfinServerID,
+           let data = try? keychainService.loadData(for: KeychainKeys.rememberedSeerr(
+               jellyfinServerID: jellyfinServerID, jellyfinUserID: jellyfinUserID)),
+           let remembered = try? JSONDecoder().decode(RememberedSeerrSession.self, from: data) {
+            return remembered.seerrServer
+        }
+        guard let data = try? keychainService.loadData(for: KeychainKeys.seerrServer) else { return nil }
+        return try? JSONDecoder().decode(SeerrServer.self, from: data)
+    }
+
+    /// Returns the server as persisted, which may carry a URL slot the caller did not know about.
+    @discardableResult
     func saveSeerrSession(
-        server: SeerrServer,
+        server rediscovered: SeerrServer,
         forJellyfinUserID jellyfinUserID: String? = nil,
         jellyfinServerID: String? = nil
-    ) throws {
+    ) throws -> SeerrServer {
+        // Same slot retention as addServer (Sodalite#45): the Seerr sign-in classifies the one
+        // address it was given, so signing in again must not drop the other slot and sync the loss.
+        let server = storedSeerrServer(
+            forJellyfinUserID: jellyfinUserID,
+            jellyfinServerID: jellyfinServerID
+        ).map { rediscovered.fillingEmptyURLSlots(fromKnown: $0) } ?? rediscovered
         seerrClient.baseURL = preferredSeerrURL(for: server)
 
         if let jellyfinUserID, let jellyfinServerID, let cookie = seerrClient.sessionCookie {
@@ -1074,6 +1105,7 @@ final class DependencyContainer {
             }
         }
         scheduleRouteResolve()
+        return server
     }
 
     /// Rewrites the connected Seerr server's URL slots (iOS edit sheet):

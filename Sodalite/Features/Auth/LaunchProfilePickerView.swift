@@ -258,7 +258,9 @@ struct LaunchProfilePickerView: View {
                 primaryImageTag: user.imageTag,
                 policy: nil
             )
-            appState.setAuthenticated(server: server, user: jf)
+            // Read the server back rather than reusing the captured copy: an iCloud record applied
+            // since this view was built may have changed its URL slots (Sodalite#45).
+            appState.setAuthenticated(server: dependencies.activeServer ?? server, user: jf)
 
             // Restore this profile's own remembered Seerr session (else Catalog shows the "set up Seerr" empty state).
             Task { await restoreSeerrForProfile(userID: user.id, serverID: server.id) }

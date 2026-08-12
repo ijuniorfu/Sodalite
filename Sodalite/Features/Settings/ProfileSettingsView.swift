@@ -307,7 +307,9 @@ struct ProfileSettingsView: View {
                 primaryImageTag: user.imageTag,
                 policy: nil
             )
-            appState.setAuthenticated(server: server, user: jf)
+            // Read the server back rather than reusing AppState's copy: an iCloud record applied
+            // since this screen opened may have changed its URL slots (Sodalite#45).
+            appState.setAuthenticated(server: dependencies.activeServer ?? server, user: jf)
             refresh()
 
             // Restore this profile's Seerr session (each Jellyfin user has a separate per-profile cookie in the keychain).

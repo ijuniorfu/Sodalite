@@ -547,7 +547,8 @@ struct SeerrSettingsView: View {
                 password: password
             )
             // Tie the Seerr session to the active Jellyfin profile (per-profile cookie) so switchToUser can restore it.
-            try dependencies.saveSeerrSession(
+            // What comes back may carry the URL slot this sign-in did not know (Sodalite#45).
+            let connected = try dependencies.saveSeerrSession(
                 server: server,
                 forJellyfinUserID: appState.activeUser?.id,
                 jellyfinServerID: appState.activeServer?.id
@@ -564,7 +565,7 @@ struct SeerrSettingsView: View {
             showSuccess = true
 
             try? await Task.sleep(for: .seconds(1.5))
-            appState.setSeerrConnected(server: server, user: user)
+            appState.setSeerrConnected(server: connected, user: user)
             dependencies.scheduleRouteResolve()
             showSuccess = false
         } catch {

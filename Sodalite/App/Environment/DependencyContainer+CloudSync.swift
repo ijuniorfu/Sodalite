@@ -72,6 +72,10 @@ extension DependencyContainer {
         // (an Apple TV picks up edits made on the iPhone). scheduleRouteResolve only reads + probes,
         // so it is safe inside the apply path and does not echo a cloud write back.
         if payload.server.id == activeServer?.id {
+            // The in-memory copy has to move with the keychain: a profile switch persists whatever
+            // AppState holds through addServer, so leaving it on the pre-sync snapshot wrote the old
+            // URL slots straight back out again (Sodalite#45). id-guarded inside AppState.
+            appState?.updateActiveServer(payload.server)
             scheduleRouteResolve()
         }
 

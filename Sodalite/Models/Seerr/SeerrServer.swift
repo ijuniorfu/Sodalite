@@ -56,4 +56,22 @@ struct SeerrServer: Codable, Sendable, Identifiable, Equatable {
         try container.encodeIfPresent(externalURL, forKey: .externalURL)
         try container.encode(url, forKey: .url)
     }
+
+    /// See `JellyfinServer.fillingEmptyURLSlots(from:)`: a sign-in knows one address, so the slot it
+    /// leaves empty is unknown, not cleared (Sodalite#45). Unlike Jellyfin, a Seerr id is a locally
+    /// minted UUID and a fresh sign-in mints a new one, so identity is established by the address
+    /// instead: `previous` may only donate a slot when it already knows the address used here.
+    /// An unrecognized address could be a different Jellyseerr and replaces both slots.
+    func fillingEmptyURLSlots(fromKnown previous: SeerrServer) -> SeerrServer {
+        guard internalURL == nil || externalURL == nil else { return self }
+        let sameInstance = previous.id == id
+            || (internalURL != nil && previous.internalURL == internalURL)
+            || (externalURL != nil && previous.externalURL == externalURL)
+        guard sameInstance else { return self }
+        return SeerrServer(
+            id: id,
+            internalURL: internalURL ?? previous.internalURL,
+            externalURL: externalURL ?? previous.externalURL
+        )
+    }
 }
