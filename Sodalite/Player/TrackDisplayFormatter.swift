@@ -64,23 +64,35 @@ enum TrackDisplayFormatter {
         streamLanguageName(for: stream) ?? stream.displayTitle ?? "Sub"
     }
 
-    /// Transport-bar label: language only, no codec.
+    /// Transport-bar label: the language, which is what a viewer picks by. Live channels routinely
+    /// tag no language at all, and the container's own name for such a track is "Track 0 (aac)", so
+    /// the fallback is the format description the menu row also carries. `track.name` is the last
+    /// resort, for a track that has neither.
     static func shortName(for track: TrackInfo) -> String {
-        languageName(for: track) ?? track.name
+        if let lang = languageName(for: track) { return lang }
+        if track.isAtmos { return "Dolby Atmos" }
+        let quality = audioQuality(codec: track.codec, channels: track.channels)
+        return quality.isEmpty ? track.name : quality
     }
 
     // MARK: - Private
 
     private static func streamLanguageName(for stream: MediaStream) -> String? {
-        guard let code = stream.language, !code.isEmpty else { return nil }
-        if let name = Locale.current.localizedString(forLanguageCode: code) {
-            return name.prefix(1).uppercased() + name.dropFirst()
-        }
-        return code.uppercased()
+        languageName(forCode: stream.language)
     }
 
     private static func languageName(for track: TrackInfo) -> String? {
-        guard let code = track.language, !code.isEmpty else { return nil }
+        languageName(forCode: track.language)
+    }
+
+    /// The viewer's name for a language tag, or nil when the tag carries no language. "und" is the
+    /// ISO code for undetermined, i.e. the container stating it does not know, and Locale turns that
+    /// into "Unknown language", which reads like a language and is worse on a chip than the format.
+    /// Live channels tag their streams that way routinely.
+    private static func languageName(forCode code: String?) -> String? {
+        guard let code, !code.isEmpty else { return nil }
+        let normalized = code.lowercased()
+        guard normalized != "und", normalized != "unknown" else { return nil }
         if let name = Locale.current.localizedString(forLanguageCode: code) {
             return name.prefix(1).uppercased() + name.dropFirst()
         }

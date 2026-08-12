@@ -25,4 +25,32 @@ extension PlayerViewModel {
         if showsStats { order.append(.infoButton) }
         return order
     }
+
+    /// Left-to-right order of the LIVE transport controls (LiveTransportBar). Same contract as the
+    /// VOD order above: the bar renders from these gates, so a button missing here is a dead stop
+    /// under left/right, and a button missing there is focus on nothing. Track order follows the VOD
+    /// bar (audio, then subtitles) so both players read the same way.
+    static func liveTransportFocusOrder(
+        isAtLiveEdge: Bool,
+        hasAudioTracks: Bool,
+        hasSubtitles: Bool,
+        isPiPAvailable: Bool
+    ) -> [ControlsFocus] {
+        var order: [ControlsFocus] = []
+        // Return to Live exists only while behind the edge; at the edge there is nothing to return to.
+        if !isAtLiveEdge { order.append(.returnToLiveButton) }
+        if hasAudioTracks { order.append(.audioButton) }
+        if hasSubtitles { order.append(.subtitleButton) }
+        if isPiPAvailable { order.append(.pipButton) }
+        return order
+    }
+
+    /// The live order for the current session, gated exactly as LiveTransportBar renders.
+    var liveTransportFocusOrder: [ControlsFocus] {
+        Self.liveTransportFocusOrder(
+            isAtLiveEdge: isAtLiveEdge,
+            hasAudioTracks: !displayAudioTracks.isEmpty,
+            hasSubtitles: !displaySubtitleStreams.isEmpty,
+            isPiPAvailable: isPiPAvailable)
+    }
 }

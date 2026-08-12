@@ -521,6 +521,15 @@ final class PlayerViewModel {
     /// carries no subtitle stream must not look like a sink that never fired.
     @ObservationIgnored private var lastLiveSubtitleIndices: [Int]?
 
+    /// Arm the live subtitle sink for a session that is about to load. Every live load goes through
+    /// here, the first one and every re-tune (#64), because a stale latch would make the sink treat
+    /// the new session's track list as one it has already handled and skip the automatic pick.
+    func resetLiveSubtitleAutoSelect() {
+        didAutoSelectLiveSubtitle = false
+        lastLiveSubtitleIndices = nil
+        subtitleStreams = []
+    }
+
     /// Sodalite#63: playhead before the current burst of backward jumps, recorded on press and consumed
     /// by the commit. Nil means the next commit is not a skip back (a pan, a hold-seek, a forward jump).
     /// Internal, not private: the scrub commits live in extensions in other files.
@@ -565,6 +574,10 @@ final class PlayerViewModel {
     var didAttemptLiveFallback = false
     /// Remembered upstream URLs, so a repeat tune of a direct channel skips Jellyfin entirely. Nil for VOD.
     let directStreamMemory: LiveDirectStreamMemory?
+    /// The audio stream the viewer picked on this live channel (#64), named at load on every
+    /// subsequent tune of the session. It outlives the switch on purpose: a recovery retune re-runs
+    /// the same load, and dropping it there would silently put the channel back on its default track.
+    var pendingLiveAudioStreamIndex: Int?
 
     init(
         item: JellyfinItem,
@@ -653,9 +666,7 @@ final class PlayerViewModel {
                 // The subtitle pick is NOT made here: live has no stream list yet at this point, so
                 // the call that used to sit here resolved over an empty array and did nothing. The
                 // $subtitleTracks sink in startObserving owns it, and re-arms per channel.
-                didAutoSelectLiveSubtitle = false
-                lastLiveSubtitleIndices = nil
-                subtitleStreams = []
+                resetLiveSubtitleAutoSelect()
                 hostLoadActive = false
                 isPlaying = true
                 startObserving()
@@ -1575,9 +1586,18 @@ final class PlayerViewModel {
     }
 
     func selectAudioTrack(id: Int, userInitiated: Bool = false) {
+        let action = LiveAudioSwitch.action(requestedIndex: id,
+                                            activeIndex: activeAudioIndex,
+                                            isLive: isLiveSession,
+                                            retuneInFlight: liveRetuneInFlight)
+        guard action != .ignore else { return }
         if userInitiated, let key = memoryScopeKey,
            let track = player.audioTracks.first(where: { $0.id == id }) {
             trackMemory?.recordAudio(TrackSelectionMatcher.audioSignature(track), for: key)
+        }
+        if case .retune(let streamIndex) = action {
+            switchLiveAudioTrack(streamIndex: streamIndex)
+            return
         }
         // No optimistic `activeAudioIndex = id`: the $activeAudioTrackIndex sink updates the picker once
         // the engine settles, else it claims the switch happened while the pipeline is still mid-reload.

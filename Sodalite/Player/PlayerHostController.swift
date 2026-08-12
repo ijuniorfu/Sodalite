@@ -996,12 +996,9 @@ final class PlayerHostController: AVPlayerViewController {
 
     /// Step focus through transport buttons, built dynamically so a stream missing audio/subtitle tracks has no dead stops.
     private func stepTransportFocus(direction: Int) {
-        // Live has its own two-button row (Return to Live pill + PiP); the VOD list below does not apply.
+        // Live has its own control row (LiveTransportBar); the VOD list below does not apply.
         if viewModel.isLiveSession {
-            var order: [PlayerViewModel.ControlsFocus] = []
-            if !viewModel.isAtLiveEdge { order.append(.returnToLiveButton) }
-            if !viewModel.displaySubtitleStreams.isEmpty { order.append(.subtitleButton) }
-            if viewModel.isPiPAvailable { order.append(.pipButton) }
+            let order = viewModel.liveTransportFocusOrder
             guard let current = order.firstIndex(of: viewModel.controlsFocus) else { return }
             let next = current + direction
             if next >= 0 && next < order.count { viewModel.controlsFocus = order[next] }
@@ -1035,14 +1032,11 @@ final class PlayerHostController: AVPlayerViewController {
         } else if viewModel.showControls {
             switch viewModel.controlsFocus {
             case .progressBar:
-                // Live: only control above the scrubber is the "Return to Live" pill (only when behind the edge); LiveTransportBar has no VOD buttons.
+                // Live: Up lands on the leftmost rendered control, whichever that is for this channel.
+                // Reading the same order the bar renders from is what keeps the two in step.
                 if viewModel.isLiveSession {
-                    if !viewModel.isAtLiveEdge {
-                        viewModel.controlsFocus = .returnToLiveButton
-                    } else if !viewModel.displaySubtitleStreams.isEmpty {
-                        viewModel.controlsFocus = .subtitleButton
-                    } else if viewModel.isPiPAvailable {
-                        viewModel.controlsFocus = .pipButton
+                    if let first = viewModel.liveTransportFocusOrder.first {
+                        viewModel.controlsFocus = first
                     }
                     viewModel.scheduleControlsHide()
                     break
