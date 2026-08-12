@@ -33,6 +33,13 @@ enum KeychainKeys {
         "rememberedUsers_\(serverID)"
     }
 
+    /// JSON `[String]` of profile ids removed here on purpose (Sodalite#45). The remembered list
+    /// unions across devices, so a removal has to be published as one, else the device that has not
+    /// heard yet hands the profile straight back. Cleared per id by signing in as that profile again.
+    static func forgottenUsers(serverID: String) -> String {
+        "forgottenUsers_\(serverID)"
+    }
+
     static let seerrServer = "seerrServer"
 
     /// JSON `[JellyfinServer]`. Order is significant: front = most-recently added/upserted; picker and settings render in this order.

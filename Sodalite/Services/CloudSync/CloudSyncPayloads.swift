@@ -67,6 +67,16 @@ struct ServerSyncPayload: Codable, Equatable {
     /// Profile pinned as this server's default. Optional: payloads written before the pin moved out
     /// of the global auth store must still decode, and a missing value must not clear a device's pin.
     var defaultUserID: String?
+    /// Profiles removed on purpose, keyed by profile id with the moment of removal (Sodalite#45).
+    /// `rememberedUsers` unions on apply, so a removal travels here rather than as a shorter list,
+    /// which a device whose list was merely behind would otherwise publish as an authoritative prune.
+    /// The date is what lets a re-add take the removal back: see CloudSyncMerge.resolveRememberedUsers.
+    /// Optional: a payload without it carries no removal.
+    var forgottenUsers: [String: Date]?
+    /// Whether this is the default server. Also moved off the global auth store (Sodalite#45): there
+    /// a device that had never pinned anything published nil and cleared everyone else's pin, because
+    /// "never pinned" and "deliberately cleared" are the same value there. Optional: keep-current.
+    var isDefaultServer: Bool?
 }
 
 struct PlaybackSettingsPayload: Codable, Equatable {

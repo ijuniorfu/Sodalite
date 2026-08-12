@@ -402,6 +402,7 @@
 		7D8F28F594B0CA4BFA2DD7E4 /* SeerrSearchResultsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 858FD35746608DEC6503223B /* SeerrSearchResultsTests.swift */; };
 		7DE057BFC94CB03E34FDEBAA /* AuthPreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = D00EFF9852627141E97BDC41 /* AuthPreferences.swift */; };
 		7E2A4C5014438C29C0FFF30F /* TabBarImmersion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3997F1A421DEEA00C9DA66C7 /* TabBarImmersion.swift */; };
+		7E3DF500E07E89EB425BB873 /* CloudSyncProfileTombstoneTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD53BBDBE101C207EBE63B9C /* CloudSyncProfileTombstoneTests.swift */; };
 		7E4C47D5AA1B54C62DAEBF4E /* NextEpisodePolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3D6E3F0C977BFE6433ECE3F /* NextEpisodePolicy.swift */; };
 		7E55E3CC5F387B52F35618FA /* CollectionPlaybackQueueTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6D2018F09D626C459D70932 /* CollectionPlaybackQueueTests.swift */; };
 		7E6A5602AAE2EB1189151A70 /* SessionRestorerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34D5B3810DDB2AD91CD7A5CD /* SessionRestorerTests.swift */; };
@@ -1198,6 +1199,7 @@
 		B9A555200A5ACA574AF2055E /* AppTab.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppTab.swift; sourceTree = "<group>"; };
 		BB149BA23CB052B131D011BD /* LiveProgramCategory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveProgramCategory.swift; sourceTree = "<group>"; };
 		BB86B2C38A397724F13D05E0 /* SeerrSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeerrSettingsView.swift; sourceTree = "<group>"; };
+		BD53BBDBE101C207EBE63B9C /* CloudSyncProfileTombstoneTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudSyncProfileTombstoneTests.swift; sourceTree = "<group>"; };
 		BE6CBE5D06910923DEFED66F /* CloudSyncService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudSyncService.swift; sourceTree = "<group>"; };
 		C028CB9919E5B1364C676009 /* JellyfinPasswordRetentionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JellyfinPasswordRetentionTests.swift; sourceTree = "<group>"; };
 		C06A68BD50E0DF719FEB9553 /* PlayerPiPController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerPiPController.swift; sourceTree = "<group>"; };
@@ -1506,6 +1508,7 @@
 				F0AC027922382F10B2A84DD1 /* CloudSyncMergeTests.swift */,
 				15D7F74A9A6EF41AB0AAD09C /* CloudSyncPayloadsTests.swift */,
 				EE3D6C7CCA64C8BDECE6C729 /* CloudSyncPreferencesTests.swift */,
+				BD53BBDBE101C207EBE63B9C /* CloudSyncProfileTombstoneTests.swift */,
 				AA46CA9FFF62E14F69958428 /* CloudSyncRecoveryTests.swift */,
 				6F1459E3CC3E393249DCF146 /* CloudSyncSessionRetentionTests.swift */,
 				854F1BB00479515062667971 /* CloudSyncSettingsParityTests.swift */,
@@ -2792,6 +2795,7 @@
 				1FBE20CC3C28F935D90A7FCE /* CloudSyncMergeTests.swift in Sources */,
 				545BB21DEEC05B0CCA7EE9CD /* CloudSyncPayloadsTests.swift in Sources */,
 				775BBAF5D41A64C724329161 /* CloudSyncPreferencesTests.swift in Sources */,
+				7E3DF500E07E89EB425BB873 /* CloudSyncProfileTombstoneTests.swift in Sources */,
 				3BDED48F510EB65A36C5A7E3 /* CloudSyncRecoveryTests.swift in Sources */,
 				5B49C6BBFB6DD54AB84166BD /* CloudSyncSessionRetentionTests.swift in Sources */,
 				D6391CB1FEBA2D6AB4555719 /* CloudSyncSettingsParityTests.swift in Sources */,

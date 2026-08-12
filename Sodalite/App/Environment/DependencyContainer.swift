@@ -540,6 +540,8 @@ final class DependencyContainer {
         try? keychainService.delete(for: KeychainKeys.accessToken(serverID: serverID))
         try? keychainService.delete(for: KeychainKeys.userID(serverID: serverID))
         try? keychainService.delete(for: KeychainKeys.rememberedUsers(serverID: serverID))
+        // The removal markers go with the server, else re-adding it later holds its profiles out again.
+        try? keychainService.delete(for: KeychainKeys.forgottenUsers(serverID: serverID))
 
         let servers = listKnownServers().filter { $0.id != serverID }
         let data = try JSONEncoder().encode(servers)
@@ -610,7 +612,50 @@ final class DependencyContainer {
             data,
             for: KeychainKeys.rememberedUsers(serverID: user.serverID)
         )
+        // Signing in as a profile is the deliberate act that takes an earlier removal back. The entry
+        // written above carries `addedAt`, which is how other devices tell this from a device that
+        // has not heard about the removal yet.
+        var forgotten = listForgottenUsers(serverID: user.serverID)
+        forgotten.removeValue(forKey: user.id)
+        setForgottenUsers(forgotten, serverID: user.serverID)
         cloudSyncMarkServer(user.serverID)
+    }
+
+    /// Profiles removed here on purpose, with the moment of removal. Published in the server record
+    /// so a removal travels without the whole remembered list having to be authoritative (Sodalite#45).
+    func listForgottenUsers(serverID: String) -> [String: Date] {
+        guard let data = try? keychainService.loadData(for: KeychainKeys.forgottenUsers(serverID: serverID))
+        else { return [:] }
+        return (try? JSONDecoder().decode([String: Date].self, from: data)) ?? [:]
+    }
+
+    func setForgottenUsers(_ forgotten: [String: Date], serverID: String) {
+        guard !forgotten.isEmpty else {
+            try? keychainService.delete(for: KeychainKeys.forgottenUsers(serverID: serverID))
+            return
+        }
+        guard let data = try? JSONEncoder().encode(forgotten) else { return }
+        try? keychainService.save(data, for: KeychainKeys.forgottenUsers(serverID: serverID))
+    }
+
+    /// Everything scoped to one profile on one server. Shared by the local forget and the apply path,
+    /// so a removal that arrives from another device leaves no credentials behind either.
+    func purgeUserCredentials(id: String, serverID: String) {
+        forgetRememberedSeerr(forJellyfinUserID: id, jellyfinServerID: serverID)
+        try? keychainService.delete(for: KeychainKeys.jellyfinPassword(serverID: serverID, userID: id))
+        // Same reason: a remembered live upstream carries the IPTV provider's credentials in its path.
+        liveDirectStreamMemory.forgetAll(userID: id)
+        tvProfileMappings.removeMapping(forUser: id, on: serverID)
+    }
+
+    /// The default-server pin. Rides the server record (Sodalite#45), so both the newly pinned server
+    /// and the one that lost the pin have to be republished, else the old record keeps claiming it.
+    func setDefaultServer(_ serverID: String?) {
+        let previous = authPreferences.defaultServerID
+        guard previous != serverID else { return }
+        authPreferences.defaultServerID = serverID
+        if let previous { cloudSyncMarkServer(previous) }
+        if let serverID { cloudSyncMarkServer(serverID) }
     }
 
     /// Drop one profile from the remembered list. Called from the
@@ -630,13 +675,13 @@ final class DependencyContainer {
                 for: KeychainKeys.rememberedUsers(serverID: serverID)
             )
         }
+        // Record the removal, so it travels as a removal instead of as a shorter list.
+        var forgotten = listForgottenUsers(serverID: serverID)
+        forgotten[id] = .now
+        setForgottenUsers(forgotten, serverID: serverID)
         // Drop the profile-scoped Seerr session and Jellyfin password too so a forgotten
         // user doesn't leave dangling credentials in the keychain.
-        forgetRememberedSeerr(forJellyfinUserID: id, jellyfinServerID: serverID)
-        try? keychainService.delete(for: KeychainKeys.jellyfinPassword(serverID: serverID, userID: id))
-        // Same reason: a remembered live upstream carries the IPTV provider's credentials in its path.
-        liveDirectStreamMemory.forgetAll(userID: id)
-        tvProfileMappings.removeMapping(forUser: id, on: serverID)
+        purgeUserCredentials(id: id, serverID: serverID)
         cloudSyncMarkServer(serverID)
     }
 

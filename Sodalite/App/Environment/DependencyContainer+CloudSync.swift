@@ -39,6 +39,7 @@ extension DependencyContainer {
         // Legacy fields for devices that predate the per-user layout: give them the active
         // profile's password, which is the one their single slot used to hold anyway.
         let legacyUserID = activeUserID.flatMap { passwords[$0] != nil ? $0 : nil } ?? passwords.keys.sorted().first
+        let forgotten = listForgottenUsers(serverID: serverID)
         return ServerSyncPayload(
             updatedAt: stamp,
             server: server,
@@ -48,7 +49,9 @@ extension DependencyContainer {
             jellyfinPasswords: passwords.isEmpty ? nil : passwords,
             seerrSessions: sessions,
             homeRows: homeRows,
-            defaultUserID: authPreferences.defaultUserID(serverID: serverID)
+            defaultUserID: authPreferences.defaultUserID(serverID: serverID),
+            forgottenUsers: forgotten.isEmpty ? nil : forgotten,
+            isDefaultServer: authPreferences.defaultServerID == serverID
         )
     }
 
@@ -79,12 +82,24 @@ extension DependencyContainer {
             scheduleRouteResolve()
         }
 
-        // Snapshot before the blob overwrite: users dropped by the payload still
-        // need their scoped Seerr sessions purged below.
-        let previousUsers = listRememberedUsers(serverID: serverID)
-        if let data = try? JSONEncoder().encode(payload.rememberedUsers) {
+        // Remembered profiles union across devices (Sodalite#45). A payload is a statement about the
+        // sender, and a sender whose list is merely behind used to prune profiles, tokens included,
+        // on every device. A removal travels as `forgottenUserIDs` instead, and the local tombstones
+        // hold too: the other device may not have heard yet and its payload still lists the profile.
+        let localForgotten = listForgottenUsers(serverID: serverID)
+        let resolved = CloudSyncMerge.resolveRememberedUsers(
+            local: listRememberedUsers(serverID: serverID),
+            cloud: payload.rememberedUsers,
+            localForgotten: localForgotten,
+            cloudForgotten: payload.forgottenUsers ?? [:]
+        )
+        let forgotten = resolved.forgotten
+        if resolved.users.isEmpty {
+            try? keychainService.delete(for: KeychainKeys.rememberedUsers(serverID: serverID))
+        } else if let data = try? JSONEncoder().encode(resolved.users) {
             try? keychainService.save(data, for: KeychainKeys.rememberedUsers(serverID: serverID))
         }
+        setForgottenUsers(forgotten, serverID: serverID)
 
         // Additive on purpose: a password is device-local knowledge (a device signed in with Quick
         // Connect or the picker never has one), so "the payload carries none" means "the sender does
@@ -94,30 +109,30 @@ extension DependencyContainer {
         if let password = payload.jellyfinPassword, let owner = payload.passwordUserID {
             incomingPasswords[owner] = password
         }
-        for (userID, password) in incomingPasswords {
+        for (userID, password) in incomingPasswords where forgotten[userID] == nil {
             try? keychainService.save(
                 password,
                 for: KeychainKeys.jellyfinPassword(serverID: serverID, userID: userID)
             )
         }
 
-        // Seerr sessions are additive for profiles the payload still lists, on the same reading as
-        // the passwords above: a device where nobody ever signed into Jellyseerr collects no session
-        // at all, so "the payload carries none" means the sender does not know one, not that there
-        // is none (Sodalite#45). Sweeping on that reading let one Seerr-less device sign every other
-        // device out of Jellyseerr. A profile the payload dropped is still swept, else its
-        // rememberedSeerr_* entry dangles; a real sign-out reaches other devices through the 401 on
-        // the next restore, which already drops the entry there.
-        let droppedUserIDs = Set(previousUsers.map(\.id))
-            .subtracting(payload.rememberedUsers.map(\.id))
-        for userID in droppedUserIDs {
-            forgetRememberedSeerr(forJellyfinUserID: userID, jellyfinServerID: serverID)
-        }
-        for session in payload.seerrSessions {
+        // Seerr sessions are additive too, on the same reading: a device where nobody ever signed
+        // into Jellyseerr collects no session at all, so "the payload carries none" means the sender
+        // does not know one. Sweeping on that reading let one Seerr-less device sign every other
+        // device out of Jellyseerr. A real sign-out still reaches other devices, through the 401 on
+        // their next restore, which already drops the entry there.
+        for session in payload.seerrSessions where forgotten[session.jellyfinUserID] == nil {
             if let data = try? JSONEncoder().encode(session) {
                 try? keychainService.save(data, for: KeychainKeys.rememberedSeerr(
                     jellyfinServerID: serverID, jellyfinUserID: session.jellyfinUserID))
             }
+        }
+
+        // A removal learned here takes the profile's credentials with it, the same teardown a local
+        // forget does, else a forgotten profile keeps its password and Seerr cookie on every other
+        // device. Only for removals that are news: re-running it is harmless but pointless.
+        for userID in forgotten.keys where localForgotten[userID] == nil {
+            purgeUserCredentials(id: userID, serverID: serverID)
         }
 
         if let homeRows = payload.homeRows {
@@ -136,6 +151,16 @@ extension DependencyContainer {
         // Absent on payloads from builds that still kept the pin in the global auth store; leave the local pin alone rather than clearing it.
         if let defaultUserID = payload.defaultUserID {
             authPreferences.setDefaultUserID(defaultUserID, serverID: serverID)
+        }
+
+        // The default-server pin, likewise absent on older payloads. Only a device that knows this
+        // server can speak about it, which is the whole point of it living here (Sodalite#45).
+        if let isDefaultServer = payload.isDefaultServer {
+            if isDefaultServer {
+                authPreferences.defaultServerID = serverID
+            } else if authPreferences.defaultServerID == serverID {
+                authPreferences.defaultServerID = nil
+            }
         }
     }
 
@@ -303,8 +328,11 @@ extension DependencyContainer {
             }
         case .auth(let a):
             authPreferences.launchBehavior = AuthPreferences.LaunchBehavior(rawValue: a.launchBehavior) ?? authPreferences.launchBehavior
-            // a.defaultUserID is the retired global pin, deliberately not applied: it carries no server, so applying it would pin the wrong server's profile. The per-server value rides the server record.
-            authPreferences.defaultServerID = a.defaultServerID
+            // a.defaultUserID and a.defaultServerID are both retired here, still written for older
+            // builds and deliberately not applied. The first carries no server, so it would pin the
+            // wrong server's profile; the second cannot tell "never pinned" from "cleared", so a
+            // device that had never pinned anything cleared every other device's pin (Sodalite#45).
+            // Both ride the server record now.
             // Absent on payloads from builds before the reprompt interval existed; keep-current, else those builds would read as "off".
             if let reprompt = a.profileReprompt {
                 authPreferences.profileReprompt = AuthPreferences.ProfileRepromptInterval(rawValue: reprompt) ?? authPreferences.profileReprompt

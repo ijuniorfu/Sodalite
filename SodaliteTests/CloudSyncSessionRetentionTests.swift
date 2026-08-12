@@ -54,11 +54,12 @@ struct CloudSyncSessionRetentionTests {
         ) != nil)
     }
 
-    /// The cleanup the sweep existed for stays: a profile the payload dropped must not leave its
-    /// Jellyseerr entry behind.
-    @Test func aDroppedProfileStillLosesItsSession() throws {
+    /// The cleanup the sweep existed for stays, on the published removal rather than on a payload
+    /// that merely does not list the profile: no dangling Jellyseerr entry behind a forgotten one.
+    @Test func aRemovedProfileStillLosesItsSession() throws {
         let withSeerr = try connected(users: [user("user-a", "Vincent"), user("user-b", "Guest")])
-        let other = try seerrless(users: [user("user-b", "Guest")])
+        let other = try seerrless(users: [user("user-a", "Vincent"), user("user-b", "Guest")])
+        try other.forgetUser(id: "user-a", serverID: "srv1")
 
         let payload = try #require(other.collectServerPayload(serverID: "srv1", stamp: Date()))
         withSeerr.applyServerPayload(payload)

@@ -22,8 +22,16 @@ enum CloudSyncMerge {
     static func adoptServerPayload(local: ServerSyncPayload, cloud: ServerSyncPayload, stamp: Date) -> ServerSyncPayload {
         var merged = cloud
         merged.updatedAt = stamp
-        merged.rememberedUsers = unionRememberedUsers(local: local.rememberedUsers, cloud: cloud.rememberedUsers)
+        let resolved = resolveRememberedUsers(
+            local: local.rememberedUsers,
+            cloud: cloud.rememberedUsers,
+            localForgotten: local.forgottenUsers ?? [:],
+            cloudForgotten: cloud.forgottenUsers ?? [:]
+        )
+        merged.rememberedUsers = resolved.users
+        merged.forgottenUsers = resolved.forgotten.isEmpty ? nil : resolved.forgotten
         merged.seerrSessions = unionSeerrSessions(local: local.seerrSessions, cloud: cloud.seerrSessions)
+        if merged.isDefaultServer == nil { merged.isDefaultServer = local.isDefaultServer }
         if merged.homeRows == nil { merged.homeRows = local.homeRows }
         if merged.defaultUserID == nil { merged.defaultUserID = local.defaultUserID }
         if merged.jellyfinPassword == nil {
@@ -40,6 +48,35 @@ enum CloudSyncMerge {
             merged.jellyfinPasswords = passwords.isEmpty ? nil : passwords
         }
         return merged
+    }
+
+    /// Sodalite#45. The remembered list unions, so a removal has to travel as a removal: a device
+    /// whose list is merely behind would otherwise publish it as an authoritative prune. A removal
+    /// holds the profile out until a sign-in NEWER than the removal arrives, which is the only thing
+    /// that distinguishes a deliberate re-add from a device that has not heard about the removal yet.
+    /// Without that date the removal and the re-add would fight forever: each side would keep handing
+    /// the other back what it just dropped.
+    static func resolveRememberedUsers(
+        local: [RememberedUser],
+        cloud: [RememberedUser],
+        localForgotten: [String: Date],
+        cloudForgotten: [String: Date]
+    ) -> (users: [RememberedUser], forgotten: [String: Date]) {
+        var forgotten = localForgotten
+        for (id, removedAt) in cloudForgotten {
+            forgotten[id] = max(forgotten[id] ?? removedAt, removedAt)
+        }
+        var users: [RememberedUser] = []
+        for user in unionRememberedUsers(local: local, cloud: cloud) {
+            guard let removedAt = forgotten[user.id] else {
+                users.append(user)
+                continue
+            }
+            guard user.addedAt > removedAt else { continue }
+            forgotten.removeValue(forKey: user.id)
+            users.append(user)
+        }
+        return (users, forgotten)
     }
 
     /// Union by user id; the newer addedAt wins per user. Sorted newest-first to

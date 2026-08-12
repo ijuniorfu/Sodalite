@@ -128,11 +128,10 @@ struct ServerManagementView: View {
     }
 
     private func toggleDefault(_ server: JellyfinServer) {
-        if dependencies.authPreferences.defaultServerID == server.id {
-            dependencies.authPreferences.defaultServerID = nil
-        } else {
-            dependencies.authPreferences.defaultServerID = server.id
-        }
+        // Through the container: the pin rides the server records, so both the newly pinned server
+        // and the one that lost the pin have to be republished (Sodalite#45).
+        let isDefault = dependencies.authPreferences.defaultServerID == server.id
+        dependencies.setDefaultServer(isDefault ? nil : server.id)
         load()
     }
 

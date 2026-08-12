@@ -167,8 +167,10 @@ struct CloudSyncLocalStoreTests {
         ) == "pw")
     }
 
-    @Test("apply forgets seerr sessions of users dropped from the payload")
-    func applyForgetsDroppedUsersSessions() throws {
+    /// Sodalite#45: a profile missing from the payload is no longer a removal (the sender may just be
+    /// behind), so the session goes with the published removal instead.
+    @Test("apply forgets seerr sessions of users the payload reports as removed")
+    func applyForgetsRemovedUsersSessions() throws {
         let container = makeContainer()
         try container.addServer(sampleServer)
         try container.rememberUser(RememberedUser(id: "u2", serverID: "srv1", name: "old", imageTag: nil, token: "t2"))
@@ -177,9 +179,11 @@ struct CloudSyncLocalStoreTests {
         try container.keychainService.save(try JSONEncoder().encode(session),
                                            for: KeychainKeys.rememberedSeerr(jellyfinServerID: "srv1", jellyfinUserID: "u2"))
         let payload = ServerSyncPayload(updatedAt: Date(), server: sampleServer, rememberedUsers: [],
-                                        jellyfinPassword: nil, passwordUserID: nil, seerrSessions: [], homeRows: nil)
+                                        jellyfinPassword: nil, passwordUserID: nil, seerrSessions: [], homeRows: nil,
+                                        forgottenUsers: ["u2": Date()])
         container.applyServerPayload(payload)
         #expect(try container.keychainService.loadData(for: KeychainKeys.rememberedSeerr(jellyfinServerID: "srv1", jellyfinUserID: "u2")) == nil)
+        #expect(container.listRememberedUsers(serverID: "srv1").isEmpty)
     }
 
     @Test("settings payloads round-trip through the stores")

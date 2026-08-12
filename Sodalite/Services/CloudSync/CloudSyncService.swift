@@ -652,6 +652,10 @@ final class CloudSyncService: CloudSyncServiceProtocol {
                 let localStamp = preferences.localStamp(for: name) ?? .distantPast
                 if CloudSyncMerge.remoteWins(localUpdatedAt: localStamp, remoteUpdatedAt: cloud.updatedAt) || adopting {
                     dependencies.applyServerPayload(cloud)
+                    // A server record can move the default-server pin, which lives in the auth store,
+                    // so re-baseline that snapshot or the debounced observer reads its own apply as a
+                    // local edit two seconds later and uploads it back.
+                    lastSettingsSnapshot[.auth] = dependencies.collectSettingsPayload(.auth, stamp: .distantPast)
                     preferences.setLocalStamp(cloud.updatedAt, for: name)
                 } else {
                     addPendingSave(recordName: name)
