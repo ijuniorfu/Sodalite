@@ -26,6 +26,16 @@ final class PlayerViewModel {
     }
     /// Guards against stacking the live cold-transcode debounce recheck.
     private var scheduledLiveSpinnerRecheck = false
+    /// The reader is fighting the source: drives the connection chip in `PlayerOverlayView`. Debounced by
+    /// `connectionNoticeDelay` so a blip does not flash it, and deliberately independent of `isLoading`,
+    /// which no longer covers a stall that leaves the picture running.
+    var showsConnectionNotice = false
+    /// True while the error on screen is a confirmed server outage, i.e. the one error worth offering a
+    /// retry for (the server is expected back; nothing about the item changed).
+    var canRetryAfterOutage = false
+    /// Which error-screen button is highlighted. The overlay is display-only inside the player on tvOS, so
+    /// the cursor lives here and `PlayerHostController`'s press handlers move it.
+    var errorFocus: PlayerErrorFocus = .back
     var errorMessage: String?
     /// SF Symbol for the active error, set with `errorMessage` via `setError(from:)`.
     var errorIcon: String?
@@ -363,6 +373,25 @@ final class PlayerViewModel {
     /// Scrub-preview thumbnail provider over the session FrameExtractor; configured in startPlayback,
     /// reset in stopPlayback.
     let scrubPreview: ScrubPreviewProvider
+
+    // MARK: - Source outage
+
+    /// Asks the Jellyfin server whether it is still there while the reader is stalled, and calls a
+    /// terminal error when it is not. See `SourceOutageWatchdog` for why the host answers this and the
+    /// engine cannot.
+    @ObservationIgnored private var outageWatchdog: SourceOutageWatchdog?
+    /// Latched by the watchdog's verdict. Read by the live recovery paths: retuning a channel on a server
+    /// that does not answer only burns tuners.
+    @ObservationIgnored private(set) var serverConfirmedUnreachable = false
+    /// Position the outage interrupted, so "Try again" resumes there instead of at the item's last
+    /// server-side progress report (which is up to 10s stale, and a dead server never received the last one).
+    @ObservationIgnored private var outageResumeSeconds: Double?
+    /// Set by a retry; overrides the resume position `startPlayback()` would take from `item.userData`.
+    @ObservationIgnored private var resumeOverrideSeconds: Double?
+    /// Stall time before the connection chip appears. Long enough that an ordinary segment-boundary
+    /// hiccup never shows it.
+    @ObservationIgnored static let connectionNoticeDelay: Double = 2
+    @ObservationIgnored private var connectionNoticeTask: Task<Void, Never>?
 
     /// Session-scoped frame extractor (static stream URL); built in startPlayback, shut down in
     /// stopPlayback. Shared by `scrubPreview` and `chapterThumbnail(forIndex:)`.
@@ -788,7 +817,14 @@ final class PlayerViewModel {
             }
 
             let startPos: Double?
-            if !startFromBeginning,
+            // A retry after a source outage resumes where the outage hit: the item's server-side progress
+            // is up to a reporting interval stale, and the report that would have fixed that is exactly the
+            // one the dead server never received.
+            if let override = resumeOverrideSeconds, override > 0 {
+                startPos = override
+                resumePositionTicks = Int64(override * 10_000_000)
+                resumeOverrideSeconds = nil
+            } else if !startFromBeginning,
                let ticks = item.userData?.playbackPositionTicks, ticks > 0 {
                 startPos = ticks.ticksToSeconds
                 resumePositionTicks = ticks
@@ -1048,7 +1084,9 @@ final class PlayerViewModel {
     /// premature (a stall follows ~700ms later), so a would-be clear inside that window is held and a
     /// delayed recompute settles it, preserving the old debounce without the former 15s heuristic.
     private func recomputeLoadingIndicator() {
-        let wantsSpinner = PlayerLoadingIndicator.showsSpinner(hostLoadActive: hostLoadActive, phase: player.playbackPhase)
+        let wantsSpinner = PlayerLoadingIndicator.showsSpinner(hostLoadActive: hostLoadActive,
+                                                               phase: player.playbackPhase,
+                                                               isBuffering: player.isBuffering)
         if !wantsSpinner, isLiveSession, let firstPlay = liveFirstPlayingAt,
            Date().timeIntervalSince(firstPlay) < 0.7 {
             if !scheduledLiveSpinnerRecheck {
@@ -1158,6 +1196,17 @@ final class PlayerViewModel {
             .store(in: &cancellables)
 
         player.$playbackPhase
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] phase in
+                guard let self else { return }
+                self.recomputeLoadingIndicator()
+                self.handlePhaseForOutage(phase)
+            }
+            .store(in: &cancellables)
+
+        // The spinner rule reads `isBuffering` now (a stall with the picture still running must not black
+        // the screen out), so its changes have to reach the recompute the same way the phase does.
+        player.$isBuffering
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in self?.recomputeLoadingIndicator() }
             .store(in: &cancellables)
@@ -1461,6 +1510,25 @@ final class PlayerViewModel {
         errorMessage = nil
         errorIcon = nil
         errorTitle = nil
+        canRetryAfterOutage = false
+        errorFocus = .back
+    }
+
+    // MARK: - Error screen input (tvOS press machine)
+
+    /// Horizontal step on the error screen.
+    func moveErrorFocus(by direction: Int) {
+        errorFocus = errorFocus.stepped(by: direction, hasRetry: canRetryAfterOutage)
+    }
+
+    /// What the Select press on the error screen resolved to. Retry is performed here; dismissing the
+    /// player belongs to the host, which owns the modal.
+    enum ErrorAction { case retried, dismiss }
+
+    func commitErrorFocus() -> ErrorAction {
+        guard errorFocus == .retry, canRetryAfterOutage else { return .dismiss }
+        retryAfterOutage()
+        return .retried
     }
 
     /// Categorise a playback-start error into an icon + title + body trio for the overlay; body stays
@@ -1535,6 +1603,109 @@ final class PlayerViewModel {
             defaultValue: "Playback stopped"
         )
         errorMessage = message
+    }
+
+    // MARK: - Source outage
+
+    /// Engine phase changed: drive the connection chip and arm / disarm the server probe.
+    ///
+    /// `.stalled` is the reader's network axis, so it is the only phase that says "the source is not
+    /// delivering". Everything else means the reader is fine and whatever it was fighting is over.
+    private func handlePhaseForOutage(_ phase: PlaybackPhase) {
+        let stalled = PlayerLoadingIndicator.showsConnectionNotice(hostLoadActive: hostLoadActive, phase: phase)
+        updateConnectionNotice(stalled: stalled)
+        outageWatchdogIfNeeded()?.phaseChanged(to: phase)
+    }
+
+    private func updateConnectionNotice(stalled: Bool) {
+        connectionNoticeTask?.cancel()
+        connectionNoticeTask = nil
+        guard stalled else {
+            showsConnectionNotice = false
+            return
+        }
+        guard !showsConnectionNotice else { return }
+        connectionNoticeTask = Task { @MainActor [weak self] in
+            try? await Task.sleep(for: .seconds(PlayerViewModel.connectionNoticeDelay))
+            guard !Task.isCancelled, let self else { return }
+            self.showsConnectionNotice = true
+        }
+    }
+
+    /// Built on first use because it needs nothing else from the session: a player that never stalls never
+    /// creates one. Nil when the service has no base URL, which also means no probe can be trusted, so no
+    /// outage is ever called.
+    private func outageWatchdogIfNeeded() -> SourceOutageWatchdog? {
+        if let outageWatchdog { return outageWatchdog }
+        guard let base = playbackService.baseURL else { return nil }
+        let watchdog = SourceOutageWatchdog(
+            probe: { await ServerProbe.jellyfin(base) },
+            onOutage: { [weak self] in self?.handleSourceOutage() }
+        )
+        outageWatchdog = watchdog
+        return watchdog
+    }
+
+    /// The app left / returned to the foreground. iOS keeps playing audio in the background on purpose
+    /// (AetherEngine#127 grace, PiP), so a session the user cannot see must not be torn down over a probe.
+    func setAppActive(_ active: Bool) {
+        outageWatchdog?.setActive(active)
+    }
+
+    /// The server stopped answering while the reader was stalled. The engine would reach the same verdict
+    /// on its own, but only after its reconnect ladder and two revives, i.e. minutes of spinner.
+    private func handleSourceOutage() {
+        guard errorMessage == nil, !isTearingDown else { return }
+        LogTap.shared.note("[Outage] server unreachable while stalled; pausing and surfacing terminal error")
+        serverConfirmedUnreachable = true
+        outageResumeSeconds = isLiveSession ? nil : playbackTime
+        // Pause rather than stop: it silences the audio that was still draining out of the segment cache
+        // while leaving the session intact for a retry, and it keeps the normal teardown path in charge of
+        // the stop report.
+        player.pause()
+        isPlaying = false
+        hostLoadActive = false
+        updateConnectionNotice(stalled: false)
+        setServerUnreachableError(host: playbackService.baseURL?.host ?? "")
+    }
+
+    /// Terminal trio for a confirmed server outage. Distinct from `setEnginePlaybackError` because this one
+    /// names a cause the viewer can act on, and it is the only error that offers a retry.
+    private func setServerUnreachableError(host: String) {
+        errorIcon = "wifi.exclamationmark"
+        errorTitle = String(
+            localized: "player.error.serverLost.title",
+            defaultValue: "Connection to the server lost"
+        )
+        errorMessage = String(
+            format: String(
+                localized: "player.error.serverLost.body",
+                defaultValue: "Sodalite can no longer reach %@. Playback was paused, your position is kept."
+            ),
+            host
+        )
+        canRetryAfterOutage = true
+        errorFocus = .initial(hasRetry: true)
+    }
+
+    /// "Try again" on the outage screen: re-runs the whole session against the server, resuming where the
+    /// outage hit. The cached PlaybackInfo is dropped on purpose, a restarted server knows nothing about
+    /// that play session.
+    func retryAfterOutage() {
+        guard canRetryAfterOutage else { return }
+        LogTap.shared.note("[Outage] retry requested at \(String(format: "%.1f", outageResumeSeconds ?? 0))s")
+        canRetryAfterOutage = false
+        serverConfirmedUnreachable = false
+        outageWatchdog?.reset()
+        cachedPlaybackInfo = nil
+        resumeOverrideSeconds = outageResumeSeconds
+        outageResumeSeconds = nil
+        // Live recovery counts its own attempts; a manual retry is not one of the automatic retunes.
+        liveRetuneCount = 0
+        lastLiveRetuneAt = nil
+        clearError()
+        player.stop()
+        beginPlayback()
     }
 
     /// Apply `pictureMode` to whichever layer is on screen: writes to the engine AND fires

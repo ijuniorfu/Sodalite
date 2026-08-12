@@ -765,6 +765,9 @@ final class PlayerHostController: AVPlayerViewController {
 
     @objc private func appDidEnterBackground() {
         wasFullyBackgrounded = true
+        // Background audio / PiP keep the session running on purpose; the outage watchdog must not end one
+        // the viewer cannot see, so it stops probing until we are back.
+        viewModel.setAppActive(false)
     }
 
     /// AetherEngine #127 host adoption: the engine's paused-background grace window (and PiP keepalive)
@@ -775,6 +778,9 @@ final class PlayerHostController: AVPlayerViewController {
     }
 
     @objc private func appDidBecomeActive() {
+        // Before every early return below: the watchdog is armed by the engine phase, not by this routine,
+        // and it must resume probing on any return to the foreground.
+        viewModel.setAppActive(true)
         guard viewModel.hasStartedPlaying else { return }
 
         // App switcher lands here without didEnterBackground; decoders + audio are still alive, so nothing to rebuild.
@@ -856,6 +862,12 @@ final class PlayerHostController: AVPlayerViewController {
     @objc private func selectPressed() {
         if viewModel.isSubtitleDeletePromptVisible { viewModel.subtitleDeletePromptConfirm(); return }
         if viewModel.subtitleSearchVisible { viewModel.subtitleSearchConfirm(); return }
+        // Error screen: its buttons are SwiftUI, and the overlay takes no interaction on tvOS, so the press
+        // machine has to press them. Below the subtitle overlays on purpose, they render above the error.
+        if viewModel.errorMessage != nil {
+            if viewModel.commitErrorFocus() == .dismiss { dismissPlayer() }
+            return
+        }
         // Stats panel open: Select closes it (like Menu); the transport chip still toggles only when closed.
         if statsOverlayCapturesPresses {
             viewModel.showStatsOverlay = false
@@ -937,6 +949,8 @@ final class PlayerHostController: AVPlayerViewController {
     @objc private func leftPressed() {
         if viewModel.isSubtitleDeletePromptVisible { viewModel.subtitleDeletePromptToggleFocus(); return }
         if viewModel.subtitleSearchVisible { viewModel.subtitleSearchMoveLeft(); return }
+        // Behind an error screen the session is over; without this the press seeks a dead player.
+        if viewModel.errorMessage != nil { viewModel.moveErrorFocus(by: -1); return }
         // Stats panel: horizontal nav is inert (no rows behind it to target).
         if statsOverlayCapturesPresses { return }
         if viewModel.isDropdownOpen { return }
@@ -951,6 +965,7 @@ final class PlayerHostController: AVPlayerViewController {
     @objc private func rightPressed() {
         if viewModel.isSubtitleDeletePromptVisible { viewModel.subtitleDeletePromptToggleFocus(); return }
         if viewModel.subtitleSearchVisible { viewModel.subtitleSearchMoveRight(); return }
+        if viewModel.errorMessage != nil { viewModel.moveErrorFocus(by: 1); return }
         if statsOverlayCapturesPresses { return }
         if viewModel.isDropdownOpen { return }
         if viewModel.showControls && viewModel.controlsFocus != .progressBar {
@@ -1022,6 +1037,7 @@ final class PlayerHostController: AVPlayerViewController {
     @objc private func upPressed() {
         if viewModel.isSubtitleDeletePromptVisible { return }
         if viewModel.subtitleSearchVisible { viewModel.subtitleSearchMoveUp(); return }
+        if viewModel.errorMessage != nil { return }
         // Stats panel: step the section cursor (advanceStatsCursor skips unrendered anchors, see availableStatsSectionIndices).
         if statsOverlayCapturesPresses {
             advanceStatsCursor(by: -1)
@@ -1064,6 +1080,7 @@ final class PlayerHostController: AVPlayerViewController {
     @objc private func downPressed() {
         if viewModel.isSubtitleDeletePromptVisible { return }
         if viewModel.subtitleSearchVisible { viewModel.subtitleSearchMoveDown(); return }
+        if viewModel.errorMessage != nil { return }
         if statsOverlayCapturesPresses {
             advanceStatsCursor(by: 1)
             return

@@ -41,6 +41,19 @@ struct PlayerOverlayView: View {
                 .transition(.opacity)
             }
 
+            // Sits above the spinner layer and above the running picture alike: the reader is fighting the
+            // source either way, and a stall that leaves the picture running no longer raises a spinner at
+            // all, so this is the only thing that explains the freeze the viewer is about to see.
+            if viewModel.showsConnectionNotice, viewModel.errorMessage == nil {
+                VStack {
+                    ConnectionNoticeChip()
+                        .padding(.top, 40)
+                    Spacer()
+                }
+                .transition(.opacity)
+                .allowsHitTesting(false)
+            }
+
             if let error = viewModel.errorMessage {
                 ZStack {
                     Color.black
@@ -59,15 +72,22 @@ struct PlayerOverlayView: View {
                             .foregroundStyle(.white.opacity(0.7))
                             .multilineTextAlignment(.center)
                             .frame(maxWidth: 720)
-                        Button {
-                            onDismiss()
-                        } label: {
-                            Text("player.error.back")
-                                .font(.body)
-                                .padding(.horizontal, 32)
-                                .padding(.vertical, 12)
+                        HStack(spacing: 20) {
+                            // Only a confirmed server outage offers this: the server is expected back and
+                            // nothing about the item changed, so one press resumes where it stopped.
+                            if viewModel.canRetryAfterOutage {
+                                ErrorActionButton(
+                                    titleKey: "player.error.retry",
+                                    isHighlighted: viewModel.errorFocus == .retry,
+                                    action: { viewModel.retryAfterOutage() }
+                                )
+                            }
+                            ErrorActionButton(
+                                titleKey: "player.error.back",
+                                isHighlighted: viewModel.errorFocus == .back,
+                                action: onDismiss
+                            )
                         }
-                        .buttonStyle(SettingsTileButtonStyle())
                         .padding(.top, 8)
                     }
                 }
@@ -155,6 +175,7 @@ struct PlayerOverlayView: View {
             #endif
         }
         .animation(.easeInOut(duration: 0.3), value: viewModel.isLoading)
+        .animation(.easeInOut(duration: 0.3), value: viewModel.showsConnectionNotice)
         .animation(.easeInOut(duration: 0.3), value: viewModel.showControls)
         .animation(.easeInOut(duration: 0.3), value: viewModel.showNextEpisodeOverlay)
         .animation(.easeInOut(duration: 0.25), value: viewModel.activeSkipSegment)
@@ -761,5 +782,62 @@ private struct SubtitleLayer: View {
                 videoSize: viewModel.videoSize
             )
         }
+    }
+}
+
+/// The "source is not delivering" pill. Deliberately small and non-modal: on the loopback path the picture
+/// usually keeps running out of the segment cache while the reader reconnects, and covering that with a
+/// black spinner is the bug this chip replaces.
+private struct ConnectionNoticeChip: View {
+    var body: some View {
+        HStack(spacing: 10) {
+            Image(systemName: "wifi.exclamationmark")
+            Text("player.notice.reconnecting")
+        }
+        .font(.callout)
+        .foregroundStyle(.white)
+        .padding(.horizontal, 20)
+        .padding(.vertical, 10)
+        .background(.black.opacity(0.65), in: Capsule())
+    }
+}
+
+/// One error-screen action.
+///
+/// On tvOS this deliberately is NOT a `Button`: the player hosts this overlay with
+/// `isUserInteractionEnabled = false` and drives input through UIKit press handlers, so a Button here
+/// renders but can never focus or fire (which is what left both of these buttons dead until now). The
+/// highlight comes from `PlayerViewModel.errorFocus`, the press from `PlayerHostController`. On iOS the
+/// overlay is touch-interactive, so there it is an ordinary button.
+private struct ErrorActionButton: View {
+    let titleKey: LocalizedStringKey
+    let isHighlighted: Bool
+    let action: () -> Void
+
+    var body: some View {
+        #if os(tvOS)
+        label
+            .background(
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(.white.opacity(isHighlighted ? 0.15 : 0.05))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 16)
+                    .strokeBorder(.tint, lineWidth: 3)
+                    .opacity(isHighlighted ? 1 : 0)
+            )
+            .scaleEffect(isHighlighted ? 1.03 : 1.0)
+            .animation(.easeInOut(duration: 0.2), value: isHighlighted)
+        #else
+        Button(action: action) { label }
+            .buttonStyle(SettingsTileButtonStyle())
+        #endif
+    }
+
+    private var label: some View {
+        Text(titleKey)
+            .font(.body)
+            .padding(.horizontal, 32)
+            .padding(.vertical, 12)
     }
 }
