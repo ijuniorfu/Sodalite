@@ -64,10 +64,11 @@ struct CloudSyncSettingsParityTests {
         #expect(storedSettingNames(of: store) == payloadFieldNames(.parentalControls))
     }
 
-    /// The other two store keys are per-entry memories, not preference stores: their payload is one
-    /// `entries` map and CloudSyncMerge unions it, so there is no field list to keep in step.
-    @Test func theMemoryStoresAreCoveredByTheirUnionMerge() {
+    /// The other store keys are per-entry memories, not preference stores: their payload is one
+    /// `entries` map that CloudSyncMerge merges per key, so there is no field list to keep in step.
+    @Test func theMemoryStoresAreCoveredByTheirPerKeyMerge() {
         #expect(payloadFieldNames(.trackMemory) == ["entries"])
         #expect(payloadFieldNames(.spoilerReveals) == ["entries"])
+        #expect(payloadFieldNames(.spoilerSeriesRules) == ["entries"])
     }
 }

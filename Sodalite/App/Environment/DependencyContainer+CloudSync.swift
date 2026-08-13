@@ -259,6 +259,11 @@ extension DependencyContainer {
                 updatedAt: stamp,
                 entries: spoilerRevealMemory.entries
             ))
+        case .spoilerSeriesRules:
+            return .spoilerSeriesRules(SpoilerSeriesRulesPayload(
+                updatedAt: stamp,
+                entries: spoilerSeriesRules.entries
+            ))
         }
     }
 
@@ -345,6 +350,8 @@ extension DependencyContainer {
             trackSelectionMemory.replaceAll(t.entries)
         case .spoilerReveals(let s):
             spoilerRevealMemory.replaceAll(s.entries)
+        case .spoilerSeriesRules(let r):
+            spoilerSeriesRules.replaceAll(r.entries)
         }
     }
 
