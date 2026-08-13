@@ -156,6 +156,7 @@ The Seerr integration isn't a tacked-on link to a web view. It's a first-class p
 - **Format badge**: the top bar surfaces the live format (Dolby Vision, HDR10+, Atmos and friends) so you can confirm at a glance what's actually playing
 - **Portrait-safe chrome**: player controls stay correctly placed in portrait and landscape, no clipped buttons behind the notch or home indicator
 - **Touch-native throughout**: swipe to scrub, tap to play/pause, drag the grids, the whole app is built for touch as a first-class input, not a ported remote UI
+- **Hardware keyboard**: with a keyboard attached to an iPad, Space plays and pauses, a tap on the left or right arrow jumps your configured skip interval, and holding one spools through the timeline with the same preview the remote gets, committing where you let go
 
 ### 📺 Live TV & DVR
 - **Overview tab**: Live TV opens on a category-based overview of what's on right now, with rows mirroring the native Jellyfin guide, before you drop into the full grid
