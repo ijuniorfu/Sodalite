@@ -30,6 +30,13 @@ final class PlayerHostController: AVPlayerViewController {
     /// Orientation-session identity. The exit is terminal for it, so a lifecycle callback that still
     /// reaches this controller while it is going away cannot re-engage the landscape lock (Sodalite#54).
     let orientationSession = PlayerOrientation.newSession()
+
+    /// Hardware-keyboard transport for iPad (AetherEngine #367); the handlers live in
+    /// PlayerHostController+Keyboard. tvOS is excluded on purpose: there a UIPress is the Siri Remote
+    /// and the gesture recognizers above already own it.
+    var keyboardTransport = KeyboardTransportState()
+    /// Pending tap-versus-hold decision for the arrow key currently down.
+    var keyboardHoldTask: Task<Void, Never>?
     #endif
 
     /// Engine render surface, mounted into `contentOverlayView` only for the SW (dav1d) backend; the native path renders off `self.player`'s own AVPlayerLayer.
@@ -764,6 +771,7 @@ final class PlayerHostController: AVPlayerViewController {
         guard (isBeingDismissed || isMovingFromParent), !pipActive else { return }
         #if os(iOS)
         PlayerOrientation.unlock(session: orientationSession)
+        endKeyboardTransport()
         #endif
         unmountAetherViewIfNeeded()
         player = nil
