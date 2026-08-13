@@ -9,6 +9,10 @@ struct SpoilerPolicy: Sendable, Equatable {
     var userID: String
     /// Shared with `SpoilerRevealMemory` by COW, so building a policy per card body is a retain, not a copy.
     var revealedKeys: Set<String>
+    /// Sodalite#50 follow-up. Per-series rules, "<userID>|<seriesID>" to "veil this show".
+    /// Shared with `SpoilerSeriesRules` by COW like `revealedKeys`. Defaulted so the memberwise
+    /// init keeps working for callers that predate it.
+    var seriesOverrides: [String: Bool] = [:]
 
     /// What is being covered. Not every veiled item veils both.
     enum Surface: Sendable {
@@ -23,7 +27,8 @@ struct SpoilerPolicy: Sendable, Equatable {
         hideEpisodes: false,
         hideMovies: false,
         userID: "",
-        revealedKeys: []
+        revealedKeys: [],
+        seriesOverrides: [:]
     )
 
     /// Per item, deliberately unlike `TrackSelectionMemory.scopeKey`, which folds episodes under
@@ -34,6 +39,37 @@ struct SpoilerPolicy: Sendable, Equatable {
 
     func key(for item: JellyfinItem) -> String {
         Self.key(userID: userID, itemID: item.id)
+    }
+
+    static func seriesKey(userID: String, seriesID: String) -> String {
+        "\(userID)|\(seriesID)"
+    }
+
+    /// The scope a rule is stored under. Episodes and seasons resolve through their series, a
+    /// series through itself; a caller that fetched an episode without SeriesId gets no scope and
+    /// falls back to the global default rather than a wrong rule.
+    func seriesScopeKey(for item: JellyfinItem) -> String? {
+        switch item.type {
+        case .series:
+            return Self.seriesKey(userID: userID, seriesID: item.id)
+        case .episode, .season:
+            guard let seriesID = item.seriesId else { return nil }
+            return Self.seriesKey(userID: userID, seriesID: seriesID)
+        default:
+            return nil
+        }
+    }
+
+    func seriesOverride(for item: JellyfinItem) -> Bool? {
+        guard let scope = seriesScopeKey(for: item) else { return nil }
+        return seriesOverrides[scope]
+    }
+
+    /// What the global switches would do to a show that carries no rule. Drives the button label.
+    var seriesDefaultIsHidden: Bool { enabled && hideEpisodes }
+
+    func effectiveHidesSeries(_ seriesID: String) -> Bool {
+        seriesOverrides[Self.seriesKey(userID: userID, seriesID: seriesID)] ?? seriesDefaultIsHidden
     }
 
     /// Artwork is only a spoiler on an episode, where the still is a frame out of that very
@@ -48,16 +84,27 @@ struct SpoilerPolicy: Sendable, Equatable {
         }
     }
 
-    /// The base decision, before any surface narrows it further.
+    /// The base decision, before any surface narrows it further. A per-series rule replaces the
+    /// global default; it deliberately does NOT replace the reveal rules below, or a watched
+    /// episode would stay blurred forever and Continue Watching would be a wall of blur again.
     func isHidden(_ item: JellyfinItem) -> Bool {
-        guard enabled else { return false }
-        switch item.type {
-        // A season synopsis describes that season's arc, so it is the same class of spoiler as an
-        // episode synopsis and rides the same switch.
-        case .episode where hideEpisodes: break
-        case .season where hideEpisodes: break
-        case .movie where hideMovies: break
-        default: return false
+        switch seriesOverride(for: item) {
+        case .some(false):
+            return false
+        case .some(true):
+            // The series page keeps its own synopsis: a premise is not a spoiler, and the user
+            // opened that page deliberately.
+            guard item.type == .episode || item.type == .season else { return false }
+        case .none:
+            guard enabled else { return false }
+            switch item.type {
+            // A season synopsis describes that season's arc, so it is the same class of spoiler as
+            // an episode synopsis and rides the same switch.
+            case .episode where hideEpisodes: break
+            case .season where hideEpisodes: break
+            case .movie where hideMovies: break
+            default: return false
+            }
         }
         if item.userData?.played == true { return false }
         // Started counts as revealed: every Continue Watching entry is in progress, so without
