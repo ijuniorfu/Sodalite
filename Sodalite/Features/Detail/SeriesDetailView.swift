@@ -612,6 +612,47 @@ struct SeriesDetailView: View {
         .focused($playButtonFocused)
     }
 
+    // MARK: - Spoiler rule (Sodalite#50 follow-up)
+
+    private func spoilerRuleTitle(_ rule: SpoilerSeriesRule) -> LocalizedStringKey {
+        switch rule {
+        case .hidden: "detail.spoiler.rule.hidden"
+        case .shown: "detail.spoiler.rule.shown"
+        case .standard: "detail.spoiler.rule.standard"
+        }
+    }
+
+    private func spoilerRuleSymbol(_ rule: SpoilerSeriesRule) -> String {
+        switch rule {
+        case .hidden: "eye.slash"
+        case .shown: "eye"
+        case .standard: "gearshape"
+        }
+    }
+
+    @ViewBuilder
+    private func spoilerRuleMenu(seriesID: String) -> some View {
+        let key = SpoilerPolicy.seriesKey(userID: appState.activeUser?.id ?? "", seriesID: seriesID)
+        let current = dependencies.spoilerSeriesRules.rule(for: key)
+        ForEach(SpoilerSeriesRule.allCases, id: \.self) { rule in
+            Button {
+                setSpoilerRule(rule, seriesID: seriesID)
+            } label: {
+                // Checkmark on the active rule, its own symbol otherwise: the menu has to show
+                // where the show stands, not just what can be picked.
+                Label(spoilerRuleTitle(rule), systemImage: rule == current ? "checkmark" : spoilerRuleSymbol(rule))
+            }
+        }
+    }
+
+    private func setSpoilerRule(_ rule: SpoilerSeriesRule, seriesID: String) {
+        guard let userID = appState.activeUser?.id else { return }
+        dependencies.spoilerSeriesRules.set(
+            rule,
+            for: SpoilerPolicy.seriesKey(userID: userID, seriesID: seriesID)
+        )
+    }
+
     @ViewBuilder
     private func secondaryActionButtons(vm: DetailViewModel) -> some View {
             // Shuffle whole series (server SortBy=Random scoped by series id). Hidden in the episode panel.
@@ -689,6 +730,21 @@ struct SeriesDetailView: View {
                     systemImage: vm.isPlayed ? "checkmark.circle.fill" : "checkmark.circle",
                     action: { Task { await vm.togglePlayed() } }
                 )
+            }
+
+            // Shows the EFFECTIVE state for this series, so a tap always reads as "do the other
+            // thing"; the three explicit states live in the context menu.
+            if !isShowingEpisode {
+                let seriesID = vm.item.id
+                let hidesNow = dependencies
+                    .spoilerPolicy(userID: appState.activeUser?.id)
+                    .effectiveHidesSeries(seriesID)
+                GlassActionButton(
+                    title: hidesNow ? "detail.spoiler.show" : "detail.spoiler.hide",
+                    systemImage: hidesNow ? "eye" : "eye.slash",
+                    action: { setSpoilerRule(hidesNow ? .shown : .hidden, seriesID: seriesID) }
+                )
+                .contextMenu { spoilerRuleMenu(seriesID: seriesID) }
             }
 
             if isShowingEpisode {
@@ -851,6 +907,10 @@ struct SeriesDetailView: View {
                                         systemImage: vm.isPlayed(season) ? "checkmark.circle.fill" : "checkmark.circle"
                                     )
                                 }
+                                Divider()
+                                // Reachable from the lower half of the page too. These set the
+                                // SERIES rule, which is what their titles say.
+                                spoilerRuleMenu(seriesID: vm.item.id)
                             }
                         }
                     }
