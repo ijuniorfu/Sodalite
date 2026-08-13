@@ -79,32 +79,34 @@ struct SkipBackSubtitleWindowTests {
             pendingOrigin: 600, targetTime: 300, subtitlesActive: false, enabled: true))
     }
 
+    /// Six 10 s double taps on iOS: each one merges into the open window and pushes the origin
+    /// 60 s ahead of where playback resumes. The window still ends 30 s after the last landing.
     @Test("a burst of presses cannot stretch the window past 30 seconds")
-    func mergedOriginIsCapped() {
-        // Three 15 s presses: the origin is 45 s ahead of where playback resumes.
-        let merged = SkipBackSubtitleWindow.mergedOrigin(
-            SkipBackSubtitleWindow.mergedOrigin(100, 85), 70)
-        #expect(merged == 100)
-        #expect(SkipBackSubtitleWindow.cappedOrigin(merged, targetTime: 55) == 85)
+    func burstIsBoundedByTheLanding() {
+        let state = SkipBackSubtitleWindow.State(origin: 100, landing: 40, streamIndex: 3)
+        #expect(SkipBackSubtitleWindow.end(of: state) == 70)
+        #expect(SkipBackSubtitleWindow.shouldClose(state: state, playhead: 70))
+        #expect(!SkipBackSubtitleWindow.shouldClose(state: state, playhead: 69))
     }
 
-    @Test("a window inside the promise keeps its own origin")
-    func cappedOriginLeavesShortWindowsAlone() {
-        #expect(SkipBackSubtitleWindow.cappedOrigin(100, targetTime: 90) == 100)
+    @Test("a window inside the promise still ends where the jump started")
+    func shortWindowEndsAtItsOrigin() {
+        let state = SkipBackSubtitleWindow.State(origin: 100, landing: 90, streamIndex: 3)
+        #expect(SkipBackSubtitleWindow.end(of: state) == 100)
     }
 
     // MARK: - Closing
 
     @Test("the window closes once playback reaches the origin")
     func closesAtOrigin() {
-        let state = SkipBackSubtitleWindow.State(origin: 100, streamIndex: 3)
+        let state = SkipBackSubtitleWindow.State(origin: 100, landing: 90, streamIndex: 3)
         #expect(SkipBackSubtitleWindow.shouldClose(state: state, playhead: 100))
         #expect(SkipBackSubtitleWindow.shouldClose(state: state, playhead: 101))
     }
 
     @Test("the window stays open short of the origin")
     func staysOpenBeforeOrigin() {
-        let state = SkipBackSubtitleWindow.State(origin: 100, streamIndex: 3)
+        let state = SkipBackSubtitleWindow.State(origin: 100, landing: 90, streamIndex: 3)
         #expect(!SkipBackSubtitleWindow.shouldClose(state: state, playhead: 99.5))
     }
 

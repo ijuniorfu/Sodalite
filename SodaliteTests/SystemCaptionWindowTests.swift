@@ -64,28 +64,40 @@ struct SystemCaptionWindowTests {
 
     // MARK: - Track resolution
 
-    @Test("the language the system picked wins over the app's own resolution")
-    func requestedLanguageWins() {
+    /// Device-observed: on a German device with English audio, iOS asked for the English rendition.
+    /// The app's own subtitle language has to win over that.
+    @Test("the subtitle language set in the app beats the language the system picked")
+    func configuredSubtitleLanguageWins() {
         let streams = [stream(index: 1, lang: "de"), stream(index: 2, lang: "en")]
         #expect(SystemCaptionWindow.resolveTrack(
             streams: streams, requestedLanguage: "en",
-            preferredSubtitleLanguage: "de", audioLanguage: "de") == 2)
+            preferredSubtitleLanguage: "de", preferredLanguage: "de", audioLanguage: "en") == 1)
     }
 
-    @Test("an untagged rendition falls back to the app's own resolution")
-    func untaggedRequestFallsBack() {
+    /// `preferredLanguage` is the app's effective audio language, which falls back to the device
+    /// locale, so this is the "my language" case with nothing configured at all.
+    @Test("without a configured subtitle language the app's own language wins")
+    func appLanguageWinsWhenNothingConfigured() {
         let streams = [stream(index: 1, lang: "de"), stream(index: 2, lang: "en")]
         #expect(SystemCaptionWindow.resolveTrack(
-            streams: streams, requestedLanguage: nil,
-            preferredSubtitleLanguage: "de", audioLanguage: "en") == 1)
+            streams: streams, requestedLanguage: "en",
+            preferredSubtitleLanguage: nil, preferredLanguage: "de", audioLanguage: "en") == 1)
     }
 
-    @Test("a language with no matching track falls back to the app's own resolution")
-    func unmatchedLanguageFallsBack() {
-        let streams = [stream(index: 1, lang: "de")]
+    @Test("with nothing in the configured languages the language being heard is used")
+    func fallsBackToAudioLanguage() {
+        let streams = [stream(index: 1, lang: "en"), stream(index: 2, lang: "fr")]
         #expect(SystemCaptionWindow.resolveTrack(
             streams: streams, requestedLanguage: "fr",
-            preferredSubtitleLanguage: nil, audioLanguage: "de") == 1)
+            preferredSubtitleLanguage: "de", preferredLanguage: "de", audioLanguage: "en") == 1)
+    }
+
+    @Test("the system's own pick is the last resort, not the first")
+    func requestedLanguageIsTheLastResort() {
+        let streams = [stream(index: 1, lang: "fr")]
+        #expect(SystemCaptionWindow.resolveTrack(
+            streams: streams, requestedLanguage: "fr",
+            preferredSubtitleLanguage: "de", preferredLanguage: "de", audioLanguage: "en") == 1)
     }
 
     @Test("nothing matching means nothing is switched on")
@@ -93,10 +105,10 @@ struct SystemCaptionWindowTests {
         let streams = [stream(index: 1, lang: "de")]
         #expect(SystemCaptionWindow.resolveTrack(
             streams: streams, requestedLanguage: "fr",
-            preferredSubtitleLanguage: nil, audioLanguage: "ja") == nil)
+            preferredSubtitleLanguage: nil, preferredLanguage: "ja", audioLanguage: "ja") == nil)
     }
 
-    @Test("a full track beats an SDH or forced one in the picked language")
+    @Test("a full track beats an SDH or forced one in the chosen language")
     func picksTheMostUsefulTrack() {
         let streams = [
             stream(index: 1, lang: "en", forced: true),
@@ -104,7 +116,7 @@ struct SystemCaptionWindowTests {
             stream(index: 3, lang: "en")
         ]
         #expect(SystemCaptionWindow.resolveTrack(
-            streams: streams, requestedLanguage: "en",
-            preferredSubtitleLanguage: nil, audioLanguage: nil) == 3)
+            streams: streams, requestedLanguage: nil,
+            preferredSubtitleLanguage: "en", preferredLanguage: nil, audioLanguage: nil) == 3)
     }
 }

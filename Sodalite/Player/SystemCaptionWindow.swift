@@ -43,18 +43,23 @@ enum SystemCaptionWindow {
         return volume > mutedVolumeCeiling
     }
 
-    /// The language the system picked wins, because it already resolved the user's caption language
-    /// preferences against the tracks this source actually has. An untagged rendition, or a language
-    /// with no matching stream, falls back to the same resolution the skip-back window uses.
+    /// The app's own settings decide the language, not the system's pick. iOS resolves the caption
+    /// language against its own preferences, which on a German device with English audio still came
+    /// out English (device-observed), and someone who set a subtitle language in this app means it
+    /// here too. The system's language is kept as the last candidate rather than dropped, so a source
+    /// that has nothing in the configured languages still shows what the system asked for.
+    ///
+    /// `preferredLanguage` is the app's effective audio language, which falls back to the device
+    /// locale, so "my language" needs nothing configured to work.
     static func resolveTrack(streams: [MediaStream], requestedLanguage: String?,
-                             preferredSubtitleLanguage: String?, audioLanguage: String?) -> Int? {
-        if let requestedLanguage,
-           let match = SkipBackSubtitleWindow.bestSubtitle(streams: streams, language: requestedLanguage) {
-            return match
+                             preferredSubtitleLanguage: String?, preferredLanguage: String?,
+                             audioLanguage: String?) -> Int? {
+        let candidates = [preferredSubtitleLanguage, preferredLanguage, audioLanguage, requestedLanguage]
+        for language in candidates.compactMap({ $0 }) {
+            if let match = SkipBackSubtitleWindow.bestSubtitle(streams: streams, language: language) {
+                return match
+            }
         }
-        return SkipBackSubtitleWindow.resolveTrack(
-            streams: streams,
-            preferredSubtitleLanguage: preferredSubtitleLanguage,
-            audioLanguage: audioLanguage)
+        return nil
     }
 }

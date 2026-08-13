@@ -12,6 +12,9 @@ enum SkipBackSubtitleWindow {
     struct State: Equatable {
         /// Playback position that ends the window, on the same clock as `PlayerViewModel.playbackTime`.
         var origin: Double
+        /// Where the jump that opened (or last extended) the window landed, on the same clock. The
+        /// window never runs longer than `maximumDistance` past it, whatever the origin says.
+        var landing: Double
         /// The track this window switched on, so closing can never disable a different one.
         var streamIndex: Int
     }
@@ -22,11 +25,13 @@ enum SkipBackSubtitleWindow {
 
     /// The setting this mirrors promises subtitles "when you skip back up to 30 seconds", and a
     /// window lasts until playback has caught up with where the jump started, so an ungated burst of
-    /// presses turned subtitles on for minutes. The cap is on the jump the window opens for; the
-    /// merge path deliberately keeps an already open window when more presses follow, because those
-    /// are the same catch-up, and `cappedOrigin` keeps even that within the promised 30 seconds.
-    /// 30 s is also the largest single press the app offers (`skipIntervalChoices`), so one press
-    /// always qualifies.
+    /// presses turned subtitles on for minutes. 30 s is also the largest single press the app offers
+    /// (`skipIntervalChoices`), so one press always qualifies.
+    ///
+    /// Two places enforce it, deliberately: `shouldOpen` refuses a jump that is already longer, and
+    /// `end(of:)` bounds the window itself. The second one is what holds, because the merge path
+    /// keeps an already open window when more presses follow (those are the same catch-up) and any
+    /// future path that opens or extends a window inherits the bound instead of having to remember it.
     static let maximumDistance: Double = 30
 
     /// Tolerates the rounding between a press interval and the position the seek actually lands on,
@@ -46,17 +51,17 @@ enum SkipBackSubtitleWindow {
         return distance > minimumDistance && distance <= maximumDistance + distanceTolerance
     }
 
-    /// Ends a window at most `maximumDistance` after the position it opened at, whatever the origin
-    /// says. A burst of presses commits as one jump on tvOS but as several on iOS, where each one
-    /// merges into the open window and pushes its end further out; without this, the two platforms
-    /// would promise different things for the same three presses.
-    static func cappedOrigin(_ origin: Double, targetTime: Double) -> Double {
-        min(origin, targetTime + maximumDistance)
+    /// Where the window ends: the position the jump started from, or 30 s of playback after it
+    /// landed, whichever comes first. A burst of presses commits as one jump on tvOS but as several
+    /// on iOS, where each one merges into the open window and pushes the origin further out; the
+    /// second half of this rule is what keeps both platforms inside the same promise.
+    static func end(of state: State) -> Double {
+        min(state.origin, state.landing + maximumDistance)
     }
 
     static func shouldClose(state: State?, playhead: Double) -> Bool {
         guard let state else { return false }
-        return playhead >= state.origin
+        return playhead >= end(of: state)
     }
 
     /// Preferred subtitle language first, then the language being heard. A preferred language with no
