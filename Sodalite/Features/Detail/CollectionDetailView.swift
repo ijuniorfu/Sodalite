@@ -170,24 +170,17 @@ struct CollectionDetailView: View {
                 VStack(spacing: 12) {
                     primaryActionButton(vm: vm)
                         .frame(maxWidth: .infinity)
-                    ViewThatFits(in: .horizontal) {
-                        HStack(spacing: 16) { secondaryActionButtons(vm: vm) }
-                            .collapsesActionButtonLabel()
-                        ScrollView(.horizontal, showsIndicators: false) {
-                            HStack(spacing: 16) { secondaryActionButtons(vm: vm) }
-                                .collapsesActionButtonLabel()
-                        }
+                    DetailActionRow(alignment: .center, balanced: true) {
+                        secondaryActionButtons(vm: vm)
                     }
                     .frame(maxWidth: .infinity)
                 }
             } else {
-                HStack(spacing: 16) {
+                DetailActionRow {
                     primaryActionButton(vm: vm)
                     secondaryActionButtons(vm: vm)
                         .focusSuppressed(belowFoldHasFocus)
                 }
-                .collapsesActionButtonLabel()
-                .compactScrollableRow(hSizeClass)
             }
         }
     }

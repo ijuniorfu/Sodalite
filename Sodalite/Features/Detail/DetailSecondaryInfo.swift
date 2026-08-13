@@ -49,16 +49,32 @@ func jellyfinCastMembers(
     }
 }
 
-extension View {
-    /// Wraps a crowded action-button row in a horizontal scroll on compact width so it can't
-    /// clip the prominent Play button off-screen. tvOS/iPad (regular) keep the static row.
-    @ViewBuilder
-    func compactScrollableRow(_ sizeClass: UserInterfaceSizeClass?) -> some View {
-        if sizeClass == .compact {
-            ScrollView(.horizontal, showsIndicators: false) { self }
-        } else {
-            self
+/// The detail pages' action row: one line on regular widths (tvOS, iPad), wrapping lines on compact
+/// ones. Deliberately not a horizontal scroll any more: an action past the right edge is an action
+/// nobody finds, which is exactly how the per-series spoiler button went unnoticed on the iPhone
+/// (Sodalite#50 follow-up). Wrapping also survives the next button, a scroller only hides it.
+struct DetailActionRow<Content: View>: View {
+    var alignment: FlowAlignment = .leading
+    var spacing: CGFloat = 16
+    /// Even split across the rows the wrap needs, so six buttons read as 3+3 rather than 5+1.
+    var balanced: Bool = false
+    @ViewBuilder let content: () -> Content
+
+    @Environment(\.horizontalSizeClass) private var hSizeClass
+
+    var body: some View {
+        Group {
+            if hSizeClass == .compact {
+                FlowLayout(alignment: alignment, spacing: spacing, balanced: balanced) {
+                    content()
+                }
+            } else {
+                HStack(spacing: spacing) {
+                    content()
+                }
+            }
         }
+        .collapsesActionButtonLabel()
     }
 }
 

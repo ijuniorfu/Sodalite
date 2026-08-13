@@ -381,26 +381,18 @@ struct MovieDetailView: View {
                 VStack(spacing: 12) {
                     primaryActionButton(vm: vm)
                         .frame(maxWidth: .infinity)
-                    // Centered when the secondary buttons fit the width, horizontally scrollable when
-                    // they don't, so a button-heavy item is never clipped on both edges.
-                    ViewThatFits(in: .horizontal) {
-                        HStack(spacing: 16) { secondaryActionButtons(vm: vm) }
-                            .collapsesActionButtonLabel()
-                        ScrollView(.horizontal, showsIndicators: false) {
-                            HStack(spacing: 16) { secondaryActionButtons(vm: vm) }
-                                .collapsesActionButtonLabel()
-                        }
+                    // Centered, and wrapping to a second line rather than scrolling.
+                    DetailActionRow(alignment: .center, balanced: true) {
+                        secondaryActionButtons(vm: vm)
                     }
                     .frame(maxWidth: .infinity)
                 }
             } else {
-                HStack(spacing: 16) {
+                DetailActionRow {
                     primaryActionButton(vm: vm)
                     secondaryActionButtons(vm: vm)
                         .focusSuppressed(overviewHasFocus)
                 }
-                .collapsesActionButtonLabel()
-                .compactScrollableRow(hSizeClass)
             }
         }
     }
