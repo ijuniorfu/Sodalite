@@ -565,6 +565,11 @@ final class PlayerViewModel {
     @ObservationIgnored var pendingSkipBackOrigin: Double?
     /// The open skip-back window: the track it switched on and the position that ends it.
     @ObservationIgnored var skipBackSubtitleWindow: SkipBackSubtitleWindow.State?
+    /// Sodalite#65: where the current burst of backward jumps started. Unlike `pendingSkipBackOrigin`
+    /// it survives the commits inside the burst, so every press measures its distance against the
+    /// place the user actually left; a pause longer than `SkipBackSubtitleWindow.burstGap`, a forward
+    /// jump or any other commit starts over.
+    @ObservationIgnored var skipBackBurstOrigin: Double?
 
     /// Sodalite#65: the open muted-playback window, opened by the system's own caption request and
     /// closed when the output is audible again.
@@ -937,6 +942,7 @@ final class PlayerViewModel {
             // (PiP / external display, #32 / #34), so the two never double up. Fullscreen behaviour is identical to main.
             resetNativeSubtitleRenderingState()
             pendingSkipBackOrigin = nil
+            skipBackBurstOrigin = nil
             skipBackSubtitleWindow = nil
             endSystemCaptionWindow(restoringSubtitles: false)
             resolveInitialTracks(audioLanguage: chosenAudio?.language)
@@ -1481,12 +1487,20 @@ final class PlayerViewModel {
         // window. A forward jump abandons a pending origin rather than extending it. Both jump gestures
         // pass through here (tvOS interval press, iOS double tap); pan and hold-to-seek do not.
         if seconds < 0 {
-            pendingSkipBackOrigin = SkipBackSubtitleWindow.mergedOrigin(pendingSkipBackOrigin, playbackTime)
-            // Sodalite#65: iOS answers a skip back with a caption request of its own; stamp the jump
-            // so that request is read as what it is instead of as muted playback.
+            // Sodalite#65: the burst's own origin, which outlives the commit that consumes the
+            // per-commit one. Without it, press four of a burst would measure its 10 s against the
+            // position press three landed on and reopen a window the burst had just outgrown.
+            skipBackBurstOrigin = SkipBackSubtitleWindow.burstOrigin(
+                previous: skipBackBurstOrigin,
+                playhead: playbackTime,
+                secondsSinceLastJump: lastBackwardJumpAt.map { Date().timeIntervalSince($0) })
+            pendingSkipBackOrigin = skipBackBurstOrigin
+            // iOS answers a skip back with a caption request of its own; stamp the jump so that
+            // request is read as what it is instead of as muted playback.
             lastBackwardJumpAt = Date()
         } else {
             pendingSkipBackOrigin = nil
+            skipBackBurstOrigin = nil
         }
 
         if !isScrubbing {
@@ -2340,11 +2354,20 @@ final class PlayerViewModel {
             // A commit that is not a backward jump (pan, hold-seek, forward jump) voids the catch-up
             // contract, so it ends an open window here. Leaving it open would hand the closing
             // condition to a playhead that may not reach the origin again for half an hour.
+            skipBackBurstOrigin = nil
             endSkipBackSubtitleWindow()
             return
         }
         if var open = skipBackSubtitleWindow {
-            open.origin = SkipBackSubtitleWindow.mergedOrigin(open.origin, pendingOrigin)
+            let origin = SkipBackSubtitleWindow.mergedOrigin(open.origin, pendingOrigin)
+            // Sodalite#65: a burst that walks past the promised 30 s is a rewind, not a catch-up.
+            // Switching the subtitles off is the honest answer to "up to 30 seconds"; the burst
+            // origin outlives this, so the presses that follow cannot open a fresh window either.
+            guard SkipBackSubtitleWindow.withinPromise(origin: origin, landing: targetTime) else {
+                endSkipBackSubtitleWindow()
+                return
+            }
+            open.origin = origin
             open.landing = targetTime
             skipBackSubtitleWindow = open
             return

@@ -79,10 +79,32 @@ struct SkipBackSubtitleWindowTests {
             pendingOrigin: 600, targetTime: 300, subtitlesActive: false, enabled: true))
     }
 
-    /// Six 10 s double taps on iOS: each one merges into the open window and pushes the origin
-    /// 60 s ahead of where playback resumes. The window still ends 30 s after the last landing.
-    @Test("a burst of presses cannot stretch the window past 30 seconds")
-    func burstIsBoundedByTheLanding() {
+    /// Ten 10 s double taps are a rewind, not a catch-up: the window the first taps opened is closed
+    /// again, and every further press keeps failing the same test instead of opening a fresh one.
+    @Test("a burst that walks past 30 seconds leaves the promise")
+    func burstLeavesThePromise() {
+        #expect(SkipBackSubtitleWindow.withinPromise(origin: 100, landing: 70))
+        #expect(!SkipBackSubtitleWindow.withinPromise(origin: 100, landing: 60))
+        #expect(!SkipBackSubtitleWindow.withinPromise(origin: 100, landing: 0))
+    }
+
+    @Test("a press inside the burst measures against where the burst started")
+    func burstKeepsItsOwnOrigin() {
+        // Press two, half a second after press one: same burst, original origin kept.
+        #expect(SkipBackSubtitleWindow.burstOrigin(
+            previous: 100, playhead: 90, secondsSinceLastJump: 0.5) == 100)
+        // A press after watching for a while is a new catch-up.
+        #expect(SkipBackSubtitleWindow.burstOrigin(
+            previous: 100, playhead: 90, secondsSinceLastJump: 10) == 90)
+        // First press of a session.
+        #expect(SkipBackSubtitleWindow.burstOrigin(
+            previous: nil, playhead: 90, secondsSinceLastJump: nil) == 90)
+    }
+
+    /// Belt and braces behind the distance test: whatever origin a window ends up with, it never
+    /// runs longer than 30 s past the point its jump landed on.
+    @Test("a window never runs longer than 30 seconds after its landing")
+    func windowIsBoundedByItsLanding() {
         let state = SkipBackSubtitleWindow.State(origin: 100, landing: 40, streamIndex: 3)
         #expect(SkipBackSubtitleWindow.end(of: state) == 70)
         #expect(SkipBackSubtitleWindow.shouldClose(state: state, playhead: 70))

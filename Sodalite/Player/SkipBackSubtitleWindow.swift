@@ -38,17 +38,36 @@ enum SkipBackSubtitleWindow {
     /// so a 30 s press is not gated out by a few milliseconds.
     private static let distanceTolerance: Double = 0.5
 
+    /// A press that follows a longer pause starts a new burst rather than extending the old one, so
+    /// the promise is per burst: ten taps in a row are one 100 s rewind and show nothing, while a tap
+    /// now and another one after watching a while are two ordinary catch-ups.
+    static let burstGap: Double = 3
+
     /// Origin of a burst of backward jumps: the position furthest ahead wins, so three quick presses
     /// keep the place the user actually left instead of the last intermediate landing.
     static func mergedOrigin(_ existing: Double?, _ candidate: Double) -> Double {
         max(existing ?? candidate, candidate)
     }
 
+    /// The origin a backward jump belongs to. It has to survive the commit that consumes the
+    /// per-commit origin, because a burst that walks past the promised 30 s must keep failing the
+    /// distance test for every further press; reading the playhead again each time would measure
+    /// only the newest 10 s and let the window reopen.
+    static func burstOrigin(previous: Double?, playhead: Double, secondsSinceLastJump: Double?) -> Double {
+        guard let previous, let gap = secondsSinceLastJump, gap <= burstGap else { return playhead }
+        return max(previous, playhead)
+    }
+
+    /// Whether a jump from `origin` landing at `landing` is still the catch-up the setting describes.
+    static func withinPromise(origin: Double, landing: Double) -> Bool {
+        origin - landing <= maximumDistance + distanceTolerance
+    }
+
     static func shouldOpen(pendingOrigin: Double?, targetTime: Double,
                            subtitlesActive: Bool, enabled: Bool) -> Bool {
         guard enabled, !subtitlesActive, let pendingOrigin else { return false }
-        let distance = pendingOrigin - targetTime
-        return distance > minimumDistance && distance <= maximumDistance + distanceTolerance
+        return pendingOrigin - targetTime > minimumDistance
+            && withinPromise(origin: pendingOrigin, landing: targetTime)
     }
 
     /// Where the window ends: the position the jump started from, or 30 s of playback after it

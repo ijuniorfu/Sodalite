@@ -114,6 +114,7 @@ extension PlayerViewModel {
         guard isScrubbing, dur > 0 else {
             isScrubbing = false
             pendingSkipBackOrigin = nil
+            skipBackBurstOrigin = nil
             return
         }
         let targetTime = Double(scrubProgress) * dur
@@ -133,6 +134,7 @@ extension PlayerViewModel {
     func cancelScrub() {
         isScrubbing = false
         pendingSkipBackOrigin = nil
+        skipBackBurstOrigin = nil
         scrubPreview.clear()
         scheduleControlsHide()
     }
@@ -144,6 +146,7 @@ extension PlayerViewModel {
         let dur = scrubReferenceDuration
         guard dur > 0 else { return }
         pendingSkipBackOrigin = nil
+        skipBackBurstOrigin = nil
 
         if !isScrubbing {
             isScrubbing = true
