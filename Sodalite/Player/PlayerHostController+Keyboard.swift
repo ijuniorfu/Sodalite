@@ -45,7 +45,10 @@ extension PlayerHostController {
 
     private func handleKeyboardKeyDown(_ press: UIPress) -> Bool {
         guard let key = keyboardTransportKey(for: press) else { return false }
-        guard keyboardOwnsTransport else { return keyboardSwallowsPress }
+        guard keyboardOwnsTransport else {
+            LogTap.shared.note("[Keyboard] \(key) ignored, an overlay owns the input")
+            return keyboardSwallowsPress
+        }
         performKeyboard(keyboardTransport.keyDown(key), holdKey: key)
         return true
     }
@@ -106,9 +109,14 @@ extension PlayerHostController {
         case .beginContinuousSeek(let direction):
             viewModel.beginContinuousSeek(direction: direction)
         case .jump(let direction):
-            viewModel.seekJumpByConfiguredInterval(direction: direction)
+            // Committing variant: the remote's jump parks a preview for Select to confirm, and a
+            // keyboard has no Select, so the same call would look like a skip that never seeks.
+            viewModel.skipByConfiguredInterval(direction: direction)
         case .endContinuousSeek:
+            // Release IS the commit for the same reason. With instant skip on, endContinuousSeek has
+            // already committed and the second call is a no-op.
             viewModel.endContinuousSeek()
+            viewModel.commitScrub()
         case .none:
             break
         }
