@@ -123394,157 +123394,157 @@
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Popisy a obrázky epizod mohou zůstat rozostřené, dokud titul nezhlédnete nebo nezačnete přehrávat. Ve výchozím nastavení vypnuto, se samostatnými přepínači pro epizody a filmy v Nastavení, Vzhled."
+            "value" : "Popisy a obrázky epizod mohou zůstat rozostřené, dokud titul nezhlédnete nebo nezačnete přehrávat. Ve výchozím nastavení vypnuto, se samostatnými přepínači pro epizody a filmy v Nastavení, Vzhled. Jednotlivé seriály to mohou přepsat na stránce seriálu."
           }
         },
         "da" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Beskrivelser og episodebilleder kan forblive slørede, indtil du har set eller påbegyndt en titel. Slået fra som standard, med separate kontakter for episoder og film under Indstillinger, Udseende."
+            "value" : "Beskrivelser og episodebilleder kan forblive slørede, indtil du har set eller påbegyndt en titel. Slået fra som standard, med separate kontakter for episoder og film under Indstillinger, Udseende. Enkelte serier kan tilsidesætte begge dele på seriens side."
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Beschreibungen und Episodenbilder können unscharf bleiben, bis ein Titel gesehen oder begonnen wurde. Standardmäßig aus, mit getrennten Schaltern für Episoden und Filme unter Einstellungen, Darstellung."
+            "value" : "Beschreibungen und Episodenbilder können unscharf bleiben, bis ein Titel gesehen oder begonnen wurde. Standardmäßig aus, mit getrennten Schaltern für Episoden und Filme unter Einstellungen, Darstellung. Einzelne Serien können beides auf der Serienseite überschreiben."
           }
         },
         "el" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Οι περιγραφές και οι εικόνες επεισοδίων μπορούν να παραμείνουν θολές μέχρι να δείτε ή να ξεκινήσετε έναν τίτλο. Απενεργοποιημένο από προεπιλογή, με ξεχωριστούς διακόπτες για επεισόδια και ταινίες στις Ρυθμίσεις, Εμφάνιση."
+            "value" : "Οι περιγραφές και οι εικόνες επεισοδίων μπορούν να παραμείνουν θολές μέχρι να δείτε ή να ξεκινήσετε έναν τίτλο. Απενεργοποιημένο από προεπιλογή, με ξεχωριστούς διακόπτες για επεισόδια και ταινίες στις Ρυθμίσεις, Εμφάνιση. Μεμονωμένες σειρές μπορούν να παρακάμψουν και τα δύο, από τη σελίδα της σειράς."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Descriptions and episode images can stay blurred until you have watched or started a title. Off by default, with separate switches for episodes and movies in Settings, Appearance."
+            "value" : "Descriptions and episode images can stay blurred until you have watched or started a title. Off by default, with separate switches for episodes and movies in Settings, Appearance. Single shows can override both, on the series page."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Las descripciones y las imágenes de episodios pueden permanecer difuminadas hasta que hayas visto o empezado un título. Desactivado de forma predeterminada, con interruptores independientes para episodios y películas en Ajustes, Apariencia."
+            "value" : "Las descripciones y las imágenes de episodios pueden permanecer difuminadas hasta que hayas visto o empezado un título. Desactivado de forma predeterminada, con interruptores independientes para episodios y películas en Ajustes, Apariencia. Cada serie puede anular ambos ajustes desde su página."
           }
         },
         "fi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Kuvaukset ja jaksokuvat voivat pysyä sumeina, kunnes olet katsonut tai aloittanut nimikkeen. Oletuksena pois päältä, ja jaksoille ja elokuville on omat kytkimensä kohdassa Asetukset, Ulkoasu."
+            "value" : "Kuvaukset ja jaksokuvat voivat pysyä sumeina, kunnes olet katsonut tai aloittanut nimikkeen. Oletuksena pois päältä, ja jaksoille ja elokuville on omat kytkimensä kohdassa Asetukset, Ulkoasu. Yksittäiset sarjat voivat ohittaa molemmat sarjan sivulla."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Les descriptions et les images d'épisodes peuvent rester floutées jusqu'à ce qu'un titre soit vu ou commencé. Désactivé par défaut, avec des interrupteurs distincts pour les épisodes et les films dans Réglages, Apparence."
+            "value" : "Les descriptions et les images d'épisodes peuvent rester floutées jusqu'à ce qu'un titre soit vu ou commencé. Désactivé par défaut, avec des interrupteurs distincts pour les épisodes et les films dans Réglages, Apparence. Chaque série peut passer outre les deux, depuis sa page."
           }
         },
         "hr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Opisi i slike epizoda mogu ostati zamućeni dok naslov ne pogledate ili ne započnete. Prema zadanome isključeno, s odvojenim prekidačima za epizode i filmove u Postavkama, Izgled."
+            "value" : "Opisi i slike epizoda mogu ostati zamućeni dok naslov ne pogledate ili ne započnete. Prema zadanome isključeno, s odvojenim prekidačima za epizode i filmove u Postavkama, Izgled. Pojedine serije mogu nadjačati oboje na stranici serije."
           }
         },
         "hu" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "A leírások és az epizódképek elhomályosítva maradhatnak, amíg meg nem nézed vagy el nem kezded a címet. Alapértelmezés szerint kikapcsolva, külön kapcsolókkal epizódokhoz és filmekhez a Beállítások, Megjelenés alatt."
+            "value" : "A leírások és az epizódképek elhomályosítva maradhatnak, amíg meg nem nézed vagy el nem kezded a címet. Alapértelmezés szerint kikapcsolva, külön kapcsolókkal epizódokhoz és filmekhez a Beállítások, Megjelenés alatt. Az egyes sorozatok a sorozat oldalán mindkettőt felülírhatják."
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Descrizioni e immagini degli episodi possono restare sfocate finché non hai visto o iniziato un titolo. Disattivato per impostazione predefinita, con interruttori separati per episodi e film in Impostazioni, Aspetto."
+            "value" : "Descrizioni e immagini degli episodi possono restare sfocate finché non hai visto o iniziato un titolo. Disattivato per impostazione predefinita, con interruttori separati per episodi e film in Impostazioni, Aspetto. Le singole serie possono ignorare entrambi, dalla pagina della serie."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "視聴済みまたは再生開始までは、あらすじとエピソード画像をぼかしたままにできます。初期設定はオフで、設定の外観にエピソードと映画それぞれのスイッチがあります。"
+            "value" : "視聴済みまたは再生開始までは、あらすじとエピソード画像をぼかしたままにできます。初期設定はオフで、設定の外観にエピソードと映画それぞれのスイッチがあります。 個別の番組は、シリーズ画面でどちらも上書きできます。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "시청했거나 재생을 시작하기 전까지 설명과 에피소드 이미지를 흐리게 유지할 수 있습니다. 기본값은 꺼짐이며, 설정의 화면에서 에피소드와 영화를 따로 켤 수 있습니다."
+            "value" : "시청했거나 재생을 시작하기 전까지 설명과 에피소드 이미지를 흐리게 유지할 수 있습니다. 기본값은 꺼짐이며, 설정의 화면에서 에피소드와 영화를 따로 켤 수 있습니다. 개별 시리즈는 시리즈 화면에서 두 설정을 모두 무시할 수 있습니다."
           }
         },
         "nb" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Beskrivelser og episodebilder kan forbli uskarpe til du har sett eller startet en tittel. Av som standard, med separate brytere for episoder og filmer under Innstillinger, Utseende."
+            "value" : "Beskrivelser og episodebilder kan forbli uskarpe til du har sett eller startet en tittel. Av som standard, med separate brytere for episoder og filmer under Innstillinger, Utseende. Enkeltserier kan overstyre begge deler på serie-siden."
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Beschrijvingen en afleveringsafbeeldingen kunnen vervaagd blijven totdat je een titel hebt bekeken of gestart. Standaard uit, met aparte schakelaars voor afleveringen en films in Instellingen, Weergave."
+            "value" : "Beschrijvingen en afleveringsafbeeldingen kunnen vervaagd blijven totdat je een titel hebt bekeken of gestart. Standaard uit, met aparte schakelaars voor afleveringen en films in Instellingen, Weergave. Losse series kunnen beide overschrijven op de seriepagina."
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Opisy i obrazy odcinków mogą pozostać rozmyte, dopóki tytuł nie zostanie obejrzany lub rozpoczęty. Domyślnie wyłączone, z osobnymi przełącznikami dla odcinków i filmów w Ustawieniach, Wygląd."
+            "value" : "Opisy i obrazy odcinków mogą pozostać rozmyte, dopóki tytuł nie zostanie obejrzany lub rozpoczęty. Domyślnie wyłączone, z osobnymi przełącznikami dla odcinków i filmów w Ustawieniach, Wygląd. Poszczególne seriale mogą zastąpić oba ustawienia na stronie serialu."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Descrições e imagens de episódios podem permanecer desfocadas até você assistir ou iniciar um título. Desativado por padrão, com opções separadas para episódios e filmes em Ajustes, Aparência."
+            "value" : "Descrições e imagens de episódios podem permanecer desfocadas até você assistir ou iniciar um título. Desativado por padrão, com opções separadas para episódios e filmes em Ajustes, Aparência. Séries específicas podem substituir os dois na página da série."
           }
         },
         "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Descrições e imagens de episódios podem permanecer desfocadas até ver ou iniciar um título. Desativado por predefinição, com opções separadas para episódios e filmes em Definições, Aspeto."
+            "value" : "Descrições e imagens de episódios podem permanecer desfocadas até ver ou iniciar um título. Desativado por predefinição, com opções separadas para episódios e filmes em Definições, Aspeto. Séries específicas podem substituir ambos na página da série."
           }
         },
         "ro" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Descrierile și imaginile episoadelor pot rămâne estompate până când vizionezi sau începi un titlu. Dezactivat implicit, cu comutatoare separate pentru episoade și filme în Setări, Aspect."
+            "value" : "Descrierile și imaginile episoadelor pot rămâne estompate până când vizionezi sau începi un titlu. Dezactivat implicit, cu comutatoare separate pentru episoade și filme în Setări, Aspect. Fiecare serial poate suprascrie ambele opțiuni, din pagina serialului."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Описания и кадры эпизодов могут оставаться размытыми, пока вы не посмотрите или не начнёте просмотр. По умолчанию выключено, отдельные переключатели для эпизодов и фильмов находятся в разделе Настройки, Оформление."
+            "value" : "Описания и кадры эпизодов могут оставаться размытыми, пока вы не посмотрите или не начнёте просмотр. По умолчанию выключено, отдельные переключатели для эпизодов и фильмов находятся в разделе Настройки, Оформление. Отдельные сериалы могут переопределить оба переключателя на странице сериала."
           }
         },
         "sk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Popisy a obrázky epizód môžu zostať rozostrené, kým titul nepozriete alebo nezačnete prehrávať. Predvolene vypnuté, so samostatnými prepínačmi pre epizódy a filmy v Nastaveniach, Vzhľad."
+            "value" : "Popisy a obrázky epizód môžu zostať rozostrené, kým titul nepozriete alebo nezačnete prehrávať. Predvolene vypnuté, so samostatnými prepínačmi pre epizódy a filmy v Nastaveniach, Vzhľad. Jednotlivé seriály to môžu prepísať na stránke seriálu."
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Beskrivningar och avsnittsbilder kan förbli utsuddade tills du har sett eller påbörjat en titel. Av som standard, med separata reglage för avsnitt och filmer under Inställningar, Utseende."
+            "value" : "Beskrivningar och avsnittsbilder kan förbli utsuddade tills du har sett eller påbörjat en titel. Av som standard, med separata reglage för avsnitt och filmer under Inställningar, Utseende. Enskilda serier kan åsidosätta båda på seriesidan."
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bir yapımı izleyene veya başlatana kadar açıklamalar ve bölüm görselleri bulanık kalabilir. Varsayılan olarak kapalıdır; bölümler ve filmler için ayrı anahtarlar Ayarlar, Görünüm altındadır."
+            "value" : "Bir yapımı izleyene veya başlatana kadar açıklamalar ve bölüm görselleri bulanık kalabilir. Varsayılan olarak kapalıdır; bölümler ve filmler için ayrı anahtarlar Ayarlar, Görünüm altındadır. Tek tek diziler, dizi sayfasından her ikisini de geçersiz kılabilir."
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Описи та кадри епізодів можуть залишатися розмитими, доки ви не переглянете або не почнете перегляд. Типово вимкнено, окремі перемикачі для епізодів і фільмів є в розділі Параметри, Оформлення."
+            "value" : "Описи та кадри епізодів можуть залишатися розмитими, доки ви не переглянете або не почнете перегляд. Типово вимкнено, окремі перемикачі для епізодів і фільмів є в розділі Параметри, Оформлення. Окремі серіали можуть перевизначити обидва перемикачі на сторінці серіалу."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "在观看或开始播放之前，简介和分集剧照可以保持模糊。默认关闭，可在设置的外观中分别为分集和电影开启。"
+            "value" : "在观看或开始播放之前，简介和分集剧照可以保持模糊。默认关闭，可在设置的外观中分别为分集和电影开启。 单部剧集可在剧集页面覆盖这两项设置。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "在觀看或開始播放之前，簡介與分集劇照可以保持模糊。預設關閉，可在設定的外觀中分別為分集與電影開啟。"
+            "value" : "在觀看或開始播放之前，簡介與分集劇照可以保持模糊。預設關閉，可在設定的外觀中分別為分集與電影開啟。 個別影集可在影集頁面覆寫這兩項設定。"
           }
         }
       }
