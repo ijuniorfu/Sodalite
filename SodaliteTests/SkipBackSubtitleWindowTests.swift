@@ -63,18 +63,72 @@ struct SkipBackSubtitleWindowTests {
             pendingOrigin: 0.2, targetTime: 0, subtitlesActive: false, enabled: true))
     }
 
+    // MARK: - The 30 second promise (Sodalite#65)
+
+    @Test("the largest single press the app offers still opens a window")
+    func opensOnLongestConfigurablePress() {
+        #expect(SkipBackSubtitleWindow.shouldOpen(
+            pendingOrigin: 100, targetTime: 70, subtitlesActive: false, enabled: true))
+    }
+
+    @Test("a jump further back than 30 seconds opens nothing")
+    func doesNotOpenBeyondThirtySeconds() {
+        #expect(!SkipBackSubtitleWindow.shouldOpen(
+            pendingOrigin: 100, targetTime: 69, subtitlesActive: false, enabled: true))
+        #expect(!SkipBackSubtitleWindow.shouldOpen(
+            pendingOrigin: 600, targetTime: 300, subtitlesActive: false, enabled: true))
+    }
+
+    /// Ten 10 s double taps are a rewind, not a catch-up: the window the first taps opened is closed
+    /// again, and every further press keeps failing the same test instead of opening a fresh one.
+    @Test("a burst that walks past 30 seconds leaves the promise")
+    func burstLeavesThePromise() {
+        #expect(SkipBackSubtitleWindow.withinPromise(origin: 100, landing: 70))
+        #expect(!SkipBackSubtitleWindow.withinPromise(origin: 100, landing: 60))
+        #expect(!SkipBackSubtitleWindow.withinPromise(origin: 100, landing: 0))
+    }
+
+    @Test("a press inside the burst measures against where the burst started")
+    func burstKeepsItsOwnOrigin() {
+        // Press two, half a second after press one: same burst, original origin kept.
+        #expect(SkipBackSubtitleWindow.burstOrigin(
+            previous: 100, playhead: 90, secondsSinceLastJump: 0.5) == 100)
+        // A press after watching for a while is a new catch-up.
+        #expect(SkipBackSubtitleWindow.burstOrigin(
+            previous: 100, playhead: 90, secondsSinceLastJump: 10) == 90)
+        // First press of a session.
+        #expect(SkipBackSubtitleWindow.burstOrigin(
+            previous: nil, playhead: 90, secondsSinceLastJump: nil) == 90)
+    }
+
+    /// Belt and braces behind the distance test: whatever origin a window ends up with, it never
+    /// runs longer than 30 s past the point its jump landed on.
+    @Test("a window never runs longer than 30 seconds after its landing")
+    func windowIsBoundedByItsLanding() {
+        let state = SkipBackSubtitleWindow.State(origin: 100, landing: 40, streamIndex: 3)
+        #expect(SkipBackSubtitleWindow.end(of: state) == 70)
+        #expect(SkipBackSubtitleWindow.shouldClose(state: state, playhead: 70))
+        #expect(!SkipBackSubtitleWindow.shouldClose(state: state, playhead: 69))
+    }
+
+    @Test("a window inside the promise still ends where the jump started")
+    func shortWindowEndsAtItsOrigin() {
+        let state = SkipBackSubtitleWindow.State(origin: 100, landing: 90, streamIndex: 3)
+        #expect(SkipBackSubtitleWindow.end(of: state) == 100)
+    }
+
     // MARK: - Closing
 
     @Test("the window closes once playback reaches the origin")
     func closesAtOrigin() {
-        let state = SkipBackSubtitleWindow.State(origin: 100, streamIndex: 3)
+        let state = SkipBackSubtitleWindow.State(origin: 100, landing: 90, streamIndex: 3)
         #expect(SkipBackSubtitleWindow.shouldClose(state: state, playhead: 100))
         #expect(SkipBackSubtitleWindow.shouldClose(state: state, playhead: 101))
     }
 
     @Test("the window stays open short of the origin")
     func staysOpenBeforeOrigin() {
-        let state = SkipBackSubtitleWindow.State(origin: 100, streamIndex: 3)
+        let state = SkipBackSubtitleWindow.State(origin: 100, landing: 90, streamIndex: 3)
         #expect(!SkipBackSubtitleWindow.shouldClose(state: state, playhead: 99.5))
     }
 

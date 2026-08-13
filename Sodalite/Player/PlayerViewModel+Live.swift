@@ -301,6 +301,7 @@ extension PlayerViewModel {
               range.upperBound > range.lowerBound else {
             isScrubbing = false
             pendingSkipBackOrigin = nil
+            skipBackBurstOrigin = nil
             return
         }
         let p = scrubProgress
@@ -311,6 +312,7 @@ extension PlayerViewModel {
 
         if p >= 0.99 {
             pendingSkipBackOrigin = nil
+            skipBackBurstOrigin = nil
             returnToLiveEdge()
             scheduleControlsHide()
             return
