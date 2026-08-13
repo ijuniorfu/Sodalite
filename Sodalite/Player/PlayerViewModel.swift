@@ -566,6 +566,12 @@ final class PlayerViewModel {
     /// The open skip-back window: the track it switched on and the position that ends it.
     @ObservationIgnored var skipBackSubtitleWindow: SkipBackSubtitleWindow.State?
 
+    /// Sodalite#65: the open muted-playback window, opened by the system's own caption request and
+    /// closed when the output is audible again.
+    @ObservationIgnored var systemCaptionWindow: SystemCaptionWindow.State?
+    /// KVO on `AVAudioSession.outputVolume`, alive only while that window is open.
+    @ObservationIgnored private var outputVolumeObservation: NSKeyValueObservation?
+
     /// AE#88: Jellyfin stream index -> engine external track id, rebuilt per load; late downloads
     /// register lazily on first select.
     @ObservationIgnored var externalEngineTrackIDs: [Int: Int] = [:]
@@ -927,6 +933,7 @@ final class PlayerViewModel {
             resetNativeSubtitleRenderingState()
             pendingSkipBackOrigin = nil
             skipBackSubtitleWindow = nil
+            endSystemCaptionWindow(restoringSubtitles: false)
             resolveInitialTracks(audioLanguage: chosenAudio?.language)
             applyForcedSubtitleFallback()
 
@@ -1223,12 +1230,26 @@ final class PlayerViewModel {
             .sink { [weak self] in self?.handleLiveSourceReset() }
             .store(in: &cancellables)
 
+        // Sodalite#65: the system turned captions on by itself (muted playback and the other two
+        // automatic-caption triggers). The engine deselected its own rendition and hands the request
+        // over; the app answers the mute case with its own subtitles.
+        player.systemCaptionRequest
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] request in self?.handleSystemCaptionRequest(request) }
+            .store(in: &cancellables)
+
         player.clock.$currentTime
             .receive(on: DispatchQueue.main)
             .sink { [weak self] time in
                 guard let self else { return }
                 self.playbackTime = time
                 self.closeSkipBackSubtitlesIfReached(time: time)
+                // Backstop for the volume KVO, which needs an active audio session to fire and the
+                // native path deliberately does not activate one. A float read per tick, and only
+                // while the window is open.
+                if self.systemCaptionWindow != nil {
+                    self.closeSystemCaptionWindowIfAudible(volume: AVAudioSession.sharedInstance().outputVolume)
+                }
                 // Intro/outro/recap markers are absolute source-timeline values; currentTime is the AVPlayer
                 // clock (source - playlistShiftSeconds on native HLS), so compare against sourceTime.
                 self.updateSkipSegmentVisibility(time: self.player.sourceTime)
@@ -2195,9 +2216,12 @@ final class PlayerViewModel {
 
     func selectSubtitleTrack(id: Int?, userInitiated: Bool = false) {
         defer { onSubtitleSelectionChanged?() }
-        // Sodalite#63: the user's own pick ends the temporary skip-back window; their selection stands
+        // Sodalite#63 / #65: the user's own pick ends the temporary windows; their selection stands
         // and is never switched off behind their back.
-        if userInitiated { skipBackSubtitleWindow = nil }
+        if userInitiated {
+            skipBackSubtitleWindow = nil
+            endSystemCaptionWindow(restoringSubtitles: false)
+        }
         // #32: the active subtitle changed, so the native rendition selection is stale; re-select on the next
         // PiP/external-display entry (also hides any currently-shown native track so it can't linger from a
         // prior pick).
@@ -2312,7 +2336,9 @@ final class PlayerViewModel {
             return
         }
         if var open = skipBackSubtitleWindow {
-            open.origin = SkipBackSubtitleWindow.mergedOrigin(open.origin, pendingOrigin)
+            open.origin = SkipBackSubtitleWindow.cappedOrigin(
+                SkipBackSubtitleWindow.mergedOrigin(open.origin, pendingOrigin),
+                targetTime: targetTime)
             skipBackSubtitleWindow = open
             return
         }
@@ -2334,7 +2360,9 @@ final class PlayerViewModel {
         // userInitiated stays false: this is an automatic pick, and recording it would bake a
         // temporary track into the remembered selection (Sodalite#46).
         selectSubtitleTrack(id: streamIndex)
-        skipBackSubtitleWindow = SkipBackSubtitleWindow.State(origin: pendingOrigin, streamIndex: streamIndex)
+        skipBackSubtitleWindow = SkipBackSubtitleWindow.State(
+            origin: SkipBackSubtitleWindow.cappedOrigin(pendingOrigin, targetTime: targetTime),
+            streamIndex: streamIndex)
     }
 
     /// Close the window once playback has caught up with where the jump started. Driven by the clock
@@ -2342,6 +2370,73 @@ final class PlayerViewModel {
     func closeSkipBackSubtitlesIfReached(time: Double) {
         guard SkipBackSubtitleWindow.shouldClose(state: skipBackSubtitleWindow, playhead: time) else { return }
         endSkipBackSubtitleWindow()
+    }
+
+    /// Sodalite#65: the system asked for captions on its own. The engine already took its own
+    /// rendition back out, so nothing is on screen; answer the muted-playback case with the app's
+    /// own subtitles in the language the system picked. The other two triggers arrive here as well
+    /// and are left alone: skip back is `SkipBackSubtitleWindow`, a language mismatch at load is the
+    /// preferred-subtitle settings, and both would otherwise switch a second track on top.
+    private func handleSystemCaptionRequest(_ request: SystemCaptionRequest) {
+        guard systemCaptionWindow == nil else { return }
+        let volume = AVAudioSession.sharedInstance().outputVolume
+        guard SystemCaptionWindow.shouldOpen(
+            subtitlesActive: activeSubtitleIndex != nil,
+            volume: volume
+        ) else { return }
+
+        let audioLanguage = player.audioTracks
+            .first(where: { $0.id == player.activeAudioTrackIndex })?.language
+        guard let streamIndex = SystemCaptionWindow.resolveTrack(
+            streams: subtitleStreams,
+            requestedLanguage: request.language,
+            preferredSubtitleLanguage: preferences.preferredSubtitleLanguage,
+            audioLanguage: audioLanguage
+        ) else { return }
+
+        // userInitiated stays false: an automatic pick, and recording it would bake a temporary
+        // track into the remembered selection (Sodalite#46).
+        selectSubtitleTrack(id: streamIndex)
+        systemCaptionWindow = SystemCaptionWindow.State(streamIndex: streamIndex)
+        observeOutputVolumeForSystemCaptions()
+        LogTap.shared.note(
+            "[PlayerVM] system caption request (lang=\(request.language ?? "none"), volume="
+            + String(format: "%.2f", volume) + ") -> subtitle stream \(streamIndex)")
+    }
+
+    /// The volume is the only signal that the mute is over: the engine deselected the system's own
+    /// option when the request arrived, so there is no selection left for the system to change back.
+    private func observeOutputVolumeForSystemCaptions() {
+        outputVolumeObservation?.invalidate()
+        outputVolumeObservation = AVAudioSession.sharedInstance()
+            .observe(\.outputVolume, options: [.new]) { [weak self] _, change in
+                guard let volume = change.newValue else { return }
+                Task { @MainActor [weak self] in
+                    self?.closeSystemCaptionWindowIfAudible(volume: volume)
+                }
+            }
+    }
+
+    private func closeSystemCaptionWindowIfAudible(volume: Float) {
+        guard SystemCaptionWindow.shouldClose(state: systemCaptionWindow, volume: volume) else { return }
+        endSystemCaptionWindow(restoringSubtitles: true)
+    }
+
+    /// `restoringSubtitles` false drops the window without touching the selection, for the callers
+    /// that are already changing it (a new session, the user's own pick).
+    func endSystemCaptionWindow(restoringSubtitles: Bool) {
+        outputVolumeObservation?.invalidate()
+        outputVolumeObservation = nil
+        guard let window = systemCaptionWindow else { return }
+        systemCaptionWindow = nil
+        guard restoringSubtitles else { return }
+        Task { @MainActor [weak self] in
+            guard let self else { return }
+            // Only ever switch off the track this window switched on; anything else belongs to
+            // someone else, and selecting nil would drop their pick with it.
+            guard self.activeSubtitleIndex == window.streamIndex else { return }
+            self.selectSubtitleTrack(id: nil)
+        }
     }
 
     private func endSkipBackSubtitleWindow() {

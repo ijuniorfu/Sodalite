@@ -63,6 +63,36 @@ struct SkipBackSubtitleWindowTests {
             pendingOrigin: 0.2, targetTime: 0, subtitlesActive: false, enabled: true))
     }
 
+    // MARK: - The 30 second promise (Sodalite#65)
+
+    @Test("the largest single press the app offers still opens a window")
+    func opensOnLongestConfigurablePress() {
+        #expect(SkipBackSubtitleWindow.shouldOpen(
+            pendingOrigin: 100, targetTime: 70, subtitlesActive: false, enabled: true))
+    }
+
+    @Test("a jump further back than 30 seconds opens nothing")
+    func doesNotOpenBeyondThirtySeconds() {
+        #expect(!SkipBackSubtitleWindow.shouldOpen(
+            pendingOrigin: 100, targetTime: 69, subtitlesActive: false, enabled: true))
+        #expect(!SkipBackSubtitleWindow.shouldOpen(
+            pendingOrigin: 600, targetTime: 300, subtitlesActive: false, enabled: true))
+    }
+
+    @Test("a burst of presses cannot stretch the window past 30 seconds")
+    func mergedOriginIsCapped() {
+        // Three 15 s presses: the origin is 45 s ahead of where playback resumes.
+        let merged = SkipBackSubtitleWindow.mergedOrigin(
+            SkipBackSubtitleWindow.mergedOrigin(100, 85), 70)
+        #expect(merged == 100)
+        #expect(SkipBackSubtitleWindow.cappedOrigin(merged, targetTime: 55) == 85)
+    }
+
+    @Test("a window inside the promise keeps its own origin")
+    func cappedOriginLeavesShortWindowsAlone() {
+        #expect(SkipBackSubtitleWindow.cappedOrigin(100, targetTime: 90) == 100)
+    }
+
     // MARK: - Closing
 
     @Test("the window closes once playback reaches the origin")
