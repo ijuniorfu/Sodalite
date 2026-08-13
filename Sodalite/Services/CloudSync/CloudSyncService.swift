@@ -691,6 +691,19 @@ final class CloudSyncService: CloudSyncServiceProtocol {
                 if merged.entries != cloudReveals.entries { addPendingSave(recordName: name) }
                 return
             }
+            // Sodalite#50 follow-up: series rules are per entry as well, and "never veil this show"
+            // cannot be expressed by a union, so merge per key with the tombstone in the running.
+            if case .spoilerSeriesRules(let cloudRules) = cloud {
+                guard case .spoilerSeriesRules(let localRules) = dependencies.collectSettingsPayload(
+                    key, stamp: preferences.localStamp(for: name) ?? .distantPast
+                ) else { return }
+                let merged = CloudSyncMerge.mergeSpoilerSeriesRules(local: localRules, cloud: cloudRules)
+                dependencies.applySettingsPayload(.spoilerSeriesRules(merged))
+                lastSettingsSnapshot[key] = dependencies.collectSettingsPayload(key, stamp: .distantPast)
+                preferences.setLocalStamp(merged.updatedAt, for: name)
+                if merged.entries != cloudRules.entries { addPendingSave(recordName: name) }
+                return
+            }
             let localStamp = preferences.localStamp(for: name) ?? .distantPast
             if adopting || CloudSyncMerge.remoteWins(localUpdatedAt: localStamp, remoteUpdatedAt: cloud.updatedAt) {
                 dependencies.applySettingsPayload(cloud)
