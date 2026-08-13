@@ -1940,12 +1940,19 @@ final class PlayerViewModel {
     /// seek/producer-restart (device-confirmed). Keeping the rendition selected + rendering (transparent in
     /// fullscreen, where the on-frame overlay draws instead) keeps the renderer continuously attached, so it
     /// survives fullscreen<->PiP/external and seeks. `nil` = default AVKit legible styling (visible).
+    ///
+    /// Sodalite#65: the invisible rule was incomplete. Foreground and CharacterBackground only cover the
+    /// glyphs and the fill behind them; the box AROUND them is `kCMTextMarkupAttribute_BackgroundColorARGB`
+    /// ("the color applies to the geometry (e.g., a box) containing the text", CMTextMarkup.h), and it was
+    /// left at the renderer's default. When iOS turned captions on by itself (automatic captions on mute)
+    /// the result was an empty grey box over the frame: invisible text inside a box nobody had styled.
     func setNativeSubtitleRenditionVisible(_ visible: Bool) {
         guard Self.nativeSubtitleRenditionEnabled, let item = player.currentAVPlayer?.currentItem else { return }
         if visible {
             item.textStyleRules = nil
         } else if let transparent = AVTextStyleRule(textMarkupAttributes: [
             kCMTextMarkupAttribute_ForegroundColorARGB as String: [0.0, 0.0, 0.0, 0.0],
+            kCMTextMarkupAttribute_BackgroundColorARGB as String: [0.0, 0.0, 0.0, 0.0],
             kCMTextMarkupAttribute_CharacterBackgroundColorARGB as String: [0.0, 0.0, 0.0, 0.0]
         ]) {
             item.textStyleRules = [transparent]

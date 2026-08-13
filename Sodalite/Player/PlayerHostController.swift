@@ -179,6 +179,13 @@ final class PlayerHostController: AVPlayerViewController {
                     self.updatePiPAvailability()
                     #endif
                     self.observeAVKitRenderLayer(for: avPlayer)
+                    // Sodalite#65: textStyleRules are per ITEM, and every engine reload brings a new one, so
+                    // the invisible styling has to be re-applied on each rebind. Without it the item is only
+                    // styled when a subtitle pick happened to run, and anything that selects the rendition
+                    // behind our back (iOS automatic captions) draws a caption box in fullscreen.
+                    if !self.nativeSubtitleRenderingApplied {
+                        self.viewModel.setNativeSubtitleRenditionVisible(false)
+                    }
                     #if os(iOS)
                     self.observeExternalPlayback(for: avPlayer)
                     self.registerExternalScreenObservers()
