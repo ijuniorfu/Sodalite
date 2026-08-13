@@ -2657,6 +2657,12 @@ final class PlayerViewModel {
         flashHUD(seconds >= 0 ? .skipForward : .skipBackward)
     }
 
+    /// Same commit-immediately rule for the iPad keyboard's arrow tap, at the configured interval.
+    /// The HUD it flashes is also the only feedback there is, since the AVKit chrome is hidden.
+    func skipByConfiguredInterval(direction: Int) {
+        skip(by: Double((direction < 0 ? -1 : 1) * preferences.skipIntervalSeconds))
+    }
+
     func setBrightness(_ value: CGFloat) {
         let clamped = min(max(value, 0), 1)
         UIApplication.shared.connectedScenes
