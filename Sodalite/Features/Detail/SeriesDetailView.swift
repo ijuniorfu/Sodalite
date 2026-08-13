@@ -1153,18 +1153,26 @@ struct SeriesDetailView: View {
     }
 
     @ViewBuilder
-    /// Whole-section placeholder while getSeasons is in flight: skeleton season tabs above the episode skeleton row. Mirrors seasonSection's spacing/padding so the swap doesn't shift layout.
+    /// Whole-section placeholder while getSeasons is in flight: skeleton season tabs above the episode skeleton row. Mirrors seasonSection's ScrollView/spacing/padding so the swap doesn't shift layout.
     private func seasonSectionSkeleton(vm: DetailViewModel) -> some View {
         VStack(alignment: .leading, spacing: 20) {
-            HStack(spacing: 10) {
-                ForEach(0..<6, id: \.self) { _ in
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(Color.Theme.surface)
-                        .frame(width: 110, height: 52)
+            // Same horizontal ScrollView as the real season bar, and not just for the swap: six
+            // fixed 110pt tabs measure 742pt with the insets, so a bare HStack reports that width
+            // to the page even when the viewport proposes 402. The content column then takes 742,
+            // and every sibling (glass panel, action row, hero logo) is drawn at that width and
+            // clipped on both edges until the seasons land, roughly a second later. The action row
+            // stops wrapping too, since it suddenly has 710pt to fill.
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 10) {
+                    ForEach(0..<6, id: \.self) { _ in
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(Color.Theme.surface)
+                            .frame(width: 110, height: 52)
+                    }
                 }
+                .padding(.horizontal, metrics.rowInset)
+                .padding(.vertical, 12)
             }
-            .padding(.horizontal, metrics.rowInset)
-            .padding(.vertical, 12)
 
             episodeSkeletonRow(vm: vm)
         }
