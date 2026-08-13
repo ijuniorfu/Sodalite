@@ -128,4 +128,23 @@ enum CloudSyncMerge {
             entries: SpoilerRevealMemory.capped(byKey)
         )
     }
+
+    /// Sodalite#50 follow-up. Per key, newest entry wins, `standard` included: the tombstone has to
+    /// be able to beat an older rule, which is why it travels as a stored state rather than a
+    /// missing key. Ties keep the local side, matching `remoteWins`. The cap is re-applied so both
+    /// devices converge on one set.
+    static func mergeSpoilerSeriesRules(
+        local: SpoilerSeriesRulesPayload,
+        cloud: SpoilerSeriesRulesPayload
+    ) -> SpoilerSeriesRulesPayload {
+        var byKey = local.entries
+        for (key, entry) in cloud.entries {
+            if let existing = byKey[key], existing.updatedAt >= entry.updatedAt { continue }
+            byKey[key] = entry
+        }
+        return SpoilerSeriesRulesPayload(
+            updatedAt: max(local.updatedAt, cloud.updatedAt),
+            entries: SpoilerSeriesRules.capped(byKey)
+        )
+    }
 }

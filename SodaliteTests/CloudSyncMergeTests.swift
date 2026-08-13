@@ -205,4 +205,81 @@ struct CloudSyncMergeTests {
         #expect(payload.spoilerHideEpisodes == true)
         #expect(payload.spoilerHideMovies == false)
     }
+
+    // MARK: Per-series spoiler rules (Sodalite#50 follow-up)
+
+    private func rules(_ entries: [String: (SpoilerSeriesRule, Double)], at: Double) -> SpoilerSeriesRulesPayload {
+        SpoilerSeriesRulesPayload(
+            updatedAt: Date(timeIntervalSince1970: at),
+            entries: entries.mapValues {
+                SpoilerSeriesRuleEntry(rule: $0.0, updatedAt: Date(timeIntervalSince1970: $0.1))
+            }
+        )
+    }
+
+    @Test("series rules merge per key, both sides survive")
+    func seriesRulesMergePerKey() {
+        let merged = CloudSyncMerge.mergeSpoilerSeriesRules(
+            local: rules(["u1|a": (.hidden, 10)], at: 10),
+            cloud: rules(["u1|b": (.shown, 20)], at: 20)
+        )
+        #expect(merged.entries["u1|a"]?.rule == .hidden)
+        #expect(merged.entries["u1|b"]?.rule == .shown)
+        #expect(merged.updatedAt == Date(timeIntervalSince1970: 20))
+    }
+
+    @Test("the newer rule wins per key")
+    func newerRuleWins() {
+        let merged = CloudSyncMerge.mergeSpoilerSeriesRules(
+            local: rules(["u1|a": (.hidden, 10)], at: 10),
+            cloud: rules(["u1|a": (.shown, 20)], at: 20)
+        )
+        #expect(merged.entries["u1|a"]?.rule == .shown)
+    }
+
+    @Test("a newer standard tombstone clears an older rule")
+    func tombstoneClearsOlderRule() {
+        let merged = CloudSyncMerge.mergeSpoilerSeriesRules(
+            local: rules(["u1|a": (.hidden, 10)], at: 10),
+            cloud: rules(["u1|a": (.standard, 20)], at: 20)
+        )
+        #expect(merged.entries["u1|a"]?.rule == .standard)
+    }
+
+    @Test("an older tombstone does not clear a newer rule")
+    func olderTombstoneLoses() {
+        let merged = CloudSyncMerge.mergeSpoilerSeriesRules(
+            local: rules(["u1|a": (.hidden, 30)], at: 30),
+            cloud: rules(["u1|a": (.standard, 20)], at: 30)
+        )
+        #expect(merged.entries["u1|a"]?.rule == .hidden)
+    }
+
+    @Test("ties keep the local rule")
+    func tiesKeepLocal() {
+        let merged = CloudSyncMerge.mergeSpoilerSeriesRules(
+            local: rules(["u1|a": (.hidden, 10)], at: 10),
+            cloud: rules(["u1|a": (.shown, 10)], at: 10)
+        )
+        #expect(merged.entries["u1|a"]?.rule == .hidden)
+    }
+
+    @Test("the rule merge is capped so both devices converge")
+    func mergeReappliesCap() {
+        var local: [String: (SpoilerSeriesRule, Double)] = [:]
+        var cloud: [String: (SpoilerSeriesRule, Double)] = [:]
+        for i in 0..<SpoilerSeriesRules.maxEntries {
+            local["u1|l\(i)"] = (.hidden, Double(i))
+        }
+        for i in 0..<10 {
+            cloud["u1|c\(i)"] = (.shown, Double(1000 + i))
+        }
+        let merged = CloudSyncMerge.mergeSpoilerSeriesRules(
+            local: rules(local, at: 1),
+            cloud: rules(cloud, at: 2)
+        )
+        #expect(merged.entries.count == SpoilerSeriesRules.maxEntries)
+        #expect(merged.entries["u1|c9"] != nil)
+        #expect(merged.entries["u1|l0"] == nil)
+    }
 }

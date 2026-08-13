@@ -32,6 +32,7 @@ final class DependencyContainer {
     /// Remembered provider URLs for direct-played live channels, so a zap skips Jellyfin's tuner open.
     let liveDirectStreamMemory: LiveDirectStreamMemory
     let spoilerRevealMemory: SpoilerRevealMemory
+    let spoilerSeriesRules: SpoilerSeriesRules
     let storeKitService: StoreKitServiceProtocol
     let appearancePreferences: AppearancePreferences
     let authPreferences: AuthPreferences
@@ -124,6 +125,7 @@ final class DependencyContainer {
         self.trackSelectionMemory = TrackSelectionMemory()
         self.liveDirectStreamMemory = LiveDirectStreamMemory(keychain: keychainService)
         self.spoilerRevealMemory = SpoilerRevealMemory()
+        self.spoilerSeriesRules = SpoilerSeriesRules()
         self.storeKitService = StoreKitService()
         self.appearancePreferences = AppearancePreferences()
         self.authPreferences = AuthPreferences()
@@ -429,7 +431,8 @@ final class DependencyContainer {
             hideEpisodes: appearancePreferences.spoilerHideEpisodes,
             hideMovies: appearancePreferences.spoilerHideMovies,
             userID: userID ?? "",
-            revealedKeys: spoilerRevealMemory.revealedKeys
+            revealedKeys: spoilerRevealMemory.revealedKeys,
+            seriesOverrides: spoilerSeriesRules.overrides
         )
     }
 

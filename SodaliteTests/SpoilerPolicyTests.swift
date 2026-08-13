@@ -7,12 +7,14 @@ struct SpoilerPolicyTests {
     private func item(
         id: String = "i1",
         type: String = "Episode",
+        seriesID: String? = nil,
         played: Bool? = nil,
         percentage: Double? = nil,
         childCount: Int? = nil,
         unplayed: Int? = nil
     ) throws -> JellyfinItem {
         var json = #"{"Id":"\#(id)","Name":"N","Type":"\#(type)""#
+        if let seriesID { json += #","SeriesId":"\#(seriesID)""# }
         if let childCount { json += #","ChildCount":\#(childCount)"# }
         if played != nil || percentage != nil || unplayed != nil {
             var parts: [String] = []
@@ -29,14 +31,16 @@ struct SpoilerPolicyTests {
         enabled: Bool = true,
         episodes: Bool = true,
         movies: Bool = true,
-        revealed: Set<String> = []
+        revealed: Set<String> = [],
+        overrides: [String: Bool] = [:]
     ) -> SpoilerPolicy {
         SpoilerPolicy(
             enabled: enabled,
             hideEpisodes: episodes,
             hideMovies: movies,
             userID: "u1",
-            revealedKeys: revealed
+            revealedKeys: revealed,
+            seriesOverrides: overrides
         )
     }
 
@@ -150,5 +154,73 @@ struct SpoilerPolicyTests {
     func styleSurfaceMapping() {
         #expect(SpoilerVeilStyle.image.surface == .artwork)
         #expect(SpoilerVeilStyle.text.surface == .text)
+    }
+
+    // MARK: Per-series overrides
+
+    @Test("an override hides a show while the master switch is off")
+    func overrideHidesWithMasterOff() throws {
+        let p = policy(enabled: false, overrides: ["u1|s1": true])
+        #expect(p.isHidden(try item(seriesID: "s1")))
+        #expect(!p.isHidden(try item(id: "i2", seriesID: "s2")))
+    }
+
+    @Test("an override beats the per-kind switch too")
+    func overrideBeatsPerKindSwitch() throws {
+        #expect(policy(episodes: false, overrides: ["u1|s1": true]).isHidden(try item(seriesID: "s1")))
+    }
+
+    @Test("a show marked shown stays visible with everything on")
+    func shownOverrideWins() throws {
+        #expect(!policy(overrides: ["u1|s1": false]).isHidden(try item(seriesID: "s1")))
+    }
+
+    @Test("seasons follow their series rule")
+    func seasonFollowsSeriesRule() throws {
+        let p = policy(enabled: false, overrides: ["u1|s1": true])
+        #expect(p.isHidden(try item(id: "se1", type: "Season", seriesID: "s1")))
+    }
+
+    @Test("the series page itself is never veiled")
+    func seriesPageNeverVeiled() throws {
+        #expect(!policy(overrides: ["u1|s1": true]).isHidden(try item(id: "s1", type: "Series")))
+    }
+
+    @Test("watched still reveals under a hidden override")
+    func watchedBeatsOverride() throws {
+        let p = policy(enabled: false, overrides: ["u1|s1": true])
+        #expect(!p.isHidden(try item(seriesID: "s1", played: true)))
+        #expect(!p.isHidden(try item(id: "i2", seriesID: "s1", percentage: 12)))
+    }
+
+    @Test("a manual reveal still wins under a hidden override")
+    func revealBeatsOverride() throws {
+        let p = policy(enabled: false, revealed: ["u1|i1"], overrides: ["u1|s1": true])
+        #expect(!p.isHidden(try item(seriesID: "s1")))
+    }
+
+    @Test("an episode without a series id falls back to the global default")
+    func missingSeriesIDFallsBack() throws {
+        #expect(policy(overrides: ["u1|s1": false]).isHidden(try item()))
+        #expect(!policy(enabled: false, overrides: ["u1|s1": true]).isHidden(try item()))
+    }
+
+    @Test("movies ignore series overrides")
+    func moviesIgnoreOverrides() throws {
+        #expect(!policy(enabled: false, overrides: ["u1|m1": true]).isHidden(try item(id: "m1", type: "Movie")))
+    }
+
+    @Test("overrides are scoped per user")
+    func overridesAreScopedPerUser() throws {
+        #expect(!policy(enabled: false, overrides: ["u2|s1": true]).isHidden(try item(seriesID: "s1")))
+    }
+
+    @Test("the effective state drives the button label")
+    func effectiveStateForSeries() {
+        #expect(!policy(enabled: false).effectiveHidesSeries("s1"))
+        #expect(policy(enabled: false, overrides: ["u1|s1": true]).effectiveHidesSeries("s1"))
+        #expect(policy().effectiveHidesSeries("s1"))
+        #expect(!policy(overrides: ["u1|s1": false]).effectiveHidesSeries("s1"))
+        #expect(!policy(episodes: false).effectiveHidesSeries("s1"))
     }
 }

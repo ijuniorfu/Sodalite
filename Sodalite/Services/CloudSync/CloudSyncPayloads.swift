@@ -18,6 +18,7 @@ enum CloudSyncStoreKey: String, CaseIterable, Codable {
     case parentalControls
     case trackMemory
     case spoilerReveals
+    case spoilerSeriesRules
 }
 
 enum CloudSyncRecordName {
@@ -139,6 +140,15 @@ struct SpoilerRevealPayload: Codable, Equatable {
     var schemaVersion: Int = 1
     var updatedAt: Date
     var entries: [String: Date]
+}
+
+/// Sodalite#50 follow-up. Per entry like the reveals, but merged by
+/// `CloudSyncMerge.mergeSpoilerSeriesRules` rather than unioned: a union can only express "a rule
+/// exists", and `shown` is the absence of veiling.
+struct SpoilerSeriesRulesPayload: Codable, Equatable {
+    var schemaVersion: Int = 1
+    var updatedAt: Date
+    var entries: [String: SpoilerSeriesRuleEntry]
 }
 
 struct AppearanceSettingsPayload: Codable, Equatable {
@@ -267,7 +277,7 @@ struct SecuritySyncPayload: Codable, Equatable {
     var pinBlob: GuardianPINCrypto.Blob
 }
 
-/// Type-erased settings payload so the engine can treat all five stores uniformly.
+/// Type-erased settings payload so the engine can treat every settings store uniformly.
 enum SettingsSyncPayload: Equatable {
     case playback(PlaybackSettingsPayload)
     case appearance(AppearanceSettingsPayload)
@@ -276,6 +286,7 @@ enum SettingsSyncPayload: Equatable {
     case parentalControls(ParentalControlsSettingsPayload)
     case trackMemory(TrackMemoryPayload)
     case spoilerReveals(SpoilerRevealPayload)
+    case spoilerSeriesRules(SpoilerSeriesRulesPayload)
 
     var storeKey: CloudSyncStoreKey {
         switch self {
@@ -286,6 +297,7 @@ enum SettingsSyncPayload: Equatable {
         case .parentalControls: .parentalControls
         case .trackMemory: .trackMemory
         case .spoilerReveals: .spoilerReveals
+        case .spoilerSeriesRules: .spoilerSeriesRules
         }
     }
 
@@ -298,6 +310,7 @@ enum SettingsSyncPayload: Equatable {
         case .parentalControls(let p): p.updatedAt
         case .trackMemory(let t): t.updatedAt
         case .spoilerReveals(let s): s.updatedAt
+        case .spoilerSeriesRules(let r): r.updatedAt
         }
     }
 
@@ -314,6 +327,7 @@ enum SettingsSyncPayload: Equatable {
         case .parentalControls(let p): CloudSyncForwardCompat.storedPropertyNames(of: p)
         case .trackMemory(let t): CloudSyncForwardCompat.storedPropertyNames(of: t)
         case .spoilerReveals(let s): CloudSyncForwardCompat.storedPropertyNames(of: s)
+        case .spoilerSeriesRules(let r): CloudSyncForwardCompat.storedPropertyNames(of: r)
         }
     }
 
@@ -326,6 +340,7 @@ enum SettingsSyncPayload: Equatable {
         case .parentalControls(var p): p.updatedAt = stamp; return .parentalControls(p)
         case .trackMemory(var t): t.updatedAt = stamp; return .trackMemory(t)
         case .spoilerReveals(var s): s.updatedAt = stamp; return .spoilerReveals(s)
+        case .spoilerSeriesRules(var r): r.updatedAt = stamp; return .spoilerSeriesRules(r)
         }
     }
 
@@ -338,6 +353,7 @@ enum SettingsSyncPayload: Equatable {
         case .parentalControls(let p): try JSONEncoder().encode(p)
         case .trackMemory(let t): try JSONEncoder().encode(t)
         case .spoilerReveals(let s): try JSONEncoder().encode(s)
+        case .spoilerSeriesRules(let r): try JSONEncoder().encode(r)
         }
     }
 
@@ -350,6 +366,7 @@ enum SettingsSyncPayload: Equatable {
         case .parentalControls: .parentalControls(try JSONDecoder().decode(ParentalControlsSettingsPayload.self, from: data))
         case .trackMemory: .trackMemory(try JSONDecoder().decode(TrackMemoryPayload.self, from: data))
         case .spoilerReveals: .spoilerReveals(try JSONDecoder().decode(SpoilerRevealPayload.self, from: data))
+        case .spoilerSeriesRules: .spoilerSeriesRules(try JSONDecoder().decode(SpoilerSeriesRulesPayload.self, from: data))
         }
     }
 }
