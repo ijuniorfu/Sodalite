@@ -1017,7 +1017,7 @@ final class PlayerViewModel {
     /// Sodalite#32 / #34: gates serving the native WebVTT legible rendition. It exists so AVKit can
     /// render a real subtitle track itself whenever the video leaves the app's own view hierarchy (a PiP window,
     /// an AirPlay receiver, or a wired external display), where the host's on-frame overlay cannot draw. The
-    /// engine serves a DEFAULT=YES rendition with eager readers; the host selects it on those transitions and
+    /// engine serves DEFAULT=NO,AUTOSELECT=NO renditions with eager readers; the host selects one on those transitions and
     /// deselects it back in fullscreen, where the on-frame overlay owns subtitles. tvOS was overlay-only until
     /// tvOS PiP (2026-07-20); fullscreen stays overlay-owned on both platforms via the engine's #38
     /// deselect-at-load pin.
