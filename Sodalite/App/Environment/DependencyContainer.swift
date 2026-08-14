@@ -1268,13 +1268,16 @@ final class DependencyContainer {
 
             // Legacy bridge: persist a globally-restored session as a scoped copy, then retire the global entry (else a DIFFERENT scopeless profile inherits this cookie at a later cold launch).
             if scopedServer == nil, let jellyfinUserID, let jellyfinServerID {
-                try? saveSeerrSession(
+                let bridged = try? saveSeerrSession(
                     server: server,
                     forJellyfinUserID: jellyfinUserID,
                     jellyfinServerID: jellyfinServerID
                 )
-                try? keychainService.delete(for: KeychainKeys.seerrSession(serverID: server.id))
-                try? keychainService.delete(for: KeychainKeys.seerrServer)
+                // Retire the global entry only once the scoped copy exists; a failed write plus an unconditional delete drops the session entirely.
+                if bridged != nil {
+                    try? keychainService.delete(for: KeychainKeys.seerrSession(serverID: server.id))
+                    try? keychainService.delete(for: KeychainKeys.seerrServer)
+                }
             }
             return .connected(server: server, user: user)
         } catch let error as APIError where error.isUnauthorized {
