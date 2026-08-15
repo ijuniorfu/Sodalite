@@ -107,6 +107,10 @@ enum SkipBackSubtitleWindow {
     /// heard. Tracks that do state one are left out of this: a stated `eng` on a German channel is an
     /// answer, not a gap, and the strict rule above already had its say on it. Ranking is the same as
     /// everywhere else, so two unlabelled tracks resolve to the more useful one rather than the first.
+    ///
+    /// Shared with `SystemCaptionWindow` and with the live automatic pick in `applyPreferredSubtitle`,
+    /// which reaches the same dead end from the other side: a configured subtitle language that no
+    /// track on the channel states.
     static func bestUnlabelledSubtitle(streams: [MediaStream]) -> Int? {
         streams
             .filter { $0.type == .subtitle && PlayerViewModel.isLanguageUnknown($0.language) }

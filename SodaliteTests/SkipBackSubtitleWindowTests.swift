@@ -231,6 +231,20 @@ struct SkipBackSubtitleWindowTests {
             unlabelledCountsAsHeard: true) == 3)
     }
 
+    /// Used directly by the live automatic pick, so it is worth a test of its own rather than only
+    /// through `resolveTrack`.
+    @Test("the unlabelled pick ignores tracks that state a language")
+    func unlabelledPickSkipsTaggedTracks() {
+        let streams = [stream(index: 2, lang: "fr"), stream(index: 3, lang: nil)]
+        #expect(SkipBackSubtitleWindow.bestUnlabelledSubtitle(streams: streams) == 3)
+    }
+
+    @Test("nothing unlabelled means nothing to take")
+    func unlabelledPickResolvesToNothing() {
+        let streams = [stream(index: 2, lang: "fr"), stream(index: 3, lang: "en")]
+        #expect(SkipBackSubtitleWindow.bestUnlabelledSubtitle(streams: streams) == nil)
+    }
+
     /// VOD keeps the strict rule: a film with one unlabelled track switches nothing on.
     @Test("off live an unlabelled track is not taken")
     func vodLeavesUnlabelledTrackAlone() {

@@ -1874,10 +1874,23 @@ final class PlayerViewModel {
     /// 2. Else if `autoSubtitleForForeignAudio` and audio isn't the preferred language, surface subs
     ///    in the preferred audio language (the "Netflix convention").
     /// 3. No match → leave the current selection alone (may be a manual user pick).
+    ///
+    /// Live has one exception, on the first rule only: a broadcast subtitle stream routinely states
+    /// no language, so a configured language matches nothing on the channels that do carry subtitles.
+    /// An unlabelled track is then taken to be the broadcast's own, the same reading the temporary
+    /// windows use. It stays tied to the explicit setting, i.e. to someone having asked for subtitles
+    /// in the first place: rule 2 fires on foreign audio, which an untagged track cannot establish,
+    /// and switching subtitles on for a viewer who configured nothing would be an answer to a
+    /// question nobody asked.
     private func applyPreferredSubtitle(forAudioLanguage audioLanguage: String?) {
         if let explicit = preferences.preferredSubtitleLanguage {
             if let match = bestSubtitleMatch(forLanguage: explicit) {
                 selectSubtitleTrack(id: match.index)
+            } else if isLiveSession,
+                      let unlabelled = SkipBackSubtitleWindow.bestUnlabelledSubtitle(streams: subtitleStreams) {
+                LogTap.shared.note(
+                    "[LiveSubs] no track in \(explicit), taking unlabelled stream \(unlabelled)")
+                selectSubtitleTrack(id: unlabelled)
             }
             return
         }
