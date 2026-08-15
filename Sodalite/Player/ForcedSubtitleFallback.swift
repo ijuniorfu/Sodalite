@@ -84,7 +84,6 @@ enum ForcedSubtitleFallback {
     }
 
     private static func isLanguageUnknown(_ language: String?) -> Bool {
-        guard let language, !language.isEmpty else { return true }
-        return language.lowercased() == "und"
+        PlayerViewModel.isLanguageUnknown(language)
     }
 }

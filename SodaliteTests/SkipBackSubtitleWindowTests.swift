@@ -185,4 +185,57 @@ struct SkipBackSubtitleWindowTests {
         #expect(SkipBackSubtitleWindow.resolveTrack(
             streams: streams, preferredSubtitleLanguage: nil, audioLanguage: "en") == 3)
     }
+
+    // MARK: - Track resolution on live
+
+    /// The live case this exists for: a German channel carrying one subtitle stream that says `und`.
+    @Test("on live an unlabelled track counts as the language being heard")
+    func liveTakesTheUnlabelledTrack() {
+        let streams = [stream(index: 2, codec: "dvb_teletext", lang: "und")]
+        #expect(SkipBackSubtitleWindow.resolveTrack(
+            streams: streams, preferredSubtitleLanguage: "de", audioLanguage: "deu",
+            unlabelledCountsAsHeard: true) == 2)
+    }
+
+    @Test("a missing language tag is unlabelled too")
+    func liveTakesTheUntaggedTrack() {
+        let streams = [stream(index: 2, lang: nil)]
+        #expect(SkipBackSubtitleWindow.resolveTrack(
+            streams: streams, preferredSubtitleLanguage: nil, audioLanguage: "deu",
+            unlabelledCountsAsHeard: true) == 2)
+    }
+
+    /// A stated language is an answer, not a gap: the strict rule above already refused it.
+    @Test("a track that states a foreign language is left alone on live too")
+    func liveLeavesTaggedForeignTrackAlone() {
+        let streams = [stream(index: 2, lang: "fr")]
+        #expect(SkipBackSubtitleWindow.resolveTrack(
+            streams: streams, preferredSubtitleLanguage: "de", audioLanguage: "deu",
+            unlabelledCountsAsHeard: true) == nil)
+    }
+
+    @Test("a matching language still wins over an unlabelled track")
+    func liveStillPrefersTheMatch() {
+        let streams = [stream(index: 2, lang: "und"), stream(index: 3, lang: "de")]
+        #expect(SkipBackSubtitleWindow.resolveTrack(
+            streams: streams, preferredSubtitleLanguage: "de", audioLanguage: "deu",
+            unlabelledCountsAsHeard: true) == 3)
+    }
+
+    @Test("two unlabelled tracks resolve by the same ranking as everywhere else")
+    func liveRanksUnlabelledTracks() {
+        let streams = [stream(index: 2, lang: "und", title: "SDH"),
+                       stream(index: 3, lang: "und")]
+        #expect(SkipBackSubtitleWindow.resolveTrack(
+            streams: streams, preferredSubtitleLanguage: nil, audioLanguage: "deu",
+            unlabelledCountsAsHeard: true) == 3)
+    }
+
+    /// VOD keeps the strict rule: a film with one unlabelled track switches nothing on.
+    @Test("off live an unlabelled track is not taken")
+    func vodLeavesUnlabelledTrackAlone() {
+        let streams = [stream(index: 2, lang: "und")]
+        #expect(SkipBackSubtitleWindow.resolveTrack(
+            streams: streams, preferredSubtitleLanguage: "de", audioLanguage: "deu") == nil)
+    }
 }

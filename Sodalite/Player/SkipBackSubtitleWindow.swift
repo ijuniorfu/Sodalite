@@ -86,14 +86,32 @@ enum SkipBackSubtitleWindow {
     /// Preferred subtitle language first, then the language being heard. A preferred language with no
     /// matching track falls through rather than giving up: the point of the window is reading back the
     /// dialogue that just played. Nothing matching resolves to nil, never to an arbitrary first track.
+    ///
+    /// `unlabelledCountsAsHeard` is the live exception, see `bestUnlabelledSubtitle`.
     static func resolveTrack(streams: [MediaStream], preferredSubtitleLanguage: String?,
-                             audioLanguage: String?) -> Int? {
+                             audioLanguage: String?, unlabelledCountsAsHeard: Bool = false) -> Int? {
         if let preferred = preferredSubtitleLanguage,
            let match = bestSubtitle(streams: streams, language: preferred) {
             return match
         }
-        guard let audioLanguage else { return nil }
-        return bestSubtitle(streams: streams, language: audioLanguage)
+        if let audioLanguage, let match = bestSubtitle(streams: streams, language: audioLanguage) {
+            return match
+        }
+        guard unlabelledCountsAsHeard else { return nil }
+        return bestUnlabelledSubtitle(streams: streams)
+    }
+
+    /// Live TV: broadcasters tag their subtitle stream `und`, or nothing at all, as a matter of
+    /// routine, so a language match finds nothing on exactly the channels this is meant for. A track
+    /// that states no language is read as the language of the broadcast, which is the language being
+    /// heard. Tracks that do state one are left out of this: a stated `eng` on a German channel is an
+    /// answer, not a gap, and the strict rule above already had its say on it. Ranking is the same as
+    /// everywhere else, so two unlabelled tracks resolve to the more useful one rather than the first.
+    static func bestUnlabelledSubtitle(streams: [MediaStream]) -> Int? {
+        streams
+            .filter { $0.type == .subtitle && PlayerViewModel.isLanguageUnknown($0.language) }
+            .min(by: { PlayerViewModel.subtitleAutoPickRank($0) < PlayerViewModel.subtitleAutoPickRank($1) })?
+            .index
     }
 
     /// Shared with `SystemCaptionWindow`, which resolves the language the system picked the same way.

@@ -53,13 +53,16 @@ enum SystemCaptionWindow {
     /// locale, so "my language" needs nothing configured to work.
     static func resolveTrack(streams: [MediaStream], requestedLanguage: String?,
                              preferredSubtitleLanguage: String?, preferredLanguage: String?,
-                             audioLanguage: String?) -> Int? {
+                             audioLanguage: String?, unlabelledCountsAsHeard: Bool = false) -> Int? {
         let candidates = [preferredSubtitleLanguage, preferredLanguage, audioLanguage, requestedLanguage]
         for language in candidates.compactMap({ $0 }) {
             if let match = SkipBackSubtitleWindow.bestSubtitle(streams: streams, language: language) {
                 return match
             }
         }
-        return nil
+        // Same live exception as the skip-back window: a broadcast subtitle stream routinely states
+        // no language, and four candidate languages match none of them.
+        guard unlabelledCountsAsHeard else { return nil }
+        return SkipBackSubtitleWindow.bestUnlabelledSubtitle(streams: streams)
     }
 }

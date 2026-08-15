@@ -2096,6 +2096,15 @@ final class PlayerViewModel {
 
     /// Loose language-tag comparison so settings ("ger"), container metadata ("deu"), and BCP-47 ("de")
     /// line up; without it auto-subtitles silently failed when codes differed in format.
+    /// Whether a track states no language at all: nil, empty, or `und`, the ISO code for undetermined
+    /// (the container saying it does not know). Broadcasters tag live streams that way routinely, so
+    /// the answer decides real behaviour rather than only a label. One description, because three
+    /// call sites had grown their own identical copy of it.
+    static func isLanguageUnknown(_ language: String?) -> Bool {
+        guard let language, !language.isEmpty else { return true }
+        return language.lowercased() == "und"
+    }
+
     static func languagesMatch(_ a: String?, _ b: String?) -> Bool {
         guard let a = a?.lowercased(), let b = b?.lowercased() else { return false }
         if a == b { return true }
@@ -2382,7 +2391,8 @@ final class PlayerViewModel {
         guard let streamIndex = SkipBackSubtitleWindow.resolveTrack(
             streams: subtitleStreams,
             preferredSubtitleLanguage: preferences.preferredSubtitleLanguage,
-            audioLanguage: audioLanguage
+            audioLanguage: audioLanguage,
+            unlabelledCountsAsHeard: isLiveSession
         ) else { return }
 
         // userInitiated stays false: this is an automatic pick, and recording it would bake a
@@ -2424,7 +2434,8 @@ final class PlayerViewModel {
             requestedLanguage: request.language,
             preferredSubtitleLanguage: preferences.preferredSubtitleLanguage,
             preferredLanguage: effectivePreferredAudioLanguage(),
-            audioLanguage: audioLanguage
+            audioLanguage: audioLanguage,
+            unlabelledCountsAsHeard: isLiveSession
         ) else { return }
 
         // userInitiated stays false: an automatic pick, and recording it would bake a temporary

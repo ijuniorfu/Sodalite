@@ -108,6 +108,25 @@ struct SystemCaptionWindowTests {
             preferredSubtitleLanguage: nil, preferredLanguage: "ja", audioLanguage: "ja") == nil)
     }
 
+    /// Same live exception as the skip-back window: a broadcast subtitle stream states no language,
+    /// so none of the four candidate languages can match it.
+    @Test("on live an unlabelled track counts as the language being heard")
+    func liveTakesTheUnlabelledTrack() {
+        let streams = [stream(index: 1, codec: "dvb_teletext", lang: "und")]
+        #expect(SystemCaptionWindow.resolveTrack(
+            streams: streams, requestedLanguage: "en",
+            preferredSubtitleLanguage: nil, preferredLanguage: "de", audioLanguage: "deu",
+            unlabelledCountsAsHeard: true) == 1)
+    }
+
+    @Test("off live an unlabelled track is not taken")
+    func vodLeavesUnlabelledTrackAlone() {
+        let streams = [stream(index: 1, lang: "und")]
+        #expect(SystemCaptionWindow.resolveTrack(
+            streams: streams, requestedLanguage: "en",
+            preferredSubtitleLanguage: nil, preferredLanguage: "de", audioLanguage: "deu") == nil)
+    }
+
     @Test("a full track beats an SDH or forced one in the chosen language")
     func picksTheMostUsefulTrack() {
         let streams = [

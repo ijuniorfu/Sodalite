@@ -151,8 +151,7 @@ enum TrackSelectionMatcher {
     }
 
     private static func isUnknown(_ language: String?) -> Bool {
-        guard let language, !language.isEmpty else { return true }
-        return language.lowercased() == "und"
+        PlayerViewModel.isLanguageUnknown(language)
     }
 
     /// Highest score wins; equal scores break on the lowest index so the pick is stable.
