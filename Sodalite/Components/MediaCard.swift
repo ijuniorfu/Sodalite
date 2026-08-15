@@ -16,6 +16,10 @@ struct MediaCard: View {
     /// Passed explicitly because tvOS's `@Environment(\.isFocused)` doesn't propagate reliably through Button labels; caller forwards from `FocusableCard` or a `@FocusState` match.
     let isFocused: Bool
 
+    /// Sodalite#66. Set where the row paints show-level art (Continue Watching on Backdrop or
+    /// Thumb): a series backdrop is marketing art, so the spoiler veil stays off the image.
+    let showsSeriesArtwork: Bool
+
     @Environment(\.dependencies) private var dependencies
     @Environment(\.horizontalSizeClass) private var hSizeClass
 
@@ -34,13 +38,15 @@ struct MediaCard: View {
         imageURL: URL?,
         fallbackURL: URL? = nil,
         style: MediaCardStyle = .poster,
-        isFocused: Bool = false
+        isFocused: Bool = false,
+        showsSeriesArtwork: Bool = false
     ) {
         self.item = item
         self.imageURL = imageURL
         self.fallbackURL = fallbackURL
         self.style = style
         self.isFocused = isFocused
+        self.showsSeriesArtwork = showsSeriesArtwork
     }
 
     var body: some View {
@@ -68,7 +74,7 @@ struct MediaCard: View {
         .frame(width: cardWidth, height: cardHeight)
         // Sodalite#50: before the clip so the blur cannot bleed past the tile edge. No type check
         // here, the policy already passes everything that is not an unseen episode or movie.
-        .spoilerVeil(for: item, style: .image)
+        .spoilerVeil(for: item, style: .image, veils: !showsSeriesArtwork)
         .clipShape(RoundedRectangle(cornerRadius: 12))
         .overlay(alignment: .bottom) {
             progressOverlay

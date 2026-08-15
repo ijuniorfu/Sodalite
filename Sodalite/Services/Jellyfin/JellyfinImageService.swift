@@ -85,6 +85,15 @@ final class JellyfinImageService {
         return imageURL(itemID: seriesId, imageType: .backdrop, tag: tag, maxWidth: maxWidth)
     }
 
+    /// Sodalite#66. Show-level art only: the series backdrop, else the series poster. Never the
+    /// item's own still or backdrop, so a veiled episode can be painted unblurred wherever the
+    /// user asked for show art (Continue Watching set to Backdrop or Thumb).
+    func seriesArtworkURL(for item: JellyfinItem, maxWidth: Int = 720) -> URL? {
+        if let url = parentBackdropURL(for: item, maxWidth: maxWidth) { return url }
+        guard let seriesId = item.seriesId, let tag = item.seriesPrimaryImageTag else { return nil }
+        return imageURL(itemID: seriesId, imageType: .primary, tag: tag, maxWidth: maxWidth)
+    }
+
     /// Episode thumbnail fallback chain: own primary → own thumb → own backdrop → series backdrop → series poster.
     func episodeThumbnailURL(for item: JellyfinItem, maxWidth: Int = 640) -> URL? {
         if let tag = item.imageTags?.primary {

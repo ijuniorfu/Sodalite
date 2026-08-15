@@ -28,7 +28,20 @@ struct SpoilerSurfaceTests {
     @Test("the shared media card veils episode art")
     func mediaCardVeiled() throws {
         let source = try sourceFile("Sodalite/Components/MediaCard.swift")
-        #expect(source.contains(".spoilerVeil(for: item, style: .image)"))
+        #expect(source.contains(".spoilerVeil(for: item, style: .image, veils: !showsSeriesArtwork)"))
+    }
+
+    /// Sodalite#66. Two halves of one decision: Home marks the item so its URL chain stays on show
+    /// art, and the row drops the blur. If only the second half survived a refactor, the card would
+    /// paint an unblurred episode still.
+    @Test("Home hands the spoiler decision to both the URL chain and the row")
+    func homePassesSeriesArtwork() throws {
+        let source = try sourceFile("Sodalite/Features/Home/HomeView.swift")
+        #expect(source.contains("func needsSpoilerSafeArtwork("))
+        #expect(source.contains("spoilerSafe: needsSpoilerSafeArtwork("))
+        #expect(source.contains("showsSeriesArtwork: cwImage != .still"))
+        let row = try sourceFile("Sodalite/Components/HorizontalMediaRow.swift")
+        #expect(row.contains("showsSeriesArtwork: showsSeriesArtwork"))
     }
 
     @Test("the expandable text box takes an optional spoiler item and reveals first")

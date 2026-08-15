@@ -264,10 +264,14 @@ final class HomeViewModel {
         }
     }
 
+    /// Sodalite#66. `spoilerSafe` marks an item the veil would blur under the Backdrop and Thumb
+    /// options, where the user asked for show art rather than the episode's own frame. Those two
+    /// chains then stay on show-level art, which carries no plot, and the card drops the blur.
     func imageURL(
         for item: JellyfinItem,
         rowType: HomeRowType,
-        cwImage: AppearancePreferences.ContinueWatchingImage = .still
+        cwImage: AppearancePreferences.ContinueWatchingImage = .still,
+        spoilerSafe: Bool = false
     ) -> URL? {
         guard rowType.usesBackdrop else {
             return imageService.posterURL(for: item)
@@ -281,22 +285,34 @@ final class HomeViewModel {
             // to avoid decoding an 8MB backdrop into a small cell and thrashing the cache.
             return imageService.backdropURL(for: item, maxWidth: 720) ?? imageService.posterURL(for: item)
         case .backdrop:
+            if spoilerSafe {
+                return imageService.seriesArtworkURL(for: item, maxWidth: 720)
+            }
             return imageService.backdropURL(for: item, maxWidth: 720)
                 ?? imageService.episodeThumbnailURL(for: item)
                 ?? imageService.posterURL(for: item)
         case .thumb:
             // Series Thumb by series id (tagless); paired with fallbackImageURL so a Thumb-less show degrades.
-            let id = (item.type == .episode ? item.seriesId : nil) ?? item.id
-            return imageService.imageURL(itemID: id, imageType: .thumb, maxWidth: 720)
+            let seriesID = item.type == .episode ? item.seriesId : nil
+            if spoilerSafe {
+                // Without a series id the item's own Thumb is the still again, so show art only.
+                guard let seriesID else { return imageService.seriesArtworkURL(for: item, maxWidth: 720) }
+                return imageService.imageURL(itemID: seriesID, imageType: .thumb, maxWidth: 720)
+            }
+            return imageService.imageURL(itemID: seriesID ?? item.id, imageType: .thumb, maxWidth: 720)
         }
     }
 
     /// Fallback under the Thumb option so a Thumb-less show degrades to backdrop/still. Nil for the other options (their primary URL already chains).
     func fallbackImageURL(
         for item: JellyfinItem,
-        cwImage: AppearancePreferences.ContinueWatchingImage
+        cwImage: AppearancePreferences.ContinueWatchingImage,
+        spoilerSafe: Bool = false
     ) -> URL? {
         guard cwImage == .thumb else { return nil }
+        if spoilerSafe {
+            return imageService.seriesArtworkURL(for: item)
+        }
         return imageService.backdropURL(for: item)
             ?? imageService.episodeThumbnailURL(for: item)
             ?? imageService.posterURL(for: item)

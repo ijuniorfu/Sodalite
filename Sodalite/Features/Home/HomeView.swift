@@ -153,6 +153,19 @@ struct HomeView: View {
         }
     }
 
+    /// Sodalite#66. True for an item the veil would blur while the row is showing show-level art
+    /// (Continue Watching on Backdrop or Thumb). Its chain then stays off the episode's own still,
+    /// and the card shows the show art unblurred: a backdrop is marketing art, not a plot point.
+    private func needsSpoilerSafeArtwork(
+        _ item: JellyfinItem,
+        cwImage: AppearancePreferences.ContinueWatchingImage
+    ) -> Bool {
+        guard cwImage != .still else { return false }
+        return SpoilerReveal.isHidden(
+            item, dependencies: dependencies, appState: appState, surface: .artwork
+        )
+    }
+
     /// Hand the loaded rows' artwork URLs to `ImageCache.prefetch` so first focus doesn't pay round-trip + decode. Mirrors `SearchView.prefetchSearchPosters`: cached URLs are skipped and the fan-out is bounded, so it never starves foreground fetches. Reuses `vm.imageURL` so prefetched URLs match exactly what the cards request.
     private func prefetchHomePosters(_ vm: HomeViewModel) {
         var urls: [URL] = []
@@ -161,7 +174,10 @@ struct HomeView: View {
                 ? dependencies.appearancePreferences.continueWatchingImage
                 : .still
             for item in row.items {
-                if let url = vm.imageURL(for: item, rowType: row.type, cwImage: cwImage) {
+                let spoilerSafe = needsSpoilerSafeArtwork(item, cwImage: cwImage)
+                if let url = vm.imageURL(
+                    for: item, rowType: row.type, cwImage: cwImage, spoilerSafe: spoilerSafe
+                ) {
                     urls.append(url)
                 }
             }
@@ -198,12 +214,26 @@ struct HomeView: View {
                                 )
                                 : nil,
                             items: row.items,
-                            imageURLProvider: { vm.imageURL(for: $0, rowType: row.type, cwImage: cwImage) },
+                            imageURLProvider: {
+                                vm.imageURL(
+                                    for: $0,
+                                    rowType: row.type,
+                                    cwImage: cwImage,
+                                    spoilerSafe: needsSpoilerSafeArtwork($0, cwImage: cwImage)
+                                )
+                            },
                             fallbackURLProvider: cwImage == .thumb
-                                ? { vm.fallbackImageURL(for: $0, cwImage: cwImage) }
+                                ? {
+                                    vm.fallbackImageURL(
+                                        for: $0,
+                                        cwImage: cwImage,
+                                        spoilerSafe: needsSpoilerSafeArtwork($0, cwImage: cwImage)
+                                    )
+                                }
                                 : nil,
                             onItemSelected: { selectedItem = $0 },
-                            cardStyle: row.type.cardStyle
+                            cardStyle: row.type.cardStyle,
+                            showsSeriesArtwork: cwImage != .still
                         )
                         .focused($focusedRowIndex, equals: idx)
 

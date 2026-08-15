@@ -69,6 +69,9 @@ private struct SpoilerVeilModifier: ViewModifier {
 private struct SpoilerItemVeilModifier: ViewModifier {
     let item: JellyfinItem
     let style: SpoilerVeilStyle
+    /// Sodalite#66. Off where the caller already replaced the artwork with something that carries
+    /// no plot, so blurring it would hide nothing and only cost the user the art.
+    let veils: Bool
 
     @Environment(\.dependencies) private var dependencies
     @Environment(\.appState) private var appState
@@ -76,7 +79,7 @@ private struct SpoilerItemVeilModifier: ViewModifier {
     func body(content: Content) -> some View {
         content.modifier(
             SpoilerVeilModifier(
-                isHidden: SpoilerReveal.isHidden(
+                isHidden: veils && SpoilerReveal.isHidden(
                     item,
                     dependencies: dependencies,
                     appState: appState,
@@ -90,8 +93,9 @@ private struct SpoilerItemVeilModifier: ViewModifier {
 
 extension View {
     /// Veils this view when the item is an unseen episode or movie under the user's settings.
-    func spoilerVeil(for item: JellyfinItem, style: SpoilerVeilStyle) -> some View {
-        modifier(SpoilerItemVeilModifier(item: item, style: style))
+    /// `veils: false` opts a call site out, for artwork that is not the item's own (Sodalite#66).
+    func spoilerVeil(for item: JellyfinItem, style: SpoilerVeilStyle, veils: Bool = true) -> some View {
+        modifier(SpoilerItemVeilModifier(item: item, style: style, veils: veils))
     }
 
     /// Veils on a decision the caller already made, for surfaces outside the environment: the
