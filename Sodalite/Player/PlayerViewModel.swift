@@ -712,6 +712,7 @@ final class PlayerViewModel {
                 // the call that used to sit here resolved over an empty array and did nothing. The
                 // $subtitleTracks sink in startObserving owns it, and re-arms per channel.
                 resetLiveSubtitleAutoSelect()
+                resetTemporarySubtitleWindows()
                 hostLoadActive = false
                 isPlaying = true
                 startObserving()
@@ -941,10 +942,7 @@ final class PlayerViewModel {
             // rendition is served but stays UNSELECTED here; it is selected only when the video leaves the app
             // (PiP / external display, #32 / #34), so the two never double up. Fullscreen behaviour is identical to main.
             resetNativeSubtitleRenderingState()
-            pendingSkipBackOrigin = nil
-            skipBackBurstOrigin = nil
-            skipBackSubtitleWindow = nil
-            endSystemCaptionWindow(restoringSubtitles: false)
+            resetTemporarySubtitleWindows()
             resolveInitialTracks(audioLanguage: chosenAudio?.language)
             applyForcedSubtitleFallback()
 
@@ -2459,6 +2457,21 @@ final class PlayerViewModel {
             guard self.activeSubtitleIndex == window.streamIndex else { return }
             self.selectSubtitleTrack(id: nil)
         }
+    }
+
+    /// Sodalite#63 / #65: drop the temporary subtitle windows for a session that is about to start.
+    /// Both load paths run it, and that is the point: the live branch returns before the shared block
+    /// below, so a window opened before a channel zap used to survive into the next channel. It then
+    /// measures a landing on a clock that restarted, fails the 30 s promise on the first skip back
+    /// there, and switches the new channel's subtitles off out of nowhere (engine stream indices are
+    /// small and repeat across channels, so the "only switch off my own track" guard does not catch
+    /// it). Nothing is deselected here: the incoming session resolves its own tracks right after.
+    func resetTemporarySubtitleWindows() {
+        pendingSkipBackOrigin = nil
+        skipBackBurstOrigin = nil
+        skipBackSubtitleWindow = nil
+        lastBackwardJumpAt = nil
+        endSystemCaptionWindow(restoringSubtitles: false)
     }
 
     private func endSkipBackSubtitleWindow() {
