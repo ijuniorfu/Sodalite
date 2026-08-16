@@ -73,11 +73,14 @@ enum DirectPlayProfile {
             // question is no longer "does the table name it" but "can the
             // bundled build decode it". Listing them stops Jellyfin transcoding
             // XVID/DivX, MPEG-2 remuxes, VC-1 BD rips and qtrle screen grabs.
+            // The msmpeg4 / wmv family arrived with FFmpegBuild 2.4.3. wmv3 is
+            // listed for its Matroska remuxes only: asf is not a container this
+            // build can demux, so it is deliberately absent from Container above.
             "DirectPlayProfiles": [
                 [
                     "Container": "mp4,m4v,mov,mkv,matroska,avi,mpegts,ts,m2ts,mts,3gp,3g2,vob,ogg,webm,flv",
                     "Type": "Video",
-                    "VideoCodec": "h264,hevc,av1,vp9,vp8,mpeg4,mpeg2video,vc1,qtrle",
+                    "VideoCodec": "h264,hevc,av1,vp9,vp8,mpeg4,mpeg2video,vc1,qtrle,msmpeg4v1,msmpeg4v2,msmpeg4v3,wmv1,wmv2,wmv3",
                     // DTS spelled every way Jellyfin reports it (dts/dca/dts-hd
                     // vary by build) so it won't transcode DTS-HD MA over a
                     // string mismatch. mp2 pairs with MPEG-2 (broadcast/VOB).
