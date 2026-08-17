@@ -1211,6 +1211,13 @@ final class PlayerViewModel {
                 case .seeking:
                     break
                 case .error(let msg):
+                    // Read before anything branches: the engine assigns `errorInfo` ahead of `state`
+                    // precisely so a `$state` sink can pick the classification up synchronously
+                    // (AetherEngine#376), and the next state move clears it again.
+                    let info = self.player.errorInfo
+                    LogTap.shared.note(
+                        PlayerEngineErrorPresentation.logLine(for: info, engineMessage: msg)
+                    )
                     if self.isLiveSession, self.liveFirstPlayingAt == nil,
                        self.usedDirectLivePath, !self.didAttemptLiveFallback {
                         // Direct session died before first frame: consume the once-per-session fallback via
@@ -1219,15 +1226,16 @@ final class PlayerViewModel {
                         self.handleLiveSourceReset()
                     } else if self.isLiveSession, self.liveFirstPlayingAt == nil {
                         // Live channel died before ever playing: friendly "unavailable" message ("Playback
-                        // stopped" + raw text is for sessions that actually ran).
-                        self.setLiveChannelUnavailableError()
+                        // stopped" + raw text is for sessions that actually ran), unless the engine named
+                        // something better.
+                        self.setLiveChannelUnavailableError(info: info)
                     } else if self.isLiveSession {
                         // Mid-session live error: retune (recoverable like a source reset); the retune guard
                         // surfaces a friendly error once attempts are exhausted.
                         LogTap.shared.note("[Live] route=retune reason=engine_error_mid_session(\(msg))")
                         self.handleLiveSourceReset()
                     } else {
-                        self.setEnginePlaybackError(message: msg)
+                        self.setEnginePlaybackError(message: msg, info: info)
                     }
                 }
             }
@@ -1650,27 +1658,34 @@ final class PlayerViewModel {
 
     /// Friendly trio for a live channel the server can't deliver (dead upstream); covers engine-level
     /// open failures where the raw message would be noise. Network/auth APIErrors keep setError(from:).
-    func setLiveChannelUnavailableError() {
-        errorIcon = "tv.slash"
-        errorTitle = String(
-            localized: "player.error.liveUnavailable.title",
-            defaultValue: "Channel unavailable"
+    ///
+    /// "Unavailable" is the fallback, not the verdict: where the engine typed the failure, that naming wins
+    /// (a refusal and an origin out of connection slots are not the channel being off the air).
+    func setLiveChannelUnavailableError(info: PlaybackErrorInfo? = nil) {
+        let trio = PlayerEngineErrorPresentation.trio(
+            for: PlayerEngineErrorPresentation.liveFace(for: info),
+            engineMessage: ""
         )
-        errorMessage = String(
-            localized: "player.error.liveUnavailable.body",
-            defaultValue: "The server could not open this channel's stream. The channel's source may be offline. Try again later."
-        )
+        errorIcon = trio.icon
+        errorTitle = trio.title
+        errorMessage = trio.message
     }
 
-    /// Engine-side terminal error mid-playback (decoder/renderer death, network drop after handoff);
-    /// headline reads as "stopped" since playback was actually running, unlike start-up errors.
-    func setEnginePlaybackError(message: String) {
-        errorIcon = "exclamationmark.triangle"
-        errorTitle = String(
-            localized: "player.error.playback.title",
-            defaultValue: "Playback stopped"
+    /// Engine-side terminal error mid-playback (decoder/renderer death, network drop after handoff).
+    ///
+    /// With an `info` the host writes its own localized sentence for the failures it can name (a refused
+    /// stream, a missing file, a metered origin, Dolby Vision this device cannot decode); without one, or
+    /// for a kind this build does not recognise, the headline reads "stopped" and the engine's own text
+    /// stays the body, which is also what the two live call sites want, since they pass a sentence they
+    /// already localized themselves.
+    func setEnginePlaybackError(message: String, info: PlaybackErrorInfo? = nil) {
+        let trio = PlayerEngineErrorPresentation.trio(
+            for: PlayerEngineErrorPresentation.face(for: info),
+            engineMessage: message
         )
-        errorMessage = message
+        errorIcon = trio.icon
+        errorTitle = trio.title
+        errorMessage = trio.message
     }
 
     // MARK: - Source outage

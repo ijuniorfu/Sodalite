@@ -105017,6 +105017,330 @@
         }
       }
     },
+    "player.error.dolbyVision.body" : {
+      "comment" : "Error body when the device cannot decode the source's Dolby Vision profile",
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toto zařízení neumí dekódovat tuto verzi Dolby Vision. Přehraje ji jiná verze souboru nebo zařízení s podporou Dolby Vision."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Denne enhed kan ikke afkode denne Dolby Vision-version. En anden version af filen, eller en enhed med Dolby Vision-understøttelse, kan afspille den."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dieses Gerät kann diese Dolby-Vision-Fassung nicht dekodieren. Eine andere Fassung der Datei oder ein Gerät mit Dolby-Vision-Unterstützung spielt sie ab."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Αυτή η συσκευή δεν μπορεί να αποκωδικοποιήσει αυτή την έκδοση Dolby Vision. Θα την αναπαραγάγει μια άλλη έκδοση του αρχείου ή μια συσκευή με υποστήριξη Dolby Vision."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This device cannot decode this Dolby Vision version. A different version of the file, or a device with Dolby Vision support, will play it."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Este dispositivo no puede decodificar esta versión de Dolby Vision. La reproducirá otra versión del archivo o un dispositivo compatible con Dolby Vision."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tämä laite ei osaa purkaa tätä Dolby Vision -versiota. Sen toistaa tiedoston toinen versio tai laite, joka tukee Dolby Visionia."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cet appareil ne peut pas décoder cette version Dolby Vision. Une autre version du fichier, ou un appareil compatible Dolby Vision, la lira."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ovaj uređaj ne može dekodirati ovu Dolby Vision verziju. Reproducirat će je druga verzija datoteke ili uređaj s podrškom za Dolby Vision."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ez az eszköz nem tudja dekódolni ezt a Dolby Vision változatot. A fájl másik változata vagy egy Dolby Vision támogatással rendelkező eszköz lejátssza."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Questo dispositivo non può decodificare questa versione Dolby Vision. La riprodurrà un'altra versione del file o un dispositivo con supporto Dolby Vision."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "このデバイスはこの Dolby Vision バージョンをデコードできません。ファイルの別バージョン、または Dolby Vision に対応したデバイスであれば再生できます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이 기기는 이 Dolby Vision 버전을 디코딩할 수 없습니다. 파일의 다른 버전이나 Dolby Vision을 지원하는 기기에서 재생됩니다."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Denne enheten kan ikke dekode denne Dolby Vision-versjonen. En annen versjon av filen, eller en enhet med Dolby Vision-støtte, spiller den av."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dit apparaat kan deze Dolby Vision-versie niet decoderen. Een andere versie van het bestand of een apparaat met Dolby Vision-ondersteuning speelt het wel af."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "To urządzenie nie potrafi zdekodować tej wersji Dolby Vision. Odtworzy ją inna wersja pliku lub urządzenie z obsługą Dolby Vision."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Este dispositivo não consegue decodificar esta versão de Dolby Vision. Outra versão do arquivo, ou um dispositivo compatível com Dolby Vision, vai reproduzi-la."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Este dispositivo não consegue descodificar esta versão de Dolby Vision. Outra versão do ficheiro, ou um dispositivo compatível com Dolby Vision, irá reproduzi-la."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Acest dispozitiv nu poate decoda această versiune Dolby Vision. O va reda altă versiune a fișierului sau un dispozitiv cu suport Dolby Vision."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Это устройство не может декодировать эту версию Dolby Vision. Её воспроизведёт другая версия файла или устройство с поддержкой Dolby Vision."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toto zariadenie nedokáže dekódovať túto verziu Dolby Vision. Prehrá ju iná verzia súboru alebo zariadenie s podporou Dolby Vision."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Den här enheten kan inte avkoda den här Dolby Vision-versionen. En annan version av filen, eller en enhet med stöd för Dolby Vision, spelar upp den."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bu cihaz bu Dolby Vision sürümünü çözemiyor. Dosyanın başka bir sürümü veya Dolby Vision destekleyen bir cihaz oynatabilir."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Цей пристрій не може декодувати цю версію Dolby Vision. Її відтворить інша версія файлу або пристрій із підтримкою Dolby Vision."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此设备无法解码这个 Dolby Vision 版本。文件的其他版本，或支持 Dolby Vision 的设备，可以播放。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此裝置無法解碼這個 Dolby Vision 版本。檔案的其他版本，或支援 Dolby Vision 的裝置，即可播放。"
+          }
+        }
+      }
+    },
+    "player.error.dolbyVision.title" : {
+      "comment" : "Error title when the device cannot decode the source's Dolby Vision profile",
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dolby Vision není podporováno"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dolby Vision understøttes ikke"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dolby Vision nicht unterstützt"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Το Dolby Vision δεν υποστηρίζεται"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dolby Vision not supported"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dolby Vision no compatible"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dolby Vision ei ole tuettu"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dolby Vision non pris en charge"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dolby Vision nije podržan"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A Dolby Vision nem támogatott"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dolby Vision non supportato"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dolby Vision は非対応です"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dolby Vision 지원 안 함"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dolby Vision støttes ikke"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dolby Vision wordt niet ondersteund"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dolby Vision nieobsługiwane"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dolby Vision não compatível"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dolby Vision não suportado"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dolby Vision nu este acceptat"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dolby Vision не поддерживается"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dolby Vision nie je podporovaný"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dolby Vision stöds inte"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dolby Vision desteklenmiyor"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dolby Vision не підтримується"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "不支持 Dolby Vision"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "不支援 Dolby Vision"
+          }
+        }
+      }
+    },
     "player.error.generic.title" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -106468,6 +106792,330 @@
         }
       }
     },
+    "player.error.rateLimited.body" : {
+      "comment" : "Error body when the origin is metering us; the source is not gone, so the copy asks for patience",
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zdroj právě nepřijímá další připojení, obvykle proto, že z něj už streamuje jiné zařízení. Chvíli počkejte a zkuste to znovu."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kilden accepterer ikke flere forbindelser lige nu, typisk fordi en anden enhed allerede streamer fra den. Vent et øjeblik, og prøv igen."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Quelle nimmt gerade keine weitere Verbindung an, meist weil bereits ein anderes Gerät von ihr streamt. Einen Moment warten und erneut versuchen."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Η πηγή δεν δέχεται αυτή τη στιγμή άλλη σύνδεση, συνήθως επειδή μια άλλη συσκευή ήδη κάνει ροή από αυτήν. Περιμένετε λίγο και δοκιμάστε ξανά."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The source is not accepting another connection right now, usually because another device is already streaming from it. Wait a moment before trying again."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La fuente no acepta otra conexión en este momento, normalmente porque otro dispositivo ya está reproduciendo desde ella. Espera un momento y vuelve a intentarlo."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lähde ei ota vastaan uutta yhteyttä juuri nyt, yleensä siksi että toinen laite jo suoratoistaa siitä. Odota hetki ja yritä uudelleen."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La source n'accepte pas d'autre connexion pour le moment, généralement parce qu'un autre appareil diffuse déjà depuis elle. Patientez un instant avant de réessayer."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Izvor trenutačno ne prihvaća još jednu vezu, obično zato što s njega već streama drugi uređaj. Pričekajte trenutak pa pokušajte ponovno."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A forrás jelenleg nem fogad újabb kapcsolatot, általában azért, mert egy másik eszköz már közvetít róla. Várjon egy pillanatot, majd próbálja újra."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La sorgente non accetta un'altra connessione al momento, di solito perché un altro dispositivo sta già riproducendo da essa. Attendi un momento e riprova."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ソースは現在、これ以上の接続を受け付けていません。通常は別のデバイスがすでに再生しているためです。少し待ってからもう一度お試しください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "소스가 현재 추가 연결을 받지 않습니다. 보통 다른 기기가 이미 스트리밍 중이기 때문입니다. 잠시 기다린 후 다시 시도하십시오."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kilden tar ikke imot flere tilkoblinger nå, som regel fordi en annen enhet allerede strømmer fra den. Vent et øyeblikk og prøv igjen."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "De bron accepteert op dit moment geen extra verbinding, meestal omdat een ander apparaat er al van streamt. Wacht even en probeer het opnieuw."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Źródło nie przyjmuje teraz kolejnego połączenia, zwykle dlatego, że inne urządzenie już z niego strumieniuje. Odczekaj chwilę i spróbuj ponownie."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A fonte não está aceitando outra conexão agora, geralmente porque outro dispositivo já está transmitindo dela. Aguarde um momento e tente novamente."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A fonte não está a aceitar outra ligação neste momento, normalmente porque outro dispositivo já está a transmitir a partir dela. Aguarde um momento e tente novamente."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sursa nu acceptă altă conexiune momentan, de obicei pentru că un alt dispozitiv redă deja din ea. Așteptați un moment și încercați din nou."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Источник сейчас не принимает новое подключение, обычно потому что с него уже вещает другое устройство. Подождите немного и повторите попытку."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zdroj momentálne neprijíma ďalšie pripojenie, zvyčajne preto, že z neho už streamuje iné zariadenie. Chvíľu počkajte a skúste to znova."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Källan tar inte emot fler anslutningar just nu, oftast för att en annan enhet redan strömmar från den. Vänta en stund och försök igen."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kaynak şu anda başka bir bağlantı kabul etmiyor, genellikle başka bir cihaz zaten yayın aldığı için. Biraz bekleyip tekrar deneyin."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Джерело зараз не приймає ще одне підключення, зазвичай тому, що з нього вже транслює інший пристрій. Зачекайте трохи й повторіть спробу."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "来源目前不接受更多连接，通常是因为已有另一台设备正在从中播放。请稍等片刻后重试。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "來源目前不接受更多連線，通常是因為已有另一台裝置正在從中播放。請稍候片刻再試。"
+          }
+        }
+      }
+    },
+    "player.error.rateLimited.title" : {
+      "comment" : "Error title when the origin is metering us (HTTP 429/503/509)",
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Příliš mnoho připojení"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "For mange forbindelser"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zu viele Verbindungen"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Πάρα πολλές συνδέσεις"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Too many connections"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Demasiadas conexiones"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Liian monta yhteyttä"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trop de connexions"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Previše veza"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Túl sok kapcsolat"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Troppe connessioni"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "接続数が上限に達しました"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "연결이 너무 많음"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "For mange tilkoblinger"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Te veel verbindingen"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zbyt wiele połączeń"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Conexões demais"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Demasiadas ligações"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Prea multe conexiuni"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Слишком много подключений"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Príliš veľa pripojení"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "För många anslutningar"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Çok fazla bağlantı"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Забагато підключень"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "连接数过多"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "連線數過多"
+          }
+        }
+      }
+    },
     "player.error.retry" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -107108,6 +107756,654 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "與伺服器的連線已中斷"
+          }
+        }
+      }
+    },
+    "player.error.streamNotFound.body" : {
+      "comment" : "Error body when the origin answered 404/410 for the stream",
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Server tento soubor už nemá. Mohl být přesunut nebo odstraněn z knihovny."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Serveren har ikke længere denne fil. Den kan være flyttet eller fjernet fra biblioteket."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Server hat diese Datei nicht mehr. Sie wurde möglicherweise verschoben oder aus der Bibliothek entfernt."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ο διακομιστής δεν έχει πλέον αυτό το αρχείο. Μπορεί να μετακινήθηκε ή να αφαιρέθηκε από τη βιβλιοθήκη."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The server no longer has this file. It may have been moved or removed from the library."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El servidor ya no tiene este archivo. Puede que se haya movido o eliminado de la biblioteca."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Palvelimella ei ole enää tätä tiedostoa. Se on voitu siirtää tai poistaa kirjastosta."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le serveur n'a plus ce fichier. Il a peut-être été déplacé ou supprimé de la bibliothèque."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Poslužitelj više nema ovu datoteku. Možda je premještena ili uklonjena iz biblioteke."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A kiszolgálón már nincs meg ez a fájl. Lehet, hogy áthelyezték vagy eltávolították a könyvtárból."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Il server non ha più questo file. Potrebbe essere stato spostato o rimosso dalla libreria."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "サーバーにこのファイルがもうありません。移動されたか、ライブラリから削除された可能性があります。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "서버에 이 파일이 더 이상 없습니다. 이동되었거나 라이브러리에서 제거되었을 수 있습니다."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Serveren har ikke lenger denne filen. Den kan ha blitt flyttet eller fjernet fra biblioteket."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "De server heeft dit bestand niet meer. Mogelijk is het verplaatst of uit de bibliotheek verwijderd."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Serwer nie ma już tego pliku. Mógł zostać przeniesiony lub usunięty z biblioteki."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O servidor não tem mais este arquivo. Ele pode ter sido movido ou removido da biblioteca."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O servidor já não tem este ficheiro. Pode ter sido movido ou removido da biblioteca."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Serverul nu mai are acest fișier. Este posibil să fi fost mutat sau eliminat din bibliotecă."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "На сервере больше нет этого файла. Возможно, он перемещён или удалён из медиатеки."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Server už tento súbor nemá. Mohol byť presunutý alebo odstránený z knižnice."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Servern har inte längre den här filen. Den kan ha flyttats eller tagits bort från biblioteket."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sunucuda bu dosya artık yok. Taşınmış veya kitaplıktan kaldırılmış olabilir."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "На сервері більше немає цього файлу. Можливо, його перемістили або вилучили з медіатеки."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "服务器上已没有此文件。它可能已被移动或从媒体库中移除。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "伺服器上已沒有這個檔案。它可能已被移動或從媒體庫中移除。"
+          }
+        }
+      }
+    },
+    "player.error.streamRefused.body" : {
+      "comment" : "Error body when the origin refused the stream request; %lld is the HTTP status",
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Server odmítl doručit tento stream (HTTP %lld). Položka nemusí být sdílená s tímto účtem nebo vypršelo přihlášení."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Serveren afviste at levere dette stream (HTTP %lld). Elementet er måske ikke delt med denne konto, eller sessionen er udløbet."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Server hat diesen Stream abgelehnt (HTTP %lld). Möglicherweise ist der Titel für dieses Konto nicht freigegeben oder die Sitzung ist abgelaufen."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ο διακομιστής αρνήθηκε να παραδώσει αυτή τη ροή (HTTP %lld). Το στοιχείο ίσως δεν είναι κοινόχρηστο με αυτόν τον λογαριασμό ή η συνεδρία έληξε."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The server refused to deliver this stream (HTTP %lld). The item may not be shared with this account, or the session may have expired."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El servidor rechazó entregar esta transmisión (HTTP %lld). Puede que el elemento no esté compartido con esta cuenta o que la sesión haya caducado."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Palvelin kieltäytyi toimittamasta tätä lähetystä (HTTP %lld). Kohdetta ei ehkä ole jaettu tälle tilille tai istunto on vanhentunut."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le serveur a refusé de fournir ce flux (HTTP %lld). L'élément n'est peut-être pas partagé avec ce compte, ou la session a expiré."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Poslužitelj je odbio isporučiti ovaj stream (HTTP %lld). Stavka možda nije dijeljena s ovim računom ili je sesija istekla."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A kiszolgáló elutasította a stream kiszolgálását (HTTP %lld). Lehet, hogy az elem nincs megosztva ezzel a fiókkal, vagy lejárt a munkamenet."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Il server ha rifiutato di fornire questo stream (HTTP %lld). L'elemento potrebbe non essere condiviso con questo account o la sessione è scaduta."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "サーバーがこのストリームの配信を拒否しました (HTTP %lld)。このアカウントに共有されていないか、セッションの有効期限が切れている可能性があります。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "서버가 이 스트림 전송을 거부했습니다 (HTTP %lld). 이 계정에 공유되지 않았거나 세션이 만료되었을 수 있습니다."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Serveren nektet å levere denne strømmen (HTTP %lld). Elementet er kanskje ikke delt med denne kontoen, eller økten er utløpt."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "De server weigerde deze stream te leveren (HTTP %lld). Mogelijk is het item niet gedeeld met dit account of is de sessie verlopen."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Serwer odmówił dostarczenia tego strumienia (HTTP %lld). Pozycja może nie być udostępniona temu kontu lub sesja wygasła."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O servidor recusou entregar esta transmissão (HTTP %lld). O item pode não estar compartilhado com esta conta ou a sessão expirou."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O servidor recusou fornecer esta transmissão (HTTP %lld). O item pode não estar partilhado com esta conta ou a sessão expirou."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Serverul a refuzat să livreze acest flux (HTTP %lld). Este posibil ca elementul să nu fie partajat cu acest cont sau ca sesiunea să fi expirat."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сервер отказался передавать этот поток (HTTP %lld). Возможно, элемент не открыт для этой учётной записи или сеанс истёк."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Server odmietol doručiť tento stream (HTTP %lld). Položka nemusí byť zdieľaná s týmto účtom alebo vypršala relácia."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Servern nekade att leverera den här strömmen (HTTP %lld). Objektet kanske inte är delat med det här kontot, eller så har sessionen gått ut."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sunucu bu yayını sunmayı reddetti (HTTP %lld). Öğe bu hesapla paylaşılmamış olabilir veya oturum sona ermiş olabilir."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сервер відмовився передавати цей потік (HTTP %lld). Можливо, елемент не надано цьому обліковому запису або сеанс завершився."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "服务器拒绝提供此串流 (HTTP %lld)。该项目可能未共享给此账户，或者会话已过期。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "伺服器拒絕提供此串流 (HTTP %lld)。此項目可能未分享給這個帳號，或工作階段已過期。"
+          }
+        }
+      }
+    },
+    "player.error.streamRefused.title" : {
+      "comment" : "Error title when the origin refused the stream request (HTTP 401/403)",
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stream odmítnut"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Streamet blev afvist"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stream abgelehnt"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Η ροή απορρίφθηκε"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stream refused"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Transmisión rechazada"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lähetys hylättiin"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Flux refusé"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stream odbijen"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A stream elutasítva"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stream rifiutato"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ストリームが拒否されました"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "스트림이 거부됨"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Strømmen ble avvist"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stream geweigerd"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Strumień odrzucony"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Transmissão recusada"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Transmissão recusada"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Flux refuzat"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Поток отклонён"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stream odmietnutý"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Strömmen nekades"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yayın reddedildi"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Потік відхилено"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "串流被拒绝"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "串流遭拒"
+          }
+        }
+      }
+    },
+    "player.error.streamServerError.body" : {
+      "comment" : "Error body when the origin answered a non-media status for the stream; %lld is the HTTP status",
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Server místo streamu odpověděl HTTP %lld. Zkuste to za chvíli znovu."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Serveren svarede med HTTP %lld i stedet for streamet. Prøv igen om lidt."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Server hat mit HTTP %lld geantwortet statt mit dem Stream. Bitte gleich noch einmal versuchen."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ο διακομιστής απάντησε με HTTP %lld αντί για τη ροή. Δοκιμάστε ξανά σε λίγο."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The server answered with HTTP %lld instead of the stream. Try again in a moment."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El servidor respondió con HTTP %lld en lugar de la transmisión. Inténtalo de nuevo en un momento."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Palvelin vastasi HTTP %lld lähetyksen sijaan. Yritä hetken kuluttua uudelleen."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le serveur a répondu HTTP %lld au lieu du flux. Réessayez dans un instant."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Poslužitelj je umjesto streama odgovorio s HTTP %lld. Pokušajte ponovno za koji trenutak."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A kiszolgáló a stream helyett HTTP %lld választ adott. Próbálja újra egy pillanat múlva."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Il server ha risposto con HTTP %lld invece dello stream. Riprova tra un momento."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "サーバーはストリームではなく HTTP %lld を返しました。しばらくしてからもう一度お試しください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "서버가 스트림 대신 HTTP %lld로 응답했습니다. 잠시 후 다시 시도하십시오."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Serveren svarte med HTTP %lld i stedet for strømmen. Prøv igjen om litt."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "De server antwoordde met HTTP %lld in plaats van de stream. Probeer het zo meteen opnieuw."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Serwer odpowiedział kodem HTTP %lld zamiast strumienia. Spróbuj ponownie za chwilę."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O servidor respondeu com HTTP %lld em vez da transmissão. Tente novamente em instantes."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O servidor respondeu com HTTP %lld em vez da transmissão. Tente novamente dentro de momentos."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Serverul a răspuns cu HTTP %lld în loc de flux. Încercați din nou peste puțin timp."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сервер ответил HTTP %lld вместо потока. Повторите попытку через минуту."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Server namiesto streamu odpovedal HTTP %lld. Skúste to o chvíľu znova."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Servern svarade med HTTP %lld i stället för strömmen. Försök igen om en stund."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sunucu yayın yerine HTTP %lld yanıtı verdi. Birazdan tekrar deneyin."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сервер відповів HTTP %lld замість потоку. Спробуйте ще раз за хвилину."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "服务器返回了 HTTP %lld，而不是串流。请稍后重试。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "伺服器回應了 HTTP %lld，而不是串流。請稍後再試。"
           }
         }
       }
