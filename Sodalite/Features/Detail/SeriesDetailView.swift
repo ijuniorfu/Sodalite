@@ -344,6 +344,20 @@ struct SeriesDetailView: View {
         .onChange(of: appState.requestPlayerDismissal) { _, _ in
             if showPlayer { showPlayer = false }
         }
+        // The session switched episodes behind the modal (auto-advance, queue, season picker). Follow
+        // it, else leaving the player drops the user back on the episode they STARTED three episodes
+        // ago. Foreign series (a shuffle queue crossing shows) are not ours to display.
+        .onReceive(NotificationCenter.default.publisher(for: .playerDidSwitchItem)) { note in
+            guard let episode = note.userInfo?[PlayerItemSwitchKey.item] as? JellyfinItem,
+                  episode.seriesId == item.id else { return }
+            playItem = episode
+            selectedEpisode = episode
+            // Rolled into the next season: its episode row has to be loaded or the focus restore on
+            // dismiss has no card to land on.
+            if let seasonID = episode.seasonId, viewModel?.selectedSeasonID != seasonID {
+                Task { await viewModel?.loadEpisodes(seasonID: seasonID) }
+            }
+        }
         // Posted once Jellyfin confirms the stop position. Patch resume position in place from the payload (race-free) across every in-memory holder including view-side selectedEpisode (issue #24). refreshResumePosition only reconciles played/next-up; the patch is re-applied after so a stale cached re-fetch can't regress the just-played position.
         .onReceive(NotificationCenter.default.publisher(for: .playbackProgressDidChange)) { note in
             let itemID = note.userInfo?[PlaybackProgressKey.itemID] as? String

@@ -3,19 +3,14 @@ import AetherEngine
 
 extension PlayerViewModel {
 
-    func checkForNextEpisode() {
-        let dur = effectiveDuration
-        let remaining = dur - playbackTime
-        guard dur > 0, remaining > 0, !hasFetchedNextEpisode else { return }
-
-        // Same window the overlay uses: the server's outro marker (Jellyfin 10.10+/intro-skipper) when
-        // present, else the 30s-before-end fallback. outro.startSeconds is absolute source time, so it
-        // compares against sourceTime, not the AVPlayer clock (playbackTime).
-        guard NextEpisodePolicy.isInsideTriggerWindow(
-            outroStartSeconds: outroSegment?.startSeconds,
-            sourceTime: player.sourceTime,
-            remainingSeconds: remaining
-        ) else { return }
+    /// Resolves the successor once per session, right after the first frame.
+    ///
+    /// Deliberately not gated on the end window any more: fast-forwarding or scrubbing to 100% skips
+    /// that window entirely, so `nextEpisode` stayed nil and end-of-media routed like end-of-content,
+    /// closing the player instead of advancing (Sodalite#67). One small item query per episode buys a
+    /// successor that is ready however the playhead reaches the end.
+    func resolveNextEpisode() {
+        guard !hasFetchedNextEpisode else { return }
 
         // Shuffle/play queue: next item is the next queue entry, resolved synchronously. Must run before the seriesId guard (queue items are often movies, no seriesId). Queue exhausted -> nextEpisode stays nil and the engine's .idle handler dismisses.
         if isQueuePlayback {
@@ -88,9 +83,14 @@ extension PlayerViewModel {
     /// Starts the auto-advance timer. `from` defaults to 10s (outro-based flow with minutes of credits); the no-outro fallback passes actual remaining seconds so the countdown hits 0 at playback end.
     func startNextEpisodeCountdown(from seconds: Int = 10) {
         // Autoplay off: still show the overlay for manual pick, but skip the auto-transition timer.
-        guard preferences.autoplayNextEpisode else {
-            isCountdownActive = false
-            nextEpisodeCountdown = 0
+        // Countdown off (Sodalite#67): same here, and the switch happens at end-of-media instead, so
+        // credits and post-credit scenes play out in full.
+        guard preferences.autoplayNextEpisode, preferences.autoplayCountdown else {
+            // Written only on change: with no timer to take ownership the clock sink calls this on
+            // every tick while the card is up, and Observation invalidates on the write, not on the
+            // value, so a blind assignment would re-render the overlay 10x a second through the credits.
+            if isCountdownActive { isCountdownActive = false }
+            if nextEpisodeCountdown != 0 { nextEpisodeCountdown = 0 }
             return
         }
 
@@ -146,7 +146,7 @@ extension PlayerViewModel {
             return
         }
         LogTap.shared.note("[NextEp] playNextEpisode enter: from=\(item.id) to=\(next.id)")
-        // Queue: advance the cursor so the next checkForNextEpisode seeds from the entry after the one we're loading. resetSessionState deliberately leaves playQueue/queueIndex untouched.
+        // Queue: advance the cursor so the next resolveNextEpisode seeds from the entry after the one we're loading. resetSessionState deliberately leaves playQueue/queueIndex untouched.
         if isQueuePlayback {
             queueIndex += 1
         }
@@ -196,6 +196,14 @@ extension PlayerViewModel {
     /// Shared per-session reset for both episode-switch paths (auto-advance + season picker). Single owner on purpose: the two inline copies had drifted once (a stray player.stop() in the picker path, breaking the issue-#15 AVPlayer-reuse design).
     private func resetSessionState(switchingTo newItem: JellyfinItem) {
         item = newItem
+        // Single choke point for every in-session item switch (auto-advance, queue, season picker), so
+        // the detail view behind the player can follow along and backing out lands on the episode that
+        // was actually watched instead of the one that was started.
+        NotificationCenter.default.post(
+            name: .playerDidSwitchItem,
+            object: nil,
+            userInfo: [PlayerItemSwitchKey.item: newItem]
+        )
         startFromBeginning = true
         cachedPlaybackInfo = nil
         errorMessage = nil
@@ -218,6 +226,7 @@ extension PlayerViewModel {
         nextEpisode = nil
         hasFetchedNextEpisode = false
         nextEpisodeCancelled = false
+        nextEpisodeOverlayDismissed = false
         nextEpisodeCountdown = 10
         isCountdownActive = false
         hasReportedStart = false
@@ -244,14 +253,20 @@ extension PlayerViewModel {
         nextEpisodeTimer = nil
         showNextEpisodeOverlay = false
         isCountdownActive = false
-        nextEpisodeCancelled = true
+
         // Cancelling after the source already finished (overlay shown from the .ended handler, or
         // autoplay off so it just parks there) leaves an engine session that is terminal: seek and
         // play are both no-ops in `.ended`. Close like any other end-of-content instead of handing
-        // back a frozen last frame.
+        // back a frozen last frame, and take it as a rejected successor.
         if hasStartedPlaying, player.state == .ended {
+            nextEpisodeCancelled = true
             onPlaybackReachedEnd?()
+            return
         }
+        // Still running: this only clears the card off the credits. The advance survives it and fires
+        // at the real end of the episode (Sodalite#67); with autoplay off there is nothing to survive,
+        // and end-of-media routes the dismissal as a rejection.
+        nextEpisodeOverlayDismissed = true
     }
 
     /// Tear down overlay + countdown when the user scrubs back out of the end-window. Unlike `cancelNextEpisode` it does NOT set `nextEpisodeCancelled = true`, so the overlay re-triggers naturally on playing forward again.

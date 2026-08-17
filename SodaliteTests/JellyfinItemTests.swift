@@ -36,6 +36,38 @@ struct JellyfinItemTests {
         #expect(item.userData?.playedPercentage == nil)
     }
 
+    /// Past Jellyfin's resume threshold the server stores "watched, no resume position". Patching the
+    /// raw end position instead left the detail page offering to resume the episode that just finished,
+    /// and that patch is re-applied on top of the server refresh, so it won the reconciliation
+    /// (Sodalite#67).
+    @Test func setResumePositionPastTheThresholdMarksPlayed() throws {
+        var item = try decodeItem(#"{"Id":"e","Name":"E","Type":"Episode","RunTimeTicks":1000}"#)
+        item.setResumePosition(1000)
+        #expect(item.userData?.playbackPositionTicks == 0)
+        #expect(item.userData?.playedPercentage == 100)
+        #expect(item.userData?.played == true)
+    }
+
+    @Test func setResumePositionJustUnderTheThresholdStaysResumable() throws {
+        var item = try decodeItem(#"{"Id":"e","Name":"E","Type":"Episode","RunTimeTicks":1000}"#)
+        item.setResumePosition(899)
+        #expect(item.userData?.playbackPositionTicks == 899)
+        #expect(item.userData?.playedPercentage == 89.9)
+        #expect(item.userData?.played == nil)
+    }
+
+    /// The threshold reads the percentage computed from THIS stop, never a stale server one: an item
+    /// without a runtime would otherwise inherit a previous watch's 95% and drop a fresh position.
+    @Test func setResumePositionWithoutRuntimeIgnoresAStalePercentage() throws {
+        var item = try decodeItem(#"""
+        {"Id":"e","Name":"E","Type":"Episode",
+         "UserData":{"PlaybackPositionTicks":0,"PlayedPercentage":95,"Played":false}}
+        """#)
+        item.setResumePosition(500)
+        #expect(item.userData?.playbackPositionTicks == 500)
+        #expect(item.userData?.played == false)
+    }
+
     @Test func tmdbIDReadsCaseVariantKeys() throws {
         #expect(try decodeItem(#"{"Id":"a","Name":"A","Type":"Movie","ProviderIds":{"Tmdb":"603"}}"#).tmdbID == 603)
         #expect(try decodeItem(#"{"Id":"a","Name":"A","Type":"Movie","ProviderIds":{"tmdb":"55"}}"#).tmdbID == 55)

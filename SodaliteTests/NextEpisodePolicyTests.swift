@@ -48,6 +48,9 @@ struct NextEpisodePolicyTests {
         pictureInPictureCanAdvance: Bool = true,
         hasNextEpisode: Bool = true,
         advanceCancelled: Bool = false,
+        overlayDismissed: Bool = false,
+        autoplayEnabled: Bool = true,
+        countdownEnabled: Bool = true,
         countdownRunning: Bool = false,
         overlayVisible: Bool = false
     ) -> NextEpisodePolicy.EndOfPlaybackOutcome {
@@ -57,6 +60,9 @@ struct NextEpisodePolicyTests {
             pictureInPictureCanAdvance: pictureInPictureCanAdvance,
             hasNextEpisode: hasNextEpisode,
             advanceCancelled: advanceCancelled,
+            overlayDismissed: overlayDismissed,
+            autoplayEnabled: autoplayEnabled,
+            countdownEnabled: countdownEnabled,
             countdownRunning: countdownRunning,
             overlayVisible: overlayVisible
         )
@@ -109,5 +115,55 @@ struct NextEpisodePolicyTests {
 
     @Test func pipClosesAtRealEndOfContent() {
         #expect(outcome(pictureInPictureActive: true, hasNextEpisode: false) == .endPictureInPicture)
+    }
+
+    // MARK: - Dismissed card (Sodalite#67)
+
+    /// Closing the card mid-episode only takes it off the screen: the credits play out and the switch
+    /// still happens at the end. It used to route like a rejected successor, so the player closed and
+    /// left the user on the finished episode's detail page.
+    @Test func dismissedCardStillAdvancesAtTheEnd() {
+        #expect(outcome(overlayDismissed: true) == .advanceWithoutOverlay)
+    }
+
+    /// With autoplay off the card IS the whole offer, so dismissing it rejects the successor and the
+    /// session ends like a movie's.
+    @Test func dismissedCardWithAutoplayOffEndsTheSession() {
+        #expect(outcome(overlayDismissed: true, autoplayEnabled: false) == .dismissPlayer)
+    }
+
+    @Test func dismissedCardWithoutASuccessorStillEndsTheSession() {
+        #expect(outcome(hasNextEpisode: false, overlayDismissed: true) == .dismissPlayer)
+    }
+
+    /// A cancel taken ON the terminal `.ended` state stays a rejection, whatever the settings say.
+    @Test func terminalCancelOutranksTheDismissedCard() {
+        #expect(outcome(advanceCancelled: true, overlayDismissed: true) == .dismissPlayer)
+    }
+
+    // MARK: - Countdown switched off (Sodalite#67)
+
+    /// Countdown off: the card sits there without a timer while the credits run, and the switch fires
+    /// at the real end without flashing the card again.
+    @Test func countdownOffAdvancesWithoutTheCardAtTheEnd() {
+        #expect(outcome(countdownEnabled: false) == .advanceWithoutOverlay)
+    }
+
+    /// Autoplay off outranks the countdown switch: nothing advances, the card parks for a manual pick.
+    @Test func countdownOffWithAutoplayOffParksTheCard() {
+        #expect(outcome(autoplayEnabled: false, countdownEnabled: false) == .showOverlayAndAdvance)
+    }
+
+    @Test func countdownOffInPiPAdvancesInPlace() {
+        #expect(outcome(pictureInPictureActive: true, countdownEnabled: false) == .advanceWithoutOverlay)
+    }
+
+    @Test func countdownOffWithoutASuccessorEndsTheSession() {
+        #expect(outcome(hasNextEpisode: false, countdownEnabled: false) == .dismissPlayer)
+    }
+
+    /// The default path is untouched: card plus countdown at the seam.
+    @Test func defaultsStillShowTheCardAndCountDown() {
+        #expect(outcome() == .showOverlayAndAdvance)
     }
 }

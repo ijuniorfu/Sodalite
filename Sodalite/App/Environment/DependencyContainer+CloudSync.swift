@@ -212,7 +212,8 @@ extension DependencyContainer {
                 instantSkipSeek: p.instantSkipSeek,
                 autoSkipRecap: p.autoSkipRecap,
                 subtitlesOnSkipBack: p.subtitlesOnSkipBack,
-                liveTeletextPage: p.liveTeletextPage.rawValue
+                liveTeletextPage: p.liveTeletextPage.rawValue,
+                autoplayCountdown: p.autoplayCountdown
             ))
         case .appearance:
             let a = appearancePreferences
@@ -312,6 +313,7 @@ extension DependencyContainer {
             if let teletextPage = p.liveTeletextPage {
                 store.liveTeletextPage = PlaybackPreferences.LiveTeletextPage(rawValue: teletextPage) ?? store.liveTeletextPage
             }
+            if let countdown = p.autoplayCountdown { store.autoplayCountdown = countdown }
         case .appearance(let a):
             let store = appearancePreferences
             if let accentChoice = AppearancePreferences.AccentChoice(rawValue: a.accentChoice) {

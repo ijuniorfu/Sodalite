@@ -10,7 +10,7 @@ enum NextEpisodePolicy {
 
     /// True while the playhead sits in the window that shows the overlay and arms the countdown.
     ///
-    /// Single definition on purpose: the clock sink, `checkForNextEpisode`, and the cancel-latch reset
+    /// Single definition on purpose: the clock sink's overlay trigger and the two cancel-latch resets
     /// must agree on the window, else a cancel taken inside it can never be released.
     /// `sourceTime` is the absolute source-timeline value (outro markers are source-relative), while
     /// `remainingSeconds` is measured on the presentation clock.
@@ -34,6 +34,10 @@ enum NextEpisodePolicy {
         case endPictureInPicture
         /// Show the overlay and start the auto-advance countdown.
         case showOverlayAndAdvance
+        /// Switch to the successor right away, without putting the card back on screen: the user
+        /// dismissed it, or runs with the countdown switched off (Sodalite#67). Both asked for the
+        /// episode to play out and the next one to follow, so a card at the seam is only a flash.
+        case advanceWithoutOverlay
         /// Nothing follows: close the player, same as a movie reaching its end.
         case dismissPlayer
     }
@@ -41,26 +45,39 @@ enum NextEpisodePolicy {
     /// Routes end-of-media. Exhaustive by construction: the earlier inline chain had a hole for a
     /// cancelled advance (next episode known, user rejected it), which matched no branch and left the
     /// player open on a terminal `.ended` engine session where seek and play are both no-ops.
+    ///
+    /// `advanceCancelled` is a rejection taken ON the terminal state (the card was parked at the end);
+    /// `overlayDismissed` is the card being closed while the source still runs, which is a different
+    /// wish and must not cost the advance (Sodalite#67).
     static func endOfPlaybackOutcome(
         hasStartedPlaying: Bool,
         pictureInPictureActive: Bool,
         pictureInPictureCanAdvance: Bool,
         hasNextEpisode: Bool,
         advanceCancelled: Bool,
+        overlayDismissed: Bool,
+        autoplayEnabled: Bool,
+        countdownEnabled: Bool,
         countdownRunning: Bool,
         overlayVisible: Bool
     ) -> EndOfPlaybackOutcome {
         guard hasStartedPlaying else { return .ignore }
 
+        // Dismissing the card means two different things by setting: with autoplay ON it only clears
+        // the screen for the credits, with autoplay OFF the card was the entire offer, so closing it
+        // rejects the successor.
+        let rejected = advanceCancelled || (overlayDismissed && !autoplayEnabled)
         // A rejected advance is "no successor for this session", so it routes like end-of-content.
-        let willAdvance = hasNextEpisode && !advanceCancelled
+        let willAdvance = hasNextEpisode && !rejected
 
         if pictureInPictureActive {
             // In-place item handover keeps the window alive (native backend); every other case ends it.
             guard willAdvance, pictureInPictureCanAdvance else { return .endPictureInPicture }
         }
         if willAdvance {
-            return countdownRunning ? .ignore : .showOverlayAndAdvance
+            if countdownRunning { return .ignore }
+            if autoplayEnabled, overlayDismissed || !countdownEnabled { return .advanceWithoutOverlay }
+            return .showOverlayAndAdvance
         }
         // A visible overlay (queue exhausted, manual pick still offered) keeps the player up.
         return overlayVisible ? .ignore : .dismissPlayer

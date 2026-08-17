@@ -114,7 +114,7 @@ struct CloudSyncForwardCompatTests {
                 playerRotationLocked: false, networkBufferDepth: "balanced",
                 rememberTrackSelections: true, autoForcedSubtitles: true,
                 selectTogglesPlayback: true, instantSkipSeek: true, autoSkipRecap: true,
-                subtitlesOnSkipBack: true, liveTeletextPage: "auto"
+                subtitlesOnSkipBack: true, liveTeletextPage: "auto", autoplayCountdown: true
             ))
         case .appearance:
             return .appearance(AppearanceSettingsPayload(

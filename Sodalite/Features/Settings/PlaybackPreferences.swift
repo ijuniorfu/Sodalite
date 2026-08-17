@@ -12,6 +12,7 @@ final class PlaybackPreferences {
 
     private enum Keys {
         static let autoplayNextEpisode = "playback.autoplayNextEpisode"
+        static let autoplayCountdown = "playback.autoplayCountdown"
         static let nextEpisodeCountdownSeconds = "playback.nextEpisodeCountdownSeconds"
         static let skipIntervalSeconds = "playback.skipIntervalSeconds"
         static let preferredAudioLanguage = "playback.preferredAudioLanguage"
@@ -228,6 +229,12 @@ final class PlaybackPreferences {
         didSet { store.set(autoplayNextEpisode, forKey: Keys.autoplayNextEpisode) }
     }
 
+    /// Off keeps the next-episode card but drops its timer, so the episode plays to its end (credits,
+    /// post-credit scenes) before the switch (Sodalite#67). Inert while `autoplayNextEpisode` is off.
+    var autoplayCountdown: Bool {
+        didSet { store.set(autoplayCountdown, forKey: Keys.autoplayCountdown) }
+    }
+
     var autoSkipIntro: Bool {
         didSet { store.set(autoSkipIntro, forKey: Keys.autoSkipIntro) }
     }
@@ -413,6 +420,7 @@ final class PlaybackPreferences {
     init(store: UserDefaults = .standard) {
         self.store = store
         self.autoplayNextEpisode = store.object(forKey: Keys.autoplayNextEpisode) as? Bool ?? true
+        self.autoplayCountdown = store.object(forKey: Keys.autoplayCountdown) as? Bool ?? true
         self.autoSkipIntro = store.object(forKey: Keys.autoSkipIntro) as? Bool ?? false
         self.autoSkipRecap = store.object(forKey: Keys.autoSkipRecap) as? Bool ?? false
         self.autoSkipOutro = store.object(forKey: Keys.autoSkipOutro) as? Bool ?? false
