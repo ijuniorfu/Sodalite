@@ -77,6 +77,8 @@ struct SeriesDetailView: View {
     @State private var pendingEpisodeFocus: String?
     /// Bridge episode→season synopsis. Plain @State for the same reason as pendingEpisodeFocus: the box owns its own @FocusState and defers the write itself.
     @State private var pendingSeasonOverviewFocus = false
+    /// The card the viewer left the episode row on, so a return from above lands there instead of scrolling the row back to the start. Written only on the way OUT (focusedEpisodeID going nil), never on the way in, else it would answer the entry redirect with the card that redirect is still resolving.
+    @State private var lastFocusedEpisodeID: String?
     /// Horizontal offset of the episode row, so a season switch can return it to the row's real start (its inset included) instead of to the first card's leading edge.
     @State private var episodeRowPosition = ScrollPosition()
     /// Gates the isLoading crossfade so it stays inert during the cover's present transition (the viewModel is built lazily in onAppear, so isLoading flips while the fullScreenCover dissolves in and animating those flips reads as an ugly top-left fly-in). Same fix as MovieDetailView.
@@ -918,6 +920,19 @@ struct SeriesDetailView: View {
         return overview
     }
 
+    /// Where a move down into the episode row lands: the card the viewer left the row on, else the next-up/current episode, else the first. Both entry paths (the focus bridge and the one-shot redirect below it) read this one resolver so they cannot aim at different cards. The season filter is what makes a stale id from another season fall through.
+    private func episodeEntryTarget(vm: DetailViewModel) -> String? {
+        if let last = lastFocusedEpisodeID,
+           vm.episodes.contains(where: { $0.id == last }) {
+            return last
+        }
+        if let current = vm.currentEpisodeID,
+           vm.episodes.contains(where: { $0.id == current }) {
+            return current
+        }
+        return vm.episodes.first?.id
+    }
+
     /// Up out of the episode row. It used to go straight to the season bar, which skipped the season synopsis sitting between the two (reachable downwards, unreachable upwards). Now the synopsis takes the first stop when there is one, and its own up-move carries on to the season bar.
     private func focusUpFromEpisodeRow(vm: DetailViewModel) {
         if seasonOverview(vm: vm) != nil {
@@ -989,10 +1004,12 @@ struct SeriesDetailView: View {
                         episodeRedirectDone = false
                     }
                 }
-                .onChange(of: focusedEpisodeID) { _, newEpisode in
+                .onChange(of: focusedEpisodeID) { oldEpisode, newEpisode in
                     if newEpisode != nil {
                         episodesHadFocus = true
                         lastFocusedArea = .episode
+                    } else if let oldEpisode {
+                        lastFocusedEpisodeID = oldEpisode
                     }
                 }
                 .onChange(of: vm.selectedSeasonID) { _, newID in
@@ -1043,14 +1060,7 @@ struct SeriesDetailView: View {
                     case .episode:
                         focusUpFromEpisodeRow(vm: vm)
                     case .season:
-                        let target: String? = {
-                            if let current = vm.currentEpisodeID,
-                               vm.episodes.contains(where: { $0.id == current }) {
-                                return current
-                            }
-                            return vm.episodes.first?.id
-                        }()
-                        if let target {
+                        if let target = episodeEntryTarget(vm: vm) {
                             // pendingEpisodeFocus is plain @State; the episode-row ScrollViewReader scrolls it into the LazyHStack then writes focusedEpisodeID.
                             pendingEpisodeFocus = target
                         }
@@ -1197,10 +1207,8 @@ struct SeriesDetailView: View {
                         }
                         if newID != nil && !episodeRedirectDone {
                             episodeRedirectDone = true
-                            if let currentID = vm.currentEpisodeID,
-                               newID != currentID,
-                               vm.episodes.contains(where: { $0.id == currentID }) {
-                                focusedEpisodeID = currentID
+                            if let target = episodeEntryTarget(vm: vm), newID != target {
+                                focusedEpisodeID = target
                             }
                         }
                     }
