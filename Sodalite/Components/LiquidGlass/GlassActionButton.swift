@@ -10,8 +10,10 @@ struct GlassActionButton: View {
     var subtitle: String? = nil
     /// 0…1 progress overlay behind the label (resume tile, accent fill); nil suppresses it.
     var progressFraction: Double? = nil
-    /// Replaces the label with a spinner and disables the button while the host resolves the play target (e.g. series play waits on getNextUp); quieter than flipping the title mid-render.
+    /// Replaces the label with a spinner while the host resolves the play target (e.g. series play waits on getNextUp); quieter than flipping the title mid-render.
     var isLoading: Bool = false
+    /// A disabled button leaves the focus engine, so on tvOS the row's auto-focus lands on the next button instead and a `@FocusState` push at that button is silently dropped. Set false where the button must keep focus through its loading spell; the host then has to make a press during loading meaningful.
+    var disablesWhileLoading: Bool = true
     let action: () -> Void
 
     /// When set via `.collapsesActionButtonLabel(true)`, secondary buttons collapse to an icon-only pill revealing the title on focus, so a crowded row (Bluey: 8 actions) fits.
@@ -35,7 +37,7 @@ struct GlassActionButton: View {
             isDestructive: isDestructive,
             progressFraction: progressFraction
         ))
-        .disabled(isLoading)
+        .disabled(isLoading && disablesWhileLoading)
         // Keep the title for VoiceOver even when the visible label collapses to an icon-only pill.
         .accessibilityLabel(Text(title))
     }

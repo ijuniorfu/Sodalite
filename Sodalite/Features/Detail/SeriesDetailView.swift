@@ -84,6 +84,8 @@ struct SeriesDetailView: View {
     /// TopShelf playAction: fire the primary play action once, as soon as a play target exists.
     var autoPlay: Bool = false
     @State private var didAutoPlay = false
+    /// Play was pressed while the target was still resolving; the target-keyed task honours it on arrival.
+    @State private var pendingPlayRequest = false
 
     /// Re-keys the autoplay task whenever the resolved play target changes, so it also runs for
     /// whatever target already exists at first render. `autoPlay` is part of the key because the
@@ -98,6 +100,14 @@ struct SeriesDetailView: View {
         guard autoPlay, !didAutoPlay, let vm = viewModel,
               let target = playTarget(vm: vm) else { return }
         didAutoPlay = true
+        requestPlay(target, fromBeginning: false, fromPlayButton: true)
+    }
+
+    /// Honour a Play press that arrived while the target was still resolving. Same key as autoplay, so it runs the moment getNextUp lands.
+    private func maybePendingPlay() {
+        guard pendingPlayRequest, !showPlayer, versionChoice == nil,
+              let vm = viewModel, let target = playTarget(vm: vm) else { return }
+        pendingPlayRequest = false
         requestPlay(target, fromBeginning: false, fromPlayButton: true)
     }
 
@@ -291,7 +301,10 @@ struct SeriesDetailView: View {
         // task(id:), NOT onChange: onChange only sees transitions, and on a cold launch the play
         // target can already be resolved when this view first renders (the deep-link resolver
         // waits for the session and fetches ahead of it), leaving nothing to transition to.
-        .task(id: autoPlayTargetKey) { maybeAutoPlay() }
+        .task(id: autoPlayTargetKey) {
+            maybeAutoPlay()
+            maybePendingPlay()
+        }
         .sheet(item: $versionChoice, onDismiss: {
             if didPickVersion {
                 didPickVersion = false
@@ -609,10 +622,18 @@ struct SeriesDetailView: View {
             progressFraction: playProgressFraction(vm: vm),
             // Spinner until a concrete play target: avoids the "Abspielen" → "Fortsetzen + S1E5 · 12:34" repaint when getNextUp lands a few hundred ms after appear.
             isLoading: playTarget(vm: vm) == nil,
+            // Never disabled: a series whose getNextUp outruns the 500ms snapshot deadline paints its
+            // action row with Play disabled, and the row's auto-focus then lands on Shuffle while the
+            // playButtonFocused push is dropped on the disabled button (Vincent, 2026-08-17).
+            disablesWhileLoading: false,
             action: {
                 let ep = playTarget(vm: vm)
                 if let ep {
                     requestPlay(ep, fromBeginning: false, fromPlayButton: true)
+                } else {
+                    // Pressed while the target is still resolving: remember the intent instead of
+                    // eating the press, the target-keyed task below launches it when it lands.
+                    pendingPlayRequest = true
                 }
             }
         )
