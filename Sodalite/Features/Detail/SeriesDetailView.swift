@@ -75,6 +75,10 @@ struct SeriesDetailView: View {
     private enum FocusArea { case none, season, episode }
     /// Bridge season→episode writes the target episode id here; the episode-row ScrollViewReader scrolls it into the LazyHStack then writes focusedEpisodeID, since a focusedEpisodeID write for an unrendered card is a silent no-op (right-side-takes-two-clicks case).
     @State private var pendingEpisodeFocus: String?
+    /// Bridge episode→season synopsis. Plain @State for the same reason as pendingEpisodeFocus: the box owns its own @FocusState and defers the write itself.
+    @State private var pendingSeasonOverviewFocus = false
+    /// Horizontal offset of the episode row, so a season switch can return it to the row's real start (its inset included) instead of to the first card's leading edge.
+    @State private var episodeRowPosition = ScrollPosition()
     /// Gates the isLoading crossfade so it stays inert during the cover's present transition (the viewModel is built lazily in onAppear, so isLoading flips while the fullScreenCover dissolves in and animating those flips reads as an ugly top-left fly-in). Same fix as MovieDetailView.
     @State private var didSettleIn = false
 
@@ -907,6 +911,24 @@ struct SeriesDetailView: View {
 
     // MARK: - Season Section
 
+    /// The selected season's synopsis, when the library has one. The box and the focus routing read the same accessor, so an up-move can never be aimed at a box that is not on screen.
+    private func seasonOverview(vm: DetailViewModel) -> String? {
+        guard let overview = vm.selectedSeason?.overview?.trimmingCharacters(in: .whitespacesAndNewlines),
+              !overview.isEmpty else { return nil }
+        return overview
+    }
+
+    /// Up out of the episode row. It used to go straight to the season bar, which skipped the season synopsis sitting between the two (reachable downwards, unreachable upwards). Now the synopsis takes the first stop when there is one, and its own up-move carries on to the season bar.
+    private func focusUpFromEpisodeRow(vm: DetailViewModel) {
+        if seasonOverview(vm: vm) != nil {
+            pendingSeasonOverviewFocus = true
+        } else {
+            // Deferred for the bridge's sake: a @FocusState write on the tick that just committed the bridge's own focus is swallowed.
+            let target = vm.selectedSeasonID
+            deferOnMain(by: 0.03) { focusedSeasonID = target }
+        }
+    }
+
     private func seasonSection(vm: DetailViewModel) -> some View {
         // .focusSection (at the bottom) keeps up/down inside the season+episode block, else a far-right episode's up-swipe bypasses the season bar and lands on the overview textbox; the onMoveCommand redirect then snaps to the selected tab.
         VStack(alignment: .leading, spacing: 20) {
@@ -983,9 +1005,22 @@ struct SeriesDetailView: View {
             // metadata provider, so it renders only where the library actually has one. Placed below the
             // bar (it describes the season the tabs just selected) and above the focus bridge, so an
             // up-swipe out of the episode row still hits the bridge first and its redirect is unchanged.
-            if let season = vm.selectedSeason, let seasonOverview = season.overview, !seasonOverview.isEmpty {
-                ExpandableTextBox(text: seasonOverview, spoilerItem: season)
-                    .padding(.horizontal, metrics.rowInset)
+            if let season = vm.selectedSeason, let seasonOverview = seasonOverview(vm: vm) {
+                ExpandableTextBox(
+                    text: seasonOverview,
+                    spoilerItem: season,
+                    // Carry on to the selected tab rather than whatever the geographic picker finds above.
+                    onFocusMovedUp: {
+                        let target = vm.selectedSeasonID
+                        deferOnMain(by: 0.03) { focusedSeasonID = target }
+                    },
+                    // Reading the synopsis counts as coming from above, so the next down-move crosses the bridge into the episode row instead of being bounced back up here.
+                    onFocusChanged: { focused in
+                        if focused { lastFocusedArea = .season }
+                    },
+                    focusRequest: $pendingSeasonOverviewFocus
+                )
+                .padding(.horizontal, metrics.rowInset)
             }
 
             // Full-width invisible focus bridge between the season bar and episode row: an up-swipe from a far-right episode lands here before tvOS's picker continues up into the overview/tech-info cards, then redirects by which row the user came from on the next cycle.
@@ -1006,8 +1041,7 @@ struct SeriesDetailView: View {
                     }
                     switch lastFocusedArea {
                     case .episode:
-                        let target = vm.selectedSeasonID
-                        deferFocusWrite { focusedSeasonID = target }
+                        focusUpFromEpisodeRow(vm: vm)
                     case .season:
                         let target: String? = {
                             if let current = vm.currentEpisodeID,
@@ -1055,7 +1089,7 @@ struct SeriesDetailView: View {
                                     #if os(tvOS)
                                     .onMoveCommand { direction in
                                         if direction == .up {
-                                            focusedSeasonID = vm.selectedSeasonID
+                                            focusUpFromEpisodeRow(vm: vm)
                                         }
                                     }
                                     #endif
@@ -1142,10 +1176,13 @@ struct SeriesDetailView: View {
                         .padding(.horizontal, metrics.rowInset)
                         .padding(.vertical, 16)
                     }
+                    .scrollPosition($episodeRowPosition)
                     .onChange(of: vm.selectedSeasonID) { _, _ in
-                        if let first = vm.episodes.first {
-                            episodeProxy.scrollTo(first.id, anchor: .leading)
-                        }
+                        // Back to the row's own start, NOT scrollTo(first, anchor: .leading): that parks the
+                        // first card's leading edge on the viewport edge, which eats the row inset and leaves
+                        // the card flush against the screen edge (Vincent, 2026-08-17). The inset is padding
+                        // on the LazyHStack, so only an edge scroll keeps it.
+                        episodeRowPosition.scrollTo(edge: .leading)
                         deferOnMain(by: 0.15) {
                             scrollToCurrentEpisode(proxy: episodeProxy, vm: vm)
                         }
