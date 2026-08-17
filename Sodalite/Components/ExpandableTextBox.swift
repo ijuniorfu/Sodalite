@@ -10,6 +10,10 @@ struct ExpandableTextBox: View {
     /// tvOS: reports whether the box holds focus, so a detail page can suppress its secondary
     /// buttons for that time (see focusSuppressed) and the up-move has nowhere wrong to land.
     var onFocusChanged: ((Bool) -> Void)?
+    /// tvOS: set true from outside to hand the box focus. The box owns its `@FocusState`, so a
+    /// caller that has to steer focus here (the series page redirects an up-move out of the episode
+    /// row onto the season synopsis) needs this relay; the box clears the flag once it has focus.
+    var focusRequest: Binding<Bool>?
 
     @State private var showFullText = false
     @FocusState private var isFocused: Bool
@@ -60,6 +64,15 @@ struct ExpandableTextBox: View {
             }
             .onFocusMoveUp(onFocusMovedUp)
             .onChange(of: isFocused) { _, focused in onFocusChanged?(focused) }
+            .onChange(of: focusRequest?.wrappedValue ?? false) { _, requested in
+                guard requested else { return }
+                // Same defer as every other cross-view focus write on this page: a @FocusState write
+                // that rides the tick which just committed another element's focus is swallowed.
+                deferOnMain(by: 0.03) {
+                    isFocused = true
+                    focusRequest?.wrappedValue = false
+                }
+            }
             // The box can leave the tree while it holds focus (the series page rebuilds it per
             // episode); without this the caller would keep its buttons suppressed for good.
             .onDisappear { onFocusChanged?(false) }
