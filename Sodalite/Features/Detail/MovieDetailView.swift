@@ -10,6 +10,8 @@ struct MovieDetailView: View {
     @State private var navigateToSeries: JellyfinItem?
     @State private var navigateToItem: JellyfinItem?
     @State private var navigateToPerson: PersonRoute?
+    /// Catalog similar row target; the series page has carried the same destination since the Seerr request button.
+    @State private var navigateToSeerrRequest: SeerrMedia?
     @State private var showPlayer = false
     @State private var playFromBeginning = false
     @State private var versionChoice: VersionPickerChoice?
@@ -34,6 +36,11 @@ struct MovieDetailView: View {
     /// EnableContentDeletion (or admin) on the active user; read reactively from AppState.activeUser so a profile switch updates visibility without a manual refresh.
     private var canDelete: Bool {
         appState.activeUser?.canDeleteContent == true
+    }
+
+    /// Seerr service for the catalog similar row, nil while the Catalog tab is hidden: switching it off is a parental measure (Sodalite#62), so the catalog has to be gone here as well, exactly as in Search and on person pages.
+    private var catalogSimilarService: SeerrMediaServiceProtocol? {
+        dependencies.appearancePreferences.isTabHidden(.catalog) ? nil : dependencies.seerrMediaService
     }
 
     private var metrics: LayoutMetrics { LayoutMetrics.current(hSizeClass) }
@@ -186,6 +193,9 @@ struct MovieDetailView: View {
                 }
             }
         }
+        .navigationDestination(item: $navigateToSeerrRequest) { media in
+            CatalogDetailView(media: media)
+        }
         .navigationDestination(item: $navigateToItem) { item in
             DetailRouterView(item: item)
         }
@@ -208,7 +218,8 @@ struct MovieDetailView: View {
                     imageService: dependencies.jellyfinImageService,
                     userID: userID,
                     libraryService: dependencies.jellyfinLibraryService,
-                    playbackService: dependencies.jellyfinPlaybackService
+                    playbackService: dependencies.jellyfinPlaybackService,
+                    seerrMediaService: catalogSimilarService
                 )
                 Task { await viewModel?.loadFullDetail() }
             }
@@ -313,6 +324,16 @@ struct MovieDetailView: View {
                         imageURLProvider: { vm.posterURL(for: $0) },
                         onItemSelected: { navigateToItem = $0 },
                         cardStyle: .poster
+                    )
+                }
+
+                // Same split the search screen teaches: what the server has on top, what it would have
+                // to fetch below, under the header the catalog already uses.
+                if !vm.catalogSimilar.isEmpty {
+                    SeerrHorizontalMediaRow(
+                        title: "search.section.catalog",
+                        items: vm.catalogSimilar,
+                        onItemSelected: { navigateToSeerrRequest = $0 }
                     )
                 }
             }

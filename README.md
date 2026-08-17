@@ -111,7 +111,7 @@ The Seerr integration isn't a tacked-on link to a web view. It's a first-class p
 - **Search**: across your whole server, results as you type; with Jellyseerr connected, actors and directors come back as people of their own, and opening one lands on their photo, biography and full filmography
 - **Image caching & prefetching**: posters and backdrops load before you reach them
 - **Delete from the app**: remove movies, series, or individual seasons from your library, with optional cleanup of matching Radarr / Sonarr entries when Jellyseerr is connected
-- **Rich detail pages**: cast, ratings, where-to-watch and more-like-this on catalog titles; tagline, director, writer and studios on your own library
+- **Rich detail pages**: cast, ratings, where-to-watch and more-like-this on catalog titles; tagline, director, writer and studios on your own library. Similar titles come in two rows, what your server already has and, with Jellyseerr connected, what it would still have to fetch, so a suggestion is either one click from playing or one click from a request
 - **Title logos & synopses**: detail screens float the title logo over the backdrop and show full episode synopses, both toggleable in Appearance settings
 - **Full-bleed backdrops**: artwork shines through the whole detail page and dims as you scroll; titles without backdrop art get an ambient poster fill instead of a grey plate
 - **Watched tracking**: mark movies, episodes, seasons or whole series as watched or unwatched, with progress badges across Home and detail screens
