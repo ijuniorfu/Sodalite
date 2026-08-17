@@ -21,6 +21,8 @@ final class DetailViewModel {
     /// Full next-up episode, populated when getNextUp lands; lets the play button render "S1E5 · 12:34" + resume bar before loadEpisodes fills `episodes` (else a flicker on the first focused tile).
     var nextUpEpisode: JellyfinItem?
     var similarItems: [JellyfinItem] = []
+    /// Similar titles the server does NOT have, from Jellyseerr. Empty unless the catalog is connected and visible, the item carries a TMDB id, and something survives the dedupe.
+    var catalogSimilar: [SeerrMedia] = []
     var selectedSeasonID: String?
     var isLoading = false
     /// True once full-detail settles (success or failure). isLoading can flip false at the snapshot deadline while the detail roundtrip is still in flight, so views key overview/secondary placeholders on this to reserve space (Sodalite#15).
@@ -41,6 +43,8 @@ final class DetailViewModel {
     private let libraryService: JellyfinLibraryServiceProtocol?
     private let playbackService: JellyfinPlaybackServiceProtocol?
     private let imageService: JellyfinImageService
+    /// nil when Seerr is not connected, or when the caller does not want a catalog row (collections, playlists).
+    private let seerrMediaService: SeerrMediaServiceProtocol?
     private let userID: String
     /// Episode the detail was opened from (vs the series tile); loadSeasons lands on its season instead of running next-up logic.
     private let initialEpisode: JellyfinItem?
@@ -67,6 +71,7 @@ final class DetailViewModel {
         userID: String,
         libraryService: JellyfinLibraryServiceProtocol? = nil,
         playbackService: JellyfinPlaybackServiceProtocol? = nil,
+        seerrMediaService: SeerrMediaServiceProtocol? = nil,
         initialEpisode: JellyfinItem? = nil
     ) {
         self.item = item
@@ -76,6 +81,7 @@ final class DetailViewModel {
         self.libraryService = libraryService
         self.playbackService = playbackService
         self.imageService = imageService
+        self.seerrMediaService = seerrMediaService
         self.userID = userID
         self.initialEpisode = initialEpisode
     }
@@ -108,11 +114,23 @@ final class DetailViewModel {
         } : nil
 
         // Similar items sit below the fold; fire without awaiting so they don't gate isLoading flipping false. Row appears progressively when the response lands.
+        let snapshotTmdbID = item.tmdbID
         Task { [weak self] in
             guard let self else { return }
-            if let similar = try? await itemService.getSimilarItems(itemID: itemID, userID: userID, limit: 12) {
-                await MainActor.run { self.similarItems = similar.items }
+            let similar = try? await itemService.getSimilarItems(itemID: itemID, userID: userID, limit: 12)
+            let libraryItems = similar?.items ?? []
+            if similar != nil {
+                await MainActor.run { self.similarItems = libraryItems }
             }
+            // The catalog half waits for the detail fetch: the snapshot a Home row navigated with often
+            // carries no ProviderIds, and the TMDB id is read off the fetched detail rather than off
+            // self.item so it cannot race the outer assignment.
+            let detail = await detailTask.value
+            await self.loadCatalogSimilar(
+                tmdbID: detail?.tmdbID ?? snapshotTmdbID,
+                itemType: itemType,
+                excluding: libraryItems
+            )
         }
 
         // Snapshot-paint deadline (500ms): if the fetches haven't settled, flip isLoading=false and paint from the navigating-row JellyfinItem snapshot. Fast servers complete first and keep the quiet single-render path; slow CDN libraries (10+ s, Sodalite#12) stop showing the 30 s spinner and fade content in as fetches settle. Tradeoff: a brief field-fill repaint vs the hard wall (Sodalite#15).
@@ -140,6 +158,35 @@ final class DetailViewModel {
         await playlistContentTask?.value
 
         isLoading = false
+    }
+
+    /// Catalog counterpart of the similar row: what Jellyseerr suggests and the server does not have.
+    /// Recommendations first with a fallback to similar, the same order and reasoning as CatalogDetailView.
+    /// Inert without a Seerr service (not connected, or the caller hid the catalog), without a TMDB id,
+    /// and for anything that is not a movie or a series.
+    private func loadCatalogSimilar(tmdbID: Int?, itemType: ItemType, excluding libraryItems: [JellyfinItem]) async {
+        guard let seerrMediaService,
+              let tmdbID,
+              let mediaType = Self.seerrMediaType(for: itemType) else { return }
+
+        let recommended = (try? await seerrMediaService.recommendations(mediaType: mediaType, tmdbID: tmdbID)) ?? []
+        var candidates = SeerrLibraryDedupe.droppingAvailable(recommended)
+        if candidates.isEmpty {
+            let similar = (try? await seerrMediaService.similar(mediaType: mediaType, tmdbID: tmdbID)) ?? []
+            candidates = SeerrLibraryDedupe.droppingAvailable(similar)
+        }
+        // Second net against the library row right above it: Jellyseerr's own sync can be stale or
+        // unconfigured, and the same title in both rows is the thing this split was meant to end.
+        let result = SeerrLibraryDedupe.removing(candidates, matching: libraryItems)
+        await MainActor.run { self.catalogSimilar = result }
+    }
+
+    private static func seerrMediaType(for type: ItemType) -> SeerrMediaType? {
+        switch type {
+        case .movie: .movie
+        case .series: .tv
+        default: nil
+        }
     }
 
     func loadSeasons() async {

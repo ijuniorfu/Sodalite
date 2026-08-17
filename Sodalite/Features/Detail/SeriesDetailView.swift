@@ -42,6 +42,11 @@ struct SeriesDetailView: View {
     /// Set on episode "Show Details": the context menu restores focus to its anchor card on dismiss, so the focusedEpisodeID observer bounces focus up to the play button.
     @State private var pendingPlayFocusAfterMenu = false
 
+    /// Seerr service for the catalog similar row, nil while the Catalog tab is hidden: switching it off is a parental measure (Sodalite#62), so the catalog has to be gone here as well, exactly as in Search and on person pages.
+    private var catalogSimilarService: SeerrMediaServiceProtocol? {
+        dependencies.appearancePreferences.isTabHidden(.catalog) ? nil : dependencies.seerrMediaService
+    }
+
     /// EnableContentDeletion (or admin) on the active user; read reactively from AppState.activeUser so a profile switch updates visibility without a manual refresh.
     private var canDelete: Bool {
         appState.activeUser?.canDeleteContent == true
@@ -257,6 +262,16 @@ struct SeriesDetailView: View {
                                     cardStyle: .poster
                                 )
                             }
+
+                            // Same split the search screen teaches: what the server has on top, what it
+                            // would have to fetch below, under the header the catalog already uses.
+                            if !vm.catalogSimilar.isEmpty {
+                                SeerrHorizontalMediaRow(
+                                    title: "search.section.catalog",
+                                    items: vm.catalogSimilar,
+                                    onItemSelected: { navigateToSeerrRequest = $0 }
+                                )
+                            }
                         }
                         .onAppear {
                             episodeRowScrollProxy = outerProxy
@@ -416,6 +431,7 @@ struct SeriesDetailView: View {
                     userID: userID,
                     libraryService: dependencies.jellyfinLibraryService,
                     playbackService: dependencies.jellyfinPlaybackService,
+                    seerrMediaService: catalogSimilarService,
                     initialEpisode: initialEpisode
                 )
                 Task {

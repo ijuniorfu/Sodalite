@@ -919,12 +919,20 @@ struct CatalogDetailView: View {
     private func loadRecommendations() async {
         let service = dependencies.seerrMediaService
         do {
-            let recs = try await service.recommendations(mediaType: media.mediaType, tmdbID: media.id)
+            // Titles the server already has are dropped: this row is the catalog, and what is on the
+            // server belongs on its own detail page, not behind a request button (Vincent, 2026-08-17).
+            // The filter runs before the empty check, so a wall of owned recommendations falls through
+            // to similar instead of leaving the row looking short for no reason.
+            let recs = SeerrLibraryDedupe.droppingAvailable(
+                try await service.recommendations(mediaType: media.mediaType, tmdbID: media.id)
+            )
             if !recs.isEmpty {
                 recommendations = recs
                 return
             }
-            recommendations = try await service.similar(mediaType: media.mediaType, tmdbID: media.id)
+            recommendations = SeerrLibraryDedupe.droppingAvailable(
+                try await service.similar(mediaType: media.mediaType, tmdbID: media.id)
+            )
         } catch {
             // Best-effort: leave the row absent, no banner.
         }
