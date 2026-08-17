@@ -20,6 +20,13 @@ struct SearchTextField: UIViewRepresentable {
             for: .editingChanged
         )
         field.setContentHuggingPriority(.defaultLow, for: .horizontal)
+        // Clear button, iOS only: UIKit draws it inside the field at the trailing edge, where iOS
+        // looks for it, and localizes and voices it for free. tvOS has no pointer to hit it with.
+        // .always rather than .whileEditing so it survives the keyboard being dismissed, which is
+        // exactly when a stale query is in the way.
+        #if os(iOS)
+        field.clearButtonMode = .always
+        #endif
         return field
     }
 
@@ -50,5 +57,14 @@ struct SearchTextField: UIViewRepresentable {
             textField.resignFirstResponder()
             return true
         }
+
+        #if os(iOS)
+        /// The clear button does not post .editingChanged, so the binding is published here or the
+        /// field empties while the results below keep showing the old query's hits.
+        func textFieldShouldClear(_ textField: UITextField) -> Bool {
+            parent.text = ""
+            return true
+        }
+        #endif
     }
 }
