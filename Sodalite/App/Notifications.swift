@@ -28,6 +28,17 @@ extension Notification.Name {
 
     static let playerModalPresenceDidChange =
         Notification.Name("playerModalPresenceDidChange")
+
+    /// Posted by PlayerViewModel whenever the running session switches to another item (auto-advance,
+    /// play queue, season picker). Detail views follow it so leaving the player lands on the episode
+    /// that was watched last, not the one that was started. Carries PlayerItemSwitchKey.item.
+    static let playerDidSwitchItem = Notification.Name("playerDidSwitchItem")
+}
+
+/// userInfo keys for `.playerDidSwitchItem`.
+enum PlayerItemSwitchKey {
+    /// The `JellyfinItem` the session switched to.
+    static let item = "item"
 }
 
 /// userInfo keys for `.playbackProgressDidChange`.

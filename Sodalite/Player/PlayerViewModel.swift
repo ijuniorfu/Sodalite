@@ -313,7 +313,13 @@ final class PlayerViewModel {
     var isCountdownActive = false
     var nextEpisodeTimer: Task<Void, Never>?
     var hasFetchedNextEpisode = false
+    /// Successor rejected: the card was dismissed while the engine already sat in the terminal `.ended`
+    /// state, where seek and play are no-ops. Routes end-of-media like end-of-content.
     var nextEpisodeCancelled = false
+    /// Card dismissed while the source still runs. Scoped to one pass through the end window like
+    /// `nextEpisodeCancelled`, but it only hides the card: the episode plays out and the advance still
+    /// happens at the end (Sodalite#67, both used to be the same flag).
+    var nextEpisodeOverlayDismissed = false
 
     /// Last `currentTime` seen by the next-episode hook, used to detect backward scrubs so the
     /// overlay resets; without it the show-logic is one-way and the overlay sticks on screen.
@@ -1131,6 +1137,12 @@ final class PlayerViewModel {
                     let firstPlay = !self.hasStartedPlaying
                     self.hasStartedPlaying = true
                     self.isPlaying = true
+                    if firstPlay {
+                        // Resolve the successor once the pipeline delivers frames, NOT lazily at the
+                        // end window: a jump straight to the end never passes through that window, so
+                        // end-of-media routed as end-of-content and closed the player (Sodalite#67).
+                        self.resolveNextEpisode()
+                    }
                     #if os(iOS)
                     // Take over the native volume overlay only now that playback is up; during load the
                     // native overlay stays visible so hardware volume presses always show an indicator.
@@ -1159,6 +1171,9 @@ final class PlayerViewModel {
                         pictureInPictureCanAdvance: self.pipCanAdvanceCurrentBackend,
                         hasNextEpisode: self.nextEpisode != nil,
                         advanceCancelled: self.nextEpisodeCancelled,
+                        overlayDismissed: self.nextEpisodeOverlayDismissed,
+                        autoplayEnabled: self.preferences.autoplayNextEpisode,
+                        countdownEnabled: self.preferences.autoplayCountdown,
                         countdownRunning: self.nextEpisodeTimer != nil,
                         overlayVisible: self.showNextEpisodeOverlay
                     ) {
@@ -1166,6 +1181,13 @@ final class PlayerViewModel {
                         break
                     case .endPictureInPicture:
                         self.onPiPContentEnded?()
+                    case .advanceWithoutOverlay:
+                        // Card dismissed, or countdown switched off: the episode was allowed to play
+                        // out and the successor follows straight away (Sodalite#67).
+                        LogTap.shared.note("[NextEp] end_of_media advance_without_overlay")
+                        Task { @MainActor [weak self] in
+                            await self?.playNextEpisode()
+                        }
                     case .showOverlayAndAdvance:
                         // currentTime can stall a few seconds short of duration (demux's 15-20s
                         // look-ahead); cap the countdown at 10s so the overlay copy stays readable.
@@ -1263,7 +1285,6 @@ final class PlayerViewModel {
                 // clock (source - playlistShiftSeconds on native HLS), so compare against sourceTime.
                 self.updateSkipSegmentVisibility(time: self.player.sourceTime)
                 self.updateOutroAutoSkip(time: self.player.sourceTime)
-                self.checkForNextEpisode()
                 let dur = self.effectiveDuration
                 let remaining = dur - time
 
@@ -1289,8 +1310,14 @@ final class PlayerViewModel {
                 if self.nextEpisodeCancelled, !insideEndWindow {
                     self.nextEpisodeCancelled = false
                 }
+                // Same scope for the softer latch: the card comes back on the next pass through the
+                // window, it just stays gone for this one.
+                if self.nextEpisodeOverlayDismissed, !insideEndWindow {
+                    self.nextEpisodeOverlayDismissed = false
+                }
 
-                if self.nextEpisode != nil && !self.nextEpisodeCancelled && dur > 0 && remaining > 0 {
+                if self.nextEpisode != nil && !self.nextEpisodeCancelled
+                    && !self.nextEpisodeOverlayDismissed && dur > 0 && remaining > 0 {
                     // Outro available: show + fixed 10s countdown at outro.startSeconds, cutting through
                     // the credits. No outro: show at 30s remaining, countdown at 10s synced to the clock.
                     if insideEndWindow, !self.showNextEpisodeOverlay {

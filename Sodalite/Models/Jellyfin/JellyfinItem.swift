@@ -215,19 +215,32 @@ struct JellyfinItem: Codable, Sendable, Identifiable, Equatable, Hashable {
         self.albumPrimaryImageTag = nil
     }
 
+    /// Jellyfin's `MaxResumePct` default: past it the server counts the item as watched and stores no
+    /// resume position at all.
+    static let playedThresholdPercent: Double = 90
+
     /// Patch resume position in place after playback stops (issue #24): sets ticks + recomputes playedPercentage, no server round-trip. Creates userData if none.
     mutating func setResumePosition(_ ticks: Int64) {
-        let pct: Double?
-        if let total = runTimeTicks, total > 0 {
-            pct = min(100, max(0, Double(ticks) / Double(total) * 100))
-        } else {
-            pct = userData?.playedPercentage
-        }
+        // Only a percentage computed from THIS stop may decide "watched": with no runtime the fallback
+        // is the server's last percentage, and a stale 95% would drop a fresh position on the floor.
+        let computed: Double? = {
+            guard let total = runTimeTicks, total > 0 else { return nil }
+            return min(100, max(0, Double(ticks) / Double(total) * 100))
+        }()
+        let pct = computed ?? userData?.playedPercentage
         let base = userData ?? UserItemData(
             playbackPositionTicks: nil, playCount: nil, isFavorite: nil,
             played: nil, unplayedItemCount: nil, playedPercentage: nil,
             lastPlayedDate: nil
         )
+        // Past the threshold the server records "watched, no resume". Writing the raw end position
+        // instead left the play button offering to resume the episode that had just finished, and the
+        // detail view re-applies this patch after refreshing from the server, so the stale position
+        // won the reconciliation (Sodalite#67).
+        if let computed, computed >= Self.playedThresholdPercent {
+            userData = base.with(playbackPositionTicks: 0, playedPercentage: 100, played: true)
+            return
+        }
         userData = base.with(playbackPositionTicks: ticks, playedPercentage: pct)
     }
 
@@ -343,13 +356,13 @@ struct UserItemData: Codable, Sendable, Equatable {
         case lastPlayedDate = "LastPlayedDate"
     }
 
-    /// Copy with resume position (and, if known, played percentage) replaced; in-memory patch after playback stops (issue #24).
-    func with(playbackPositionTicks ticks: Int64, playedPercentage pct: Double?) -> UserItemData {
+    /// Copy with resume position (and, if known, played percentage) replaced; in-memory patch after playback stops (issue #24). `played` defaults to keep-current, the watched-threshold patch passes it.
+    func with(playbackPositionTicks ticks: Int64, playedPercentage pct: Double?, played newPlayed: Bool? = nil) -> UserItemData {
         UserItemData(
             playbackPositionTicks: ticks,
             playCount: playCount,
             isFavorite: isFavorite,
-            played: played,
+            played: newPlayed ?? played,
             unplayedItemCount: unplayedItemCount,
             playedPercentage: pct,
             lastPlayedDate: lastPlayedDate

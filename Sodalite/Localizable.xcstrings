@@ -134349,6 +134349,328 @@
         }
       }
     },
+    "settings.playback.autoplayCountdown" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Odpočet do další epizody"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nedtælling til næste afsnit"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Countdown zur nächsten Folge"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Αντίστροφη μέτρηση για το επόμενο επεισόδιο"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Next Episode Countdown"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cuenta atrás para el siguiente episodio"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seuraavan jakson ajastin"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Compte à rebours vers l'épisode suivant"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Odbrojavanje do sljedeće epizode"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Visszaszámlálás a következő epizódig"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Conto alla rovescia per il prossimo episodio"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "次のエピソードのカウントダウン"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "다음 에피소드 카운트다운"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nedtelling til neste episode"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aftellen naar volgende aflevering"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Odliczanie do następnego odcinka"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Contagem regressiva para o próximo episódio"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Contagem decrescente para o próximo episódio"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Numărătoare inversă până la episodul următor"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Обратный отсчёт до следующей серии"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Odpočet do ďalšej epizódy"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nedräkning till nästa avsnitt"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sonraki Bölüm Geri Sayımı"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Зворотний відлік до наступного епізоду"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "下一集倒计时"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "下一集倒數計時"
+          }
+        }
+      }
+    },
+    "settings.playback.autoplayCountdown.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vypnuto zobrazí kartu bez odpočtu, takže titulky doběhnou před spuštěním další epizody."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fra viser kortet uden nedtælling, så rulleteksterne kan køre færdigt før næste afsnit."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aus zeigt die Karte ohne Timer, der Abspann läuft also zu Ende, bevor die nächste Folge startet."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Απενεργοποιημένο εμφανίζει την κάρτα χωρίς χρονόμετρο, ώστε να παίξουν οι τίτλοι τέλους πριν από το επόμενο επεισόδιο."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Off shows the card without a timer, so credits play out before the next episode starts."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desactivado muestra la tarjeta sin temporizador, así los créditos terminan antes del siguiente episodio."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pois näyttää kortin ilman ajastinta, joten lopputekstit ehtivät soida ennen seuraavaa jaksoa."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Désactivé affiche la carte sans minuteur, le générique se termine avant l'épisode suivant."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Isključeno prikazuje karticu bez odbrojavanja, pa odjavna špica završi prije sljedeće epizode."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kikapcsolva a kártya időzítő nélkül jelenik meg, így a stáblista végigfut a következő epizód előtt."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Disattivato mostra la scheda senza timer, così i titoli di coda scorrono prima del prossimo episodio."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "オフにするとタイマーなしでカードを表示し、エンドクレジットが終わってから次のエピソードが始まります。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "끄면 타이머 없이 카드만 표시되어 엔딩 크레딧이 끝난 뒤 다음 에피소드가 시작됩니다."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Av viser kortet uten nedtelling, så rulleteksten spilles ferdig før neste episode."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uit toont de kaart zonder timer, zodat de aftiteling afspeelt voor de volgende aflevering."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wyłączone pokazuje kartę bez odliczania, więc napisy końcowe wybrzmią przed następnym odcinkiem."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desativado mostra o cartão sem contagem, então os créditos terminam antes do próximo episódio."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desativado mostra o cartão sem contagem, para os créditos terminarem antes do próximo episódio."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dezactivat afișează cardul fără cronometru, astfel genericul rulează până la capăt înainte de episodul următor."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Выключено показывает карточку без таймера, титры доигрывают до конца перед следующей серией."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vypnuté zobrazí kartu bez odpočtu, takže titulky dobehnú pred ďalšou epizódou."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Av visar kortet utan nedräkning, så eftertexterna spelas klart före nästa avsnitt."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kapalıyken kart sayaç olmadan görünür, jenerik bitene kadar sonraki bölüm başlamaz."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Вимкнено показує картку без таймера, тож титри догравають до кінця перед наступним епізодом."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "关闭后仅显示卡片而不计时，片尾播完后才开始下一集。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "關閉後只顯示卡片而不倒數，片尾播完後才開始下一集。"
+          }
+        }
+      }
+    },
     "settings.playback.autoplayNextEp" : {
       "extractionState" : "manual",
       "localizations" : {
