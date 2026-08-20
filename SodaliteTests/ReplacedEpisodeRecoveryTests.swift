@@ -192,17 +192,4 @@ struct ReplacedEpisodeRecoveryTests {
         #expect(!canAsk(episode: false, movieWithService: false))
     }
 
-    /// Engine-side: the faces that carry an origin status are the same event seen one layer down.
-    @Test func engineFacesCarryingAnOriginStatusAskTheLibrary() {
-        #expect(ReplacedItemRecoveryTrigger.serverAnswered(engineFace: .streamNotFound))
-        #expect(ReplacedItemRecoveryTrigger.serverAnswered(engineFace: .streamRefused(status: 403)))
-        #expect(ReplacedItemRecoveryTrigger.serverAnswered(engineFace: .streamServerError(status: 500)))
-    }
-
-    /// A metered origin still has the file, and a decoder death says nothing about the library.
-    @Test func enginesFacesWithoutAnOriginStatusAreNotProbed() {
-        #expect(!ReplacedItemRecoveryTrigger.serverAnswered(engineFace: .rateLimited))
-        #expect(!ReplacedItemRecoveryTrigger.serverAnswered(engineFace: .engineMessage))
-        #expect(!ReplacedItemRecoveryTrigger.serverAnswered(engineFace: .dolbyVisionUnsupported))
-    }
 }

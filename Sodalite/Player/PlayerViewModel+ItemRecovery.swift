@@ -1,21 +1,15 @@
 import Foundation
-import AetherEngine
-
-/// Why the library is being asked about the item, which decides what a fruitless answer costs.
-enum ReplacedItemRecoveryReason {
-    /// The session could not start, or the engine declared it dead. Nothing is on screen but an error, so
-    /// a fruitless lookup paints the failure the caller was holding.
-    case failure
-    /// The reader is stalled with the session still up. A fruitless lookup says nothing here: the stall may
-    /// still resolve, and the server probe may still call an outage, so this one stays silent.
-    case stalledReader
-}
 
 /// Whether a failure is the kind worth asking the library about.
+///
+/// Only a session that FAILED TO START asks. Asking from a running session was built and dropped
+/// (2026-08-20, measured on device): at the moment a *arr upgrade swaps the file, the library has removed
+/// the old item and not yet added the new one, so there is nothing to continue on however early the
+/// question is asked, and every attempt to be clever there traded an error screen for a hang.
 enum ReplacedItemRecoveryTrigger {
 
-    /// Preconditions shared by both reasons. Split out from the method so the combination is pinned by a
-    /// test rather than by reading four guards in a row.
+    /// Preconditions, split out from the method so the combination is pinned by a test rather than by
+    /// reading four guards in a row.
     static func canAsk(
         isLiveSession: Bool,
         isTearingDown: Bool,
@@ -39,16 +33,6 @@ enum ReplacedItemRecoveryTrigger {
             return false
         }
     }
-
-    /// The same question for a failure the engine typed: only the faces that carry an origin status.
-    static func serverAnswered(engineFace: PlayerEngineErrorPresentation.Face) -> Bool {
-        switch engineFace {
-        case .streamNotFound, .streamRefused, .streamServerError:
-            return true
-        case .rateLimited, .dolbyVisionUnsupported, .liveChannelUnavailable, .engineMessage:
-            return false
-        }
-    }
 }
 
 extension PlayerViewModel {
@@ -61,37 +45,26 @@ extension PlayerViewModel {
     /// Returns true once the question is out, in which case the caller must not paint an error: the
     /// spinner stays up and `onGiveUp` paints the failure if nothing was replaced after all.
     @discardableResult
-    func beginReplacedItemRecovery(
-        resumeAt seconds: Double?,
-        reason: ReplacedItemRecoveryReason = .failure,
-        onGiveUp: @escaping @MainActor () -> Void
-    ) -> Bool {
+    func beginReplacedItemRecovery(onGiveUp: @escaping @MainActor () -> Void) -> Bool {
         // An episode resolves on series, season and episode number; a movie on its external ids. Anything
         // else (a trailer, a recording, a music item) has no axis worth guessing on and keeps its error.
         guard ReplacedItemRecoveryTrigger.canAsk(
             isLiveSession: isLiveSession,
             isTearingDown: isTearingDown,
-            alreadyAsked: reason == .failure ? didAttemptReplacedItemRecovery : didProbeStalledSource,
+            alreadyAsked: didAttemptReplacedItemRecovery,
             isEpisode: item.seriesId != nil && item.indexNumber != nil,
             isMovieWithItemService: item.type == .movie && itemService != nil
         ) else { return false }
-
-        switch reason {
-        case .failure:
-            didAttemptReplacedItemRecovery = true
-            // The spinner owns the screen while the library answers, so a successful recovery never
-            // flashes an error the viewer has to read. A stalled reader already has the spinner from the
-            // engine phase and must not have it taken away by this lookup ending.
-            hostLoadActive = true
-        case .stalledReader:
-            didProbeStalledSource = true
-        }
+        didAttemptReplacedItemRecovery = true
+        // The spinner owns the screen while the library answers, so a successful recovery never flashes an
+        // error the viewer has to read.
+        hostLoadActive = true
 
         let stale = item
-        // Only a load that actually ran on prefetched playback info is worth repeating without it. A
-        // session that already produced frames fetched its own, so a death mid-stream is not that case.
-        let ranOnPrefetchedInfo = !hasStartedPlaying && !(cachedPlaybackInfo?.mediaSources.isEmpty ?? true)
-        let resumeSeconds = seconds ?? carriedResumeSeconds(from: stale)
+        // A load that ran on prefetched playback info is worth repeating without it: the file behind an
+        // unchanged id can still be a new one.
+        let ranOnPrefetchedInfo = !(cachedPlaybackInfo?.mediaSources.isEmpty ?? true)
+        let resumeSeconds = carriedResumeSeconds(from: stale)
 
         Task { @MainActor [weak self] in
             guard let self else { return }
@@ -121,8 +94,7 @@ extension PlayerViewModel {
                 LogTap.shared.note("[ItemRecovery] \(stale.id) still listed, retrying without prefetched playback info")
                 self.restartAfterItemRecovery(resumeAt: resumeSeconds)
             } else {
-                LogTap.shared.note("[ItemRecovery] nothing replaced \(stale.id) (\(reason))")
-                guard reason == .failure else { return }
+                LogTap.shared.note("[ItemRecovery] nothing replaced \(stale.id)")
                 self.hostLoadActive = false
                 onGiveUp()
             }

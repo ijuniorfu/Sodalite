@@ -36,10 +36,6 @@ final class PlayerViewModel {
     /// One replaced-item lookup per item: the answer is the library's, so asking it twice for the same
     /// failure would only stall the error screen. Cleared per item in `resetSessionState`.
     var didAttemptReplacedItemRecovery = false
-    /// The same question asked from the other end, while the reader is stalled rather than dead. Latched
-    /// per stall, not per item: a reader that recovers and stalls again is a new case, and the library may
-    /// have finished the scan that the first question fell into.
-    var didProbeStalledSource = false
     /// Which error-screen button is highlighted. The overlay is display-only inside the player on tvOS, so
     /// the cursor lives here and `PlayerHostController`'s press handlers move it.
     var errorFocus: PlayerErrorFocus = .back
@@ -408,8 +404,6 @@ final class PlayerViewModel {
     /// hiccup never shows it.
     @ObservationIgnored static let connectionNoticeDelay: Double = 2
     @ObservationIgnored private var connectionNoticeTask: Task<Void, Never>?
-    /// Debounced library question for a stalled reader; cancelled the moment the stall ends.
-    @ObservationIgnored private var stalledSourceLookupTask: Task<Void, Never>?
 
     /// Session-scoped frame extractor (static stream URL); built in startPlayback, shut down in
     /// stopPlayback. Shared by `scrubPreview` and `chapterThumbnail(forIndex:)`.
@@ -993,7 +987,7 @@ final class PlayerViewModel {
                 // Engine-level live open failure (probe fail-fast): friendly message, APIErrors keep their trio.
                 setLiveChannelUnavailableError()
             } else if ReplacedItemRecoveryTrigger.serverAnswered(hostError: error),
-                      beginReplacedItemRecovery(resumeAt: nil, onGiveUp: { [weak self] in self?.setError(from: error) }) {
+                      beginReplacedItemRecovery(onGiveUp: { [weak self] in self?.setError(from: error) }) {
                 // The server answered with a status, which a *arr upgrade earns whichever endpoint it hits.
                 // The library is being asked whether this item still exists; the spinner stays up and the
                 // recovery paints this error itself if nothing was replaced.
@@ -1070,8 +1064,6 @@ final class PlayerViewModel {
         controlsTimer = nil
         continuousSeekTask?.cancel()
         continuousSeekTask = nil
-        stalledSourceLookupTask?.cancel()
-        stalledSourceLookupTask = nil
         scrubPreview.reset()
         let extractorToClose = frameExtractor
         frameExtractor = nil
@@ -1257,20 +1249,12 @@ final class PlayerViewModel {
                         LogTap.shared.note("[Live] route=retune reason=engine_error_mid_session(\(msg))")
                         self.handleLiveSourceReset()
                     } else {
-                        // A file swapped under the reader dies mid-stream with an origin status, which is
-                        // the same event as a failed start seen a few minutes later. Ask the library first
-                        // and pick the episode back up where it stopped.
-                        let paintEngineError: @MainActor () -> Void = { [weak self] in
-                            guard let self else { return }
-                            self.setEnginePlaybackError(message: msg, info: info)
-                        }
-                        let face = PlayerEngineErrorPresentation.face(for: info)
-                        let started = ReplacedItemRecoveryTrigger.serverAnswered(engineFace: face)
-                            && self.beginReplacedItemRecovery(
-                                resumeAt: self.playbackTime > 0 ? self.playbackTime : nil,
-                                onGiveUp: paintEngineError
-                            )
-                        if !started { paintEngineError() }
+                        // Deliberately no replaced-item lookup here (tried and dropped, 2026-08-20): at the
+                        // moment a *arr upgrade swaps the file, the library has removed the old item and not
+                        // yet added the new one, so there is nothing to continue on, and a session that
+                        // keeps trying is a session that never says anything. A dead source mid-playback
+                        // gets the error screen; picking the title again is what recovers it.
+                        self.setEnginePlaybackError(message: msg, info: info)
                     }
                 }
             }
@@ -1733,34 +1717,6 @@ final class PlayerViewModel {
         let stalled = PlayerLoadingIndicator.showsConnectionNotice(hostLoadActive: hostLoadActive, phase: phase)
         updateConnectionNotice(stalled: stalled)
         outageWatchdogIfNeeded()?.phaseChanged(to: phase)
-        updateStalledSourceLookup(stalled: stalled)
-    }
-
-    /// Asks the library whether this item still exists while the reader is stalled on it.
-    ///
-    /// The probe next to this one answers "is the server there", and for a file a *arr upgrade replaced the
-    /// answer is yes, so nothing fires: the engine keeps reconnecting to a URL with no file behind it for
-    /// its full ladder plus two revives, and the viewer gets minutes of spinner with no error and no
-    /// recovery. That is what the first field run of the replaced-item fix hit. The host can answer the
-    /// question the situation actually poses, and it costs one small list request per stall.
-    private func updateStalledSourceLookup(stalled: Bool) {
-        stalledSourceLookupTask?.cancel()
-        stalledSourceLookupTask = nil
-        guard stalled else {
-            // The reader won whatever it was fighting, so the next stall is a fresh case.
-            didProbeStalledSource = false
-            return
-        }
-        stalledSourceLookupTask = Task { @MainActor [weak self] in
-            // Same cadence as the server probe, so an ordinary segment-boundary hiccup is never asked about.
-            try? await Task.sleep(for: .seconds(SourceOutageWatchdog.probeInterval))
-            guard !Task.isCancelled, let self else { return }
-            self.beginReplacedItemRecovery(
-                resumeAt: self.playbackTime > 0 ? self.playbackTime : nil,
-                reason: .stalledReader,
-                onGiveUp: {}
-            )
-        }
     }
 
     private func updateConnectionNotice(stalled: Bool) {
