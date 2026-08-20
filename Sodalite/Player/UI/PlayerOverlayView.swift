@@ -424,6 +424,14 @@ struct PlayerOverlayView: View {
                         .foregroundStyle(.white.opacity(0.75))
                         .monospacedDigit()
                         .contentTransition(.numericText())
+                } else if !viewModel.isCountdownActive, let hint = playNowHint {
+                    // One line, shrink instead of wrap: the countdown it replaces is a handful of
+                    // characters, this is a sentence, and hu/ro/ru/uk run half again as long as en.
+                    Text(hint)
+                        .font(.caption)
+                        .foregroundStyle(.white.opacity(0.75))
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.8)
                 }
             }
             .padding(padding)
@@ -433,6 +441,23 @@ struct PlayerOverlayView: View {
         .frame(width: width, height: height)
         .background(.thinMaterial)
         .clipShape(RoundedRectangle(cornerRadius: 20))
+    }
+
+    /// Hint in the countdown's slot, for the card that carries no countdown: with the countdown switched
+    /// off (Sodalite#67) or autoplay off, nothing on the card says it is actionable at all, and it then
+    /// sits through the whole credits. Shares the slot with the countdown, so the layout never shifts;
+    /// the sub-second window at countdown 0 stays empty on purpose.
+    ///
+    /// nil where the press it names would not land: on tvOS the card only commandeers Select while the
+    /// transport is hidden (PlayerHostController.selectPressed), with the transport open Select belongs
+    /// to the focused control. Touch has no such handover, the card is its own Button there.
+    private var playNowHint: String? {
+        #if os(tvOS)
+        guard !viewModel.showControls else { return nil }
+        return String(localized: "player.nextEpisode.clickToPlay", defaultValue: "Click to play now")
+        #else
+        return String(localized: "player.nextEpisode.tapToPlay", defaultValue: "Tap to play now")
+        #endif
     }
 
     /// Build episode thumbnail URL directly from item data
