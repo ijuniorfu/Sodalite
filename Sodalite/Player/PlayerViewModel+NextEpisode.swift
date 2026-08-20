@@ -224,6 +224,7 @@ extension PlayerViewModel {
         // Silent forced fallback is per-item (streams + audio language); the next load re-resolves it.
         forcedSubtitleFallback = .none
         didAttemptReplacedItemRecovery = false
+        didProbeStalledSource = false
         nextEpisode = nil
         hasFetchedNextEpisode = false
         nextEpisodeCancelled = false
