@@ -6,8 +6,10 @@ import AetherEngine
 ///
 /// The engine cannot answer that question: it knows one URL and a reconnect budget, and its budgets are
 /// deliberately generous (an unproductive-reconnect ladder of ~80-100s, then two revives, before
-/// `onVODSourceFailed` makes the session terminal). The host knows which Jellyfin server this is and can
-/// ask it directly, so a dead server becomes a clean error in seconds instead of minutes of spinner.
+/// `onVODSourceFailed` makes the session terminal, and since AetherEngine 6.33.0 up to 600s per refusal
+/// window when the origin answers 429/503/509 rather than failing). The host knows which Jellyfin server
+/// this is and can ask it directly, so a dead server becomes a clean error in seconds instead of minutes
+/// of spinner.
 ///
 /// Pure state machine, no clock: `SourceOutageWatchdog` owns the timer around it.
 struct SourceOutageTracker: Equatable {
