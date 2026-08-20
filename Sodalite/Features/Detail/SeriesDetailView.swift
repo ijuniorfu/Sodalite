@@ -303,6 +303,7 @@ struct SeriesDetailView: View {
                     item: playItem,
                     startFromBeginning: playFromBeginning,
                     playbackService: dependencies.jellyfinPlaybackService,
+                    itemService: dependencies.jellyfinItemService,
                     userID: userID,
                     preferences: dependencies.playbackPreferences,
                     trackMemory: dependencies.trackSelectionMemory,

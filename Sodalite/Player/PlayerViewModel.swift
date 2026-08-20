@@ -364,6 +364,9 @@ final class PlayerViewModel {
     }
 
     let playbackService: JellyfinPlaybackServiceProtocol
+    /// Only the replaced-item lookup needs it, and only for movies (an episode resolves through the
+    /// playback service's own season query). Nil where no caller passes one: live, previews.
+    let itemService: JellyfinItemServiceProtocol?
     let userID: String
     var startFromBeginning: Bool
     var cachedPlaybackInfo: PlaybackInfoResponse?
@@ -639,6 +642,7 @@ final class PlayerViewModel {
         playbackService: JellyfinPlaybackServiceProtocol,
         userID: String,
         preferences: PlaybackPreferences,
+        itemService: JellyfinItemServiceProtocol? = nil,
         trackMemory: TrackSelectionMemory? = nil,
         spoilerPolicy: SpoilerPolicy = .disabled,
         cachedPlaybackInfo: PlaybackInfoResponse? = nil,
@@ -655,6 +659,7 @@ final class PlayerViewModel {
         self.playbackService = playbackService
         self.userID = userID
         self.preferences = preferences
+        self.itemService = itemService
         self.trackMemory = trackMemory
         self.spoilerPolicy = spoilerPolicy
         self.scrubPreview = ScrubPreviewProvider()

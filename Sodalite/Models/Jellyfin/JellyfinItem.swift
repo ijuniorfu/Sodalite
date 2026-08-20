@@ -65,6 +65,17 @@ struct JellyfinItem: Codable, Sendable, Identifiable, Equatable, Hashable {
         return raw.flatMap(Int.init)
     }
 
+    /// IMDb id ("tt0133093"). Case-insensitive for the same reason `tmdbID` checks three spellings:
+    /// scanners disagree on the key.
+    var imdbID: String? { providerID(named: "Imdb") }
+
+    /// TVDB id, which some libraries carry where TMDB is missing.
+    var tvdbID: Int? { providerID(named: "Tvdb").flatMap(Int.init) }
+
+    private func providerID(named key: String) -> String? {
+        providerIds?.first { $0.key.caseInsensitiveCompare(key) == .orderedSame }?.value
+    }
+
     /// An entry the library lists but holds no file for: a missing or an unaired episode. Jellyfin
     /// returns those alongside real ones whenever the user has "display missing episodes" on, and
     /// they cannot be opened or played, so any row that promises library content drops them

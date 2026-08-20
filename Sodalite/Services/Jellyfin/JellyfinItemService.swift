@@ -1,6 +1,8 @@
 import Foundation
 
-protocol JellyfinItemServiceProtocol: Sendable {
+/// `MovieCatalogQuerying` (getCollectionItems / findByProviderIDs) is inherited: resolving a replaced
+/// movie needs those two and nothing else, and a narrow face keeps it testable.
+protocol JellyfinItemServiceProtocol: MovieCatalogQuerying {
     func getItemDetail(userID: String, itemID: String) async throws -> JellyfinItem
     /// Local trailers; bare array response (not the {Items:[...]} envelope), possibly empty.
     func getLocalTrailers(userID: String, itemID: String) async throws -> [JellyfinItem]
@@ -9,11 +11,8 @@ protocol JellyfinItemServiceProtocol: Sendable {
     func getSimilarItems(itemID: String, userID: String, limit: Int) async throws -> JellyfinItemsResponse
     func setFavorite(userID: String, itemID: String, isFavorite: Bool) async throws
     func setPlayed(userID: String, itemID: String, isPlayed: Bool) async throws
-    func getCollectionItems(userID: String, query: ItemQuery) async throws -> JellyfinItemsResponse
     /// Resolves a library item by TMDB id; first verified match or nil. `searchTerm` narrows the candidate set (see findByProviderIDs).
     func findByTmdbID(userID: String, tmdbID: Int, searchTerm: String?) async throws -> JellyfinItem?
-    /// Resolves a library item across several external ids (tmdb, then tvdb/imdb fallbacks). Jellyfin cannot filter by provider id, so `searchTerm` narrows the candidates and each one is verified against the ids; nil means no candidate carried them, which is NOT proof of absence when the title search itself missed. Throws on query failure so callers can degrade to "trust Seerr" rather than a false absence.
-    func findByProviderIDs(userID: String, tmdbID: Int?, tvdbID: Int?, imdbID: String?, includeItemTypes: [ItemType], searchTerm: String?) async throws -> JellyfinItem?
     /// People matching a name, carrying ProviderIds so the caller can tell same-named people apart. People live in their own namespace, so an /Items search never returns them.
     func searchPersons(userID: String, name: String, limit: Int) async throws -> [JellyfinItem]
     func deleteItem(itemID: String) async throws

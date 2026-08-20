@@ -40,9 +40,11 @@ extension PlayerViewModel {
     @discardableResult
     func beginReplacedItemRecovery(resumeAt seconds: Double?, onGiveUp: @escaping @MainActor () -> Void) -> Bool {
         guard !isLiveSession, !isTearingDown, !didAttemptReplacedItemRecovery else { return false }
-        // Episodes only: series, season and episode number identify the new file without guessing. A
-        // movie has no such axis, so a replaced movie keeps its error.
-        guard item.seriesId != nil, item.indexNumber != nil else { return false }
+        // An episode resolves on series, season and episode number; a movie on its external ids. Anything
+        // else (a trailer, a recording, a music item) has no axis worth guessing on and keeps its error.
+        let resolvableEpisode = item.seriesId != nil && item.indexNumber != nil
+        let resolvableMovie = item.type == .movie && itemService != nil
+        guard resolvableEpisode || resolvableMovie else { return false }
         didAttemptReplacedItemRecovery = true
 
         let stale = item
@@ -54,8 +56,12 @@ extension PlayerViewModel {
 
         Task { @MainActor [weak self] in
             guard let self else { return }
-            let resolver = ReplacedEpisodeResolver(service: self.playbackService, userID: self.userID)
-            let replacement = await resolver.replacement(for: stale)
+            let replacement = await ReplacedItemResolver.replacement(
+                for: stale,
+                episodes: self.playbackService,
+                movies: self.itemService,
+                userID: self.userID
+            )
             guard !self.isTearingDown, self.item.id == stale.id else { return }
 
             if let replacement {
