@@ -163,17 +163,33 @@ struct ReplacedEpisodeRecoveryTests {
         #expect(!ReplacedItemRecoveryTrigger.serverAnswered(hostError: CancellationError()))
     }
 
-    /// Engine-side: the faces that carry an origin status are the same event seen one layer down.
-    @Test func engineFacesCarryingAnOriginStatusAskTheLibrary() {
-        #expect(ReplacedItemRecoveryTrigger.serverAnswered(engineFace: .streamNotFound))
-        #expect(ReplacedItemRecoveryTrigger.serverAnswered(engineFace: .streamRefused(status: 403)))
-        #expect(ReplacedItemRecoveryTrigger.serverAnswered(engineFace: .streamServerError(status: 500)))
+    /// The five preconditions, pinned as a combination rather than as five guards read in a row.
+    @Test func onlyAResolvableVodSessionThatHasNotAskedYetMayAsk() {
+        func canAsk(
+            live: Bool = false,
+            tearingDown: Bool = false,
+            asked: Bool = false,
+            episode: Bool = true,
+            movieWithService: Bool = false
+        ) -> Bool {
+            ReplacedItemRecoveryTrigger.canAsk(
+                isLiveSession: live,
+                isTearingDown: tearingDown,
+                alreadyAsked: asked,
+                isEpisode: episode,
+                isMovieWithItemService: movieWithService
+            )
+        }
+        #expect(canAsk())
+        #expect(canAsk(episode: false, movieWithService: true))
+        // A live channel has no library item to resolve, and a session on its way out has no use for one.
+        #expect(!canAsk(live: true))
+        #expect(!canAsk(tearingDown: true))
+        // The answer is the library's; asking again for the same case only stalls the screen.
+        #expect(!canAsk(asked: true))
+        // A movie without an item service, and anything that is neither (a recording, a trailer).
+        #expect(!canAsk(episode: false))
+        #expect(!canAsk(episode: false, movieWithService: false))
     }
 
-    /// A metered origin still has the file, and a decoder death says nothing about the library.
-    @Test func enginesFacesWithoutAnOriginStatusAreNotProbed() {
-        #expect(!ReplacedItemRecoveryTrigger.serverAnswered(engineFace: .rateLimited))
-        #expect(!ReplacedItemRecoveryTrigger.serverAnswered(engineFace: .engineMessage))
-        #expect(!ReplacedItemRecoveryTrigger.serverAnswered(engineFace: .dolbyVisionUnsupported))
-    }
 }

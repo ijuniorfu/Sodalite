@@ -987,7 +987,7 @@ final class PlayerViewModel {
                 // Engine-level live open failure (probe fail-fast): friendly message, APIErrors keep their trio.
                 setLiveChannelUnavailableError()
             } else if ReplacedItemRecoveryTrigger.serverAnswered(hostError: error),
-                      beginReplacedItemRecovery(resumeAt: nil, onGiveUp: { [weak self] in self?.setError(from: error) }) {
+                      beginReplacedItemRecovery(onGiveUp: { [weak self] in self?.setError(from: error) }) {
                 // The server answered with a status, which a *arr upgrade earns whichever endpoint it hits.
                 // The library is being asked whether this item still exists; the spinner stays up and the
                 // recovery paints this error itself if nothing was replaced.
@@ -1249,20 +1249,12 @@ final class PlayerViewModel {
                         LogTap.shared.note("[Live] route=retune reason=engine_error_mid_session(\(msg))")
                         self.handleLiveSourceReset()
                     } else {
-                        // A file swapped under the reader dies mid-stream with an origin status, which is
-                        // the same event as a failed start seen a few minutes later. Ask the library first
-                        // and pick the episode back up where it stopped.
-                        let paintEngineError: @MainActor () -> Void = { [weak self] in
-                            guard let self else { return }
-                            self.setEnginePlaybackError(message: msg, info: info)
-                        }
-                        let face = PlayerEngineErrorPresentation.face(for: info)
-                        let started = ReplacedItemRecoveryTrigger.serverAnswered(engineFace: face)
-                            && self.beginReplacedItemRecovery(
-                                resumeAt: self.playbackTime > 0 ? self.playbackTime : nil,
-                                onGiveUp: paintEngineError
-                            )
-                        if !started { paintEngineError() }
+                        // Deliberately no replaced-item lookup here (tried and dropped, 2026-08-20): at the
+                        // moment a *arr upgrade swaps the file, the library has removed the old item and not
+                        // yet added the new one, so there is nothing to continue on, and a session that
+                        // keeps trying is a session that never says anything. A dead source mid-playback
+                        // gets the error screen; picking the title again is what recovers it.
+                        self.setEnginePlaybackError(message: msg, info: info)
                     }
                 }
             }
