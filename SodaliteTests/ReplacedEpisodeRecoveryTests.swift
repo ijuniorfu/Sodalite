@@ -1,0 +1,179 @@
+import Testing
+import Foundation
+@testable import Sodalite
+
+/// A Sonarr upgrade rewrites an episode file, and because Jellyfin ids an item by its path the library
+/// answers with a NEW id and drops the old one. Every id the app holds from before that moment names an
+/// item the server no longer has, and playing it earns a status instead of media.
+///
+/// The status is not the discriminator: the reporter of this defect saw several and could not name one,
+/// which matches Jellyfin answering differently per version and per endpoint (PlaybackInfo, the stream,
+/// a transcode). What is unambiguous is the season list, so these tests pin the lookup to it.
+struct ReplacedEpisodeRecoveryTests {
+
+    private func episode(
+        id: String,
+        seriesID: String? = "series",
+        seasonID: String? = "season-1",
+        number: Int?,
+        seasonNumber: Int? = 1
+    ) throws -> JellyfinItem {
+        var fields = ["\"Id\":\"\(id)\"", "\"Name\":\"Episode\"", "\"Type\":\"Episode\""]
+        if let seriesID { fields.append("\"SeriesId\":\"\(seriesID)\"") }
+        if let seasonID { fields.append("\"SeasonId\":\"\(seasonID)\"") }
+        if let number { fields.append("\"IndexNumber\":\(number)") }
+        if let seasonNumber { fields.append("\"ParentIndexNumber\":\(seasonNumber)") }
+        let json = "{\(fields.joined(separator: ","))}"
+        return try JSONDecoder().decode(JellyfinItem.self, from: Data(json.utf8))
+    }
+
+    private func season(id: String, number: Int) throws -> JellyfinItem {
+        let json = "{\"Id\":\"\(id)\",\"Name\":\"Season\",\"Type\":\"Season\",\"IndexNumber\":\(number)}"
+        return try JSONDecoder().decode(JellyfinItem.self, from: Data(json.utf8))
+    }
+
+    /// Answers exactly what a server would: an unknown season id is a failure, not an empty list.
+    private struct Catalog: EpisodeCatalogQuerying {
+        var seasons: [JellyfinItem] = []
+        var episodesBySeason: [String: [JellyfinItem]] = [:]
+
+        func getSeasons(seriesID: String, userID: String) async throws -> [JellyfinItem] {
+            guard !seasons.isEmpty else { throw APIError.httpError(statusCode: 404, data: nil) }
+            return seasons
+        }
+
+        func getEpisodes(seriesID: String, seasonID: String, userID: String) async throws -> [JellyfinItem] {
+            guard let list = episodesBySeason[seasonID] else {
+                throw APIError.httpError(statusCode: 404, data: nil)
+            }
+            return list
+        }
+    }
+
+    // MARK: - Lookup
+
+    @Test func listingTheIdWeTriedMeansNothingWasReplaced() throws {
+        let outcome = ReplacedEpisodeLookup.outcome(
+            staleID: "ep-old",
+            episodeNumber: 3,
+            in: [try episode(id: "ep-old", number: 3), try episode(id: "ep-4", number: 4)]
+        )
+        #expect(outcome == .stillListed)
+    }
+
+    @Test func aMissingIdResolvesToTheEpisodeWithTheSameNumber() throws {
+        let outcome = ReplacedEpisodeLookup.outcome(
+            staleID: "ep-old",
+            episodeNumber: 3,
+            in: [try episode(id: "ep-2", number: 2), try episode(id: "ep-new", number: 3)]
+        )
+        #expect(outcome == .replaced(id: "ep-new"))
+    }
+
+    /// The episode was deleted rather than upgraded: nothing to continue on.
+    @Test func aMissingIdWithNoEpisodeOfThatNumberIsInconclusive() throws {
+        let outcome = ReplacedEpisodeLookup.outcome(
+            staleID: "ep-old",
+            episodeNumber: 3,
+            in: [try episode(id: "ep-2", number: 2)]
+        )
+        #expect(outcome == .inconclusive)
+    }
+
+    /// An empty list is the shape a failed query degrades to, and it proves nothing: treating it as
+    /// "the id is gone" would swap items on every server hiccup.
+    @Test func anEmptyListIsInconclusiveRatherThanProofOfRemoval() {
+        #expect(ReplacedEpisodeLookup.outcome(staleID: "ep-old", episodeNumber: 3, in: []) == .inconclusive)
+    }
+
+    /// Without a number there is no axis to match on, so a missing id stays unresolved.
+    @Test func aMissingIdWithoutAnEpisodeNumberIsInconclusive() throws {
+        let outcome = ReplacedEpisodeLookup.outcome(
+            staleID: "ep-old",
+            episodeNumber: nil,
+            in: [try episode(id: "ep-new", number: 3)]
+        )
+        #expect(outcome == .inconclusive)
+    }
+
+    // MARK: - Resolver
+
+    @Test func resolverReturnsTheEpisodeThatTookThePlaceOfTheDeadId() async throws {
+        let stale = try episode(id: "ep-old", number: 3)
+        let catalog = Catalog(episodesBySeason: [
+            "season-1": [try episode(id: "ep-new", number: 3), try episode(id: "ep-4", number: 4)]
+        ])
+        let resolved = await ReplacedEpisodeResolver(service: catalog, userID: "u").replacement(for: stale)
+        #expect(resolved?.id == "ep-new")
+    }
+
+    @Test func resolverStaysSilentWhileTheServerStillListsTheId() async throws {
+        let stale = try episode(id: "ep-old", number: 3)
+        let catalog = Catalog(episodesBySeason: ["season-1": [try episode(id: "ep-old", number: 3)]])
+        let resolved = await ReplacedEpisodeResolver(service: catalog, userID: "u").replacement(for: stale)
+        #expect(resolved == nil)
+    }
+
+    /// A season id is path-derived too, so renaming the season folder kills it along with the episode.
+    /// The season number survives that, and it is the only way back to the new episode id.
+    @Test func resolverFallsBackToTheSeasonNumberWhenTheSeasonIdDiedToo() async throws {
+        let stale = try episode(id: "ep-old", seasonID: "season-old", number: 3, seasonNumber: 2)
+        let catalog = Catalog(
+            seasons: [try season(id: "season-new", number: 2)],
+            episodesBySeason: ["season-new": [try episode(id: "ep-new", seasonID: "season-new", number: 3)]]
+        )
+        let resolved = await ReplacedEpisodeResolver(service: catalog, userID: "u").replacement(for: stale)
+        #expect(resolved?.id == "ep-new")
+    }
+
+    @Test func resolverGivesUpWhenTheSeriesItselfIsGone() async throws {
+        let stale = try episode(id: "ep-old", number: 3)
+        let resolved = await ReplacedEpisodeResolver(service: Catalog(), userID: "u").replacement(for: stale)
+        #expect(resolved == nil)
+    }
+
+    /// A movie has no series/season/number axis, so there is nothing deterministic to resolve it to.
+    @Test func resolverIgnoresAnItemWithoutASeries() async throws {
+        let stale = try episode(id: "movie", seriesID: nil, seasonID: nil, number: nil, seasonNumber: nil)
+        let catalog = Catalog(episodesBySeason: ["season-1": [try episode(id: "ep-new", number: 3)]])
+        let resolved = await ReplacedEpisodeResolver(service: catalog, userID: "u").replacement(for: stale)
+        #expect(resolved == nil)
+    }
+
+    // MARK: - Trigger
+
+    /// The whole point of asking the library: every answered status qualifies, because the reporter saw
+    /// several and no single one identifies a replaced file.
+    @Test(arguments: [400, 401, 402, 403, 404, 410, 500])
+    func everyAnsweredStatusAsksTheLibrary(status: Int) {
+        #expect(ReplacedItemRecoveryTrigger.serverAnswered(
+            hostError: APIError.httpError(statusCode: status, data: nil)))
+    }
+
+    /// 401 arrives as its own case, not as httpError, and it has to qualify the same way.
+    @Test func anExpiredSessionStillAsksTheLibrary() {
+        #expect(ReplacedItemRecoveryTrigger.serverAnswered(hostError: APIError.unauthorized(message: nil)))
+    }
+
+    /// Nothing reached a server here, so there is no verdict about the item to act on.
+    @Test func aFailureThatNeverReachedTheServerIsNotProbed() {
+        #expect(!ReplacedItemRecoveryTrigger.serverAnswered(hostError: APIError.timeout))
+        #expect(!ReplacedItemRecoveryTrigger.serverAnswered(hostError: APIError.serverUnreachable))
+        #expect(!ReplacedItemRecoveryTrigger.serverAnswered(hostError: APIError.invalidResponse))
+        #expect(!ReplacedItemRecoveryTrigger.serverAnswered(hostError: CancellationError()))
+    }
+
+    /// Engine-side: the faces that carry an origin status are the same event seen one layer down.
+    @Test func engineFacesCarryingAnOriginStatusAskTheLibrary() {
+        #expect(ReplacedItemRecoveryTrigger.serverAnswered(engineFace: .streamNotFound))
+        #expect(ReplacedItemRecoveryTrigger.serverAnswered(engineFace: .streamRefused(status: 403)))
+        #expect(ReplacedItemRecoveryTrigger.serverAnswered(engineFace: .streamServerError(status: 500)))
+    }
+
+    /// A metered origin still has the file, and a decoder death says nothing about the library.
+    @Test func enginesFacesWithoutAnOriginStatusAreNotProbed() {
+        #expect(!ReplacedItemRecoveryTrigger.serverAnswered(engineFace: .rateLimited))
+        #expect(!ReplacedItemRecoveryTrigger.serverAnswered(engineFace: .engineMessage))
+        #expect(!ReplacedItemRecoveryTrigger.serverAnswered(engineFace: .dolbyVisionUnsupported))
+    }
+}

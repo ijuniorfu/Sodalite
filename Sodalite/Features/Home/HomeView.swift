@@ -114,6 +114,11 @@ struct HomeView: View {
                 }
             }
         }
+        .onReceive(NotificationCenter.default.publisher(for: .libraryItemDidReplace)) { _ in
+            // Continue Watching is holding the id the library just replaced; reload so the row points at
+            // the new item instead of failing playback on the corpse.
+            Task { await viewModel?.loadContent() }
+        }
         .onReceive(NotificationCenter.default.publisher(for: .homeItemDidDelete)) { _ in
             // Reload so the deleted item drops out immediately instead of lingering until the next stale refresh.
             Task { await viewModel?.loadContent() }

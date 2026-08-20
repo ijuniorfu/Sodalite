@@ -392,6 +392,17 @@ struct SeriesDetailView: View {
                 Task { await viewModel?.loadEpisodes(seasonID: seasonID) }
             }
         }
+        // The player continued on the item that replaced the one it was asked to play (a *arr upgrade
+        // rewrote the file, so the library minted a new id). Swap the corpse out of the lists here, else
+        // the next tap on that episode fails exactly the same way.
+        .onReceive(NotificationCenter.default.publisher(for: .libraryItemDidReplace)) { note in
+            guard let staleID = note.userInfo?[LibraryItemReplacementKey.staleID] as? String,
+                  let replacement = note.userInfo?[LibraryItemReplacementKey.item] as? JellyfinItem,
+                  replacement.seriesId == item.id else { return }
+            viewModel?.applyItemReplacement(staleID: staleID, newItem: replacement)
+            if playItem?.id == staleID { playItem = replacement }
+            if selectedEpisode?.id == staleID { selectedEpisode = replacement }
+        }
         // Posted once Jellyfin confirms the stop position. Patch resume position in place from the payload (race-free) across every in-memory holder including view-side selectedEpisode (issue #24). refreshResumePosition only reconciles played/next-up; the patch is re-applied after so a stale cached re-fetch can't regress the just-played position.
         .onReceive(NotificationCenter.default.publisher(for: .playbackProgressDidChange)) { note in
             let itemID = note.userInfo?[PlaybackProgressKey.itemID] as? String
