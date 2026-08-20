@@ -223,6 +223,7 @@ struct FilteredGridView: View {
                     item: showPlayer ? playItem : nil,
                     startFromBeginning: true,
                     playbackService: dependencies.jellyfinPlaybackService,
+                    itemService: dependencies.jellyfinItemService,
                     userID: userID,
                     preferences: dependencies.playbackPreferences,
                     trackMemory: dependencies.trackSelectionMemory,

@@ -84,6 +84,7 @@ struct MovieDetailView: View {
                     item: showPlayer ? (viewModel?.item ?? item) : nil,
                     startFromBeginning: playFromBeginning,
                     playbackService: dependencies.jellyfinPlaybackService,
+                    itemService: dependencies.jellyfinItemService,
                     userID: userID,
                     preferences: dependencies.playbackPreferences,
                     trackMemory: dependencies.trackSelectionMemory,
@@ -104,6 +105,7 @@ struct MovieDetailView: View {
                     item: showTrailer ? trailerItem : nil,
                     startFromBeginning: true,
                     playbackService: dependencies.jellyfinPlaybackService,
+                    itemService: dependencies.jellyfinItemService,
                     userID: userID,
                     preferences: dependencies.playbackPreferences,
                     trackMemory: dependencies.trackSelectionMemory,
@@ -166,6 +168,15 @@ struct MovieDetailView: View {
                     playButtonFocused = true
                 }
             }
+        }
+        // The player continued on the item that replaced this one (a Radarr upgrade rewrote the file, so
+        // the library minted a new id). Swap it in, else this screen keeps describing the file that is
+        // gone and its Play button keeps launching into the dead id.
+        .onReceive(NotificationCenter.default.publisher(for: .libraryItemDidReplace)) { note in
+            guard let staleID = note.userInfo?[LibraryItemReplacementKey.staleID] as? String,
+                  staleID == item.id,
+                  let replacement = note.userInfo?[LibraryItemReplacementKey.item] as? JellyfinItem else { return }
+            viewModel?.applyItemReplacement(staleID: staleID, newItem: replacement)
         }
         // Posted once Jellyfin confirms the stop position. Patch in place from the payload (race-free); refreshResumePosition only reconciles played/favorite, then the patch is re-applied so a stale cached re-fetch can't regress the just-played position (issue #24).
         .onReceive(NotificationCenter.default.publisher(for: .playbackProgressDidChange)) { note in

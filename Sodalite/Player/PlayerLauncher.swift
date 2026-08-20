@@ -11,6 +11,9 @@ struct PlayerLauncher: UIViewControllerRepresentable {
     let item: JellyfinItem?
     let startFromBeginning: Bool
     let playbackService: JellyfinPlaybackServiceProtocol
+    /// Lets a session whose movie was replaced under it (a Radarr upgrade rewrites the file, so Jellyfin
+    /// mints a new id) resolve the new item instead of dying on the old one. Episodes do not need it.
+    var itemService: JellyfinItemServiceProtocol?
     let userID: String
     let preferences: PlaybackPreferences
     /// Sodalite#46 per-title track memory; nil disables remembering for this launch.
@@ -44,6 +47,7 @@ struct PlayerLauncher: UIViewControllerRepresentable {
                     playbackService: playbackService,
                     userID: userID,
                     preferences: preferences,
+                    itemService: itemService,
                     trackMemory: trackMemory,
                     spoilerPolicy: spoilerPolicy,
                     cachedPlaybackInfo: cachedPlaybackInfo,

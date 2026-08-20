@@ -33,6 +33,9 @@ final class PlayerViewModel {
     /// True while the error on screen is a confirmed server outage, i.e. the one error worth offering a
     /// retry for (the server is expected back; nothing about the item changed).
     var canRetryAfterOutage = false
+    /// One replaced-item lookup per item: the answer is the library's, so asking it twice for the same
+    /// failure would only stall the error screen. Cleared per item in `resetSessionState`.
+    var didAttemptReplacedItemRecovery = false
     /// Which error-screen button is highlighted. The overlay is display-only inside the player on tvOS, so
     /// the cursor lives here and `PlayerHostController`'s press handlers move it.
     var errorFocus: PlayerErrorFocus = .back
@@ -361,6 +364,9 @@ final class PlayerViewModel {
     }
 
     let playbackService: JellyfinPlaybackServiceProtocol
+    /// Only the replaced-item lookup needs it, and only for movies (an episode resolves through the
+    /// playback service's own season query). Nil where no caller passes one: live, previews.
+    let itemService: JellyfinItemServiceProtocol?
     let userID: String
     var startFromBeginning: Bool
     var cachedPlaybackInfo: PlaybackInfoResponse?
@@ -636,6 +642,7 @@ final class PlayerViewModel {
         playbackService: JellyfinPlaybackServiceProtocol,
         userID: String,
         preferences: PlaybackPreferences,
+        itemService: JellyfinItemServiceProtocol? = nil,
         trackMemory: TrackSelectionMemory? = nil,
         spoilerPolicy: SpoilerPolicy = .disabled,
         cachedPlaybackInfo: PlaybackInfoResponse? = nil,
@@ -652,6 +659,7 @@ final class PlayerViewModel {
         self.playbackService = playbackService
         self.userID = userID
         self.preferences = preferences
+        self.itemService = itemService
         self.trackMemory = trackMemory
         self.spoilerPolicy = spoilerPolicy
         self.scrubPreview = ScrubPreviewProvider()
@@ -978,6 +986,12 @@ final class PlayerViewModel {
             if isLiveSession && !(error is APIError) {
                 // Engine-level live open failure (probe fail-fast): friendly message, APIErrors keep their trio.
                 setLiveChannelUnavailableError()
+            } else if ReplacedItemRecoveryTrigger.serverAnswered(hostError: error),
+                      beginReplacedItemRecovery(resumeAt: nil, onGiveUp: { [weak self] in self?.setError(from: error) }) {
+                // The server answered with a status, which a *arr upgrade earns whichever endpoint it hits.
+                // The library is being asked whether this item still exists; the spinner stays up and the
+                // recovery paints this error itself if nothing was replaced.
+                return
             } else {
                 setError(from: error)
             }
@@ -1235,7 +1249,20 @@ final class PlayerViewModel {
                         LogTap.shared.note("[Live] route=retune reason=engine_error_mid_session(\(msg))")
                         self.handleLiveSourceReset()
                     } else {
-                        self.setEnginePlaybackError(message: msg, info: info)
+                        // A file swapped under the reader dies mid-stream with an origin status, which is
+                        // the same event as a failed start seen a few minutes later. Ask the library first
+                        // and pick the episode back up where it stopped.
+                        let paintEngineError: @MainActor () -> Void = { [weak self] in
+                            guard let self else { return }
+                            self.setEnginePlaybackError(message: msg, info: info)
+                        }
+                        let face = PlayerEngineErrorPresentation.face(for: info)
+                        let started = ReplacedItemRecoveryTrigger.serverAnswered(engineFace: face)
+                            && self.beginReplacedItemRecovery(
+                                resumeAt: self.playbackTime > 0 ? self.playbackTime : nil,
+                                onGiveUp: paintEngineError
+                            )
+                        if !started { paintEngineError() }
                     }
                 }
             }
@@ -1786,6 +1813,20 @@ final class PlayerViewModel {
         // Live recovery counts its own attempts; a manual retry is not one of the automatic retunes.
         liveRetuneCount = 0
         lastLiveRetuneAt = nil
+        clearError()
+        player.stop()
+        beginPlayback()
+    }
+
+    /// Reload after the library answered a failed session: same shape as `retryAfterOutage`, different
+    /// reason, so the two stay side by side. `seconds` carries the position a replaced item cannot carry
+    /// itself (the new file is a new item, its own userData starts at zero).
+    func restartAfterItemRecovery(resumeAt seconds: Double?) {
+        canRetryAfterOutage = false
+        serverConfirmedUnreachable = false
+        outageWatchdog?.reset()
+        cachedPlaybackInfo = nil
+        resumeOverrideSeconds = seconds
         clearError()
         player.stop()
         beginPlayback()

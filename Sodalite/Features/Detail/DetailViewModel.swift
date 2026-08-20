@@ -334,6 +334,31 @@ final class DetailViewModel {
         }
     }
 
+    /// A *arr upgrade rewrote the file behind an episode: Jellyfin ids items by path, so the library holds
+    /// a NEW item and the id sitting in these lists is a corpse that fails playback again on the next tap.
+    /// Swap it in place across the same holders `applyPlaybackPosition` patches; the player already has the
+    /// authoritative replacement, so this needs no re-fetch.
+    @MainActor
+    func applyItemReplacement(staleID: String, newItem: JellyfinItem) {
+        func swap(_ candidate: inout JellyfinItem) {
+            guard candidate.id == staleID else { return }
+            candidate = newItem
+        }
+        swap(&item)
+        if var next = nextUpEpisode { swap(&next); nextUpEpisode = next }
+        for index in episodes.indices { swap(&episodes[index]) }
+        for (key, var list) in episodesCache {
+            for index in list.indices { swap(&list[index]) }
+            episodesCache[key] = list
+        }
+        // Overrides and the enriched copy described the file that is gone; the replacement carries its own
+        // server-side state.
+        episodeDetailCache[staleID] = nil
+        playedOverrides[staleID] = nil
+        favoriteOverrides[staleID] = nil
+        if currentEpisodeID == staleID { currentEpisodeID = newItem.id }
+    }
+
     func loadEpisodes(seasonID: String) async {
         selectedSeasonID = seasonID
 

@@ -33,6 +33,20 @@ extension Notification.Name {
     /// play queue, season picker). Detail views follow it so leaving the player lands on the episode
     /// that was watched last, not the one that was started. Carries PlayerItemSwitchKey.item.
     static let playerDidSwitchItem = Notification.Name("playerDidSwitchItem")
+
+    /// Posted by PlayerViewModel after it continued on the item that replaced the one it was asked to
+    /// play. A *arr upgrade rewrites the file, Jellyfin ids items by path, so the library holds a new
+    /// item and every list still holding the old id would keep failing on it. Carries
+    /// LibraryItemReplacementKey.staleID + .item.
+    static let libraryItemDidReplace = Notification.Name("libraryItemDidReplace")
+}
+
+/// userInfo keys for `.libraryItemDidReplace`.
+enum LibraryItemReplacementKey {
+    /// `String` id the library no longer has.
+    static let staleID = "staleID"
+    /// The `JellyfinItem` that took its place.
+    static let item = "item"
 }
 
 /// userInfo keys for `.playerDidSwitchItem`.

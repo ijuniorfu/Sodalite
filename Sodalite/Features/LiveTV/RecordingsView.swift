@@ -43,6 +43,7 @@ struct RecordingsView: View {
                     item: playerItem,
                     startFromBeginning: false,
                     playbackService: dependencies.jellyfinPlaybackService,
+                    itemService: dependencies.jellyfinItemService,
                     userID: userID,
                     preferences: dependencies.playbackPreferences,
                     trackMemory: dependencies.trackSelectionMemory,

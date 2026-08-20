@@ -1,6 +1,8 @@
 import Foundation
 
-protocol JellyfinPlaybackServiceProtocol: Sendable {
+/// `EpisodeCatalogQuerying` (getSeasons / getEpisodes) is inherited: the replaced-item lookup needs those
+/// two and nothing else, and a narrow face keeps it testable without the twenty methods below.
+protocol JellyfinPlaybackServiceProtocol: EpisodeCatalogQuerying {
     var baseURL: URL? { get }
     func getPlaybackInfo(itemID: String, userID: String, profile: [String: Any]?) async throws -> PlaybackInfoResponse
     /// Live PlaybackInfo: AutoOpenLiveStream probes the stream (known codecs → DirectStream/copy, real LiveStreamId for tuner release); maxStreamingBitrate caps a transcode.
@@ -10,8 +12,6 @@ protocol JellyfinPlaybackServiceProtocol: Sendable {
     func reportPlaybackStopped(_ report: PlaybackStopReport) async throws
     func closeLiveStream(liveStreamID: String) async throws
     func stopActiveEncodings(playSessionID: String) async throws
-    func getSeasons(seriesID: String, userID: String) async throws -> [JellyfinItem]
-    func getEpisodes(seriesID: String, seasonID: String, userID: String) async throws -> [JellyfinItem]
     func getEpisodeSegments(itemID: String) async throws -> EpisodeSegments
     func buildStreamURL(itemID: String, mediaSourceID: String, container: String?, isStatic: Bool) -> URL?
     func buildAudioStreamURL(itemID: String, mediaSourceID: String, container: String?, isStatic: Bool) -> URL?
