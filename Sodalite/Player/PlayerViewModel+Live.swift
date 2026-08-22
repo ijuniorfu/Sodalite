@@ -4,7 +4,7 @@ import AetherEngine
 
 extension PlayerViewModel {
 
-    /// Live load: try the tuner's HLS upstream directly first (engine ingest, Jellyfin out of the data path), fall back to the Jellyfin-mediated path once per session. TS/static channels and those without a usable upstream URL go straight to the server path. Design: docs/superpowers/specs/2026-06-11-live-hls-ingest-direct-play-design.md.
+    /// Live load: try the tuner's HLS upstream directly first (engine ingest, Jellyfin out of the data path), fall back to the Jellyfin-mediated path once per session. Channels without a TranscodingUrl (tuner hosts, TS/static) go straight to the server path, which picks its own route there (#70). Design: docs/superpowers/specs/2026-06-11-live-hls-ingest-direct-play-design.md.
     func loadLiveStream() async throws {
         // A channel that direct-played before needs nothing from Jellyfin but its upstream URL, and that
         // URL is remembered. Skipping stage-1 drops the two serialized server round trips a zap otherwise
@@ -44,7 +44,7 @@ extension PlayerViewModel {
             maxStreamingBitrate: DirectPlayProfile.liveCopyCeilingBitrate)
         guard let source = info.mediaSources.first else { throw PlayerEngineError.noSource }
 
-        // Direct eligibility: remux channel (TranscodingUrl present) whose Path is a real http(s) provider URL. TS/static channels have no TranscodingUrl and a Path pointing at Jellyfin's internal LiveStreamFiles, so they keep the server path.
+        // Direct eligibility: remux channel (TranscodingUrl present) whose Path is a real http(s) provider URL. A tuner-backed channel has no TranscodingUrl and a Path pointing at Jellyfin's own LiveStreamFiles route, so it keeps the server path and is served from that buffered stream there (#70).
         if !didAttemptLiveFallback,
            source.transcodingUrl != nil,
            let path = source.path,
@@ -68,8 +68,8 @@ extension PlayerViewModel {
                 return
             }
         } else {
-            let route = source.transcodingUrl == nil ? "static" : "server"
-            LogTap.shared.note("[LiveDirect] route=\(route)")
+            // The route this ends on is named by loadLiveStreamViaServer, which is where it is decided.
+            LogTap.shared.note("[LiveDirect] direct ingest not eligible (transcodingUrl=\(source.transcodingUrl == nil ? "none" : "present"))")
         }
 
         // Ineligible route (static/server): reuse the stage-1 tuner so it isn't leaked and the server path avoids a duplicate roundtrip.
@@ -203,50 +203,85 @@ extension PlayerViewModel {
         mediaSourceID = source.id
         activeLiveStreamID = source.liveStreamId
 
-        // Resolve the progressive TS URL the engine's AVIOReader consumes. Transcode/remux channels carry a TranscodingUrl; a DirectPlay/DirectStream source carries NONE, and bailing black-screened those channels (device repro: "ATV HD", directPlay=1), so the static stream URL is their pure-copy path.
+        // Resolve the progressive TS URL the engine's AVIOReader consumes. Three shapes, in this order:
+        // a remux/transcode channel carries a TranscodingUrl; a tuner-backed channel carries none but
+        // names its own buffered stream in MediaSource.Path, and reading that skips the second ffmpeg
+        // Jellyfin would otherwise spawn to copy it (#70); everything else takes the static stream URL,
+        // whose pure-copy route is what keeps a DirectPlay/DirectStream channel from black-screening
+        // (device repro: "ATV HD", directPlay=1). All three are the same kind of resource to the loader:
+        // a growing MPEG-TS with no Content-Length, served by Jellyfin's ProgressiveFileStream.
+        let supportsStaticRoute = source.supportsDirectStream == true || source.supportsDirectPlay == true
+        let staticURL = supportsStaticRoute ? playbackService.buildStreamURL(
+            itemID: item.id,
+            mediaSourceID: source.id,
+            container: "ts",
+            isStatic: true
+        ) : nil
+
         let tsURL: URL
+        let isTunerFileRoute: Bool
         if let transcoding = source.transcodingUrl,
            let transcodeURL = playbackService.buildTranscodeURL(relativePath: transcoding) {
             tsURL = transcodeURL
-        } else if source.supportsDirectStream == true || source.supportsDirectPlay == true,
-                  let staticURL = playbackService.buildStreamURL(
-                    itemID: item.id,
-                    mediaSourceID: source.id,
-                    container: "ts",
-                    isStatic: true
-                  ) {
+            isTunerFileRoute = false
+            LogTap.shared.note("[LiveDirect] route=transcode")
+        } else if !didAbandonLiveTunerFile,
+                  let sourcePath = source.path,
+                  let tunerFileURL = playbackService.buildLiveStreamFileURL(sourcePath: sourcePath) {
+            tsURL = tunerFileURL
+            isTunerFileRoute = true
+            // Path only: the query carries the access token and this line lands in the diagnostic HUD.
+            LogTap.shared.note("[LiveDirect] route=tunerfile path=\(tunerFileURL.path)")
+        } else if let staticURL {
             tsURL = staticURL
+            isTunerFileRoute = false
+            LogTap.shared.note("[LiveDirect] route=static")
         } else {
             throw PlayerEngineError.noSource
         }
+        usedLiveTunerFilePath = isTunerFileRoute
 
         observeLiveEdge()
 
-        try await player.load(
-            url: tsURL,
-            startPosition: nil,
-            options: LoadOptions(
-                suppressDisplayCriteria: false,
-                matchContentEnabled: Self.matchDynamicRangeEnabled,
-                panelIsInHDRMode: Self.panelIsInHDRMode,
-                audioBridgeMode: preferences.audioBridgeMode,
-                isLive: true,
-                dvrWindowSeconds: 600,
-                // Zapping-first join (AetherEngine#195), same rationale as the direct path above. A
-                // bursty Jellyfin transcode fills the startup cushion at I/O speed either way; the
-                // observed-cadence floor keeps bursty ingest patient.
-                liveJoinProfile: .fastZap,
-                // Raw ASS event lines for the styled-subtitle path (ASSRenderCoordinator); only affects ASS/SSA content.
-                preserveASSMarkup: true,
-                // Engine picks the preferred-language audio on the first frame (#72), replacing the
-                // post-load selectAudioTrack reload that misfired on single-track channels.
-                preferredAudioLanguages: effectivePreferredAudioLanguage().map { [$0] } ?? [],
-                teletextPage: preferences.liveTeletextPage.page
-            ),
-            // #64: same pick on the server route, where the engine could re-point in place but a
-            // re-tune is what the viewer asked for either way. One spelling, one behaviour.
-            audioSourceStreamIndex: pendingLiveAudioStreamIndex.map(Int32.init)
+        let options = LoadOptions(
+            suppressDisplayCriteria: false,
+            matchContentEnabled: Self.matchDynamicRangeEnabled,
+            panelIsInHDRMode: Self.panelIsInHDRMode,
+            audioBridgeMode: preferences.audioBridgeMode,
+            isLive: true,
+            dvrWindowSeconds: 600,
+            // Zapping-first join (AetherEngine#195), same rationale as the direct path above. A
+            // bursty Jellyfin transcode fills the startup cushion at I/O speed either way; the
+            // observed-cadence floor keeps bursty ingest patient.
+            liveJoinProfile: .fastZap,
+            // Raw ASS event lines for the styled-subtitle path (ASSRenderCoordinator); only affects ASS/SSA content.
+            preserveASSMarkup: true,
+            // Engine picks the preferred-language audio on the first frame (#72), replacing the
+            // post-load selectAudioTrack reload that misfired on single-track channels.
+            preferredAudioLanguages: effectivePreferredAudioLanguage().map { [$0] } ?? [],
+            teletextPage: preferences.liveTeletextPage.page
         )
+        // #64: same pick on the server route, where the engine could re-point in place but a
+        // re-tune is what the viewer asked for either way. One spelling, one behaviour.
+        let liveAudioIndex = pendingLiveAudioStreamIndex.map(Int32.init)
+
+        do {
+            try await player.load(url: tsURL, startPosition: nil, options: options,
+                                  audioSourceStreamIndex: liveAudioIndex)
+        } catch is CancellationError {
+            throw CancellationError()
+        } catch {
+            // Only the tuner-file route can fail for a reason the static route survives: a proxy that
+            // does not forward /LiveTv, or a server whose tuner host fills MediaSource.Path with a
+            // route it does not serve. Retreat once per session instead of surfacing; the stage-1 tuner
+            // is still open, so the static route reuses it rather than opening a second one.
+            guard isTunerFileRoute, let staticURL else { throw error }
+            didAbandonLiveTunerFile = true
+            usedLiveTunerFilePath = false
+            LogTap.shared.note("[LiveDirect] route=static reason=tunerfile_load_failed(\(error))")
+            try await player.load(url: staticURL, startPosition: nil, options: options,
+                                  audioSourceStreamIndex: liveAudioIndex)
+        }
 
         // Live scrub preview frames come from the engine's DVR segment cache (liveScrubThumbnail), not a FrameExtractor (live source is forward-only, FFmpeg has no network). Retune-safe: configureLive resets first.
         let engine = player
@@ -378,6 +413,12 @@ extension PlayerViewModel {
             didAttemptLiveFallback = true
             usedDirectLivePath = false
             LogTap.shared.note("[LiveDirect] route=fallback reason=mid_session_source_reset")
+        } else if usedLiveTunerFilePath {
+            // Same logic one route down (#70): the tuner's buffered stream died mid-watch, so retune via
+            // Jellyfin's static route, which re-reads that same stream through its own copy-remux.
+            didAbandonLiveTunerFile = true
+            usedLiveTunerFilePath = false
+            LogTap.shared.note("[LiveDirect] route=tunerfile abandoned reason=mid_session_source_reset")
         } else {
             LogTap.shared.note("[Live] retune starting (count=\(liveRetuneCount + 1), already on server route)")
         }

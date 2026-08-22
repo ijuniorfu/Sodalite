@@ -27,6 +27,7 @@ protocol JellyfinPlaybackServiceProtocol: EpisodeCatalogQuerying {
     /// Deletes external subtitle at `index`; needs subtitle-management rights.
     func deleteSubtitle(itemID: String, index: Int) async throws
     func buildTranscodeURL(relativePath: String) -> URL?
+    func buildLiveStreamFileURL(sourcePath: String) -> URL?
 }
 
 final class JellyfinPlaybackService: JellyfinPlaybackServiceProtocol {
@@ -273,5 +274,51 @@ final class JellyfinPlaybackService: JellyfinPlaybackServiceProtocol {
         guard let root = components.url?.absoluteString else { return nil }
         let rootBase = root.hasSuffix("/") ? String(root.dropLast()) : root
         return URL(string: rootBase + basePath + trimmed)
+    }
+
+    /// Direct read of a tuner-backed live channel's own buffered stream (Sodalite#70).
+    ///
+    /// A tuner host (HDHomeRun and friends) hardcodes `SupportsDirectPlay = false`, so PlaybackInfo
+    /// answers with no `TranscodingUrl` and the static `/Videos/{id}/stream.ts?Static=true` route is all
+    /// that is left. That route makes the server spawn a second ffmpeg (`-codec copy`) with its own
+    /// probe window and a second file on disk, for a client that demuxes MPEG-TS itself. The same
+    /// payload's `MediaSource.Path` already names the buffered tuner stream Jellyfin serves anyway
+    /// (`LiveTvController.GetLiveStreamFile`, which carries no `[Authorize]`, unlike every other action
+    /// in that controller).
+    ///
+    /// Its HOST is not usable though: the server builds that URL from `GetApiUrlForLocalAccess()`, its
+    /// own bind address, so for a client reaching Jellyfin over WAN, a reverse proxy, HTTPS or a VPN
+    /// hostname it resolves to nothing and fails as a connection timeout rather than an error. Keep the
+    /// server-relative part only and re-anchor it on the URL we are actually connected on, subpath and
+    /// all. `api_key` rides along so the request correlates in server logs and survives the route
+    /// gaining an authorization policy later; the route ignores it today.
+    func buildLiveStreamFileURL(sourcePath: String) -> URL? {
+        guard var relative = Self.liveStreamFileRelativePath(fromSourcePath: sourcePath) else { return nil }
+        if let token = client.accessToken {
+            relative += relative.contains("?") ? "&api_key=\(token)" : "?api_key=\(token)"
+        }
+        return buildTranscodeURL(relativePath: relative)
+    }
+
+    /// The server-relative `/LiveTv/LiveStreamFiles/{streamId}/stream.{ext}` part of a live
+    /// `MediaSource.Path`, or nil when the path is not that route. Other tuner hosts put a provider
+    /// URL, a local file path or nothing at all in `Path`, and none of those may be handed to the live
+    /// loader as though it were Jellyfin's own. Matching from `/LiveTv/` onward rather than on a prefix
+    /// also drops whatever base path the server's local URL carries, since `buildTranscodeURL` splices
+    /// ours back on.
+    static func liveStreamFileRelativePath(fromSourcePath path: String) -> String? {
+        guard let components = URLComponents(string: path),
+              let scheme = components.scheme?.lowercased(),
+              scheme == "http" || scheme == "https" else { return nil }
+        let route = components.percentEncodedPath
+        guard let marker = route.range(of: "/LiveTv/LiveStreamFiles/", options: [.caseInsensitive]) else { return nil }
+        let tail = String(route[marker.lowerBound...])
+        // "", "LiveTv", "LiveStreamFiles", streamId, "stream.ts": both trailing components must be there.
+        let parts = tail.split(separator: "/", omittingEmptySubsequences: false)
+        guard parts.count == 5, !parts[3].isEmpty, !parts[4].isEmpty else { return nil }
+        if let query = components.percentEncodedQuery, !query.isEmpty {
+            return tail + "?" + query
+        }
+        return tail
     }
 }
