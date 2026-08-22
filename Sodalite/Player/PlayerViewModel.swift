@@ -369,7 +369,10 @@ final class PlayerViewModel {
     let itemService: JellyfinItemServiceProtocol?
     let userID: String
     var startFromBeginning: Bool
-    var cachedPlaybackInfo: PlaybackInfoResponse?
+    /// Detail-screen prefetch, saving the first round trip. Bound to the id it was fetched for and
+    /// consumed only through `matching(item.id)`: the response supplies `MediaSourceId` while the
+    /// path carries `item.id`, and Jellyfin answers a crossed pair HTTP 400 (Sodalite#71).
+    var cachedPlaybackInfo: PrefetchedPlaybackInfo?
     let preferences: PlaybackPreferences
     /// Sodalite#46 per-title memory; nil in contexts that do not persist picks (live, previews).
     let trackMemory: TrackSelectionMemory?
@@ -645,7 +648,7 @@ final class PlayerViewModel {
         itemService: JellyfinItemServiceProtocol? = nil,
         trackMemory: TrackSelectionMemory? = nil,
         spoilerPolicy: SpoilerPolicy = .disabled,
-        cachedPlaybackInfo: PlaybackInfoResponse? = nil,
+        cachedPlaybackInfo: PrefetchedPlaybackInfo? = nil,
         preferredMediaSourceID: String? = nil,
         playQueue: [JellyfinItem] = [],
         isLiveSession: Bool = false,
@@ -737,7 +740,11 @@ final class PlayerViewModel {
             }
 
             let info: PlaybackInfoResponse
-            if let cached = cachedPlaybackInfo, !cached.mediaSources.isEmpty {
+            // Only a prefetch that names THIS item: the play target can move between the prefetch and
+            // the launch (Next Up rolling forward as the player exits, an auto-advance, a replaced item),
+            // and a response from the previous target would put its source id in MediaSourceId under this
+            // item's path, which Jellyfin refuses with HTTP 400.
+            if let cached = cachedPlaybackInfo?.matching(item.id), !cached.mediaSources.isEmpty {
                 info = cached
             } else {
                 info = try await playbackService.getPlaybackInfo(
@@ -983,17 +990,25 @@ final class PlayerViewModel {
         } catch {
             // Release the tuner if a live load opened one before failing. No-op for VOD.
             releaseLiveTunerIfNeeded()
+            // The engine classifies its own failures and assigns `errorInfo` before the state that carries
+            // them, so a load that threw still has its classification sitting here. Read once: `load()`
+            // clears it on the next attempt's `.loading`, so it can only ever describe THIS attempt.
+            let engineInfo = player.errorInfo
+            LogTap.shared.note(
+                PlayerEngineErrorPresentation.logLine(for: engineInfo, engineMessage: error.localizedDescription)
+            )
             if isLiveSession && !(error is APIError) {
                 // Engine-level live open failure (probe fail-fast): friendly message, APIErrors keep their trio.
-                setLiveChannelUnavailableError()
-            } else if ReplacedItemRecoveryTrigger.serverAnswered(hostError: error),
-                      beginReplacedItemRecovery(onGiveUp: { [weak self] in self?.setError(from: error) }) {
+                setLiveChannelUnavailableError(info: engineInfo)
+            } else if ReplacedItemRecoveryTrigger.serverAnswered(hostError: error, engineError: engineInfo),
+                      beginReplacedItemRecovery(
+                        onGiveUp: { [weak self] in self?.setStartError(error, engineInfo: engineInfo) }) {
                 // The server answered with a status, which a *arr upgrade earns whichever endpoint it hits.
                 // The library is being asked whether this item still exists; the spinner stays up and the
                 // recovery paints this error itself if nothing was replaced.
                 return
             } else {
-                setError(from: error)
+                setStartError(error, engineInfo: engineInfo)
             }
             hostLoadActive = false
         }
@@ -1673,6 +1688,22 @@ final class PlayerViewModel {
         errorIcon = icon
         errorTitle = title
         errorMessage = error.localizedDescription
+    }
+
+    /// A start failure, painted from the engine's classification where it has one.
+    ///
+    /// `setError(from:)` can only read the thrown error, and what `player.load()` throws is opaque: its
+    /// `localizedDescription` is the engine's own English sentence ("Origin answered HTTP 400 for the
+    /// source"), which in a 26-language app is an untranslated string describing the plumbing. The typed
+    /// `errorInfo` beside it is the part that classifies, and the host already has localized copy for
+    /// every face it names. Where the classification has no face worth the swap, the start-failure trio
+    /// stays exactly as it was.
+    func setStartError(_ error: Error, engineInfo: PlaybackErrorInfo?) {
+        guard PlayerEngineErrorPresentation.face(for: engineInfo) != .engineMessage else {
+            setError(from: error)
+            return
+        }
+        setEnginePlaybackError(message: error.localizedDescription, info: engineInfo)
     }
 
     /// Friendly trio for a live channel the server can't deliver (dead upstream); covers engine-level
