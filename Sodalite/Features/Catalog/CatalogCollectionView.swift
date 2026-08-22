@@ -318,7 +318,7 @@ struct CatalogCollectionView: View {
         do {
             detail = try await dependencies.seerrMediaService.collection(collectionID: collection.id)
         } catch {
-            errorMessage = error.localizedDescription
+            errorMessage = ErrorText.user(for: error)
         }
     }
 
@@ -372,7 +372,7 @@ struct CatalogCollectionView: View {
                 continue
             } catch {
                 // Keep going: one title Radarr cannot take (very new releases are a common case) must not strand the rest.
-                if firstFailure == nil { firstFailure = error.localizedDescription }
+                if firstFailure == nil { firstFailure = ErrorText.user(for: error) }
             }
         }
 

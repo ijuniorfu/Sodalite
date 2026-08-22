@@ -40,7 +40,7 @@ final class RecordingsViewModel {
         async let active = liveTvService.getRecordings(userID: userID, isInProgress: true)
         async let tims = liveTvService.getTimers()
         async let series = liveTvService.getSeriesTimers()
-        do { recordings = try await recs } catch { errorMessage = error.localizedDescription }
+        do { recordings = try await recs } catch { errorMessage = ErrorText.user(for: error) }
         inProgressIDs = Set(((try? await active) ?? []).map(\.id))
         // Server returns cancelled series-spawned entries; drop them so only actionable timers appear
         // (mirrors EPGGuideViewModel.reconcileTimers).
@@ -53,14 +53,14 @@ final class RecordingsViewModel {
         do {
             try await itemService.deleteItem(itemID: item.id)
             recordings.removeAll { $0.id == item.id }
-        } catch { errorMessage = error.localizedDescription }
+        } catch { errorMessage = ErrorText.user(for: error) }
     }
 
     func cancelTimer(_ timer: LiveTvTimer) async {
         do {
             try await liveTvService.cancelTimer(timerID: timer.id)
             timers.removeAll { $0.id == timer.id }
-        } catch { errorMessage = error.localizedDescription }
+        } catch { errorMessage = ErrorText.user(for: error) }
     }
 
     func cancelSeriesTimer(_ timer: LiveTvSeriesTimer) async {
@@ -69,6 +69,6 @@ final class RecordingsViewModel {
             seriesTimers.removeAll { $0.id == timer.id }
             // Spawned episode timers die with the rule.
             timers.removeAll { $0.seriesTimerId == timer.id }
-        } catch { errorMessage = error.localizedDescription }
+        } catch { errorMessage = ErrorText.user(for: error) }
     }
 }

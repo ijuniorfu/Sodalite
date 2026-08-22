@@ -139,7 +139,7 @@ struct CatalogFilteredGridView: View {
         } catch {
             // Keep the cache-hydrated grid rather than wiping on a transient network blip.
             if items.isEmpty {
-                errorMessage = error.localizedDescription
+                errorMessage = ErrorText.user(for: error)
             }
         }
     }
@@ -158,7 +158,7 @@ struct CatalogFilteredGridView: View {
             page = result.page
             totalPages = result.totalPages
         } catch {
-            errorMessage = error.localizedDescription
+            errorMessage = ErrorText.user(for: error)
         }
     }
 

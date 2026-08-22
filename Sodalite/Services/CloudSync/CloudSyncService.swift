@@ -907,7 +907,7 @@ extension CloudSyncService: CKSyncEngineDelegate {
         case .retry:
             addPendingSave(recordName: recordName)
         case .surfaceQuota:
-            latchFailure(error.localizedDescription)
+            latchFailure(ErrorText.user(for: error))
             LogTap.shared.note("[CloudSync] iCloud quota exceeded, save deferred: \(recordName)")
         case .surfaceRejection:
             // CloudKit's own text here is "Invalid Arguments", which tells a user nothing; the

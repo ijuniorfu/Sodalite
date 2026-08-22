@@ -455,7 +455,7 @@ extension PlayerViewModel {
             // Superseded by a newer load; nothing to clean up.
         } catch {
             hostLoadActive = false
-            setEnginePlaybackError(message: error.localizedDescription)
+            setEnginePlaybackError(message: ErrorText.user(for: error))
         }
     }
 

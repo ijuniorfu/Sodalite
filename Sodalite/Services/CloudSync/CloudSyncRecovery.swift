@@ -106,9 +106,9 @@ enum CloudSyncRecovery {
     /// One line fit for the settings status row. CloudKit's own description for a batch failure
     /// is "Failed to send changes", which names nothing; the per-record error underneath does.
     static func describe(_ error: Error) -> String {
-        guard let ckError = error as? CKError else { return error.localizedDescription }
-        guard let first = partialSaveErrors(in: error).values.first else { return ckError.localizedDescription }
-        return "\(ckError.localizedDescription) (\(first.localizedDescription))"
+        guard let ckError = error as? CKError else { return ErrorText.user(for: error) }
+        guard let first = partialSaveErrors(in: error).values.first else { return ErrorText.user(for: ckError) }
+        return "\(ErrorText.user(for: ckError)) (\(ErrorText.user(for: first)))"
     }
 }
 

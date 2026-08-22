@@ -122,7 +122,7 @@ final class PersonDetailViewModel {
             async let credits = mediaService.personCredits(tmdbID: id)
             return .loaded(try await detail, try? await credits)
         } catch {
-            return .unavailable(error.localizedDescription)
+            return .unavailable(ErrorText.user(for: error))
         }
     }
 

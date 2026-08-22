@@ -41,7 +41,7 @@ final class SeerrRequestEditModel {
                 try await loadDetails(forServerID: activeID)
             }
         } catch {
-            loadError = error.localizedDescription
+            loadError = ErrorText.user(for: error)
         }
     }
 
@@ -52,7 +52,7 @@ final class SeerrRequestEditModel {
         do {
             try await loadDetails(forServerID: id)
         } catch {
-            loadError = error.localizedDescription
+            loadError = ErrorText.user(for: error)
         }
     }
 

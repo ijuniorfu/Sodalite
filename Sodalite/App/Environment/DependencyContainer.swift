@@ -441,13 +441,30 @@ final class DependencyContainer {
         return try? keychainService.loadString(for: KeychainKeys.userID(serverID: server.id))
     }
 
-    enum ServerSwitchError: Error {
+    enum ServerSwitchError: LocalizedError {
         /// The requested server id was not in knownServers.
         case unknown
         /// The target server has no stored access token. The caller
         /// must show the profile picker (or LoginView if there are
         /// no remembered users either).
         case missingToken
+
+        /// `.missingToken` normally routes to the picker rather than to a message, but it reaches a
+        /// viewer wherever a caller shows the throw instead, so it says something they can act on.
+        var errorDescription: String? {
+            switch self {
+            case .unknown:
+                String(
+                    localized: "error.serverSwitch.unknown",
+                    defaultValue: "This server is no longer saved on this device."
+                )
+            case .missingToken:
+                String(
+                    localized: "error.serverSwitch.missingToken",
+                    defaultValue: "No sign-in is saved for this server. Sign in again to use it."
+                )
+            }
+        }
     }
 
     /// Switches the active server: sets the pointer, loads the cached token, reconfigures JellyfinClient, rewrites SharedSessionMirror, bumps serverDidSwitch. Seerr is left to the caller's restore path. Throws .unknown (not in knownServers) or .missingToken (caller routes to login).

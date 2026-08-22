@@ -1687,7 +1687,7 @@ final class PlayerViewModel {
         }
         errorIcon = icon
         errorTitle = title
-        errorMessage = error.localizedDescription
+        errorMessage = ErrorText.user(for: error)
     }
 
     /// A start failure, painted from the engine's classification where it has one.
@@ -1699,11 +1699,19 @@ final class PlayerViewModel {
     /// every face it names. Where the classification has no face worth the swap, the start-failure trio
     /// stays exactly as it was.
     func setStartError(_ error: Error, engineInfo: PlaybackErrorInfo?) {
-        guard PlayerEngineErrorPresentation.face(for: engineInfo) != .engineMessage else {
+        let face = PlayerEngineErrorPresentation.face(for: engineInfo)
+        guard face != .engineMessage else {
             setError(from: error)
             return
         }
-        setEnginePlaybackError(message: error.localizedDescription, info: engineInfo)
+        let trio = PlayerEngineErrorPresentation.trio(
+            for: face,
+            engineMessage: ErrorText.user(for: error),
+            context: .start
+        )
+        errorIcon = trio.icon
+        errorTitle = trio.title
+        errorMessage = trio.message
     }
 
     /// Friendly trio for a live channel the server can't deliver (dead upstream); covers engine-level
@@ -1718,7 +1726,7 @@ final class PlayerViewModel {
         )
         errorIcon = trio.icon
         errorTitle = trio.title
-        errorMessage = trio.message
+        errorMessage = PlayerEngineErrorPresentation.appendingReportCode(to: trio.message, from: info)
     }
 
     /// Engine-side terminal error mid-playback (decoder/renderer death, network drop after handoff).

@@ -522,7 +522,7 @@ struct SeerrSettingsView: View {
             discoveredServer = server
             serverVersion = info.version
         case .failure(let error):
-            discoveryError = error.localizedDescription
+            discoveryError = ErrorText.user(for: error)
         }
     }
 
@@ -571,7 +571,7 @@ struct SeerrSettingsView: View {
         } catch {
             // Drop the cookie only, keep baseURL: full clearSeerrSession wipes baseURL -> next attempt fails on invalid URL.
             dependencies.seerrClient.sessionCookie = nil
-            loginError = error.localizedDescription
+            loginError = ErrorText.user(for: error)
         }
     }
 
