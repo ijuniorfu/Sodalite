@@ -19,11 +19,10 @@ final class JellyfinMusicService: JellyfinMusicServiceProtocol {
     }
 
     func getAlbums(userID: String) async throws -> [JellyfinItem] {
-        var query = ItemQuery()
+        var query = ItemQuery(fields: JellyfinEndpoint.musicListFields)
         query.includeItemTypes = [.musicAlbum]
         query.sortBy = "SortName"
         query.sortOrder = "Ascending"
-        query.fields = JellyfinEndpoint.musicListFields
         let response: JellyfinItemsResponse = try await client.request(
             endpoint: JellyfinEndpoint.items(userID: userID, query: query),
             responseType: JellyfinItemsResponse.self
@@ -32,12 +31,11 @@ final class JellyfinMusicService: JellyfinMusicServiceProtocol {
     }
 
     func getSongs(userID: String, albumID: String) async throws -> [JellyfinItem] {
-        var query = ItemQuery()
+        var query = ItemQuery(fields: JellyfinEndpoint.musicListFields)
         query.parentID = albumID
         query.includeItemTypes = [.audio]
         query.sortBy = "ParentIndexNumber,IndexNumber"
         query.sortOrder = "Ascending"
-        query.fields = JellyfinEndpoint.musicListFields
         let response: JellyfinItemsResponse = try await client.request(
             endpoint: JellyfinEndpoint.items(userID: userID, query: query),
             responseType: JellyfinItemsResponse.self

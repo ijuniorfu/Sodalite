@@ -19,7 +19,7 @@ enum VideoShuffleQueue {
         service: JellyfinLibraryServiceProtocol,
         userID: String
     ) async -> [JellyfinItem] {
-        var query = baseQuery ?? ItemQuery()
+        var query = baseQuery ?? ItemQuery(fields: JellyfinEndpoint.detailFields)
         if let parentID { query.parentID = parentID }
         query.includeItemTypes = itemTypes
         query.sortBy = "Random"
@@ -30,6 +30,10 @@ enum VideoShuffleQueue {
         query.filters = nil
         // A library grid may defer collection grouping to the server (Sodalite#44); a collapsed BoxSet in the queue is not playable, so shuffle always takes the flat list.
         query.collapseBoxSetItems = false
+        // Never inherit the grid's card-sized field set: these items go to PlayerViewModel as they
+        // are, including on auto-advance, and it reads chapters/trickplay/mediaStreams/mediaSources
+        // straight off the queue entry (Sodalite#68).
+        query.fields = JellyfinEndpoint.detailFields
         let response = try? await service.getItems(userID: userID, query: query)
         return response?.items ?? []
     }

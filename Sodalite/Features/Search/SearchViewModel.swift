@@ -96,7 +96,8 @@ final class SearchViewModel {
             sortBy: "SortName",
             sortOrder: "Ascending",
             limit: 30,
-            searchTerm: query
+            searchTerm: query,
+            fields: JellyfinEndpoint.homeRowFields
         )
         do {
             let resp = try await itemService.getCollectionItems(userID: userID, query: q)

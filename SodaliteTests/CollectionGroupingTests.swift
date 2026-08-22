@@ -14,21 +14,21 @@ struct CollectionGroupingQueryTests {
     /// Default stays `false`: every existing call site (home rows, search, detail) must keep sending
     /// the flat list, else a freshly added movie hides behind a collection tile.
     @Test func defaultQuerySuppressesCollapsing() {
-        let items = ItemQuery(includeItemTypes: [.movie]).toQueryItems()
+        let items = ItemQuery(includeItemTypes: [.movie], fields: JellyfinEndpoint.homeRowFields).toQueryItems()
         #expect(value(items, "CollapseBoxSetItems") == "false")
     }
 
     /// nil is the whole point: the param must be absent so the server applies its own
     /// EnableGroupingMoviesIntoCollections config. An explicit `false` would override it.
     @Test func serverDefaultOmitsTheParameter() {
-        var query = ItemQuery(includeItemTypes: [.movie])
+        var query = ItemQuery(includeItemTypes: [.movie], fields: JellyfinEndpoint.homeRowFields)
         query.collapseBoxSetItems = nil
         let items = query.toQueryItems()
         #expect(!items.contains { $0.name == "CollapseBoxSetItems" })
     }
 
     @Test func alwaysSendsTrue() {
-        var query = ItemQuery(includeItemTypes: [.movie])
+        var query = ItemQuery(includeItemTypes: [.movie], fields: JellyfinEndpoint.homeRowFields)
         query.collapseBoxSetItems = true
         #expect(value(query.toQueryItems(), "CollapseBoxSetItems") == "true")
     }
@@ -36,7 +36,7 @@ struct CollectionGroupingQueryTests {
     /// The rest of the query must be untouched by the new field.
     @Test func recursiveAndFieldsSurviveEveryMode() {
         for mode: Bool? in [nil, true, false] {
-            var query = ItemQuery(parentID: "lib1", includeItemTypes: [.movie])
+            var query = ItemQuery(parentID: "lib1", includeItemTypes: [.movie], fields: JellyfinEndpoint.homeRowFields)
             query.collapseBoxSetItems = mode
             let items = query.toQueryItems()
             #expect(value(items, "Recursive") == "true")
@@ -171,7 +171,7 @@ struct CollectionGroupingShuffleTests {
 
     @Test func shuffleNeverCollapses() async {
         let recorder = QueryRecorder()
-        var baseQuery = ItemQuery(parentID: "lib1", includeItemTypes: [.movie])
+        var baseQuery = ItemQuery(parentID: "lib1", includeItemTypes: [.movie], fields: JellyfinEndpoint.homeRowFields)
         baseQuery.collapseBoxSetItems = nil
 
         _ = await VideoShuffleQueue.build(

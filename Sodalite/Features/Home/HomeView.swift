@@ -313,7 +313,11 @@ struct HomeView: View {
                 sortBy: "SortName",
                 sortOrder: "Ascending",
                 limit: 200,
-                studioNames: provider.jellyfinStudioNames
+                studioNames: provider.jellyfinStudioNames,
+                // Card fields only, and the same set the provider precompute writes into this
+                // tile's FilterCache entry: the grid and its pre-warmed cache must hold the same
+                // shape of item, else a tap swaps one for the other (Sodalite#68).
+                fields: JellyfinEndpoint.homeRowFields
             ),
             smartProviderID: provider.tmdbWatchProviderID,
             smartProviderRegion: region,
@@ -329,7 +333,9 @@ struct HomeView: View {
                 sortBy: "SortName",
                 sortOrder: "Ascending",
                 limit: 50,
-                genres: [tag.name]
+                genres: [tag.name],
+                // Mirrors precomputeGenreCaches, which pre-warms this exact cache key.
+                fields: JellyfinEndpoint.homeRowFields
             ),
             // Without a cacheKey FilteredGridView.init falls to the empty-state branch with isLoading=true on every visit (the brief flash on opening a genre tile). Tag name is a stable enough key.
             cacheKey: FilterCacheKey.Home.genre(name: tag.name)
@@ -351,7 +357,11 @@ struct HomeView: View {
             includeItemTypes: types,
             sortBy: "SortName",
             sortOrder: "Ascending",
-            limit: 200
+            limit: 200,
+            // A grid cell renders name/year/index/series/watched plus the poster; People,
+            // MediaStreams, MediaSources, Chapters and Trickplay were fetched, decoded and cached
+            // for every tile and never read (Sodalite#68).
+            fields: JellyfinEndpoint.homeRowFields
         )
         query.collapseBoxSetItems = grouping.queryValue
         return FilterDestination(
