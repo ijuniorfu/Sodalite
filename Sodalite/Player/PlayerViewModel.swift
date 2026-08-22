@@ -1726,7 +1726,7 @@ final class PlayerViewModel {
         )
         errorIcon = trio.icon
         errorTitle = trio.title
-        errorMessage = trio.message
+        errorMessage = PlayerEngineErrorPresentation.appendingReportCode(to: trio.message, from: info)
     }
 
     /// Engine-side terminal error mid-playback (decoder/renderer death, network drop after handoff).

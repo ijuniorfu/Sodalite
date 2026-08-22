@@ -192,4 +192,40 @@ struct PlayerEngineErrorFaceTests {
         #expect(!start.message.contains("raw"))
         #expect(start.message.contains("softwarePipelineFailed"))
     }
+
+    // MARK: The one advice that is not "try again"
+
+    /// A track the bridge produced nothing for and a switch that failed both leave the viewer with the
+    /// same next move, and it is not the generic line's "try again": pick a different track. That is the
+    /// whole test for whether a kind earns its own sentence.
+    @Test func anAudioTrackThatCannotBeCarriedGetsItsOwnAdvice() {
+        #expect(PlayerEngineErrorPresentation.face(for: info(.audioBridgeProducedNoOutput)) == .audioTrackUnavailable)
+        #expect(PlayerEngineErrorPresentation.face(for: info(.audioTrackSwitchFailed)) == .audioTrackUnavailable)
+    }
+
+    /// Live can switch tracks too, so this one must NOT be swallowed by "channel unavailable" the way an
+    /// unnamed failure is.
+    @Test func liveKeepsTheAudioAdviceRatherThanCallingTheChannelDead() {
+        #expect(PlayerEngineErrorPresentation.liveFace(for: info(.audioTrackSwitchFailed)) == .audioTrackUnavailable)
+    }
+
+    // MARK: The token live would otherwise swallow
+
+    /// Live trades the token for the better sentence. A report that says only "channel unavailable" names
+    /// nothing, so the classification comes back as a line underneath.
+    @Test func aSwallowedClassificationComesBackAsAReportCode() {
+        let message = PlayerEngineErrorPresentation.appendingReportCode(
+            to: "Channel unavailable", from: info(.softwarePipelineFailed))
+        #expect(message.contains("Channel unavailable"))
+        #expect(message.contains("softwarePipelineFailed"))
+    }
+
+    /// Nothing was swallowed here, so nothing is appended: the sentence already names the failure, and a
+    /// token under it would be noise on every refused stream.
+    @Test func aNamedFailureGetsNoCodeAppended() {
+        let named = PlayerEngineErrorPresentation.appendingReportCode(
+            to: "Stream refused", from: info(.sourceRefused, status: 403))
+        #expect(named == "Stream refused")
+        #expect(PlayerEngineErrorPresentation.appendingReportCode(to: "x", from: nil) == "x")
+    }
 }

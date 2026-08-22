@@ -30,6 +30,10 @@ enum PlayerEngineErrorPresentation {
         case dolbyVisionUnsupported
         /// A live probe that burned its reconnect budget without opening.
         case liveChannelUnavailable
+        /// The audio track cannot be carried: either the bridge produced nothing for it (AE#396) or a
+        /// switch onto it failed and took its session with it. The only face whose advice is not "try
+        /// again", which is the whole reason it exists rather than folding into the generic line.
+        case audioTrackUnavailable
         /// The engine classified the failure but the host has no sentence for that kind. The viewer gets
         /// a translated line, and `identifier` carries the classification so a screenshot is still worth
         /// something in a bug report. It is deliberately NOT translated: it is a stable API token, and a
@@ -78,6 +82,9 @@ enum PlayerEngineErrorPresentation {
         // 26-language app is the one thing the viewer must not be handed, so those trade it for a
         // translated line plus the token.
         if info.kind == .nativeItemFailed { return .engineMessage }
+        if info.kind == .audioBridgeProducedNoOutput || info.kind == .audioTrackSwitchFailed {
+            return .audioTrackUnavailable
+        }
         return .engineClassified(identifier: identifier(for: info))
     }
 
@@ -181,6 +188,18 @@ enum PlayerEngineErrorPresentation {
                     defaultValue: "The server could not open this channel's stream. The channel's source may be offline. Try again later."
                 )
             )
+        case .audioTrackUnavailable:
+            return Trio(
+                icon: "speaker.slash",
+                title: String(
+                    localized: "player.error.audioTrack.title",
+                    defaultValue: "Audio track unavailable"
+                ),
+                message: String(
+                    localized: "player.error.audioTrack.body",
+                    defaultValue: "This audio track could not be played. Start the title again and choose a different audio track."
+                )
+            )
         case .engineClassified(let identifier):
             return Trio(
                 icon: "exclamationmark.triangle",
@@ -200,6 +219,21 @@ enum PlayerEngineErrorPresentation {
                 message: engineMessage
             )
         }
+    }
+
+    /// Live trades the token for a better sentence, because "the channel did not come up" is what the
+    /// viewer needs and a token is not. A bug report that says only that names nothing, though, so where
+    /// a classification WAS swallowed, it comes back as a line under the sentence.
+    static func appendingReportCode(to message: String, from info: PlaybackErrorInfo?) -> String {
+        guard case .engineClassified(let identifier) = face(for: info) else { return message }
+        let line = String(
+            format: String(
+                localized: "player.error.reportCode",
+                defaultValue: "Code for a bug report: %@"
+            ),
+            identifier
+        )
+        return message.isEmpty ? line : "\(message)\n\n\(line)"
     }
 
     private static func headline(_ context: Context) -> String {
