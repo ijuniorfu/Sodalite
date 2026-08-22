@@ -20,7 +20,9 @@ struct PlayerLauncher: UIViewControllerRepresentable {
     var trackMemory: TrackSelectionMemory?
     /// Sodalite#50 spoiler decision, snapshotted by the caller; .disabled leaves the player alone.
     var spoilerPolicy: SpoilerPolicy = .disabled
-    var cachedPlaybackInfo: PlaybackInfoResponse?
+    /// Detail-screen prefetch, saving the first round trip. It names the item it was fetched for and
+    /// the player drops it unless that is the item being launched (Sodalite#71).
+    var cachedPlaybackInfo: PrefetchedPlaybackInfo?
     /// Version picker's choice; nil = default-first source.
     var preferredMediaSourceID: String?
     /// Shuffle / play queue; empty = single-item playback.

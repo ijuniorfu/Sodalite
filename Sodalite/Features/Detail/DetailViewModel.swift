@@ -27,7 +27,9 @@ final class DetailViewModel {
     var isLoading = false
     /// True once full-detail settles (success or failure). isLoading can flip false at the snapshot deadline while the detail roundtrip is still in flight, so views key overview/secondary placeholders on this to reserve space (Sodalite#15).
     var hasFullDetail = false
-    var cachedPlaybackInfo: PlaybackInfoResponse?
+    /// Carries the id it was fetched for; see `PrefetchedPlaybackInfo`. Every writer below is a place
+    /// where the play target moved without the prefetch following it (Sodalite#71).
+    var cachedPlaybackInfo: PrefetchedPlaybackInfo?
 
     /// Server reported at least one local trailer; drives the Trailer button's visibility.
     var hasLocalTrailer: Bool {
@@ -357,6 +359,9 @@ final class DetailViewModel {
         playedOverrides[staleID] = nil
         favoriteOverrides[staleID] = nil
         if currentEpisodeID == staleID { currentEpisodeID = newItem.id }
+        // The replacement is a different file, so the response fetched for the id that died describes
+        // neither it nor its successor.
+        if cachedPlaybackInfo?.itemID == staleID { cachedPlaybackInfo = nil }
     }
 
     func loadEpisodes(seasonID: String) async {
@@ -575,6 +580,9 @@ final class DetailViewModel {
         guard let playbackService else { return }
         // Cancel any older prefetch, only the latest item matters.
         playbackInfoPrefetchTask?.cancel()
+        // Drop the previous target's response before the new one is in flight: the play button can fire
+        // inside that window, and a response that names a different item is worse than none.
+        cachedPlaybackInfo = nil
         playbackInfoPrefetchTask = Task { [weak self] in
             guard let self else { return }
             let response = try? await playbackService.getPlaybackInfo(
@@ -582,7 +590,9 @@ final class DetailViewModel {
                 profile: DirectPlayProfile.current()
             )
             if Task.isCancelled { return }
-            self.cachedPlaybackInfo = response
+            self.cachedPlaybackInfo = response.map {
+                PrefetchedPlaybackInfo(itemID: itemID, response: $0)
+            }
         }
     }
 

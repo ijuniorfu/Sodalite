@@ -369,7 +369,10 @@ final class PlayerViewModel {
     let itemService: JellyfinItemServiceProtocol?
     let userID: String
     var startFromBeginning: Bool
-    var cachedPlaybackInfo: PlaybackInfoResponse?
+    /// Detail-screen prefetch, saving the first round trip. Bound to the id it was fetched for and
+    /// consumed only through `matching(item.id)`: the response supplies `MediaSourceId` while the
+    /// path carries `item.id`, and Jellyfin answers a crossed pair HTTP 400 (Sodalite#71).
+    var cachedPlaybackInfo: PrefetchedPlaybackInfo?
     let preferences: PlaybackPreferences
     /// Sodalite#46 per-title memory; nil in contexts that do not persist picks (live, previews).
     let trackMemory: TrackSelectionMemory?
@@ -645,7 +648,7 @@ final class PlayerViewModel {
         itemService: JellyfinItemServiceProtocol? = nil,
         trackMemory: TrackSelectionMemory? = nil,
         spoilerPolicy: SpoilerPolicy = .disabled,
-        cachedPlaybackInfo: PlaybackInfoResponse? = nil,
+        cachedPlaybackInfo: PrefetchedPlaybackInfo? = nil,
         preferredMediaSourceID: String? = nil,
         playQueue: [JellyfinItem] = [],
         isLiveSession: Bool = false,
@@ -737,7 +740,11 @@ final class PlayerViewModel {
             }
 
             let info: PlaybackInfoResponse
-            if let cached = cachedPlaybackInfo, !cached.mediaSources.isEmpty {
+            // Only a prefetch that names THIS item: the play target can move between the prefetch and
+            // the launch (Next Up rolling forward as the player exits, an auto-advance, a replaced item),
+            // and a response from the previous target would put its source id in MediaSourceId under this
+            // item's path, which Jellyfin refuses with HTTP 400.
+            if let cached = cachedPlaybackInfo?.matching(item.id), !cached.mediaSources.isEmpty {
                 info = cached
             } else {
                 info = try await playbackService.getPlaybackInfo(

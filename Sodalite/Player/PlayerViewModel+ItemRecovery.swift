@@ -63,7 +63,7 @@ extension PlayerViewModel {
         let stale = item
         // A load that ran on prefetched playback info is worth repeating without it: the file behind an
         // unchanged id can still be a new one.
-        let ranOnPrefetchedInfo = !(cachedPlaybackInfo?.mediaSources.isEmpty ?? true)
+        let ranOnPrefetchedInfo = !(cachedPlaybackInfo?.matching(stale.id)?.mediaSources.isEmpty ?? true)
         let resumeSeconds = carriedResumeSeconds(from: stale)
 
         Task { @MainActor [weak self] in

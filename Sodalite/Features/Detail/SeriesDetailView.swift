@@ -308,9 +308,7 @@ struct SeriesDetailView: View {
                     preferences: dependencies.playbackPreferences,
                     trackMemory: dependencies.trackSelectionMemory,
                     spoilerPolicy: dependencies.spoilerPolicy(userID: userID),
-                    cachedPlaybackInfo: playItem.flatMap { ep in
-                        (viewModel?.currentEpisodeID == ep.id) ? viewModel?.cachedPlaybackInfo : nil
-                    },
+                    cachedPlaybackInfo: viewModel?.cachedPlaybackInfo,
                     preferredMediaSourceID: pendingSourceID,
                     playQueue: playQueue,
                     tintColor: dependencies.appearancePreferences.effectiveTint(

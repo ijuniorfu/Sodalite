@@ -12,6 +12,25 @@ struct PlaybackInfoResponse: Codable, Sendable {
     }
 }
 
+/// A PlaybackInfo response prefetched for ONE item, carrying the id it was fetched for.
+///
+/// The two never travel apart, because the stream URL is built from BOTH: `item.id` goes in the path
+/// and the response's source id into `MediaSourceId`. Crossed, that is
+/// `/Videos/{other}/stream.mkv?MediaSourceId={this}`, which Jellyfin answers HTTP 400 (measured: the
+/// matching pair returns 206) and the engine reports as "origins answered HTTP 400 for the source".
+/// Sodalite#71 crossed them because the guard on the handover read a neighbouring field
+/// (`currentEpisodeID`) rather than the response's own identity.
+struct PrefetchedPlaybackInfo: Sendable {
+    let itemID: String
+    let response: PlaybackInfoResponse
+
+    /// The response if it describes `itemID`, else nil. A caller that cannot say which item it is
+    /// launching has no business using a prefetch.
+    func matching(_ itemID: String) -> PlaybackInfoResponse? {
+        self.itemID == itemID ? response : nil
+    }
+}
+
 struct PlaybackMediaSource: Codable, Sendable, Identifiable {
     let id: String
     let name: String?
