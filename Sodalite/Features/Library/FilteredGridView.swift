@@ -291,7 +291,11 @@ struct FilteredGridView: View {
                 includeItemTypes: [.movie, .series],
                 sortBy: "SortName",
                 sortOrder: "Ascending",
-                limit: 10000
+                limit: 10000,
+                // Only tmdbID and the image tags are read off this scan. Same set as the identical
+                // query in HomeViewModel+Precompute; detailFields over a whole library was the
+                // single biggest request the app could issue (Sodalite#68).
+                fields: JellyfinEndpoint.homeRowFields + ",ProviderIds"
             )
             if let filter = watchFilterValue {
                 allQuery.filters = [filter]

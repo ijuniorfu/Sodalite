@@ -62,10 +62,9 @@ final class WatchStatsViewModel {
     // MARK: - Cheap count
 
     private func count(types: [ItemType], playedOnly: Bool) async throws -> Int {
-        var q = ItemQuery()
+        var q = ItemQuery(fields: "")  // no per-item payload needed for a count
         q.includeItemTypes = types
         q.limit = 0
-        q.fields = ""  // no per-item payload needed for a count
         if playedOnly { q.filters = ["IsPlayed"] }
         let resp = try await libraryService.getItems(userID: userID, query: q)
         return resp.totalRecordCount
@@ -74,13 +73,12 @@ final class WatchStatsViewModel {
     // MARK: - Rails
 
     private func fetchRail(sortBy: String, rewatchedOnly: Bool) async throws -> [JellyfinItem] {
-        var q = ItemQuery()
+        var q = ItemQuery(fields: JellyfinEndpoint.homeRowFields)
         q.includeItemTypes = [.movie, .episode]
         q.filters = ["IsPlayed"]
         q.sortBy = sortBy
         q.sortOrder = "Descending"
         q.limit = 12
-        q.fields = JellyfinEndpoint.homeRowFields
         let resp = try await libraryService.getItems(userID: userID, query: q)
         if rewatchedOnly {
             // Genuine rewatches only, so the rail isn't just "everything watched".
@@ -107,14 +105,13 @@ final class WatchStatsViewModel {
         var capped = false
 
         while true {
-            var q = ItemQuery()
+            var q = ItemQuery(fields: "Genres")  // runtime / seriesId / userData ride along free
             q.includeItemTypes = [.movie, .episode]
             q.filters = ["IsPlayed"]
             q.sortBy = "DatePlayed"
             q.sortOrder = "Descending"
             q.limit = pageSize
             q.startIndex = start
-            q.fields = "Genres"  // runtime / seriesId / userData ride along free
             let resp = try await libraryService.getItems(userID: userID, query: q)
             if resp.items.isEmpty { break }
 

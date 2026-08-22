@@ -450,7 +450,11 @@ final class DetailViewModel {
                 parentID: item.id,
                 sortBy: "PremiereDate,ProductionYear,SortName",
                 sortOrder: "Ascending",
-                limit: 50
+                limit: 50,
+                // Full set on purpose: Play/Shuffle enqueue these members verbatim and the player
+                // reads chapters, trickplay, mediaStreams and mediaSources off the queue entry
+                // with no re-fetch (Sodalite#68).
+                fields: JellyfinEndpoint.detailFields
             )
             let response = try await itemService.getCollectionItems(userID: userID, query: query)
             collectionItems = response.items
@@ -463,7 +467,9 @@ final class DetailViewModel {
 
         do {
             // No sortBy: keep the user's manual playlist order (sorting would defeat the purpose).
-            let query = ItemQuery(parentID: item.id, limit: 200)
+            // detailFields for the same reason as loadCollectionItems: the playlist's Play and
+            // Shuffle buttons enqueue these items directly.
+            let query = ItemQuery(parentID: item.id, limit: 200, fields: JellyfinEndpoint.detailFields)
             let response = try await itemService.getCollectionItems(userID: userID, query: query)
             collectionItems = response.items
         } catch {

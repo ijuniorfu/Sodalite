@@ -48,7 +48,8 @@ struct ReplacedMovieResolver: Sendable {
     private func isStillListed(_ id: String) async throws -> Bool {
         let response = try await service.getCollectionItems(
             userID: userID,
-            query: ItemQuery(ids: [id], limit: 1)
+            // Presence check only: the response is scanned for the id and thrown away.
+            query: ItemQuery(ids: [id], limit: 1, fields: "")
         )
         return response.items.contains { $0.id == id }
     }
@@ -74,7 +75,9 @@ struct ReplacedMovieResolver: Sendable {
             query: ItemQuery(
                 includeItemTypes: [.movie],
                 limit: Self.candidateLimit,
-                searchTerm: stale.name
+                searchTerm: stale.name,
+                // The match is returned to a live player session, so it needs the playback fields.
+                fields: JellyfinEndpoint.detailFields
             )
         )
         let matches = response.items.filter {

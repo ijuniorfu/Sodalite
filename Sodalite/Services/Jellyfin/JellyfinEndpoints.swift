@@ -242,15 +242,15 @@ enum JellyfinEndpoint: APIEndpoint {
             return query.toQueryItems()
 
         case .localTrailers(let userID, _):
-            // UserId for user data; defaultFields so trailers arrive with MediaSources/Chapters like a playable detail item.
+            // UserId for user data; detailFields so trailers arrive with MediaSources/Chapters like a playable detail item.
             return [
                 URLQueryItem(name: "UserId", value: userID),
-                URLQueryItem(name: "Fields", value: Self.defaultFields),
+                URLQueryItem(name: "Fields", value: Self.detailFields),
             ]
 
         case .itemDetail:
-            // Needs explicit defaultFields (rich detail), incl. LocalTrailerCount so the Trailer button gates without a second round-trip.
-            return [URLQueryItem(name: "Fields", value: Self.defaultFields)]
+            // Needs the full detailFields (rich detail), incl. LocalTrailerCount so the Trailer button gates without a second round-trip.
+            return [URLQueryItem(name: "Fields", value: Self.detailFields)]
 
         case .resumeItems(_, let mediaType, let limit):
             return [
@@ -461,7 +461,13 @@ enum JellyfinEndpoint: APIEndpoint {
         }
     }
 
-    static let defaultFields = "Overview,Genres,People,Studios,MediaStreams,MediaSources,CommunityRating,CriticRating,OfficialRating,ImageTags,BackdropImageTags,ParentBackdropImageTags,SeriesPrimaryImageTag,ProviderIds,Chapters,LocalTrailerCount,Trickplay"
+    /// The detail-screen / playback field set: everything a `DetailView` renders plus what
+    /// `PlayerViewModel` and `PlayerHostController` read straight off the item (chapters, trickplay,
+    /// mediaStreams, mediaSources). Named `defaultFields` until Sodalite#68, when it was the value
+    /// `ItemQuery` fell back to for any caller that left `fields` nil, which is how four grid queries
+    /// ended up asking a large library for cast lists and chapter arrays no cell renders. There is no
+    /// fallback any more: `ItemQuery.fields` has no default and every call site picks its set.
+    nonisolated static let detailFields = "Overview,Genres,People,Studios,MediaStreams,MediaSources,CommunityRating,CriticRating,OfficialRating,ImageTags,BackdropImageTags,ParentBackdropImageTags,SeriesPrimaryImageTag,ProviderIds,Chapters,LocalTrailerCount,Trickplay"
 
     /// Season bar: ChildCount (episode count per season) without defaultFields' heavy arrays. Name/index/watched are base/UserData fields.
     /// It must be `ChildCount`, NOT `ItemCounts`: Jellyfin's DtoService fills a Season's ChildCount only under `ItemFields.ChildCount`; `ItemCounts` sets it on the ItemsByName path (people/genres/studios) and leaves a Season's nil. With the wrong field every season read as zero episodes, which the catalog's Jellyfin ground-truth reconcile scores as "deleted".
@@ -471,7 +477,12 @@ enum JellyfinEndpoint: APIEndpoint {
     /// Episode list: only synopsis + thumbnail; name/index/runtime/watched are base/UserData. Heavy per-episode arrays omitted, episode detail pulls them lazily on open.
     static let episodeListFields = "Overview,ImageTags"
 
-    /// Home carousels: image tags only; title/year/series/watched ride as base/UserData fields. defaultFields per item is dead weight on 16-30-item rows (Sodalite#12 Fields= audit); tapping a card re-fetches full fields in Detail. `nonisolated` so detached precompute closures read it without a MainActor hop (immutable, so cross-actor safe).
+    /// Every surface that renders a poster/landscape card: Home carousels, the library and
+    /// provider/genre grids, search results, the person page. Image tags only; title/year/series/
+    /// watched ride as base/UserData fields, and tapping a card re-fetches the full set in Detail.
+    /// detailFields per item is dead weight on a 16-30-item row (Sodalite#12) and worse on a 200-item
+    /// grid over a large library (Sodalite#68). `nonisolated` so detached precompute closures read it
+    /// without a MainActor hop (immutable, so cross-actor safe).
     nonisolated static let homeRowFields = "ImageTags,BackdropImageTags,ParentBackdropImageTags,SeriesPrimaryImageTag"
 
     /// Music browse rows: image tags + album/artist linkage; IndexNumber/ParentIndexNumber/RunTimeTicks/ProductionYear come back without an explicit Fields request.
@@ -502,7 +513,12 @@ struct ItemQuery: Sendable {
     /// Jellyfin applies it to episodes only, and it covers missing but not unaired ones, so callers
     /// still check `isVirtual` on what comes back (Sodalite#57).
     var isMissing: Bool?
-    var fields: String?
+    /// Jellyfin `Fields=`, deliberately without a default. It used to be optional with a
+    /// `fields ?? defaultFields` fallback, so a caller that simply did not think about it silently
+    /// asked for the detail-screen set; four grid queries did exactly that (Sodalite#68). Pick one:
+    /// `JellyfinEndpoint.homeRowFields` for anything that renders a card, `detailFields` for items
+    /// handed to the player without a re-fetch, `""` when only ids or `totalRecordCount` are read.
+    var fields: String
     /// `CollapseBoxSetItems`: false (the default) keeps every movie standing alone, true forces
     /// BoxSet grouping, nil omits the param so the server's own "Group movies into collections"
     /// config decides (Sodalite#44). Only the My Media library grids pass nil; home rows, search and
@@ -542,7 +558,6 @@ struct ItemQuery: Sendable {
         }
         if let isMissing { items.append(URLQueryItem(name: "IsMissing", value: String(isMissing))) }
 
-        let fields = fields ?? JellyfinEndpoint.defaultFields
         items.append(URLQueryItem(name: "Fields", value: fields))
         items.append(URLQueryItem(name: "Recursive", value: "true"))
         // Omitted entirely when nil: Jellyfin only consults its own grouping config while the param is absent (an explicit false overrides the admin's setting). The Collections row uses a dedicated BoxSet query, unaffected either way.
