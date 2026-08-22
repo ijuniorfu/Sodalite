@@ -632,6 +632,11 @@ final class PlayerViewModel {
     var usedDirectLivePath = false
     /// Latch: the once-per-session direct-to-Jellyfin fallback has been consumed.
     var didAttemptLiveFallback = false
+    /// True while this live session reads the tuner's own buffered stream (`/LiveTv/LiveStreamFiles/...`)
+    /// rather than the static route, keeping Jellyfin's redundant copy-remux out of the path (#70).
+    var usedLiveTunerFilePath = false
+    /// Latch: the once-per-session retreat from the tuner-file route to the static route is consumed.
+    var didAbandonLiveTunerFile = false
     /// Remembered upstream URLs, so a repeat tune of a direct channel skips Jellyfin entirely. Nil for VOD.
     let directStreamMemory: LiveDirectStreamMemory?
     /// The audio stream the viewer picked on this live channel (#64), named at load on every
@@ -714,6 +719,8 @@ final class PlayerViewModel {
                 stageInitialNowPlayingMetadata()
                 usedDirectLivePath = false
                 didAttemptLiveFallback = false
+                usedLiveTunerFilePath = false
+                didAbandonLiveTunerFile = false
                 try await loadLiveStream()
                 if Task.isCancelled || isTearingDown {
                     player.stop()
@@ -1254,6 +1261,12 @@ final class PlayerViewModel {
                         // Direct session died before first frame: consume the once-per-session fallback via
                         // the guarded retune path.
                         LogTap.shared.note("[LiveDirect] route=fallback reason=engine_error_pre_play(\(msg))")
+                        self.handleLiveSourceReset()
+                    } else if self.isLiveSession, self.liveFirstPlayingAt == nil,
+                              self.usedLiveTunerFilePath, !self.didAbandonLiveTunerFile {
+                        // Same, one route down (#70): the tuner-file read opened but never produced a
+                        // frame, so spend the retreat to the static route rather than surfacing.
+                        LogTap.shared.note("[LiveDirect] route=tunerfile abandoned reason=engine_error_pre_play(\(msg))")
                         self.handleLiveSourceReset()
                     } else if self.isLiveSession, self.liveFirstPlayingAt == nil {
                         // Live channel died before ever playing: friendly "unavailable" message ("Playback

@@ -72,6 +72,7 @@ struct PrefetchedPlaybackInfoIdentityTests {
         func downloadRemoteSubtitle(itemID: String, subtitleID: String) async throws {}
         func deleteSubtitle(itemID: String, index: Int) async throws {}
         func buildTranscodeURL(relativePath: String) -> URL? { nil }
+        func buildLiveStreamFileURL(sourcePath: String) -> URL? { nil }
     }
 
     /// Next Up answers with whatever the test staged, standing in for the server rolling forward once
