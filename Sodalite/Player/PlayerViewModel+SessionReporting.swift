@@ -12,6 +12,28 @@ extension PlayerViewModel {
         return ticks > 0 ? ticks : resumePositionTicks
     }
 
+    /// The playhead sits where the episode is over as far as the viewer is concerned: at or past the
+    /// outro marker, or inside the no-marker end window. Live has no end to reach.
+    var hasReachedEndOfContent: Bool {
+        guard !isLiveSession, hasStartedPlaying else { return false }
+        return NextEpisodePolicy.isInsideTriggerWindow(
+            outroStartSeconds: outroSegment?.startSeconds,
+            sourceTime: player.sourceTime,
+            remainingSeconds: effectiveDuration > 0 ? effectiveDuration - playbackTime : .infinity
+        )
+    }
+
+    /// What a stop report should carry, given where the playhead is. See `PlaybackCompletionReport`:
+    /// Jellyfin files an item as played from this number alone, and an outro marker on a show with
+    /// minutes of credits sits below the line it compares against.
+    var completionAwarePositionTicks: Int64 {
+        PlaybackCompletionReport.positionTicks(
+            playhead: currentPositionTicks,
+            runtimeTicks: item.runTimeTicks,
+            reachedEndOfContent: hasReachedEndOfContent
+        )
+    }
+
     func reportStart() async {
         guard !hasReportedStart else { return }
         hasReportedStart = true
@@ -63,7 +85,7 @@ extension PlayerViewModel {
         // killing the engine (stop audio first, no trailing buffer on dismiss).
         // liveStreamID closes a dead tuner on retune (belt-and-braces with
         // the explicit closeLiveStream).
-        let ticks = positionTicks ?? currentPositionTicks
+        let ticks = positionTicks ?? completionAwarePositionTicks
         let report = PlaybackStopReport(
             itemId: item.id,
             mediaSourceId: mediaSourceID,
