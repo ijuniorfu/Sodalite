@@ -1,5 +1,6 @@
 import Testing
 import Foundation
+import AetherEngine
 @testable import Sodalite
 
 /// A Sonarr upgrade rewrites an episode file, and because Jellyfin ids an item by its path the library
@@ -10,6 +11,10 @@ import Foundation
 /// which matches Jellyfin answering differently per version and per endpoint (PlaybackInfo, the stream,
 /// a transcode). What is unambiguous is the season list, so these tests pin the lookup to it.
 struct ReplacedEpisodeRecoveryTests {
+    /// Stands in for what `player.load()` throws: the engine's own error type is internal to the
+    /// package, so the host only ever sees an opaque Error plus `player.errorInfo`.
+    struct EngineLoadFailure: Error {}
+
 
     private func episode(
         id: String,
@@ -147,20 +152,59 @@ struct ReplacedEpisodeRecoveryTests {
     @Test(arguments: [400, 401, 402, 403, 404, 410, 500])
     func everyAnsweredStatusAsksTheLibrary(status: Int) {
         #expect(ReplacedItemRecoveryTrigger.serverAnswered(
-            hostError: APIError.httpError(statusCode: status, data: nil)))
+            hostError: APIError.httpError(statusCode: status, data: nil), engineError: nil))
     }
 
     /// 401 arrives as its own case, not as httpError, and it has to qualify the same way.
     @Test func anExpiredSessionStillAsksTheLibrary() {
-        #expect(ReplacedItemRecoveryTrigger.serverAnswered(hostError: APIError.unauthorized(message: nil)))
+        #expect(ReplacedItemRecoveryTrigger.serverAnswered(
+            hostError: APIError.unauthorized(message: nil), engineError: nil))
     }
 
     /// Nothing reached a server here, so there is no verdict about the item to act on.
     @Test func aFailureThatNeverReachedTheServerIsNotProbed() {
-        #expect(!ReplacedItemRecoveryTrigger.serverAnswered(hostError: APIError.timeout))
-        #expect(!ReplacedItemRecoveryTrigger.serverAnswered(hostError: APIError.serverUnreachable))
-        #expect(!ReplacedItemRecoveryTrigger.serverAnswered(hostError: APIError.invalidResponse))
-        #expect(!ReplacedItemRecoveryTrigger.serverAnswered(hostError: CancellationError()))
+        #expect(!ReplacedItemRecoveryTrigger.serverAnswered(hostError: APIError.timeout, engineError: nil))
+        #expect(!ReplacedItemRecoveryTrigger.serverAnswered(hostError: APIError.serverUnreachable, engineError: nil))
+        #expect(!ReplacedItemRecoveryTrigger.serverAnswered(hostError: APIError.invalidResponse, engineError: nil))
+        #expect(!ReplacedItemRecoveryTrigger.serverAnswered(hostError: CancellationError(), engineError: nil))
+    }
+
+    /// The failure that made the recovery worth building does NOT arrive as an APIError. Where the detail
+    /// screen prefetched PlaybackInfo, the load makes no request of its own, so the only thing that can
+    /// fail is `player.load()`, and the engine's `AVIOReaderError` is internal to the package. Matching on
+    /// APIError alone therefore left `ranOnPrefetchedInfo` unreachable by construction. The engine's typed
+    /// classification is the answer the origin gave, so it qualifies the same way a status does.
+    @Test func anOriginRefusalTypedByTheEngineAsksTheLibraryToo() {
+        #expect(ReplacedItemRecoveryTrigger.serverAnswered(
+            hostError: EngineLoadFailure(),
+            engineError: PlaybackErrorInfo(
+                kind: .sourceRefused,
+                message: "Failed to load: Origin answered HTTP 400 for the source",
+                underlyingCode: 400)))
+    }
+
+    /// A metered origin is not a verdict about the item: the source is there and the same request is
+    /// expected to work later, so re-asking (and restarting on it) is the one reaction the engine
+    /// explicitly warns against.
+    @Test func aMeteredOriginIsNotAVerdictAboutTheItem() {
+        #expect(!ReplacedItemRecoveryTrigger.serverAnswered(
+            hostError: EngineLoadFailure(),
+            engineError: PlaybackErrorInfo(
+                kind: .sourceRateLimited,
+                message: "Failed to load: Origin answered HTTP 429 for the source",
+                underlyingCode: 429)))
+    }
+
+    /// Everything the engine could not type says nothing about the item, the same way a timeout does not.
+    @Test func anUntypedOrOpenFailureStillSaysNothingAboutTheItem() {
+        #expect(!ReplacedItemRecoveryTrigger.serverAnswered(
+            hostError: EngineLoadFailure(), engineError: nil))
+        #expect(!ReplacedItemRecoveryTrigger.serverAnswered(
+            hostError: EngineLoadFailure(),
+            engineError: PlaybackErrorInfo(
+                kind: .sourceOpenFailed,
+                message: "Failed to load: timed out",
+                underlyingDomain: "NSURLErrorDomain", underlyingCode: -1001)))
     }
 
     /// The five preconditions, pinned as a combination rather than as five guards read in a row.

@@ -1,3 +1,4 @@
+import AetherEngine
 import Foundation
 
 /// Whether a failure is the kind worth asking the library about.
@@ -21,17 +22,31 @@ enum ReplacedItemRecoveryTrigger {
         return isEpisode || isMovieWithItemService
     }
 
-    /// The host's request reached the server and the server answered with a status. Which status a
-    /// vanished item earns is not fixed: it depends on the Jellyfin version and on the endpoint the
-    /// request reached, so every answered status qualifies and the library list decides. Only failures
-    /// that never reached a server (dead link, timeout, malformed response) say nothing about the item.
-    static func serverAnswered(hostError: Error) -> Bool {
+    /// The origin answered with a status instead of media. Which status a vanished item earns is not
+    /// fixed: it depends on the Jellyfin version and on the endpoint the request reached, so every
+    /// answered status qualifies and the library list decides. Only failures that never reached a server
+    /// (dead link, timeout, malformed response) say nothing about the item.
+    ///
+    /// Two sources, because the answer arrives on two different wires. PlaybackInfo is our own request,
+    /// so it fails as an `APIError`. The source request is the ENGINE's, and the reader error carrying
+    /// the status is internal to that package, so all the host sees is an opaque `Error` plus the typed
+    /// `errorInfo` the engine publishes beside it. Matching on APIError alone missed every failure of
+    /// the second kind, which is the whole prefetched-PlaybackInfo path: there the load makes no request
+    /// of its own, so `player.load()` is the only thing left that CAN fail.
+    static func serverAnswered(hostError: Error, engineError: PlaybackErrorInfo?) -> Bool {
         switch hostError as? APIError {
         case .httpError, .unauthorized:
             return true
-        case .serverUnreachable, .timeout, .networkError, .invalidURL, .invalidResponse, .decodingError, nil:
+        case .serverUnreachable, .timeout, .networkError, .invalidURL, .invalidResponse, .decodingError:
             return false
+        case nil:
+            break
         }
+        // `.sourceRefused` is defined as "the origin answered with an HTTP status instead of media", which
+        // is exactly the question here. `.sourceRateLimited` deliberately does NOT qualify: a metered
+        // origin is not a verdict about the item, the same request is expected to work later, and asking
+        // the library only to restart on the answer is the one reaction the engine warns against.
+        return engineError?.kind == .sourceRefused
     }
 }
 

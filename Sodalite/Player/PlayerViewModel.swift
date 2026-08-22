@@ -990,17 +990,25 @@ final class PlayerViewModel {
         } catch {
             // Release the tuner if a live load opened one before failing. No-op for VOD.
             releaseLiveTunerIfNeeded()
+            // The engine classifies its own failures and assigns `errorInfo` before the state that carries
+            // them, so a load that threw still has its classification sitting here. Read once: `load()`
+            // clears it on the next attempt's `.loading`, so it can only ever describe THIS attempt.
+            let engineInfo = player.errorInfo
+            LogTap.shared.note(
+                PlayerEngineErrorPresentation.logLine(for: engineInfo, engineMessage: error.localizedDescription)
+            )
             if isLiveSession && !(error is APIError) {
                 // Engine-level live open failure (probe fail-fast): friendly message, APIErrors keep their trio.
-                setLiveChannelUnavailableError()
-            } else if ReplacedItemRecoveryTrigger.serverAnswered(hostError: error),
-                      beginReplacedItemRecovery(onGiveUp: { [weak self] in self?.setError(from: error) }) {
+                setLiveChannelUnavailableError(info: engineInfo)
+            } else if ReplacedItemRecoveryTrigger.serverAnswered(hostError: error, engineError: engineInfo),
+                      beginReplacedItemRecovery(
+                        onGiveUp: { [weak self] in self?.setStartError(error, engineInfo: engineInfo) }) {
                 // The server answered with a status, which a *arr upgrade earns whichever endpoint it hits.
                 // The library is being asked whether this item still exists; the spinner stays up and the
                 // recovery paints this error itself if nothing was replaced.
                 return
             } else {
-                setError(from: error)
+                setStartError(error, engineInfo: engineInfo)
             }
             hostLoadActive = false
         }
@@ -1680,6 +1688,22 @@ final class PlayerViewModel {
         errorIcon = icon
         errorTitle = title
         errorMessage = error.localizedDescription
+    }
+
+    /// A start failure, painted from the engine's classification where it has one.
+    ///
+    /// `setError(from:)` can only read the thrown error, and what `player.load()` throws is opaque: its
+    /// `localizedDescription` is the engine's own English sentence ("Origin answered HTTP 400 for the
+    /// source"), which in a 26-language app is an untranslated string describing the plumbing. The typed
+    /// `errorInfo` beside it is the part that classifies, and the host already has localized copy for
+    /// every face it names. Where the classification has no face worth the swap, the start-failure trio
+    /// stays exactly as it was.
+    func setStartError(_ error: Error, engineInfo: PlaybackErrorInfo?) {
+        guard PlayerEngineErrorPresentation.face(for: engineInfo) != .engineMessage else {
+            setError(from: error)
+            return
+        }
+        setEnginePlaybackError(message: error.localizedDescription, info: engineInfo)
     }
 
     /// Friendly trio for a live channel the server can't deliver (dead upstream); covers engine-level
