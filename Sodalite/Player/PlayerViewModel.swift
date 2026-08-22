@@ -1085,8 +1085,10 @@ final class PlayerViewModel {
         Task { await extractorToClose?.shutdown() }
         deactivateASSRendering()
         cancellables.removeAll()
-        // Capture position BEFORE stopping: player.stop() resets currentTime to 0.
-        let finalTicks = currentPositionTicks
+        // Capture position BEFORE stopping: player.stop() resets currentTime to 0. Completion-aware,
+        // so leaving by hand during the credits files the episode as watched instead of parking it on
+        // the Continue Watching shelf with a nearly full bar.
+        let finalTicks = completionAwarePositionTicks
         // Snapshot the payload + service and detach with a STRONG capture: a [weak self] task could be
         // deallocated by PlayerHostController's dismissal before the @MainActor hop ran, silently dropping
         // the position write.

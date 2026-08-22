@@ -162,7 +162,7 @@ extension PlayerViewModel {
             itemId: item.id,
             mediaSourceId: mediaSourceID,
             playSessionId: playSessionID,
-            positionTicks: currentPositionTicks,
+            positionTicks: completionAwarePositionTicks,
             liveStreamId: nil
         )
         let svc = playbackService
@@ -323,7 +323,7 @@ extension PlayerViewModel {
             itemId: item.id,
             mediaSourceId: mediaSourceID,
             playSessionId: playSessionID,
-            positionTicks: currentPositionTicks,
+            positionTicks: completionAwarePositionTicks,
             liveStreamId: nil
         )
         let svc = playbackService
