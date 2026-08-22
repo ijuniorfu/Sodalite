@@ -61,17 +61,22 @@ struct PlayerEngineErrorFaceTests {
         #expect(PlayerEngineErrorPresentation.face(for: info(.nativeItemFailed, status: -11800)) == .engineMessage)
     }
 
-    @Test func anUnclassifiedFailureKeepsTheEngineSentence() {
-        #expect(PlayerEngineErrorPresentation.face(for: info(.sourceOpenFailed)) == .engineMessage)
+    /// A classified failure the host has no sentence for keeps the TOKEN, not the engine's English. Only
+    /// a failure with no classification at all falls back to whatever sentence reached us, because there
+    /// is nothing else to say.
+    @Test func aClassifiedFailureWithoutAHostSentenceKeepsItsToken() {
+        #expect(PlayerEngineErrorPresentation.face(for: info(.sourceOpenFailed))
+                == .engineClassified(identifier: "sourceOpenFailed"))
         #expect(PlayerEngineErrorPresentation.face(for: nil) == .engineMessage)
     }
 
     /// `PlaybackErrorKind` is a string-backed struct precisely so the engine can add kinds in a minor
-    /// release. A kind this build has never heard of must fall through to the engine's sentence, not onto
-    /// whichever face happens to sit last in the switch.
-    @Test func aKindFromALaterEngineKeepsTheEngineSentence() {
+    /// release. A kind this build has never heard of must land on the token, not onto whichever face
+    /// happens to sit last in the switch.
+    @Test func aKindFromALaterEngineLandsOnItsTokenNotOnANeighbouringFace() {
         let future = PlaybackErrorKind(rawValue: "somethingThisBuildHasNeverHeardOf")
-        #expect(PlayerEngineErrorPresentation.face(for: info(future, status: 403)) == .engineMessage)
+        #expect(PlayerEngineErrorPresentation.face(for: info(future, status: 403))
+                == .engineClassified(identifier: "somethingThisBuildHasNeverHeardOf · 403"))
     }
 
     // MARK: The live variant, where "unavailable" is the fallback rather than the verdict
@@ -145,5 +150,46 @@ struct PlayerEngineErrorFaceTests {
 
         let serverError = PlayerEngineErrorPresentation.trio(for: .streamServerError(status: 502), engineMessage: "")
         #expect(serverError.message.contains("502"))
+    }
+
+    /// Every kind without a host sentence carries an engine-authored ENGLISH one, which is the one thing
+    /// a 26-language app must not paint. Those trade it for a translated line plus the stable token.
+    @Test func aClassifiedKindWithNoHostSentenceKeepsTheTokenNotTheEnglish() {
+        let face = PlayerEngineErrorPresentation.face(for: info(.softwarePipelineFailed))
+        #expect(face == .engineClassified(identifier: "softwarePipelineFailed"))
+    }
+
+    /// The token is what a bug report can be searched on, so it carries whatever named the failure
+    /// underneath as well.
+    @Test func theTokenCarriesTheDomainAndCodeUnderneath() {
+        let carried = PlaybackErrorInfo(
+            kind: .vodSourceFailed, message: "x",
+            underlyingDomain: "NSURLErrorDomain", underlyingCode: -1001)
+        #expect(PlayerEngineErrorPresentation.identifier(for: carried) == "vodSourceFailed · NSURLErrorDomain -1001")
+    }
+
+    /// `.nativeItemFailed` is the exception and stays the engine's sentence: it IS AVFoundation's
+    /// localizedDescription, already in the device's language and more specific than a generic line.
+    @Test func aNativeItemFailureKeepsAVFoundationsOwnLocalizedSentence() {
+        #expect(PlayerEngineErrorPresentation.face(for: info(.nativeItemFailed)) == .engineMessage)
+    }
+
+    /// Live already decided that "channel unavailable" beats a generic line, and splitting the
+    /// no-sentence case in two must not quietly regress that.
+    @Test func liveStillReadsAnUnnamedFailureAsTheChannelNotComingUp() {
+        #expect(PlayerEngineErrorPresentation.liveFace(for: info(.softwarePipelineFailed)) == .liveChannelUnavailable)
+        #expect(PlayerEngineErrorPresentation.liveFace(for: nil) == .liveChannelUnavailable)
+    }
+
+    /// The same classification reads differently before the first frame and after it.
+    @Test func theHeadlineFollowsWhetherPlaybackHadStarted() {
+        let face = PlayerEngineErrorPresentation.face(for: info(.softwarePipelineFailed))
+        let start = PlayerEngineErrorPresentation.trio(for: face, engineMessage: "raw", context: .start)
+        let session = PlayerEngineErrorPresentation.trio(for: face, engineMessage: "raw", context: .session)
+        #expect(start.title != session.title)
+        #expect(start.message == session.message)
+        // Whatever the engine said in English is not what either of them paints.
+        #expect(!start.message.contains("raw"))
+        #expect(start.message.contains("softwarePipelineFailed"))
     }
 }

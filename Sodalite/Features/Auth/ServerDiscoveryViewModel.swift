@@ -47,7 +47,7 @@ final class ServerDiscoveryViewModel {
             // Found on the local network: pin to the internal slot regardless of hostname shape.
             return JellyfinServer(id: info.id, name: info.serverName, internalURL: url, externalURL: nil, version: info.version)
         case .failure(let error):
-            errorMessage = error.localizedDescription
+            errorMessage = ErrorText.user(for: error)
             return nil
         }
     }

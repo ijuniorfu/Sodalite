@@ -332,7 +332,7 @@ struct CatalogDetailView: View {
             NotificationCenter.default.post(name: .seerrRequestsDidChange, object: nil)
             await refreshDetailAfterRequest()
         } catch {
-            requestError = error.localizedDescription
+            requestError = ErrorText.user(for: error)
         }
     }
 
@@ -844,7 +844,7 @@ struct CatalogDetailView: View {
                 return
             }
         } catch {
-            errorMessage = error.localizedDescription
+            errorMessage = ErrorText.user(for: error)
         }
     }
 
@@ -986,7 +986,7 @@ struct CatalogDetailView: View {
             // Refresh mediaInfo so chips/badges drop stale "not requested" state. NOT load(): that flips the full-screen loading state and re-runs config/recommendations.
             await refreshDetailAfterRequest()
         } catch {
-            requestError = error.localizedDescription
+            requestError = ErrorText.user(for: error)
         }
     }
 

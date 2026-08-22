@@ -317,7 +317,7 @@ struct ProfileSettingsView: View {
             // Backfill a nil/stale PrimaryImageTag on older RememberedUser entries.
             Task { await refreshUserDetails(userID: user.id, serverID: server.id) }
         } catch {
-            actionError = error.localizedDescription
+            actionError = ErrorText.user(for: error)
         }
     }
 
@@ -353,7 +353,7 @@ struct ProfileSettingsView: View {
             }
             refresh()
         } catch {
-            actionError = error.localizedDescription
+            actionError = ErrorText.user(for: error)
         }
     }
 }

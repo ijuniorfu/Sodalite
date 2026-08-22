@@ -111,16 +111,24 @@ enum KeychainError: LocalizedError {
     case deleteFailed(OSStatus)
     case encodingFailed
 
+    /// The OSStatus stays in the sentence: it is the only part a support thread can act on, and it is a
+    /// number, so it survives translation. Which of the three operations failed does not reach the
+    /// viewer, because "saving" and "loading" a keychain item are the same event from where they sit.
     var errorDescription: String? {
         switch self {
-        case .saveFailed(let status):
-            "Keychain save failed: \(status)"
-        case .loadFailed(let status):
-            "Keychain load failed: \(status)"
-        case .deleteFailed(let status):
-            "Keychain delete failed: \(status)"
+        case .saveFailed(let status), .loadFailed(let status), .deleteFailed(let status):
+            String(
+                format: String(
+                    localized: "error.keychain.accessFailed",
+                    defaultValue: "Could not access the keychain (%lld)."
+                ),
+                Int64(status)
+            )
         case .encodingFailed:
-            "Failed to encode data for Keychain"
+            String(
+                localized: "error.keychain.encodingFailed",
+                defaultValue: "Could not prepare this data for the keychain."
+            )
         }
     }
 }

@@ -268,7 +268,7 @@ struct LaunchProfilePickerView: View {
             Task { await refreshUserDetails(userID: user.id, serverID: server.id) }
             onFinished?()
         } catch {
-            switchError = error.localizedDescription
+            switchError = ErrorText.user(for: error)
         }
     }
 
@@ -338,7 +338,7 @@ struct LaunchProfilePickerView: View {
                 dependencies.authPreferences.setDefaultUserID(nil, serverID: server.id)
             }
         } catch {
-            switchError = error.localizedDescription
+            switchError = ErrorText.user(for: error)
         }
     }
 }

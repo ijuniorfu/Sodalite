@@ -92,7 +92,7 @@ final class ChannelListViewModel {
                 recomputeVisibleChannels()
             } catch {
                 guard generation == loadGeneration else { return }
-                loadError = error.localizedDescription
+                loadError = ErrorText.user(for: error)
                 return
             }
         }

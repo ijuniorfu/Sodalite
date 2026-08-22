@@ -10,9 +10,19 @@ enum PurchaseOutcome: Sendable {
     case pending
 }
 
-enum StoreKitServiceError: Error {
+enum StoreKitServiceError: LocalizedError {
     /// Unverified JWS (forged transaction or stale App Store key); never trust the entitlement.
     case verificationFailed
+
+    var errorDescription: String? {
+        switch self {
+        case .verificationFailed:
+            String(
+                localized: "error.store.verificationFailed",
+                defaultValue: "The App Store could not verify this purchase."
+            )
+        }
+    }
 }
 
 @MainActor
@@ -87,7 +97,7 @@ final class StoreKitService: StoreKitServiceProtocol {
             #if DEBUG
             print("[StoreKit] loadProducts failed: \(error)")
             #endif
-            self.lastLoadError = error.localizedDescription
+            self.lastLoadError = ErrorText.user(for: error)
         }
         // Always flip so the UI exits loading even on failure / empty list (common pre-IAP-review).
         self.hasLoadedProducts = true

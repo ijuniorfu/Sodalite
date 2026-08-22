@@ -140,7 +140,7 @@ final class CatalogViewModel {
             upcomingMovies = PagedSection(items: um.results, currentPage: 1, totalPages: um.totalPages)
             upcomingTV = PagedSection(items: ut.results, currentPage: 1, totalPages: ut.totalPages)
         } catch {
-            errorMessage = error.localizedDescription
+            errorMessage = ErrorText.user(for: error)
         }
 
         // Best-effort background loads; failures just leave rows plain, don't poison the discover screen.
@@ -363,7 +363,7 @@ final class CatalogViewModel {
             // Background enrichment; list renders immediately with placeholders, swaps to real metadata as fetches return.
             Task { await enrichRequestMetadata(for: result.results) }
         } catch {
-            errorMessage = error.localizedDescription
+            errorMessage = ErrorText.user(for: error)
         }
     }
 
@@ -501,7 +501,7 @@ final class CatalogViewModel {
             } while filter == .declined && allRequests.isEmpty && allRequestsSkip < allRequestsTotal
         } catch {
             guard generation == allRequestsGeneration else { return }
-            errorMessage = error.localizedDescription
+            errorMessage = ErrorText.user(for: error)
         }
     }
 
@@ -598,7 +598,7 @@ final class CatalogViewModel {
             await refreshAllRequestsCounts()
         } catch {
             allRequests = snapshot
-            lastAdminRequestOutcome = .failed(message: error.localizedDescription)
+            lastAdminRequestOutcome = .failed(message: ErrorText.user(for: error))
         }
     }
 
@@ -619,7 +619,7 @@ final class CatalogViewModel {
             await loadAllRequests()
             return nil
         } catch {
-            lastAdminRequestOutcome = .failed(message: error.localizedDescription)
+            lastAdminRequestOutcome = .failed(message: ErrorText.user(for: error))
             return nil
         }
     }
@@ -649,7 +649,7 @@ final class CatalogViewModel {
             await loadAllRequests()
         } catch {
             allRequests = snapshot
-            lastAdminRequestOutcome = .failed(message: error.localizedDescription)
+            lastAdminRequestOutcome = .failed(message: ErrorText.user(for: error))
         }
     }
 

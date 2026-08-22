@@ -318,7 +318,7 @@ struct LoginView: View {
         do {
             try vm.finalizeAuth()
         } catch {
-            vm.errorMessage = error.localizedDescription
+            vm.errorMessage = ErrorText.user(for: error)
             vm.loginSucceeded = false
             return
         }

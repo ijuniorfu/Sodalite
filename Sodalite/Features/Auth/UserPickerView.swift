@@ -216,7 +216,7 @@ struct UserPickerView: View {
             users = fetched.filter { !remembered.contains($0.id) }
             allProfilesAlreadyAdded = !fetched.isEmpty && users.isEmpty
         } catch {
-            errorMessage = error.localizedDescription
+            errorMessage = ErrorText.user(for: error)
         }
         isLoading = false
     }

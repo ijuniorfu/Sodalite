@@ -33,7 +33,7 @@ final class ServerAddressEntryViewModel {
             )
             showLogin = true
         case .failure(let error):
-            errorMessage = error.localizedDescription
+            errorMessage = ErrorText.user(for: error)
         }
 
         isLoading = false

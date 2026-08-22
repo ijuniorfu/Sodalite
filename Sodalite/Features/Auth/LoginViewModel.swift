@@ -54,7 +54,7 @@ final class LoginViewModel {
             isLoading = false
             loginSucceeded = true
         } catch {
-            errorMessage = error.localizedDescription
+            errorMessage = ErrorText.user(for: error)
             isLoading = false
         }
     }
@@ -86,7 +86,7 @@ final class LoginViewModel {
             isPollingQuickConnect = true
             startPolling()
         } catch {
-            errorMessage = error.localizedDescription
+            errorMessage = ErrorText.user(for: error)
         }
     }
 
@@ -152,7 +152,7 @@ final class LoginViewModel {
             isLoading = false
             loginSucceeded = true
         } catch {
-            errorMessage = error.localizedDescription
+            errorMessage = ErrorText.user(for: error)
             isLoading = false
         }
     }

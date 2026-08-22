@@ -152,7 +152,7 @@ final class LiveTimerStore {
                           error: Error) {
         timerState[programID] = old
         timerStateVersion += 1
-        recordingError = error.localizedDescription
+        recordingError = ErrorText.user(for: error)
     }
 
     /// After a create, replace sentinel ids with the server's real ones and pick up series-spawned timers.

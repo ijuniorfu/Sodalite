@@ -30,8 +30,20 @@ enum PlayerEngineErrorPresentation {
         case dolbyVisionUnsupported
         /// A live probe that burned its reconnect budget without opening.
         case liveChannelUnavailable
-        /// No host sentence beats the engine's: show what the engine said.
+        /// The engine classified the failure but the host has no sentence for that kind. The viewer gets
+        /// a translated line, and `identifier` carries the classification so a screenshot is still worth
+        /// something in a bug report. It is deliberately NOT translated: it is a stable API token, and a
+        /// bug report that names a different token per locale names nothing.
+        case engineClassified(identifier: String)
+        /// No classification at all: whatever sentence reached us is the best there is.
         case engineMessage
+    }
+
+    /// Which headline a face gets, since the same classification reads differently before the first
+    /// frame ("could not start") and after it ("stopped").
+    enum Context {
+        case start
+        case session
     }
 
     struct Trio: Equatable {
@@ -60,9 +72,23 @@ enum PlayerEngineErrorPresentation {
         if info.kind == .dolbyVisionRequiresHardware { return .dolbyVisionUnsupported }
         if info.kind == .liveSourceUnavailable { return .liveChannelUnavailable }
 
-        // `.nativeItemFailed` lands here on purpose: its message is AVFoundation's `localizedDescription`,
-        // already in the device's language and more specific than anything the host could write.
-        return .engineMessage
+        // `.nativeItemFailed` keeps the engine's sentence on purpose: it is AVFoundation's
+        // `localizedDescription`, already in the device's language and more specific than anything the
+        // host could write. Every other kind carries an engine-authored ENGLISH sentence, which in a
+        // 26-language app is the one thing the viewer must not be handed, so those trade it for a
+        // translated line plus the token.
+        if info.kind == .nativeItemFailed { return .engineMessage }
+        return .engineClassified(identifier: identifier(for: info))
+    }
+
+    /// `kind` plus whatever named the failure underneath, which is what a bug report can be searched on.
+    static func identifier(for info: PlaybackErrorInfo) -> String {
+        // Domain and code are one fact, so they stay one field: "NSURLErrorDomain -1001" is what a
+        // search finds, "NSURLErrorDomain · -1001" is two things that have to be recombined by hand.
+        let underlying = [info.underlyingDomain, info.underlyingCode.map(String.init)]
+            .compactMap { $0 }
+            .joined(separator: " ")
+        return underlying.isEmpty ? info.kind.rawValue : "\(info.kind.rawValue) · \(underlying)"
     }
 
     /// A live channel that never produced a frame reads as "unavailable", which is the honest verdict for a
@@ -70,11 +96,18 @@ enum PlayerEngineErrorPresentation {
     /// did type the failure, that naming is strictly better: a refused stream and a panel that is out of
     /// connection slots are both fixable, and neither is the channel being off the air.
     static func liveFace(for info: PlaybackErrorInfo?) -> Face {
-        let face = face(for: info)
-        return face == .engineMessage ? .liveChannelUnavailable : face
+        switch face(for: info) {
+        // Both "no classification" and "classified, no host sentence" mean the host has nothing better
+        // to say than the channel not coming up, and for live that IS the better sentence. The token
+        // it costs is the price of not regressing the naming this already got right.
+        case .engineMessage, .engineClassified:
+            return .liveChannelUnavailable
+        case let face:
+            return face
+        }
     }
 
-    static func trio(for face: Face, engineMessage: String) -> Trio {
+    static func trio(for face: Face, engineMessage: String, context: Context = .session) -> Trio {
         switch face {
         case .streamRefused(let status):
             return Trio(
@@ -148,12 +181,33 @@ enum PlayerEngineErrorPresentation {
                     defaultValue: "The server could not open this channel's stream. The channel's source may be offline. Try again later."
                 )
             )
+        case .engineClassified(let identifier):
+            return Trio(
+                icon: "exclamationmark.triangle",
+                title: headline(context),
+                message: String(
+                    format: String(
+                        localized: "player.error.engineClassified.body",
+                        defaultValue: "The player could not continue with this video. If it keeps happening, include this code in a bug report: %@"
+                    ),
+                    identifier
+                )
+            )
         case .engineMessage:
             return Trio(
                 icon: "exclamationmark.triangle",
-                title: String(localized: "player.error.playback.title", defaultValue: "Playback stopped"),
+                title: headline(context),
                 message: engineMessage
             )
+        }
+    }
+
+    private static func headline(_ context: Context) -> String {
+        switch context {
+        case .start:
+            return String(localized: "player.error.generic.title", defaultValue: "Couldn't start playback")
+        case .session:
+            return String(localized: "player.error.playback.title", defaultValue: "Playback stopped")
         }
     }
 
