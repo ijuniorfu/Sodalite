@@ -53,6 +53,9 @@ struct CatalogDetailView: View {
 
     /// First-screen focus. Seeded to `.request` once loaded so no focus lands below the fold and triggers an on-open auto-scroll (old tab-bar-stuck-hidden bug). Request with no seasons picked moves focus to `.seasons` to scroll the picker into view.
     @FocusState private var focusedField: DetailFocus?
+    /// Whole-page scroll proxy, iOS only (see PageScrollProxyCapture); nil on tvOS, where the focus engine scrolls.
+    @State private var pageScrollProxy: ScrollViewProxy?
+    private static let seasonSectionAnchor = "catalogSeasonSection"
     /// Overview box below the fold holds focus: Withdraw request leaves the focus engine for that
     /// time so an up-move can only land on the request button (Sodalite#53 follow-up).
     @State private var overviewHasFocus = false
@@ -128,6 +131,7 @@ struct CatalogDetailView: View {
             }) {
                 trailingBody
             }
+            .modifier(PageScrollProxyCapture(proxy: $pageScrollProxy))
         }
     }
 
@@ -336,12 +340,20 @@ struct CatalogDetailView: View {
         }
     }
 
-    /// Series with no seasons picked: drop focus into the season picker so the focus engine scrolls it into view; else present the options sheet.
+    /// Series with no seasons picked: bring the season picker into view; else present the options sheet.
+    ///
+    /// tvOS gets there by moving focus, which makes the focus engine scroll. iOS has no focus engine,
+    /// so that write is a no-op and the tap did nothing at all: it scrolls the page itself instead.
     private func requestButtonTapped() {
-        if media.mediaType == .tv, selectedSeasons.isEmpty {
-            focusedField = .seasons
-        } else {
+        guard media.mediaType == .tv, selectedSeasons.isEmpty else {
             showRequestOptions = true
+            return
+        }
+        focusedField = .seasons
+        if let pageScrollProxy {
+            withAnimation(.easeInOut(duration: 0.4)) {
+                pageScrollProxy.scrollTo(Self.seasonSectionAnchor, anchor: .top)
+            }
         }
     }
 
@@ -412,6 +424,7 @@ struct CatalogDetailView: View {
 
             if media.mediaType == .tv, let seasons = availableSeasons, !seasons.isEmpty {
                 seasonSelection(seasons: seasons)
+                    .id(Self.seasonSectionAnchor)
             }
 
             if !castMembers.isEmpty {

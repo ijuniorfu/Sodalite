@@ -307,3 +307,24 @@ private struct FirstPageViewportHeight: ViewModifier {
         }
     }
 }
+
+/// Hands the detail page's vertical scroll proxy back to the view, iOS only.
+///
+/// The proxy has to be captured outside DetailContentOverlay to reach the glass panel; the reader
+/// inside the content block only covers what sits below it. On tvOS this is a pass-through: the
+/// focus engine already scrolls, and wrapping the overlay there would put a container into the tree
+/// the focus picker walks for no gain.
+struct PageScrollProxyCapture: ViewModifier {
+    @Binding var proxy: ScrollViewProxy?
+
+    func body(content: Content) -> some View {
+        #if os(tvOS)
+        content
+        #else
+        ScrollViewReader { pageProxy in
+            content
+                .onAppear { proxy = pageProxy }
+        }
+        #endif
+    }
+}
