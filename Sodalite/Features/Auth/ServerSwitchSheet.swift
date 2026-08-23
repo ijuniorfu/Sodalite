@@ -2,6 +2,7 @@ import SwiftUI
 
 /// Modal sheet to pick among `knownServers` or add one. Presented from `LaunchProfilePickerView` and `ServerManagementView`.
 struct ServerSwitchSheet: View {
+    @Environment(\.appState) private var appState
     @Environment(\.dependencies) private var dependencies
     @Environment(\.dismiss) private var dismiss
 
@@ -55,19 +56,19 @@ struct ServerSwitchSheet: View {
             dismiss()
             return
         }
-        let previous = activeID
         do {
             try dependencies.switchServer(to: server.id)
             onSwitched(true)
-            dismiss()
-        } catch {
-            // Switch failed in the container (missing token / unknown id); roll back so the user isn't stranded.
-            if let previous {
-                try? dependencies.rollbackSwitch(to: previous)
-            }
+        } catch DependencyContainer.ServerSwitchError.missingToken {
+            // No session on the target this device may resume unasked (Sodalite#74): hand it to
+            // AppRouter, which offers that server's profiles. switchServer threw before it wrote
+            // anything, so there is nothing to roll back and the current session stands.
+            appState.pendingProfilePickerServerID = server.id
             onSwitched(false)
-            dismiss()
+        } catch {
+            onSwitched(false)
         }
+        dismiss()
     }
 }
 

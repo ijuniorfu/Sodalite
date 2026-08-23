@@ -27,6 +27,11 @@ final class AppState {
     /// Bumped by DependencyContainer after a server switch; consumers (Home) observe via `.task(id:)` to clear caches + reload. Int (not Date) so back-to-back switches always change the value.
     var serverDidSwitch: Int = 0
 
+    /// Server id a switch could not resume a session for (Sodalite#74, the normal state for a server
+    /// restored from iCloud with several profiles). AppRouter resolves it into that server's profile
+    /// picker and clears it; the current session stands until a profile there is picked.
+    var pendingProfilePickerServerID: String?
+
     /// Bumped by the deep-link path to dismiss a presented player before the new sheet, else a TopShelf tap brings the app forward with the stale player on top. Detail views driving a PlayerLauncher clear showPlayer on change.
     var requestPlayerDismissal: Int = 0
 
