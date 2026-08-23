@@ -38,42 +38,99 @@ extension PlayerViewModel {
         }
 
         // Stage-1 PlaybackInfo: copy ceiling + the tuner upstream URL (MediaSource.Path) for the direct attempt.
-        let info = try await playbackService.getLivePlaybackInfo(
-            itemID: item.id, userID: userID,
-            profile: DirectPlayProfile.liveProfile(),
-            maxStreamingBitrate: DirectPlayProfile.liveCopyCeilingBitrate)
+        let info = try await openLiveTuner(maxStreamingBitrate: DirectPlayProfile.liveCopyCeilingBitrate)
         guard let source = info.mediaSources.first else { throw PlayerEngineError.noSource }
+        let stageOneTuner = source.liveStreamId
 
-        // Direct eligibility: remux channel (TranscodingUrl present) whose Path is a real http(s) provider URL. A tuner-backed channel has no TranscodingUrl and a Path pointing at Jellyfin's own LiveStreamFiles route, so it keeps the server path and is served from that buffered stream there (#70).
-        if !didAttemptLiveFallback,
-           source.transcodingUrl != nil,
-           let path = source.path,
-           let upstream = URL(string: path),
-           let scheme = upstream.scheme?.lowercased(),
-           scheme == "http" || scheme == "https" {
-            // Reader created here so its terminalError is reachable in the catch fallback log.
-            let reader = HLSLiveIngestReader(playlistURL: upstream)
-            do {
-                try await loadLiveDirect(info: info, source: source, upstream: upstream, reader: reader)
-                return
-            } catch is CancellationError {
-                throw CancellationError()
-            } catch {
-                // Once per session, fall back to the Jellyfin path; the direct attempt already closed (awaited) the stage-1 tuner, so the server path re-negotiates fresh.
-                didAttemptLiveFallback = true
-                usedDirectLivePath = false
-                let detail = reader.terminalError.map { " ingest=\($0)" } ?? ""
-                LogTap.shared.note("[LiveDirect] route=fallback reason=\(error)\(detail)")
-                try await loadLiveStreamViaServer()
-                return
+        do {
+            // Direct eligibility: remux channel (TranscodingUrl present) whose Path is a real http(s) provider URL. A tuner-backed channel has no TranscodingUrl and a Path pointing at Jellyfin's own LiveStreamFiles route, so it keeps the server path and is served from that buffered stream there (#70).
+            if !didAttemptLiveFallback,
+               source.transcodingUrl != nil,
+               let path = source.path,
+               let upstream = URL(string: path),
+               let scheme = upstream.scheme?.lowercased(),
+               scheme == "http" || scheme == "https" {
+                // Reader created here so its terminalError is reachable in the catch fallback log.
+                let reader = HLSLiveIngestReader(playlistURL: upstream)
+                do {
+                    try await loadLiveDirect(info: info, source: source, upstream: upstream, reader: reader)
+                    return
+                } catch is CancellationError {
+                    throw CancellationError()
+                } catch {
+                    // Once per session, fall back to the Jellyfin path; the direct attempt already closed (awaited) the stage-1 tuner, so the server path re-negotiates fresh.
+                    didAttemptLiveFallback = true
+                    usedDirectLivePath = false
+                    let detail = reader.terminalError.map { " ingest=\($0)" } ?? ""
+                    LogTap.shared.note("[LiveDirect] route=fallback reason=\(error)\(detail)")
+                    try await loadLiveStreamViaServer()
+                    return
+                }
+            } else {
+                // The route this ends on is named by loadLiveStreamViaServer, which is where it is decided.
+                LogTap.shared.note("[LiveDirect] direct ingest not eligible (transcodingUrl=\(source.transcodingUrl == nil ? "none" : "present"))")
             }
-        } else {
-            // The route this ends on is named by loadLiveStreamViaServer, which is where it is decided.
-            LogTap.shared.note("[LiveDirect] direct ingest not eligible (transcodingUrl=\(source.transcodingUrl == nil ? "none" : "present"))")
-        }
 
-        // Ineligible route (static/server): reuse the stage-1 tuner so it isn't leaked and the server path avoids a duplicate roundtrip.
-        try await loadLiveStreamViaServer(reusing: (info: info, source: source))
+            // Ineligible route (static/server): reuse the stage-1 tuner so it isn't leaked and the server path avoids a duplicate roundtrip.
+            try await loadLiveStreamViaServer(reusing: (info: info, source: source))
+        } catch {
+            // The tuner is open from the moment PlaybackInfo answered. If this tune never got far enough
+            // to hand it to the session, nothing else will ever close it: Jellyfin's MediaSourceManager
+            // releases a live stream only when CloseLiveStream drives its consumer count to zero, or at
+            // server shutdown. There is no idle reaper anywhere in that path, so an abandoned zap leaves a
+            // tuner ingesting into the transcode folder for as long as the server stays up (#70: three
+            // temp files still growing after 9 to 17 hours). Identity-checked, so a load that was
+            // superseded cannot close the tuner its successor is already using.
+            if let stageOneTuner, activeLiveStreamID != stageOneTuner {
+                releaseTuner(stageOneTuner, reason: "tune abandoned before the session owned it")
+            }
+            throw error
+        }
+    }
+
+    /// Open the tuner via PlaybackInfo without letting cancellation strand it.
+    ///
+    /// `AutoOpenLiveStream` opens the tuner as part of answering, and the id that would close it again
+    /// exists only in that answer. A request cancelled in flight therefore leaves a tuner open that no
+    /// one can name, which is the one leak shape a teardown cannot clean up after the fact. The request
+    /// runs in an unstructured task, which does not inherit the caller's cancellation, so the handle
+    /// always comes back; if the tune it was for is gone by then, the tuner is released here instead.
+    /// A viewer giving up during the seconds Jellyfin spends probing a tuner is the common case on a slow
+    /// channel, not a corner (#70).
+    private func openLiveTuner(maxStreamingBitrate: Int) async throws -> PlaybackInfoResponse {
+        let svc = playbackService
+        let itemID = item.id
+        let user = userID
+        let request = Task {
+            try await svc.getLivePlaybackInfo(
+                itemID: itemID, userID: user,
+                profile: DirectPlayProfile.liveProfile(),
+                maxStreamingBitrate: maxStreamingBitrate)
+        }
+        let info = try await request.value
+        if Task.isCancelled {
+            if let stranded = info.mediaSources.first?.liveStreamId {
+                releaseTuner(stranded, reason: "tune cancelled while the tuner was opening")
+            }
+            throw CancellationError()
+        }
+        return info
+    }
+
+    /// Close a tuner we opened, without waiting on it and without swallowing the outcome. A close that
+    /// quietly fails is a tuner that ingests until the server restarts, and the note is the only trace a
+    /// report can carry back (#70).
+    @discardableResult
+    func releaseTuner(_ liveStreamID: String, reason: String) -> Task<Void, Never> {
+        let svc = playbackService
+        return Task.detached {
+            do {
+                try await svc.closeLiveStream(liveStreamID: liveStreamID)
+                LogTap.shared.note("[Live] tuner released (\(reason))")
+            } catch {
+                LogTap.shared.note("[Live] tuner release FAILED (\(reason)): \(error)")
+            }
+        }
     }
 
     /// Direct play: close the Jellyfin tuner first (single-connection providers must never see two concurrent connections), then hand the upstream playlist to the engine's HLS ingest.
@@ -85,24 +142,28 @@ extension PlayerViewModel {
     ) async throws {
         if let tuner = source.liveStreamId {
             // Awaited (spec decision 3): single-connection providers must never see the Jellyfin tuner and our direct connection at once, and a straggling close must not race the fallback's freshly opened tuner. Bounded so a hung server can't stall the tune.
-            let svc = playbackService
+            // Started outside the group on purpose: the bound is on how long this tune WAITS, not on the
+            // request. Cancelling the close was the same as never sending it, and a tuner nobody closes
+            // is one nobody will: Jellyfin has no idle reaper for an open live stream (#70).
+            let close = releaseTuner(tuner, reason: "handing the channel to direct ingest")
             enum CloseRace { case closed, timedOut }
-            let outcome = try? await withThrowingTaskGroup(of: CloseRace.self) { group -> CloseRace? in
+            let outcome = await withTaskGroup(of: CloseRace.self) { group -> CloseRace in
                 group.addTask {
-                    try await svc.closeLiveStream(liveStreamID: tuner)
+                    await close.value
                     return .closed
                 }
                 group.addTask {
-                    try await Task.sleep(nanoseconds: 3_000_000_000)
+                    try? await Task.sleep(nanoseconds: 3_000_000_000)
                     return .timedOut
                 }
-                let first = try await group.next()
+                let first = await group.next() ?? .timedOut
                 group.cancelAll()
                 return first
             }
             if outcome != .closed {
-                // Tuner keeps ingesting (writing LiveStreamFiles) until Jellyfin's inactivity cleanup reaps it; log so disk-growth reports are traceable.
-                LogTap.shared.note("[LiveDirect] tuner close timed out, server will reap it")
+                // Still running, and it will log its own outcome. Noted here so a report can tell "the
+                // close was slow" apart from "the close never happened".
+                LogTap.shared.note("[LiveDirect] tuner close still in flight after 3s, proceeding")
             }
         }
         LogTap.shared.note("[LiveDirect] route=direct upstream=\(upstream.absoluteString)")
@@ -174,10 +235,7 @@ extension PlayerViewModel {
             info = prefetched.info
             source = prefetched.source
         } else {
-            info = try await playbackService.getLivePlaybackInfo(
-                itemID: item.id, userID: userID,
-                profile: DirectPlayProfile.liveProfile(),
-                maxStreamingBitrate: DirectPlayProfile.liveCopyCeilingBitrate)
+            info = try await openLiveTuner(maxStreamingBitrate: DirectPlayProfile.liveCopyCeilingBitrate)
             guard let first = info.mediaSources.first else { throw PlayerEngineError.noSource }
             source = first
         }
@@ -187,15 +245,11 @@ extension PlayerViewModel {
                                        transcodingURL: source.transcodingUrl)
             || Self.liveSourceVideoCodecUnknown(source) {
             let staleTuner = source.liveStreamId
-            info = try await playbackService.getLivePlaybackInfo(
-                itemID: item.id, userID: userID,
-                profile: DirectPlayProfile.liveProfile(),
-                maxStreamingBitrate: DirectPlayProfile.liveReencodeCapBitrate)
+            info = try await openLiveTuner(maxStreamingBitrate: DirectPlayProfile.liveReencodeCapBitrate)
             guard let rebounded = info.mediaSources.first else { throw PlayerEngineError.noSource }
             source = rebounded
             if let staleTuner, staleTuner != source.liveStreamId {
-                let svc = playbackService
-                Task.detached { try? await svc.closeLiveStream(liveStreamID: staleTuner) }
+                releaseTuner(staleTuner, reason: "re-negotiated at the re-encode cap")
             }
         }
 
@@ -278,7 +332,12 @@ extension PlayerViewModel {
             guard isTunerFileRoute, let staticURL else { throw error }
             didAbandonLiveTunerFile = true
             usedLiveTunerFilePath = false
-            LogTap.shared.note("[LiveDirect] route=static reason=tunerfile_load_failed(\(error))")
+            // The thrown value alone is often just a type name; the engine's own classification beside it
+            // is what says whether the read was refused, timed out or could not be demuxed (#71).
+            LogTap.shared.note(
+                "[LiveDirect] route=static reason=tunerfile_load_failed(\(error)) "
+                + PlayerEngineErrorPresentation.logLine(for: player.errorInfo, engineMessage: "\(error)")
+            )
             try await player.load(url: staticURL, startPosition: nil, options: options,
                                   audioSourceStreamIndex: liveAudioIndex)
         }
@@ -504,10 +563,7 @@ extension PlayerViewModel {
     func releaseLiveTunerIfNeeded() {
         guard let liveStreamID = activeLiveStreamID else { return }
         activeLiveStreamID = nil
-        let svc = playbackService
-        Task.detached {
-            try? await svc.closeLiveStream(liveStreamID: liveStreamID)
-        }
+        releaseTuner(liveStreamID, reason: "session teardown")
     }
 
     /// Whether the server's probe failed to identify the source's video codec (no streams, or a video stream without a codec). Jellyfin can't stream-copy what it couldn't identify, so the high copy ceiling silently becomes a 200 Mbps ENCODE target (HTTP 500); route through the bounded re-encode cap up front, where ffmpeg's runtime probe may still read it.
