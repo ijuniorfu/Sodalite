@@ -155,6 +155,30 @@ final class PlayerViewModel {
     /// via `scrollTo`. Clamped by `statsSectionAnchors.count`.
     var statsSectionIndex: Int = 0
 
+    /// The media description the stats panel renders, resolved from the session's PlaybackInfo source with
+    /// the launch item behind it. Computed in one place so the panel and the section cursor cannot disagree.
+    var statsSourceFacts: PlaybackSourceFacts {
+        PlaybackSourceFacts.resolve(
+            session: activePlaybackSource, item: item, selectedMediaSourceID: mediaSourceID)
+    }
+
+    /// Which stats sections have content, for both the panel and the Up/Down cursor. Engine first on the
+    /// video and audio gates: on a live channel and on a slim episode payload it is the only side that
+    /// knows there is a track at all.
+    var statsSectionAvailability: Set<Int> {
+        let facts = statsSourceFacts
+        let hasEngineAudio = player.audioTracks.contains { $0.id == player.activeAudioTrackIndex }
+        let hasChannelDetail = liveChannel != nil || liveRoute != nil || activeLiveStreamID != nil
+        return StatsSection.available(
+            hasVideo: player.sourceVideoWidth > 0
+                || player.sourceVideoCodecName != nil
+                || facts.stream(ofType: .video) != nil,
+            hasAudio: hasEngineAudio || facts.stream(ofType: .audio) != nil,
+            hasSubtitle: activeSubtitleIndex != nil,
+            hasSourceDetail: isLiveSession ? hasChannelDetail : facts.hasAny,
+            showEngineDiagnostics: preferences.showEngineDiagnostics)
+    }
+
     /// Ordered anchor IDs per stats section; up/down cursor jumps page through them.
     static let statsSectionAnchors: [String] = [
         "stats.section.live",       // 0: always shown when stats on
@@ -531,6 +555,13 @@ final class PlayerViewModel {
     /// Resume position, used as minimum for progress reports so Jellyfin doesn't reset progress on early stop.
     var resumePositionTicks: Int64 = 0
     var mediaSourceID: String = ""
+    /// The `MediaSource` this session is actually playing, exactly as PlaybackInfo returned it. The launch
+    /// item is not a reliable description of it: episode rows arrive from a slim list query that carries no
+    /// `MediaSources` and no `MediaStreams` at all (movies come from a detail fetch that does), so anything
+    /// reading container metadata off `item` shows a full readout for a film and a half-empty one for an
+    /// episode of the same library. Nil only on the remembered-URL live shortcut, which reaches the tuner
+    /// without asking Jellyfin anything, and where the engine's own published source identity answers instead.
+    var activePlaybackSource: PlaybackMediaSource?
     var playSessionID: String?
     var activePlayMethod: PlayMethod = .directPlay
     var subtitleStreams: [MediaStream] = []
@@ -639,6 +670,11 @@ final class PlayerViewModel {
     var didAbandonLiveTunerFile = false
     /// Remembered upstream URLs, so a repeat tune of a direct channel skips Jellyfin entirely. Nil for VOD.
     let directStreamMemory: LiveDirectStreamMemory?
+    /// Which of the four live routes carried this tune, nil for VOD and until one is chosen. It mirrors the
+    /// `[LiveDirect] route=` line, which lives in a ring buffer only a diagnostic build's in-player HUD can
+    /// render; a reporter cannot reach it. In the stats panel the same fact is a screenshot (Sodalite#70,
+    /// where the route was the missing witness for a whole round of testing).
+    var liveRoute: LiveRoute?
     /// The audio stream the viewer picked on this live channel (#64), named at load on every
     /// subsequent tune of the session. It outlives the switch on purpose: a recovery retune re-runs
     /// the same load, and dropping it there would silently put the channel back on its default track.
@@ -695,6 +731,10 @@ final class PlayerViewModel {
         isTearingDown = false
         hostLoadActive = true
         clearError()
+        // Cleared before the load, not after it: an auto-advance swaps `item` first, and a source left
+        // standing from the previous episode would describe the new one until PlaybackInfo answers.
+        activePlaybackSource = nil
+        liveRoute = nil
         // Sort chapters defensively: API documents start-position order but some legacy taggers emit out of sequence.
         let orderedChapters = (item.chapters ?? [])
             .enumerated()
@@ -768,6 +808,7 @@ final class PlayerViewModel {
                 throw PlayerEngineError.noSource
             }
             mediaSourceID = source.id
+            activePlaybackSource = source
 
             #if DEBUG
             print("[PlayerViewModel] Source: container=\(source.container ?? "nil"), directPlay=\(source.supportsDirectPlay ?? false), directStream=\(source.supportsDirectStream ?? false), transcoding=\(source.supportsTranscoding ?? false)")
