@@ -1153,8 +1153,11 @@ final class PlayerViewModel {
         // Tuner-release safety net: frees the server-side tuner even if the stop report fails to deliver. No-op for VOD.
         releaseLiveTunerIfNeeded()
         // Fire-and-forget so the caller can start the dismiss animation without waiting on PlaybackStopped.
+        // Tracked by LiveTunerGate when it carries a live stream id, because Jellyfin closes that stream
+        // on PlaybackStopped too: an untracked closer is one the next tune of the same channel can
+        // overtake, and the id names the channel rather than this stream (#70).
         let sessionToKill = playSessionID
-        Task.detached {
+        let reportWork: @Sendable () async -> Void = {
             do {
                 try await svc.reportPlaybackStopped(stopReport)
                 await MainActor.run {
@@ -1177,6 +1180,11 @@ final class PlayerViewModel {
             if let sessionToKill {
                 try? await svc.stopActiveEncodings(playSessionID: sessionToKill)
             }
+        }
+        if stopReport.liveStreamId != nil {
+            LiveTunerGate.shared.close(reportWork)
+        } else {
+            Task.detached { await reportWork() }
         }
     }
 
