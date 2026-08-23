@@ -709,18 +709,13 @@ struct VideoFormatBadge: View {
     }
 }
 
-// MARK: - Diagnostic Log Overlay
-
-/// Top-left diagnostic HUD mirroring the engine's recent `print(...)` lines (DV detection, HDR10+ extraction, format upgrades) into the player UI so a beta tester can screenshot them without Console.app. Only mounted in DEBUG/TestFlight builds (`LogTap.isDiagnosticBuild`).
-private struct DiagnosticLogOverlay: View {
-    @ObservedObject private var tap = LogTap.shared
-    let focusOnDV: Bool
-
-    /// 50 rows at 16pt monospaced fills ~top 2/3 of 1080p, keeping the full session preamble AND the eventual AVPlayer failure on screen at once. Diagnostic-build only, so the occlusion never hits an App Store user.
-    private let visibleCount = 50
+/// Which of the ring buffer's lines the HUD draws. Split out of the view because the choice is the part
+/// that can be wrong: a line that is filtered out or scrolled away is indistinguishable from one that was
+/// never emitted, and a reporter asked for a screenshot of it has nothing to say back (Sodalite#70).
+enum DiagnosticOverlayLines {
 
     /// DV/HDR focus matchers: a line is kept if it contains ANY of these. Tuned so the support-thread diagnostic chain (dispatch, HLS routing, tracks, audio route, display criteria, panel signaling) stays in frame while per-segment cache/muxer chatter falls off.
-    private static let focusSubstrings: [String] = [
+    static let focusSubstrings: [String] = [
         "[PiPDiag]",
         "[PiPSubsDiag]",
         "[HLSVideoEngine]",
@@ -731,23 +726,75 @@ private struct DiagnosticLogOverlay: View {
         "[AetherEngine] AVAudioSession",
         "[AetherEngine] HDR10+",
         "[AudioBridge]",
+        // The live route vocabulary. Its absence here is what made the #70 route line unfindable: the
+        // focus toggle defaults ON, so a tester who enabled the overlay got a view this line never entered.
+        "[LiveDirect]",
+        "[Live] ",
         "DV source",
         "WARNING",
     ]
 
+    /// Lines that name a decision the session is still living with, rather than a moment that has passed.
+    static let pinnedSubstrings: [String] = ["[LiveDirect]"]
+
+    /// Four covers a whole live tune: the eligibility note, the route taken, an abandonment, and the
+    /// route retreated to.
+    static let pinnedCount = 4
+
+    static func pinned(from lines: [String], limit: Int) -> [String] {
+        Array(lines.filter { line in
+            pinnedSubstrings.contains { line.contains($0) }
+        }.suffix(limit))
+    }
+
+    /// The rolling window, minus whatever is already pinned above it. Dropping the duplicates keeps the
+    /// HUD from showing one decision twice in the seconds where it is both recent and pinned.
+    static func rolling(from lines: [String], focused: Bool, limit: Int) -> [String] {
+        let held = Set(pinned(from: lines, limit: pinnedCount))
+        let candidates = focused
+            ? lines.filter { line in focusSubstrings.contains { line.contains($0) } }
+            : lines
+        return Array(candidates.filter { !held.contains($0) }.suffix(limit))
+    }
+}
+
+// MARK: - Diagnostic Log Overlay
+
+/// Top-left diagnostic HUD mirroring the engine's recent `print(...)` lines (DV detection, HDR10+ extraction, format upgrades) into the player UI so a beta tester can screenshot them without Console.app. Only mounted in DEBUG/TestFlight builds (`LogTap.isDiagnosticBuild`).
+///
+/// Two kinds of line live here. Most report a moment and are worth reading in the order they arrive.
+/// A few name a DECISION the session is still living with, and those are emitted before the first
+/// frame: by the time a slow tune has a picture they have long left the visible window, and the focus
+/// filter dropped them outright. Those are pinned above the rolling window instead (Sodalite#70: a
+/// reporter asked to screenshot the live route line could not find it anywhere).
+private struct DiagnosticLogOverlay: View {
+    @ObservedObject private var tap = LogTap.shared
+    let focusOnDV: Bool
+
+    /// 50 rows at 16pt monospaced fills ~top 2/3 of 1080p, keeping the full session preamble AND the eventual AVPlayer failure on screen at once. Diagnostic-build only, so the occlusion never hits an App Store user.
+    private let visibleCount = 50
+
+    private var pinnedLines: [String] {
+        DiagnosticOverlayLines.pinned(from: tap.lines, limit: DiagnosticOverlayLines.pinnedCount)
+    }
+
     private var renderedLines: [String] {
-        if focusOnDV {
-            return Array(tap.lines.filter { line in
-                Self.focusSubstrings.contains { line.contains($0) }
-            }.suffix(visibleCount))
-        }
-        return Array(tap.lines.suffix(visibleCount))
+        DiagnosticOverlayLines.rolling(from: tap.lines, focused: focusOnDV, limit: visibleCount)
     }
 
     var body: some View {
         VStack {
             // Full-width container so long diagnostic lines aren't truncated by lineLimit(1) (a bounded box once cut DrHurt's seg4 failure right before tb_out). Side padding (60/80) matches the player's safe-area gutters.
             VStack(alignment: .leading, spacing: 2) {
+                let pinned = pinnedLines
+                ForEach(Array(pinned.enumerated()), id: \.offset) { _, line in
+                    Text(line)
+                        .font(.system(size: 16, weight: .semibold, design: .monospaced))
+                        .foregroundStyle(.yellow.opacity(0.95))
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
                 let visible = renderedLines
                 ForEach(Array(visible.enumerated()), id: \.offset) { _, line in
                     Text(line)
