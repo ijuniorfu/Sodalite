@@ -11,6 +11,20 @@ enum RestoreOutcome {
     case picker(server: JellyfinServer, syncSeerr: Bool)
     /// Nothing restorable: AppRouter falls through to ServerDiscoveryView.
     case discovery
+
+    /// One line for the diagnostic log. The launch verdict decides which screen a session starts on,
+    /// and until it was written down a tester could only describe the screen, never the reason
+    /// (Sodalite#76).
+    var logDescription: String {
+        switch self {
+        case .authenticated(let server, let user):
+            "entering \(server.name) as \(user.name)"
+        case .picker(let server, let syncSeerr):
+            "profile picker for \(server.name) (seerr sync: \(syncSeerr ? "yes" : "no"))"
+        case .discovery:
+            "nothing to restore, server discovery"
+        }
+    }
 }
 
 /// Launch-time restore policy (pointer repair, default-server promotion, pre-0.3.0 user migration, image-tag re-stamping, multi-profile routing), extracted from AppRouter to sit next to the session store. `restore()` is synchronous (all keychain/preference-backed); the async tvOS-context resolve + Seerr sync stay in AppRouter, which owns their ordering-dependent AppState mutations. Drives off `SessionRestoreEnvironment` (DependencyContainer in production, a fake in tests) so the policy is unit-testable.
@@ -19,6 +33,12 @@ struct SessionRestorer {
     let env: any SessionRestoreEnvironment
 
     func restore() -> RestoreOutcome {
+        let outcome = resolve()
+        LogTap.shared.note("[session] launch: \(outcome.logDescription).")
+        return outcome
+    }
+
+    private func resolve() -> RestoreOutcome {
         // When a tvOS mapping is in effect, suppress defaultServerID promotion + the shouldUseDefault branch so the system identity isn't clobbered by user-pinned defaults.
         let hasTVMapping = env.hasTVMapping
 

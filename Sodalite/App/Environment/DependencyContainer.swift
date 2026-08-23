@@ -254,9 +254,13 @@ final class DependencyContainer {
 
     /// Silent `try?`: a missing/unreadable keychain entry means no session to restore (app falls back to login); no recovery path benefits from the underlying error.
     func restoreSession() -> Bool {
-        guard let server = activeServer,
-              let token = try? keychainService.loadString(for: KeychainKeys.accessToken(serverID: server.id))
+        guard let server = activeServer else {
+            sessionNote("restore: no active server pointer, \(listKnownServers().count) server(s) known.")
+            return false
+        }
+        guard let token = try? keychainService.loadString(for: KeychainKeys.accessToken(serverID: server.id))
         else {
+            sessionNote("restore: \(label(for: server)) has no token slot on this device, \(listRememberedUsers(serverID: server.id).count) remembered profile(s).")
             return false
         }
 
@@ -468,6 +472,19 @@ final class DependencyContainer {
         }
     }
 
+    /// One line of session bookkeeping into the buffer Settings > Diagnostic Log renders. The session
+    /// layer used to write nothing there, so a switch that never reached the network left no evidence
+    /// anywhere: not on the device, and not in the server's log either (Sodalite#76). Ids and names
+    /// only, never a token or a password.
+    func sessionNote(_ line: String) {
+        LogTap.shared.note("[session] \(line)")
+    }
+
+    /// Short form for a log line: the name a person recognises plus enough id to tell two apart.
+    private func label(for server: JellyfinServer) -> String {
+        "\(server.name) [\(server.id.prefix(8))]"
+    }
+
     /// The remembered profile a switch to `serverID` may resume without asking, when the server holds no
     /// session of its own on this device. That is the normal state for every server restored from iCloud:
     /// the token slot is deliberately device-local and never syncs, while the tokens themselves ride the
@@ -502,6 +519,13 @@ final class DependencyContainer {
         let cachedToken = try? keychainService.loadString(for: KeychainKeys.accessToken(serverID: serverID))
         let resumable = cachedToken == nil ? resumableProfile(serverID: serverID) : nil
         guard let token = cachedToken ?? resumable?.token else {
+            let remembered = listRememberedUsers(serverID: serverID)
+            sessionNote(
+                "switch to \(label(for: server)) has no session here: token slot empty, "
+                + "\(remembered.count) remembered profile(s), "
+                + "pin=\(authPreferences.defaultUserID(serverID: serverID) ?? "none"), "
+                + "parentalControls=\(parentalControlsActive() ? "on" : "off"). Routing to its picker."
+            )
             throw ServerSwitchError.missingToken
         }
 
@@ -516,6 +540,7 @@ final class DependencyContainer {
         }
 
         if let resumable {
+            sessionNote("switch to \(label(for: server)): no token slot here, resuming remembered profile \(resumable.name).")
             // Adopt the profile's own cached token as this device's session for the target: switchToUser
             // writes both pointers, re-stamps the name caches and purges the identity-scoped caches, so
             // the keychain converges on exactly the state a tap in that server's picker would have left.
@@ -527,6 +552,7 @@ final class DependencyContainer {
         }
 
         let previousServerID = try? keychainService.loadString(for: KeychainKeys.activeServerID)
+        sessionNote("switch \(previousServerID.map { String($0.prefix(8)) } ?? "none") -> \(label(for: server)) on this device's own token.")
         try keychainService.save(serverID, for: KeychainKeys.activeServerID)
         if previousServerID != serverID {
             // Identity-scoped caches must die where the identity changes. Doing it in a view's onChange left a hole: TabRootView is .id(activeServer.id), so switching from Settings rebuilds the tab bar without instantiating HomeView, and Catalog/Library then hydrate from the previous server's cached pages.
@@ -606,6 +632,7 @@ final class DependencyContainer {
         var signalAlreadyScheduled = false
         if activeID == serverID {
             if let successor = servers.first {
+                sessionNote("removed the active server, promoting \(label(for: successor)).")
                 do {
                     // switchServer bumps serverDidSwitch itself; a second bump would re-key .task(id:), cancel the first probe, and double the Home reload.
                     try switchServer(to: successor.id)
@@ -615,6 +642,7 @@ final class DependencyContainer {
                     // it writes anything (Sodalite#74), so the promotion moves the pointer itself: leaving
                     // it would keep the active-server entry naming the server we just deleted. The trailing
                     // bump then routes AppRouter to the successor's profile picker.
+                    sessionNote("promoted \(label(for: successor)) without a session; routing to its picker.")
                     try? keychainService.save(successor.id, for: KeychainKeys.activeServerID)
                     FilterCache.shared.clearAll()
                     // The stop switchServer would have done on its way through: the picker route leaves
@@ -630,6 +658,7 @@ final class DependencyContainer {
                     SharedSessionMirror.clear(tvUserID: TVUserContext.currentUserID)
                 }
             } else {
+                sessionNote("removed the last server; no session left on this device.")
                 try? keychainService.delete(for: KeychainKeys.activeServerID)
                 jellyfinClient.baseURL = nil
                 jellyfinClient.accessToken = nil
@@ -753,6 +782,7 @@ final class DependencyContainer {
     /// Swaps to a remembered profile: reuses cached token, updates active-session keychain, reconfigures client. Drops the cached Jellyfin password unless the target profile is the one it belongs to, so Seerr auto-fill never carries another user's password but survives re-picking your own.
     func switchToUser(_ remembered: RememberedUser, server: JellyfinServer) throws {
         let previousIdentity = activeSessionIdentity()
+        sessionNote("profile -> \(remembered.name) on \(label(for: server)).")
         try addServer(server)
         try keychainService.save(server.id, for: KeychainKeys.activeServerID)
         try keychainService.save(

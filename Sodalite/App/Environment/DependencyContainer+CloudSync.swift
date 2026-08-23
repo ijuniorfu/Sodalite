@@ -59,6 +59,12 @@ extension DependencyContainer {
         isApplyingCloudChanges = true
         defer { isApplyingCloudChanges = false }
         let serverID = payload.server.id
+        // Where a server on this device came from. The tokens ride the profiles, the session slot does
+        // not sync, and the difference is invisible until a switch fails on it (Sodalite#74/#76).
+        sessionNote(
+            "cloud record for \(payload.server.name) [\(serverID.prefix(8))]: "
+            + "\(payload.rememberedUsers.count) profile(s), \(payload.seerrSessions.count) seerr session(s)."
+        )
 
         // Upsert in place; a remote add appends so it never hijacks local MRU order.
         var servers = listKnownServers()
