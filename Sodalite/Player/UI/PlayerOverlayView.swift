@@ -105,11 +105,15 @@ struct PlayerOverlayView: View {
                 StatsOverlayView(
                     player: viewModel.player,
                     diagnostics: viewModel.player.diagnostics,
-                    item: viewModel.item,
-                    selectedMediaSourceID: viewModel.mediaSourceID,
+                    facts: viewModel.statsSourceFacts,
                     activeSubtitleIndex: viewModel.activeSubtitleIndex,
                     scrollSectionIndex: viewModel.statsSectionIndex,
-                    showEngineDiagnostics: viewModel.preferences.showEngineDiagnostics,
+                    availableSections: viewModel.statsSectionAvailability,
+                    isLiveSession: viewModel.isLiveSession,
+                    liveChannel: viewModel.liveChannel,
+                    liveRoute: viewModel.liveRoute,
+                    liveStreamID: viewModel.activeLiveStreamID,
+                    playMethod: viewModel.activePlayMethod,
                     onClose: { viewModel.showStatsOverlay = false }
                 )
             }

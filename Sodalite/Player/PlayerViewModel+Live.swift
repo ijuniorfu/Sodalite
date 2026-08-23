@@ -4,6 +4,21 @@ import AetherEngine
 
 extension PlayerViewModel {
 
+    /// The four ways a live tune can reach the picture, in the same vocabulary the `[LiveDirect] route=`
+    /// log line uses. Deliberately not translated: the value only earns its place by matching the log
+    /// token a report is correlated against, and a translated one cannot be searched for.
+    enum LiveRoute: String, Equatable {
+        /// Engine ingest straight from the provider's playlist, Jellyfin out of the data path.
+        case direct
+        /// Jellyfin remuxes or re-encodes, the engine reads its TranscodingUrl.
+        case transcode
+        /// A tuner-backed channel read from the buffered stream Jellyfin named in MediaSource.Path,
+        /// which skips the second ffmpeg it would otherwise spawn to copy it (#70).
+        case tunerFile = "tunerfile"
+        /// The static stream route, the pure-copy path a DirectPlay/DirectStream channel needs.
+        case staticStream = "static"
+    }
+
     /// Live load: try the tuner's HLS upstream directly first (engine ingest, Jellyfin out of the data path), fall back to the Jellyfin-mediated path once per session. Channels without a TranscodingUrl (tuner hosts, TS/static) go straight to the server path, which picks its own route there (#70). Design: docs/superpowers/specs/2026-06-11-live-hls-ingest-direct-play-design.md.
     func loadLiveStream() async throws {
         // A channel that direct-played before needs nothing from Jellyfin but its upstream URL, and that
@@ -15,6 +30,7 @@ extension PlayerViewModel {
            let remembered = memory.upstream(userID: userID, channelID: item.id) {
             let reader = HLSLiveIngestReader(playlistURL: remembered)
             do {
+                liveRoute = .direct
                 LogTap.shared.note("[LiveDirect] route=direct source=remembered upstream=\(remembered.absoluteString)")
                 // No tuner was opened, so there is nothing to release and no transcode to correlate. The
                 // synthesized ids exist purely so the Jellyfin session reports still form one session.
@@ -140,6 +156,9 @@ extension PlayerViewModel {
         upstream: URL,
         reader: HLSLiveIngestReader
     ) async throws {
+        // Stage-1 negotiated this source before the tuner was handed over, so the direct route describes
+        // the channel from the same answer the server path would have used.
+        activePlaybackSource = source
         if let tuner = source.liveStreamId {
             // Awaited (spec decision 3): single-connection providers must never see the Jellyfin tuner and our direct connection at once, and a straggling close must not race the fallback's freshly opened tuner. Bounded so a hung server can't stall the tune.
             // Started outside the group on purpose: the bound is on how long this tune WAITS, not on the
@@ -166,6 +185,7 @@ extension PlayerViewModel {
                 LogTap.shared.note("[LiveDirect] tuner close still in flight after 3s, proceeding")
             }
         }
+        liveRoute = .direct
         LogTap.shared.note("[LiveDirect] route=direct upstream=\(upstream.absoluteString)")
         try await startDirectIngest(
             reader: reader,
@@ -255,6 +275,7 @@ extension PlayerViewModel {
 
         playSessionID = info.playSessionId
         mediaSourceID = source.id
+        activePlaybackSource = source
         activeLiveStreamID = source.liveStreamId
 
         // Resolve the progressive TS URL the engine's AVIOReader consumes. Three shapes, in this order:
@@ -278,17 +299,20 @@ extension PlayerViewModel {
            let transcodeURL = playbackService.buildTranscodeURL(relativePath: transcoding) {
             tsURL = transcodeURL
             isTunerFileRoute = false
+            liveRoute = .transcode
             LogTap.shared.note("[LiveDirect] route=transcode")
         } else if !didAbandonLiveTunerFile,
                   let sourcePath = source.path,
                   let tunerFileURL = playbackService.buildLiveStreamFileURL(sourcePath: sourcePath) {
             tsURL = tunerFileURL
             isTunerFileRoute = true
+            liveRoute = .tunerFile
             // Path only: the query carries the access token and this line lands in the diagnostic HUD.
             LogTap.shared.note("[LiveDirect] route=tunerfile path=\(tunerFileURL.path)")
         } else if let staticURL {
             tsURL = staticURL
             isTunerFileRoute = false
+            liveRoute = .staticStream
             LogTap.shared.note("[LiveDirect] route=static")
         } else {
             throw PlayerEngineError.noSource
@@ -332,6 +356,7 @@ extension PlayerViewModel {
             guard isTunerFileRoute, let staticURL else { throw error }
             didAbandonLiveTunerFile = true
             usedLiveTunerFilePath = false
+            liveRoute = .staticStream
             // The thrown value alone is often just a type name; the engine's own classification beside it
             // is what says whether the read was refused, timed out or could not be demuxed (#71).
             LogTap.shared.note(

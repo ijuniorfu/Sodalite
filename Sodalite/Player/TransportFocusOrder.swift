@@ -34,7 +34,8 @@ extension PlayerViewModel {
         isAtLiveEdge: Bool,
         hasAudioTracks: Bool,
         hasSubtitles: Bool,
-        isPiPAvailable: Bool
+        isPiPAvailable: Bool,
+        showsStats: Bool
     ) -> [ControlsFocus] {
         var order: [ControlsFocus] = []
         // Return to Live exists only while behind the edge; at the edge there is nothing to return to.
@@ -42,6 +43,7 @@ extension PlayerViewModel {
         if hasAudioTracks { order.append(.audioButton) }
         if hasSubtitles { order.append(.subtitleButton) }
         if isPiPAvailable { order.append(.pipButton) }
+        if showsStats { order.append(.infoButton) }
         return order
     }
 
@@ -51,6 +53,7 @@ extension PlayerViewModel {
             isAtLiveEdge: isAtLiveEdge,
             hasAudioTracks: !displayAudioTracks.isEmpty,
             hasSubtitles: !displaySubtitleStreams.isEmpty,
-            isPiPAvailable: isPiPAvailable)
+            isPiPAvailable: isPiPAvailable,
+            showsStats: preferences.showStatsForNerds)
     }
 }

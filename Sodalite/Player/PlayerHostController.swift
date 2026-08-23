@@ -829,34 +829,12 @@ final class PlayerHostController: AVPlayerViewController {
         viewModel.showStatsOverlay
     }
 
-    /// Indices into `PlayerViewModel.statsSectionAnchors` currently rendered, mirroring StatsOverlayView's @ViewBuilder gates: 0 live + 1 playback always; 2 video; 3 audio; 4 subtitle; 5 file; 6-8 engine diagnostics (showEngineDiagnostics). advanceStatsCursor steps only over these, else scrollTo no-ops and the cursor "sticks" (the "up doesn't work" repro).
+    /// Indices into `PlayerViewModel.statsSectionAnchors` currently rendered. Not a mirror of the panel's
+    /// gates any more but the same set the panel renders from (`statsSectionAvailability`): mirroring it by
+    /// hand is what let the two drift, and a cursor pointing at an anchor nobody drew makes scrollTo a no-op
+    /// and the cursor "stick" (the "up doesn't work" repro).
     private var availableStatsSectionIndices: [Int] {
-        var indices: [Int] = []
-        indices.append(0)
-        indices.append(1)
-        let item = viewModel.item
-        if item.mediaStreams?.contains(where: { $0.type == .video }) == true {
-            indices.append(2)
-        }
-        let hasEngineAudio = viewModel.player.audioTracks.contains {
-            $0.id == viewModel.player.activeAudioTrackIndex
-        }
-        let hasJellyfinAudio = item.mediaStreams?.contains(where: { $0.type == .audio }) == true
-        if hasEngineAudio || hasJellyfinAudio {
-            indices.append(3)
-        }
-        if viewModel.activeSubtitleIndex != nil {
-            indices.append(4)
-        }
-        if item.mediaSources?.first != nil {
-            indices.append(5)
-        }
-        if viewModel.preferences.showEngineDiagnostics {
-            indices.append(6)
-            indices.append(7)
-            indices.append(8)
-        }
-        return indices
+        viewModel.statsSectionAvailability.sorted()
     }
 
     /// Step the stats cursor by `delta` through `availableStatsSectionIndices`, clamped. If current index dropped out (e.g. subtitles toggled while open), snap to the closest available index instead of sticking.

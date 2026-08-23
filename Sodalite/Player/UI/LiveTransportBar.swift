@@ -25,6 +25,10 @@ struct LiveTransportBar: View {
         viewModel.controlsFocus == .audioButton
     }
 
+    private var infoFocused: Bool {
+        viewModel.controlsFocus == .infoButton
+    }
+
     /// TransportBar keeps its own `isSubtitleDropdownOpen` private to that file, so derive it rather
     /// than widening the view model with a second spelling of the same state.
     private var isSubtitleDropdownOpen: Bool {
@@ -151,6 +155,18 @@ struct LiveTransportBar: View {
                         isFocused: pipFocused
                     )
                     .opacity(viewModel.isPiPPossible ? 1.0 : 0.4)
+                }
+
+                // The chip the VOD bar has always had. Without it the stats panel existed on a live channel
+                // and had no way to be opened on tvOS, which is where a live route or a tuner id is worth
+                // reading; the touch bar on iOS never gated it, so the two players disagreed.
+                if viewModel.preferences.showStatsForNerds {
+                    TransportTrackLabel(
+                        label: String(localized: "player.stats", defaultValue: "Stats"),
+                        icon: "info.circle",
+                        showsLabel: false,
+                        isFocused: infoFocused || viewModel.showStatsOverlay
+                    )
                 }
 
                 liveBadge

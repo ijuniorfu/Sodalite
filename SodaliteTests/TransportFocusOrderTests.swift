@@ -49,10 +49,12 @@ struct TransportFocusOrderTests {
 @MainActor
 struct LiveTransportFocusOrderTests {
     private func order(isAtLiveEdge: Bool = true, hasAudioTracks: Bool = false,
-                       hasSubtitles: Bool = false, isPiPAvailable: Bool = false) -> [PlayerViewModel.ControlsFocus] {
+                       hasSubtitles: Bool = false, isPiPAvailable: Bool = false,
+                       showsStats: Bool = false) -> [PlayerViewModel.ControlsFocus] {
         PlayerViewModel.liveTransportFocusOrder(
             isAtLiveEdge: isAtLiveEdge, hasAudioTracks: hasAudioTracks,
-            hasSubtitles: hasSubtitles, isPiPAvailable: isPiPAvailable)
+            hasSubtitles: hasSubtitles, isPiPAvailable: isPiPAvailable,
+            showsStats: showsStats)
     }
 
     @Test("a channel at the live edge with nothing to pick has no controls above the scrubber")
@@ -83,5 +85,16 @@ struct LiveTransportFocusOrderTests {
     func pipTrails() {
         #expect(order(isAtLiveEdge: false, hasAudioTracks: true, hasSubtitles: true, isPiPAvailable: true)
                 == [.returnToLiveButton, .audioButton, .subtitleButton, .pipButton])
+    }
+
+    /// The live bar had no info chip at all, so the stats panel was unreachable on tvOS for the one kind of
+    /// session whose route and tuner it is worth reading. It sits last, as in the VOD order.
+    @Test("the stats chip follows the preference, and trails")
+    func statsChipGate() {
+        #expect(order(showsStats: true) == [.infoButton])
+        #expect(order().contains(.infoButton) == false)
+        #expect(order(isAtLiveEdge: false, hasAudioTracks: true, hasSubtitles: true,
+                      isPiPAvailable: true, showsStats: true)
+                == [.returnToLiveButton, .audioButton, .subtitleButton, .pipButton, .infoButton])
     }
 }

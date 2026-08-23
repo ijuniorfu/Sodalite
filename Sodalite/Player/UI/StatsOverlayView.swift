@@ -1,22 +1,40 @@
 import SwiftUI
 import AetherEngine
 
-/// Right-anchored read-only "stats for nerds" panel; visible when `PlaybackPreferences.showStatsForNerds` is on and the transport's info chip is pressed. Data is split for honesty: Playback (backend, decoder, runtime HDR) from `AetherEngine`'s @Published surface (observed live so an audio-track-switch reload updates it in place); container metadata (codec/resolution/fps/bitrate/size/filename) from the playing version's `MediaSource.mediaStreams`, resolved via `selectedMediaSourceID` so multi-version items show the picked version, not the primary source (issue #37).
+/// Right-anchored read-only "stats for nerds" panel; visible when `PlaybackPreferences.showStatsForNerds`
+/// is on and the transport's info chip is pressed.
+///
+/// Data is split for honesty, and the split runs the other way from what a media app usually does. The
+/// ENGINE is asked first for everything it observes (codec, dimensions, frame rate, dynamic range, decoders,
+/// audio tracks, telemetry): it describes the stream that actually arrived, and it answers on a live channel
+/// and on a slim episode payload alike. JELLYFIN answers only the three things the engine structurally
+/// cannot know, because it is handed `/Videos/{id}/stream.mkv?api_key=...` and never sees them: the
+/// server-side filename, the file size, and the subtitle titles of tracks the server delivers separately.
+///
+/// The media description arrives as `PlaybackSourceFacts`, resolved once in the view model so this panel and
+/// the section cursor that pages through it cannot disagree about which sections exist.
 struct StatsOverlayView: View {
     @ObservedObject var player: AetherEngine
     /// Timer-sampled telemetry observed separately since the engine.diagnostics split (engine's objectWillChange no longer fires on 1 Hz samples). Mounted only while the panel is open, scoping the 1 Hz re-render to this view.
     @ObservedObject var diagnostics: EngineDiagnostics
-    let item: JellyfinItem
-    /// The engine-picked version's id (`PlayerViewModel.mediaSourceID`). Multi-version items expose several
-    /// `mediaSources`; without this the panel would read the primary/first source's streams even when a
-    /// different version is playing (issue #37). Empty/unmatched falls back to the first source.
-    let selectedMediaSourceID: String?
+    /// Container metadata for the version actually playing, session source first, launch item second.
+    let facts: PlaybackSourceFacts
     /// Active subtitle stream's container index (matches `MediaStream.index`), or `nil` when off.
     let activeSubtitleIndex: Int?
     /// Cursor into `PlayerViewModel.statsSectionAnchors`, written by PlayerView's press handlers to drive the ScrollViewReader to the Up/Down-navigated section.
     let scrollSectionIndex: Int
-    /// Renders the Engine/Buffer/Network sections; driven by `PlaybackPreferences.showEngineDiagnostics`.
-    let showEngineDiagnostics: Bool
+    /// The sections that have something to say, from `PlayerViewModel.statsSectionAvailability`. Rendering
+    /// and cursor paging read the same set, so Up/Down can never land on an anchor that was not drawn.
+    let availableSections: Set<Int>
+    /// Live session: the channel section takes the file section's place, because a tuner has no file.
+    let isLiveSession: Bool
+    let liveChannel: JellyfinChannel?
+    let liveRoute: PlayerViewModel.LiveRoute?
+    /// Jellyfin's handle for the open tuner, which is what a server-side log is correlated against.
+    let liveStreamID: String?
+    /// How Jellyfin is delivering a VOD session (direct play, direct stream, transcode). Live says the same
+    /// thing with its route instead.
+    let playMethod: PlayMethod?
     /// iOS touch close (X in the header); tvOS leaves it nil (dismissed via the info chip / Menu).
     var onClose: (() -> Void)? = nil
 
@@ -28,27 +46,16 @@ struct StatsOverlayView: View {
         #endif
     }
 
-    /// Streams for the version actually playing, not the item's primary/first source (issue #37).
-    private var sourceStreams: [MediaStream]? {
-        item.effectiveMediaStreams(id: selectedMediaSourceID)
-    }
-
     private var videoStream: MediaStream? {
-        sourceStreams?.first { $0.type == .video }
+        facts.stream(ofType: .video)
     }
 
     private var activeAudioStream: MediaStream? {
-        guard let id = player.activeAudioTrackIndex else { return nil }
-        return sourceStreams?.first { $0.type == .audio && $0.index == id }
+        facts.stream(ofType: .audio, index: player.activeAudioTrackIndex)
     }
 
     private var activeSubtitleStream: MediaStream? {
-        guard let id = activeSubtitleIndex else { return nil }
-        return sourceStreams?.first { $0.type == .subtitle && $0.index == id }
-    }
-
-    private var mediaSource: MediaSource? {
-        item.effectiveMediaSource(id: selectedMediaSourceID)
+        facts.stream(ofType: .subtitle, index: activeSubtitleIndex)
     }
 
     var body: some View {
@@ -100,35 +107,18 @@ struct StatsOverlayView: View {
                         .foregroundStyle(.white)
                     #endif
 
-                    liveSection
-                        .id(PlayerViewModel.statsSectionAnchors[0])
-                        .modifier(StatsSectionHighlight(isCurrent: scrollSectionIndex == 0))
-                    playbackSection
-                        .id(PlayerViewModel.statsSectionAnchors[1])
-                        .modifier(StatsSectionHighlight(isCurrent: scrollSectionIndex == 1))
-                    videoSection
-                        .id(PlayerViewModel.statsSectionAnchors[2])
-                        .modifier(StatsSectionHighlight(isCurrent: scrollSectionIndex == 2))
-                    audioSection
-                        .id(PlayerViewModel.statsSectionAnchors[3])
-                        .modifier(StatsSectionHighlight(isCurrent: scrollSectionIndex == 3))
-                    subtitleSection
-                        .id(PlayerViewModel.statsSectionAnchors[4])
-                        .modifier(StatsSectionHighlight(isCurrent: scrollSectionIndex == 4))
-                    fileSection
-                        .id(PlayerViewModel.statsSectionAnchors[5])
-                        .modifier(StatsSectionHighlight(isCurrent: scrollSectionIndex == 5))
-                    if showEngineDiagnostics {
-                        engineSection
-                            .id(PlayerViewModel.statsSectionAnchors[6])
-                            .modifier(StatsSectionHighlight(isCurrent: scrollSectionIndex == 6))
-                        bufferSection
-                            .id(PlayerViewModel.statsSectionAnchors[7])
-                            .modifier(StatsSectionHighlight(isCurrent: scrollSectionIndex == 7))
-                        networkSection
-                            .id(PlayerViewModel.statsSectionAnchors[8])
-                            .modifier(StatsSectionHighlight(isCurrent: scrollSectionIndex == 8))
+                    anchored(StatsSection.live) { liveSection }
+                    anchored(StatsSection.playback) { playbackSection }
+                    anchored(StatsSection.video) { videoSection }
+                    anchored(StatsSection.audio) { audioSection }
+                    anchored(StatsSection.subtitle) { subtitleSection }
+                    // One index, two contents: a live session has a channel where a file would be.
+                    anchored(StatsSection.source) {
+                        if isLiveSession { channelSection } else { fileSection }
                     }
+                    anchored(StatsSection.engine) { engineSection }
+                    anchored(StatsSection.buffer) { bufferSection }
+                    anchored(StatsSection.network) { networkSection }
                 }
                 .padding(28)
                 .frame(width: panelWidth, alignment: .topLeading)
@@ -158,6 +148,18 @@ struct StatsOverlayView: View {
             // Wait past the 0.25s entrance transition (+ buffer) before unlatching the scrollTo gate.
             try? await Task.sleep(for: .milliseconds(300))
             didFinishAppearTransition = true
+        }
+    }
+
+    /// Draws a section only when the shared availability set lists it, under the anchor and highlight the
+    /// cursor uses. Going through one helper is what keeps "rendered" and "reachable by Up/Down" the same
+    /// list; they were two lists, computed in two files, and they had already drifted.
+    @ViewBuilder
+    private func anchored<C: View>(_ index: Int, @ViewBuilder _ content: () -> C) -> some View {
+        if availableSections.contains(index) {
+            content()
+                .id(PlayerViewModel.statsSectionAnchors[index])
+                .modifier(StatsSectionHighlight(isCurrent: scrollSectionIndex == index))
         }
     }
 
@@ -229,98 +231,131 @@ struct StatsOverlayView: View {
             if let decoder = player.activeAudioDecoder {
                 row("player.stats.audioDecoder", value: decoder)
             }
+            // Jellyfin's own vocabulary, untranslated on purpose: this is the value a server log and a
+            // Jellyfin dashboard session both spell "DirectPlay", and a translated one cannot be matched
+            // against either. Live omits it, its route says the same thing more precisely.
+            if !isLiveSession, let playMethod {
+                row("player.stats.playMethod", value: playMethod.rawValue)
+            }
+            // What libavformat OPENED, which under a transcode is not what the library holds. The file
+            // section below still names the library's container, and the two differing is the point.
+            if let container = player.sourceContainerFormat {
+                row("player.stats.container", value: container)
+            }
         }
     }
 
-    @ViewBuilder
+    /// Engine first on every row. It reads the stream that arrived, so it answers for a live channel and for
+    /// an episode whose Jellyfin payload carries no streams at all; the container stream fills in the codec
+    /// profile, which the engine does not publish, and stands in before the probe lands.
     private var videoSection: some View {
-        if let v = videoStream {
-            section("detail.tech.video") {
-                if let codec = v.codec?.uppercased() {
-                    let profile = v.profile ?? ""
-                    row(
-                        "detail.tech.codec",
-                        value: profile.isEmpty ? codec : "\(codec) \(profile)"
-                    )
-                }
-                if let w = v.width, let h = v.height {
-                    row("detail.tech.resolution", value: "\(w)×\(h)")
-                }
-                if let fps = v.realFrameRate ?? v.averageFrameRate {
-                    row("detail.tech.framerate", value: String(format: "%.3g fps", fps))
-                }
-                if let bps = mediaSource?.bitrate {
-                    row("detail.tech.bitrate", value: Self.formatBitrate(bps))
-                }
-                row("player.stats.dynamicRange", value: videoRangeLabel(stream: v))
+        section("detail.tech.video") {
+            if let codec = videoCodecLabel {
+                row("detail.tech.codec", value: codec)
             }
+            if let resolution = resolutionLabel {
+                row("detail.tech.resolution", value: resolution)
+            }
+            if let fps = player.sourceVideoFrameRate
+                ?? videoStream?.realFrameRate ?? videoStream?.averageFrameRate {
+                row("detail.tech.framerate", value: String(format: "%.3g fps", fps))
+            }
+            if let bps = videoBitrate {
+                row("detail.tech.bitrate", value: Self.formatBitrate(bps))
+            }
+            row("player.stats.dynamicRange", value: videoRangeLabel)
         }
     }
 
-    @ViewBuilder
+    /// Prefer the engine's TrackInfo (live Atmos flag + channel count); the Jellyfin MediaStream fills the
+    /// bitrate and the friendlier language title, and stands in during the session-start window before the
+    /// engine has resolved a track.
     private var audioSection: some View {
-        // Prefer the engine's TrackInfo (live Atmos flag + channel count); fall back to the Jellyfin MediaStream during the brief session-start window before the engine resolves one.
         let engineTrack = player.audioTracks.first(where: { $0.id == player.activeAudioTrackIndex })
-        if engineTrack != nil || activeAudioStream != nil {
-            section("detail.tech.audio") {
-                if let codec = engineTrack?.codec.uppercased()
-                    ?? activeAudioStream?.codec?.uppercased() {
-                    row("detail.tech.codec", value: codec)
-                }
-                let channels = engineTrack?.channels ?? activeAudioStream?.channels ?? 0
-                let isAtmos = engineTrack?.isAtmos ?? false
-                if channels > 0 {
-                    row(
-                        "detail.tech.channels",
-                        value: isAtmos
-                            ? "\(Self.channelLayoutLabel(channels)) · Atmos"
-                            : Self.channelLayoutLabel(channels)
-                    )
-                }
-                if let bps = activeAudioStream?.bitRate, bps > 0 {
-                    row("detail.tech.bitrate", value: Self.formatBitrate(bps))
-                }
-                if let lang = activeAudioStream?.displayTitle
-                    ?? engineTrack?.language
-                    ?? activeAudioStream?.language {
-                    row("detail.tech.language", value: lang)
-                }
+        return section("detail.tech.audio") {
+            if let codec = engineTrack?.codec.uppercased()
+                ?? activeAudioStream?.codec?.uppercased() {
+                row("detail.tech.codec", value: codec)
+            }
+            let channels = engineTrack?.channels ?? activeAudioStream?.channels ?? 0
+            let isAtmos = engineTrack?.isAtmos ?? false
+            if channels > 0 {
+                row(
+                    "detail.tech.channels",
+                    value: isAtmos
+                        ? "\(Self.channelLayoutLabel(channels)) · Atmos"
+                        : Self.channelLayoutLabel(channels)
+                )
+            }
+            let bitrate = activeAudioStream?.bitRate.map(Int64.init)
+                ?? engineTrack.map(\.bitrate)
+            if let bitrate, bitrate > 0 {
+                row("detail.tech.bitrate", value: Self.formatBitrate(Int(bitrate)))
+            }
+            if let lang = activeAudioStream?.displayTitle
+                ?? engineTrack?.language
+                ?? activeAudioStream?.language {
+                row("detail.tech.language", value: lang)
             }
         }
     }
 
-    @ViewBuilder
+    /// The engine's track stands in where Jellyfin has no stream to name: a live channel carries its
+    /// subtitles inside the transport stream, and the item that launched it is a channel, not a file.
     private var subtitleSection: some View {
-        if activeSubtitleIndex != nil {
-            section("detail.tech.subtitles") {
-                if let codec = activeSubtitleStream?.codec?.uppercased() {
-                    row("detail.tech.codec", value: codec)
-                }
-                if let lang = activeSubtitleStream?.displayTitle
-                    ?? activeSubtitleStream?.language {
-                    row("detail.tech.language", value: lang)
-                }
-                if activeSubtitleStream?.isForced == true {
-                    row("player.stats.forced", value: "✓")
-                }
+        let engineTrack = player.subtitleTracks.first { $0.id == activeSubtitleIndex }
+        return section("detail.tech.subtitles") {
+            if let codec = activeSubtitleStream?.codec?.uppercased()
+                ?? engineTrack?.codec.uppercased() {
+                row("detail.tech.codec", value: codec)
+            }
+            if let lang = activeSubtitleStream?.displayTitle
+                ?? activeSubtitleStream?.language
+                ?? engineTrack?.language
+                ?? engineTrack?.name {
+                row("detail.tech.language", value: lang)
+            }
+            if activeSubtitleStream?.isForced == true || engineTrack?.isForced == true {
+                row("player.stats.forced", value: "✓")
             }
         }
     }
 
-    @ViewBuilder
+    /// The one section Jellyfin owns outright. The engine is handed `/Videos/{id}/stream.mkv?api_key=...`
+    /// and never learns the library path behind it, so filename and size can come from nowhere else.
     private var fileSection: some View {
-        if let source = mediaSource {
-            section("detail.tech.file") {
-                if let container = source.container?.uppercased() {
-                    row("detail.tech.format", value: container)
-                }
-                if let size = source.size {
-                    row("detail.tech.size", value: Self.formatFileSize(size))
-                }
-                if let path = source.path,
-                   let filename = path.split(separator: "/").last {
-                    row("detail.tech.filename", value: String(filename))
-                }
+        section("detail.tech.file") {
+            if let container = facts.container?.uppercased() {
+                row("detail.tech.format", value: container)
+            }
+            if let size = facts.sizeBytes {
+                row("detail.tech.size", value: Self.formatFileSize(size))
+            }
+            if let filename = facts.fileName {
+                row("detail.tech.filename", value: filename)
+            }
+        }
+    }
+
+    /// Live's answer to the file section. The route is the row that earns it: it decides whether Jellyfin is
+    /// in the data path at all, it is the difference between one ffmpeg and two on the server, and until now
+    /// it existed only as a `LogTap` line inside a diagnostic build's HUD, which is somewhere a reporter
+    /// cannot reach. Here it is part of a screenshot (Sodalite#70, where the route was the missing witness).
+    private var channelSection: some View {
+        section("player.stats.section.channel") {
+            if let name = liveChannel?.name, !name.isEmpty {
+                row("player.stats.channelName", value: name)
+            }
+            if let number = liveChannel?.channelNumber, !number.isEmpty {
+                row("player.stats.channelNumber", value: number)
+            }
+            if let liveRoute {
+                // Untranslated, like the play method: the value's whole job is to match the `route=` token
+                // in the log a report is correlated against.
+                row("player.stats.route", value: liveRoute.rawValue)
+            }
+            if let liveStreamID, !liveStreamID.isEmpty {
+                row("player.stats.tuner", value: liveStreamID)
             }
         }
     }
@@ -415,6 +450,47 @@ struct StatsOverlayView: View {
         }
     }
 
+    // MARK: - Derived video labels
+
+    /// Engine spelling ("HEVC"), with the container's profile appended when it has one. The Jellyfin codec
+    /// stands in only until the engine has probed.
+    private var videoCodecLabel: String? {
+        guard let name = player.sourceVideoCodecName?.uppercased()
+            ?? videoStream?.codec?.uppercased() else { return nil }
+        let profile = videoStream?.profile ?? ""
+        return profile.isEmpty ? name : "\(name) \(profile)"
+    }
+
+    private var resolutionLabel: String? {
+        if player.sourceVideoWidth > 0, player.sourceVideoHeight > 0 {
+            return "\(player.sourceVideoWidth)×\(player.sourceVideoHeight)"
+        }
+        if let w = videoStream?.width, let h = videoStream?.height {
+            return "\(w)×\(h)"
+        }
+        return nil
+    }
+
+    /// The engine's declared VIDEO bitrate when the container carries one; the source-wide figure from
+    /// Jellyfin otherwise, which is what this row showed before and is close enough to be worth keeping.
+    private var videoBitrate: Int? {
+        if player.sourceVideoBitrate > 0 { return Int(player.sourceVideoBitrate) }
+        return facts.bitrate
+    }
+
+    /// Source video range refined with the DV profile. When the engine clamps `videoFormat` to `.sdr`
+    /// (DV/HDR10 source on an SDR panel, or Match Content off), render "Source → Target". The profile comes
+    /// from the engine's dvcC read first; Jellyfin's copy is the fallback.
+    private var videoRangeLabel: String {
+        let dvProfile = player.sourceDVProfile ?? videoStream?.dvProfile
+        let source = Self.formatLabel(player.sourceVideoFormat, dvProfile: dvProfile)
+        let effective = Self.formatLabel(player.videoFormat, dvProfile: dvProfile)
+        if source == effective {
+            return source
+        }
+        return "\(source) → \(effective)"
+    }
+
     // MARK: - Labels
 
     private var backendLabel: String {
@@ -427,16 +503,6 @@ struct StatsOverlayView: View {
             // .aether is legacy (no longer dispatched to); .audio drives its own music UI, not this video overlay. Neither can surface here, so collapse to the placeholder.
             return "—"
         }
-    }
-
-    /// Source video range refined with Jellyfin's DV profile. When the engine clamps `videoFormat` to `.sdr` (DV/HDR10 source on SDR panel, or Match Content off), render "Source → Target" (e.g. "Dolby Vision P5 → SDR", "Dolby Vision P8 → HDR10").
-    private func videoRangeLabel(stream: MediaStream) -> String {
-        let source = Self.formatLabel(player.sourceVideoFormat, dvProfile: stream.dvProfile)
-        let effective = Self.formatLabel(player.videoFormat, dvProfile: stream.dvProfile)
-        if source == effective {
-            return source
-        }
-        return "\(source) → \(effective)"
     }
 
     private static func formatLabel(_ format: VideoFormat, dvProfile: Int?) -> String {
