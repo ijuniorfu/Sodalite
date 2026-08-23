@@ -157,7 +157,22 @@ extension HomeRowConfig {
     /// Library types that get their own per-library "Latest" row.
     static let perLibraryLatestTypes: Set<String> = ["movies", "tvshows"]
 
+    /// The aggregated row a per-library row splits its library out of.
+    static func aggregatedLatestRow(forCollectionType collectionType: String?) -> HomeRowType? {
+        switch collectionType {
+        case "movies": .latestMovies
+        case "tvshows": .latestShows
+        default: nil
+        }
+    }
+
     /// Merge `stored` with server `libraries`: existing rows keep enabled/sortOrder, add a `.libraryLatest` per movies/tvshows lib (refresh name/type), drop vanished ones. Per-library rows are opt-in: they are appended disabled so a fresh install matches `resetToDefault` (aggregated latestMovies/latestShows on, per-library rows off) regardless of library count.
+    ///
+    /// A per-library row is only offered where its type has more than one library. With a single
+    /// one it splits nothing off: it runs the same query as the aggregated row and renders the same
+    /// tiles under the library's name (device report, 2026-08-23). A row that loses that reason
+    /// (second library removed, or it predates this rule) is retired, and if the user had it on,
+    /// the aggregated row is switched on in its place rather than leaving them one shelf short.
     static func reconciled(
         stored: [HomeRowConfig],
         libraries: [JellyfinLibrary]
@@ -166,18 +181,30 @@ extension HomeRowConfig {
             perLibraryLatestTypes.contains($0.collectionType ?? "")
         }
         let liveIDs = Set(latestLibs.map(\.id))
+        let splitTypes = Set(
+            Dictionary(grouping: latestLibs) { $0.collectionType ?? "" }
+                .filter { $0.value.count > 1 }
+                .keys
+        )
+        let splitLibs = latestLibs.filter { splitTypes.contains($0.collectionType ?? "") }
+        let splitIDs = Set(splitLibs.map(\.id))
 
+        var retiredEnabledTypes: Set<String> = []
         var result = stored.filter { config in
-            // Drop dynamic rows whose library vanished.
-            if config.type == .libraryLatest {
-                return config.libraryID.map { liveIDs.contains($0) } ?? false
+            guard config.type == .libraryLatest else { return true }
+            guard let libraryID = config.libraryID else { return false }
+            if splitIDs.contains(libraryID) { return true }
+            // Retired for redundancy, not because the library vanished: hand the state over. A row
+            // whose library is gone takes its content with it, so it hands over nothing.
+            if liveIDs.contains(libraryID), config.isEnabled, let type = config.collectionType {
+                retiredEnabledTypes.insert(type)
             }
-            return true
+            return false
         }
 
         // Refresh name/collectionType on surviving dynamic rows.
         for i in result.indices where result[i].type == .libraryLatest {
-            if let lib = latestLibs.first(where: { $0.id == result[i].libraryID }) {
+            if let lib = splitLibs.first(where: { $0.id == result[i].libraryID }) {
                 result[i].libraryName = lib.name
                 result[i].collectionType = lib.collectionType
             }
@@ -187,7 +214,7 @@ extension HomeRowConfig {
         var nextOrder = (result.map(\.sortOrder).max() ?? -1) + 1
         // Track appended ids: duplicate library ids would yield colliding composite ids and break SwiftUI Identifiable/ForEach.
         var knownIDs = Set(result.compactMap { $0.type == .libraryLatest ? $0.libraryID : nil })
-        for lib in latestLibs where !knownIDs.contains(lib.id) {
+        for lib in splitLibs where !knownIDs.contains(lib.id) {
             result.append(
                 HomeRowConfig(
                     type: .libraryLatest,
@@ -211,6 +238,14 @@ extension HomeRowConfig {
         where type != .libraryLatest && !presentTypes.contains(type) {
             result.append(HomeRowConfig(type: type, isEnabled: type.defaultEnabled, sortOrder: nextOrder))
             nextOrder += 1
+        }
+
+        // After the append above, so the aggregated row is guaranteed to be there to switch on.
+        for collectionType in retiredEnabledTypes {
+            guard let rowType = aggregatedLatestRow(forCollectionType: collectionType),
+                  let index = result.firstIndex(where: { $0.type == rowType })
+            else { continue }
+            result[index].isEnabled = true
         }
 
         return result
