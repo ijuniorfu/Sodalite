@@ -181,9 +181,20 @@ extension DependencyContainer {
     // MARK: Settings stores
 
     func collectSettingsPayload(_ key: CloudSyncStoreKey, stamp: Date) -> SettingsSyncPayload {
+        collectSettingsPayload(key, stamp: stamp, from: SettingsStores(container: self))
+    }
+
+    /// Same mapping, read out of a given set of stores. A reset passes stores built against an empty
+    /// suite, so "what a first launch holds" comes from the one mapping the parity test already pins
+    /// every setting to, instead of a second list that would drift from it (Sodalite#76).
+    func collectSettingsPayload(
+        _ key: CloudSyncStoreKey,
+        stamp: Date,
+        from stores: SettingsStores
+    ) -> SettingsSyncPayload {
         switch key {
         case .playback:
-            let p = playbackPreferences
+            let p = stores.playback
             return .playback(PlaybackSettingsPayload(
                 updatedAt: stamp,
                 autoplayNextEpisode: p.autoplayNextEpisode,
@@ -222,7 +233,7 @@ extension DependencyContainer {
                 autoplayCountdown: p.autoplayCountdown
             ))
         case .appearance:
-            let a = appearancePreferences
+            let a = stores.appearance
             return .appearance(AppearanceSettingsPayload(
                 updatedAt: stamp,
                 accentChoice: a.storedAccentRawValue,
@@ -239,37 +250,37 @@ extension DependencyContainer {
         case .auth:
             return .auth(AuthSettingsPayload(
                 updatedAt: stamp,
-                launchBehavior: authPreferences.launchBehavior.rawValue,
+                launchBehavior: stores.auth.launchBehavior.rawValue,
                 // Legacy mirror for devices still on a build without the per-server pin: the default server's is the one they would have used.
-                defaultUserID: authPreferences.defaultServerID
-                    .flatMap { authPreferences.defaultUserID(serverID: $0) },
-                defaultServerID: authPreferences.defaultServerID,
-                profileReprompt: authPreferences.profileReprompt.rawValue
+                defaultUserID: stores.auth.defaultServerID
+                    .flatMap { stores.auth.defaultUserID(serverID: $0) },
+                defaultServerID: stores.auth.defaultServerID,
+                profileReprompt: stores.auth.profileReprompt.rawValue
             ))
         case .seerrNotifications:
             return .seerrNotifications(SeerrNotificationSettingsPayload(
                 updatedAt: stamp,
-                notifyPendingRequests: seerrNotificationPreferences.notifyPendingRequests
+                notifyPendingRequests: stores.seerrNotifications.notifyPendingRequests
             ))
         case .parentalControls:
             return .parentalControls(ParentalControlsSettingsPayload(
                 updatedAt: stamp,
-                protectedProfileIDs: parentalControlsPreferences.protectedProfileIDs.sorted()
+                protectedProfileIDs: stores.parentalControls.protectedProfileIDs.sorted()
             ))
         case .trackMemory:
             return .trackMemory(TrackMemoryPayload(
                 updatedAt: stamp,
-                entries: trackSelectionMemory.entries
+                entries: stores.trackMemory.entries
             ))
         case .spoilerReveals:
             return .spoilerReveals(SpoilerRevealPayload(
                 updatedAt: stamp,
-                entries: spoilerRevealMemory.entries
+                entries: stores.spoilerReveals.entries
             ))
         case .spoilerSeriesRules:
             return .spoilerSeriesRules(SpoilerSeriesRulesPayload(
                 updatedAt: stamp,
-                entries: spoilerSeriesRules.entries
+                entries: stores.spoilerSeriesRules.entries
             ))
         }
     }
@@ -386,5 +397,51 @@ extension DependencyContainer {
         isApplyingCloudChanges = true
         defer { isApplyingCloudChanges = false }
         try? clearGuardianPIN()
+    }
+}
+
+/// The stores one settings payload is collected from: the container's own, or a set built against an
+/// empty suite when something needs to know what a first launch would hold (Sodalite#76).
+@MainActor
+struct SettingsStores {
+    let playback: PlaybackPreferences
+    let appearance: AppearancePreferences
+    let auth: AuthPreferences
+    let seerrNotifications: SeerrNotificationPreferences
+    let parentalControls: ParentalControlsPreferences
+    let trackMemory: TrackSelectionMemory
+    let spoilerReveals: SpoilerRevealMemory
+    let spoilerSeriesRules: SpoilerSeriesRules
+
+    init(container: DependencyContainer) {
+        playback = container.playbackPreferences
+        appearance = container.appearancePreferences
+        auth = container.authPreferences
+        seerrNotifications = container.seerrNotificationPreferences
+        parentalControls = container.parentalControlsPreferences
+        trackMemory = container.trackSelectionMemory
+        spoilerReveals = container.spoilerRevealMemory
+        spoilerSeriesRules = container.spoilerSeriesRules
+    }
+
+    private init(store: UserDefaults) {
+        playback = PlaybackPreferences(store: store)
+        appearance = AppearancePreferences(store: store)
+        auth = AuthPreferences(store: store)
+        seerrNotifications = SeerrNotificationPreferences(defaults: store)
+        parentalControls = ParentalControlsPreferences(store: store)
+        trackMemory = TrackSelectionMemory(store: store)
+        spoilerReveals = SpoilerRevealMemory(store: store)
+        spoilerSeriesRules = SpoilerSeriesRules(store: store)
+    }
+
+    /// Every store parsed from an empty suite, which is what each of them does on a first launch. The
+    /// domain is cleared on the way in as well as being throwaway: a previous reset may have left the
+    /// migrations these inits run behind in it.
+    static func factoryDefaults() -> SettingsStores? {
+        let name = "de.superuser404.Sodalite.factoryDefaults"
+        guard let scratch = UserDefaults(suiteName: name) else { return nil }
+        scratch.removePersistentDomain(forName: name)
+        return SettingsStores(store: scratch)
     }
 }

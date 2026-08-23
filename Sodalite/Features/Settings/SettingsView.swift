@@ -8,6 +8,10 @@ struct SettingsView: View {
     @Environment(\.appState) private var appState
     @Environment(\.dependencies) private var dependencies
 
+    @State private var showResetConfirm = false
+    /// Latches the buttons while the reset runs; deleting the iCloud copy is a round trip.
+    @State private var isResetting = false
+
     var body: some View {
         ThemeNavigationStack {
             ScrollView {
@@ -16,6 +20,7 @@ struct SettingsView: View {
                     settingsList
                     serverInfo
                     logoutButton
+                    resetButton
                     aboutFooter
                 }
                 .screenContentInset()
@@ -30,6 +35,24 @@ struct SettingsView: View {
                 }
             }
             #endif
+        }
+        .alert(
+            Text("settings.reset.confirm.title", bundle: .main),
+            isPresented: $showResetConfirm
+        ) {
+            Button("settings.reset.confirm.action", role: .destructive) {
+                performReset(deleteCloudCopy: false)
+            }
+            // Only where there is a copy to delete. Without this the reset holds exactly as long as
+            // sync stays off: the zone still describes the same servers.
+            if dependencies.cloudSync?.isEnabled == true {
+                Button("settings.reset.confirm.actionWithCloud", role: .destructive) {
+                    performReset(deleteCloudCopy: true)
+                }
+            }
+            Button("common.cancel", role: .cancel) {}
+        } message: {
+            Text("settings.reset.confirm.message", bundle: .main)
         }
         // Settings is the only surface showing server version; refresh on appear so an upgrade since login is picked up.
         .task {
@@ -371,6 +394,48 @@ struct SettingsView: View {
         }
         .buttonStyle(SettingsTileButtonStyle())
         .padding(.top, 12)
+    }
+
+    // MARK: - Reset
+
+    /// Log Out stops at credentials and servers on purpose. This is the one that also takes the
+    /// preferences, for a device that should look like a first launch again (Sodalite#76).
+    private var resetButton: some View {
+        Button {
+            gateThenReset()
+        } label: {
+            Label("settings.reset.button", systemImage: "arrow.counterclockwise")
+                .font(.body)
+                .fontWeight(.medium)
+                .padding(.horizontal, 24)
+                .padding(.vertical, 12)
+        }
+        .buttonStyle(SettingsTileButtonStyle())
+        .disabled(isResetting)
+    }
+
+    private func gateThenReset() {
+        // A reset takes the Guardian PIN with it, so a device that has one proves it here. Stricter
+        // than the session actions, which only ask while a protected profile is active: by then the
+        // lock itself is what is being removed.
+        guard dependencies.isGuardianPINSet() else {
+            showResetConfirm = true
+            return
+        }
+        Task {
+            if await dependencies.parentalGate.challenge(reason: .logout) {
+                showResetConfirm = true
+            }
+        }
+    }
+
+    private func performReset(deleteCloudCopy: Bool) {
+        isResetting = true
+        Task {
+            await dependencies.resetToFactoryState(deleteCloudCopy: deleteCloudCopy)
+            appState.logout()
+            isResetting = false
+        }
     }
 }
 
