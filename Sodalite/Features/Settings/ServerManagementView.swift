@@ -10,7 +10,8 @@ struct ServerManagementView: View {
     @State private var defaultID: String?
     @State private var showAddServerFlow = false
     @State private var pendingRemoval: JellyfinServer?
-    @State private var showSwitchFailed = false
+    /// Non-nil while the switch-failed alert is up: the reason, already run through ErrorText.
+    @State private var switchFailure: String?
     #if os(iOS)
     @State private var editingURLsFor: JellyfinServer?
     #endif
@@ -93,13 +94,20 @@ struct ServerManagementView: View {
         } message: { server in
             Text("multiServer.remove.confirm.message \(server.name)", bundle: .main)
         }
+        // The reason, not a fixed line: ServerSwitchError already distinguishes "no longer saved on
+        // this device" from "no sign-in saved", and discarding that left the one screen that could
+        // explain a failed switch saying nothing (Sodalite#76).
         .alert(
             Text("multiServer.switch.failed.title", bundle: .main),
-            isPresented: $showSwitchFailed
-        ) {
+            isPresented: Binding(
+                get: { switchFailure != nil },
+                set: { if !$0 { switchFailure = nil } }
+            ),
+            presenting: switchFailure
+        ) { _ in
             Button("common.ok", role: .cancel) {}
-        } message: {
-            Text("multiServer.switch.failed.message", bundle: .main)
+        } message: { message in
+            Text(message)
         }
         .onReceive(NotificationCenter.default.publisher(for: .cloudSyncDidApplyChanges)) { _ in
             load()
@@ -122,7 +130,8 @@ struct ServerManagementView: View {
             // dead-end alert. Nothing was written, so the current session stands (Sodalite#74).
             appState.pendingProfilePickerServerID = server.id
         } catch {
-            showSwitchFailed = true
+            dependencies.sessionNote("switch to \(server.name) failed: \(error)")
+            switchFailure = ErrorText.user(for: error)
         }
         load()
     }

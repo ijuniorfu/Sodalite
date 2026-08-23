@@ -40,6 +40,14 @@ final class TVProfileMappings {
         persist()
     }
 
+    /// Reset (Sodalite#76): the store caches its dictionary in memory, so wiping the domain under it
+    /// would leave the old mappings live and let the next write persist them again.
+    func removeAll() {
+        guard !allMappings.isEmpty else { return }
+        allMappings = [:]
+        persist()
+    }
+
     /// Called when a server is removed from the multi-server schema.
     func removeMappings(forServer serverID: String) {
         let filtered = allMappings.filter { $0.value.serverID != serverID }
