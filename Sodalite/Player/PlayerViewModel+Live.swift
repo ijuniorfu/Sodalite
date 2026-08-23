@@ -113,6 +113,13 @@ extension PlayerViewModel {
     /// A viewer giving up during the seconds Jellyfin spends probing a tuner is the common case on a slow
     /// channel, not a corner (#70).
     private func openLiveTuner(maxStreamingBitrate: Int) async throws -> PlaybackInfoResponse {
+        // Never open while one of our own closes is still unanswered: the id Jellyfin closes by names
+        // the CHANNEL, not this stream, so an open that overtakes a close either orphans the tuner it
+        // replaces or hands that close the stream we are about to play (LiveTunerGate, #70).
+        let unsettled = await LiveTunerGate.shared.settle(timeout: 6)
+        if unsettled > 0 {
+            LogTap.shared.note("[Live] opening with \(unsettled) tuner close(s) still unanswered after 6s")
+        }
         let svc = playbackService
         let itemID = item.id
         let user = userID
@@ -123,8 +130,21 @@ extension PlayerViewModel {
                 maxStreamingBitrate: maxStreamingBitrate)
         }
         let info = try await request.value
+        let source = info.mediaSources.first
+        // The open half of the ledger. Without it a capture shows closes with nothing to pair them
+        // against, and a tuner we opened and never closed looks exactly like one we never opened (#70).
+        if let key = source?.liveStreamId {
+            LogTap.shared.note(
+                "[Live] tuner opened stream=\(Self.liveLogToken(Self.liveTunerStreamID(fromSourcePath: source?.path)))"
+                + " key=\(Self.liveLogToken(key))"
+            )
+        } else {
+            // Not a tuner channel, or an answer that opened nothing. Said out loud because the one thing
+            // worse than a tuner we forgot to close is a tuner we were never given a handle for.
+            LogTap.shared.note("[Live] PlaybackInfo answered without a live stream id, nothing to close later")
+        }
         if Task.isCancelled {
-            if let stranded = info.mediaSources.first?.liveStreamId {
+            if let stranded = source?.liveStreamId {
                 releaseTuner(stranded, reason: "tune cancelled while the tuner was opening")
             }
             throw CancellationError()
@@ -135,17 +155,43 @@ extension PlayerViewModel {
     /// Close a tuner we opened, without waiting on it and without swallowing the outcome. A close that
     /// quietly fails is a tuner that ingests until the server restarts, and the note is the only trace a
     /// report can carry back (#70).
+    ///
+    /// "Accepted", not "released", on purpose: `MediaInfoController.CloseLiveStream` answers 204 for
+    /// any id, and `MediaSourceManager.CloseLiveStream` does nothing at all when the id is not in
+    /// `_openStreams`. The status code says the request was understood, never that a tuner let go.
+    /// The key token is what pairs this line with the `tuner opened` line above it.
     @discardableResult
     func releaseTuner(_ liveStreamID: String, reason: String) -> Task<Void, Never> {
         let svc = playbackService
-        return Task.detached {
+        let token = Self.liveLogToken(liveStreamID)
+        return LiveTunerGate.shared.close {
             do {
                 try await svc.closeLiveStream(liveStreamID: liveStreamID)
-                LogTap.shared.note("[Live] tuner released (\(reason))")
+                LogTap.shared.note("[Live] tuner close accepted key=\(token) (\(reason))")
             } catch {
-                LogTap.shared.note("[Live] tuner release FAILED (\(reason)): \(error)")
+                LogTap.shared.note("[Live] tuner close FAILED key=\(token) (\(reason)): \(error)")
             }
         }
+    }
+
+    /// The id Jellyfin names its buffered tuner file after (`LiveStream.UniqueId`, the id in the
+    /// `route=tunerfile path=` line and the file name in the server's transcode folder). It is the only
+    /// id in a live answer that differs between two opens of the SAME channel; `liveStreamId` does not,
+    /// which is the whole reason LiveTunerGate exists.
+    static func liveTunerStreamID(fromSourcePath path: String?) -> String? {
+        guard let path,
+              let relative = JellyfinPlaybackService.liveStreamFileRelativePath(fromSourcePath: path)
+        else { return nil }
+        let parts = relative.split(separator: "/", omittingEmptySubsequences: false)
+        guard parts.count >= 4, !parts[3].isEmpty else { return nil }
+        return String(parts[3])
+    }
+
+    /// Short, pairable form of a live id for the log. Full ids are two or three MD5s long and the HUD
+    /// wraps them into unreadability; the tail is enough to pair an open with its close.
+    static func liveLogToken(_ id: String?) -> String {
+        guard let id, !id.isEmpty else { return "none" }
+        return id.count <= 8 ? id : "…" + String(id.suffix(8))
     }
 
     /// Direct play: close the Jellyfin tuner first (single-connection providers must never see two concurrent connections), then hand the upstream playlist to the engine's HLS ingest.
@@ -263,13 +309,17 @@ extension PlayerViewModel {
         if Self.liveNeedsVideoReencode(transcodeReasons: source.transcodeReasons,
                                        transcodingURL: source.transcodingUrl)
             || Self.liveSourceVideoCodecUnknown(source) {
-            let staleTuner = source.liveStreamId
+            // Closed BEFORE the second open, not after it. Jellyfin's id names the channel, so the
+            // second open would replace this stream's registration and leave it ingesting with a tuner
+            // and no handle. The release that used to sit below was guarded on the two ids differing,
+            // which only happens when the re-request lands on a different profile of the channel; on a
+            // single-profile tuner host the ids match and the guard skipped every release (#70).
+            if let staleTuner = source.liveStreamId {
+                releaseTuner(staleTuner, reason: "re-negotiating at the re-encode cap")
+            }
             info = try await openLiveTuner(maxStreamingBitrate: DirectPlayProfile.liveReencodeCapBitrate)
             guard let rebounded = info.mediaSources.first else { throw PlayerEngineError.noSource }
             source = rebounded
-            if let staleTuner, staleTuner != source.liveStreamId {
-                releaseTuner(staleTuner, reason: "re-negotiated at the re-encode cap")
-            }
         }
 
         playSessionID = info.playSessionId
