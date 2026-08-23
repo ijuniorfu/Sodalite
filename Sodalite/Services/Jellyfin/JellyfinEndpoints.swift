@@ -161,7 +161,11 @@ enum JellyfinEndpoint: APIEndpoint {
         case .liveTvGuideInfo:
             "/LiveTv/GuideInfo"
         case .closeLiveStream:
-            "/LiveTv/LiveStreams/Close"
+            // MediaInfoController, not LiveTvController: the class carries [Route("")] and the action
+            // [HttpPost("LiveStreams/Close")], so the route has no /LiveTv prefix and never had one.
+            // With the prefix every close answered 404, which is the same as never sending it, and a
+            // live stream Jellyfin never closes ingests until the server restarts (#70).
+            "/LiveStreams/Close"
         case .stopActiveEncodings:
             "/Videos/ActiveEncodings"
         case .liveTvRecordings:

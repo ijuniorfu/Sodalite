@@ -59,13 +59,12 @@ extension PlayerViewModel {
         let stageOneTuner = source.liveStreamId
 
         do {
-            // Direct eligibility: remux channel (TranscodingUrl present) whose Path is a real http(s) provider URL. A tuner-backed channel has no TranscodingUrl and a Path pointing at Jellyfin's own LiveStreamFiles route, so it keeps the server path and is served from that buffered stream there (#70).
-            if !didAttemptLiveFallback,
-               source.transcodingUrl != nil,
-               let path = source.path,
-               let upstream = URL(string: path),
-               let scheme = upstream.scheme?.lowercased(),
-               scheme == "http" || scheme == "https" {
+            // Direct eligibility, decided in liveDirectIngestEligibility: a remux channel whose Path is
+            // a real http(s) PROVIDER playlist. Jellyfin's own LiveStreamFiles route is not one, and the
+            // guard that used to stand here could not tell them apart (#70).
+            let eligibility = Self.liveDirectIngestEligibility(
+                transcodingURL: source.transcodingUrl, sourcePath: source.path)
+            if !didAttemptLiveFallback, case .eligible(let upstream) = eligibility {
                 // Reader created here so its terminalError is reachable in the catch fallback log.
                 let reader = HLSLiveIngestReader(playlistURL: upstream)
                 do {
@@ -84,7 +83,7 @@ extension PlayerViewModel {
                 }
             } else {
                 // The route this ends on is named by loadLiveStreamViaServer, which is where it is decided.
-                LogTap.shared.note("[LiveDirect] direct ingest not eligible (transcodingUrl=\(source.transcodingUrl == nil ? "none" : "present"))")
+                LogTap.shared.note("[LiveDirect] direct ingest not eligible (\(eligibility.logReason))")
             }
 
             // Ineligible route (static/server): reuse the stage-1 tuner so it isn't leaked and the server path avoids a duplicate roundtrip.
@@ -278,13 +277,13 @@ extension PlayerViewModel {
         activePlaybackSource = source
         activeLiveStreamID = source.liveStreamId
 
-        // Resolve the progressive TS URL the engine's AVIOReader consumes. Three shapes, in this order:
-        // a remux/transcode channel carries a TranscodingUrl; a tuner-backed channel carries none but
-        // names its own buffered stream in MediaSource.Path, and reading that skips the second ffmpeg
-        // Jellyfin would otherwise spawn to copy it (#70); everything else takes the static stream URL,
-        // whose pure-copy route is what keeps a DirectPlay/DirectStream channel from black-screening
-        // (device repro: "ATV HD", directPlay=1). All three are the same kind of resource to the loader:
-        // a growing MPEG-TS with no Content-Length, served by Jellyfin's ProgressiveFileStream.
+        // Resolve the progressive TS URL the engine's AVIOReader consumes. Three shapes, ranked in
+        // chooseLiveServerRoute: a real re-encode has to come from the server, so its TranscodingUrl
+        // wins; otherwise the tuner's own buffered stream wins, because a TranscodingUrl that is only a
+        // copy-remux is a second ffmpeg copying the very file the tuner route reads (#70); the static
+        // route is the fallback whose pure-copy path keeps a DirectPlay/DirectStream channel from
+        // black-screening (device repro: "ATV HD", directPlay=1). All three are the same kind of
+        // resource to the loader: a growing MPEG-TS with no Content-Length from ProgressiveFileStream.
         let supportsStaticRoute = source.supportsDirectStream == true || source.supportsDirectPlay == true
         let staticURL = supportsStaticRoute ? playbackService.buildStreamURL(
             itemID: item.id,
@@ -293,28 +292,38 @@ extension PlayerViewModel {
             isStatic: true
         ) : nil
 
+        let transcodeURL = source.transcodingUrl.flatMap { playbackService.buildTranscodeURL(relativePath: $0) }
+        let tunerFileURL = didAbandonLiveTunerFile
+            ? nil
+            : source.path.flatMap { playbackService.buildLiveStreamFileURL(sourcePath: $0) }
+        // Jellyfin re-encodes only for a codec outside liveProfile's copy list. Everything else it
+        // offers a TranscodingUrl for is a stream copy, and that copy's input is the tuner file itself.
+        let transcodeIsReencode = Self.liveNeedsVideoReencode(transcodeReasons: source.transcodeReasons,
+                                                             transcodingURL: source.transcodingUrl)
+
         let tsURL: URL
         let isTunerFileRoute: Bool
-        if let transcoding = source.transcodingUrl,
-           let transcodeURL = playbackService.buildTranscodeURL(relativePath: transcoding) {
-            tsURL = transcodeURL
+        switch Self.chooseLiveServerRoute(transcodeURL: transcodeURL,
+                                          tunerFileURL: tunerFileURL,
+                                          staticURL: staticURL,
+                                          transcodeIsReencode: transcodeIsReencode) {
+        case .transcode(let url):
+            tsURL = url
             isTunerFileRoute = false
             liveRoute = .transcode
-            LogTap.shared.note("[LiveDirect] route=transcode")
-        } else if !didAbandonLiveTunerFile,
-                  let sourcePath = source.path,
-                  let tunerFileURL = playbackService.buildLiveStreamFileURL(sourcePath: sourcePath) {
-            tsURL = tunerFileURL
+            LogTap.shared.note("[LiveDirect] route=transcode reencode=\(transcodeIsReencode)")
+        case .tunerFile(let url):
+            tsURL = url
             isTunerFileRoute = true
             liveRoute = .tunerFile
             // Path only: the query carries the access token and this line lands in the diagnostic HUD.
-            LogTap.shared.note("[LiveDirect] route=tunerfile path=\(tunerFileURL.path)")
-        } else if let staticURL {
-            tsURL = staticURL
+            LogTap.shared.note("[LiveDirect] route=tunerfile path=\(url.path)")
+        case .staticStream(let url):
+            tsURL = url
             isTunerFileRoute = false
             liveRoute = .staticStream
             LogTap.shared.note("[LiveDirect] route=static")
-        } else {
+        case nil:
             throw PlayerEngineError.noSource
         }
         usedLiveTunerFilePath = isTunerFileRoute
@@ -349,21 +358,30 @@ extension PlayerViewModel {
         } catch is CancellationError {
             throw CancellationError()
         } catch {
-            // Only the tuner-file route can fail for a reason the static route survives: a proxy that
+            // Only the tuner-file route can fail for a reason the server routes survive: a proxy that
             // does not forward /LiveTv, or a server whose tuner host fills MediaSource.Path with a
-            // route it does not serve. Retreat once per session instead of surfacing; the stage-1 tuner
-            // is still open, so the static route reuses it rather than opening a second one.
-            guard isTunerFileRoute, let staticURL else { throw error }
+            // route it does not serve. Retreat once per session instead of surfacing, onto the server's
+            // own copy of the same stream where there is one and the static route otherwise; the
+            // stage-1 tuner is still open, so the retreat reuses it rather than opening a second one.
+            guard isTunerFileRoute else { throw error }
+            let retreat: (url: URL, route: LiveRoute)
+            if let transcodeURL {
+                retreat = (transcodeURL, .transcode)
+            } else if let staticURL {
+                retreat = (staticURL, .staticStream)
+            } else {
+                throw error
+            }
             didAbandonLiveTunerFile = true
             usedLiveTunerFilePath = false
-            liveRoute = .staticStream
+            liveRoute = retreat.route
             // The thrown value alone is often just a type name; the engine's own classification beside it
             // is what says whether the read was refused, timed out or could not be demuxed (#71).
             LogTap.shared.note(
-                "[LiveDirect] route=static reason=tunerfile_load_failed(\(error)) "
+                "[LiveDirect] route=\(retreat.route.rawValue) reason=tunerfile_load_failed(\(error)) "
                 + PlayerEngineErrorPresentation.logLine(for: player.errorInfo, engineMessage: "\(error)")
             )
-            try await player.load(url: staticURL, startPosition: nil, options: options,
+            try await player.load(url: retreat.url, startPosition: nil, options: options,
                                   audioSourceStreamIndex: liveAudioIndex)
         }
 
@@ -606,6 +624,69 @@ extension PlayerViewModel {
               let reasons = comps.queryItems?.first(where: { $0.name == "TranscodeReasons" })?.value
         else { return false }
         return reasons.split(separator: ",").map(String.init).contains("VideoCodecNotSupported")
+    }
+
+    // MARK: - Route choices, decided in one place so a test can hold them
+
+    /// Whether a live source may go to the engine's HLS ingest, and why not when it may not.
+    ///
+    /// The ingest reader asks its URL for a playlist. Jellyfin's own `/LiveTv/LiveStreamFiles/` route
+    /// answers with a growing MPEG-TS instead, so handing it one fails as `playlistUnreachable` and
+    /// costs the tune both the attempt and the fallback before it reaches the server route it was
+    /// always going to take. The tuner-backed channel WITH a TranscodingUrl was assumed not to exist;
+    /// liveProfile asks Jellyfin for a copy-remux, so the server offers one for nearly every tuner
+    /// channel and the old guard let all of them through (#70).
+    enum LiveDirectEligibility: Equatable {
+        case eligible(URL)
+        /// No TranscodingUrl: nothing here is a provider-fed remux channel.
+        case notARemuxChannel
+        /// Path names Jellyfin's own buffered tuner stream, which is the server route's input, not a playlist.
+        case pathIsJellyfinTunerFile
+        /// Path is missing, a local file, or otherwise not an http(s) URL.
+        case pathNotAnUpstreamURL
+
+        var logReason: String {
+            switch self {
+            case .eligible: "eligible"
+            case .notARemuxChannel: "transcodingUrl=none"
+            case .pathIsJellyfinTunerFile: "path=jellyfin_tunerfile"
+            case .pathNotAnUpstreamURL: "path=not_an_upstream_url"
+            }
+        }
+    }
+
+    static func liveDirectIngestEligibility(transcodingURL: String?, sourcePath: String?) -> LiveDirectEligibility {
+        guard transcodingURL != nil else { return .notARemuxChannel }
+        guard let sourcePath else { return .pathNotAnUpstreamURL }
+        guard JellyfinPlaybackService.liveStreamFileRelativePath(fromSourcePath: sourcePath) == nil else {
+            return .pathIsJellyfinTunerFile
+        }
+        guard let upstream = URL(string: sourcePath),
+              let scheme = upstream.scheme?.lowercased(),
+              scheme == "http" || scheme == "https" else { return .pathNotAnUpstreamURL }
+        return .eligible(upstream)
+    }
+
+    /// Which server route a live tune takes. Pure, because the decision was previously observable only
+    /// by reading a log line off a device, and the ranking is the whole point of #70: a TranscodingUrl
+    /// that is only a stream copy loses to the tuner file it would have copied, a real re-encode does not.
+    enum LiveServerRouteChoice: Equatable {
+        case transcode(URL)
+        case tunerFile(URL)
+        case staticStream(URL)
+    }
+
+    static func chooseLiveServerRoute(
+        transcodeURL: URL?,
+        tunerFileURL: URL?,
+        staticURL: URL?,
+        transcodeIsReencode: Bool
+    ) -> LiveServerRouteChoice? {
+        if let transcodeURL, transcodeIsReencode { return .transcode(transcodeURL) }
+        if let tunerFileURL { return .tunerFile(tunerFileURL) }
+        if let transcodeURL { return .transcode(transcodeURL) }
+        if let staticURL { return .staticStream(staticURL) }
+        return nil
     }
 
 }
