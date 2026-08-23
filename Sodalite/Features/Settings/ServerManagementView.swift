@@ -231,7 +231,9 @@ private struct ServerManagementRow: View {
         .focusable(true)
         .focused($focused)
         .animation(.easeInOut(duration: 0.15), value: focused)
-        .stableTap(isFocused: focused) {
+        // The hold belongs to the menu below: without this the row switched servers on the way into
+        // its own context menu, which is why an inactive row never showed one (Sodalite#75).
+        .stableTap(isFocused: focused, longPressOpensMenu: true) {
             if !isActive { onSwitch() }
         }
         .contextMenu {
