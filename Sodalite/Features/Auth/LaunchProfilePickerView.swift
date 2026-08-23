@@ -13,11 +13,13 @@ struct LaunchProfilePickerView: View {
     @Environment(\.horizontalSizeClass) private var hSizeClass
 
     let server: JellyfinServer
-    /// Cold-launch root vs mid-session reprompt cover (issue #41). In reprompt context,
-    /// picking the active profile must not switch or clear caches, just dismiss.
-    enum Context { case launch, reprompt }
+    /// Cold-launch root, mid-session reprompt cover (issue #41), or the cover a server switch raises
+    /// when the target holds no session this device may resume unasked (Sodalite#74). In reprompt
+    /// context, picking the active profile must not switch or clear caches, just dismiss; in
+    /// switchServer context every card belongs to another server, so every card is a real switch.
+    enum Context { case launch, reprompt, switchServer }
     var context: Context = .launch
-    /// Reprompt-cover dismissal; nil in launch context.
+    /// Cover dismissal (reprompt + switchServer); nil in launch context.
     var onFinished: (() -> Void)? = nil
 
     @State private var rememberedUsers: [RememberedUser] = []
@@ -79,17 +81,19 @@ struct LaunchProfilePickerView: View {
             // (setAuthenticated without a serverDidSwitch bump); drop the cover instead of
             // stranding the user on the picker until they tap the now-active card.
             .onReceive(NotificationCenter.default.publisher(for: .loginDidComplete)) { _ in
-                if context == .reprompt { onFinished?() }
+                if context != .launch { onFinished?() }
             }
             .sheet(isPresented: $showServerSwitchSheet) {
                 ServerSwitchSheet(
                     onAddServer: {
                         showAddServerFlow = true
                     },
-                    onSwitched: { _ in
-                        // Launch context: picker re-resolves the active server from environment dependencies
-                        // on next render. Reprompt context: serverDidSwitch authenticates underneath, drop the cover.
-                        onFinished?()
+                    onSwitched: { switched in
+                        // Only a switch that happened drops the cover: serverDidSwitch authenticates
+                        // underneath it. One that deferred to another server's picker (Sodalite#74) must
+                        // leave it standing, else this cover dismisses into the one AppRouter is about to
+                        // raise. Launch context re-resolves through AppRouter's launchPickerServer.
+                        if switched { onFinished?() }
                     }
                 )
             }

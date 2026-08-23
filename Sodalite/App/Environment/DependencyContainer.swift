@@ -444,9 +444,10 @@ final class DependencyContainer {
     enum ServerSwitchError: LocalizedError {
         /// The requested server id was not in knownServers.
         case unknown
-        /// The target server has no stored access token. The caller
-        /// must show the profile picker (or LoginView if there are
-        /// no remembered users either).
+        /// The target server has no session this device can resume: no
+        /// token of its own and no remembered profile that may be
+        /// resumed unasked. The caller shows that server's profile
+        /// picker (its cards, or a fresh sign-in, both live there).
         case missingToken
 
         /// `.missingToken` normally routes to the picker rather than to a message, but it reaches a
@@ -467,20 +468,62 @@ final class DependencyContainer {
         }
     }
 
-    /// Switches the active server: sets the pointer, loads the cached token, reconfigures JellyfinClient, rewrites SharedSessionMirror, bumps serverDidSwitch. Seerr is left to the caller's restore path. Throws .unknown (not in knownServers) or .missingToken (caller routes to login).
+    /// The remembered profile a switch to `serverID` may resume without asking, when the server holds no
+    /// session of its own on this device. That is the normal state for every server restored from iCloud:
+    /// the token slot is deliberately device-local and never syncs, while the tokens themselves ride the
+    /// remembered profiles (Sodalite#74). nil when the pick is not ours to make (several profiles and no
+    /// pinned default, or one the Guardian PIN guards), which is what the profile picker is for.
+    func resumableProfile(serverID: String) -> RememberedUser? {
+        let remembered = listRememberedUsers(serverID: serverID)
+        let pinned = authPreferences.defaultUserID(serverID: serverID)
+            .flatMap { id in remembered.first { $0.id == id } }
+        guard let candidate = pinned ?? (remembered.count == 1 ? remembered.first : nil),
+              !candidate.token.isEmpty
+        else { return nil }
+        // isColdStart: nobody identified themselves for this pick, so it has to clear the strictest bar
+        // the picker would put in front of the same card.
+        guard !parentalGateRequired(
+            forActivatingUserID: candidate.id,
+            serverID: serverID,
+            isColdStart: true
+        ) else { return nil }
+        return candidate
+    }
+
+    /// Switches the active server: sets the pointer, loads the cached token, reconfigures JellyfinClient, rewrites SharedSessionMirror, bumps serverDidSwitch. Seerr is left to the caller's restore path. Throws .unknown (not in knownServers) or .missingToken (caller routes to the target's profile picker). Both throws land before the first write, so a switch that cannot complete leaves no half-switched session behind.
     func switchServer(to serverID: String) throws {
         guard let server = listKnownServers().first(where: { $0.id == serverID }) else {
             throw ServerSwitchError.unknown
         }
 
+        // Resolve the session before anything is written. A server restored from iCloud has an empty
+        // token slot, so its remembered profile is the second, equally valid reading of "signed in
+        // here" (Sodalite#74); without it the switch died on a credential the device was holding.
+        let cachedToken = try? keychainService.loadString(for: KeychainKeys.accessToken(serverID: serverID))
+        let resumable = cachedToken == nil ? resumableProfile(serverID: serverID) : nil
+        guard let token = cachedToken ?? resumable?.token else {
+            throw ServerSwitchError.missingToken
+        }
+
         // Stop session-scoped background music at the source, before the session changes. The AppRouter
         // activeSessionIdentity onChange only catches the completed setAuthenticated, which lags the async
-        // probe on a server switch (and never fires on the .missingToken picker route below), so the previous
-        // server's track would keep playing. Covers removeServer's active-server promotion (it calls this).
+        // probe on a server switch, so the previous server's track would keep playing. Covers removeServer's
+        // active-server promotion (it calls this).
         Task { @MainActor in
             if self.musicPlaybackCoordinator.currentItem != nil {
                 self.musicPlaybackCoordinator.stop()
             }
+        }
+
+        if let resumable {
+            // Adopt the profile's own cached token as this device's session for the target: switchToUser
+            // writes both pointers, re-stamps the name caches and purges the identity-scoped caches, so
+            // the keychain converges on exactly the state a tap in that server's picker would have left.
+            try switchToUser(resumable, server: server)
+            Task { @MainActor in
+                self.appState?.serverDidSwitch &+= 1
+            }
+            return
         }
 
         let previousServerID = try? keychainService.loadString(for: KeychainKeys.activeServerID)
@@ -490,21 +533,7 @@ final class DependencyContainer {
             FilterCache.shared.clearAll()
         }
 
-        let loaded: String?
-        do {
-            loaded = try keychainService.loadString(for: KeychainKeys.accessToken(serverID: serverID))
-        } catch {
-            loaded = nil
-        }
-
         let sessionURL = preferredURL(for: server)
-
-        guard let token = loaded else {
-            jellyfinClient.baseURL = sessionURL
-            jellyfinClient.accessToken = nil
-            SharedSessionMirror.clear(tvUserID: TVUserContext.currentUserID)
-            throw ServerSwitchError.missingToken
-        }
 
         let userID = try? keychainService.loadString(for: KeychainKeys.userID(serverID: serverID))
 
@@ -582,7 +611,23 @@ final class DependencyContainer {
                     try switchServer(to: successor.id)
                     signalAlreadyScheduled = true
                 } catch {
-                    // Missing token: pointer moved but no bump scheduled. Fall through to the trailing bump so AppRouter routes to the picker.
+                    // No session on the successor this device may resume. switchServer now throws before
+                    // it writes anything (Sodalite#74), so the promotion moves the pointer itself: leaving
+                    // it would keep the active-server entry naming the server we just deleted. The trailing
+                    // bump then routes AppRouter to the successor's profile picker.
+                    try? keychainService.save(successor.id, for: KeychainKeys.activeServerID)
+                    FilterCache.shared.clearAll()
+                    // The stop switchServer would have done on its way through: the picker route leaves
+                    // appState.activeServer standing, so activeSessionIdentity never moves and the
+                    // deleted server's track would play on under the successor's picker.
+                    Task { @MainActor in
+                        if self.musicPlaybackCoordinator.currentItem != nil {
+                            self.musicPlaybackCoordinator.stop()
+                        }
+                    }
+                    jellyfinClient.baseURL = preferredURL(for: successor)
+                    jellyfinClient.accessToken = nil
+                    SharedSessionMirror.clear(tvUserID: TVUserContext.currentUserID)
                 }
             } else {
                 try? keychainService.delete(for: KeychainKeys.activeServerID)

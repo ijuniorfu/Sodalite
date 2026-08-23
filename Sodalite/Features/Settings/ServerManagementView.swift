@@ -114,14 +114,14 @@ struct ServerManagementView: View {
 
     private func switchTo(_ server: JellyfinServer) {
         guard server.id != activeID else { return }
-        let previous = activeID
         do {
             try dependencies.switchServer(to: server.id)
+        } catch DependencyContainer.ServerSwitchError.missingToken {
+            // Normal for a server restored from iCloud, whose tokens ride the remembered profiles while
+            // the session slot stays device-local: raise that server's profile picker instead of a
+            // dead-end alert. Nothing was written, so the current session stands (Sodalite#74).
+            appState.pendingProfilePickerServerID = server.id
         } catch {
-            // switchServer writes the active-server pointer BEFORE it can throw (.missingToken) -> half-switched broken session; roll back like ServerSwitchSheet.
-            if let previous {
-                try? dependencies.rollbackSwitch(to: previous)
-            }
             showSwitchFailed = true
         }
         load()
