@@ -9,6 +9,9 @@ enum HomeRowType: String, Codable, Sendable, CaseIterable, Identifiable {
     case favoriteEpisodes
     case latestMovies
     case latestShows
+    /// Ordered by release/air date, unlike every Latest row above (those order by DateCreated).
+    case recentlyReleasedMovies
+    case recentlyReleasedShows
     case discoverProviders
     case genres
     case collections
@@ -70,6 +73,8 @@ enum HomeRowType: String, Codable, Sendable, CaseIterable, Identifiable {
         case .nextUp: "home.nextUp"
         case .latestMovies: "home.latestMovies"
         case .latestShows: "home.latestShows"
+        case .recentlyReleasedMovies: "home.recentlyReleasedMovies"
+        case .recentlyReleasedShows: "home.recentlyReleasedShows"
         case .allMovies: "home.allMovies"
         case .allSeries: "home.allSeries"
         case .favorites: "home.favorites"
@@ -92,6 +97,8 @@ enum HomeRowType: String, Codable, Sendable, CaseIterable, Identifiable {
         case .nextUp: "forward"
         case .latestMovies: "film"
         case .latestShows: "tv"
+        case .recentlyReleasedMovies: "calendar"
+        case .recentlyReleasedShows: "calendar.badge.clock"
         case .allMovies: "film.stack"
         case .allSeries: "rectangle.stack"
         case .favorites: "heart.fill"

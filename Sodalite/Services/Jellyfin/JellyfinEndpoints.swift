@@ -517,6 +517,12 @@ struct ItemQuery: Sendable {
     /// Jellyfin applies it to episodes only, and it covers missing but not unaired ones, so callers
     /// still check `isVirtual` on what comes back (Sodalite#57).
     var isMissing: Bool?
+    /// `MaxPremiereDate=`: upper bound on the release/air date. Only the release-ordered home rows
+    /// pass it, and they must: `SortBy=PremiereDate` puts unaired titles first, and Jellyfin lists
+    /// unaired episodes as virtual items whenever the admin enables "display missing episodes".
+    /// `IsMissing=false` does not cover them (see above), so the clamp and the `isVirtual` filter
+    /// are separate nets rather than alternatives.
+    var maxPremiereDate: Date?
     /// Jellyfin `Fields=`, deliberately without a default. It used to be optional with a
     /// `fields ?? defaultFields` fallback, so a caller that simply did not think about it silently
     /// asked for the detail-screen set; four grid queries did exactly that (Sodalite#68). Pick one:
@@ -528,6 +534,9 @@ struct ItemQuery: Sendable {
     /// config decides (Sodalite#44). Only the My Media library grids pass nil; home rows, search and
     /// shuffle stay flat, else a freshly added movie hides behind a collection tile.
     var collapseBoxSetItems: Bool? = false
+
+    /// Fixed-format UTC: the server parses this, it is not display text, so no locale-aware formatter.
+    private static let premiereDateFormatter = ISO8601DateFormatter()
 
     func toQueryItems() -> [URLQueryItem] {
         var items: [URLQueryItem] = []
@@ -561,6 +570,11 @@ struct ItemQuery: Sendable {
             items.append(URLQueryItem(name: "PersonIds", value: personIDs.joined(separator: ",")))
         }
         if let isMissing { items.append(URLQueryItem(name: "IsMissing", value: String(isMissing))) }
+        if let maxPremiereDate {
+            items.append(
+                URLQueryItem(name: "MaxPremiereDate", value: Self.premiereDateFormatter.string(from: maxPremiereDate))
+            )
+        }
 
         items.append(URLQueryItem(name: "Fields", value: fields))
         items.append(URLQueryItem(name: "Recursive", value: "true"))

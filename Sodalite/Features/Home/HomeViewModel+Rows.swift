@@ -183,6 +183,23 @@ extension HomeViewModel {
                 let response = try await libraryService.getItems(userID: userID, query: query)
                 items = response.items
 
+            case .recentlyReleasedMovies:
+                let response = try await libraryService.getItems(
+                    userID: userID,
+                    query: HomeReleaseRowQuery.movies(now: Date(), limit: 20)
+                )
+                items = HomeReleaseRowQuery.airedOnly(response.items)
+
+            case .recentlyReleasedShows:
+                // Episodes folded onto their series, so a show that aired last night ranks by that
+                // episode rather than by the date the show first started (see HomeReleaseRowQuery).
+                let response = try await libraryService.getItems(
+                    userID: userID,
+                    query: HomeReleaseRowQuery.episodes(now: Date(), limit: 64)
+                )
+                let aired = HomeReleaseRowQuery.airedOnly(response.items)
+                items = Array(await foldEpisodesIntoSeries(aired).prefix(16))
+
             case .collections:
                 let query = ItemQuery(
                     includeItemTypes: [.boxSet],
