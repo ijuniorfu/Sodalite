@@ -34,11 +34,15 @@ struct HomeRowConfigTests {
     }
 
     /// The aggregated Latest rows stay enabled and per-library rows stay opt-in (disabled) even on
-    /// a multi-library server, matching the reset-to-default baseline.
+    /// a multi-library server, matching the reset-to-default baseline. Two libraries per type,
+    /// because a type with a single library gets no per-library row at all
+    /// (`PerLibraryRowRedundancyTests`).
     @Test func perLibraryRowsAreDisabledByDefault() {
         let libraries = [
             library("m1", "Movies A", "movies"),
-            library("t1", "Shows", "tvshows"),
+            library("m2", "Movies B", "movies"),
+            library("t1", "Shows A", "tvshows"),
+            library("t2", "Shows B", "tvshows"),
         ]
         let fresh = HomeRowConfig.reconciled(stored: HomeRowConfig.defaultConfig(), libraries: libraries)
 
@@ -48,26 +52,28 @@ struct HomeRowConfigTests {
         #expect(latestShows?.isEnabled == true)
 
         let perLibrary = fresh.filter { $0.type == .libraryLatest }
-        #expect(perLibrary.count == 2)
+        #expect(perLibrary.count == 4)
         #expect(perLibrary.allSatisfy { !$0.isEnabled })
     }
 
-    /// Vanished libraries drop their per-library row; surviving ones keep their user toggle.
+    /// Vanished libraries drop their per-library row; surviving ones keep their user toggle. Three
+    /// libraries of one type, so that removing one leaves two behind and the survivors keep earning
+    /// their rows (with one left they would be retired as redundant instead).
     @Test func reconcileDropsVanishedLibraryRows() {
         let libraries = [
             library("m1", "Movies A", "movies"),
-            library("t1", "Shows", "tvshows"),
+            library("m2", "Movies B", "movies"),
+            library("m3", "Movies C", "movies"),
         ]
         var stored = HomeRowConfig.reconciled(stored: HomeRowConfig.defaultConfig(), libraries: libraries)
         // User enables one per-library row.
         if let idx = stored.firstIndex(where: { $0.type == .libraryLatest && $0.libraryID == "m1" }) {
             stored[idx].isEnabled = true
         }
-        // The tvshows library is removed server-side.
-        let after = HomeRowConfig.reconciled(stored: stored, libraries: [library("m1", "Movies A", "movies")])
+        // One library is removed server-side.
+        let after = HomeRowConfig.reconciled(stored: stored, libraries: Array(libraries.prefix(2)))
         let dynamic = after.filter { $0.type == .libraryLatest }
-        #expect(dynamic.count == 1)
-        #expect(dynamic.first?.libraryID == "m1")
+        #expect(dynamic.map(\.libraryID) == ["m1", "m2"])
         #expect(dynamic.first?.isEnabled == true)
     }
 

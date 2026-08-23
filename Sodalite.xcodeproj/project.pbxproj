@@ -211,6 +211,7 @@
 		3CE2EF528886AD32B6043D4E /* PlayerViewModel+ItemRecovery.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCF3A9D8BE6DD4C682266627 /* PlayerViewModel+ItemRecovery.swift */; };
 		3D6D348AFF0B8342489A377B /* TextBlockSplitterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94056E09EBFDA347E4C7D62D /* TextBlockSplitterTests.swift */; };
 		3D7D41686DD74BC858B08AE9 /* ParentalControlsSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7279B6C934F14AEABE549641 /* ParentalControlsSettingsView.swift */; };
+		3D9CB1FDA374DEFE3B4AE377 /* PerLibraryRowRedundancyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E233C65BCA6F49513445AA3A /* PerLibraryRowRedundancyTests.swift */; };
 		3E11324A7FC8A51A0F0945BD /* PlayerViewModel+NextEpisode.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED26D171BB677217D8F106D4 /* PlayerViewModel+NextEpisode.swift */; };
 		3E1BFB3B736A4143321CF0B9 /* SeerrWatchProvidersRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41193FED9B2D75A4F8826F18 /* SeerrWatchProvidersRow.swift */; };
 		3F726A28BD0F71C4C5923E17 /* SeerrEpisodeCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77412030533E48E44E837CAC /* SeerrEpisodeCard.swift */; };
@@ -1345,6 +1346,7 @@
 		E16CB1DBF0F096E8267D8D08 /* LicenseText-MIT.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "LicenseText-MIT.txt"; sourceTree = "<group>"; };
 		E1880A3F02893B1FBE1825FB /* GuideGridLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuideGridLayout.swift; sourceTree = "<group>"; };
 		E22D02CCB243103E21F36E05 /* SeerrCollectionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeerrCollectionTests.swift; sourceTree = "<group>"; };
+		E233C65BCA6F49513445AA3A /* PerLibraryRowRedundancyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PerLibraryRowRedundancyTests.swift; sourceTree = "<group>"; };
 		E248152FCA9B2C490E641934 /* GuideGridViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuideGridViewController.swift; sourceTree = "<group>"; };
 		E24C811D70DAAA13454A02EE /* SeerrMediaTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeerrMediaTests.swift; sourceTree = "<group>"; };
 		E25735BA0AC72D8D8AEE8984 /* SeerrRequestFilter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeerrRequestFilter.swift; sourceTree = "<group>"; };
@@ -1669,6 +1671,7 @@
 				741F6735F2BBBAF0C5648BFB /* NetworkBufferDepthTests.swift */,
 				3A458B9951731F51899E0F4B /* NextEpisodePolicyTests.swift */,
 				AEAABD2FB5B0BD5670877864 /* PendingRequestsMonitorTests.swift */,
+				E233C65BCA6F49513445AA3A /* PerLibraryRowRedundancyTests.swift */,
 				FA334990CFAE3DF5B20A3C80 /* PersonDetailViewModelTests.swift */,
 				2E16222C25BCDA9113A710D7 /* PersonLibraryTests.swift */,
 				13CBA535F5E1308F6F2B4EE8 /* PersonRouteTests.swift */,
@@ -3000,6 +3003,7 @@
 				C8606BD7F2913B7C4A1DAC6B /* NetworkBufferDepthTests.swift in Sources */,
 				AE3581664FF0028C5FA58C1B /* NextEpisodePolicyTests.swift in Sources */,
 				1A3E78E267B352AC25A5F833 /* PendingRequestsMonitorTests.swift in Sources */,
+				3D9CB1FDA374DEFE3B4AE377 /* PerLibraryRowRedundancyTests.swift in Sources */,
 				CCAB46132552C6D1CBAA260F /* PersonDetailViewModelTests.swift in Sources */,
 				BE3BCD4FC49341D82EDC37BE /* PersonLibraryTests.swift in Sources */,
 				19534051393FA4A734ACC9E4 /* PersonRouteTests.swift in Sources */,
