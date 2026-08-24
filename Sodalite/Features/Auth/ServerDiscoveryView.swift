@@ -220,21 +220,23 @@ private struct DiscoveredServerRow: View {
                 .font(.title2)
                 .foregroundStyle(.tint)
             VStack(alignment: .leading, spacing: 6) {
-                HStack(spacing: 12) {
-                    Text(server.name)
-                        .font(.headline)
-                    if alreadyAdded {
-                        Text("auth.discovery.alreadyAdded")
-                            .font(.caption.bold())
-                            .foregroundStyle(.tint)
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 4)
-                            .background(.tint.opacity(0.18), in: Capsule())
-                    }
-                }
+                Text(server.name)
+                    .font(.headline)
                 Text(server.address.host() ?? server.address.absoluteString)
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
+                if alreadyAdded {
+                    // Own line: the German label alone is 229pt of the ~480pt text
+                    // column, so it can never share a line with a server name.
+                    Text("auth.discovery.alreadyAdded")
+                        .font(.caption.bold())
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 6)
+                        .background(.tint.opacity(0.35), in: Capsule())
+                        .fixedSize()
+                        .padding(.top, 2)
+                }
             }
             Spacer()
         }
