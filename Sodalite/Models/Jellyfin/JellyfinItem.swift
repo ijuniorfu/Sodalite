@@ -28,6 +28,11 @@ struct JellyfinItem: Codable, Sendable, Identifiable, Equatable, Hashable {
     let parentBackdropImageTags: [String]?
     // `var` so detail views patch the in-memory resume position from the playback-stop payload (issue #24), no re-fetch.
     var userData: UserItemData?
+    /// Item-level video geometry (`Fields=Width,Height`): two ints read straight off the BaseItem
+    /// row, no MediaSourceManager call, so the resolution pill costs nothing on a 200-item grid
+    /// (Sodalite#79). `var` with a default so the hand-written inits below stay untouched.
+    var width: Int?
+    var height: Int?
     let mediaStreams: [MediaStream]?
     let mediaSources: [MediaSource]?
     let people: [PersonInfo]?
@@ -121,6 +126,8 @@ struct JellyfinItem: Codable, Sendable, Identifiable, Equatable, Hashable {
         case backdropImageTags = "BackdropImageTags"
         case parentBackdropImageTags = "ParentBackdropImageTags"
         case userData = "UserData"
+        case width = "Width"
+        case height = "Height"
         case mediaStreams = "MediaStreams"
         case mediaSources = "MediaSources"
         case people = "People"

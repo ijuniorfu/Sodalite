@@ -487,7 +487,11 @@ enum JellyfinEndpoint: APIEndpoint {
     /// detailFields per item is dead weight on a 16-30-item row (Sodalite#12) and worse on a 200-item
     /// grid over a large library (Sodalite#68). `nonisolated` so detached precompute closures read it
     /// without a MainActor hop (immutable, so cross-actor safe).
-    nonisolated static let homeRowFields = "ImageTags,BackdropImageTags,ParentBackdropImageTags,SeriesPrimaryImageTag"
+    /// `Width`/`Height` are the one cheap exception (Sodalite#79): DtoService reads them off the
+    /// BaseItem row, unlike MediaStreams which costs a GetStaticMediaSources call per item. They
+    /// stay in the set whether or not the badge setting is on, because grid and precompute write
+    /// the same FilterCache keys and two writers of one key must not carry different field sets.
+    nonisolated static let homeRowFields = "ImageTags,BackdropImageTags,ParentBackdropImageTags,SeriesPrimaryImageTag,Width,Height"
 
     /// Music browse rows: image tags + album/artist linkage; IndexNumber/ParentIndexNumber/RunTimeTicks/ProductionYear come back without an explicit Fields request.
     nonisolated static let musicListFields = "ImageTags,Artists,AlbumArtist,AlbumId,AlbumPrimaryImageTag"
