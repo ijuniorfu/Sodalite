@@ -124,7 +124,7 @@ struct ServerDiscoveryView: View {
                 )
             }
         }
-        .frame(maxWidth: 600)
+        .frame(maxWidth: 760)
     }
 
     private var manualButton: some View {
@@ -225,20 +225,19 @@ private struct DiscoveredServerRow: View {
                 Text(server.address.host() ?? server.address.absoluteString)
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
-                if alreadyAdded {
-                    // Own line: the German label alone is 229pt of the ~480pt text
-                    // column, so it can never share a line with a server name.
-                    Text("auth.discovery.alreadyAdded")
-                        .font(.caption.bold())
-                        .foregroundStyle(.white)
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 6)
-                        .background(.tint.opacity(0.35), in: Capsule())
-                        .fixedSize()
-                        .padding(.top, 2)
-                }
             }
-            Spacer()
+            Spacer(minLength: 16)
+            if alreadyAdded {
+                // fixedSize keeps the capsule on one line, so the name is what
+                // wraps when a server name is long, not the status label.
+                Text("auth.discovery.alreadyAdded")
+                    .font(.caption.bold())
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 6)
+                    .background(.tint.opacity(0.35), in: Capsule())
+                    .fixedSize()
+            }
         }
         .padding(.horizontal, 24)
         .padding(.vertical, 20)
