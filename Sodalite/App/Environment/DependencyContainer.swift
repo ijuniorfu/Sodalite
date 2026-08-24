@@ -35,6 +35,9 @@ final class DependencyContainer {
     let spoilerSeriesRules: SpoilerSeriesRules
     let storeKitService: StoreKitServiceProtocol
     let appearancePreferences: AppearancePreferences
+    /// Sodalite#79. One store for the whole app so a title enriched in a Home row is already known
+    /// when the same title shows up in a grid.
+    let posterBadgeStore: PosterBadgeStore
     let authPreferences: AuthPreferences
     let parentalControlsPreferences: ParentalControlsPreferences
     let parentalGate: ParentalGate
@@ -128,6 +131,11 @@ final class DependencyContainer {
         self.spoilerSeriesRules = SpoilerSeriesRules()
         self.storeKitService = StoreKitService()
         self.appearancePreferences = AppearancePreferences()
+        let appearance = self.appearancePreferences
+        self.posterBadgeStore = PosterBadgeStore(
+            library: self.jellyfinLibraryService,
+            isEnabled: { appearance.showPosterBadges }
+        )
         self.authPreferences = AuthPreferences()
         // The pre-1.0 default-profile pin had no server scope; attribute it to the pinned default server, else the one that was active when it was written.
         self.authPreferences.migrateLegacyDefaultUserID(

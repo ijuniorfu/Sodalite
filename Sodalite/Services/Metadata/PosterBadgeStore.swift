@@ -19,19 +19,23 @@ final class PosterBadgeStore {
     private static let batchSize = 40
 
     private let library: JellyfinLibraryServiceProtocol
-    private let userID: @MainActor () -> String?
     private let isEnabled: @MainActor () -> Bool
 
     /// Item id -> what its streams said. An entry with empty badges is a negative result and stops
     /// the id from being asked about again.
     private var enriched: [String: MediaBadges] = [:]
     private var inFlight: Set<String> = []
+    /// Tail of the series-sampling chain. Home shows several rows at once, each with its own task,
+    /// so per-row serialisation would still let ten rows fan out; the chain makes it one sample at
+    /// a time for the whole app.
+    private var seriesTail: Task<Void, Never>?
 
+    /// `userID` is passed per call rather than resolved here: `DependencyContainer.activeUserID`
+    /// reads the keychain, and the callers hold `AppState.activeUser?.id` already (same reason
+    /// `spoilerPolicy(userID:)` takes it as a parameter, Sodalite#50).
     init(library: JellyfinLibraryServiceProtocol,
-         userID: @escaping @MainActor () -> String?,
          isEnabled: @escaping @MainActor () -> Bool) {
         self.library = library
-        self.userID = userID
         self.isEnabled = isEnabled
     }
 
@@ -45,8 +49,8 @@ final class PosterBadgeStore {
                            audio: found.audio ?? base.audio)
     }
 
-    func enrich(_ items: [JellyfinItem]) async {
-        guard isEnabled(), let userID = userID() else { return }
+    func enrich(userID: String, _ items: [JellyfinItem]) async {
+        guard isEnabled() else { return }
 
         var direct: [String] = []
         var series: [String] = []
@@ -76,7 +80,7 @@ final class PosterBadgeStore {
         // the request limiter is strict FIFO without a priority lane (Sodalite#72), so a fan-out
         // here would put a user's tap behind twenty background reads.
         for id in series {
-            await sampleSeries(id, userID: userID)
+            await enqueueSample(id, userID: userID)
         }
     }
 
@@ -96,6 +100,16 @@ final class PosterBadgeStore {
             found[item.id] = MediaBadgeResolver.badges(width: item.width, streams: item.mediaStreams)
         }
         enriched.merge(found) { _, new in new }
+    }
+
+    private func enqueueSample(_ seriesID: String, userID: String) async {
+        let previous = seriesTail
+        let sample = Task { @MainActor [weak self] in
+            await previous?.value
+            await self?.sampleSeries(seriesID, userID: userID)
+        }
+        seriesTail = sample
+        await sample.value
     }
 
     private func sampleSeries(_ seriesID: String, userID: String) async {

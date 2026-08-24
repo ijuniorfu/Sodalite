@@ -169,6 +169,9 @@ struct AppearanceSettingsPayload: Codable, Equatable {
     var spoilerProtectionEnabled: Bool
     var spoilerHideEpisodes: Bool
     var spoilerHideMovies: Bool
+    /// nil from a build without poster badges (Sodalite#79); false is the same as absent here,
+    /// the badges are opt-in, so a plain default carries no risk of overriding an opinion.
+    var showPosterBadges: Bool
     /// nil from a device on a build without tab visibility (Sodalite#62); applying nil would reset
     /// the receiver's hidden tabs, so it means "no opinion", not "nothing hidden".
     var hiddenTabs: [String]?
@@ -185,6 +188,7 @@ struct AppearanceSettingsPayload: Codable, Equatable {
         spoilerProtectionEnabled: Bool = false,
         spoilerHideEpisodes: Bool = true,
         spoilerHideMovies: Bool = false,
+        showPosterBadges: Bool = false,
         hiddenTabs: [String]? = nil
     ) {
         self.schemaVersion = schemaVersion
@@ -198,6 +202,7 @@ struct AppearanceSettingsPayload: Codable, Equatable {
         self.spoilerProtectionEnabled = spoilerProtectionEnabled
         self.spoilerHideEpisodes = spoilerHideEpisodes
         self.spoilerHideMovies = spoilerHideMovies
+        self.showPosterBadges = showPosterBadges
         self.hiddenTabs = hiddenTabs
     }
 
@@ -213,6 +218,7 @@ struct AppearanceSettingsPayload: Codable, Equatable {
         case spoilerProtectionEnabled
         case spoilerHideEpisodes
         case spoilerHideMovies
+        case showPosterBadges
         case hiddenTabs
     }
 
@@ -233,6 +239,7 @@ struct AppearanceSettingsPayload: Codable, Equatable {
         spoilerProtectionEnabled = try values.decodeIfPresent(Bool.self, forKey: .spoilerProtectionEnabled) ?? false
         spoilerHideEpisodes = try values.decodeIfPresent(Bool.self, forKey: .spoilerHideEpisodes) ?? true
         spoilerHideMovies = try values.decodeIfPresent(Bool.self, forKey: .spoilerHideMovies) ?? false
+        showPosterBadges = try values.decodeIfPresent(Bool.self, forKey: .showPosterBadges) ?? false
         hiddenTabs = try values.decodeIfPresent([String].self, forKey: .hiddenTabs)
     }
 
@@ -249,6 +256,7 @@ struct AppearanceSettingsPayload: Codable, Equatable {
         try values.encode(spoilerProtectionEnabled, forKey: .spoilerProtectionEnabled)
         try values.encode(spoilerHideEpisodes, forKey: .spoilerHideEpisodes)
         try values.encode(spoilerHideMovies, forKey: .spoilerHideMovies)
+        try values.encode(showPosterBadges, forKey: .showPosterBadges)
         try values.encodeIfPresent(hiddenTabs, forKey: .hiddenTabs)
     }
 }

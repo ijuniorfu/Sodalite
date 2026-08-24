@@ -119,6 +119,7 @@
 		1FD8DFBFA4BD689AE6D7EA87 /* PlayerHostController+Keyboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49AC01AA0DF14478E75DBC10 /* PlayerHostController+Keyboard.swift */; };
 		1FF0A3BA445586C666FE9254 /* PiPSessionCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A923B05E2F215F901C75218 /* PiPSessionCoordinator.swift */; };
 		2030D795B07A6CBC9716B0BC /* AppBackgroundView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C01A1DB2E58B09133252977 /* AppBackgroundView.swift */; };
+		2092BC14F3DF9CFC0E8E9BCF /* PosterBadgeOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = F01696A03EAD1FC14EEA5F35 /* PosterBadgeOverlay.swift */; };
 		20B785459CBFD6E022E62724 /* JellyfinServerDualURLPromptTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FCEE5A1416FF3B3900EE3B0 /* JellyfinServerDualURLPromptTests.swift */; };
 		20BE98904C5EE8F95DF336E6 /* LiveTvModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEB91D87EC2D7981F4D8D0D2 /* LiveTvModels.swift */; };
 		20D938BFB6EA2CF34D36E066 /* TrackSelectionMemory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 247F3F4BFD1A383FB168B6F6 /* TrackSelectionMemory.swift */; };
@@ -242,6 +243,7 @@
 		451C0AB3A94994E7038FE8EC /* SeerrClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 763CDF4F0B8FC70934BBB838 /* SeerrClient.swift */; };
 		452C958520A09412F7BE9770 /* StatsOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 256CE5DE2B1273662AB9F398 /* StatsOverlayView.swift */; };
 		45747BFDA8037D4C6E9C6C69 /* EpisodeRowComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6476801A57CD47661C981732 /* EpisodeRowComponents.swift */; };
+		459C0F637B0778E0067D6FCD /* PosterBadgeEnrichment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 309E61267DD57F84D370456E /* PosterBadgeEnrichment.swift */; };
 		45A9E601A7F5BE0E379B4173 /* SeerrEpisodeCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77412030533E48E44E837CAC /* SeerrEpisodeCard.swift */; };
 		46A7988A5B20B7F35E16F6F6 /* SodaliteIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 97F52845EFD489AE02A52FF2 /* SodaliteIntents.swift */; };
 		46B31ACF5E8768417EDBDC42 /* SearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EB11FC05D955CAA82390899 /* SearchView.swift */; };
@@ -851,7 +853,9 @@
 		F379FB58FADBED778F1CF1E6 /* ProfileRepromptPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = FFE58604D4DF8220F85FEE11 /* ProfileRepromptPolicy.swift */; };
 		F4D5CE6F24D47AA32651E03F /* HomeViewModel+Rows.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B72371460030EB19A5DC39F /* HomeViewModel+Rows.swift */; };
 		F50872F7E5C58ABEB8FC67A1 /* SeerrMediaCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73C70C69CE2B4D51320E884C /* SeerrMediaCard.swift */; };
+		F517D12411E0A5F7484EF17F /* PosterBadgeOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = F01696A03EAD1FC14EEA5F35 /* PosterBadgeOverlay.swift */; };
 		F529D9DFA1CD12E929C2C729 /* MediaCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 231D308F2B70E534C8F04447 /* MediaCard.swift */; };
+		F610614426258955F2A3AC46 /* PosterBadgeEnrichment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 309E61267DD57F84D370456E /* PosterBadgeEnrichment.swift */; };
 		F64338DACB5F08005B74787F /* PlayerViewModel+Scrubbing.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0B281014661348826CF938E /* PlayerViewModel+Scrubbing.swift */; };
 		F6491082B1EF3D9273CA5F79 /* SharedSessionMirror.swift in Sources */ = {isa = PBXBuildFile; fileRef = 786B359C3F0DB004141A34F1 /* SharedSessionMirror.swift */; };
 		F649B0D283FEDB9D1C1A6B47 /* Notifications.swift in Sources */ = {isa = PBXBuildFile; fileRef = 015C965A64CF0A6364D1C065 /* Notifications.swift */; };
@@ -1022,6 +1026,7 @@
 		2EF7DDFE86971C0AA32E4085 /* DependencyContainer+CloudSync.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DependencyContainer+CloudSync.swift"; sourceTree = "<group>"; };
 		2FCEE5A1416FF3B3900EE3B0 /* JellyfinServerDualURLPromptTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JellyfinServerDualURLPromptTests.swift; sourceTree = "<group>"; };
 		306295C10371A4A926588650 /* CloudSyncPreferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudSyncPreferences.swift; sourceTree = "<group>"; };
+		309E61267DD57F84D370456E /* PosterBadgeEnrichment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PosterBadgeEnrichment.swift; sourceTree = "<group>"; };
 		30BAB0577F927E6DE70315F7 /* AppShortcuts.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = AppShortcuts.xcstrings; sourceTree = "<group>"; };
 		3118800CEC44D1F94EBBFCF7 /* APIEndpoint.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIEndpoint.swift; sourceTree = "<group>"; };
 		319871CEDEF5EBA6EFCF4C63 /* AuthDefaultProfilePinTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthDefaultProfilePinTests.swift; sourceTree = "<group>"; };
@@ -1408,6 +1413,7 @@
 		EE3D6C7CCA64C8BDECE6C729 /* CloudSyncPreferencesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudSyncPreferencesTests.swift; sourceTree = "<group>"; };
 		EE4C9FBD5F7D9120B46B71E0 /* ForegroundReloadGateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForegroundReloadGateTests.swift; sourceTree = "<group>"; };
 		EF911AAFCD4B1D1F6C7A903A /* KeychainKeys.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainKeys.swift; sourceTree = "<group>"; };
+		F01696A03EAD1FC14EEA5F35 /* PosterBadgeOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PosterBadgeOverlay.swift; sourceTree = "<group>"; };
 		F02176F860C385FC701EC46A /* SeerrRequestUpdateBody.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeerrRequestUpdateBody.swift; sourceTree = "<group>"; };
 		F0775B7110033A2904C61B15 /* BackgroundRendererGeometryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundRendererGeometryTests.swift; sourceTree = "<group>"; };
 		F0AC027922382F10B2A84DD1 /* CloudSyncMergeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudSyncMergeTests.swift; sourceTree = "<group>"; };
@@ -1543,6 +1549,8 @@
 				231D308F2B70E534C8F04447 /* MediaCard.swift */,
 				C1118E47E5B52924CC5C4CBF /* MediaCastRow.swift */,
 				5CA101AEE2DA1D2D4A2957A9 /* MediaFocusRing.swift */,
+				309E61267DD57F84D370456E /* PosterBadgeEnrichment.swift */,
+				F01696A03EAD1FC14EEA5F35 /* PosterBadgeOverlay.swift */,
 				85CE19D6478133AFC7FCAA46 /* ResumeProgressBar.swift */,
 				DD2EECA0E08019603F8449BB /* ScrollHintChevron.swift */,
 				73C70C69CE2B4D51320E884C /* SeerrMediaCard.swift */,
@@ -2840,6 +2848,8 @@
 				8FC78FED2D47E6E7FD65CC2C /* PlayerViewModel+SubtitleSearch.swift in Sources */,
 				12E5AB627CF49C7E8A5610A2 /* PlayerViewModel.swift in Sources */,
 				70C14BE0E7A47CD315165CB7 /* PlaylistDetailView.swift in Sources */,
+				F610614426258955F2A3AC46 /* PosterBadgeEnrichment.swift in Sources */,
+				2092BC14F3DF9CFC0E8E9BCF /* PosterBadgeOverlay.swift in Sources */,
 				B2E0860859A63714DE6A536D /* PosterBadgeStore.swift in Sources */,
 				BE2B9CDC9431A49D317ABCCC /* ProfilePickerOrdering.swift in Sources */,
 				F379FB58FADBED778F1CF1E6 /* ProfileRepromptPolicy.swift in Sources */,
@@ -3351,6 +3361,8 @@
 				AE4CFDA4655642AB94E5438B /* PlayerViewModel+SubtitleSearch.swift in Sources */,
 				8B58C41637217CBB220D5AB8 /* PlayerViewModel.swift in Sources */,
 				C0EE40E3FAF756A490017923 /* PlaylistDetailView.swift in Sources */,
+				459C0F637B0778E0067D6FCD /* PosterBadgeEnrichment.swift in Sources */,
+				F517D12411E0A5F7484EF17F /* PosterBadgeOverlay.swift in Sources */,
 				3C3D0B611951A4F020CE7211 /* PosterBadgeStore.swift in Sources */,
 				068E7969370C5ED933944046 /* ProfilePickerOrdering.swift in Sources */,
 				442D887582ABCE1C166F7745 /* ProfileRepromptPolicy.swift in Sources */,

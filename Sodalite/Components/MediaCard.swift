@@ -79,6 +79,12 @@ struct MediaCard: View {
         .overlay(alignment: .bottom) {
             progressOverlay
         }
+        .overlay(alignment: .topLeading) {
+            // Music cards are excluded: an album has no picture to describe (Sodalite#79).
+            if style != .square {
+                PosterBadgeOverlay(item: item, cardWidth: cardWidth)
+            }
+        }
         .overlay(alignment: .topTrailing) {
             if item.userData?.played == true {
                 Image(systemName: "checkmark.circle.fill")

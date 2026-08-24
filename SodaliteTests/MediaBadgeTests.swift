@@ -135,6 +135,28 @@ struct MediaBadgeTests {
         #expect(badges.audio == .atmos)
     }
 
+    // MARK: - What the corner paints
+
+    @Test("the pills read from the top down: resolution, picture, sound")
+    func pillOrder() {
+        let badges = MediaBadgeResolver.badges(
+            width: 3840,
+            streams: [video(width: 3840, range: "DOVI", dvProfile: 5),
+                      audio(codec: "truehd", profile: "TrueHD with Dolby Atmos", channels: 8)])
+        #expect(badges.pills == ["4K", "DV", "ATMOS"])
+    }
+
+    @Test("a plain 1080p SDR title paints one pill, not three empty ones")
+    func pillsSkipWhatIsNotThere() {
+        let badges = MediaBadgeResolver.badges(width: 1920, streams: [video(width: 1920, range: "SDR")])
+        #expect(badges.pills == ["1080p"])
+    }
+
+    @Test("an item with nothing to say paints no corner at all")
+    func noPills() {
+        #expect(MediaBadgeResolver.badges(width: nil, streams: nil).pills.isEmpty)
+    }
+
     // MARK: - Shape
 
     @Test("an item with nothing to say produces empty badges")

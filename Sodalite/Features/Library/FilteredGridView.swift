@@ -230,6 +230,7 @@ struct FilteredGridView: View {
                 }
                 .padding(.horizontal, metrics.gridInset)
                 .padding(.vertical, 40)
+                .enrichesPosterBadges(items)
 
                 if isLoadingMore {
                     ProgressView()

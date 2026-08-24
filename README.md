@@ -117,6 +117,7 @@ The Seerr integration isn't a tacked-on link to a web view. It's a first-class p
 - **Title logos & synopses**: detail screens float the title logo over the backdrop and show full episode synopses, both toggleable in Appearance settings
 - **Full-bleed backdrops**: artwork shines through the whole detail page and dims as you scroll; titles without backdrop art get an ambient poster fill instead of a grey plate
 - **Watched tracking**: mark movies, episodes, seasons or whole series as watched or unwatched, with progress badges across Home and detail screens
+- **Poster badges**: optional pills in the corner of every card showing resolution (4K, 1080p), dynamic range (Dolby Vision, HDR10+, HDR10, HLG) and spatial audio (Atmos, DTS:X). Off by default in Appearance settings, because the picture and sound pills need a stream lookup per row; the resolution comes along for free with the card itself
 - **Favorites**: heart a movie, series, collection or a single episode; favorited episodes get their own Home row, alongside the Favorites row for everything else
 - **Cast & filmography**: open any cast member to see their photo, biography and full filmography, then jump straight to a title in your library or request it from the catalog. The page leads with what you already own, movies, series and the single episodes they guest in, and an episode opens its series at exactly that episode. Without Jellyseerr the page keeps that library half instead of going blank
 
@@ -192,7 +193,7 @@ The Seerr integration isn't a tacked-on link to a web view. It's a first-class p
 - **Diagnostic Log**: Settings → Diagnostic Log shows the last 300 diagnostic lines from the current app session, so a bug report can carry the actual error instead of a description of it; kept in memory only, nothing is written to disk or uploaded, and it can be copied on iPhone or screenshotted on Apple TV
 - **26 languages**: German, English, Spanish, French, Italian, Japanese, Korean, Norwegian, Dutch, Polish, Portuguese (BR + PT), Russian, Swedish, Simplified + Traditional Chinese, Turkish, Ukrainian, Czech, Slovak, Croatian, Finnish, Greek, Hungarian, Romanian, Danish
 - **Dark, minimal design** that puts the artwork first, on the big screen and in your hand
-- **Appearance options**: choose artwork style, card size and title logos, plus three free accent colors and Graphite Glass or OLED Black backgrounds; the optional Supporter Pack adds curated Pastel, Bold, Electric and Cinematic palettes plus animated Aurora and Noir backgrounds
+- **Appearance options**: choose artwork style, card size, title logos and poster badges, plus three free accent colors and Graphite Glass or OLED Black backgrounds; the optional Supporter Pack adds curated Pastel, Bold, Electric and Cinematic palettes plus animated Aurora and Noir backgrounds
 - **Liquid Glass** UI accents on tvOS 26 and iOS 26
 - **Input-native everywhere**: Siri Remote touch scrubbing, click for play/pause and swipe gestures on Apple TV; touch scrubbing and gestures on iPhone and iPad
 

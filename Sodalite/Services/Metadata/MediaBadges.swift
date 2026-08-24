@@ -33,6 +33,12 @@ struct MediaBadges: Equatable, Sendable {
     var audio: Audio?
 
     var isEmpty: Bool { resolution == nil && dynamicRange == nil && audio == nil }
+
+    /// Top to bottom in the poster corner: what it is, how it looks, how it sounds. Absent facts
+    /// leave no gap, an empty slot would read as something still loading.
+    var pills: [String] {
+        [resolution?.rawValue, dynamicRange?.rawValue, audio?.rawValue].compactMap { $0 }
+    }
 }
 
 enum MediaBadgeResolver {

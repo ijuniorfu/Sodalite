@@ -254,6 +254,7 @@ extension DependencyContainer {
                 spoilerProtectionEnabled: a.spoilerProtectionEnabled,
                 spoilerHideEpisodes: a.spoilerHideEpisodes,
                 spoilerHideMovies: a.spoilerHideMovies,
+                showPosterBadges: a.showPosterBadges,
                 hiddenTabs: a.hiddenTabs.map(\.rawValue).sorted()
             ))
         case .auth:
@@ -355,6 +356,7 @@ extension DependencyContainer {
             store.spoilerProtectionEnabled = a.spoilerProtectionEnabled
             store.spoilerHideEpisodes = a.spoilerHideEpisodes
             store.spoilerHideMovies = a.spoilerHideMovies
+            store.showPosterBadges = a.showPosterBadges
             // Absent field = sender predates tab visibility, so it carries no opinion; applying an empty set would silently unhide the receiver's tabs (Sodalite#62).
             if let tabs = a.hiddenTabs {
                 store.hiddenTabs = Set(tabs.compactMap(AppTab.init(rawValue:)).filter(\.isHideable))

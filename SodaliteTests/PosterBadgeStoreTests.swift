@@ -70,8 +70,15 @@ struct PosterBadgeStoreTests {
         private(set) var queries: [ItemQuery] = []
         var respond: (@MainActor (ItemQuery) throws -> JellyfinItemsResponse)?
 
+        private(set) var maxConcurrent = 0
+        private var concurrent = 0
+
         func getItems(userID: String, query: ItemQuery) async throws -> JellyfinItemsResponse {
             queries.append(query)
+            concurrent += 1
+            maxConcurrent = max(maxConcurrent, concurrent)
+            await Task.yield()  // hands the actor over, so an unthrottled sibling would overlap here
+            concurrent -= 1
             if let respond { return try respond(query) }
             return try PosterBadgeStoreTests.emptyResponse()
         }
@@ -89,7 +96,7 @@ struct PosterBadgeStoreTests {
     }
 
     private func store(_ library: LibraryFake, enabled: Bool = true) -> PosterBadgeStore {
-        PosterBadgeStore(library: library, userID: { "u1" }, isEnabled: { enabled })
+        PosterBadgeStore(library: library, isEnabled: { enabled })
     }
 
     // MARK: - The free half
@@ -114,7 +121,7 @@ struct PosterBadgeStoreTests {
         library.respond = { _ in try Self.response(ids: ["m1", "m2", "m3"]) }
         let store = store(library)
 
-        await store.enrich([try Self.item(id: "m1", type: "Movie"),
+        await store.enrich(userID: "u1", [try Self.item(id: "m1", type: "Movie"),
                             try Self.item(id: "m2", type: "Movie"),
                             try Self.item(id: "m3", type: "Movie")])
 
@@ -130,7 +137,7 @@ struct PosterBadgeStoreTests {
         let store = store(library)
         let items = try (1...90).map { try Self.item(id: "m\($0)", type: "Movie") }
 
-        await store.enrich(items)
+        await store.enrich(userID: "u1", items)
 
         #expect(library.queries.count == 3)
         #expect(library.queries.allSatisfy { ($0.ids?.count ?? 0) <= 40 })
@@ -143,7 +150,7 @@ struct PosterBadgeStoreTests {
         let store = store(library)
         let movie = try Self.item(id: "m1", type: "Movie", width: 1920)
 
-        await store.enrich([movie])
+        await store.enrich(userID: "u1", [movie])
 
         let badges = store.badges(for: movie)
         #expect(badges.dynamicRange == .hdr10)
@@ -158,8 +165,8 @@ struct PosterBadgeStoreTests {
         let store = store(library)
         let movie = try Self.item(id: "m1", type: "Movie")
 
-        await store.enrich([movie])
-        await store.enrich([movie])
+        await store.enrich(userID: "u1", [movie])
+        await store.enrich(userID: "u1", [movie])
 
         #expect(library.queries.count == 1)
     }
@@ -171,8 +178,8 @@ struct PosterBadgeStoreTests {
         let store = store(library)
         let movie = try Self.item(id: "m1", type: "Movie")
 
-        await store.enrich([movie])
-        await store.enrich([movie])
+        await store.enrich(userID: "u1", [movie])
+        await store.enrich(userID: "u1", [movie])
 
         #expect(library.queries.count == 1)
     }
@@ -185,7 +192,7 @@ struct PosterBadgeStoreTests {
             JellyfinItem.self,
             from: Data(#"{"Id":"m1","Name":"A","Type":"Movie","MediaStreams":[{"Index":0,"Type":"Video","Width":3840,"VideoRangeType":"HDR10"}]}"#.utf8))
 
-        await store.enrich([detailed])
+        await store.enrich(userID: "u1", [detailed])
 
         #expect(library.queries.isEmpty)
         #expect(store.badges(for: detailed).dynamicRange == .hdr10)
@@ -199,8 +206,8 @@ struct PosterBadgeStoreTests {
         let store = store(library)
         let movie = try Self.item(id: "m1", type: "Movie")
 
-        await store.enrich([movie])
-        await store.enrich([movie])
+        await store.enrich(userID: "u1", [movie])
+        await store.enrich(userID: "u1", [movie])
 
         #expect(library.queries.count == 2)
     }
@@ -214,7 +221,7 @@ struct PosterBadgeStoreTests {
         let store = store(library)
         let series = try Self.item(id: "s1", type: "Series")
 
-        await store.enrich([series])
+        await store.enrich(userID: "u1", [series])
 
         let query = try #require(library.queries.first)
         #expect(library.queries.count == 1)
@@ -234,10 +241,26 @@ struct PosterBadgeStoreTests {
         let store = store(library)
         let series = try Self.item(id: "s1", type: "Series")
 
-        await store.enrich([series])
-        await store.enrich([series])
+        await store.enrich(userID: "u1", [series])
+        await store.enrich(userID: "u1", [series])
 
         #expect(library.queries.count == 1)
+    }
+
+    @Test("series samples from two rows queue up instead of fanning out")
+    func seriesSamplesAreSerialisedAcrossRows() async throws {
+        let library = LibraryFake()
+        library.respond = { _ in try Self.response(ids: ["e1"]) }
+        let store = store(library)
+        let rowA = [try Self.item(id: "s1", type: "Series"), try Self.item(id: "s2", type: "Series")]
+        let rowB = [try Self.item(id: "s3", type: "Series"), try Self.item(id: "s4", type: "Series")]
+
+        async let first: Void = store.enrich(userID: "u1", rowA)
+        async let second: Void = store.enrich(userID: "u1", rowB)
+        _ = await (first, second)
+
+        #expect(library.queries.count == 4)
+        #expect(library.maxConcurrent == 1)
     }
 
     // MARK: - The switch and the item types
@@ -247,7 +270,7 @@ struct PosterBadgeStoreTests {
         let library = LibraryFake()
         let store = store(library, enabled: false)
 
-        await store.enrich([try Self.item(id: "m1", type: "Movie"),
+        await store.enrich(userID: "u1", [try Self.item(id: "m1", type: "Movie"),
                             try Self.item(id: "s1", type: "Series")])
 
         #expect(library.queries.isEmpty)
@@ -258,7 +281,7 @@ struct PosterBadgeStoreTests {
         let library = LibraryFake()
         let store = store(library)
 
-        await store.enrich([try Self.item(id: "b1", type: "BoxSet"),
+        await store.enrich(userID: "u1", [try Self.item(id: "b1", type: "BoxSet"),
                             try Self.item(id: "f1", type: "Folder"),
                             try Self.item(id: "a1", type: "MusicAlbum"),
                             try Self.item(id: "p1", type: "Playlist")])
@@ -272,12 +295,37 @@ struct PosterBadgeStoreTests {
         library.respond = { query in try Self.response(ids: query.ids ?? ["e1"]) }
         let store = store(library)
 
-        await store.enrich([try Self.item(id: "m1", type: "Movie"),
+        await store.enrich(userID: "u1", [try Self.item(id: "m1", type: "Movie"),
                             try Self.item(id: "e1", type: "Episode"),
                             try Self.item(id: "s1", type: "Series")])
 
         #expect(library.queries.count == 2)
         #expect(library.queries.contains { $0.ids == ["m1", "e1"] })
         #expect(library.queries.contains { $0.parentID == "s1" })
+    }
+}
+
+/// The switch itself (Sodalite#79): off until asked for, remembered across launches, and carried by
+/// CloudSync like every other appearance setting (the parity suite pins that half).
+@MainActor
+struct PosterBadgeSettingTests {
+
+    private func scratchDefaults(_ name: String) -> UserDefaults {
+        let defaults = UserDefaults(suiteName: "posterBadges.\(name)")!
+        defaults.removePersistentDomain(forName: "posterBadges.\(name)")
+        return defaults
+    }
+
+    @Test("poster badges stay off until someone turns them on")
+    func offByDefault() {
+        let prefs = AppearancePreferences(store: scratchDefaults("default"))
+        #expect(prefs.showPosterBadges == false)
+    }
+
+    @Test("the badge switch survives a relaunch")
+    func survivesRelaunch() {
+        let defaults = scratchDefaults("persist")
+        AppearancePreferences(store: defaults).showPosterBadges = true
+        #expect(AppearancePreferences(store: defaults).showPosterBadges)
     }
 }

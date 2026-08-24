@@ -44,6 +44,7 @@ final class AppearancePreferences {
         static let spoilerHideEpisodes = "appearance.spoilerHideEpisodes"
         static let spoilerHideMovies = "appearance.spoilerHideMovies"
         static let hiddenTabs = "appearance.hiddenTabs"
+        static let showPosterBadges = "appearance.showPosterBadges"
     }
 
     /// 1.3: noticeably bigger Apple TV-style card without dropping so many cards per row that rows feel empty.
@@ -88,6 +89,12 @@ final class AppearancePreferences {
 
     var spoilerHideMovies: Bool {
         didSet { store.set(spoilerHideMovies, forKey: Keys.spoilerHideMovies) }
+    }
+
+    /// Sodalite#79. Off by default: the pills themselves are free, but filling them in costs a
+    /// MediaStreams round trip per row, so only a viewer who wants them pays for them.
+    var showPosterBadges: Bool {
+        didSet { store.set(showPosterBadges, forKey: Keys.showPosterBadges) }
     }
 
     /// Sodalite#62. Tabs the user switched off; only hideable ones ever land here, so Home and
@@ -152,6 +159,7 @@ final class AppearancePreferences {
         self.spoilerProtectionEnabled = store.object(forKey: Keys.spoilerProtectionEnabled) as? Bool ?? false
         self.spoilerHideEpisodes = store.object(forKey: Keys.spoilerHideEpisodes) as? Bool ?? true
         self.spoilerHideMovies = store.object(forKey: Keys.spoilerHideMovies) as? Bool ?? false
+        self.showPosterBadges = store.object(forKey: Keys.showPosterBadges) as? Bool ?? false
         let storedTabs = store.array(forKey: Keys.hiddenTabs) as? [String] ?? []
         self.hiddenTabs = Set(storedTabs.compactMap(AppTab.init(rawValue:)).filter(\.isHideable))
     }
