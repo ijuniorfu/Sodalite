@@ -43,26 +43,37 @@ struct MediaBadges: Equatable, Sendable {
 
 enum MediaBadgeResolver {
 
-    /// `width` is the item-level `Width`; `streams` is nil until the badge store has enriched the id.
-    static func badges(width: Int?, streams: [MediaStream]?) -> MediaBadges {
-        let video = streams?.first { $0.type == .video }
+    /// `width`/`height` are the item-level geometry; `streams` is nil until the badge store has
+    /// enriched the id.
+    static func badges(width: Int?, height: Int?, streams: [MediaStream]?) -> MediaBadges {
+        // Largest frame wins, not the first stream: a multi-version item (or a trailer the server
+        // filed as an alternate version) hands back more than one video track, and the pill should
+        // describe the best copy on the shelf rather than whichever one came back first.
+        let video = streams?
+            .filter { $0.type == .video }
+            .max { area($0) < area($1) }
         return MediaBadges(
-            resolution: resolution(width: video?.width ?? width),
+            resolution: resolution(width: video?.width ?? width, height: video?.height ?? height),
             dynamicRange: dynamicRange(video),
             audio: audio(streams)
         )
     }
 
-    /// Width classifies, never height: a 3840x1600 scope master is a 4K master, and Jellyfin's own
-    /// `Is4K` filter draws the line at the same place.
-    private static func resolution(width: Int?) -> MediaBadges.Resolution? {
-        guard let width, width > 0 else { return nil }
-        switch width {
-        case 3800...:  return .uhd
-        case 1900...:  return .fullHD
-        case 1260...:  return .hd
-        default:       return .sd
-        }
+    private static func area(_ stream: MediaStream) -> Int {
+        (stream.width ?? 0) * (stream.height ?? 0)
+    }
+
+    /// Either edge can carry the class, because either one can be cropped away. A 3840x1600 scope
+    /// master is 4K by its width; a 3240x2160 open-matte master is 4K by its 2160 lines, and judging
+    /// it on width alone called it 1080p (found on device, 2026-08-24).
+    private static func resolution(width: Int?, height: Int?) -> MediaBadges.Resolution? {
+        let w = width ?? 0
+        let h = height ?? 0
+        guard w > 0 || h > 0 else { return nil }
+        if w >= 3400 || h >= 1900 { return .uhd }
+        if w >= 1800 || h >= 1000 { return .fullHD }
+        if w >= 1200 || h >= 680  { return .hd }
+        return .sd
     }
 
     private static func dynamicRange(_ video: MediaStream?) -> MediaBadges.DynamicRange? {

@@ -42,7 +42,7 @@ final class PosterBadgeStore {
     /// What the card should paint right now: the free resolution immediately, anything the
     /// enrichment has since found layered on top.
     func badges(for item: JellyfinItem) -> MediaBadges {
-        let base = MediaBadgeResolver.badges(width: item.width, streams: item.mediaStreams)
+        let base = MediaBadgeResolver.badges(width: item.width, height: item.height, streams: item.mediaStreams)
         guard let found = enriched[item.id] else { return base }
         return MediaBadges(resolution: found.resolution ?? base.resolution,
                            dynamicRange: found.dynamicRange ?? base.dynamicRange,
@@ -97,7 +97,7 @@ final class PosterBadgeStore {
         // about must not be asked a second time on every scroll.
         var found = Dictionary(uniqueKeysWithValues: ids.map { ($0, MediaBadges()) })
         for item in response.items {
-            found[item.id] = MediaBadgeResolver.badges(width: item.width, streams: item.mediaStreams)
+            found[item.id] = MediaBadgeResolver.badges(width: item.width, height: item.height, streams: item.mediaStreams)
         }
         enriched.merge(found) { _, new in new }
     }
@@ -121,7 +121,7 @@ final class PosterBadgeStore {
                               fields: "MediaStreams")
         guard let response = try? await library.getItems(userID: userID, query: query) else { return }
         enriched[seriesID] = response.items.first.map {
-            MediaBadgeResolver.badges(width: $0.width, streams: $0.mediaStreams)
+            MediaBadgeResolver.badges(width: $0.width, height: $0.height, streams: $0.mediaStreams)
         } ?? MediaBadges()
     }
 }
