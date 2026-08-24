@@ -58,6 +58,25 @@ struct DiagnosticOverlayLinesTests {
         #expect(pinned == Array(routes.suffix(4)))
     }
 
+    /// AE#407, the same gap one path over: VC-1 judder was reported from the software path, whose
+    /// entire vocabulary was missing from the matcher list. The per-second frame ledger is the line
+    /// that separates a starved decoder from a presentation problem, and a reporter asked for a
+    /// screenshot of the HUD had no way to produce one.
+    @Test func theFocusedViewKeepsTheSoftwarePathVocabulary() {
+        let lines = [
+            "[SWDecoder] Opened: 1920x1080, codec=vc1, threads=1, 8-bit",
+            "[SWDiag] clk=12.01 dclk=1.00 enq=+24 layerDrop=0(+0) delay=0.00(+0.00) status=rendering",
+            "[Renderer] dropped 250 frame(s) with no usable timestamp (unschedulable)",
+            "[SWHost] first video frame enqueued: pixfmt=0x34323076 size=1920x1080 pts=0.042s",
+            "[muxer] wrote 12 packets",
+        ]
+
+        let focused = DiagnosticOverlayLines.rolling(from: lines, focused: true, limit: 50)
+
+        #expect(focused.count == 4)
+        #expect(!focused.contains("[muxer] wrote 12 packets"))
+    }
+
     @Test func theUnfocusedViewStillShowsEverythingElseInOrder() {
         let lines = Self.chatter(3)
 

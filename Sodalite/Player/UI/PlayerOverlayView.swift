@@ -734,6 +734,17 @@ enum DiagnosticOverlayLines {
         // focus toggle defaults ON, so a tester who enabled the overlay got a view this line never entered.
         "[LiveDirect]",
         "[Live] ",
+        // The software-path vocabulary (AE#407). Every codec the native path refuses (VC-1, MPEG-2,
+        // VP9, AV1 without hardware) plays through it, and none of its lines were in frame: a judder
+        // report from that path could not screenshot the one counter that answers it. `[SWDiag]` is
+        // the per-second frame ledger (enq / layerDrop / delay / cushion), `[SWDecoder] Opened` names
+        // the codec and the thread count libavcodec actually granted, `[Renderer]` names a frame the
+        // display queue refused. All four are silent on a native session, so they cost that path
+        // nothing.
+        "[SWDiag]",
+        "[SWDecoder]",
+        "[SWHost]",
+        "[Renderer]",
         "DV source",
         "WARNING",
     ]
