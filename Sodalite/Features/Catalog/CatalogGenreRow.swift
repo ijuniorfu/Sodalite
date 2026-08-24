@@ -31,6 +31,7 @@ struct CatalogGenreRow: View {
                 // Match SeerrHorizontalMediaRow vertical padding so the focus halo doesn't clip adjacent rows.
                 .padding(.vertical, metrics.rowVerticalPadding)
             }
+            .focusSectionCompat()
         }
     }
 

@@ -492,6 +492,7 @@ struct CatalogDetailView: View {
                     .padding(.horizontal, 20)
                     .padding(.vertical, 12)
                 }
+                .focusSectionCompat()
                 .onChange(of: viewedSeasonNumber) { _, newValue in
                     guard let newValue else { return }
                     withAnimation { proxy.scrollTo(newValue, anchor: .center) }
@@ -611,6 +612,7 @@ struct CatalogDetailView: View {
                     .padding(.top, 16)
                     .padding(.bottom, 24)
                 }
+                .focusSectionCompat()
             } else if !loadingSeasons.contains(n) {
                 Text("catalog.seasons.noEpisodes")
                     .font(.callout)

@@ -53,6 +53,7 @@ struct MediaCastRow: View {
                 // of the enlarged portrait (Sodalite#55 device round).
                 .padding(.vertical, metrics.rowVerticalPadding)
             }
+            .focusSectionCompat()
         }
     }
 }
