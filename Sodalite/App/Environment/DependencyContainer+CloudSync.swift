@@ -21,7 +21,11 @@ extension DependencyContainer {
             configsJSON: HomeRowConfig.rawConfigData(serverID: serverID),
             mergeCWNextUp: HomeRowConfig.mergeContinueWatchingNextUp(serverID: serverID),
             rewatchNextUp: HomeRowConfig.enableRewatchingNextUp(serverID: serverID),
-            collectionGrouping: HomeRowConfig.collectionGrouping(serverID: serverID).rawValue
+            collectionGrouping: HomeRowConfig.collectionGrouping(serverID: serverID).rawValue,
+            librarySorts: {
+                let sorts = LibrarySortStore.allSorts(serverID: serverID)
+                return sorts.isEmpty ? nil : sorts
+            }()
         )
         // One password per profile. The active user is included explicitly: they may have signed in
         // moments ago and not be in the remembered list yet.
@@ -150,6 +154,11 @@ extension DependencyContainer {
             // Absent on payloads from builds before Sodalite#44; leave the local mode alone rather than resetting it to the server default.
             if let grouping = homeRows.collectionGrouping {
                 HomeRowConfig.setCollectionGrouping(CollectionGrouping(storedValue: grouping), serverID: serverID)
+            }
+            // Absent on payloads from builds before Sodalite#78, and per scope: a tile this payload
+            // says nothing about keeps whatever this device chose for it.
+            if let sorts = homeRows.librarySorts {
+                LibrarySortStore.applySorts(sorts, serverID: serverID)
             }
             NotificationCenter.default.post(name: .homeConfigDidChange, object: nil)
         }

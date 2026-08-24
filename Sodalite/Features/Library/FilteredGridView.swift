@@ -34,6 +34,10 @@ struct FilteredGridView: View {
     @State private var playItem: JellyfinItem?
     @State private var playQueue: [JellyfinItem] = []
     @State private var watchFilter: WatchStatusFilter = .all
+    /// Hydrated from LibrarySortStore in init, not .task: the cache hydration below depends on it (a
+    /// non-default sort must not paint the cached default order), and .task runs a frame too late.
+    @State private var sort: LibrarySort
+    @State private var showSortSheet = false
     @FocusState private var focusedItemID: String?
     @Environment(\.dismiss) private var dismiss
 
@@ -62,21 +66,32 @@ struct FilteredGridView: View {
     let smartProviderRegion: String?
     /// Stable key for FilterCache, independent of smartProviderID so broadcast nets (ABC/NBC/CBS) still cache and feed the empty-tile-hide pass.
     let cacheKey: String?
+    /// Where this grid's sort choice is stored (Sodalite#78); nil hides the control. Streaming-provider
+    /// tiles pass nil: their list is merged client-side from two phases, so a server sort would only
+    /// order half of it.
+    let sortScope: LibrarySortScope?
 
     init(
         title: String,
         query: ItemQuery,
         smartProviderID: Int? = nil,
         smartProviderRegion: String? = nil,
-        cacheKey: String? = nil
+        cacheKey: String? = nil,
+        sortScope: LibrarySortScope? = nil
     ) {
         self.title = title
         self.query = query
         self.smartProviderID = smartProviderID
         self.smartProviderRegion = smartProviderRegion
         self.cacheKey = cacheKey
+        self.sortScope = sortScope
+        let storedSort = sortScope.map(LibrarySortStore.sort) ?? .default
+        _sort = State(initialValue: storedSort)
         // Hydrate from FilterCache in init so the first render paints the cached grid; doing it in .task means a frame with isLoading=true first (the brief loading flash on every tap).
-        if let key = cacheKey,
+        // Only the default sort: the cache holds one order per key, so a custom sort would paint the
+        // alphabetical list and then reshuffle it once the fetch lands.
+        if storedSort == .default,
+           let key = cacheKey,
            let cached = FilterCache.shared.homeFilterItems(filterKey: key),
            !cached.isEmpty {
             _items = State(initialValue: cached)
@@ -136,11 +151,17 @@ struct FilteredGridView: View {
                         }
                     }
                 )
+                if sortScope != nil {
+                    GlassActionButton(
+                        title: "library.sort.action",
+                        systemImage: "arrow.up.arrow.down",
+                        action: { showSortSheet = true }
+                    )
+                }
                 Spacer()
             }
             .padding(.horizontal, metrics.gridInset)
             .padding(.top, 8)
-            .collapsesActionButtonLabel()
 
             if isLoading {
                 VStack(spacing: 16) {
@@ -246,8 +267,25 @@ struct FilteredGridView: View {
         .navigationDestination(item: $selectedItem) { item in
             DetailRouterView(item: item)
         }
-        .onChange(of: watchFilter) { _, _ in
-            // Drop the now-mismatched grid immediately (else stale-while-revalidate briefly shows watched items under "Unwatched"); the keyed task refetches.
+        .sheet(isPresented: $showSortSheet) {
+            LibrarySortSheet(
+                selection: sort,
+                tintColor: dependencies.appearancePreferences.effectiveTint(
+                    isSupporter: dependencies.storeKitService.isSupporter
+                ),
+                onSelect: { newSort in
+                    sort = newSort
+                    guard let sortScope else { return }
+                    LibrarySortStore.setSort(newSort, scope: sortScope)
+                    // CloudSyncService listens for this and marks the server record dirty. Deliberately
+                    // not .homeConfigDidChange: that one also makes HomeView reload every row, which a
+                    // sort change inside one grid has no reason to do.
+                    NotificationCenter.default.post(name: .librarySortDidChange, object: nil)
+                }
+            )
+        }
+        .onChange(of: reloadKey) { _, _ in
+            // Drop the now-mismatched grid immediately (else stale-while-revalidate briefly shows watched items under "Unwatched", or the old order under a new sort); the keyed task refetches.
             items = []
             isLoading = true
             loadFailed = false
@@ -256,7 +294,7 @@ struct FilteredGridView: View {
             nextStartIndex = 0
             reachedEnd = false
         }
-        .task(id: watchFilter) {
+        .task(id: reloadKey) {
             await loadItems()
             // No forced first-item focus: the Picker (always rendered) plus each state's own focusable anchor means back never closes the app. Nudging to item 0 was harmful: a Picker switch clears items, dropping focusedItemID to nil, and this keyed task would yank focus off the Picker mid-browse.
         }
@@ -265,13 +303,22 @@ struct FilteredGridView: View {
     /// Phase-1 (studio match), kept separate from `items` so the augment refresh rebuilds the merged grid without re-running the studio query.
     @State private var studioItems: [JellyfinItem] = []
 
+    /// Anything that invalidates the loaded page set: both a filter flip and a sort change need the
+    /// same reset (grid, pagination cursor, end marker) before the keyed task refetches.
+    private struct ReloadKey: Equatable {
+        let filter: WatchStatusFilter
+        let sort: LibrarySort
+    }
+
+    private var reloadKey: ReloadKey { ReloadKey(filter: watchFilter, sort: sort) }
+
     private func loadItems() async {
         guard let userID = appState.activeUser?.id else { return }
         loadGeneration += 1
         let generation = loadGeneration
 
         // Watch-status filter applies server-side to BOTH phases (phase 1 + the full-library map phase 2 resolves against), so phase 2 can't re-introduce filtered-out items.
-        var effectiveQuery = query
+        var effectiveQuery = sort.applied(to: query)
         if let filter = watchFilter.jellyfinFilter {
             effectiveQuery.filters = [filter]
         }
@@ -354,8 +401,9 @@ struct FilteredGridView: View {
                 items = phase1
             }
             isLoading = false
-            // Cache only the unfiltered default: it feeds init hydration (always .all) + empty-tile-hide counts, both needing the full library.
-            if let key = cacheKey, !isWatchFiltered {
+            // Cache only the unfiltered default order: it feeds init hydration (always .all, always
+            // Title A-Z) + empty-tile-hide counts, both needing the full library in the shipped order.
+            if let key = cacheKey, !isWatchFiltered, sort == .default {
                 FilterCache.shared.setHomeFilterItems(phase1, filterKey: key)
             }
         }
@@ -384,7 +432,7 @@ struct FilteredGridView: View {
         guard let userID = appState.activeUser?.id else { return }
         let generation = loadGeneration
 
-        var pageQuery = query
+        var pageQuery = sort.applied(to: query)
         if let filter = watchFilter.jellyfinFilter {
             pageQuery.filters = [filter]
         }
@@ -444,7 +492,7 @@ struct FilteredGridView: View {
         isLoading = false
 
         // Persist the resolved list so the next visit hydrates synchronously, no library fetch or watch-provider roundtrip. Unfiltered default only (phase-1 rationale).
-        if let key = cacheKey, !isWatchFiltered {
+        if let key = cacheKey, !isWatchFiltered, sort == .default {
             FilterCache.shared.setHomeFilterItems(merged, filterKey: key)
         }
     }
