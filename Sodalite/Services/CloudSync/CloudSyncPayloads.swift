@@ -48,6 +48,10 @@ struct HomeRowsSyncState: Codable, Equatable {
     /// CollectionGrouping raw value (Sodalite#44). Optional: payloads written before the field
     /// existed must still decode, and a missing value must not reset a device's local mode.
     var collectionGrouping: String?
+    /// Per-tile library sort, scope key to `LibrarySort.storageValue` (Sodalite#78). Optional for the
+    /// same reason as the field above; apply merges per scope, so a device that never opened a tile
+    /// cannot erase another device's choice for it.
+    var librarySorts: [String: String]?
 }
 
 struct ServerSyncPayload: Codable, Equatable {

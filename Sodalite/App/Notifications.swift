@@ -3,6 +3,10 @@ import Foundation
 /// App-wide notification names, centralised because posters/observers span features (player, detail, auth, catalog).
 extension Notification.Name {
     static let homeConfigDidChange = Notification.Name("homeConfigDidChange")
+    /// Posted by a library grid after the user picked a sort (Sodalite#78) so CloudSyncService mirrors
+    /// the choice. Separate from `.homeConfigDidChange`, which HomeView answers with a full row reload
+    /// the grid does not need.
+    static let librarySortDidChange = Notification.Name("librarySortDidChange")
     static let homeFavoritesDidChange = Notification.Name("homeFavoritesDidChange")
     static let homePlayedDidChange = Notification.Name("homePlayedDidChange")
     /// Posted by PlayerViewModel after a playback-stop report so HomeView/detail refresh Continue Watching / Next Up. Carries PlaybackProgressKey.itemID (the EPISODE for series) + positionTicks; detail views patch that item's in-memory userData directly (authoritative, race-free, vs re-fetch + stale ETag, issue #24).

@@ -69,7 +69,8 @@ struct HomeView: View {
                     query: filter.query,
                     smartProviderID: filter.smartProviderID,
                     smartProviderRegion: filter.smartProviderRegion,
-                    cacheKey: filter.cacheKey
+                    cacheKey: filter.cacheKey,
+                    sortScope: filter.sortScope
                 )
             }
         }
@@ -338,7 +339,8 @@ struct HomeView: View {
                 fields: JellyfinEndpoint.homeRowFields
             ),
             // Without a cacheKey FilteredGridView.init falls to the empty-state branch with isLoading=true on every visit (the brief flash on opening a genre tile). Tag name is a stable enough key.
-            cacheKey: FilterCacheKey.Home.genre(name: tag.name)
+            cacheKey: FilterCacheKey.Home.genre(name: tag.name),
+            sortScope: sortServerID.map { LibrarySortScope.genre(name: tag.name, serverID: $0) }
         )
     }
 
@@ -367,8 +369,15 @@ struct HomeView: View {
         return FilterDestination(
             title: library.name,
             query: query,
-            cacheKey: FilterCacheKey.Home.library(id: library.id, grouping: grouping)
+            cacheKey: FilterCacheKey.Home.library(id: library.id, grouping: grouping),
+            sortScope: sortServerID.map { LibrarySortScope.library(id: library.id, serverID: $0) }
         )
+    }
+
+    /// Server the sort choice is filed under; nil only before a session exists, which is also when no
+    /// tile can be tapped.
+    private var sortServerID: String? {
+        appState.activeServer?.id ?? appState.activeUser?.id
     }
 }
 
@@ -382,6 +391,8 @@ struct FilterDestination: Identifiable, Hashable {
     var smartProviderRegion: String?
     /// Stable key for FilteredGridView's result cache, independent of smartProviderID so broadcast-only tiles (ABC/NBC/CBS) still cache and feed the empty-tile-hide pass.
     var cacheKey: String?
+    /// Where the grid's sort choice is stored (Sodalite#78); nil leaves the tile on Title A-Z without a control.
+    var sortScope: LibrarySortScope?
 }
 
 extension ItemQuery: Hashable {

@@ -490,8 +490,15 @@ final class CloudSyncService: CloudSyncServiceProtocol {
     }
 
     private func observeHomeConfigChanges() {
+        for name in [Notification.Name.homeConfigDidChange, .librarySortDidChange] {
+            observeServerRecordTrigger(name)
+        }
+    }
+
+    /// Marks the active server dirty when a per-server preference changed locally.
+    private func observeServerRecordTrigger(_ name: Notification.Name) {
         let observer = NotificationCenter.default.addObserver(
-            forName: .homeConfigDidChange, object: nil, queue: .main
+            forName: name, object: nil, queue: .main
         ) { [weak self] _ in
             // Synchronous check: the apply paths post this while isApplyingCloudChanges
             // is still true; deferring into a Task would read the flag after its
