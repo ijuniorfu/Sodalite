@@ -82,6 +82,16 @@ struct AppearanceSettingsView: View {
                                set: { appearance.largeCards = $0 })
             )
 
+            // Sodalite#79. Off by default: the resolution pill is free, but filling in the picture
+            // and sound pills costs a MediaStreams round trip per row.
+            boolRow(
+                icon: "4k.tv",
+                title: "settings.appearance.posterBadges",
+                subtitle: "settings.appearance.posterBadges.subtitle",
+                value: Binding(get: { appearance.showPosterBadges },
+                               set: { appearance.showPosterBadges = $0 })
+            )
+
             boolRow(
                 icon: "music.note.tv",
                 title: "settings.appearance.nowPlayingPoster",

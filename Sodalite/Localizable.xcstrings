@@ -129046,6 +129046,330 @@
         }
       }
     },
+    "settings.appearance.posterBadges" : {
+      "comment" : "Appearance toggle: show resolution and format badges on cards",
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Odznaky na plakátech"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Plakatmærker"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Poster-Badges"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Σήματα στις αφίσες"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Poster badges"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Distintivos en los pósteres"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Julisteiden merkinnät"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Badges sur les affiches"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Oznake na plakatima"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Poszterjelvények"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Badge sui poster"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ポスターバッジ"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "포스터 배지"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Plakatmerker"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Posterlabels"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Plakietki na plakatach"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Selos nos pôsteres"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Distintivos nos cartazes"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Insigne pe afișe"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Значки на постерах"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Odznaky na plagátoch"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Affischmärken"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Poster rozetleri"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Значки на постерах"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "海报标签"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "海報標籤"
+          }
+        }
+      }
+    },
+    "settings.appearance.posterBadges.subtitle" : {
+      "comment" : "Subtitle for the poster badges toggle",
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zobrazí na kartách rozlišení, formát HDR a prostorový zvuk. Pro každou řadu načte další data."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vis opløsning, HDR-format og rumlig lyd på kortene. Henter ekstra data for hver række."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Auflösung, HDR-Format und räumlichen Ton auf den Karten anzeigen. Lädt dafür zusätzliche Daten pro Reihe."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Εμφάνιση ανάλυσης, μορφής HDR και χωρικού ήχου στις κάρτες. Φορτώνει επιπλέον δεδομένα για κάθε σειρά."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show resolution, HDR format and spatial audio on the cards. Loads extra data per row."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Muestra la resolución, el formato HDR y el audio espacial en las tarjetas. Carga datos adicionales por fila."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Näytä tarkkuus, HDR-muoto ja tilaääni korteissa. Lataa lisätietoja jokaista riviä kohden."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Affiche la résolution, le format HDR et l'audio spatial sur les cartes. Charge des données supplémentaires pour chaque rangée."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Prikaži razlučivost, HDR format i prostorni zvuk na karticama. Za svaki red učitava dodatne podatke."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Felbontás, HDR-formátum és térhatású hang megjelenítése a kártyákon. Soronként további adatokat tölt be."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostra risoluzione, formato HDR e audio spaziale sulle schede. Carica dati aggiuntivi per ogni riga."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "カードに解像度、HDR形式、空間オーディオを表示します。行ごとに追加データを読み込みます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "카드에 해상도, HDR 형식, 공간 음향을 표시합니다. 행마다 추가 데이터를 불러옵니다."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vis oppløsning, HDR-format og romlig lyd på kortene. Henter ekstra data for hver rad."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toont resolutie, HDR-formaat en ruimtelijke audio op de kaarten. Laadt extra gegevens per rij."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pokazuje rozdzielczość, format HDR i dźwięk przestrzenny na kartach. Dla każdego rzędu pobiera dodatkowe dane."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostra resolução, formato HDR e áudio espacial nos cartões. Carrega dados extras por linha."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostra a resolução, o formato HDR e o áudio espacial nos cartões. Carrega dados adicionais por linha."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Afișează rezoluția, formatul HDR și sunetul spațial pe carduri. Încarcă date suplimentare pentru fiecare rând."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Показывать разрешение, формат HDR и пространственный звук на карточках. Для каждого ряда загружаются дополнительные данные."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zobrazí na kartách rozlíšenie, formát HDR a priestorový zvuk. Pre každý riadok načíta ďalšie údaje."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Visa upplösning, HDR-format och rumsligt ljud på korten. Hämtar extra data för varje rad."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kartlarda çözünürlüğü, HDR biçimini ve uzamsal sesi gösterir. Her satır için ek veri yükler."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Показувати роздільність, формат HDR і просторовий звук на картках. Для кожного ряду завантажуються додаткові дані."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在卡片上显示分辨率、HDR 格式和空间音频。每行会加载额外数据。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在卡片上顯示解析度、HDR 格式和空間音訊。每列會載入額外資料。"
+          }
+        }
+      }
+    },
     "settings.appearance.spoiler" : {
       "comment" : "Appearance toggle: master switch for spoiler protection",
       "extractionState" : "manual",

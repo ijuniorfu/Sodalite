@@ -55,6 +55,7 @@ struct HorizontalMediaRow: View {
             }
             // A row is its own focus section so vertical navigation can reach it from any column (#80).
             .focusSectionCompat()
+            .enrichesPosterBadges(items)
         }
     }
 }

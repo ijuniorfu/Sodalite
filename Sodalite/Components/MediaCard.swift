@@ -31,6 +31,15 @@ struct MediaCard: View {
         return CGSize(width: base.width * scale, height: base.height * scale)
     }
     private var cardWidth: CGFloat { cardSize.width }
+
+    /// Off the tier's poster width, not this card's, so a landscape card wears the same pill as the
+    /// poster beside it (Sodalite#79).
+    private var badgeFontSize: CGFloat {
+        PosterBadgeMetrics.fontSize(
+            posterWidth: LayoutMetrics.current(hSizeClass).size(for: .poster).width,
+            scale: scale
+        )
+    }
     private var cardHeight: CGFloat { cardSize.height }
 
     init(
@@ -78,6 +87,12 @@ struct MediaCard: View {
         .clipShape(RoundedRectangle(cornerRadius: 12))
         .overlay(alignment: .bottom) {
             progressOverlay
+        }
+        .overlay(alignment: .topLeading) {
+            // Music cards are excluded: an album has no picture to describe (Sodalite#79).
+            if style != .square {
+                PosterBadgeOverlay(item: item, fontSize: badgeFontSize)
+            }
         }
         .overlay(alignment: .topTrailing) {
             if item.userData?.played == true {
