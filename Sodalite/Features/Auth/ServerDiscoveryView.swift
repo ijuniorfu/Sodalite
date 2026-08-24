@@ -229,15 +229,7 @@ private struct DiscoveredServerRow: View {
             }
             Spacer(minLength: 16)
             if alreadyAdded {
-                // fixedSize keeps the capsule on one line, so the name is what
-                // wraps when a server name is long, not the status label.
-                Text("auth.discovery.alreadyAdded")
-                    .font(.caption.bold())
-                    .foregroundStyle(.white)
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 6)
-                    .background(.tint.opacity(0.35), in: Capsule())
-                    .fixedSize()
+                StatusPill("auth.discovery.alreadyAdded")
             }
         }
         .padding(.horizontal, 24)

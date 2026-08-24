@@ -295,32 +295,15 @@ private struct ServerManagementRow: View {
     @ViewBuilder
     private var badges: some View {
         if isActive {
-            Text("multiServer.row.active", bundle: .main)
-                .font(.caption.bold())
-                .foregroundStyle(.tint)
-                .padding(.horizontal, 10)
-                .padding(.vertical, 4)
-                .background(.tint.opacity(0.18), in: Capsule())
-                .fixedSize()
+            StatusPill("multiServer.row.active")
         }
         if isDefault {
-            Text("multiServer.row.default", bundle: .main)
-                .font(.caption.bold())
-                .foregroundStyle(.tint)
-                .padding(.horizontal, 10)
-                .padding(.vertical, 4)
-                .background(.tint.opacity(0.18), in: Capsule())
-                .fixedSize()
+            StatusPill("multiServer.row.default")
         }
         #if os(iOS)
         if isActive, let route = dependencies.activeJellyfinRoute {
-            Text(route == .internal ? "multiServer.route.internal" : "multiServer.route.external", bundle: .main)
-                .font(.caption.bold())
-                .foregroundStyle(.secondary)
-                .padding(.horizontal, 10)
-                .padding(.vertical, 4)
-                .background(.secondary.opacity(0.15), in: Capsule())
-                .fixedSize()
+            StatusPill(route == .internal ? "multiServer.route.internal" : "multiServer.route.external",
+                       tone: .neutral)
         }
         #endif
     }

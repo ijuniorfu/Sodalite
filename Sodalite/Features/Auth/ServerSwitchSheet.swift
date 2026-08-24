@@ -89,12 +89,7 @@ private struct ServerRow: View {
             }
             Spacer()
             if isActive {
-                Text("multiServer.row.active", bundle: .main)
-                    .font(.caption.bold())
-                    .foregroundStyle(.tint)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 6)
-                    .background(.tint.opacity(0.18), in: Capsule())
+                StatusPill("multiServer.row.active")
             }
         }
         .padding(.horizontal, 20)
