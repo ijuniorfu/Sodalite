@@ -222,6 +222,7 @@ private struct DiscoveredServerRow: View {
             VStack(alignment: .leading, spacing: 6) {
                 Text(server.name)
                     .font(.headline)
+                    .lineLimit(2)
                 Text(server.address.host() ?? server.address.absoluteString)
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
