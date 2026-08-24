@@ -33,6 +33,7 @@ struct CatalogProviderRow: View {
                 .padding(.horizontal, metrics.rowInset)
                 .padding(.vertical, metrics.rowVerticalPadding)
             }
+            .focusSectionCompat()
         }
     }
 }

@@ -41,6 +41,16 @@ extension View {
 // iOS analog yet, so it is gated inline with #if os(tvOS) at each site (replaced
 // by touch controls in Phase 2) rather than silently no-op'd here.
 extension View {
+    /// tvOS focus section: a container the engine will move focus INTO even when no focusable view
+    /// sits directly in the direction of travel. Every horizontally scrolling row wears one
+    /// (Sodalite#80). Without it a vertical move resolves purely geometrically, so a row whose cards
+    /// do not line up with the focused one is skipped, and where nothing lines up at all the move is
+    /// refused and focus reads as frozen. Measured with XCUIRemote in a probe app: with one-item
+    /// neighbour rows, up from the second My Media tile landed two rows away (`continueWatching-0`
+    /// rather than the `nextUp-0` in between); with the section it lands on the row directly above,
+    /// and layouts that already resolved correctly land on the same card either way.
+    ///
+    /// It does not change where INSIDE a row focus lands, which stays geometric (Sodalite#53).
     @ViewBuilder
     func focusSectionCompat() -> some View {
         #if os(tvOS)

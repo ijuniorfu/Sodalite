@@ -89,6 +89,7 @@ struct AccentColorPickerView: View {
                             }
                         }
                     }
+                    .focusSectionCompat()
                     #if os(iOS)
                     // The strip scrolls off screen on a phone, so an active
                     // category further right would be marked but invisible.

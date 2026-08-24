@@ -41,6 +41,7 @@ struct SeerrWatchProvidersRow: View {
                 .padding(.horizontal, metrics.rowInset)
                 .padding(.vertical, 8)
             }
+            .focusSectionCompat()
         }
     }
 }
