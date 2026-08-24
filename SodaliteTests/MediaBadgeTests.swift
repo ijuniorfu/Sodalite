@@ -157,6 +157,32 @@ struct MediaBadgeTests {
         #expect(MediaBadgeResolver.badges(width: nil, streams: nil).pills.isEmpty)
     }
 
+    // MARK: - Pill geometry
+
+    /// Measured, not guessed (NSFont at the tvOS text sizes): 0.09 of the tier's poster width puts
+    /// the pill at 19.8pt on Apple TV, just under the 25pt card title next to it, 14.4pt on iPad
+    /// and 10.8pt on iPhone, which is caption2 there. A pill sized off its own card would be 32pt
+    /// on a landscape card, bigger than the poster's title.
+    @Test("a landscape card carries the same pill as the poster beside it")
+    func pillSizeIsTierWideNotCardWide() {
+        let poster = PosterBadgeMetrics.fontSize(posterWidth: 220, scale: 1.0)
+        #expect(poster == PosterBadgeMetrics.fontSize(posterWidth: 220, scale: 1.0))
+        #expect(poster > 19 && poster < 21, "tvOS pill lands just under the card title")
+    }
+
+    @Test("the pill follows the card-size setting")
+    func pillFollowsCardScale() {
+        let normal = PosterBadgeMetrics.fontSize(posterWidth: 220, scale: 1.0)
+        let large = PosterBadgeMetrics.fontSize(posterWidth: 220, scale: 1.3)
+        #expect(large > normal)
+        #expect(abs(large - normal * 1.3) < 0.001)
+    }
+
+    @Test("the iPhone tier stays at a readable size rather than shrinking to nothing")
+    func pillStaysReadableOnPhone() {
+        #expect(PosterBadgeMetrics.fontSize(posterWidth: 120, scale: 1.0) >= 10)
+    }
+
     // MARK: - Shape
 
     @Test("an item with nothing to say produces empty badges")
