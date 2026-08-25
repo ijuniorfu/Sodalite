@@ -77,7 +77,7 @@ struct JellyfinServer: Codable, Sendable, Identifiable, Equatable, Hashable {
     }
 }
 
-struct JellyfinPublicServerInfo: Codable, Sendable {
+nonisolated struct JellyfinPublicServerInfo: Codable, Sendable {
     // The Jellyfin PublicSystemInfo schema marks Id/ServerName/Version nullable with no required
     // constraint; reverse-proxied, freshly-installed, or forked servers can omit them. Modeling
     // them non-optional rejected those valid servers and blocked discovery, so they are optional.

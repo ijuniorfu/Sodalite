@@ -1,6 +1,6 @@
 import Foundation
 
-struct SeerrServerInfo: Codable, Sendable {
+nonisolated struct SeerrServerInfo: Codable, Sendable {
     let version: String
 }
 
@@ -26,11 +26,10 @@ final class SeerrServerDiscoveryService: SeerrServerDiscoveryServiceProtocol {
 
     func discoverServer(input: String) async -> SeerrServerDiscoveryResult {
         let candidates = buildCandidateURLs(from: input)
+        let started = ContinuousClock.now
 
-        // A candidate that connects but isn't Jellyseerr is a better diagnostic than "unreachable"; prefer the first such error.
-        var firstProtocolError: APIError?
-
-        for url in candidates {
+        let verdicts = await DiscoveryProbeRace.run(candidates: candidates) { [decoder, httpClient] url in
+            let candidateStart = ContinuousClock.now
             do {
                 let (data, _) = try await httpClient.requestData(
                     baseURL: url,
@@ -38,25 +37,36 @@ final class SeerrServerDiscoveryService: SeerrServerDiscoveryServiceProtocol {
                     headers: ["Accept": "application/json"]
                 )
                 let info = try decoder.decode(SeerrServerInfo.self, from: data)
-                return .success(url: url, info: info)
-            } catch is CancellationError {
-                return .failure(.serverUnreachable)
-            } catch let error as DecodingError {
-                if firstProtocolError == nil { firstProtocolError = .decodingError(error) }
-                continue
-            } catch let error as APIError {
+                LogTap.shared.note("[discovery] seerr \(url.absoluteString) -> v\(info.version) in \(DiscoveryProbeRace.elapsedText(since: candidateStart))")
+                return .success(info)
+            } catch {
+                let mapped = DiscoveryProbeRace.normalized(error)
+                LogTap.shared.note("[discovery] seerr \(url.absoluteString) -> \(DiscoveryProbeRace.logLabel(for: mapped)) in \(DiscoveryProbeRace.elapsedText(since: candidateStart))")
+                return .failure(mapped)
+            }
+        }
+
+        // A candidate that connects but isn't Jellyseerr is a better diagnostic than "unreachable"; prefer the first such error.
+        var firstProtocolError: APIError?
+
+        for (index, verdict) in verdicts.enumerated() {
+            switch verdict {
+            case .success(let info):
+                LogTap.shared.note("[discovery] seerr resolved \(candidates[index].absoluteString) in \(DiscoveryProbeRace.elapsedText(since: started))")
+                return .success(url: candidates[index], info: info)
+            case .failure(let error):
                 switch error {
                 case .decodingError, .httpError, .invalidResponse, .unauthorized:
                     if firstProtocolError == nil { firstProtocolError = error }
                 default:
                     break
                 }
-                continue
-            } catch {
+            case nil:
                 continue
             }
         }
 
+        LogTap.shared.note("[discovery] seerr failed after \(DiscoveryProbeRace.elapsedText(since: started)) over \(candidates.count) candidate(s)")
         return .failure(firstProtocolError ?? .serverUnreachable)
     }
 

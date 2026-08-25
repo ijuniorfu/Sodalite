@@ -24,11 +24,10 @@ final class ServerDiscoveryService: ServerDiscoveryServiceProtocol {
 
     func discoverServer(input: String) async -> ServerDiscoveryResult {
         let candidates = buildCandidateURLs(from: input)
+        let started = ContinuousClock.now
 
-        // A candidate that connects but isn't Jellyfin (captive portal, wrong service) is a better diagnostic than "unreachable"; prefer the first such error.
-        var firstProtocolError: APIError?
-
-        for url in candidates {
+        let verdicts = await DiscoveryProbeRace.run(candidates: candidates) { [httpClient] url in
+            let candidateStart = ContinuousClock.now
             do {
                 let serverInfo = try await httpClient.request(
                     baseURL: url,
@@ -42,23 +41,36 @@ final class ServerDiscoveryService: ServerDiscoveryServiceProtocol {
                     serverName: serverInfo.serverName ?? "Jellyfin",
                     version: serverInfo.version ?? ""
                 )
-                return .success(url: url, serverInfo: info)
-            } catch is CancellationError {
-                // Caller abandoned the probe; stop hammering remaining candidates.
-                return .failure(.serverUnreachable)
-            } catch let error as APIError {
+                LogTap.shared.note("[discovery] jellyfin \(url.absoluteString) -> \(info.serverName) v\(info.version) in \(DiscoveryProbeRace.elapsedText(since: candidateStart))")
+                return .success(info)
+            } catch {
+                let mapped = DiscoveryProbeRace.normalized(error)
+                LogTap.shared.note("[discovery] jellyfin \(url.absoluteString) -> \(DiscoveryProbeRace.logLabel(for: mapped)) in \(DiscoveryProbeRace.elapsedText(since: candidateStart))")
+                return .failure(mapped)
+            }
+        }
+
+        // A candidate that connects but isn't Jellyfin (captive portal, wrong service) is a better diagnostic than "unreachable"; prefer the first such error.
+        var firstProtocolError: APIError?
+
+        for (index, verdict) in verdicts.enumerated() {
+            switch verdict {
+            case .success(let info):
+                LogTap.shared.note("[discovery] jellyfin resolved \(candidates[index].absoluteString) in \(DiscoveryProbeRace.elapsedText(since: started))")
+                return .success(url: candidates[index], serverInfo: info)
+            case .failure(let error):
                 switch error {
                 case .decodingError, .httpError, .invalidResponse, .unauthorized:
                     if firstProtocolError == nil { firstProtocolError = error }
                 default:
                     break
                 }
-                continue
-            } catch {
+            case nil:
                 continue
             }
         }
 
+        LogTap.shared.note("[discovery] jellyfin failed after \(DiscoveryProbeRace.elapsedText(since: started)) over \(candidates.count) candidate(s)")
         return .failure(firstProtocolError ?? .serverUnreachable)
     }
 
