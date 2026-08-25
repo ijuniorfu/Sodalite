@@ -195,7 +195,14 @@ final class CloudSyncService: CloudSyncServiceProtocol {
             }
             let accountID = try await container.userRecordID().recordName
             guard observationGeneration == generation else { return }
-            switch CloudSyncAccountTransition.resolve(stored: preferences.accountID, current: accountID) {
+            let transition = CloudSyncAccountTransition.resolve(stored: preferences.accountID, current: accountID)
+            // One line on every start, deliberately. Without it the absence of an account-change
+            // line is indistinguishable from CloudSync never logging anything on a healthy device,
+            // which is exactly the reading that cannot be made from a silent log.
+            LogTap.shared.note(
+                "[CloudSync] engine start, account \(CloudSyncAccountTransition.fingerprint(accountID)), \(transition.logDescription)"
+            )
+            switch transition {
             case .firstAdoption, .unchanged:
                 break
             case .changed:

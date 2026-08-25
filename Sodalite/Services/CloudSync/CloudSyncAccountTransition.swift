@@ -1,3 +1,4 @@
+import CryptoKit
 import Foundation
 
 /// Which iCloud account the sync engine is about to talk to, measured against the one
@@ -22,5 +23,21 @@ enum CloudSyncAccountTransition: Equatable {
     static func resolve(stored: String?, current: String) -> CloudSyncAccountTransition {
         guard let stored else { return .firstAdoption }
         return stored == current ? .unchanged : .changed
+    }
+}
+
+extension CloudSyncAccountTransition {
+    var logDescription: String {
+        switch self {
+        case .firstAdoption: "first adoption on this device"
+        case .unchanged: "same iCloud account as the last run"
+        case .changed: "a different iCloud account than the last run"
+        }
+    }
+
+    /// Short, stable, one-way stand-in for an iCloud user record name, so the diagnostic log can
+    /// answer "did these two runs talk to the same account" without carrying the identifier itself.
+    static func fingerprint(_ recordName: String) -> String {
+        SHA256.hash(data: Data(recordName.utf8)).prefix(4).map { String(format: "%02x", $0) }.joined()
     }
 }

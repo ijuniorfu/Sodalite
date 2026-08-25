@@ -26,6 +26,30 @@ struct CloudSyncAccountTransitionTests {
         #expect(CloudSyncAccountTransition.resolve(stored: "", current: "") == .unchanged)
     }
 
+    @Test("the fingerprint is stable, short, and separates two accounts")
+    func fingerprintIsStableAndDistinct() {
+        let alice = CloudSyncAccountTransition.fingerprint("_alice")
+        #expect(alice == CloudSyncAccountTransition.fingerprint("_alice"))
+        #expect(alice != CloudSyncAccountTransition.fingerprint("_bob"))
+        #expect(alice.count == 8)
+    }
+
+    @Test("the fingerprint does not carry the record name it stands for")
+    func fingerprintDoesNotLeakTheName() {
+        #expect(!CloudSyncAccountTransition.fingerprint("_alice").contains("alice"))
+    }
+
+    @Test("every outcome names itself for the log, including the quiet ones")
+    func everyOutcomeIsLoggable() {
+        let described = [
+            CloudSyncAccountTransition.firstAdoption,
+            .unchanged,
+            .changed,
+        ].map(\.logDescription)
+        #expect(Set(described).count == 3)
+        #expect(described.allSatisfy { !$0.isEmpty })
+    }
+
     @Test("record names compare exactly, case included")
     func comparisonIsExact() {
         #expect(CloudSyncAccountTransition.resolve(stored: "_Alice", current: "_alice") == .changed)
