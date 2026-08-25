@@ -133080,6 +133080,328 @@
         }
       }
     },
+    "settings.appearance.topShelf" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Řádek na domovské obrazovce"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Række på hjemmeskærmen"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zeile auf dem Startbildschirm"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Γραμμή στην αρχική οθόνη"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Home Screen Row"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fila en la pantalla de inicio"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rivi aloitusnäytöllä"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rangée sur l’écran d’accueil"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Redak na početnom zaslonu"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sor a kezdőképernyőn"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Riga nella schermata Home"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ホーム画面の列"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "홈 화면 행"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rad på hjemmeskjermen"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rij op het beginscherm"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wiersz na ekranie głównym"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Linha na tela de início"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Linha no ecrã principal"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rând pe ecranul principal"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Строка на главном экране"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Riadok na domovskej obrazovke"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rad på hemskärmen"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ana ekran satırı"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Рядок на головному екрані"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "主屏幕行"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "主畫面列"
+          }
+        }
+      }
+    },
+    "settings.appearance.topShelf.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zobrazit Pokračovat ve sledování nad aplikací na domovské obrazovce Apple TV. Při více uživatelích tvOS ukazuje všem seznam jednoho z nich."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vis Fortsæt med at se over appen på Apple TV-hjemmeskærmen. Med flere tvOS-brugere viser den samme brugers liste til alle."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Weiterschauen über der App auf dem Apple-TV-Startbildschirm anzeigen. Bei mehreren tvOS-Nutzern zeigt sie allen die Liste eines einzigen."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Εμφάνιση της Συνέχισης παρακολούθησης πάνω από την εφαρμογή στην αρχική οθόνη του Apple TV. Με πολλούς χρήστες tvOS δείχνει σε όλους τη λίστα ενός μόνο."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show Continue Watching above the app on the Apple TV home screen. With several tvOS users it shows one user’s list to everyone."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Muestra Continuar viendo encima de la app en la pantalla de inicio del Apple TV. Con varios usuarios de tvOS enseña a todos la lista de uno solo."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Näytä Jatka katselua sovelluksen yläpuolella Apple TV:n aloitusnäytöllä. Usean tvOS-käyttäjän laitteessa se näyttää kaikille yhden käyttäjän listan."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Affiche Reprendre la lecture au-dessus de l’app sur l’écran d’accueil de l’Apple TV. Avec plusieurs utilisateurs tvOS, elle montre à tous la liste d’un seul."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Prikaži Nastavi gledati iznad aplikacije na početnom zaslonu Apple TV-a. Uz više tvOS korisnika svima prikazuje popis samo jednog."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A Folytatás megjelenítése az alkalmazás felett az Apple TV kezdőképernyőjén. Több tvOS-felhasználó esetén mindenkinek egyetlen felhasználó listáját mutatja."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostra Continua a guardare sopra l’app nella schermata Home dell’Apple TV. Con più utenti tvOS mostra a tutti l’elenco di uno solo."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple TV のホーム画面でアプリの上に「続きを見る」を表示します。tvOS ユーザーが複数いる場合、全員に同じ 1 人のリストが表示されます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple TV 홈 화면에서 앱 위에 이어서 보기를 표시합니다. tvOS 사용자가 여럿이면 모두에게 한 사람의 목록이 표시됩니다."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vis Fortsett å se over appen på Apple TV-hjemmeskjermen. Med flere tvOS-brukere viser den listen til én av dem for alle."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toon Verder kijken boven de app op het beginscherm van de Apple TV. Bij meerdere tvOS-gebruikers laat hij iedereen de lijst van één gebruiker zien."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pokazuj Kontynuuj oglądanie nad aplikacją na ekranie głównym Apple TV. Przy kilku użytkownikach tvOS wyświetla wszystkim listę jednego z nich."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostra Continuar assistindo acima do app na tela de início da Apple TV. Com vários usuários do tvOS, exibe a lista de um só para todos."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostra Continuar a ver acima da app no ecrã principal da Apple TV. Com vários utilizadores tvOS, apresenta a lista de um só a todos."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Afișează Continuă vizionarea deasupra aplicației pe ecranul principal Apple TV. Cu mai mulți utilizatori tvOS, le arată tuturor lista unuia singur."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Показывать «Продолжить просмотр» над приложением на главном экране Apple TV. При нескольких пользователях tvOS всем показывается список одного из них."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zobrazovať Pokračovať v sledovaní nad aplikáciou na domovskej obrazovke Apple TV. Pri viacerých používateľoch tvOS ukazuje všetkým zoznam jedného."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Visa Fortsätt titta ovanför appen på Apple TV-hemskärmen. Med flera tvOS-användare visas samma användares lista för alla."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple TV ana ekranında uygulamanın üstünde İzlemeye Devam Et’i göster. Birden fazla tvOS kullanıcısı varsa herkese tek bir kullanıcının listesi gösterilir."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Показувати «Продовжити перегляд» над застосунком на головному екрані Apple TV. За кількох користувачів tvOS усім показується список одного з них."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在 Apple TV 主屏幕上于 App 上方显示「继续观看」。有多个 tvOS 用户时，所有人看到的都是同一个用户的列表。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在 Apple TV 主畫面上於 App 上方顯示「繼續觀看」。有多個 tvOS 使用者時，所有人看到的都是同一位使用者的列表。"
+          }
+        }
+      }
+    },
     "settings.changelog.subtitle" : {
       "extractionState" : "manual",
       "localizations" : {

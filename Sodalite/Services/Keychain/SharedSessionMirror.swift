@@ -2,7 +2,7 @@ import Foundation
 import os.log
 import Security
 
-/// Mirrors active Jellyfin credentials into the shared keychain access group the TopShelf extension reads. One slot per tvOS user (nil → `tvOSSession_default`, multi-user → `tvOSSession_<id>`), each a JSON `Payload`; re-mirrored on every login/profile-switch/logout. Own service bucket (`…Sodalite.shared`) to keep it separate from the app's primary entries.
+/// Mirrors active Jellyfin credentials into the shared keychain access group the TopShelf extension reads. One JSON `Payload` in a single slot, re-mirrored on every login/profile-switch/logout; the keychain itself is per tvOS user under the user-management entitlement. Own service bucket (`…Sodalite.shared`) to keep it separate from the app's primary entries.
 enum SharedSessionMirror {
     static let service = "de.superuser404.Sodalite.shared"
 
@@ -13,8 +13,8 @@ enum SharedSessionMirror {
         let accessToken: String
     }
 
-    static func write(tvUserID: String?, serverURL: URL, userID: String, accessToken: String) {
-        let slot = KeychainKeys.sharedSession(tvUserID: tvUserID)
+    static func write(serverURL: URL, userID: String, accessToken: String) {
+        let slot = KeychainKeys.sharedSession
         let payload = Payload(
             serverURL: serverURL.absoluteString,
             userID: userID,
@@ -28,8 +28,8 @@ enum SharedSessionMirror {
         TopShelfRefresher.invalidate()
     }
 
-    static func clear(tvUserID: String?) {
-        let slot = KeychainKeys.sharedSession(tvUserID: tvUserID)
+    static func clear() {
+        let slot = KeychainKeys.sharedSession
         delete(account: slot)
         // The extension's own identity check already refuses a foreign cache; this is the
         // tidy-up so a logged-out device carries no library titles in its container.

@@ -85,6 +85,7 @@ Almost everything is identical across devices, it's one codebase. A handful of c
 | Full-screen video out over a wired HDMI adapter | – | ✓ |
 | Rotation lock &amp; portrait player | – | ✓ |
 | Child lock in the player | – | ✓ |
+| Separate profiles per Apple TV user | ✓ | – |
 | Top Shelf &amp; Siri Remote focus UX | ✓ | – |
 
 ## Open source, end to end

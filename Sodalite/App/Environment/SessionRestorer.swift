@@ -39,12 +39,8 @@ struct SessionRestorer {
     }
 
     private func resolve() -> RestoreOutcome {
-        // When a tvOS mapping is in effect, suppress defaultServerID promotion + the shouldUseDefault branch so the system identity isn't clobbered by user-pinned defaults.
-        let hasTVMapping = env.hasTVMapping
-
-        // Promote the user's pinned default server before restoreSession. No-op when nil/unresolved or already the current pointer; skipped under a tvOS mapping (mapping wins).
-        if !hasTVMapping,
-           let defaultID = env.defaultServerID,
+        // Promote the user's pinned default server before restoreSession. No-op when nil/unresolved or already the current pointer.
+        if let defaultID = env.defaultServerID,
            env.listKnownServers().contains(where: { $0.id == defaultID }),
            env.loadActiveServerID() != defaultID {
             env.saveActiveServerID(defaultID)
@@ -133,8 +129,7 @@ struct SessionRestorer {
 
         // Pinned per server, so this never resolves against another server's default profile.
         let pinnedDefaultID = env.defaultUserID(serverID: server.id)
-        let shouldUseDefault = !hasTVMapping
-            && env.launchBehavior == .useDefault
+        let shouldUseDefault = env.launchBehavior == .useDefault
             && pinnedDefaultID.flatMap { id in remembered.first { $0.id == id } } != nil
 
         if shouldUseDefault,

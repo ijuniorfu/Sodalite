@@ -79,7 +79,6 @@ extension DependencyContainer {
             let userID = try? keychainService.loadString(for: KeychainKeys.userID(serverID: server.id))
         else { return }
         SharedSessionMirror.write(
-            tvUserID: TVUserContext.currentUserID,
             serverURL: resolvedURL,
             userID: userID,
             accessToken: token

@@ -45,6 +45,7 @@ final class AppearancePreferences {
         static let spoilerHideMovies = "appearance.spoilerHideMovies"
         static let hiddenTabs = "appearance.hiddenTabs"
         static let showPosterBadges = "appearance.showPosterBadges"
+        static let showTopShelfRow = "appearance.showTopShelfRow"
     }
 
     /// 1.3: noticeably bigger Apple TV-style card without dropping so many cards per row that rows feel empty.
@@ -93,6 +94,10 @@ final class AppearancePreferences {
 
     /// Sodalite#79. Off by default: the pills themselves are free, but filling them in costs a
     /// MediaStreams round trip per row, so only a viewer who wants them pays for them.
+    /// tvOS Top Shelf row. On by default; see TopShelfEnabled for why it can be turned off at all.
+    var showTopShelfRow: Bool {
+        didSet { store.set(showTopShelfRow, forKey: Keys.showTopShelfRow) }
+    }
     var showPosterBadges: Bool {
         didSet { store.set(showPosterBadges, forKey: Keys.showPosterBadges) }
     }
@@ -160,6 +165,7 @@ final class AppearancePreferences {
         self.spoilerHideEpisodes = store.object(forKey: Keys.spoilerHideEpisodes) as? Bool ?? true
         self.spoilerHideMovies = store.object(forKey: Keys.spoilerHideMovies) as? Bool ?? false
         self.showPosterBadges = store.object(forKey: Keys.showPosterBadges) as? Bool ?? false
+        self.showTopShelfRow = store.object(forKey: Keys.showTopShelfRow) as? Bool ?? true
         let storedTabs = store.array(forKey: Keys.hiddenTabs) as? [String] ?? []
         self.hiddenTabs = Set(storedTabs.compactMap(AppTab.init(rawValue:)).filter(\.isHideable))
     }

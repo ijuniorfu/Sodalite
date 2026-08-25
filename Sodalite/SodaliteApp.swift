@@ -90,6 +90,10 @@ struct SodaliteApp: App {
                 .task(id: theme.palette.control.hex) {
                     TopShelfAccent.write(theme.palette.control.hex)
                 }
+                // Same bridge, same reason: the extension cannot read the app's preferences.
+                .task(id: dependencies.appearancePreferences.showTopShelfRow) {
+                    TopShelfEnabled.write(dependencies.appearancePreferences.showTopShelfRow)
+                }
                 .onOpenURL { url in
                     handleDeepLink(url)
                 }

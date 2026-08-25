@@ -4,7 +4,6 @@ import Foundation
 @MainActor
 protocol SessionRestoreEnvironment {
     /// True when a tvOS per-profile mapping is in effect for the current system user; suppresses defaultServer promotion + the useDefault branch so the system identity isn't clobbered.
-    var hasTVMapping: Bool { get }
     var defaultServerID: String? { get }
     var launchBehavior: AuthPreferences.LaunchBehavior { get }
     var activeServer: JellyfinServer? { get }
@@ -36,10 +35,6 @@ protocol SessionRestoreEnvironment {
 /// Production conformance: forwards to the container's existing session-store members. The members declared here are the thin ones the protocol needs but that don't already exist on the container (the rest, e.g. `listKnownServers`/`restoreSession`/`switchToUser`, satisfy the protocol directly).
 @MainActor
 extension DependencyContainer: SessionRestoreEnvironment {
-    var hasTVMapping: Bool {
-        guard let tvUserID = TVUserContext.currentUserID else { return false }
-        return tvProfileMappings.mapping(for: tvUserID) != nil
-    }
     var defaultServerID: String? { authPreferences.defaultServerID }
     var launchBehavior: AuthPreferences.LaunchBehavior { authPreferences.launchBehavior }
 

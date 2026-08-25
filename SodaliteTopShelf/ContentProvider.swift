@@ -9,10 +9,11 @@ private let log = Logger(subsystem: "de.superuser404.Sodalite.TopShelf", categor
 @objc(SodaliteTopShelfContentProvider)
 final class ContentProvider: TVTopShelfContentProvider {
     override func loadTopShelfContent() async -> (any TVTopShelfContent)? {
-        // Protocol-witness dispatch so the reader's deprecation marker doesn't propagate here.
-        let reader: any TVUserTokenReading = TVUserTokenReader()
-        let tvUserID = reader.currentToken()
-        guard let session = SharedSession.read(tvUserID: tvUserID) else {
+        guard TopShelfEnabled.read() else {
+            log.notice("Top Shelf switched off in Settings; rendering empty.")
+            return nil
+        }
+        guard let session = SharedSession.read() else {
             log.notice("No shared session in keychain; TopShelf will render empty.")
             return nil
         }
@@ -137,20 +138,5 @@ final class ContentProvider: TVTopShelfContentProvider {
             log.error("\(label, privacy: .public) fetch failed: \(error.localizedDescription, privacy: .public)")
             return nil
         }
-    }
-}
-
-/// Mirrors TVUserContext: `currentUserIdentifier` is deprecated (tvOS 16) but the only source of the per-user token the session mirror is keyed by; the entitlement replacement would remove identity entirely. Deliberately kept; protocol dispatch confines the deprecation warning to the impl.
-private protocol TVUserTokenReading {
-    func currentToken() -> String?
-}
-
-private struct TVUserTokenReader: TVUserTokenReading {
-    @available(tvOS, deprecated: 16.0, message: "Deliberate: only source of the per-user token.")
-    func currentToken() -> String? {
-        if #available(tvOS 13, *) {
-            return TVUserManager().currentUserIdentifier
-        }
-        return nil
     }
 }

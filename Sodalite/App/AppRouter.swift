@@ -1,7 +1,6 @@
 import SwiftUI
 import os.log
 
-private let tvUserLogger = Logger(subsystem: "de.superuser404.Sodalite", category: "tvUser")
 
 struct AppRouter: View {
     @Environment(\.appState) private var appState
@@ -12,9 +11,6 @@ struct AppRouter: View {
     @State private var hasRestored = false
     /// Same `.task` re-fire guard for the server-switch handler: records the last serverDidSwitch value handled so a player dismissal doesn't re-run the probe + Seerr restore.
     @State private var lastHandledServerSwitch = 0
-    /// tvOS user id as of the last performRestore. Dormant on the current SDK (currentUserIdentifier always nil); kept so multi-user reactivates if Apple revives the API.
-    @State private var lastResolvedTVUserID: String?
-    @State private var lastResolvedTVUserIDSet = false
 
     /// Non-nil while the launch-time profile picker is armed. Picking a profile flips isAuthenticated=true which hides it.
     @State private var launchPickerServer: JellyfinServer?
@@ -185,47 +181,16 @@ struct AppRouter: View {
             }
         }
         .task(id: scenePhase) {
-            tvUserLogger.notice("scenePhase task fired: phase=\(String(describing: scenePhase), privacy: .public) tvUserID=\(TVUserContext.currentUserID ?? "nil", privacy: .public) last=\(lastResolvedTVUserID ?? "nil", privacy: .public) lastSet=\(lastResolvedTVUserIDSet, privacy: .public) isAuth=\(appState.isAuthenticated, privacy: .public) pickerServer=\(launchPickerServer?.id ?? "nil", privacy: .public)")
             if scenePhase == .background {
                 lastBackgroundedAt = ContinuousClock().now
             }
-            // Only react to .active; inactive/background need no tvOS-user re-resolve.
-            guard scenePhase == .active else {
-                tvUserLogger.notice("scenePhase: skip (not active)")
-                return
-            }
+            guard scenePhase == .active else { return }
             // Consume on every .active entry: a stale instant must never survive into a later task re-fire.
             let backgroundedAt = lastBackgroundedAt
             lastBackgroundedAt = nil
-            // Skip until performRestore has set the baseline.
-            guard lastResolvedTVUserIDSet else {
-                tvUserLogger.notice("scenePhase: skip (baseline not set yet)")
-                return
-            }
-
-            let current = TVUserContext.currentUserID
-            if current != lastResolvedTVUserID {
-                tvUserLogger.notice("scenePhase: tvUser CHANGED last=\(lastResolvedTVUserID ?? "nil", privacy: .public) -> current=\(current ?? "nil", privacy: .public). Wiping state + performRestore.")
-                appState.isAuthenticated = false
-                appState.activeServer = nil
-                appState.activeUser = nil
-                // Drop the previous tvOS user's live Seerr identity (else the new user browses as them, since performRestore only touches Seerr on a fresh restore). Client-only detach, NOT clearSeerrSession(): the keychain entries must survive for switch-back.
-                appState.disconnectSeerr()
-                dependencies.detachSeerrClient()
-                launchPickerServer = nil
-                profileCover = nil
-                markTVUserResolved()
-                await performRestore()
-            } else {
-                maybeRequestProfileReprompt(backgroundedAt: backgroundedAt)
-                tvUserLogger.notice("scenePhase: same tvUser. Cheap resolveTVUserContext.")
-                // Same tvOS user: cheap re-resolve in case the mapping was edited in Settings on another scene.
-                guard appState.isAuthenticated || launchPickerServer != nil else {
-                    tvUserLogger.notice("scenePhase: skip cheap resolve (no auth, no picker)")
-                    return
-                }
-                await resolveTVUserContext()
-            }
+            // Skip until the initial restore has run, so a cold launch does not re-prompt on top of it.
+            guard hasRestored else { return }
+            maybeRequestProfileReprompt(backgroundedAt: backgroundedAt)
         }
         .task(id: appState.serverDidSwitch) {
             guard appState.serverDidSwitch > 0 else { return }
@@ -361,72 +326,6 @@ struct AppRouter: View {
         }
     }
 
-    /// Promotes the (server, profile) tuple pinned to the current tvOS user (mapping wins over defaultServerID, the more specific signal). Runs atop performRestore + on scene-foreground. No-op without multi-user.
-    private func resolveTVUserContext() async {
-        let allMappings = dependencies.tvProfileMappings.allMappings
-        tvUserLogger.notice("resolveTVUserContext enter: tvUserID=\(TVUserContext.currentUserID ?? "nil", privacy: .public) totalMappings=\(allMappings.count, privacy: .public) mappingKeys=\(allMappings.keys.joined(separator: ","), privacy: .public)")
-        guard let tvUserID = TVUserContext.currentUserID else {
-            tvUserLogger.notice("resolveTVUserContext: skip (no tvUserID)")
-            return
-        }
-        guard let mapping = dependencies.tvProfileMappings.mapping(for: tvUserID) else {
-            tvUserLogger.notice("resolveTVUserContext: skip (no mapping for \(tvUserID, privacy: .public))")
-            return
-        }
-        tvUserLogger.notice("resolveTVUserContext: mapping found server=\(mapping.serverID, privacy: .public) user=\(mapping.jellyfinUserID, privacy: .public)")
-
-        let currentServerID = try? dependencies.keychainService.loadString(
-            for: KeychainKeys.activeServerID
-        )
-        let currentUserID = try? dependencies.keychainService.loadString(
-            for: KeychainKeys.userID(serverID: mapping.serverID)
-        )
-        let keychainAlreadyMatches = currentServerID == mapping.serverID
-            && currentUserID == mapping.jellyfinUserID
-
-        tvUserLogger.notice("resolveTVUserContext: keychain state currentServer=\(currentServerID ?? "nil", privacy: .public) currentUser=\(currentUserID ?? "nil", privacy: .public) matches=\(keychainAlreadyMatches, privacy: .public)")
-
-        if !keychainAlreadyMatches {
-            // SECURITY (parental controls): ONLY profile-activation path not behind the Guardian-PIN gate. Dormant now (currentUserID always nil, guard above returned). If Apple revives multi-user, gate this switch with dependencies.parentalGate before switchToUser or it bypasses the lock.
-            tvUserLogger.notice("resolveTVUserContext: SWITCH path. Calling switchServer + switchToUser")
-            try? dependencies.switchServer(to: mapping.serverID)
-            if let server = dependencies.activeServer,
-               let user = dependencies.listRememberedUsers(serverID: mapping.serverID)
-                   .first(where: { $0.id == mapping.jellyfinUserID }) {
-                try? dependencies.switchToUser(user, server: server)
-                tvUserLogger.notice("resolveTVUserContext: switchToUser done. serverDidSwitch handler will setAuthenticated.")
-            } else {
-                tvUserLogger.notice("resolveTVUserContext: SWITCH path - server or remembered user missing after switchServer")
-            }
-            // switchServer's serverDidSwitch bump drives the probe + setAuthenticated path.
-            return
-        }
-
-        // Keychain already matches (resume for a tvOS user whose state was never wiped, e.g. brief switch away and back). switchServer won't fire, so force-flip AppState authenticated, else the body lingers on the prior session's view (often ServerDiscoveryView).
-        guard !appState.isAuthenticated else {
-            tvUserLogger.notice("resolveTVUserContext: RESUME path. Already authenticated, no-op.")
-            return
-        }
-        guard let server = dependencies.activeServer,
-              let remembered = dependencies.listRememberedUsers(serverID: mapping.serverID)
-                  .first(where: { $0.id == mapping.jellyfinUserID })
-        else {
-            tvUserLogger.notice("resolveTVUserContext: RESUME path - server or remembered user missing. activeServer=\(dependencies.activeServer?.id ?? "nil", privacy: .public) rememberedCount=\(dependencies.listRememberedUsers(serverID: mapping.serverID).count, privacy: .public)")
-            return
-        }
-        let jf = JellyfinUser(
-            id: remembered.id,
-            name: remembered.name,
-            serverID: server.id,
-            hasPassword: nil,
-            primaryImageTag: remembered.imageTag,
-            policy: nil
-        )
-        appState.setAuthenticated(server: server, user: jf)
-        launchPickerServer = nil
-        tvUserLogger.notice("resolveTVUserContext: RESUME path - setAuthenticated done. user=\(remembered.id, privacy: .public) server=\(server.id, privacy: .public)")
-    }
-
     /// Feeds the active user's first Resume item through the deep-link channel. Triggered by ContinueWatchingIntent; the intent stays trivial to respect tvOS-Siri's "no async work" voice-invocation policy.
     private func resolveContinueWatchingRequest() async {
         guard appState.requestContinueWatching else { return }
@@ -506,14 +405,6 @@ struct AppRouter: View {
         appState.pendingDeepLinkItemID = nil
     }
 
-    /// Records the current tvOS user id so the scenePhase observer can detect a later change. Called from every full-performRestore entry point.
-    private func markTVUserResolved() {
-        let id = TVUserContext.currentUserID
-        tvUserLogger.notice("markTVUserResolved: tvUserID=\(id ?? "nil", privacy: .public)")
-        lastResolvedTVUserID = id
-        lastResolvedTVUserIDSet = true
-    }
-
     /// Caller consumes lastBackgroundedAt on every .active entry (a player dismissal re-fires the
     /// scenePhase task while still .active, and must not re-prompt); this only decides whether to
     /// arm the cover.
@@ -537,8 +428,6 @@ struct AppRouter: View {
     }
 
     private func restoreSession() async {
-        tvUserLogger.notice("restoreSession ENTER. tvUserID=\(TVUserContext.currentUserID ?? "nil", privacy: .public)")
-        markTVUserResolved()
         appState.isLoading = true
         let splashStart = Date()
 
@@ -564,18 +453,11 @@ struct AppRouter: View {
     }
 
     private func performRestore() async {
-        tvUserLogger.notice("performRestore ENTER. tvUserID=\(TVUserContext.currentUserID ?? "nil", privacy: .public) isAuth=\(appState.isAuthenticated, privacy: .public) pickerServer=\(launchPickerServer?.id ?? "nil", privacy: .public)")
-        defer {
-            tvUserLogger.notice("performRestore EXIT. isAuth=\(appState.isAuthenticated, privacy: .public) activeUser=\(appState.activeUser?.id ?? "nil", privacy: .public) activeServer=\(appState.activeServer?.id ?? "nil", privacy: .public) pickerServer=\(launchPickerServer?.id ?? "nil", privacy: .public)")
-        }
         // Fire-and-forget: StoreKit is independent of the Jellyfin restore and shouldn't block the splash; isSupporter starts cached and flips live.
         Task { @MainActor in
             await dependencies.storeKitService.refreshSupporterStatus()
             await dependencies.storeKitService.loadProducts()
         }
-
-        // Promote the current tvOS user's (server, profile) mapping (wins over any user-pinned default).
-        await resolveTVUserContext()
 
         // Restore policy (pointer repair, default-server promotion, migrations, launch routing) lives in SessionRestorer; this view only maps the outcome onto AppState + picker state.
         let outcome = SessionRestorer(env: dependencies).restore()

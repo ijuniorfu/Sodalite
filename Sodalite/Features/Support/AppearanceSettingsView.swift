@@ -92,6 +92,18 @@ struct AppearanceSettingsView: View {
                                set: { appearance.showPosterBadges = $0 })
             )
 
+            #if os(tvOS)
+            // The row can show another household member's Continue Watching, because the shelf
+            // extension is stuck on the Default user (Apple bug, see TopShelfEnabled).
+            boolRow(
+                icon: "menubar.dock.rectangle",
+                title: "settings.appearance.topShelf",
+                subtitle: "settings.appearance.topShelf.subtitle",
+                value: Binding(get: { appearance.showTopShelfRow },
+                               set: { appearance.showTopShelfRow = $0 })
+            )
+            #endif
+
             boolRow(
                 icon: "music.note.tv",
                 title: "settings.appearance.nowPlayingPoster",
