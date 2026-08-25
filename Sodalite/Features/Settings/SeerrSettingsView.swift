@@ -127,7 +127,8 @@ struct SeerrSettingsView: View {
                         .padding(.vertical, 12)
                 }
             }
-            .buttonStyle(SettingsTileButtonStyle())
+            // Primary action of the step: prominent so it is not lost against the backdrop.
+            .buttonStyle(SettingsTileButtonStyle(isProminent: true))
             .disabled(isDiscovering || !isAddressValid)
         }
     }
@@ -231,7 +232,9 @@ struct SeerrSettingsView: View {
                             .padding(.vertical, 12)
                     }
                 }
-                .buttonStyle(SettingsTileButtonStyle())
+                // The step that actually completes the setup; a faint tile here read as "done"
+                // and users left the flow one tap early (Sodalite#82).
+                .buttonStyle(SettingsTileButtonStyle(isProminent: true))
                 .disabled(isLoggingIn || !canSubmit)
             }
         }

@@ -246,7 +246,8 @@ struct LoginView: View {
                         .padding(.vertical, 12)
                 }
             }
-            .buttonStyle(SettingsTileButtonStyle())
+            // Primary action; Quick Connect below stays secondary.
+            .buttonStyle(SettingsTileButtonStyle(isProminent: true))
             .disabled(vm.isLoading || vm.username.trimmingCharacters(in: .whitespaces).isEmpty)
 
             Button {

@@ -60,7 +60,8 @@ struct ServerAddressEntryView: View {
                                 .padding(.vertical, 12)
                         }
                     }
-                    .buttonStyle(SettingsTileButtonStyle())
+                    // Primary action of the screen.
+                    .buttonStyle(SettingsTileButtonStyle(isProminent: true))
                     .disabled(vm.isLoading || vm.serverAddress.trimmingCharacters(in: .whitespaces).isEmpty)
                 }
                 .frame(maxWidth: 500)

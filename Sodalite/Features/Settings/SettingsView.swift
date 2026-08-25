@@ -525,6 +525,11 @@ struct GatedSettingsTile<Destination: View>: View {
 }
 
 struct SettingsTileButtonStyle: ButtonStyle {
+    /// The screen's primary action wears the accent fill instead of the resting white 0.05 tile.
+    /// On an OLED-black backdrop that tile is nearly invisible, so a setup step that ends in one
+    /// reads as already finished and the user navigates away mid-flow (Sodalite#82). Fill values
+    /// match GlassButtonStyle's prominent variant so a primary action looks the same everywhere.
+    var isProminent: Bool = false
     #if os(tvOS)
     @Environment(\.isFocused) private var isFocused
     #endif
@@ -540,7 +545,7 @@ struct SettingsTileButtonStyle: ButtonStyle {
         return configuration.label
             .background(
                 RoundedRectangle(cornerRadius: 16)
-                    .fill(active ? .white.opacity(0.15) : .white.opacity(0.05))
+                    .fill(fill(active: active))
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 16)
@@ -551,6 +556,13 @@ struct SettingsTileButtonStyle: ButtonStyle {
             .shadow(color: .black.opacity(active ? 0.3 : 0), radius: 15, y: 8)
             .opacity(isEnabled ? 1.0 : 0.4)
             .animation(.easeInOut(duration: 0.2), value: active)
+    }
+
+    private func fill(active: Bool) -> AnyShapeStyle {
+        if isProminent {
+            return AnyShapeStyle(TintShapeStyle.tint.opacity(active ? 0.9 : 0.7))
+        }
+        return AnyShapeStyle(Color.white.opacity(active ? 0.15 : 0.05))
     }
 }
 
