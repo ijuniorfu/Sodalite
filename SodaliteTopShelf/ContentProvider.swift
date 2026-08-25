@@ -9,6 +9,10 @@ private let log = Logger(subsystem: "de.superuser404.Sodalite.TopShelf", categor
 @objc(SodaliteTopShelfContentProvider)
 final class ContentProvider: TVTopShelfContentProvider {
     override func loadTopShelfContent() async -> (any TVTopShelfContent)? {
+        guard TopShelfEnabled.read() else {
+            log.notice("Top Shelf switched off in Settings; rendering empty.")
+            return nil
+        }
         guard let session = SharedSession.read() else {
             log.notice("No shared session in keychain; TopShelf will render empty.")
             return nil
