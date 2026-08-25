@@ -14,6 +14,24 @@ struct CloudSyncPreferencesTests {
         #expect(makePrefs().isEnabled == true)
     }
 
+    @Test("the account-change lock is off until something sets it")
+    func accountChangeLockDefaultsOff() {
+        #expect(makePrefs().accountChangeLocked == false)
+    }
+
+    @Test("the account-change lock survives a relaunch, because the status row does not")
+    func accountChangeLockPersists() {
+        let suite = "CloudSyncPreferencesTests-\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suite)!
+        let first = CloudSyncPreferences(store: defaults)
+        first.accountChangeLocked = true
+        first.isEnabled = false
+
+        let relaunched = CloudSyncPreferences(store: UserDefaults(suiteName: suite)!)
+        #expect(relaunched.accountChangeLocked == true)
+        #expect(relaunched.isEnabled == false)
+    }
+
     @Test("nextStamp is strictly increasing even within the same instant")
     func monotonicStamps() {
         let prefs = makePrefs()

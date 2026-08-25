@@ -10,6 +10,7 @@ final class CloudSyncPreferences {
         static let enabled = "cloudSync.enabled"
         static let adoptionCompleted = "cloudSync.adoptionCompleted"
         static let accountID = "cloudSync.accountID"
+        static let accountChangeLocked = "cloudSync.accountChangeLocked"
         static let lastSyncAt = "cloudSync.lastSyncAt"
         static let engineState = "cloudSync.engineState"
         static let highestSeenStamp = "cloudSync.highestSeenStamp"
@@ -30,6 +31,10 @@ final class CloudSyncPreferences {
             else { store.removeObject(forKey: Keys.accountID) }
         }
     }
+    /// Sync stopped itself because a different iCloud account signed in. Persisted because
+    /// `CloudSyncStatus` lives only in memory: without this the status row would go back to a
+    /// plain "Off" on the next launch and never say why sync went quiet.
+    var accountChangeLocked: Bool { didSet { store.set(accountChangeLocked, forKey: Keys.accountChangeLocked) } }
     var lastSyncAt: Date? {
         didSet {
             if let lastSyncAt { store.set(lastSyncAt.timeIntervalSince1970, forKey: Keys.lastSyncAt) }
@@ -55,6 +60,7 @@ final class CloudSyncPreferences {
         self.isEnabled = store.object(forKey: Keys.enabled) == nil ? true : store.bool(forKey: Keys.enabled)
         self.adoptionCompleted = store.bool(forKey: Keys.adoptionCompleted)
         self.accountID = store.string(forKey: Keys.accountID)
+        self.accountChangeLocked = store.bool(forKey: Keys.accountChangeLocked)
         self.lastSyncAt = (store.object(forKey: Keys.lastSyncAt) as? Double).map(Date.init(timeIntervalSince1970:))
         self.engineState = store.data(forKey: Keys.engineState)
         self.highestSeenStamp = (store.object(forKey: Keys.highestSeenStamp) as? Double).map(Date.init(timeIntervalSince1970:))

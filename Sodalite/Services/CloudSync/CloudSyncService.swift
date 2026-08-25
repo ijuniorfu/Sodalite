@@ -4,6 +4,8 @@ import Observation
 
 enum CloudSyncStatus: Equatable {
     case disabled
+    /// Sync is off because a different iCloud account signed in on this device.
+    case accountChanged
     case noAccount
     case syncing
     case active(lastSyncAt: Date?)
@@ -25,7 +27,7 @@ enum CloudSyncLoadOutcome: Equatable {
         switch status {
         case .noAccount: return .noAccount
         case .error(let message): return .failed(message)
-        case .disabled: return .failed(nil)
+        case .disabled, .accountChanged: return .failed(nil)
         case .active, .syncing: return .empty
         }
     }
@@ -96,7 +98,10 @@ final class CloudSyncService: CloudSyncServiceProtocol {
     // MARK: Lifecycle
 
     func start() {
-        guard preferences.isEnabled else { status = .disabled; return }
+        guard preferences.isEnabled else {
+            status = preferences.accountChangeLocked ? .accountChanged : .disabled
+            return
+        }
         guard engine == nil, !startInFlight else { return }
         startInFlight = true
         removeObservers()
@@ -121,6 +126,9 @@ final class CloudSyncService: CloudSyncServiceProtocol {
 
     func setEnabled(_ enabled: Bool) {
         preferences.isEnabled = enabled
+        // Either direction is the user's own hand on the switch, so the account-change
+        // explanation has done its job and must not outlive it.
+        preferences.accountChangeLocked = false
         statusLatch.clear()
         if enabled {
             start()
@@ -128,6 +136,25 @@ final class CloudSyncService: CloudSyncServiceProtocol {
             teardownEngine()
             status = .disabled
         }
+    }
+
+    /// A different iCloud account than the one this device adopted against.
+    ///
+    /// Adopting again here is not a merge, it is an upload: `completeAdoption` marks every known
+    /// server dirty unconditionally, and a server record carries its remembered profiles, their
+    /// Jellyfin tokens, the stored password and the Seerr sessions. On a device that changed hands
+    /// that lands the previous account's credentials in the new account's private database, without
+    /// anyone asking for it. So sync stops here and stays stopped until someone turns it back on.
+    ///
+    /// Clearing the stored account is what makes that switch clean: the next enable reads as a
+    /// first adoption for whoever is signed in now, rather than tripping this guard forever.
+    private func lockOutForAccountChange() {
+        preferences.resetForAccountChange()
+        preferences.isEnabled = false
+        preferences.accountChangeLocked = true
+        statusLatch.clear()
+        status = .accountChanged
+        LogTap.shared.note("[CloudSync] iCloud account changed, sync paused until re-enabled")
     }
 
     private func teardownEngine() {
@@ -168,8 +195,12 @@ final class CloudSyncService: CloudSyncServiceProtocol {
             }
             let accountID = try await container.userRecordID().recordName
             guard observationGeneration == generation else { return }
-            if let stored = preferences.accountID, stored != accountID {
-                preferences.resetForAccountChange()
+            switch CloudSyncAccountTransition.resolve(stored: preferences.accountID, current: accountID) {
+            case .firstAdoption, .unchanged:
+                break
+            case .changed:
+                lockOutForAccountChange()
+                return
             }
             preferences.accountID = accountID
 
@@ -246,7 +277,7 @@ final class CloudSyncService: CloudSyncServiceProtocol {
             if Task.isCancelled { return }
             if preferences.adoptionCompleted { return }
             switch status {
-            case .noAccount, .disabled, .error: return
+            case .noAccount, .disabled, .accountChanged, .error: return
             case .active, .syncing: break
             }
             try? await Task.sleep(for: .milliseconds(200))
@@ -458,6 +489,7 @@ final class CloudSyncService: CloudSyncServiceProtocol {
             return
         }
         preferences.resetForCloudDataDeletion()
+        preferences.accountChangeLocked = false
         teardownEngine()
         statusLatch.clear()
         status = .disabled
@@ -468,6 +500,7 @@ final class CloudSyncService: CloudSyncServiceProtocol {
     /// wipe from one logout). Re-enabling later re-adopts from the cloud.
     func handleFullLogout() {
         preferences.isEnabled = false
+        preferences.accountChangeLocked = false
         preferences.resetForCloudDataDeletion()
         teardownEngine()
         statusLatch.clear()
@@ -482,6 +515,7 @@ final class CloudSyncService: CloudSyncServiceProtocol {
         ) { _ in
             Task { @MainActor [weak self] in
                 guard let self, self.preferences.isEnabled else { return }
+                LogTap.shared.note("[CloudSync] iCloud account changed, restarting engine")
                 self.teardownEngine()
                 self.start()
             }

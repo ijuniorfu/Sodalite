@@ -135978,6 +135978,167 @@
         }
       }
     },
+    "settings.cloudSync.status.accountChanged" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pozastaveno: přihlásil se jiný účet iCloud. Zapni synchronizaci znovu, aby fungovala s tímto účtem."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sat på pause: en anden iCloud-konto er logget ind. Slå synkronisering til igen for at bruge den med denne konto."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pausiert: Es hat sich ein anderer iCloud-Account angemeldet. Schalte den Sync wieder ein, um ihn mit diesem Account zu nutzen."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Σε παύση: συνδέθηκε άλλος λογαριασμός iCloud. Ενεργοποίησε ξανά τον συγχρονισμό για να τον χρησιμοποιήσεις με αυτόν τον λογαριασμό."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paused: a different iCloud account signed in. Turn sync back on to use it with this account."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En pausa: se inició sesión con otra cuenta de iCloud. Vuelve a activar la sincronización para usarla con esta cuenta."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keskeytetty: laitteeseen kirjautui toinen iCloud-tili. Ota synkronointi uudelleen käyttöön, jotta se toimii tällä tilillä."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En pause : un autre compte iCloud s'est connecté. Réactive la synchronisation pour l'utiliser avec ce compte."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pauzirano: prijavljen je drugi iCloud račun. Ponovno uključi sinkronizaciju da bi je koristio s ovim računom."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Szüneteltetve: másik iCloud-fiók jelentkezett be. Kapcsold be újra a szinkronizálást, hogy ezzel a fiókkal használd."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In pausa: è stato effettuato l'accesso con un altro account iCloud. Riattiva la sincronizzazione per usarla con questo account."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "一時停止中: 別の iCloud アカウントでサインインされました。このアカウントで使うには同期をオンに戻してください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "일시 중지됨: 다른 iCloud 계정으로 로그인했습니다. 이 계정에서 사용하려면 동기화를 다시 켜세요."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Satt på pause: en annen iCloud-konto er logget på. Slå på synkronisering igjen for å bruke den med denne kontoen."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gepauzeerd: er is een ander iCloud-account ingelogd. Schakel synchronisatie weer in om deze met dit account te gebruiken."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wstrzymano: zalogowano inne konto iCloud. Włącz synchronizację ponownie, aby działała z tym kontem."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pausado: outra conta do iCloud foi conectada. Ative a sincronização novamente para usá-la com esta conta."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Em pausa: foi iniciada sessão com outra conta iCloud. Volta a ativar a sincronização para a usares com esta conta."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "În pauză: s-a conectat un alt cont iCloud. Reactivează sincronizarea pentru a o folosi cu acest cont."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Приостановлено: выполнен вход в другую учётную запись iCloud. Снова включите синхронизацию, чтобы использовать её с этой учётной записью."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pozastavené: prihlásil sa iný účet iCloud. Znova zapni synchronizáciu, aby fungovala s týmto účtom."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pausad: ett annat iCloud-konto har loggat in. Slå på synkronisering igen för att använda den med det här kontot."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Duraklatıldı: farklı bir iCloud hesabı oturum açtı. Bu hesapla kullanmak için eşitlemeyi tekrar aç."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Призупинено: виконано вхід в інший обліковий запис iCloud. Знову увімкни синхронізацію, щоб використовувати її з цим обліковим записом."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已暂停：已登录另一个 iCloud 账户。若要在此账户下使用，请重新打开同步。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已暫停：已登入另一個 iCloud 帳號。若要在此帳號使用，請重新開啟同步。"
+          }
+        }
+      }
+    },
     "settings.cloudSync.status.active" : {
       "extractionState" : "manual",
       "localizations" : {
