@@ -61740,6 +61740,328 @@
         }
       }
     },
+    "changelog.1_0_0.tvUserProfiles.body" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Každý uživatel Apple TV má vlastní servery, vlastní přihlášení k Jellyfinu a vlastní nastavení, a přepnutí uživatele přepne i Sodalite. Řádek na domovské obrazovce lze vypnout v nastavení, protože tvOS ho ukazuje jen pro jednoho."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hver Apple TV-bruger får sine egne servere, sit eget Jellyfin-login og sine egne indstillinger, og et brugerskift skifter Sodalite med. Rækken på hjemmeskærmen kan slås fra i indstillingerne, for tvOS viser den kun for én."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jeder Apple-TV-Nutzer bekommt eigene Server, eigene Jellyfin-Anmeldung und eigene Einstellungen, und ein Nutzerwechsel wechselt Sodalite mit. Die Zeile auf dem Startbildschirm lässt sich in den Einstellungen abschalten, denn tvOS zeigt sie immer nur für einen."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Κάθε χρήστης του Apple TV αποκτά δικούς του διακομιστές, δική του σύνδεση Jellyfin και δικές του ρυθμίσεις, και η αλλαγή χρήστη αλλάζει και το Sodalite. Η γραμμή στην αρχική οθόνη απενεργοποιείται από τις ρυθμίσεις, καθώς το tvOS τη δείχνει μόνο για έναν."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Every Apple TV user gets their own servers, Jellyfin login and settings, and switching users switches Sodalite with them. The home screen row can be turned off in Settings, since tvOS shows it for one user only."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cada usuario del Apple TV tiene sus propios servidores, su propio inicio de sesión de Jellyfin y sus propios ajustes, y cambiar de usuario cambia también Sodalite. La fila de la pantalla de inicio se puede desactivar en los ajustes, porque tvOS solo la muestra para uno."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jokainen Apple TV:n käyttäjä saa omat palvelimensa, oman Jellyfin-kirjautumisensa ja omat asetuksensa, ja käyttäjän vaihto vaihtaa myös Sodaliten. Aloitusnäytön rivin voi poistaa käytöstä asetuksista, koska tvOS näyttää sen vain yhdelle."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chaque utilisateur de l’Apple TV a ses propres serveurs, sa propre connexion Jellyfin et ses propres réglages, et changer d’utilisateur change aussi Sodalite. La rangée de l’écran d’accueil se désactive dans les réglages, car tvOS ne l’affiche que pour un seul."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Svaki korisnik Apple TV-a dobiva vlastite poslužitelje, vlastitu Jellyfin prijavu i vlastite postavke, a promjena korisnika mijenja i Sodalite. Redak na početnom zaslonu može se isključiti u postavkama jer ga tvOS prikazuje samo za jednoga."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Minden Apple TV-felhasználó saját kiszolgálókat, saját Jellyfin-bejelentkezést és saját beállításokat kap, és a felhasználóváltással a Sodalite is vált. A kezdőképernyő sora kikapcsolható a beállításokban, mert a tvOS csak egyvalakinek mutatja."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ogni utente dell’Apple TV ha i propri server, il proprio accesso a Jellyfin e le proprie impostazioni, e cambiare utente cambia anche Sodalite. La riga nella schermata Home si può disattivare nelle impostazioni, perché tvOS la mostra per un solo utente."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple TV のユーザごとに、サーバ、Jellyfin のログイン、設定がそれぞれ独立します。ユーザを切り替えると Sodalite も切り替わります。ホーム画面の列は設定でオフにできます。tvOS が 1 人分しか表示しないためです。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple TV 사용자마다 서버, Jellyfin 로그인, 설정을 따로 갖습니다. 사용자를 바꾸면 Sodalite도 함께 바뀝니다. 홈 화면 행은 설정에서 끌 수 있습니다. tvOS가 한 사람 것만 보여주기 때문입니다."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hver Apple TV-bruker får sine egne servere, sin egen Jellyfin-innlogging og sine egne innstillinger, og et brukerbytte bytter Sodalite med. Raden på hjemmeskjermen kan slås av i innstillingene, siden tvOS bare viser den for én."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Elke Apple TV-gebruiker krijgt eigen servers, een eigen Jellyfin-login en eigen instellingen, en bij het wisselen van gebruiker wisselt Sodalite mee. De rij op het beginscherm kun je uitschakelen in de instellingen, want tvOS toont hem maar voor één."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Każdy użytkownik Apple TV ma własne serwery, własne logowanie do Jellyfina i własne ustawienia, a zmiana użytkownika przełącza też Sodalite. Wiersz na ekranie głównym można wyłączyć w ustawieniach, bo tvOS pokazuje go tylko dla jednego."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cada usuário da Apple TV tem seus próprios servidores, seu próprio login do Jellyfin e seus próprios ajustes, e trocar de usuário troca o Sodalite junto. A linha na tela de início pode ser desativada nos ajustes, já que o tvOS a mostra para um só."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cada utilizador da Apple TV tem os seus próprios servidores, o seu início de sessão no Jellyfin e as suas definições, e mudar de utilizador muda também o Sodalite. A linha no ecrã principal pode ser desativada nas definições, pois o tvOS mostra-a só para um."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fiecare utilizator Apple TV are propriile servere, propria autentificare Jellyfin și propriile setări, iar schimbarea utilizatorului schimbă și Sodalite. Rândul de pe ecranul principal poate fi dezactivat din setări, fiindcă tvOS îl arată doar pentru unul."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "У каждого пользователя Apple TV свои серверы, свой вход в Jellyfin и свои настройки, а смена пользователя переключает и Sodalite. Строку на главном экране можно отключить в настройках, ведь tvOS показывает её только для одного."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Každý používateľ Apple TV má vlastné servery, vlastné prihlásenie do Jellyfinu a vlastné nastavenia a prepnutie používateľa prepne aj Sodalite. Riadok na domovskej obrazovke sa dá vypnúť v nastaveniach, pretože tvOS ho ukazuje len pre jedného."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Varje Apple TV-användare får egna servrar, egen Jellyfin-inloggning och egna inställningar, och ett användarbyte byter Sodalite med. Raden på hemskärmen kan stängas av i inställningarna, eftersom tvOS bara visar den för en."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Her Apple TV kullanıcısı kendi sunucularına, kendi Jellyfin girişine ve kendi ayarlarına sahip olur; kullanıcı değiştirince Sodalite de değişir. Ana ekran satırı ayarlardan kapatılabilir, çünkü tvOS onu yalnızca tek bir kullanıcı için gösterir."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Кожен користувач Apple TV має власні сервери, власний вхід у Jellyfin і власні налаштування, а зміна користувача перемикає й Sodalite. Рядок на головному екрані можна вимкнути в налаштуваннях, адже tvOS показує його лише для одного."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "每个 Apple TV 用户都有自己的服务器、Jellyfin 登录和设置，切换用户时 Sodalite 也随之切换。主屏幕行可以在设置中关闭，因为 tvOS 只会显示其中一位用户的内容。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "每位 Apple TV 使用者都有自己的伺服器、Jellyfin 登入與設定，切換使用者時 Sodalite 也會跟著切換。主畫面列可以在設定中關閉，因為 tvOS 只會顯示其中一位使用者的內容。"
+          }
+        }
+      }
+    },
+    "changelog.1_0_0.tvUserProfiles.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Profily uživatelů Apple TV"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple TV-brugerprofiler"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple-TV-Nutzerprofile"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Προφίλ χρηστών Apple TV"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple TV user profiles"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Perfiles de usuario del Apple TV"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple TV:n käyttäjäprofiilit"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Profils d’utilisateur Apple TV"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Korisnički profili Apple TV-a"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple TV-felhasználói profilok"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Profili utente Apple TV"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple TV のユーザプロファイル"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple TV 사용자 프로필"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple TV-brukerprofiler"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple TV-gebruikersprofielen"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Profile użytkowników Apple TV"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Perfis de usuário da Apple TV"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Perfis de utilizador da Apple TV"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Profiluri de utilizator Apple TV"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Профили пользователей Apple TV"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Používateľské profily Apple TV"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple TV-användarprofiler"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple TV kullanıcı profilleri"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Профілі користувачів Apple TV"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple TV 用户配置文件"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple TV 使用者設定檔"
+          }
+        }
+      }
+    },
     "changelog.modal.dismiss" : {
       "extractionState" : "manual",
       "localizations" : {

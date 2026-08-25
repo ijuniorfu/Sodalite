@@ -93,6 +93,12 @@ enum Changelog {
                     icon: "hand.tap.fill"
                 ),
                 ChangelogHighlight(
+                    .new,
+                    "changelog.1_0_0.tvUserProfiles.title",
+                    "changelog.1_0_0.tvUserProfiles.body",
+                    icon: "person.2.fill"
+                ),
+                ChangelogHighlight(
                     .improve,
                     "changelog.1_0_0.personLibrary.title",
                     "changelog.1_0_0.personLibrary.body",
