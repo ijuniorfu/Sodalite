@@ -71,8 +71,8 @@ enum KeychainKeys {
         "rememberedSeerr_\(jellyfinServerID)_\(jellyfinUserID)"
     }
 
-    /// Shared-session blob slot keyed by tvOS user; nil (single-user) → `default` slot, multi-user → per-id slot the TopShelf extension reads via TVUserManager.
-    static func sharedSession(tvUserID: String?) -> String {
-        "tvOSSession_\(tvUserID ?? "default")"
-    }
+    /// The one shared-session blob the TopShelf extension reads. Under `runs-as-current-user` the
+    /// keychain is already per tvOS user, so a second per-user key would be a partition inside a
+    /// partition. The `_default` suffix is kept verbatim: existing installs carry that account name.
+    static let sharedSession = "tvOSSession_default"
 }

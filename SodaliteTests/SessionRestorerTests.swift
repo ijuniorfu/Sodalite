@@ -7,7 +7,6 @@ import Foundation
 /// by persisting into the backing list so the subsequent re-read reflects it.
 @MainActor
 final class FakeRestoreEnv: SessionRestoreEnvironment {
-    var hasTVMapping = false
     var defaultServerID: String?
     var launchBehavior: AuthPreferences.LaunchBehavior = .showPicker
     /// Pinned default profile per server id, mirroring the per-server store.
@@ -249,30 +248,6 @@ struct SessionRestorerTests {
         env.activeServerIDStored = "A"   // current pointer differs from the pinned default
         _ = SessionRestorer(env: env).restore()
         #expect(env.savedActiveServerIDs.first == "B")
-    }
-
-    @Test func tvMappingSuppressesDefaultServerPromotion() {
-        let env = restorable()
-        env.hasTVMapping = true
-        env.defaultServerID = "B"
-        env.knownServers = [server("A"), server("B")]
-        env.activeServerIDStored = "A"
-        env.remembered = [user("U")]
-        _ = SessionRestorer(env: env).restore()
-        #expect(!env.savedActiveServerIDs.contains("B"))
-    }
-
-    // hasTVMapping must also suppress the useDefault auto-enter branch, not just server promotion.
-    @Test func tvMappingSuppressesUseDefaultBranch() {
-        let env = restorable()
-        env.hasTVMapping = true
-        env.remembered = [user("U"), user("B")]
-        env.launchBehavior = .useDefault
-        env.defaultUserIDByServer["A"] = "B"
-        let outcome = SessionRestorer(env: env).restore()
-        guard case .picker(_, let sync) = outcome else { Issue.record("expected picker (tvMapping suppresses useDefault), got \(tagOf(outcome))"); return }
-        #expect(sync == true)
-        #expect(env.switched.isEmpty)
     }
 
     // The pin is per server: another server's default profile must never auto-enter this one.

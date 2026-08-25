@@ -17,9 +17,10 @@ struct SharedSession: Sendable {
         let accessToken: String
     }
 
-    /// Reads the per-tvOS-user blob SharedSessionMirror.write deposits. Nil tvUserID (single-user Apple TV) reads the `tvOSSession_default` slot.
-    static func read(tvUserID: String?) -> SharedSession? {
-        let slot = sharedSessionSlot(tvUserID: tvUserID)
+    /// Reads the blob SharedSessionMirror.write deposits. The keychain is already per tvOS user
+    /// under the user-management entitlement, so there is one slot, not one per user.
+    static func read() -> SharedSession? {
+        let slot = sharedSessionSlot
         guard let data = readSharedKeychainData(account: slot) else {
             log.info("SharedSession.read slot=\(slot, privacy: .public) data=nil group=\(resolvedAccessGroup, privacy: .public)")
             return nil
@@ -35,10 +36,8 @@ struct SharedSession: Sendable {
     }
 }
 
-/// Mirrors KeychainKeys.sharedSession(tvUserID:); duplicated so the extension stays source-independent from the main target.
-private func sharedSessionSlot(tvUserID: String?) -> String {
-    "tvOSSession_\(tvUserID ?? "default")"
-}
+/// Mirrors KeychainKeys.sharedSession; duplicated so the extension stays source-independent from the main target.
+private let sharedSessionSlot = "tvOSSession_default"
 
 enum SharedSessionKeys {
     static let service = "de.superuser404.Sodalite.shared"

@@ -60,18 +60,4 @@ struct FactoryResetTests {
             #expect(payload.storeKey == key)
         }
     }
-
-    /// The mappings are cached in memory, so wiping the domain under them would leave the old ones
-    /// live and let the next write put them back.
-    @Test func tvProfileMappingsClearOut() {
-        let store = emptySuite("tvMappings")
-        let mappings = TVProfileMappings(store: store)
-        mappings.setMapping(TVProfileMapping(serverID: "A", jellyfinUserID: "U"), for: "tv-1")
-        #expect(!mappings.allMappings.isEmpty)
-
-        mappings.removeAll()
-
-        #expect(mappings.allMappings.isEmpty)
-        #expect(TVProfileMappings(store: store).allMappings.isEmpty)
-    }
 }

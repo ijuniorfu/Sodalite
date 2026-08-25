@@ -41,7 +41,6 @@ final class DependencyContainer {
     let authPreferences: AuthPreferences
     let parentalControlsPreferences: ParentalControlsPreferences
     let parentalGate: ParentalGate
-    let tvProfileMappings: TVProfileMappings
 
     let seerrClient: SeerrClient
     let seerrServerDiscoveryService: SeerrServerDiscoveryServiceProtocol
@@ -99,9 +98,6 @@ final class DependencyContainer {
         keychainService: KeychainServiceProtocol = KeychainService(),
         httpClient: HTTPClientProtocol = HTTPClient()
     ) {
-        // One-shot keychain hygiene (KeychainMigrator); idempotent, must run BEFORE keychainService is touched.
-        KeychainMigrator.migrateIfNeeded()
-
         self.keychainService = keychainService
         self.httpClient = httpClient
         self.jellyfinClient = JellyfinClient(httpClient: httpClient)
@@ -144,7 +140,6 @@ final class DependencyContainer {
         )
         self.parentalControlsPreferences = ParentalControlsPreferences()
         self.parentalGate = ParentalGate()
-        self.tvProfileMappings = TVProfileMappings()
 
         // Seerr gets its OWN HTTPClient so Catalog browsing doesn't compete with the Home fan-out for the same 6 in-flight permits against a tarpitted Jellyfin CDN (see HTTPClient inFlightLimiter).
         let seerrHTTPClient = HTTPClient()
@@ -239,7 +234,7 @@ final class DependencyContainer {
                 try? keychainService.save(data, for: KeychainKeys.rememberedUsers(serverID: server.id))
             }
             jellyfinClient.accessToken = nil
-            SharedSessionMirror.clear(tvUserID: TVUserContext.currentUserID)
+            SharedSessionMirror.clear()
             forgetRememberedSeerr(
                 forJellyfinUserID: userID,
                 jellyfinServerID: server.id
@@ -279,7 +274,6 @@ final class DependencyContainer {
         // Re-project SharedSessionMirror every cold launch so TopShelf stays in lockstep even if a prior version never wrote it or the shelf's bucket was wiped.
         if let userID = try? keychainService.loadString(for: KeychainKeys.userID(serverID: server.id)) {
             SharedSessionMirror.write(
-                tvUserID: TVUserContext.currentUserID,
                 serverURL: sessionURL,
                 userID: userID,
                 accessToken: token
@@ -320,7 +314,6 @@ final class DependencyContainer {
         jellyfinClient.accessToken = token
 
         SharedSessionMirror.write(
-            tvUserID: TVUserContext.currentUserID,
             serverURL: sessionURL,
             userID: user.id,
             accessToken: token
@@ -337,12 +330,6 @@ final class DependencyContainer {
             )
         )
 
-        if let tvUserID = TVUserContext.currentUserID {
-            tvProfileMappings.setMapping(
-                TVProfileMapping(serverID: server.id, jellyfinUserID: user.id),
-                for: tvUserID
-            )
-        }
 
         cloudSyncMarkServer(server.id)
         scheduleRouteResolve()
@@ -591,13 +578,12 @@ final class DependencyContainer {
 
         if let userID {
             SharedSessionMirror.write(
-                tvUserID: TVUserContext.currentUserID,
                 serverURL: sessionURL,
                 userID: userID,
                 accessToken: token
             )
         } else {
-            SharedSessionMirror.clear(tvUserID: TVUserContext.currentUserID)
+            SharedSessionMirror.clear()
         }
 
         scheduleRouteResolve()
@@ -663,18 +649,17 @@ final class DependencyContainer {
                     }
                     jellyfinClient.baseURL = preferredURL(for: successor)
                     jellyfinClient.accessToken = nil
-                    SharedSessionMirror.clear(tvUserID: TVUserContext.currentUserID)
+                    SharedSessionMirror.clear()
                 }
             } else {
                 sessionNote("removed the last server; no session left on this device.")
                 try? keychainService.delete(for: KeychainKeys.activeServerID)
                 jellyfinClient.baseURL = nil
                 jellyfinClient.accessToken = nil
-                SharedSessionMirror.clear(tvUserID: TVUserContext.currentUserID)
+                SharedSessionMirror.clear()
             }
         }
 
-        tvProfileMappings.removeMappings(forServer: serverID)
 
         // Only signal when the ACTIVE server was removed; an inactive removal's bump would needlessly cancel probes + force a Home reload.
         if activeID == serverID, !signalAlreadyScheduled {
@@ -747,7 +732,6 @@ final class DependencyContainer {
         try? keychainService.delete(for: KeychainKeys.jellyfinPassword(serverID: serverID, userID: id))
         // Same reason: a remembered live upstream carries the IPTV provider's credentials in its path.
         liveDirectStreamMemory.forgetAll(userID: id)
-        tvProfileMappings.removeMapping(forUser: id, on: serverID)
     }
 
     /// The default-server pin. Rides the server record (Sodalite#45), so both the newly pinned server
@@ -823,19 +807,12 @@ final class DependencyContainer {
         jellyfinClient.accessToken = remembered.token
 
         SharedSessionMirror.write(
-            tvUserID: TVUserContext.currentUserID,
             serverURL: sessionURL,
             userID: remembered.id,
             accessToken: remembered.token
         )
 
         // Seerr left to the caller's restoreSeerrSession(forJellyfinUserID:jellyfinServerID:) so each profile picks up its own session, or lands on the empty state.
-        if let tvUserID = TVUserContext.currentUserID {
-            tvProfileMappings.setMapping(
-                TVProfileMapping(serverID: server.id, jellyfinUserID: remembered.id),
-                for: tvUserID
-            )
-        }
 
         cloudSyncMarkServer(server.id)
         scheduleRouteResolve()

@@ -45,7 +45,6 @@ extension DependencyContainer {
         } else {
             sessionNote("reset: no scratch suite for the factory stores, preferences land on defaults at the next launch.")
         }
-        tvProfileMappings.removeAll()
 
         FilterCache.shared.clearAll()
         ImageCache.shared.clear()
