@@ -745,6 +745,13 @@ enum DiagnosticOverlayLines {
         "[SWDecoder]",
         "[SWHost]",
         "[Renderer]",
+        // The subtitle-delivery vocabulary (AE#357, AE#362, AE#416). One line per change of outcome,
+        // so it costs a session a handful of lines, and it is the only place the counts a subtitle
+        // report turns on are readable: `gapAt=` (delivery stopped at a hole in the harvest),
+        // `endsWithheld=` (a bitmap end the store could not be trusted for) and `landingWithheld=`
+        // (a set refused the seek landing because nobody read the ground behind it). Without it a
+        // "the subtitle stays too long" screenshot carries no evidence at all.
+        "#357 subtitle-delivery",
         "DV source",
         "WARNING",
     ]
