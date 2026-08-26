@@ -28,8 +28,11 @@ enum HomeRowType: String, Codable, Sendable, CaseIterable, Identifiable {
 
     var defaultEnabled: Bool {
         switch self {
+        // collections/playlists included: a server without either renders nothing (HomeViewModel
+        // drops empty rows), so the default costs users who have none exactly one query each and
+        // saves the rest a trip through Customize Home (mikepaggi, Sodalite#73).
         case .continueWatching, .nextUp, .myMedia, .favorites, .favoriteEpisodes, .latestMovies,
-             .latestShows, .discoverProviders, .genres:
+             .latestShows, .discoverProviders, .genres, .collections, .playlists:
             true
         default:
             false

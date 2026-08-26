@@ -212,15 +212,18 @@ extension HomeViewModel {
                 items = response.items
 
             case .playlists:
+                // Over-fetch: audio playlists are dropped below, and Jellyfin has no server-side
+                // filter for them that is reliable across versions (MediaType on a Playlist is a
+                // computed property, so `MediaTypes=` cannot be counted on).
                 let query = ItemQuery(
                     includeItemTypes: [.playlist],
                     sortBy: "SortName",
                     sortOrder: "Ascending",
-                    limit: 30,
+                    limit: 60,
                     fields: JellyfinEndpoint.homeRowFields
                 )
                 let response = try await libraryService.getItems(userID: userID, query: query)
-                items = response.items
+                items = Array(response.items.filter { !$0.isAudioPlaylist }.prefix(30))
 
             case .libraryLatest:
                 // Per-library Latest scoped by parentID alone. Deliberately NO IncludeItemTypes: it would filter before GroupItems grouping, collapsing an episodes-only library to one tile (Sodalite#12, DrHurt "latest in Series - French only loads 1 item"). ParentId already constrains the library, so the type hint the aggregate rows need (they drop ParentId) is the bug here.

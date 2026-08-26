@@ -42,6 +42,11 @@ struct JellyfinItem: Codable, Sendable, Identifiable, Equatable, Hashable {
     /// "Virtual" is the only value that matters here (see `isVirtual`). `var` with a default so the
     /// hand-written inits below stay untouched.
     var locationType: String?
+    /// Jellyfin `MediaType` ("Video"/"Audio"/...). Carried on every /Items response without asking
+    /// for a Field. On a Playlist it reports the playlist's own kind, which is the only way to tell
+    /// an audio playlist apart from a video one (see `isAudioPlaylist`). `var` with a default so
+    /// the hand-written inits below stay untouched.
+    var mediaType: String?
     let childCount: Int?
     /// Local trailer count (requires LocalTrailerCount in Fields); gates the detail Trailer button. nil if unrequested.
     let localTrailerCount: Int?
@@ -89,6 +94,13 @@ struct JellyfinItem: Codable, Sendable, Identifiable, Equatable, Hashable {
         locationType?.caseInsensitiveCompare("Virtual") == .orderedSame
     }
 
+    /// A playlist of songs. Jellyfin fixes a playlist's media type at creation and reports it on
+    /// the item, and the video playlist screen shows nothing but video leaves, so an audio playlist
+    /// opened from a video row is a dead end: no list, and Play/Shuffle with an empty queue.
+    var isAudioPlaylist: Bool {
+        type == .playlist && mediaType?.caseInsensitiveCompare("Audio") == .orderedSame
+    }
+
     /// Does this item actually carry `provider.value` (e.g. "tmdb.1399")? Jellyfin has no server-side
     /// provider-id filter, so a query that looks like a lookup returns whatever the library sorts first;
     /// every such "hit" has to be verified here or it is just an arbitrary item.
@@ -134,6 +146,7 @@ struct JellyfinItem: Codable, Sendable, Identifiable, Equatable, Hashable {
         case studios = "Studios"
         case collectionType = "CollectionType"
         case locationType = "LocationType"
+        case mediaType = "MediaType"
         case childCount = "ChildCount"
         case localTrailerCount = "LocalTrailerCount"
         case seriesPrimaryImageTag = "SeriesPrimaryImageTag"

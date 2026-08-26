@@ -97,7 +97,7 @@ struct HomeRowConfigTests {
     @Test func reconcileAppendingPreservesExistingRowState() {
         var stored = HomeRowConfig.defaultConfig()
         stored.removeAll { $0.type == .topRatedMovies }
-        if let idx = stored.firstIndex(where: { $0.type == .collections }) {
+        if let idx = stored.firstIndex(where: { $0.type == .recentlyAdded }) {
             stored[idx].isEnabled = true
         }
         if let idx = stored.firstIndex(where: { $0.type == .favorites }) {
