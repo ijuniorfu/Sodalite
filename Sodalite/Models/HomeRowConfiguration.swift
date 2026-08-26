@@ -13,9 +13,9 @@ enum HomeRowType: String, Codable, Sendable, CaseIterable, Identifiable {
     case recentlyReleasedMovies
     case recentlyReleasedShows
     case discoverProviders
-    case genres
     case collections
     case playlists
+    case genres
     case recentlyAdded
     case topRatedMovies
     case topRatedShows

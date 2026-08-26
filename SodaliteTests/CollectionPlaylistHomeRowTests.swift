@@ -26,6 +26,18 @@ struct CollectionPlaylistHomeRowTests {
         #expect(defaults.first { $0.type == .playlists }?.isEnabled == true)
     }
 
+    /// Placement, not just presence: both sit above Genres, which is the last shelf that carries
+    /// no titles of its own. A collection is library content and outranks a tag wall.
+    @Test func bothRowsSitAboveGenresByDefault() {
+        let defaults = HomeRowConfig.defaultConfig()
+        func order(_ type: HomeRowType) -> Int {
+            defaults.first { $0.type == type }?.sortOrder ?? Int.max
+        }
+        #expect(order(.collections) < order(.genres))
+        #expect(order(.playlists) < order(.genres))
+        #expect(order(.discoverProviders) < order(.collections))
+    }
+
     /// A saved layout wins over a changed default: reconciliation only appends types it has never
     /// seen, so nobody's home screen grows a row behind their back on update.
     @Test func changedDefaultDoesNotOverrideASavedLayout() {
