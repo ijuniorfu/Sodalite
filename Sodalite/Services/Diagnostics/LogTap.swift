@@ -7,7 +7,7 @@ final class LogTap: ObservableObject {
 
     nonisolated static let shared = LogTap()
 
-    /// Take engine lines, and mirror every line to the console? On for DEBUG + sandbox (TestFlight), off for App Store, where the buffer carries host note(_:) lines only. Sandbox detection mirrors `StoreKitService.isSupporter`: authoritative answer is async `AppTransaction` (receipt-URL deprecated tvOS 18) but this flag is read synchronously in `SodaliteApp.init`, so read a UserDefaults cache and let `refreshDiagnosticBuildFlag()` overwrite per launch (first TestFlight launch = off, every later launch = on).
+    /// Mirror every line to the console as well? On for DEBUG + sandbox (TestFlight), off for App Store. Engine lines reach the buffer on EVERY build (see SodaliteApp), so this no longer gates what Settings > Diagnostic Log can show. Sandbox detection mirrors `StoreKitService.isSupporter`: authoritative answer is async `AppTransaction` (receipt-URL deprecated tvOS 18) but this flag is read synchronously in `SodaliteApp.init`, so read a UserDefaults cache and let `refreshDiagnosticBuildFlag()` overwrite per launch (first TestFlight launch = off, every later launch = on).
     nonisolated static let isDiagnosticBuild: Bool = {
         #if DEBUG
         return true
@@ -35,7 +35,11 @@ final class LogTap: ObservableObject {
     private nonisolated init() {}
 
     /// Append one line to the buffer. Safe to call from any thread.
+    ///
+    /// The single door every line comes through, host and engine alike, which is why credential
+    /// stripping sits here and not at the call sites (see LogRedaction).
     nonisolated func note(_ line: String) {
+        let line = LogRedaction.redact(line)
         // Mirror to console on diagnostic builds so host notes appear in an Xcode/Console capture alongside engine prints.
         if Self.isDiagnosticBuild {
             print(line)

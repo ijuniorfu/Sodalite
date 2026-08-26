@@ -60,11 +60,13 @@ struct SodaliteApp: App {
             UIApplication.shared.registerForRemoteNotifications()
         }
 
-        // Wire AetherEngine diagnostics into LogTap so they reach Settings > Diagnostic Log; diagnostic builds (DEBUG/TestFlight) only, App Store leaves it nil (OSLog only) so that view carries host note(_:) lines alone.
-        if LogTap.isDiagnosticBuild {
-            EngineLog.handler = { line in
-                LogTap.shared.note(line)
-            }
+        // Wire AetherEngine diagnostics into LogTap on EVERY build, App Store included: a playback bug
+        // reported after 1.0 is only cheap to fix if the reporter can read the engine's own lines out of
+        // Settings > Diagnostic Log instead of needing a Mac and a TestFlight seat. `.verbose` lines stay
+        // out of this by construction (EngineLog sends those to OSLog .debug only), and LogTap.note strips
+        // credentials on the way in, since a log this reachable is a log that gets pasted into an issue.
+        EngineLog.handler = { line in
+            LogTap.shared.note(line)
         }
 
         // Re-derive the cached TestFlight/sandbox flag from StoreKit 2; takes effect next launch (see LogTap.isDiagnosticBuild).
