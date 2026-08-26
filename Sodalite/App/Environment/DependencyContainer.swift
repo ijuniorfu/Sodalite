@@ -96,12 +96,17 @@ final class DependencyContainer {
 
     init(
         keychainService: KeychainServiceProtocol = KeychainService(),
-        httpClient: HTTPClientProtocol = HTTPClient()
+        httpClient: HTTPClientProtocol = HTTPClient(),
+        discoveryHTTPClient: HTTPClientProtocol? = nil
     ) {
         self.keychainService = keychainService
         self.httpClient = httpClient
         self.jellyfinClient = JellyfinClient(httpClient: httpClient)
-        self.serverDiscoveryService = ServerDiscoveryService(httpClient: httpClient)
+        // Both discovery services share ONE client of their own: a probe the user is watching a
+        // spinner for must not queue behind Home's fan-out or Catalog's rows, and the transport
+        // timing that says which phase ate a capped probe belongs on discovery only (Sodalite#82).
+        let discoveryClient: HTTPClientProtocol = discoveryHTTPClient ?? HTTPClient.discovery()
+        self.serverDiscoveryService = ServerDiscoveryService(httpClient: discoveryClient)
         self.serverDiscovery = JellyfinServerDiscovery()
         self.jellyfinAuthService = JellyfinAuthService(client: jellyfinClient)
         self.jellyfinLibraryService = JellyfinLibraryService(client: jellyfinClient)
@@ -144,7 +149,7 @@ final class DependencyContainer {
         // Seerr gets its OWN HTTPClient so Catalog browsing doesn't compete with the Home fan-out for the same 6 in-flight permits against a tarpitted Jellyfin CDN (see HTTPClient inFlightLimiter).
         let seerrHTTPClient = HTTPClient()
         self.seerrClient = SeerrClient(httpClient: seerrHTTPClient)
-        self.seerrServerDiscoveryService = SeerrServerDiscoveryService(httpClient: seerrHTTPClient)
+        self.seerrServerDiscoveryService = SeerrServerDiscoveryService(httpClient: discoveryClient)
         self.seerrAuthService = SeerrAuthService(client: seerrClient)
         self.seerrDiscoverService = SeerrDiscoverService(client: seerrClient)
         self.seerrMediaService = SeerrMediaService(client: seerrClient)

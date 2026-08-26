@@ -91,6 +91,7 @@ struct DiscoveryProbeRaceTests {
         let verdicts = await DiscoveryProbeRace.run(
             candidates: candidates,
             timeout: .milliseconds(300),
+            extendedTimeout: .milliseconds(600),
             grace: .seconds(1),
             probe: probe(answers: [:])
         )
@@ -121,6 +122,74 @@ struct DiscoveryProbeRaceTests {
         #expect(verdicts.count == 3)
         if case .failure = verdicts[0] {} else { Issue.record("candidate 0 must report its failure") }
         #expect(firstSuccess(verdicts) == "http")
+    }
+
+    /// Sodalite#82, round 2: the cap is a verdict about a candidate nobody has heard from, and a
+    /// race where NOT ONE candidate has answered has no evidence for it. The reporter's Jellyseerr
+    /// answered in 0.4 s from a fresh launch and was declared unreachable a few seconds later, with
+    /// all four candidates cancelled at the same 10 s wall.
+    @Test("nothing answered by the cap buys the extended window")
+    func silentRaceGetsTheExtendedWindow() async {
+        let verdicts = await DiscoveryProbeRace.run(
+            candidates: candidates,
+            timeout: .milliseconds(200),
+            extendedTimeout: .seconds(3),
+            grace: .milliseconds(200),
+            probe: probe(answers: [
+                candidates[2]: (.milliseconds(700), .success("port5055")),
+            ])
+        )
+        #expect(firstSuccess(verdicts) == "port5055")
+    }
+
+    /// The other half of that rule: one candidate answering is the evidence the cap needs, so the
+    /// silent ones are capped on time instead of stretching the spinner to the extended window.
+    @Test("one answer holds the silent candidates to the short cap")
+    func oneAnswerKeepsTheShortCap() async {
+        let start = ContinuousClock.now
+        let verdicts = await DiscoveryProbeRace.run(
+            candidates: candidates,
+            timeout: .milliseconds(300),
+            extendedTimeout: .seconds(10),
+            grace: .milliseconds(200),
+            probe: probe(answers: [
+                candidates[1]: (.milliseconds(1), .failure(.serverUnreachable)),
+            ])
+        )
+        let elapsed = start.duration(to: .now)
+
+        #expect(firstSuccess(verdicts) == nil)
+        #expect(elapsed < .seconds(3))
+        #expect(verdicts.allSatisfy { $0 != nil })
+    }
+
+    /// What the whole race reports back. A cancelled-at-the-cap candidate is our own decision to
+    /// stop waiting, so it must not reach the viewer as "Server unreachable".
+    @Test("a race of capped candidates reports a timeout, not an unreachable server")
+    func aggregateOfCappedCandidatesIsATimeout() {
+        let verdicts: [Result<String, APIError>?] = [.failure(.timeout), .failure(.timeout), nil]
+        #expect(DiscoveryProbeRace.aggregateError(verdicts).isTimeout)
+    }
+
+    @Test("a candidate that answered the wrong protocol outranks a timeout")
+    func aggregatePrefersAProtocolAnswer() {
+        let verdicts: [Result<String, APIError>?] = [
+            .failure(.timeout),
+            .failure(.httpError(statusCode: 404, data: Data())),
+        ]
+        if case .httpError(let status, _) = DiscoveryProbeRace.aggregateError(verdicts) {
+            #expect(status == 404)
+        } else {
+            Issue.record("a candidate that answered must outrank one that was cancelled")
+        }
+    }
+
+    @Test("dead transports still report an unreachable server")
+    func aggregateOfDeadTransportsStaysUnreachable() {
+        let verdicts: [Result<String, APIError>?] = [.failure(.serverUnreachable), .failure(.serverUnreachable)]
+        if case .serverUnreachable = DiscoveryProbeRace.aggregateError(verdicts) {} else {
+            Issue.record("nothing here was cancelled by us, so the address is the story")
+        }
     }
 
     @Test("no candidates yields no verdicts")

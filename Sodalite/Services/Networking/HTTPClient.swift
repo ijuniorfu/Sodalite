@@ -29,7 +29,15 @@ final class HTTPClient: HTTPClientProtocol, @unchecked Sendable {
     /// Caps in-flight requests: unthrottled Home fan-out (60-90 reqs) trips a CDN/WAF in front of Jellyfin into tarpitting + timeout-nil rows (Sodalite#12/#14). 6 = browser-like per-host; per-client so Jellyfin/Seerr don't share a budget.
     private let inFlightLimiter = AsyncSemaphore(limit: 6)
 
-    nonisolated init(session: URLSession? = nil) {
+    /// Optional per-request transport timing, already rendered to text. Only the discovery client
+    /// sets it (see `HTTPClient.discovery()`); nil keeps the delegate out of every other request.
+    private let transportTiming: (@Sendable (URL, String) -> Void)?
+
+    nonisolated init(
+        session: URLSession? = nil,
+        transportTiming: (@Sendable (URL, String) -> Void)? = nil
+    ) {
+        self.transportTiming = transportTiming
         // Cookies disabled: clients set auth manually (Seerr connect.sid, Jellyfin header). Auto-persisted cookies would reattach a stale connect.sid to the fresh /auth/jellyfin POST and earn a 401.
         if let session {
             self.session = session
@@ -95,7 +103,15 @@ final class HTTPClient: HTTPClientProtocol, @unchecked Sendable {
         let data: Data
         let response: URLResponse
         do {
-            (data, response) = try await session.data(for: urlRequest)
+            if let transportTiming {
+                let requestURL = urlRequest.url ?? baseURL
+                (data, response) = try await session.data(
+                    for: urlRequest,
+                    delegate: TransportTimingDelegate(url: requestURL, sink: transportTiming)
+                )
+            } else {
+                (data, response) = try await session.data(for: urlRequest)
+            }
         } catch let error as URLError where error.code == .cancelled {
             // URLSession surfaces task cancellation as URLError(.cancelled); rethrow as CancellationError so callers ignore it instead of painting "Network connection failed".
             throw CancellationError()
@@ -162,6 +178,75 @@ final class HTTPClient: HTTPClientProtocol, @unchecked Sendable {
         }
 
         return request
+    }
+}
+
+extension HTTPClient {
+    /// Client for server-discovery probes.
+    ///
+    /// Its own ephemeral session, for three reasons. A probe the user is watching a spinner for must
+    /// not queue behind the app's own traffic on a shared in-flight budget. A reachability answer
+    /// must come off the wire, never out of the shared response cache. And the transport timing
+    /// below belongs on discovery only: stamping a timing line on every Jellyfin and Seerr request
+    /// would bury the diagnostic log it exists for.
+    nonisolated static func discovery() -> HTTPClient {
+        let config = URLSessionConfiguration.ephemeral
+        config.httpCookieAcceptPolicy = .never
+        config.httpShouldSetCookies = false
+        config.requestCachePolicy = .reloadIgnoringLocalCacheData
+        config.urlCache = nil
+        config.waitsForConnectivity = false
+        return HTTPClient(
+            session: URLSession(configuration: config),
+            transportTiming: { url, timing in
+                LogTap.shared.note("[discovery] timing \(url.absoluteString) -> \(timing)")
+            }
+        )
+    }
+}
+
+/// Per-task delegate that renders `URLSessionTaskMetrics` into one line and hands it on.
+///
+/// It exists for the probe that ran into its cap: measured on macOS 26, metrics are still delivered
+/// for a CANCELLED task, and they separate the two failures a discovery log could not tell apart.
+/// A dropped SYN (a router refusing traffic from outside) stamps no phase at all, while a host that
+/// accepted the connection and then said nothing stamps name lookup and connect and leaves the first
+/// byte unfinished. Without this the cap could only report that ten seconds had passed.
+///
+/// The metrics object is not Sendable, so it is rendered here, on the delegate's own queue, and only
+/// the text crosses over.
+private nonisolated final class TransportTimingDelegate: NSObject, URLSessionTaskDelegate, @unchecked Sendable {
+    private let url: URL
+    private let sink: @Sendable (URL, String) -> Void
+
+    init(url: URL, sink: @escaping @Sendable (URL, String) -> Void) {
+        self.url = url
+        self.sink = sink
+    }
+
+    func urlSession(
+        _ session: URLSession,
+        task: URLSessionTask,
+        didFinishCollecting metrics: URLSessionTaskMetrics
+    ) {
+        sink(url, Self.describe(metrics))
+    }
+
+    private static func describe(_ metrics: URLSessionTaskMetrics) -> String {
+        let total = String(format: "%.1fs", metrics.taskInterval.duration)
+        guard let transaction = metrics.transactionMetrics.last else {
+            return "total \(total), no transaction"
+        }
+        func phase(_ start: Date?, _ end: Date?) -> String {
+            guard let start else { return "none" }
+            guard let end else { return "unfinished" }
+            return String(format: "%.2fs", end.timeIntervalSince(start))
+        }
+        let dns = phase(transaction.domainLookupStartDate, transaction.domainLookupEndDate)
+        let connect = phase(transaction.connectStartDate, transaction.connectEndDate)
+        let tls = phase(transaction.secureConnectionStartDate, transaction.secureConnectionEndDate)
+        let firstByte = phase(transaction.requestStartDate, transaction.responseStartDate)
+        return "total \(total), dns \(dns), connect \(connect), tls \(tls), first byte \(firstByte)"
     }
 }
 

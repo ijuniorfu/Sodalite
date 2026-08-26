@@ -27,8 +27,11 @@ final class ServerDiscoveryService: ServerDiscoveryServiceProtocol {
         let started = ContinuousClock.now
 
         let verdicts = await DiscoveryProbeRace.run(candidates: candidates) { [httpClient] url in
-            let candidateStart = ContinuousClock.now
-            do {
+            await DiscoveryProbeRace.attempt(
+                label: "jellyfin",
+                url: url,
+                describe: { (info: ServerDiscoveryInfo) in "\(info.serverName) v\(info.version)" }
+            ) {
                 let serverInfo = try await httpClient.request(
                     baseURL: url,
                     endpoint: JellyfinEndpoint.publicInfo,
@@ -36,42 +39,28 @@ final class ServerDiscoveryService: ServerDiscoveryServiceProtocol {
                     responseType: JellyfinPublicServerInfo.self
                 )
                 // Only a decodable connection gates discovery; missing optional metadata must not.
-                let info = ServerDiscoveryInfo(
+                return ServerDiscoveryInfo(
                     id: serverInfo.id ?? "",
                     serverName: serverInfo.serverName ?? "Jellyfin",
                     version: serverInfo.version ?? ""
                 )
-                LogTap.shared.note("[discovery] jellyfin \(url.absoluteString) -> \(info.serverName) v\(info.version) in \(DiscoveryProbeRace.elapsedText(since: candidateStart))")
-                return .success(info)
-            } catch {
-                let mapped = DiscoveryProbeRace.normalized(error)
-                LogTap.shared.note("[discovery] jellyfin \(url.absoluteString) -> \(DiscoveryProbeRace.logLabel(for: mapped)) in \(DiscoveryProbeRace.elapsedText(since: candidateStart))")
-                return .failure(mapped)
             }
         }
-
-        // A candidate that connects but isn't Jellyfin (captive portal, wrong service) is a better diagnostic than "unreachable"; prefer the first such error.
-        var firstProtocolError: APIError?
 
         for (index, verdict) in verdicts.enumerated() {
-            switch verdict {
-            case .success(let info):
-                LogTap.shared.note("[discovery] jellyfin resolved \(candidates[index].absoluteString) in \(DiscoveryProbeRace.elapsedText(since: started))")
-                return .success(url: candidates[index], serverInfo: info)
-            case .failure(let error):
-                switch error {
-                case .decodingError, .httpError, .invalidResponse, .unauthorized:
-                    if firstProtocolError == nil { firstProtocolError = error }
-                default:
-                    break
-                }
-            case nil:
-                continue
-            }
+            guard case .success(let info) = verdict else { continue }
+            LogTap.shared.note("[discovery] jellyfin resolved \(candidates[index].absoluteString) in \(DiscoveryProbeRace.elapsedText(since: started))")
+            return .success(url: candidates[index], serverInfo: info)
         }
 
+        DiscoveryProbeRace.logUnanswered(
+            label: "jellyfin",
+            candidates: candidates,
+            verdicts: verdicts,
+            since: started
+        )
         LogTap.shared.note("[discovery] jellyfin failed after \(DiscoveryProbeRace.elapsedText(since: started)) over \(candidates.count) candidate(s)")
-        return .failure(firstProtocolError ?? .serverUnreachable)
+        return .failure(DiscoveryProbeRace.aggregateError(verdicts))
     }
 
     // Widened from private to internal so SodaliteTests can exercise the URL-candidate branches directly.
