@@ -225,8 +225,6 @@ extension DependencyContainer {
                 pictureMode: p.pictureMode.rawValue,
                 showStatsForNerds: p.showStatsForNerds,
                 showEngineDiagnostics: p.showEngineDiagnostics,
-                showDiagnosticOverlay: p.showDiagnosticOverlay,
-                focusDiagnosticOverlayOnDV: p.focusDiagnosticOverlayOnDV,
                 preferLosslessAudioBridge: p.preferLosslessAudioBridge,
                 showScrubPreview: p.showScrubPreview,
                 preferServerTrickplay: p.preferServerTrickplay,
@@ -321,8 +319,6 @@ extension DependencyContainer {
             store.pictureMode = PlaybackPreferences.PictureMode(rawValue: p.pictureMode) ?? store.pictureMode
             store.showStatsForNerds = p.showStatsForNerds
             store.showEngineDiagnostics = p.showEngineDiagnostics
-            store.showDiagnosticOverlay = p.showDiagnosticOverlay
-            store.focusDiagnosticOverlayOnDV = p.focusDiagnosticOverlayOnDV
             store.preferLosslessAudioBridge = p.preferLosslessAudioBridge
             store.showScrubPreview = p.showScrubPreview
             store.preferServerTrickplay = p.preferServerTrickplay

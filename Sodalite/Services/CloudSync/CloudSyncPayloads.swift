@@ -106,8 +106,6 @@ struct PlaybackSettingsPayload: Codable, Equatable {
     var pictureMode: String
     var showStatsForNerds: Bool
     var showEngineDiagnostics: Bool
-    var showDiagnosticOverlay: Bool
-    var focusDiagnosticOverlayOnDV: Bool
     var preferLosslessAudioBridge: Bool
     var showScrubPreview: Bool
     var preferServerTrickplay: Bool

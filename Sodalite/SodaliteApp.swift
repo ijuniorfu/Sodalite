@@ -60,7 +60,7 @@ struct SodaliteApp: App {
             UIApplication.shared.registerForRemoteNotifications()
         }
 
-        // Wire AetherEngine diagnostics into the in-app log overlay; diagnostic builds (DEBUG/TestFlight) only, App Store leaves it nil (OSLog only).
+        // Wire AetherEngine diagnostics into LogTap so they reach Settings > Diagnostic Log; diagnostic builds (DEBUG/TestFlight) only, App Store leaves it nil (OSLog only) so that view carries host note(_:) lines alone.
         if LogTap.isDiagnosticBuild {
             EngineLog.handler = { line in
                 LogTap.shared.note(line)

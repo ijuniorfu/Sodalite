@@ -9,10 +9,11 @@ private struct LogLine: Identifiable {
 
 /// Settings > "Diagnostic Log": the lines `LogTap` collected this session.
 ///
-/// Deliberately not gated by `LogTap.isDiagnosticBuild`, unlike the in-player overlay. It is
-/// read-only, and until it existed the only way to see a host line like `[CloudSync] …` was a
-/// console capture from a Mac, which put every log-based question out of reach for the people
-/// actually hitting the bug. Sodalite#45 was diagnosed twice without it.
+/// Deliberately not gated by `LogTap.isDiagnosticBuild`: it is read-only, and until it existed the
+/// only way to see a host line like `[CloudSync] …` was a console capture from a Mac, which put every
+/// log-based question out of reach for the people actually hitting the bug. Sodalite#45 was diagnosed
+/// twice without it. On an App Store build the buffer holds host `note(_:)` lines only, because
+/// `SodaliteApp` wires `EngineLog.handler` on diagnostic builds alone.
 struct DiagnosticLogView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.horizontalSizeClass) private var hSizeClass

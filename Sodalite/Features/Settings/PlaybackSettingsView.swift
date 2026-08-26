@@ -371,34 +371,6 @@ struct PlaybackSettingsView: View {
                         )
                     )
                 }
-
-                // Diagnostic overlay row only in DEBUG/TestFlight; LogTap.isDiagnosticBuild is the upstream gate.
-                if LogTap.isDiagnosticBuild {
-                    sectionHeader("settings.playback.section.diagnostics")
-
-                    boolRow(
-                        icon: "ladybug",
-                        title: "settings.playback.diagnosticOverlay",
-                        subtitle: "settings.playback.diagnosticOverlay.subtitle",
-                        value: Binding(
-                            get: { prefs.showDiagnosticOverlay },
-                            set: { prefs.showDiagnosticOverlay = $0 }
-                        )
-                    )
-
-                    if prefs.showDiagnosticOverlay {
-                        boolRow(
-                            icon: "viewfinder",
-                            title: "settings.playback.diagnosticOverlay.focusDV",
-                            subtitle: "settings.playback.diagnosticOverlay.focusDV.subtitle",
-                            value: Binding(
-                                get: { prefs.focusDiagnosticOverlayOnDV },
-                                set: { prefs.focusDiagnosticOverlayOnDV = $0 }
-                            )
-                        )
-                    }
-                }
-
             }
             .screenContentInset()
             .frame(maxWidth: .infinity, alignment: .leading)

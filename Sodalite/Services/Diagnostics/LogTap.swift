@@ -2,12 +2,12 @@ import Foundation
 import Combine
 import StoreKit
 
-/// Ring buffer of diagnostic log lines for the player overlay so a TestFlight tester with no Mac can screenshot engine output. Lines arrive via `AetherEngine.EngineLog.handler` (engine) and direct `note(_:)` (host). Does NOT redirect stdout via dup2: unreliable on tvOS Release (stdout null-redirected with no debugger). Type is MainActor-isolated for the `lines` publisher; `note(_:)`/`clear()` are explicitly `nonisolated` because the engine calls them off its own threads (the compiler now enforces what was previously safe only by accident).
+/// Ring buffer of diagnostic log lines for Settings > Diagnostic Log so a tester with no Mac can read and screenshot them. Lines arrive via `AetherEngine.EngineLog.handler` (engine) and direct `note(_:)` (host). Does NOT redirect stdout via dup2: unreliable on tvOS Release (stdout null-redirected with no debugger). Type is MainActor-isolated for the `lines` publisher; `note(_:)`/`clear()` are explicitly `nonisolated` because the engine calls them off its own threads (the compiler now enforces what was previously safe only by accident).
 final class LogTap: ObservableObject {
 
     nonisolated static let shared = LogTap()
 
-    /// Mount the diagnostic overlay? On for DEBUG + sandbox (TestFlight), off for App Store. Sandbox detection mirrors `StoreKitService.isSupporter`: authoritative answer is async `AppTransaction` (receipt-URL deprecated tvOS 18) but this flag is read synchronously in `SodaliteApp.init`, so read a UserDefaults cache and let `refreshDiagnosticBuildFlag()` overwrite per launch (first TestFlight launch = off, every later launch = on).
+    /// Take engine lines, and mirror every line to the console? On for DEBUG + sandbox (TestFlight), off for App Store, where the buffer carries host note(_:) lines only. Sandbox detection mirrors `StoreKitService.isSupporter`: authoritative answer is async `AppTransaction` (receipt-URL deprecated tvOS 18) but this flag is read synchronously in `SodaliteApp.init`, so read a UserDefaults cache and let `refreshDiagnosticBuildFlag()` overwrite per launch (first TestFlight launch = off, every later launch = on).
     nonisolated static let isDiagnosticBuild: Bool = {
         #if DEBUG
         return true
@@ -34,7 +34,7 @@ final class LogTap: ObservableObject {
 
     private nonisolated init() {}
 
-    /// Append one line to the overlay. Safe to call from any thread.
+    /// Append one line to the buffer. Safe to call from any thread.
     nonisolated func note(_ line: String) {
         // Mirror to console on diagnostic builds so host notes appear in an Xcode/Console capture alongside engine prints.
         if Self.isDiagnosticBuild {

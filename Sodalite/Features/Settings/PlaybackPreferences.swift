@@ -37,8 +37,6 @@ final class PlaybackPreferences {
         static let pictureMode = "playback.pictureMode"
         static let showStatsForNerds = "playback.showStatsForNerds"
         static let showEngineDiagnostics = "playback.showEngineDiagnostics"
-        static let showDiagnosticOverlay = "playback.showDiagnosticOverlay"
-        static let focusDiagnosticOverlayOnDV = "playback.focusDiagnosticOverlayOnDV"
         static let preferLosslessAudioBridge = "playback.preferLosslessAudioBridge"
         static let showScrubPreview = "playback.showScrubPreview"
         static let preferServerTrickplay = "playback.preferServerTrickplay"
@@ -316,23 +314,13 @@ final class PlaybackPreferences {
         didSet { store.set(pictureMode.rawValue, forKey: Keys.pictureMode) }
     }
 
-    /// Stats panel "i" button; unlike showDiagnosticOverlay NOT gated by LogTap.isDiagnosticBuild (read-only, App Store safe).
+    /// Stats panel "i" button. Read-only, so it is App Store safe and needs no diagnostic-build gate.
     var showStatsForNerds: Bool {
         didSet { store.set(showStatsForNerds, forKey: Keys.showStatsForNerds) }
     }
 
     var showEngineDiagnostics: Bool {
         didSet { store.set(showEngineDiagnostics, forKey: Keys.showEngineDiagnostics) }
-    }
-
-    /// In-player engine log overlay; gated by LogTap.isDiagnosticBuild so it only takes effect in DEBUG/TestFlight.
-    var showDiagnosticOverlay: Bool {
-        didSet { store.set(showDiagnosticOverlay, forKey: Keys.showDiagnosticOverlay) }
-    }
-
-    /// ON filters overlay to DV/HDR/routing chain; OFF renders every ring-buffer line including cache/muxer chatter.
-    var focusDiagnosticOverlayOnDV: Bool {
-        didSet { store.set(focusDiagnosticOverlayOnDV, forKey: Keys.focusDiagnosticOverlayOnDV) }
     }
 
     /// ON = lossless FLAC for non-stream-copyable (TrueHD/DTS/DTS-HD MA/MP3/Opus), but AVPlayer decodes to LPCM, downmixed to stereo on stereo-only HDMI sinks. OFF (default) = lossy EAC3 5.1 384 kbps, works on all soundbars but caps 7.1->5.1. Recommend ON only with multichannel-LPCM AVR.
@@ -449,8 +437,6 @@ final class PlaybackPreferences {
             .flatMap(PictureMode.init(rawValue:)) ?? .original
         self.showStatsForNerds = store.object(forKey: Keys.showStatsForNerds) as? Bool ?? false
         self.showEngineDiagnostics = store.object(forKey: Keys.showEngineDiagnostics) as? Bool ?? false
-        self.showDiagnosticOverlay = store.object(forKey: Keys.showDiagnosticOverlay) as? Bool ?? false
-        self.focusDiagnosticOverlayOnDV = store.object(forKey: Keys.focusDiagnosticOverlayOnDV) as? Bool ?? true
         self.preferLosslessAudioBridge = store.object(forKey: Keys.preferLosslessAudioBridge) as? Bool ?? false
         self.showScrubPreview = store.object(forKey: Keys.showScrubPreview) as? Bool ?? true
         self.preferServerTrickplay = store.object(forKey: Keys.preferServerTrickplay) as? Bool ?? false
