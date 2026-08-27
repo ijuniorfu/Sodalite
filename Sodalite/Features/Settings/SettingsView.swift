@@ -8,6 +8,7 @@ struct SettingsView: View {
     @Environment(\.appState) private var appState
     @Environment(\.dependencies) private var dependencies
 
+    @State private var showLogoutConfirm = false
     @State private var showResetConfirm = false
     /// Latches the buttons while the reset runs; deleting the iCloud copy is a round trip.
     @State private var isResetting = false
@@ -35,6 +36,19 @@ struct SettingsView: View {
                 }
             }
             #endif
+        }
+        // Both session actions ask first. Log Out reads far milder than it is: it does not just end
+        // this session, it drops every server, profile and saved login on the device.
+        .alert(
+            Text("settings.logout.confirm.title", bundle: .main),
+            isPresented: $showLogoutConfirm
+        ) {
+            Button("settings.logout", role: .destructive) {
+                performLogout()
+            }
+            Button("common.cancel", role: .cancel) {}
+        } message: {
+            Text("settings.logout.confirm.message", bundle: .main)
         }
         .alert(
             Text("settings.reset.confirm.title", bundle: .main),
@@ -374,17 +388,7 @@ struct SettingsView: View {
     private var logoutButton: some View {
         // No destructive role: tvOS renders hard-to-read dark red; SettingsTileButtonStyle sidesteps the tint trap.
         Button {
-            if dependencies.parentalGateRequiredForSessionAction() {
-                Task {
-                    if await dependencies.parentalGate.challenge(reason: .logout) {
-                        try? dependencies.clearSession()
-                        appState.logout()
-                    }
-                }
-            } else {
-                try? dependencies.clearSession()
-                appState.logout()
-            }
+            showLogoutConfirm = true
         } label: {
             Label("settings.logout", systemImage: "rectangle.portrait.and.arrow.right")
                 .font(.body)
@@ -393,7 +397,34 @@ struct SettingsView: View {
                 .padding(.vertical, 12)
         }
         .buttonStyle(SettingsTileButtonStyle())
+        .disabled(isResetting)
         .padding(.top, 12)
+    }
+
+    private func performLogout() {
+        guard dependencies.parentalGateRequiredForSessionAction() else {
+            finishLogout()
+            return
+        }
+        Task {
+            await Self.letTheAlertGo()
+            if await dependencies.parentalGate.challenge(reason: .logout) {
+                finishLogout()
+            }
+        }
+    }
+
+    /// A modal cannot go up while the one before it is still animating away: UIKit refuses and the
+    /// cover is dropped without a word. These actions run from an alert button, so the alert is
+    /// still on its way out when the PIN prompt asks for the screen. Same wait the deep-link
+    /// handover in AppRouter takes.
+    private static func letTheAlertGo() async {
+        try? await Task.sleep(for: .milliseconds(300))
+    }
+
+    private func finishLogout() {
+        try? dependencies.clearSession()
+        appState.logout()
     }
 
     // MARK: - Reset
@@ -402,7 +433,7 @@ struct SettingsView: View {
     /// preferences, for a device that should look like a first launch again (Sodalite#76).
     private var resetButton: some View {
         Button {
-            gateThenReset()
+            showResetConfirm = true
         } label: {
             Label("settings.reset.button", systemImage: "arrow.counterclockwise")
                 .font(.body)
@@ -414,24 +445,21 @@ struct SettingsView: View {
         .disabled(isResetting)
     }
 
-    private func gateThenReset() {
-        // A reset takes the Guardian PIN with it, so a device that has one proves it here. Stricter
-        // than the session actions, which only ask while a protected profile is active: by then the
-        // lock itself is what is being removed.
-        guard dependencies.isGuardianPINSet() else {
-            showResetConfirm = true
-            return
-        }
-        Task {
-            if await dependencies.parentalGate.challenge(reason: .logout) {
-                showResetConfirm = true
-            }
-        }
-    }
-
+    /// Confirmation first, PIN second, for both session actions: a tap answers immediately, and the
+    /// prompt names what is about to go before anything asks the user to prove they may do it.
     private func performReset(deleteCloudCopy: Bool) {
         isResetting = true
         Task {
+            // A reset takes the Guardian PIN with it, so a device that has one proves it here.
+            // Stricter than the session actions, which only ask while a protected profile is
+            // active: by then the lock itself is what is being removed.
+            if dependencies.isGuardianPINSet() {
+                await Self.letTheAlertGo()
+                guard await dependencies.parentalGate.challenge(reason: .logout) else {
+                    isResetting = false
+                    return
+                }
+            }
             await dependencies.resetToFactoryState(deleteCloudCopy: deleteCloudCopy)
             appState.logout()
             isResetting = false

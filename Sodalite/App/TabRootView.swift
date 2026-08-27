@@ -117,6 +117,15 @@ struct TabRootView: View {
         .sheet(isPresented: $showSettings) {
             SettingsView(onClose: { showSettings = false })
                 .themedPresentationBackground()
+                // Settings is the one surface that raises the Guardian-PIN from above the router,
+                // and a cover cannot stack on this sheet. It hosts the prompt itself instead.
+                .parentalGateHost(Self.settingsGateHost)
+        }
+        // The claim is released from the sheet's own state, not from the content's onDisappear:
+        // a fullScreenCover takes the content off screen too, so that callback cannot tell a
+        // closed sheet from the PIN prompt it just raised.
+        .onChange(of: showSettings) { _, presented in
+            if !presented { dependencies.parentalGate.popPresenter(Self.settingsGateHost) }
         }
         #endif
         // Foreground Siri Remote play/pause arrives via the responder chain (not MPRemoteCommandCenter), so toggle music here when a track is active.
@@ -278,6 +287,11 @@ struct TabRootView: View {
             applyTabBarAppearance(appearance, tint: tint, in: subview)
         }
     }
+
+    #if os(iOS)
+    /// Identifies the Settings sheet as the Guardian-PIN presenter while it is up.
+    private static let settingsGateHost = "settings.sheet"
+    #endif
 
     @ViewBuilder
     private func tabContent(for tab: AppTab) -> some View {

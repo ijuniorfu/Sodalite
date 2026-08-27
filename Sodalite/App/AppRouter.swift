@@ -57,6 +57,12 @@ struct AppRouter: View {
     /// Edge-triggered active flag: keys a `.task` so the monitor refreshes on foreground, not on every phase change.
     private var scenePhaseIsActive: Bool { scenePhase == .active }
 
+    /// False while something is presented above the router and hosts the PIN cover itself: the
+    /// profile picker here, or a `parentalGateHost()` surface such as the iOS Settings sheet.
+    private var routerOwnsTheGate: Bool {
+        profileCover == nil && dependencies.parentalGate.presenterStack.isEmpty
+    }
+
     /// Refresh the pending-approval count and, on iOS, keep the app-icon badge + notifications in sync.
     private func refreshPending() async {
         #if os(iOS)
@@ -287,8 +293,11 @@ struct AppRouter: View {
                 .themedPresentationBackground()
             }
         }
+        // The router hosts the PIN cover for everything that lives at its own level. A surface
+        // presented above it (the iOS Settings sheet) registers with the gate and hosts its own,
+        // because a cover cannot stack on a sheet from the same hosting controller.
         .fullScreenCover(item: Binding(
-            get: { profileCover != nil ? nil : dependencies.parentalGate.activeRequest },
+            get: { routerOwnsTheGate ? dependencies.parentalGate.activeRequest : nil },
             set: { if $0 == nil { dependencies.parentalGate.resolve(false) } }
         )) { request in
             PINEntryView(mode: .unlock(reason: request.reason)) { unlocked in
