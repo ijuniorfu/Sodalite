@@ -33,12 +33,11 @@ struct MediaCard: View {
     private var cardWidth: CGFloat { cardSize.width }
 
     /// Off the tier's poster width, not this card's, so a landscape card wears the same pill as the
-    /// poster beside it (Sodalite#79).
+    /// poster beside it (Sodalite#79). The watched badge opposite reads the same width (Sodalite#89).
+    private var tierPosterWidth: CGFloat { LayoutMetrics.current(hSizeClass).posterSize.width }
+
     private var badgeFontSize: CGFloat {
-        PosterBadgeMetrics.fontSize(
-            posterWidth: LayoutMetrics.current(hSizeClass).size(for: .poster).width,
-            scale: scale
-        )
+        PosterBadgeMetrics.fontSize(posterWidth: tierPosterWidth, scale: scale)
     }
     private var cardHeight: CGFloat { cardSize.height }
 
@@ -95,12 +94,11 @@ struct MediaCard: View {
             }
         }
         .overlay(alignment: .topTrailing) {
-            if item.userData?.played == true {
-                Image(systemName: "checkmark.circle.fill")
-                    .font(.title3)
-                    .foregroundStyle(.tint)
-                    .padding(10)
-            }
+            ArtworkStateBadges(
+                isPlayed: item.userData?.played == true,
+                posterWidth: tierPosterWidth,
+                scale: scale
+            )
         }
         .overlay(
             MediaFocusRing(

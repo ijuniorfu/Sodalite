@@ -182,21 +182,12 @@ struct EpisodeLandscapeCard: View {
                         .frame(width: cardSize.width, height: cardSize.height)
                 }
 
-                // One stack for both badges: pinned separately they would land on the same point.
-                if isFavorite || isPlayed {
-                    HStack(spacing: 6) {
-                        if isFavorite {
-                            Image(systemName: "heart.fill")
-                        }
-                        if isPlayed {
-                            Image(systemName: "checkmark.circle.fill")
-                        }
-                    }
-                    .font(.title3)
-                    .foregroundStyle(.tint)
-                    .padding(10)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
-                }
+                ArtworkStateBadges(
+                    isFavorite: isFavorite,
+                    isPlayed: isPlayed,
+                    posterWidth: LayoutMetrics.current(hSizeClass).posterSize.width
+                )
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
             }
             .frame(width: cardSize.width, height: cardSize.height)
 

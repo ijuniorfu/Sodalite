@@ -1,17 +1,5 @@
 import SwiftUI
 
-/// Pill geometry, sized off the tier's poster width rather than the card the pill sits on.
-///
-/// Measured with NSFont at the tvOS text sizes rather than guessed at the TV: 0.09 of the poster
-/// width is 19.8pt on Apple TV, just under the 25pt title beneath the card, 14.4pt on iPad and
-/// 10.8pt on iPhone, which is caption2 there. Sizing a pill off its own card would put a 32pt pill
-/// on a landscape card next to a 20pt one on the poster beside it.
-enum PosterBadgeMetrics {
-    static func fontSize(posterWidth: CGFloat, scale: CGFloat) -> CGFloat {
-        posterWidth * 0.09 * scale
-    }
-}
-
 /// The pills in a card's top-left corner (Sodalite#79).
 ///
 /// A leaf on purpose: it, not `MediaCard`, reads the badge store, so a batch of enrichment landing
