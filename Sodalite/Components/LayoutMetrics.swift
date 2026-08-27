@@ -5,6 +5,8 @@ import SwiftUI
 /// Card sizes are pre-cardScale; callers still multiply by appearancePreferences.cardScale.
 struct LayoutMetrics: Equatable {
     var posterSize: CGSize
+    /// Also the size of every 16:9 tile that is not a MediaCard (genre, provider, library):
+    /// one width for the whole family, so those rows line up with a landscape media row.
     var landscapeSize: CGSize
     var squareSize: CGSize
     /// Thumbnail in the vertical detail lists (collection, playlist, watch stats).
@@ -19,7 +21,6 @@ struct LayoutMetrics: Equatable {
     var gridMinimum: CGFloat
     var gridSpacing: CGFloat
     var gridInset: CGFloat
-    var genreTileSize: CGSize
     var screenHInset: CGFloat
     var screenVInset: CGFloat
     var profileCardSize: CGSize
@@ -49,7 +50,6 @@ struct LayoutMetrics: Equatable {
         listTitleFont: .title3, listOverviewFont: .footnote,
         rowInset: 50, itemSpacing: 30, rowVerticalPadding: 20,
         gridMinimum: 220, gridSpacing: 40, gridInset: 60,
-        genreTileSize: CGSize(width: 320, height: 180),
         screenHInset: 80, screenVInset: 60,
         profileCardSize: CGSize(width: 180, height: 180),
         castPortrait: 180, castLabelWidth: 220, castImageWidth: 400
@@ -63,7 +63,6 @@ struct LayoutMetrics: Equatable {
         listTitleFont: .body, listOverviewFont: .caption,
         rowInset: 28, itemSpacing: 20, rowVerticalPadding: 16,
         gridMinimum: 160, gridSpacing: 28, gridInset: 24,
-        genreTileSize: CGSize(width: 240, height: 135),
         screenHInset: 40, screenVInset: 32,
         profileCardSize: CGSize(width: 160, height: 160),
         castPortrait: 120, castLabelWidth: 140, castImageWidth: 300
@@ -77,7 +76,6 @@ struct LayoutMetrics: Equatable {
         listTitleFont: .body, listOverviewFont: .caption,
         rowInset: 16, itemSpacing: 12, rowVerticalPadding: 12,
         gridMinimum: 108, gridSpacing: 16, gridInset: 16,
-        genreTileSize: CGSize(width: 200, height: 112),
         screenHInset: 16, screenVInset: 16,
         profileCardSize: CGSize(width: 120, height: 120),
         castPortrait: 100, castLabelWidth: 100, castImageWidth: 300

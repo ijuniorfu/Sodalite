@@ -47,7 +47,7 @@ struct GenreCard: View {
         ArtworkTile(
             title: data.name,
             artworkURL: data.backdropURL,
-            size: LayoutMetrics.current(hSizeClass).genreTileSize,
+            size: LayoutMetrics.current(hSizeClass).landscapeSize,
             action: action
         ) {
             ArtworkTileSurface()

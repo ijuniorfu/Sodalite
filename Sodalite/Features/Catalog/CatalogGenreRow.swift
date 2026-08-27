@@ -54,7 +54,7 @@ private struct GenreTile: View {
         ArtworkTile(
             title: genre.name,
             artworkURL: genre.primaryBackdrop.flatMap { SeerrImageURL.backdrop(path: $0, size: .w780) },
-            size: LayoutMetrics.current(hSizeClass).genreTileSize,
+            size: LayoutMetrics.current(hSizeClass).landscapeSize,
             action: action
         ) {
             fallbackBackground

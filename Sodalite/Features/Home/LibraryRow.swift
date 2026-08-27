@@ -38,12 +38,15 @@ private struct LibraryTile: View {
 
     @Environment(\.dependencies) private var dependencies
     @Environment(\.horizontalSizeClass) private var hSizeClass
-    // Match .landscape MediaCard dimensions so My Media tiles line up with the rows above.
+    // The shared 16:9 tile size (see LayoutMetrics.landscapeSize).
     private var size: CGSize { LayoutMetrics.current(hSizeClass).landscapeSize }
 
     var body: some View {
+        // No label over the artwork: a library image nearly always has the library's own name
+        // burnt into it, and drawing ours on top read as two captions on one tile. The name moves
+        // into the fallback, which is exactly the case where nothing else names the tile.
         ArtworkTile(
-            title: library.name,
+            title: nil,
             artworkURL: dependencies.jellyfinImageService.libraryArtworkURL(for: library),
             size: size,
             action: action
@@ -51,15 +54,18 @@ private struct LibraryTile: View {
             ZStack {
                 ArtworkTileSurface()
 
-                // No Primary/Thumb on the server: the generic tile. The icon sits in the corner
-                // rather than above the name, which on a compact tile would overlap it.
+                // The icon sits in the corner rather than above the name, which on a compact tile
+                // would overlap it.
                 Image(systemName: symbol(for: library.libraryType))
                     .font(.system(size: size.height * 0.22))
                     .foregroundStyle(.tint)
                     .padding(20)
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+
+                ArtworkTileLabel(title: library.name)
             }
         }
+        .accessibilityLabel(library.name)
     }
 
     private func symbol(for type: LibraryType) -> String {

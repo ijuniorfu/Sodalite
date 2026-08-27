@@ -5,10 +5,14 @@ import SwiftUI
 /// left), so scrim, label and shape live here once instead of three times.
 ///
 /// `fallback` paints both the loading state and the no-artwork state, so a caller can hand over a
-/// plain gradient or a gradient with a generic icon on it. The scrim goes over it either way, which
-/// is what keeps the label reading the same in both.
+/// plain gradient, or a gradient carrying a generic icon and a label of its own.
+///
+/// A nil `title` draws no label over the artwork, and no scrim either: the scrim exists to keep a
+/// label readable, so without one it would only dim the artwork. Callers whose artwork tends to
+/// carry its own name (library images usually do) pass nil and put the label in `fallback`, where
+/// it shows exactly when there is no artwork to name the tile.
 struct ArtworkTile<Fallback: View>: View {
-    let title: String
+    let title: String?
     let artworkURL: URL?
     let size: CGSize
     let action: () -> Void
@@ -32,24 +36,18 @@ struct ArtworkTile<Fallback: View>: View {
                     fallback()
                 }
 
-                // A gradient, not a flat veil: the label sits at the bottom, so that is the only
-                // band that needs contrast, and dimming the whole frame greyed out the artwork
-                // these rows exist to show. The bottom stop is darker than the old flat scrim, so
-                // legibility under the label goes up, not down.
-                LinearGradient(
-                    colors: [.black.opacity(0.15), .black.opacity(0.75)],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
+                if let title {
+                    // A gradient, not a flat veil: the label sits at the bottom, so that is the
+                    // only band that needs contrast, and dimming the whole frame greyed out the
+                    // artwork these rows exist to show.
+                    LinearGradient(
+                        colors: [.black.opacity(0.15), .black.opacity(0.75)],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
 
-                Text(title)
-                    .font(.title3)
-                    .fontWeight(.bold)
-                    .foregroundStyle(.white)
-                    .shadow(radius: 4)
-                    .lineLimit(2)
-                    .padding(20)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
+                    ArtworkTileLabel(title: title)
+                }
             }
             .frame(width: size.width, height: size.height)
             .clipShape(RoundedRectangle(cornerRadius: 16))
@@ -60,6 +58,23 @@ struct ArtworkTile<Fallback: View>: View {
                 )
             )
         }
+    }
+}
+
+/// The tile's name, wherever it is drawn. Its own view so a caller placing it inside `fallback`
+/// gets the identical treatment instead of a second copy that can drift.
+struct ArtworkTileLabel: View {
+    let title: String
+
+    var body: some View {
+        Text(title)
+            .font(.title3)
+            .fontWeight(.bold)
+            .foregroundStyle(.white)
+            .shadow(radius: 4)
+            .lineLimit(2)
+            .padding(20)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
     }
 }
 

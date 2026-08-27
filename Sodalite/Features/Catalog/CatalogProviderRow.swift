@@ -44,9 +44,9 @@ private struct ProviderTile: View {
     let action: () -> Void
 
     @Environment(\.horizontalSizeClass) private var hSizeClass
-    // Match genre tile dimensions so provider + genre rows line up on the same screen.
-    private var width: CGFloat { LayoutMetrics.current(hSizeClass).genreTileSize.width }
-    private var height: CGFloat { LayoutMetrics.current(hSizeClass).genreTileSize.height }
+    // The shared 16:9 tile size, so provider, genre and library rows line up.
+    private var width: CGFloat { LayoutMetrics.current(hSizeClass).landscapeSize.width }
+    private var height: CGFloat { LayoutMetrics.current(hSizeClass).landscapeSize.height }
 
     var body: some View {
         // Deliberately not ArtworkTile: this tile carries a centered duotone logo, not a
