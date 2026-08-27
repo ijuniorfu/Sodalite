@@ -159,7 +159,7 @@ final class HTTPClient: HTTPClientProtocol, @unchecked Sendable {
         components?.percentEncodedQuery = encodedQuery?
             .replacingOccurrences(of: "+", with: "%2B")
 
-        guard let url = components?.url else {
+        guard let url = components?.url, !Self.navigatesUpward(url) else {
             throw APIError.invalidURL
         }
 
@@ -178,6 +178,20 @@ final class HTTPClient: HTTPClientProtocol, @unchecked Sendable {
         }
 
         return request
+    }
+
+    /// Does this path still contain a `.` or `..` segment the server would resolve away?
+    ///
+    /// Every endpoint path in this app is a literal with ids interpolated into it, so a navigating
+    /// segment can only have arrived inside one of those ids, and it retargets the request while the
+    /// auth header rides along unchanged. Checked at the funnel rather than at each endpoint, so an
+    /// endpoint written tomorrow is covered without anyone remembering this.
+    ///
+    /// `standardized` is what resolves those segments, so the comparison asks the same question the
+    /// server will. Trailing slashes, empty paths and `//` are left alone by it, which is why this
+    /// does not fire on the legitimate shapes.
+    static func navigatesUpward(_ url: URL) -> Bool {
+        url.standardized.path != url.path
     }
 }
 

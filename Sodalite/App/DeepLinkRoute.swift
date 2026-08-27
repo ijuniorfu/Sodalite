@@ -15,9 +15,29 @@ struct DeepLinkRoute: Equatable {
         default: return nil
         }
         let id = url.pathComponents.dropFirst().first ?? ""
-        guard !id.isEmpty else { return nil }
+        guard isItemID(id) else { return nil }
         return DeepLinkRoute(itemID: id, autoPlay: autoPlay)
     }
+
+    /// A Jellyfin item id is a GUID: 32 hex digits, dashed or not. Checked here rather than left to
+    /// the fetch, because the id is interpolated into a request path and `pathComponents` hands back
+    /// a percent-DECODED component: `sodalite://item/%2E%2E%2F%2E%2E%2FSystem%2FInfo` arrives as
+    /// `../../System/Info` and survives unescaped into `URLRequest.url`, where the server resolves it
+    /// into a different endpoint carrying the session token. The Top Shelf is the only producer of
+    /// these links and only ever emits a GUID, so anything else is not one of ours.
+    static func isItemID(_ id: String) -> Bool {
+        var digits = 0
+        for character in id.unicodeScalars {
+            if character == "-" { continue }
+            guard hexDigits.contains(character) else { return false }
+            digits += 1
+        }
+        return digits == 32
+    }
+
+    /// ASCII only, deliberately: `Character.isHexDigit` also accepts fullwidth and other Unicode
+    /// forms, which are not what a GUID is made of.
+    private static let hexDigits = Set("0123456789abcdefABCDEF".unicodeScalars)
 }
 
 /// What the deep-link cover presents: the fetched item together with whether it should start

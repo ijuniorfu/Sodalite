@@ -14,6 +14,13 @@ enum SharedSessionMirror {
     }
 
     static func write(serverURL: URL, userID: String, accessToken: String) {
+        // Only tvOS has a Top Shelf to read this. Everywhere else the write would mint a second copy
+        // of the access token with no consumer, so take the chance to remove one an earlier build of
+        // this app left behind instead.
+        #if !os(tvOS)
+        clear()
+        return
+        #else
         let slot = KeychainKeys.sharedSession
         let payload = Payload(
             serverURL: serverURL.absoluteString,
@@ -26,6 +33,7 @@ enum SharedSessionMirror {
         }
         save(data, account: slot)
         TopShelfRefresher.invalidate()
+        #endif
     }
 
     static func clear() {
@@ -71,7 +79,10 @@ enum SharedSessionMirror {
             kSecAttrService as String: service,
             kSecAttrAccount as String: account,
             kSecValueData as String: data,
-            kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlock,
+            // ThisDeviceOnly, matching KeychainService: this is the same access token, and the reader
+            // is an extension on this very device. Without the suffix the item is backup-eligible and
+            // the token restores onto a different device, which is more reach than the Top Shelf needs.
+            kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly,
         ]
         if let group = resolvedAccessGroup {
             query[kSecAttrAccessGroup as String] = group

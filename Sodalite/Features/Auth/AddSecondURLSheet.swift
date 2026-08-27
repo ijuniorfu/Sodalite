@@ -83,7 +83,9 @@ struct AddSecondURLSheet: View {
 
     private func parsed() -> URL? {
         let trimmed = urlText.trimmingCharacters(in: .whitespaces)
-        guard !trimmed.isEmpty, let url = URL(string: trimmed), url.scheme != nil, url.host() != nil else { return nil }
+        guard !trimmed.isEmpty, let url = URL(string: trimmed), url.host() != nil,
+              let scheme = url.scheme?.lowercased(), scheme == "http" || scheme == "https"
+        else { return nil }
         return url
     }
 
