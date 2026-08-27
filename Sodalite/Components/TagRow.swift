@@ -42,49 +42,15 @@ struct GenreCard: View {
     let action: () -> Void
 
     @Environment(\.horizontalSizeClass) private var hSizeClass
-    private var tileSize: CGSize { LayoutMetrics.current(hSizeClass).genreTileSize }
 
     var body: some View {
-        FocusableCard {
-            action()
-        } content: { isFocused in
-            ZStack(alignment: .bottomLeading) {
-                AsyncCachedImage(url: data.backdropURL) { image in
-                    image
-                        .resizable()
-                        .aspectRatio(contentMode: .fill)
-                } placeholder: {
-                    Rectangle()
-                        .fill(
-                            LinearGradient(
-                                colors: [Color.Theme.surface, Color.Theme.surfaceElevated],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
-                }
-                .frame(width: tileSize.width, height: tileSize.height)
-                .clipped()
-
-                Rectangle()
-                    .fill(.black.opacity(0.55))
-
-                Text(data.name)
-                    .font(.title3)
-                    .fontWeight(.bold)
-                    .foregroundStyle(.white)
-                    .shadow(radius: 4)
-                    .padding(20)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
-            }
-            .frame(width: tileSize.width, height: tileSize.height)
-            .clipShape(RoundedRectangle(cornerRadius: 16))
-            .overlay(
-                MediaFocusRing(
-                    shape: RoundedRectangle(cornerRadius: 16),
-                    isFocused: isFocused
-                )
-            )
+        ArtworkTile(
+            title: data.name,
+            artworkURL: data.backdropURL,
+            size: LayoutMetrics.current(hSizeClass).genreTileSize,
+            action: action
+        ) {
+            ArtworkTileSurface()
         }
     }
 }

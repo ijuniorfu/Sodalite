@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Horizontal scroller of genre tiles (dimmed backdrop + name overlay, matching Jellyseerr web's discover sliders); tap navigates to a CatalogFilteredGridView.
+/// Horizontal scroller of genre tiles (dimmed backdrop + name overlay); tap navigates to a CatalogFilteredGridView. The tile is the app-wide ArtworkTile rather than Jellyseerr web's centered label, so Catalog and Home read as one design (Sodalite#84).
 struct CatalogGenreRow: View {
     let titleKey: LocalizedStringKey
     let genres: [SeerrGenreSlide]
@@ -49,47 +49,15 @@ private struct GenreTile: View {
 
     @Environment(\.dependencies) private var dependencies
     @Environment(\.horizontalSizeClass) private var hSizeClass
-    private var width: CGFloat { LayoutMetrics.current(hSizeClass).genreTileSize.width }
-    private var height: CGFloat { LayoutMetrics.current(hSizeClass).genreTileSize.height }
 
     var body: some View {
-        // FocusableCard not Button: tvOS layers an unsuppressable white halo on focused .plain buttons, so all cards route through this primitive (own scale, shadow, and semantic focus outline).
-        FocusableCard(action: action) { isFocused in
-            ZStack {
-                if let path = genre.primaryBackdrop,
-                   let url = SeerrImageURL.backdrop(path: path, size: .w780) {
-                    AsyncCachedImage(url: url) { image in
-                        image.resizable().aspectRatio(contentMode: .fill)
-                    } placeholder: {
-                        fallbackBackground
-                    }
-                    .frame(width: width, height: height)
-                    .clipped()
-                } else {
-                    fallbackBackground
-                }
-
-                LinearGradient(
-                    colors: [.black.opacity(0.2), .black.opacity(0.7)],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-
-                Text(genre.name)
-                    .font(.title3)
-                    .fontWeight(.semibold)
-                    .foregroundStyle(.white)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, 16)
-            }
-            .frame(width: width, height: height)
-            .clipShape(RoundedRectangle(cornerRadius: 16))
-            .overlay(
-                MediaFocusRing(
-                    shape: RoundedRectangle(cornerRadius: 16),
-                    isFocused: isFocused
-                )
-            )
+        ArtworkTile(
+            title: genre.name,
+            artworkURL: genre.primaryBackdrop.flatMap { SeerrImageURL.backdrop(path: $0, size: .w780) },
+            size: LayoutMetrics.current(hSizeClass).genreTileSize,
+            action: action
+        ) {
+            fallbackBackground
         }
     }
 
@@ -103,6 +71,5 @@ private struct GenreTile: View {
             startPoint: .topLeading,
             endPoint: .bottomTrailing
         )
-        .frame(width: width, height: height)
     }
 }

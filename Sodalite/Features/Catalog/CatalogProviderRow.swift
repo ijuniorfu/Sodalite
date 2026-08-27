@@ -49,6 +49,9 @@ private struct ProviderTile: View {
     private var height: CGFloat { LayoutMetrics.current(hSizeClass).genreTileSize.height }
 
     var body: some View {
+        // Deliberately not ArtworkTile: this tile carries a centered duotone logo, not a
+        // bottom-left name, and the logo needs the darker mid-tile gradient below to stay
+        // readable on bright backdrops. The name only stands in when a provider has no logo.
         // FocusableCard not Button: tvOS layers an unsuppressable white halo on focused buttons (as GenreTile/SeerrMediaCard).
         FocusableCard(action: action) { isFocused in
             ZStack {
