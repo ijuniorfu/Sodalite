@@ -24,3 +24,15 @@ commuting, flights, hotel wifi that only pretends to work. iPhone and iPad first
 where a file on disk earns its storage.
 
 Targeted at 1.1, the first release after 1.0.
+
+## Later
+
+### One home across every server ([#85](https://github.com/superuser404notfound/Sodalite/issues/85))
+
+An opt-in mode that keeps more than one Jellyfin session alive at the same time and merges the
+Home tab across them: one Continue Watching row in true chronological order, one My Media grid
+holding every library from every box, and the Live TV tab present when any connected server has
+a tuner. Search stays scoped to one server you pick, because merging relevance rankings from two
+servers invents an order neither of them meant.
+
+Off by default. With the switch off, Sodalite behaves exactly as it does today.
