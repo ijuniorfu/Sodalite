@@ -27,7 +27,22 @@ final class JellyfinMusicService: JellyfinMusicServiceProtocol {
             endpoint: JellyfinEndpoint.items(userID: userID, query: query),
             responseType: JellyfinItemsResponse.self
         )
+        // The one outcome an empty grid cannot explain by itself (Sodalite#88). A total above zero
+        // means the server holds albums and the lenient element decode dropped every one of them; a
+        // total of zero means this query is not the one that finds them, and then the next question
+        // is what was asked, so the query shape rides along.
+        if response.items.isEmpty {
+            LogTap.shared.note(
+                "[music] getAlbums empty: total=\(response.totalRecordCount) query=\(Self.rendered(query))"
+            )
+        }
         return response.items
+    }
+
+    private static func rendered(_ query: ItemQuery) -> String {
+        query.toQueryItems()
+            .map { "\($0.name)=\($0.value ?? "")" }
+            .joined(separator: "&")
     }
 
     func getSongs(userID: String, albumID: String) async throws -> [JellyfinItem] {

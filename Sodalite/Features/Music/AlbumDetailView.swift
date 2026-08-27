@@ -5,15 +5,34 @@ import SwiftUI
 @Observable @MainActor final class AlbumDetailViewModel {
     private(set) var songs: [JellyfinItem] = []
     private(set) var isLoading = false
+    /// Same rule as the album grid (Sodalite#88): a failed fetch is not an album without tracks.
+    /// Swallowed, it rendered a cover and a Play button over an empty list with nothing said.
+    private(set) var errorMessage: String?
+
+    var displayedError: String? { songs.isEmpty ? errorMessage : nil }
 
     func load(album: JellyfinItem, using dependencies: DependencyContainer) async {
-        guard let userID = dependencies.activeUserID else { return }
+        await load(albumID: album.id, service: dependencies.jellyfinMusicService, userID: dependencies.activeUserID)
+    }
+
+    func load(albumID: String, service: JellyfinMusicServiceProtocol, userID: String?) async {
+        guard let userID else {
+            LogTap.shared.note("[music] songs: no active user, nothing requested")
+            return
+        }
         isLoading = true
-        songs = (try? await dependencies.jellyfinMusicService.getSongs(
-            userID: userID,
-            albumID: album.id
-        )) ?? []
-        isLoading = false
+        defer { isLoading = false }
+        do {
+            let fetched = try await service.getSongs(userID: userID, albumID: albumID)
+            songs = fetched
+            errorMessage = nil
+            LogTap.shared.note("[music] songs: \(fetched.count) returned for album \(albumID)")
+        } catch is CancellationError {
+            // A cancelled reload is not an outcome. The next one answers.
+        } catch {
+            errorMessage = ErrorText.user(for: error)
+            LogTap.shared.note("[music] songs failed for album \(albumID): \(HTTPDiagnostics.describe(error))")
+        }
     }
 }
 
@@ -151,7 +170,21 @@ struct AlbumDetailView: View {
 
     @ViewBuilder
     private var tracklist: some View {
-        if !viewModel.isLoading && !viewModel.songs.isEmpty {
+        if let error = viewModel.displayedError, !viewModel.isLoading {
+            VStack(alignment: .leading, spacing: 12) {
+                Text(error)
+                    .foregroundStyle(.secondary)
+                Button {
+                    Task { await viewModel.load(album: album, using: dependencies) }
+                } label: {
+                    Text("home.retry")
+                        .font(.body)
+                        .padding(.horizontal, 32)
+                        .padding(.vertical, 12)
+                }
+                .buttonStyle(SettingsTileButtonStyle())
+            }
+        } else if !viewModel.isLoading && !viewModel.songs.isEmpty {
             let coordinator = dependencies.musicPlaybackCoordinator
             VStack(spacing: 8) {
                 ForEach(Array(viewModel.songs.enumerated()), id: \.element.id) { index, song in

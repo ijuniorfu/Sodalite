@@ -72,11 +72,16 @@ final class HTTPClient: HTTPClientProtocol, @unchecked Sendable {
         headers: [String: String],
         responseType: T.Type
     ) async throws -> T {
-        let (data, _) = try await requestData(baseURL: baseURL, endpoint: endpoint, headers: headers)
+        let (data, response) = try await requestData(baseURL: baseURL, endpoint: endpoint, headers: headers)
 
         do {
             return try decoder.decode(T.self, from: data)
         } catch {
+            if let url = response.url {
+                LogTap.shared.note(
+                    HTTPDiagnostics.decode(method: endpoint.method.rawValue, url: url, type: T.self, error: error)
+                )
+            }
             throw APIError.decodingError(error)
         }
     }
@@ -117,12 +122,13 @@ final class HTTPClient: HTTPClientProtocol, @unchecked Sendable {
             throw CancellationError()
         } catch let error as CancellationError {
             throw error
-        } catch let error as URLError where error.code == .timedOut {
-            throw APIError.timeout
-        } catch let error as URLError where error.code == .notConnectedToInternet || error.code == .cannotConnectToHost {
-            throw APIError.serverUnreachable
         } catch {
-            throw APIError.networkError(error)
+            if let url = urlRequest.url {
+                LogTap.shared.note(
+                    HTTPDiagnostics.transport(method: endpoint.method.rawValue, url: url, error: error)
+                )
+            }
+            throw Self.transportFailure(error)
         }
 
         guard let httpResponse = response as? HTTPURLResponse else {
@@ -132,10 +138,35 @@ final class HTTPClient: HTTPClientProtocol, @unchecked Sendable {
         switch httpResponse.statusCode {
         case 200...299:
             return (data, httpResponse)
-        case 401:
-            throw APIError.unauthorized(message: APIError.extractErrorMessage(from: data))
         default:
+            if let url = httpResponse.url {
+                LogTap.shared.note(
+                    HTTPDiagnostics.status(
+                        method: endpoint.method.rawValue,
+                        url: url,
+                        statusCode: httpResponse.statusCode,
+                        body: data
+                    )
+                )
+            }
+            if httpResponse.statusCode == 401 {
+                throw APIError.unauthorized(message: APIError.extractErrorMessage(from: data))
+            }
             throw APIError.httpError(statusCode: httpResponse.statusCode, data: data)
+        }
+    }
+
+    /// The `APIError` a transport failure maps to. Cancellation never reaches here: it is answered
+    /// above, before the failure log, because a cancelled request is not a failure to report.
+    private static func transportFailure(_ error: Error) -> APIError {
+        guard let urlError = error as? URLError else { return .networkError(error) }
+        switch urlError.code {
+        case .timedOut:
+            return .timeout
+        case .notConnectedToInternet, .cannotConnectToHost:
+            return .serverUnreachable
+        default:
+            return .networkError(error)
         }
     }
 

@@ -3,12 +3,38 @@ import SwiftUI
 @Observable @MainActor final class MusicHomeViewModel {
     private(set) var albums: [JellyfinItem] = []
     private(set) var isLoading = false
+    /// Set only when the fetch threw. `try? ... ?? []` used to collapse every failure into an empty
+    /// array, so a 400, a decode mismatch and a genuinely empty music library all rendered the same
+    /// "No albums found" screen and left nothing in the diagnostic log either (Sodalite#88). Empty
+    /// and failed are not the same state, the rule Home already follows for its rows.
+    private(set) var errorMessage: String?
+
+    /// The error screen is for a viewer with nothing else to look at. A reload that fails while a
+    /// grid is already up keeps the grid, so a transient hiccup does not empty the tab.
+    var displayedError: String? { albums.isEmpty ? errorMessage : nil }
 
     func load(using dependencies: DependencyContainer) async {
-        guard let userID = dependencies.activeUserID else { return }
+        await load(service: dependencies.jellyfinMusicService, userID: dependencies.activeUserID)
+    }
+
+    func load(service: JellyfinMusicServiceProtocol, userID: String?) async {
+        guard let userID else {
+            LogTap.shared.note("[music] albums: no active user, nothing requested")
+            return
+        }
         isLoading = true
-        albums = (try? await dependencies.jellyfinMusicService.getAlbums(userID: userID)) ?? []
-        isLoading = false
+        defer { isLoading = false }
+        do {
+            let fetched = try await service.getAlbums(userID: userID)
+            albums = fetched
+            errorMessage = nil
+            LogTap.shared.note("[music] albums: \(fetched.count) returned")
+        } catch is CancellationError {
+            // A cancelled reload is not an outcome. The next one answers.
+        } catch {
+            errorMessage = ErrorText.user(for: error)
+            LogTap.shared.note("[music] albums failed: \(HTTPDiagnostics.describe(error))")
+        }
     }
 }
 
@@ -55,6 +81,26 @@ struct MusicHomeView: View {
             ProgressView()
                 .frame(maxWidth: .infinity, minHeight: 400)
                 .focusable()
+        } else if let error = viewModel.displayedError {
+            VStack(spacing: 12) {
+                Image(systemName: "exclamationmark.triangle")
+                    .font(.system(size: 40))
+                    .foregroundStyle(.secondary)
+                Text(error)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+                Button {
+                    Task { await viewModel.load(using: dependencies) }
+                } label: {
+                    Text("home.retry")
+                        .font(.body)
+                        .padding(.horizontal, 32)
+                        .padding(.vertical, 12)
+                }
+                .buttonStyle(SettingsTileButtonStyle())
+            }
+            .padding(.horizontal, 40)
+            .frame(maxWidth: .infinity, minHeight: 400)
         } else if viewModel.albums.isEmpty {
             VStack(spacing: 12) {
                 Image(systemName: "music.note")

@@ -46,7 +46,9 @@ struct LossyJellyfinItems: Decodable, Sendable {
     let elements: [JellyfinItem]
     init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()
-        elements = try container.decode([FailableJellyfinItem].self).compactMap(\.value)
+        let raw = try container.decode([FailableJellyfinItem].self)
+        elements = raw.compactMap(\.value)
+        JellyfinDecodeReport.droppedElements(raw.count - elements.count, of: raw.count)
     }
 }
 
@@ -63,7 +65,11 @@ struct JellyfinItemsResponse: Codable, Sendable {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         let raw = try container.decodeIfPresent([FailableJellyfinItem].self, forKey: .items) ?? []
         items = raw.compactMap(\.value)
-        totalRecordCount = try container.decode(Int.self, forKey: .totalRecordCount)
+        // Lenient like the elements above, and for the same reason: an endpoint that answers with
+        // Items but omits TotalRecordCount used to throw the entire response away over a number
+        // only paging reads (Sodalite#88). Falling back to what actually arrived keeps the grid.
+        totalRecordCount = try container.decodeIfPresent(Int.self, forKey: .totalRecordCount) ?? items.count
+        JellyfinDecodeReport.droppedElements(raw.count - items.count, of: raw.count)
     }
 
     /// The custom decoder suppresses the memberwise one; test doubles need a way to hand back a
@@ -71,5 +77,18 @@ struct JellyfinItemsResponse: Codable, Sendable {
     init(items: [JellyfinItem], totalRecordCount: Int) {
         self.items = items
         self.totalRecordCount = totalRecordCount
+    }
+}
+
+/// Says out loud when the lenient decode above threw elements away.
+///
+/// The leniency exists so one malformed item cannot strand a whole grid, and it works, which is
+/// exactly why it is invisible: a response whose every element is malformed decodes to an empty
+/// array and renders as "nothing here" (Sodalite#88). The count is the discriminator between a
+/// library that is empty and a library the client could not read.
+enum JellyfinDecodeReport {
+    static func droppedElements(_ dropped: Int, of total: Int) {
+        guard dropped > 0 else { return }
+        LogTap.shared.note("[jellyfin] response dropped \(dropped) of \(total) items that failed to decode")
     }
 }
