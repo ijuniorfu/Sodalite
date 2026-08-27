@@ -257,12 +257,13 @@ the short list of what is in flight.
 
 ## Community
 
-Everything happens in the open. No Discord, no closed garden.
+Everything that matters happens in the open.
 
+- **[Discord](https://discord.gg/P7NvpzNqnG)**: chat, quick questions, release announcements
 - **[Discussions](https://github.com/superuser404notfound/Sodalite/discussions)**: Q&A, ideas, show-and-tell
 - **[Issues](https://github.com/superuser404notfound/Sodalite/issues)**: bugs and concrete feature requests
 
-If you're not sure which to use, start a Discussion. Bugs get moved to Issues. Both are public, indexed by search engines, and stay tied to the project, so the next person with the same question can find the answer.
+Discord is the fast lane, GitHub is the record. Anything that should still be findable next year, a bug, a feature request, a decision, ends up in an Issue or a Discussion: those are public, indexed by search engines, and stay tied to the project, so the next person with the same question finds the answer. If you're not sure which to use, start a Discussion. Bugs get moved to Issues.
 
 ## Support
 

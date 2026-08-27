@@ -36,3 +36,10 @@ a tuner. Search stays scoped to one server you pick, because merging relevance r
 servers invents an order neither of them meant.
 
 Off by default. With the switch off, Sodalite behaves exactly as it does today.
+
+### Jump to a letter ([#86](https://github.com/superuser404notfound/Sodalite/issues/86))
+
+A slim A to Z rail down the right edge of a library grid: move onto it, slide to P, and the grid
+lands on the first title starting with P instead of coasting past ninety-five posters. Plex has
+this on Apple TV and almost no other Jellyfin client does. It only means anything while a library
+is sorted by title, so it appears with that sort and stays out of the way otherwise.
