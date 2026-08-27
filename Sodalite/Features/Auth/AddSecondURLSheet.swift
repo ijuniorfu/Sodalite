@@ -2,12 +2,12 @@
 import SwiftUI
 
 /// Single-field URL sheet shown after login to add the missing internal/external
-/// address. Mirrors DualURLEditSheet's parse + probe + save-anyway behavior but
-/// for exactly one slot; the already-known address is shown read-only for context.
+/// address. Mirrors DualURLEditSheet's resolve + save-anyway behavior but for
+/// exactly one slot; the already-known address is shown read-only for context.
 struct AddSecondURLSheet: View {
     let slot: ServerRoute
     let knownURL: URL
-    let probe: @Sendable (URL) async -> Bool
+    let resolve: @Sendable (String) async -> URL?
     let onSave: (URL) -> Void
 
     @Environment(\.dismiss) private var dismiss
@@ -16,6 +16,9 @@ struct AddSecondURLSheet: View {
     @State private var validationError: LocalizedStringKey?
     @State private var showUnreachableConfirm = false
     @State private var unreachableHost = ""
+    /// What the last validation pass decided to store, kept so the confirmation
+    /// dialog saves the resolved address rather than re-reading the field.
+    @State private var pendingURL: URL?
 
     private var title: LocalizedStringKey {
         slot == .internal ? "multiServer.addURL.sheet.title.internal" : "multiServer.addURL.sheet.title.external"
@@ -81,33 +84,32 @@ struct AddSecondURLSheet: View {
         .themedPresentationBackground()
     }
 
-    private func parsed() -> URL? {
-        let trimmed = urlText.trimmingCharacters(in: .whitespaces)
-        guard !trimmed.isEmpty, let url = URL(string: trimmed), url.host() != nil,
-              let scheme = url.scheme?.lowercased(), scheme == "http" || scheme == "https"
-        else { return nil }
-        return url
-    }
-
     private func validateAndSave() async {
         validationError = nil
-        guard let url = parsed() else {
-            validationError = "multiServer.urls.invalid"
-            return
-        }
         isValidating = true
         defer { isValidating = false }
-        if await probe(url) {
+
+        let typed = urlText.trimmingCharacters(in: .whitespacesAndNewlines)
+        switch await ServerAddressResolution.resolve(urlText, discover: resolve) {
+        case .empty:
+            validationError = "multiServer.urls.atLeastOne"
+        case .unresolved:
+            validationError = "multiServer.urls.invalid \(typed)"
+        case .resolved(let url):
+            pendingURL = url
+            // Show what discovery settled on rather than the shorthand that produced it.
+            urlText = url.absoluteString
             commit()
-        } else {
+        case .unreachable(let url):
+            pendingURL = url
             unreachableHost = url.host() ?? url.absoluteString
             showUnreachableConfirm = true
         }
     }
 
     private func commit() {
-        guard let url = parsed() else { return }
-        onSave(url)
+        guard let pendingURL else { return }
+        onSave(pendingURL)
         dismiss()
     }
 }

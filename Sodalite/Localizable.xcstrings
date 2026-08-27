@@ -100521,6 +100521,17 @@
       },
       "shouldTranslate" : false
     },
+    "multiServer.urls.external.placeholder.seerr" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "https://jellyseerr.example.com"
+          }
+        }
+      },
+      "shouldTranslate" : false
+    },
     "multiServer.urls.footer" : {
       "localizations" : {
         "cs" : {
@@ -100852,162 +100863,173 @@
       },
       "shouldTranslate" : false
     },
-    "multiServer.urls.invalid" : {
+    "multiServer.urls.internal.placeholder.seerr" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "http://192.168.1.10:5055"
+          }
+        }
+      },
+      "shouldTranslate" : false
+    },
+    "multiServer.urls.invalid %@" : {
       "localizations" : {
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Zadejte platné adresy URL včetně schématu (http:// nebo https://)."
+            "value" : "Na adrese %@ nic neodpovědělo. Zadejte úplnou adresu URL včetně http:// nebo https://, pokud ji chcete uložit i tak."
           }
         },
         "da" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Indtast gyldige URL'er inklusive skemaet (http:// eller https://)."
+            "value" : "Der svarede intet på %@. Indtast den fulde URL inklusive http:// eller https:// for at gemme den alligevel."
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Gib gültige URLs mit Schema ein (http:// oder https://)."
+            "value" : "Unter %@ hat nichts geantwortet. Gib die vollständige URL mit http:// oder https:// ein, um sie trotzdem zu speichern."
           }
         },
         "el" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Εισαγάγετε έγκυρες διευθύνσεις URL μαζί με το σχήμα (http:// ή https://)."
+            "value" : "Τίποτα δεν απάντησε στη διεύθυνση %@. Εισαγάγετε την πλήρη διεύθυνση URL μαζί με http:// ή https:// για να την αποθηκεύσετε ούτως ή άλλως."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enter valid URLs including the scheme (http:// or https://)."
+            "value" : "Nothing answered at %@. Enter the full URL including http:// or https:// to save it anyway."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Introduce URLs válidas incluyendo el esquema (http:// o https://)."
+            "value" : "Nada respondió en %@. Introduce la URL completa incluyendo http:// o https:// para guardarla de todos modos."
           }
         },
         "fi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Anna kelvolliset URL-osoitteet mukaan lukien skeema (http:// tai https://)."
+            "value" : "Osoitteesta %@ ei vastattu. Anna koko URL-osoite mukaan lukien http:// tai https://, jos haluat tallentaa sen silti."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Saisissez des URL valides, y compris le schéma (http:// ou https://)."
+            "value" : "Aucune réponse à l'adresse %@. Saisissez l'URL complète avec http:// ou https:// pour l'enregistrer quand même."
           }
         },
         "hr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Unesite ispravne URL-ove uključujući shemu (http:// ili https://)."
+            "value" : "Na adresi %@ nitko nije odgovorio. Unesite potpuni URL uključujući http:// ili https:// da biste je ipak spremili."
           }
         },
         "hu" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Adj meg érvényes URL-eket a sémával együtt (http:// vagy https://)."
+            "value" : "A(z) %@ címen semmi sem válaszolt. Add meg a teljes URL-t http:// vagy https:// előtaggal, ha mégis menteni szeretnéd."
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Inserisci URL validi compreso lo schema (http:// o https://)."
+            "value" : "Nessuna risposta all'indirizzo %@. Inserisci l'URL completo con http:// o https:// per salvarlo comunque."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "スキーム（http:// または https://）を含む有効な URL を入力してください。"
+            "value" : "%@ からの応答がありませんでした。それでも保存するには、http:// または https:// を含む完全な URL を入力してください。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "스킴(http:// 또는 https://)을 포함한 유효한 URL을 입력하세요."
+            "value" : "%@에서 응답이 없습니다. 그래도 저장하려면 http:// 또는 https://를 포함한 전체 URL을 입력하세요."
           }
         },
         "nb" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Skriv inn gyldige URL-er inkludert skjemaet (http:// eller https://)."
+            "value" : "Ingenting svarte på %@. Skriv inn hele URL-en inkludert http:// eller https:// for å lagre den likevel."
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Voer geldige URL's in, inclusief het schema (http:// of https://)."
+            "value" : "Er reageerde niets op %@. Voer de volledige URL in, inclusief http:// of https://, om het toch op te slaan."
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Wprowadź prawidłowe adresy URL wraz ze schematem (http:// lub https://)."
+            "value" : "Nic nie odpowiedziało pod adresem %@. Wprowadź pełny adres URL wraz z http:// lub https://, aby zapisać go mimo to."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Insira URLs válidos incluindo o esquema (http:// ou https://)."
+            "value" : "Nada respondeu em %@. Insira a URL completa incluindo http:// ou https:// para salvá-la mesmo assim."
           }
         },
         "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Introduza URLs válidos incluindo o esquema (http:// ou https://)."
+            "value" : "Nada respondeu em %@. Introduza o URL completo incluindo http:// ou https:// para o guardar mesmo assim."
           }
         },
         "ro" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Introdu URL-uri valide, inclusiv schema (http:// sau https://)."
+            "value" : "Nimic nu a răspuns la adresa %@. Introdu URL-ul complet, inclusiv http:// sau https://, pentru a-l salva oricum."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Введите допустимые URL, включая схему (http:// или https://)."
+            "value" : "По адресу %@ никто не ответил. Введите полный URL с http:// или https://, чтобы всё равно сохранить его."
           }
         },
         "sk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Zadajte platné URL adresy vrátane schémy (http:// alebo https://)."
+            "value" : "Na adrese %@ nič neodpovedalo. Zadajte úplnú URL adresu vrátane http:// alebo https://, ak ju chcete aj tak uložiť."
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ange giltiga URL:er inklusive schemat (http:// eller https://)."
+            "value" : "Inget svarade på %@. Ange den fullständiga URL:en inklusive http:// eller https:// för att spara den ändå."
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Şema dahil geçerli URL'ler girin (http:// veya https://)."
+            "value" : "%@ adresinden yanıt gelmedi. Yine de kaydetmek için http:// veya https:// dahil olmak üzere tam URL'yi girin."
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Введіть дійсні URL-адреси разом зі схемою (http:// або https://)."
+            "value" : "За адресою %@ ніхто не відповів. Введіть повну URL-адресу з http:// або https://, щоб усе одно зберегти її."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "请输入包含协议的有效 URL（http:// 或 https://）。"
+            "value" : "%@ 没有任何响应。若仍要保存，请输入包含 http:// 或 https:// 的完整 URL。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "請輸入包含協定的有效 URL（http:// 或 https://）。"
+            "value" : "%@ 沒有任何回應。若仍要儲存，請輸入包含 http:// 或 https:// 的完整 URL。"
           }
         }
       }

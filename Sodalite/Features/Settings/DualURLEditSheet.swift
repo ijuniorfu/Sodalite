@@ -2,14 +2,18 @@
 import SwiftUI
 
 /// Two-slot URL editor shared by Jellyfin server management and Seerr
-/// settings. Saving probes the entered URLs (2 s); unreachable ones raise a
-/// save-anyway confirmation instead of blocking (the user may be away from
-/// the network that URL lives on).
+/// settings. Saving resolves each entry through the same discovery the setup
+/// screens use, so a bare "192.168.1.10" is as complete here as it is there
+/// (Sodalite#83); an address nobody answers raises a save-anyway confirmation
+/// instead of blocking, because the slot being edited may live on a network
+/// this device cannot currently see.
 struct DualURLEditSheet: View {
     let title: LocalizedStringKey
+    let internalPlaceholder: LocalizedStringKey
+    let externalPlaceholder: LocalizedStringKey
     let initialInternalURL: URL?
     let initialExternalURL: URL?
-    let probe: @Sendable (URL) async -> Bool
+    let resolve: @Sendable (String) async -> URL?
     let onSave: (URL?, URL?) -> Void
 
     @Environment(\.dismiss) private var dismiss
@@ -19,12 +23,16 @@ struct DualURLEditSheet: View {
     @State private var validationError: LocalizedStringKey?
     @State private var unreachableHosts: [String] = []
     @State private var showUnreachableConfirm = false
+    /// What the last validation pass decided to store, kept so the confirmation
+    /// dialog saves the resolved addresses rather than re-reading the fields.
+    @State private var pendingInternalURL: URL?
+    @State private var pendingExternalURL: URL?
 
     var body: some View {
         ThemeNavigationStack {
             Form {
                 Section {
-                    TextField("multiServer.urls.internal.placeholder", text: $internalText)
+                    TextField(internalPlaceholder, text: $internalText)
                         .keyboardType(.URL)
                         .textInputAutocapitalization(.never)
                         .autocorrectionDisabled()
@@ -33,7 +41,7 @@ struct DualURLEditSheet: View {
                     Text("multiServer.urls.internal", bundle: .main)
                 }
                 Section {
-                    TextField("multiServer.urls.external.placeholder", text: $externalText)
+                    TextField(externalPlaceholder, text: $externalText)
                         .keyboardType(.URL)
                         .textInputAutocapitalization(.never)
                         .autocorrectionDisabled()
@@ -84,41 +92,54 @@ struct DualURLEditSheet: View {
         .themedPresentationBackground()
     }
 
-    private func parsed(_ text: String) -> URL?? {
-        // Outer nil: invalid input. Inner nil: intentionally empty slot.
-        let trimmed = text.trimmingCharacters(in: .whitespaces)
-        if trimmed.isEmpty { return URL?.none }
-        guard let url = URL(string: trimmed), url.scheme != nil, url.host() != nil else { return nil }
-        return url
-    }
-
     private func validateAndSave() async {
         validationError = nil
-        guard let internalURL = parsed(internalText), let externalURL = parsed(externalText) else {
-            validationError = "multiServer.urls.invalid"
-            return
+        isValidating = true
+        defer { isValidating = false }
+
+        async let internalWork = ServerAddressResolution.resolve(internalText, discover: resolve)
+        async let externalWork = ServerAddressResolution.resolve(externalText, discover: resolve)
+        let (internalOutcome, externalOutcome) = await (internalWork, externalWork)
+
+        var slots: [URL?] = []
+        var unanswered: [String] = []
+        for (text, outcome) in [(internalText, internalOutcome), (externalText, externalOutcome)] {
+            switch outcome {
+            case .empty:
+                slots.append(nil)
+            case .resolved(let url):
+                slots.append(url)
+            case .unreachable(let url):
+                slots.append(url)
+                unanswered.append(url.host() ?? url.absoluteString)
+            case .unresolved:
+                // Name the field that failed: with two of them, "that address" is a guess.
+                validationError = "multiServer.urls.invalid \(text.trimmingCharacters(in: .whitespacesAndNewlines))"
+                return
+            }
         }
-        guard internalURL != nil || externalURL != nil else {
+        guard slots.contains(where: { $0 != nil }) else {
             validationError = "multiServer.urls.atLeastOne"
             return
         }
-        isValidating = true
-        defer { isValidating = false }
-        var dead: [String] = []
-        if let internalURL, await !probe(internalURL) { dead.append(internalURL.host() ?? internalURL.absoluteString) }
-        if let externalURL, await !probe(externalURL) { dead.append(externalURL.host() ?? externalURL.absoluteString) }
-        if dead.isEmpty {
+
+        pendingInternalURL = slots[0]
+        pendingExternalURL = slots[1]
+        // Show what discovery settled on, so a cancelled confirmation leaves the
+        // resolved address in the field rather than the shorthand that produced it.
+        if case .resolved(let url) = internalOutcome { internalText = url.absoluteString }
+        if case .resolved(let url) = externalOutcome { externalText = url.absoluteString }
+
+        if unanswered.isEmpty {
             commit()
         } else {
-            unreachableHosts = dead
+            unreachableHosts = unanswered
             showUnreachableConfirm = true
         }
     }
 
     private func commit() {
-        let internalURL = (parsed(internalText) ?? nil)
-        let externalURL = (parsed(externalText) ?? nil)
-        onSave(internalURL, externalURL)
+        onSave(pendingInternalURL, pendingExternalURL)
         dismiss()
     }
 }

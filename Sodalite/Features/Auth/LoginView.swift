@@ -57,7 +57,7 @@ struct LoginView: View {
                 AddSecondURLSheet(
                     slot: slot,
                     knownURL: server.url,
-                    probe: { await ServerProbe.jellyfin($0) },
+                    resolve: ServerAddressResolution.jellyfin(dependencies.serverDiscoveryService),
                     onSave: { newURL in
                         let merged = server.urls(filling: slot, with: newURL)
                         try? dependencies.updateServerURLs(

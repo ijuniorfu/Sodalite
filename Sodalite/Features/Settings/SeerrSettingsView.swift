@@ -386,9 +386,11 @@ struct SeerrSettingsView: View {
             if let server = appState.activeSeerrServer {
                 DualURLEditSheet(
                     title: "multiServer.urls.title",
+                    internalPlaceholder: "multiServer.urls.internal.placeholder.seerr",
+                    externalPlaceholder: "multiServer.urls.external.placeholder.seerr",
                     initialInternalURL: server.internalURL,
                     initialExternalURL: server.externalURL,
-                    probe: { await ServerProbe.seerr($0) },
+                    resolve: ServerAddressResolution.seerr(dependencies.seerrServerDiscoveryService),
                     onSave: { internalURL, externalURL in
                         try? dependencies.updateSeerrServerURLs(
                             internalURL: internalURL,

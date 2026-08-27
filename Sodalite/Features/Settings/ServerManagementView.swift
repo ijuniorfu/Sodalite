@@ -65,9 +65,11 @@ struct ServerManagementView: View {
         .sheet(item: $editingURLsFor) { server in
             DualURLEditSheet(
                 title: "multiServer.urls.title",
+                internalPlaceholder: "multiServer.urls.internal.placeholder",
+                externalPlaceholder: "multiServer.urls.external.placeholder",
                 initialInternalURL: server.internalURL,
                 initialExternalURL: server.externalURL,
-                probe: { await ServerProbe.jellyfin($0) },
+                resolve: ServerAddressResolution.jellyfin(dependencies.serverDiscoveryService),
                 onSave: { internalURL, externalURL in
                     try? dependencies.updateServerURLs(
                         serverID: server.id,
