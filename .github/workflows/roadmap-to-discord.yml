@@ -1,0 +1,29 @@
+name: Roadmap to Discord
+
+# Keeps one pinned message in #sodalite-roadmap in sync with ROADMAP.md.
+# First run posts the message and prints its id; set the repository variable
+# DISCORD_ROADMAP_MESSAGE_ID to that id and every later run edits it in place.
+
+on:
+  push:
+    branches: [main]
+    paths: ['ROADMAP.md']
+  workflow_dispatch:
+
+concurrency:
+  group: roadmap-to-discord
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Publish roadmap
+        env:
+          DISCORD_ROADMAP_WEBHOOK: ${{ secrets.DISCORD_ROADMAP_WEBHOOK }}
+          DISCORD_ROADMAP_MESSAGE_ID: ${{ vars.DISCORD_ROADMAP_MESSAGE_ID }}
+        run: python3 Scripts/roadmap-to-discord.py
