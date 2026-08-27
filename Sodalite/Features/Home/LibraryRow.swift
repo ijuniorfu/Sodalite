@@ -36,35 +36,53 @@ private struct LibraryTile: View {
     let library: JellyfinLibrary
     let action: () -> Void
 
+    @Environment(\.dependencies) private var dependencies
     @Environment(\.horizontalSizeClass) private var hSizeClass
     // Match .landscape MediaCard dimensions so My Media tiles line up with the rows above.
     private var width: CGFloat { LayoutMetrics.current(hSizeClass).landscapeSize.width }
     private var height: CGFloat { LayoutMetrics.current(hSizeClass).landscapeSize.height }
 
     var body: some View {
+        // Scrim, font and bottom-leading label are GenreCard's, deliberately: My Media and Genres
+        // sit on the same screen and the two rows have to read as one design (Sodalite#84).
         FocusableCard(action: action) { isFocused in
-            ZStack {
-                LinearGradient(
-                    colors: [Color(white: 0.16), Color(white: 0.06)],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
+            ZStack(alignment: .bottomLeading) {
+                if let artworkURL = dependencies.jellyfinImageService.libraryArtworkURL(for: library) {
+                    AsyncCachedImage(url: artworkURL) { image in
+                        image
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                    } placeholder: {
+                        placeholderBackground
+                    }
+                    .frame(width: width, height: height)
+                    .clipped()
 
-                VStack(spacing: 14) {
+                    Rectangle()
+                        .fill(.black.opacity(0.55))
+                } else {
+                    // No Primary/Thumb on the server: the generic tile, with the icon out of the
+                    // label's way rather than above it.
+                    placeholderBackground
+
                     Image(systemName: symbol(for: library.libraryType))
-                        .font(.system(size: 44))
+                        .font(.system(size: height * 0.22))
                         .foregroundStyle(.tint)
-                    Text(library.name)
-                        .font(.title3)
-                        .fontWeight(.semibold)
-                        .foregroundStyle(.white)
-                        .lineLimit(2)
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal, 16)
+                        .padding(20)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
                 }
+
+                Text(library.name)
+                    .font(.title3)
+                    .fontWeight(.bold)
+                    .foregroundStyle(.white)
+                    .shadow(radius: 4)
+                    .lineLimit(2)
+                    .padding(20)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
             }
             .frame(width: width, height: height)
-            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .clipShape(RoundedRectangle(cornerRadius: 16))
             .overlay(
                 MediaFocusRing(
                     shape: RoundedRectangle(cornerRadius: 16),
@@ -72,6 +90,15 @@ private struct LibraryTile: View {
                 )
             )
         }
+    }
+
+    private var placeholderBackground: some View {
+        LinearGradient(
+            colors: [Color(white: 0.16), Color(white: 0.06)],
+            startPoint: .top,
+            endPoint: .bottom
+        )
+        .frame(width: width, height: height)
     }
 
     private func symbol(for type: LibraryType) -> String {

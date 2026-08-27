@@ -132,6 +132,19 @@ final class JellyfinImageService {
         return posterURL(for: item, maxWidth: maxWidth)
     }
 
+    /// Sodalite#84. Tile art for a library (CollectionFolder / UserView): its own Primary image,
+    /// else its Thumb. Nil when the library carries neither, which is what leaves the generic-icon
+    /// tile on screen.
+    func libraryArtworkURL(for library: JellyfinLibrary, maxWidth: Int = 720) -> URL? {
+        if let tag = library.imageTags?.primary {
+            return imageURL(itemID: library.id, imageType: .primary, tag: tag, maxWidth: maxWidth)
+        }
+        if let tag = library.imageTags?.thumb {
+            return imageURL(itemID: library.id, imageType: .thumb, tag: tag, maxWidth: maxWidth)
+        }
+        return nil
+    }
+
     func personImageURL(personID: String, tag: String?, maxWidth: Int = 200) -> URL? {
         guard let base = baseURL(), let tag else { return nil }
         return Self.buildURL(
