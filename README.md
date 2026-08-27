@@ -252,12 +252,8 @@ The App Store marketing screenshots are generated from raw device shots by a sma
 
 ## Roadmap
 
-- [x] Public TestFlight beta
-- [x] Music library
-- [x] Live TV + DVR support
-- [x] iPhone / iPad universal app
-- [ ] App Store release
-- [ ] In-app library-update banner via Jellyfin's WebSocket, surfaces a quiet notification when Sonarr / Radarr ingests new content while Sodalite is open. No backend service, no APNs, same self-hosted data flow as everything else
+What is being built next lives in [ROADMAP.md](ROADMAP.md). No dates, no version promises, just
+the short list of what is in flight.
 
 ## Community
 
