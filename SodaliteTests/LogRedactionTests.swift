@@ -104,6 +104,50 @@ struct LogRedactionTests {
         #expect(LogRedaction.redact(line) == line)
     }
 
+    // MARK: - Credentials carried in the URL authority
+
+    /// A credential does not always arrive as `key=value`. An `smb://` or `http://` URL puts it in the
+    /// authority, where the key matcher has nothing to match on, so it used to pass through whole.
+    @Test("a password in the URL authority is stripped, the user name survives")
+    func urlUserInfoPassword() {
+        let line = LogRedaction.redact(
+            "[AetherEngine] load url=smb://vincent:\(token)@nas.local/media/film.mkv source-format=mkv")
+        #expect(!line.contains(token))
+        #expect(line.contains("smb://vincent:<redacted>@nas.local/media/film.mkv"))
+        #expect(line.hasSuffix("source-format=mkv"))
+    }
+
+    @Test("a bare token in the authority has no user name to spare, so all of it goes")
+    func urlUserInfoWithoutUserName() {
+        let line = LogRedaction.redact("[SMBIOReader] open smb://\(token)@nas.local/share")
+        #expect(!line.contains(token))
+        #expect(line.contains("smb://<redacted>@nas.local/share"))
+    }
+
+    @Test("a URL without credentials is untouched")
+    func urlWithoutUserInfoIsUntouched() {
+        let plain = "[AetherEngine] load url=https://media.example.org/Videos/abc/stream.mkv"
+        #expect(LogRedaction.redact(plain) == plain)
+    }
+
+    /// The scan must not treat any later `@` on the line as an authority, or it would swallow the
+    /// text between them and take the diagnosis with it.
+    @Test("prose after a plain URL is not mistaken for an authority")
+    func atSignInProseIsNotAnAuthority() {
+        let prose = "[diag] tried https://a.test and then asked someone@example.org about it"
+        #expect(LogRedaction.redact(prose) == prose)
+    }
+
+    @Test("both shapes on one line are each stripped")
+    func userInfoAndQueryKeyTogether() {
+        let line = LogRedaction.redact(
+            "[test] url=http://user:\(token)@host/x?api_key=\(token)&Static=true")
+        #expect(!line.contains(token))
+        #expect(line.contains("http://user:<redacted>@host/x"))
+        #expect(line.contains("api_key=<redacted>"))
+        #expect(line.hasSuffix("Static=true"))
+    }
+
     @Test("redaction runs on the way into the buffer, not only in the view")
     @MainActor
     func tapRedactsOnIngest() async {

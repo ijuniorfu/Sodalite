@@ -45,8 +45,13 @@ nonisolated enum LogRedaction {
         var i = 0
 
         while i < bytes.count {
-            guard let keyLength = matchedKeyLength(in: bytes, at: i),
-                  let value = valueRange(in: bytes, after: i + keyLength) else {
+            // Two shapes, because a credential does not always arrive as an assignment. The key
+            // matcher covers `api_key=…`, `X-Emby-Token: …` and the cookie; the userinfo matcher
+            // covers `smb://user:secret@host`, which carries no key at all and would otherwise
+            // pass through untouched.
+            guard let value = matchedKeyLength(in: bytes, at: i)
+                    .flatMap({ valueRange(in: bytes, after: i + $0) })
+                    ?? userInfoSecretRange(in: bytes, at: i) else {
                 i += 1
                 continue
             }
@@ -115,6 +120,43 @@ nonisolated enum LogRedaction {
             while i < bytes.count, !isValueTerminator(bytes[i]) { i += 1 }
         }
         return start < i ? start ..< i : nil
+    }
+
+    /// The secret inside a URL's userinfo, given an index that may start `://`. `smb://user:pw@host`
+    /// and `http://user:pw@host` put the credential in the authority, where no key precedes it, so
+    /// the key matcher above cannot see it. The user name is left readable: it identifies the account
+    /// a line is about, and a diagnostic log that cannot say which account failed is worth less.
+    /// Nil unless an `@` really terminates an authority, so prose such as "see http://a.test and
+    /// foo@bar" is untouched: the scan stops at the first character that cannot appear in userinfo.
+    private static func userInfoSecretRange(in bytes: [UInt8], at index: Int) -> Range<Int>? {
+        guard index + 3 <= bytes.count,
+              bytes[index] == UInt8(ascii: ":"),
+              bytes[index + 1] == UInt8(ascii: "/"),
+              bytes[index + 2] == UInt8(ascii: "/") else { return nil }
+        let start = index + 3
+        var i = start
+        var colon: Int?
+        while i < bytes.count, bytes[i] != UInt8(ascii: "@"), !isAuthorityTerminator(bytes[i]) {
+            if bytes[i] == UInt8(ascii: ":"), colon == nil { colon = i }
+            i += 1
+        }
+        guard i < bytes.count, bytes[i] == UInt8(ascii: "@") else { return nil }
+        // With a colon the password is everything after it; without one the whole userinfo is the
+        // secret (a bare token in the authority), and then the user name cannot be spared.
+        let secretStart = colon.map { $0 + 1 } ?? start
+        return secretStart < i ? secretStart ..< i : nil
+    }
+
+    /// Ends an authority component. `@` is deliberately absent: it is what the scan is looking for.
+    private static func isAuthorityTerminator(_ b: UInt8) -> Bool {
+        switch b {
+        case UInt8(ascii: "/"), UInt8(ascii: "?"), UInt8(ascii: "#"), UInt8(ascii: "\""),
+             UInt8(ascii: "'"), UInt8(ascii: ","), UInt8(ascii: ")"), UInt8(ascii: ">"),
+             UInt8(ascii: " "), 0x09, 0x0A, 0x0D:
+            return true
+        default:
+            return false
+        }
     }
 
     /// `:` counts, so `…&api_key=abc: timeout` gives the token back and keeps the error text. None of
