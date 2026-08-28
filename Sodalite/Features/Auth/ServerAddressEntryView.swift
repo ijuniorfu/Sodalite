@@ -34,10 +34,11 @@ struct ServerAddressEntryView: View {
                     TextField(String(localized: "auth.server.placeholder"), text: Bindable(vm).serverAddress)
                         .textFieldStyle(.automatic)
                         .autocorrectionDisabled()
-                        #if os(iOS)
+                        // Unguarded: both modifiers exist on tvOS (15.0 / 13.0), and without them
+                        // the on-screen keyboard keeps UIKit's .sentences default and opens on
+                        // shift, which is wrong for every address and credential field we have.
                         .textInputAutocapitalization(.never)
                         .keyboardType(.URL)
-                        #endif
 
                     if let error = vm.errorMessage {
                         Text(error)

@@ -170,6 +170,8 @@ private struct GuideSearchCover: View {
 
             TextField("livetv.guide.search.placeholder", text: $text)
                 .font(.title3)
+                .autocorrectionDisabled()
+                .textInputAutocapitalization(.never)
                 .padding(16)
                 .background(RoundedRectangle(cornerRadius: 12).fill(Color.Theme.surfaceElevated))
                 .focused($fieldFocused)

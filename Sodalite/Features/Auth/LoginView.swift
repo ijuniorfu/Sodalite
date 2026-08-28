@@ -218,9 +218,7 @@ struct LoginView: View {
             if preSelectedUser == nil {
                 TextField(String(localized: "auth.login.username"), text: Bindable(vm).username)
                     .autocorrectionDisabled()
-                    #if os(iOS)
                     .textInputAutocapitalization(.never)
-                    #endif
             }
 
             SecureField(String(localized: "auth.login.password"), text: Bindable(vm).password)

@@ -87,10 +87,8 @@ struct SeerrSettingsView: View {
             )
             .textContentType(.URL)
             .autocorrectionDisabled()
-            #if os(iOS)
             .textInputAutocapitalization(.never)
             .keyboardType(.URL)
-            #endif
 
             if let jellyfinHost = appState.activeServer?.url.host {
                 Button {
@@ -191,9 +189,7 @@ struct SeerrSettingsView: View {
                         text: $usernameText
                     )
                     .autocorrectionDisabled()
-                    #if os(iOS)
                     .textInputAutocapitalization(.never)
-                    #endif
                     .disabled(useJellyfinCredentials && hasJellyfinUser)
                     .opacity(useJellyfinCredentials && hasJellyfinUser ? 0.6 : 1.0)
                 }
