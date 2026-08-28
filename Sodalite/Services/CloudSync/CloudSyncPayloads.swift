@@ -173,6 +173,9 @@ struct AppearanceSettingsPayload: Codable, Equatable {
     /// nil from a build without the Top Shelf switch. Defaults to TRUE, not false: absent means
     /// "that build had no opinion", and the row was on for everyone before the switch existed.
     var showTopShelfRow: Bool
+    /// nil from a build without the library name switch (Sodalite#84); false is what those builds
+    /// drew, so a plain default matches what the sender was actually showing.
+    var showLibraryNames: Bool
     /// nil from a device on a build without tab visibility (Sodalite#62); applying nil would reset
     /// the receiver's hidden tabs, so it means "no opinion", not "nothing hidden".
     var hiddenTabs: [String]?
@@ -191,6 +194,7 @@ struct AppearanceSettingsPayload: Codable, Equatable {
         spoilerHideMovies: Bool = false,
         showPosterBadges: Bool = false,
         showTopShelfRow: Bool = true,
+        showLibraryNames: Bool = false,
         hiddenTabs: [String]? = nil
     ) {
         self.schemaVersion = schemaVersion
@@ -206,6 +210,7 @@ struct AppearanceSettingsPayload: Codable, Equatable {
         self.spoilerHideMovies = spoilerHideMovies
         self.showPosterBadges = showPosterBadges
         self.showTopShelfRow = showTopShelfRow
+        self.showLibraryNames = showLibraryNames
         self.hiddenTabs = hiddenTabs
     }
 
@@ -223,6 +228,7 @@ struct AppearanceSettingsPayload: Codable, Equatable {
         case spoilerHideMovies
         case showPosterBadges
         case showTopShelfRow
+        case showLibraryNames
         case hiddenTabs
     }
 
@@ -245,6 +251,7 @@ struct AppearanceSettingsPayload: Codable, Equatable {
         spoilerHideMovies = try values.decodeIfPresent(Bool.self, forKey: .spoilerHideMovies) ?? false
         showPosterBadges = try values.decodeIfPresent(Bool.self, forKey: .showPosterBadges) ?? false
         showTopShelfRow = try values.decodeIfPresent(Bool.self, forKey: .showTopShelfRow) ?? true
+        showLibraryNames = try values.decodeIfPresent(Bool.self, forKey: .showLibraryNames) ?? false
         hiddenTabs = try values.decodeIfPresent([String].self, forKey: .hiddenTabs)
     }
 
@@ -263,6 +270,7 @@ struct AppearanceSettingsPayload: Codable, Equatable {
         try values.encode(spoilerHideMovies, forKey: .spoilerHideMovies)
         try values.encode(showPosterBadges, forKey: .showPosterBadges)
         try values.encode(showTopShelfRow, forKey: .showTopShelfRow)
+        try values.encode(showLibraryNames, forKey: .showLibraryNames)
         try values.encodeIfPresent(hiddenTabs, forKey: .hiddenTabs)
     }
 }

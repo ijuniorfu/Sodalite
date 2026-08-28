@@ -41,12 +41,17 @@ private struct LibraryTile: View {
     // The shared 16:9 tile size (see LayoutMetrics.landscapeSize).
     private var size: CGSize { LayoutMetrics.current(hSizeClass).landscapeSize }
 
+    /// Off by default, because a library image nearly always has the library's own name burnt into
+    /// it and drawing ours on top reads as two captions on one tile. A viewer whose images carry no
+    /// text turns it on and gets the name in the app's own font, like the Genres row below
+    /// (Sodalite#84).
+    private var drawsNameOverArtwork: Bool {
+        dependencies.appearancePreferences.showLibraryNames
+    }
+
     var body: some View {
-        // No label over the artwork: a library image nearly always has the library's own name
-        // burnt into it, and drawing ours on top read as two captions on one tile. The name moves
-        // into the fallback, which is exactly the case where nothing else names the tile.
         ArtworkTile(
-            title: nil,
+            title: drawsNameOverArtwork ? library.name : nil,
             artworkURL: dependencies.jellyfinImageService.libraryArtworkURL(for: library),
             size: size,
             action: action
@@ -62,7 +67,11 @@ private struct LibraryTile: View {
                     .padding(20)
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
 
-                ArtworkTileLabel(title: library.name)
+                // Only when the tile above is unlabelled, else ArtworkTile draws a second copy of
+                // the name right on top of this one.
+                if !drawsNameOverArtwork {
+                    ArtworkTileLabel(title: library.name)
+                }
             }
         }
         .accessibilityLabel(library.name)

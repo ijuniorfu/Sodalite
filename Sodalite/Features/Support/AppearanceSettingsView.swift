@@ -92,6 +92,16 @@ struct AppearanceSettingsView: View {
                                set: { appearance.showPosterBadges = $0 })
             )
 
+            // Sodalite#84. Off by default: most library images have the library's name burnt in,
+            // and ours on top makes two captions. On for viewers whose images carry no text.
+            boolRow(
+                icon: "textformat",
+                title: "settings.appearance.libraryNames",
+                subtitle: "settings.appearance.libraryNames.subtitle",
+                value: Binding(get: { appearance.showLibraryNames },
+                               set: { appearance.showLibraryNames = $0 })
+            )
+
             #if os(tvOS)
             // The row can show another household member's Continue Watching, because the shelf
             // extension is stuck on the Default user (Apple bug, see TopShelfEnabled).

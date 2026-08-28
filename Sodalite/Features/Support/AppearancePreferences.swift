@@ -46,6 +46,7 @@ final class AppearancePreferences {
         static let hiddenTabs = "appearance.hiddenTabs"
         static let showPosterBadges = "appearance.showPosterBadges"
         static let showTopShelfRow = "appearance.showTopShelfRow"
+        static let showLibraryNames = "appearance.showLibraryNames"
     }
 
     /// 1.3: noticeably bigger Apple TV-style card without dropping so many cards per row that rows feel empty.
@@ -100,6 +101,14 @@ final class AppearancePreferences {
     }
     var showPosterBadges: Bool {
         didSet { store.set(showPosterBadges, forKey: Keys.showPosterBadges) }
+    }
+
+    /// Sodalite#84. Draws the library's name over its artwork on the My Media row. Off by default:
+    /// a library image usually has that name burnt into it already, and ours on top reads as two
+    /// captions on one tile. On for viewers whose library images carry no text. The fallback tile
+    /// is named either way, there being nothing else there to name it.
+    var showLibraryNames: Bool {
+        didSet { store.set(showLibraryNames, forKey: Keys.showLibraryNames) }
     }
 
     /// Sodalite#62. Tabs the user switched off; only hideable ones ever land here, so Home and
@@ -166,6 +175,7 @@ final class AppearancePreferences {
         self.spoilerHideMovies = store.object(forKey: Keys.spoilerHideMovies) as? Bool ?? false
         self.showPosterBadges = store.object(forKey: Keys.showPosterBadges) as? Bool ?? false
         self.showTopShelfRow = store.object(forKey: Keys.showTopShelfRow) as? Bool ?? true
+        self.showLibraryNames = store.object(forKey: Keys.showLibraryNames) as? Bool ?? false
         let storedTabs = store.array(forKey: Keys.hiddenTabs) as? [String] ?? []
         self.hiddenTabs = Set(storedTabs.compactMap(AppTab.init(rawValue:)).filter(\.isHideable))
     }

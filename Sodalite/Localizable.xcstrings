@@ -127287,6 +127287,330 @@
         }
       }
     },
+    "settings.appearance.libraryNames" : {
+      "comment" : "Appearance toggle: draw the library name over its artwork on the My Media row",
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Názvy knihoven na obrázku"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Biblioteksnavne på billedet"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bibliotheksnamen auf dem Bild"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ονόματα βιβλιοθηκών στην εικόνα"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Library names on artwork"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nombres de bibliotecas sobre la imagen"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kirjastojen nimet kuvan päällä"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Noms des bibliothèques sur l'image"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nazivi biblioteka na slici"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Könyvtárnevek a képen"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nomi delle librerie sull'immagine"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "画像にライブラリ名を表示"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "아트워크에 라이브러리 이름 표시"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Biblioteknavn på bildet"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bibliotheeknamen op de afbeelding"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nazwy bibliotek na obrazie"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nomes das bibliotecas sobre a imagem"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nomes das bibliotecas sobre a imagem"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Numele bibliotecilor pe imagine"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Названия библиотек на изображении"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Názvy knižníc na obrázku"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Biblioteksnamn på bilden"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Görselde kitaplık adları"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Назви бібліотек на зображенні"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在图片上显示媒体库名称"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在圖片上顯示媒體庫名稱"
+          }
+        }
+      }
+    },
+    "settings.appearance.libraryNames.subtitle" : {
+      "comment" : "Subtitle for the library names toggle",
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vykreslí název každé knihovny přes její obrázek v sekci Moje média. Nech vypnuté, pokud obrázky název už obsahují."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tegner hvert biblioteks navn hen over dets billede i Mine medier. Lad det være slået fra, hvis billederne allerede viser navnet."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Den Namen jeder Bibliothek über ihr Bild in Meine Medien zeichnen. Aus lassen, wenn die Bilder den Namen schon tragen."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Σχεδιάζει το όνομα κάθε βιβλιοθήκης πάνω στην εικόνα της στην ενότητα «Τα πολυμέσα μου». Άφησέ το ανενεργό αν οι εικόνες δείχνουν ήδη το όνομα."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Draw each library's name over its image in My Media. Leave it off if those images already show their name."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dibuja el nombre de cada biblioteca sobre su imagen en Mi contenido. Déjalo desactivado si esas imágenes ya muestran el nombre."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Piirtää kunkin kirjaston nimen sen kuvan päälle Oma media -rivillä. Jätä pois päältä, jos kuvissa on nimi jo valmiina."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Affiche le nom de chaque bibliothèque sur son image dans Ma médiathèque. Laisse désactivé si ces images portent déjà leur nom."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ispisuje naziv svake biblioteke preko njezine slike u odjeljku Moji mediji. Ostavi isključeno ako slike već prikazuju naziv."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A Saját média sorban minden könyvtár nevét a képére rajzolja. Hagyd kikapcsolva, ha a képeken már szerepel a név."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scrive il nome di ogni libreria sulla sua immagine in I miei contenuti. Lascialo disattivato se quelle immagini mostrano già il nome."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "「マイメディア」で各ライブラリの名前を画像の上に表示します。画像に名前が入っている場合はオフのままにしてください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "내 미디어에서 각 라이브러리 이름을 이미지 위에 표시합니다. 이미지에 이미 이름이 있으면 꺼 두세요."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tegner navnet på hvert bibliotek over bildet i Mine medier. La det være av hvis bildene allerede viser navnet."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toont de naam van elke bibliotheek over de afbeelding in Mijn media. Laat uit als die afbeeldingen de naam al tonen."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wyświetla nazwę każdej biblioteki na jej obrazie w sekcji Moje multimedia. Zostaw wyłączone, jeśli obrazy już pokazują nazwę."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desenha o nome de cada biblioteca sobre a imagem dela em Minha mídia. Deixe desativado se essas imagens já mostram o nome."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desenha o nome de cada biblioteca sobre a imagem dela em A minha biblioteca. Deixa desativado se essas imagens já mostram o nome."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scrie numele fiecărei biblioteci peste imaginea ei în Media mea. Lasă dezactivat dacă imaginile arată deja numele."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Показывает название каждой библиотеки поверх её изображения в разделе «Моя медиатека». Оставь выключенным, если название уже есть на изображении."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vykreslí názov každej knižnice cez jej obrázok v sekcii Moje médiá. Nechaj vypnuté, ak obrázky názov už zobrazujú."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ritar varje biblioteks namn över dess bild i Mina media. Låt vara av om bilderna redan visar namnet."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Medyam bölümünde her kitaplığın adını görselinin üzerine yazar. Görsellerde ad zaten varsa kapalı bırak."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Показує назву кожної бібліотеки поверх її зображення в розділі «Моя медіатека». Залиш вимкненим, якщо назва вже є на зображенні."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在“我的媒体”中把每个媒体库的名称显示在图片上。若图片本身已有名称，请保持关闭。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在「我的媒體」中將每個媒體庫的名稱顯示在圖片上。若圖片本身已有名稱，請保持關閉。"
+          }
+        }
+      }
+    },
     "settings.appearance.spoiler" : {
       "comment" : "Appearance toggle: master switch for spoiler protection",
       "extractionState" : "manual",

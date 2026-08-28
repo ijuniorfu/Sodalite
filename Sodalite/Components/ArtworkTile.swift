@@ -10,7 +10,8 @@ import SwiftUI
 /// A nil `title` draws no label over the artwork, and no scrim either: the scrim exists to keep a
 /// label readable, so without one it would only dim the artwork. Callers whose artwork tends to
 /// carry its own name (library images usually do) pass nil and put the label in `fallback`, where
-/// it shows exactly when there is no artwork to name the tile.
+/// it shows exactly when there is no artwork to name the tile. Such a caller must drop its own
+/// copy while passing a title, else both are drawn on the same spot in the no-artwork case.
 struct ArtworkTile<Fallback: View>: View {
     let title: String?
     let artworkURL: URL?

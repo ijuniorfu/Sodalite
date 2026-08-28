@@ -48,3 +48,65 @@ struct LibraryArtworkURLTests {
         ) == nil)
     }
 }
+
+/// Sodalite#84 round two: the name is drawn over library artwork only on request, because most
+/// library images have that name burnt in already. What these pin is the default and the reading of
+/// a payload that predates the switch, both of which have to mean "do not draw it".
+@MainActor
+struct LibraryNameOverlaySettingTests {
+
+    private func scratchDefaults(_ name: String) -> UserDefaults {
+        let defaults = UserDefaults(suiteName: "libraryNames.\(name)")!
+        defaults.removePersistentDomain(forName: "libraryNames.\(name)")
+        return defaults
+    }
+
+    @Test("the name stays off the artwork until someone asks for it")
+    func offByDefault() {
+        #expect(AppearancePreferences(store: scratchDefaults("default")).showLibraryNames == false)
+    }
+
+    @Test("the switch survives a relaunch")
+    func survivesRelaunch() {
+        let defaults = scratchDefaults("persist")
+        AppearancePreferences(store: defaults).showLibraryNames = true
+        #expect(AppearancePreferences(store: defaults).showLibraryNames)
+    }
+
+    @Test("a payload from a build without the switch reads as off, which is what that build drew")
+    func absentFieldReadsAsOff() throws {
+        let json = """
+        {
+          "schemaVersion": 4,
+          "updatedAt": 0,
+          "accentChoice": "orange",
+          "backgroundStyle": "graphiteGlass",
+          "showContentLogos": true,
+          "continueWatchingImage": "still",
+          "largeCards": false,
+          "nowPlayingUsesSeriesPoster": false
+        }
+        """
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .secondsSince1970
+        let payload = try decoder.decode(AppearanceSettingsPayload.self, from: Data(json.utf8))
+        #expect(payload.showLibraryNames == false)
+    }
+
+    @Test("the switch rides the payload both ways")
+    func roundTrips() throws {
+        let payload = AppearanceSettingsPayload(
+            updatedAt: Date(timeIntervalSince1970: 1),
+            accentChoice: "orange",
+            backgroundStyle: "graphiteGlass",
+            showContentLogos: true,
+            continueWatchingImage: "still",
+            largeCards: false,
+            nowPlayingUsesSeriesPoster: false,
+            showLibraryNames: true
+        )
+        let data = try JSONEncoder().encode(payload)
+        let decoded = try JSONDecoder().decode(AppearanceSettingsPayload.self, from: data)
+        #expect(decoded.showLibraryNames)
+    }
+}
