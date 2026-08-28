@@ -7,6 +7,9 @@ struct SearchView: View {
     private var metrics: LayoutMetrics { LayoutMetrics.current(hSizeClass) }
     @State private var viewModel: SearchViewModel?
     @State private var destination: Destination?
+    #if os(tvOS)
+    @FocusState private var clearFocused: Bool
+    #endif
 
     private var seerrBrowsingEnabled: Bool {
         SeerrSurfacePolicy.browsingEnabled(
@@ -140,6 +143,17 @@ struct SearchView: View {
                     ProgressView()
                         .scaleEffect(0.8)
                 }
+
+                #if os(tvOS)
+                // iOS gets UIKit's own clear button inside the field (SearchTextField); tvOS has no
+                // pointer to hit it with, so the clear lives beside the field as a focusable target.
+                // It stays mounted while focused even after the query empties: dropping the focused
+                // view mid-tap hands the focus back to the engine's geometric pick, which lands
+                // anywhere but here.
+                if !vm.query.isEmpty || clearFocused {
+                    clearButton(vm: vm)
+                }
+                #endif
             }
             .padding(.horizontal, 26)
             .padding(.vertical, 8)
@@ -152,6 +166,32 @@ struct SearchView: View {
             .padding(.bottom, 18)
         }
     }
+
+    #if os(tvOS)
+    /// Focusable clear, mirroring ValuePickerRow's focus chrome (tinted fill + ring, never a white
+    /// system pill). Activated through stableTap so focus drift in the last frames of a click can't
+    /// wipe the query from a neighbour's press.
+    private func clearButton(vm: SearchViewModel) -> some View {
+        Image(systemName: "xmark.circle.fill")
+            .font(.title3)
+            .foregroundStyle(clearFocused ? AnyShapeStyle(.tint) : AnyShapeStyle(Color.white.opacity(0.5)))
+            .padding(12)
+            .background(
+                Circle().fill(clearFocused ? AnyShapeStyle(.tint.opacity(0.18)) : AnyShapeStyle(Color.clear))
+            )
+            .overlay(
+                Circle().strokeBorder(.tint, lineWidth: 3).opacity(clearFocused ? 1 : 0)
+            )
+            .scaleEffect(clearFocused ? 1.05 : 1.0)
+            .focusable()
+            .focused($clearFocused)
+            .stableTap(isFocused: clearFocused) {
+                // scheduleSearch runs off the query's own onChange, which clears the results.
+                vm.query = ""
+            }
+            .accessibilityLabel(Text("search.clear"))
+    }
+    #endif
 
     @ViewBuilder
     private func resultsView(vm: SearchViewModel) -> some View {
