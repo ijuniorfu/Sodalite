@@ -71,7 +71,7 @@ extension HomeViewModel {
 
             case .latestShows:
                 // Per-library fan-out, not one typed aggregate: IncludeItemTypes=Series,Episode filters before grouping, so episode bursts from a few shows crowd out everything else (device reports 2026-06-11). ParentId-only queries group reliably (Sodalite#12). Round-robin interleave approximates global recency (a grouped entry carries the SERIES' DateCreated, not the new episode's, so it can't sort).
-                let showLibraries = videoLibraries.filter { ($0.collectionType ?? "") == "tvshows" }
+                let showLibraries = myMediaLibraries.filter { ($0.collectionType ?? "") == "tvshows" }
                 if showLibraries.isEmpty {
                     // getLibraries failed: fall back to the typed aggregate, imperfect but better than empty.
                     let latest = try await libraryService.getLatestMedia(

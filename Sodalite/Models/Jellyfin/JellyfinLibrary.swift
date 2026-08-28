@@ -26,6 +26,7 @@ enum LibraryType: String, Sendable {
     case books
     case homevideos
     case boxsets
+    case playlists
     case unknown
 }
 

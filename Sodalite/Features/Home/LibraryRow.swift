@@ -82,6 +82,8 @@ private struct LibraryTile: View {
         case .movies: "film"
         case .tvshows: "tv"
         case .homevideos: "video"
+        case .boxsets: "square.stack"
+        case .playlists: "list.bullet"
         default: "rectangle.stack"
         }
     }

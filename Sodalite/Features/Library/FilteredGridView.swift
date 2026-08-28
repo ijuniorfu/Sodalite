@@ -70,6 +70,11 @@ struct FilteredGridView: View {
     /// tiles pass nil: their list is merged client-side from two phases, so a server sort would only
     /// order half of it.
     let sortScope: LibrarySortScope?
+    /// Playlists grid only: Jellyfin answers IncludeItemTypes=Playlist with audio and video playlists
+    /// alike, and `MediaType` on a Playlist is a computed property, so no server-side filter holds
+    /// across versions (Sodalite#73). A music playlist has no detail screen to open, so it is dropped
+    /// here instead. nil-tolerant: an unknown media type stays visible.
+    let hidesAudioPlaylists: Bool
 
     init(
         title: String,
@@ -77,7 +82,8 @@ struct FilteredGridView: View {
         smartProviderID: Int? = nil,
         smartProviderRegion: String? = nil,
         cacheKey: String? = nil,
-        sortScope: LibrarySortScope? = nil
+        sortScope: LibrarySortScope? = nil,
+        hidesAudioPlaylists: Bool = false
     ) {
         self.title = title
         self.query = query
@@ -85,6 +91,7 @@ struct FilteredGridView: View {
         self.smartProviderRegion = smartProviderRegion
         self.cacheKey = cacheKey
         self.sortScope = sortScope
+        self.hidesAudioPlaylists = hidesAudioPlaylists
         let storedSort = sortScope.map(LibrarySortStore.sort) ?? .default
         _sort = State(initialValue: storedSort)
         // Hydrate from FilterCache in init so the first render paints the cached grid; doing it in .task means a frame with isLoading=true first (the brief loading flash on every tap).
@@ -313,6 +320,12 @@ struct FilteredGridView: View {
 
     private var reloadKey: ReloadKey { ReloadKey(filter: watchFilter, sort: sort) }
 
+    /// Narrowing the server cannot express. `totalRecordCount` stays the raw server count, so a page
+    /// can come back empty after filtering; `reachedEnd` (short page) closes the pagination anyway.
+    private func browsable(_ items: [JellyfinItem]) -> [JellyfinItem] {
+        hidesAudioPlaylists ? items.filter { !$0.isAudioPlaylist } : items
+    }
+
     private func loadItems() async {
         guard let userID = appState.activeUser?.id else { return }
         loadGeneration += 1
@@ -366,7 +379,7 @@ struct FilteredGridView: View {
             return
         }
         loadFailed = false
-        let phase1 = phase1Response.items
+        let phase1 = browsable(phase1Response.items)
         studioItems = phase1
         totalRecordCount = phase1Response.totalRecordCount
 
@@ -450,7 +463,7 @@ struct FilteredGridView: View {
         totalRecordCount = response.totalRecordCount
         nextStartIndex += response.items.count
         let known = Set(items.map(\.id))
-        items += response.items.filter { !known.contains($0.id) }
+        items += browsable(response.items).filter { !known.contains($0.id) }
         didPaginate = true
         // A short/empty page means the server has no more rows; stop even if dedup left items.count
         // below totalRecordCount, so canLoadMore can't loop on the same overlapping window.

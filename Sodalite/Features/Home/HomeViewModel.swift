@@ -40,8 +40,9 @@ final class HomeViewModel {
     let discoverService: SeerrDiscoverServiceProtocol?
     let userID: String
     let serverID: String
-    /// Video libraries (movies/tvshows/homevideos/mixed) for the My Media row; populated by loadContent().
-    var videoLibraries: [JellyfinLibrary] = []
+    /// Libraries the My Media row offers: the video ones plus Collections and Playlists, which
+    /// Jellyfin serves as views of their own. Populated by loadContent().
+    var myMediaLibraries: [JellyfinLibrary] = []
 
     init(
         libraryService: JellyfinLibraryServiceProtocol,
@@ -108,8 +109,7 @@ final class HomeViewModel {
 
         // Pull the server's libraries for per-library Latest + My Media. Reconciliation is additive (keeps user toggles/order); persist only on success so a transient failure can't wipe the dynamic rows.
         if let libraries = try? await libraryService.getLibraries(userID: userID) {
-            let videoTypes: Set<String> = ["movies", "tvshows", "homevideos", "mixed"]
-            videoLibraries = libraries.filter { videoTypes.contains($0.collectionType ?? "") }
+            myMediaLibraries = MyMediaLibraries.browsable(libraries)
             let reconciled = HomeRowConfig.reconciled(stored: rowConfigs, libraries: libraries)
             if reconciled != rowConfigs {
                 rowConfigs = reconciled
@@ -136,7 +136,7 @@ final class HomeViewModel {
         // Precompute isTagRow + carry the full config on MainActor: HomeRowType is MainActor-isolated under default-isolation, so the task-group closures can't read .isTagRow themselves; the full config keeps per-library libraryID/name and unique identity.
         let plan: [(config: HomeRowConfig, isTag: Bool)] = enabledRows.compactMap { config in
             if config.type.isDiscoverProviderRow { return nil }
-            // My Media renders from videoLibraries directly; nothing to fetch.
+            // My Media renders from myMediaLibraries directly; nothing to fetch.
             if config.type == .myMedia { return nil }
             // Merged mode: Next Up rides inside Continue Watching (see loadRow), so its standalone row drops out while its config stays enabled; flipping the toggle restores it.
             if config.type == .nextUp,
@@ -348,7 +348,7 @@ final class HomeViewModel {
                 return .discoverProviders
             }
             if config.type == .myMedia {
-                return videoLibraries.isEmpty ? nil : .libraries(videoLibraries)
+                return myMediaLibraries.isEmpty ? nil : .libraries(myMediaLibraries)
             }
             if config.type.isTagRow {
                 if let tagRow = tagRows.first(where: { $0.type == config.type }) {

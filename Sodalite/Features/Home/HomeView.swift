@@ -70,7 +70,8 @@ struct HomeView: View {
                     smartProviderID: filter.smartProviderID,
                     smartProviderRegion: filter.smartProviderRegion,
                     cacheKey: filter.cacheKey,
-                    sortScope: filter.sortScope
+                    sortScope: filter.sortScope,
+                    hidesAudioPlaylists: filter.hidesAudioPlaylists
                 )
             }
         }
@@ -346,16 +347,13 @@ struct HomeView: View {
 
     private func makeLibraryFilter(for library: JellyfinLibrary) -> FilterDestination {
         // My Media tile browses one library in the shared grid; parentID scopes it, types match the library.
-        let types: [ItemType]
-        switch library.libraryType {
-        case .movies: types = [.movie]
-        case .tvshows: types = [.series]
-        default: types = [.movie, .series]
-        }
+        let types = MyMediaLibraries.itemTypes(for: library.libraryType)
+        // Collapsing box sets inside the box-set view is meaningless, and a virtual view takes no parentID.
+        let isVirtualView = MyMediaLibraries.isVirtualView(library.libraryType)
         // The only grids that defer to the server's "Group movies into collections" (Sodalite#44). Note the server itself skips collapsing once the grid's watch-status filter adds IsPlayed, so Watched/Unwatched stay flat.
         let grouping = HomeRowConfig.collectionGrouping(serverID: appState.activeServer?.id ?? appState.activeUser?.id ?? "")
         var query = ItemQuery(
-            parentID: library.id,
+            parentID: isVirtualView ? nil : library.id,
             includeItemTypes: types,
             sortBy: "SortName",
             sortOrder: "Ascending",
@@ -365,12 +363,15 @@ struct HomeView: View {
             // for every tile and never read (Sodalite#68).
             fields: JellyfinEndpoint.homeRowFields
         )
-        query.collapseBoxSetItems = grouping.queryValue
+        if !isVirtualView {
+            query.collapseBoxSetItems = grouping.queryValue
+        }
         return FilterDestination(
             title: library.name,
             query: query,
             cacheKey: FilterCacheKey.Home.library(id: library.id, grouping: grouping),
-            sortScope: sortServerID.map { LibrarySortScope.library(id: library.id, serverID: $0) }
+            sortScope: sortServerID.map { LibrarySortScope.library(id: library.id, serverID: $0) },
+            hidesAudioPlaylists: MyMediaLibraries.hidesAudioPlaylists(library.libraryType)
         )
     }
 
@@ -393,6 +394,8 @@ struct FilterDestination: Identifiable, Hashable {
     var cacheKey: String?
     /// Where the grid's sort choice is stored (Sodalite#78); nil leaves the tile on Title A-Z without a control.
     var sortScope: LibrarySortScope?
+    /// Playlists view only: drop the audio playlists the type filter cannot separate (see FilteredGridView).
+    var hidesAudioPlaylists = false
 }
 
 extension ItemQuery: Hashable {
