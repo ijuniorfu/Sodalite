@@ -1735,6 +1735,12 @@ final class PlayerViewModel {
                     icon = "exclamationmark.triangle"
                     title = String(localized: "player.error.generic.title", defaultValue: "Couldn't start playback")
                 }
+            case .localNetworkDenied:
+                // Named rather than folded into the connection face: the whole point of Sodalite#92
+                // is that this failure is not a connection problem, and the overlay under this title
+                // carries the sentence that says where the switch is.
+                icon = "network.slash"
+                title = String(localized: "localNetwork.denied.title", defaultValue: "Local Network access is off")
             case .invalidURL, .invalidResponse, .decodingError:
                 icon = "exclamationmark.triangle"
                 title = String(localized: "player.error.generic.title", defaultValue: "Couldn't start playback")

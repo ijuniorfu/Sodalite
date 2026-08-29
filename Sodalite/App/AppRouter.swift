@@ -110,13 +110,29 @@ struct AppRouter: View {
                     }
                     .transition(.opacity)
             }
+
+            // Topmost, splash included: with Local Network access off, every screen underneath is
+            // showing a wrong reason for the same one cause (Sodalite#92). Raised only once nothing
+            // in the app is getting through, so a session another route is serving stays uncovered.
+            #if os(iOS)
+            if appState.isLocalNetworkDenied {
+                LocalNetworkDeniedView {
+                    await recheckLocalNetworkAccess()
+                }
+                .transition(.opacity)
+            }
+            #endif
         }
         .animation(.easeOut(duration: 0.4), value: appState.isLoading)
         .animation(.easeInOut(duration: 0.2), value: appState.isResolvingDeepLink)
+        .animation(.easeInOut(duration: 0.2), value: appState.isLocalNetworkDenied)
         // Keep the Catalog pending-requests badge fresh: recompute when the app comes forward, when the
         // Seerr connection flips, and on the admin-queue change signal. iOS/iPadOS badge; inert on tvOS.
         .task(id: scenePhaseIsActive) {
             if scenePhaseIsActive {
+                #if os(iOS)
+                await recheckLocalNetworkAccess()
+                #endif
                 await refreshPending()
                 await dependencies.cloudSync?.fetchNow()
                 #if os(iOS)
@@ -366,6 +382,22 @@ struct AppRouter: View {
             appState.pendingDeepLinkItemID = item.id
         }
     }
+
+    /// Re-asks the system about the address the standing Local Network denial was measured on, and
+    /// takes the overlay down if it is gone. Runs when the app comes forward, because returning from
+    /// Settings is exactly how the answer changes, and from the overlay's own retry button.
+    ///
+    /// Clearing the flag is not enough on its own: the screens behind it gave up while the
+    /// permission was off and would still be showing that failure, so this also asks them to reload.
+    #if os(iOS)
+    private func recheckLocalNetworkAccess() async {
+        guard appState.isLocalNetworkDenied else { return }
+        let denied = await LocalNetworkAccess.stillDenied()
+        guard !denied else { return }
+        appState.isLocalNetworkDenied = false
+        appState.requestContentReload &+= 1
+    }
+    #endif
 
     /// Waits for auth, fetches the item, triggers the fullScreenCover. Clears the pending id last so a repeat tap on the same TopShelf cell re-fires.
     private func resolvePendingDeepLink() async {

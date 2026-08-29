@@ -9,6 +9,10 @@ enum APIError: LocalizedError, Sendable {
     /// 401; `message` carries the server-provided reason when present so the user sees a real explanation.
     case unauthorized(message: String?)
     case serverUnreachable
+    /// The device is withholding Local Network access, so a LAN address is unreachable from this
+    /// app while the same address works everywhere else on the device (Sodalite#92). Only
+    /// `LocalNetworkAccess` produces this case, and only after asking the system.
+    case localNetworkDenied
     case timeout
 
     var errorDescription: String? {
@@ -34,6 +38,11 @@ enum APIError: LocalizedError, Sendable {
             message ?? String(localized: "error.unauthorized", defaultValue: "Authentication required")
         case .serverUnreachable:
             String(localized: "error.serverUnreachable", defaultValue: "Server unreachable")
+        case .localNetworkDenied:
+            String(
+                localized: "error.localNetworkDenied",
+                defaultValue: "Local Network access is turned off for Sodalite"
+            )
         case .timeout:
             String(localized: "error.timeout", defaultValue: "Request timed out")
         }
