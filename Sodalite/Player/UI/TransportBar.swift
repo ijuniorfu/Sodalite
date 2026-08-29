@@ -686,9 +686,10 @@ struct PlayerTitleOverlay: View {
 
 // MARK: - Paused Glyph
 
-/// Sodalite#93: the only thing on screen that says "paused" rather than "stalled". Sits at the leading
-/// edge of the time row on all three transports (VOD, live, iOS touch), so the three read alike; the
-/// caller sets the font because those rows do not share a type scale.
+/// Sodalite#93: on tvOS the only thing on screen that says "paused" rather than "stalled". Sits at the
+/// leading edge of the time row in both tvOS transports, VOD and live, so the two read alike; the caller
+/// sets the font because those rows do not share a type scale. The iOS touch controls carry their own
+/// play/pause button in that same row and need no second glyph beside it.
 struct PausedGlyph: View {
     var body: some View {
         Image(systemName: "pause.fill")

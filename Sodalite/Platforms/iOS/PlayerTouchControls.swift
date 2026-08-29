@@ -202,11 +202,7 @@ struct PlayerTouchControls: View {
 
             scrubber
 
-            HStack(spacing: 6) {
-                if !viewModel.isPlaying {
-                    PausedGlyph()
-                        .font(.caption)
-                }
+            HStack {
                 Text(viewModel.currentTime)
                     .font(.caption).monospacedDigit().foregroundStyle(.white.opacity(0.75))
                 Spacer()
@@ -222,7 +218,6 @@ struct PlayerTouchControls: View {
                 Text(viewModel.remainingTime)
                     .font(.caption).monospacedDigit().foregroundStyle(.white.opacity(0.75))
             }
-            .animation(.smooth(duration: 0.25), value: viewModel.isPlaying)
         }
     }
 
