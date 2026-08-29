@@ -1,6 +1,13 @@
 import SwiftUI
 import UIKit
 
+// iOS and iPadOS only, measured rather than assumed: tvOS 26.6 has no Local Network privacy at all.
+// Its Settings > General > Privacy & Security lists Location, Tracking, Photos, Bluetooth,
+// Microphone, Camera, Apple Home and Media, and no Local Network row, and TVSettings.app carries no
+// such string either. So on tvOS this screen could never be right, and the probe behind it could
+// only ever be a false alarm that costs two seconds before the real error appears.
+#if os(iOS)
+
 /// What the app says when this device is withholding Local Network access (Sodalite#92).
 ///
 /// It covers everything, because with the permission off everything behind it is dead: every
@@ -46,7 +53,7 @@ struct LocalNetworkDeniedView: View {
                         .foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)
 
-                    Text(settingsPath)
+                    Text("localNetwork.denied.path")
                         .font(.callout)
                         .fontWeight(.semibold)
                         .multilineTextAlignment(.center)
@@ -97,13 +104,6 @@ struct LocalNetworkDeniedView: View {
         .themedRootBackground()
     }
 
-    /// Where the toggle lives, in the device's own words. tvOS files privacy under General, which is
-    /// the wording Apple itself uses on that platform.
-    private var settingsPath: LocalizedStringKey {
-        #if os(tvOS)
-        "localNetwork.denied.path.tv"
-        #else
-        "localNetwork.denied.path"
-        #endif
-    }
 }
+
+#endif

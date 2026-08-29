@@ -16,6 +16,14 @@ import Network
 /// LAN endpoint carries a path whose `unsatisfiedReason` is the system's own word for this state.
 /// A classifier that stopped at the pre-filter would call an offline phone "denied", which is a
 /// worse sentence than the one it replaces, so the pre-filter alone never sets the verdict.
+///
+/// Only `HTTPClient` on iOS and iPadOS ever asks. tvOS 26.6 has no Local Network privacy: its
+/// Settings > General > Privacy & Security lists Location, Tracking, Photos, Bluetooth, Microphone,
+/// Camera, Apple Home and Media, with no Local Network row, and TVSettings.app carries no such
+/// string either (measured 2026-08-29). There, the pre-filter could only ever be a false alarm, and
+/// every false alarm would cost a two second probe in front of the real error. The type stays
+/// compiled on both platforms so the tests that pin the pre-filter run in the tvOS test target,
+/// which is the only target this project has.
 nonisolated enum LocalNetworkAccess {
 
     /// Raised the first time a probe returns a denial, so the network layer can surface an app-level

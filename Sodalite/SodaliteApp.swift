@@ -72,8 +72,10 @@ struct SodaliteApp: App {
         // Let the network layer raise the Local Network state without knowing what an AppState is
         // (Sodalite#92). Any request against a LAN server can be the one that finds out, so the
         // answer travels this way rather than up one call stack that happened to notice.
+        #if os(iOS)
         let state = appState
         LocalNetworkAccess.onDenial = { state.isLocalNetworkDenied = true }
+        #endif
 
         // Re-derive the cached TestFlight/sandbox flag from StoreKit 2; takes effect next launch (see LogTap.isDiagnosticBuild).
         Task {

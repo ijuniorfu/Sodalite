@@ -137,9 +137,11 @@ final class HTTPClient: HTTPClientProtocol, @unchecked Sendable {
 
         switch httpResponse.statusCode {
         case 200...299:
+            #if os(iOS)
             // Evidence that this app is reaching something, which is what keeps a denial measured on
             // one address from covering a session another address is serving fine (Sodalite#92).
             LocalNetworkAccess.noteReachableServer()
+            #endif
             return (data, httpResponse)
         default:
             if let url = httpResponse.url {
@@ -168,10 +170,12 @@ final class HTTPClient: HTTPClientProtocol, @unchecked Sendable {
     /// only a LAN address that failed with that exact sentence gets as far as asking the system.
     private static func transportFailure(_ error: Error, url: URL?) async -> APIError {
         guard let urlError = error as? URLError else { return .networkError(error) }
+        #if os(iOS)
         if let url, LocalNetworkAccess.couldBeDenial(urlError, url: url),
            await LocalNetworkAccess.isDenied(for: url) {
             return .localNetworkDenied
         }
+        #endif
         switch urlError.code {
         case .timedOut:
             return .timeout
