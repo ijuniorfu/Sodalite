@@ -1012,14 +1012,7 @@ final class PlayerHostController: AVPlayerViewController {
             if next >= 0 && next < order.count { viewModel.controlsFocus = order[next] }
             return
         }
-        let order = PlayerViewModel.transportFocusOrder(
-            hasSkippableSegment: viewModel.activeSkipSegment != nil,
-            episodeCount: viewModel.seasonEpisodes.count,
-            chapterCount: viewModel.chapters.count,
-            hasAudioTracks: !viewModel.player.audioTracks.isEmpty,
-            hasSubtitles: !viewModel.subtitleStreams.isEmpty || viewModel.supportsSubtitleSearch,
-            isPiPAvailable: viewModel.isPiPAvailable,
-            showsStats: viewModel.preferences.showStatsForNerds)
+        let order = viewModel.transportFocusOrder
         guard let current = order.firstIndex(of: viewModel.controlsFocus) else { return }
         let next = current + direction
         if next >= 0 && next < order.count {
@@ -1050,17 +1043,12 @@ final class PlayerHostController: AVPlayerViewController {
                     viewModel.scheduleControlsHide()
                     break
                 }
-                let hasAudio = !viewModel.player.audioTracks.isEmpty
-                let hasSubs = !viewModel.subtitleStreams.isEmpty || viewModel.supportsSubtitleSearch
-                let hasEpisodes = viewModel.seasonEpisodes.count > 1
-                // Mirror TransportBar gate: chapter button suppressed for series episodes.
-                let hasChapters = viewModel.chapters.count > 1 && !hasEpisodes
-                if viewModel.activeSkipSegment != nil { viewModel.controlsFocus = .skipSegmentButton }
-                else if hasEpisodes { viewModel.controlsFocus = .episodeButton }
-                else if hasChapters { viewModel.controlsFocus = .chapterButton }
-                else if hasAudio { viewModel.controlsFocus = .audioButton }
-                else if hasSubs { viewModel.controlsFocus = .subtitleButton }
-                else { viewModel.controlsFocus = .speedButton }
+                // Read the rendered order rather than restate its gates: this used to be a hand-written
+                // chain that had to be kept in step with two other copies, and drifting from them is
+                // how Up lands on a button that is not on screen. "From Start" is skipped because it
+                // discards the resume position, an unwanted first stop for a single press of Up.
+                viewModel.controlsFocus = viewModel.transportFocusOrder
+                    .first(where: { $0 != .restartButton }) ?? .speedButton
                 viewModel.scheduleControlsHide()
             case .restartButton, .skipSegmentButton, .chapterButton, .episodeButton, .audioButton, .subtitleButton, .speedButton, .pictureButton, .pipButton, .infoButton, .returnToLiveButton:
                 viewModel.scheduleControlsHide()

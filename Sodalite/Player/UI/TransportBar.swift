@@ -106,14 +106,15 @@ struct TransportBar: View {
                     )
                 }
 
-                // Chapter button hidden on series episodes (chapter data there is usually
-                // auto-generated noise); `seasonEpisodes.count > 1` is the "is an episode" proxy.
-                if chapters.count > 1, seasonEpisodes.count <= 1 {
+                // Gated on chapter data alone. It used to be suppressed on any series episode, which
+                // took chapter navigation away from every remux that carries real ones. A split-bar
+                // glyph and a pinned label keep it apart from the episode list next to it.
+                if chapters.count > 1 {
                     trackButton(
                         label: chapterButtonLabel,
-                        icon: "list.dash",
+                        icon: "rectangle.split.3x1",
                         isFocused: controlsFocus == .chapterButton,
-                        persistsLabel: false,
+                        persistsLabel: true,
                         dropdown: chapterDropdownItems,
                         isOpen: isChapterDropdownOpen
                     )
@@ -348,7 +349,10 @@ struct TransportBar: View {
         }
     }
 
-    /// Active chapter: last chapter starting at or before current progress; nil only when empty.
+    /// Active chapter for the CHIP: last chapter starting at or before the scrub position. Deliberately
+    /// not `viewModel.activeChapterIndex`, which rides `sourceTime` (the frame on screen) so an opening
+    /// dropdown lands on what you are watching. A pinned chip instead has to name where the scrub is
+    /// heading, or it sits still while the bar moves under it.
     private var activeChapterIndex: Int? {
         guard !chapters.isEmpty else { return nil }
         let nowSeconds = Double(progress) * max(durationSeconds, 0)
@@ -363,13 +367,13 @@ struct TransportBar: View {
         return idx
     }
 
-    /// Current chapter name, falling back to "N / Total" when unnamed.
+    /// "3 / 12", the position and nothing else. The chip pins its label now, and a chapter name is
+    /// unbounded ("The Trial of the Chicago Seven") where `.fixedSize()` would let it shove the whole
+    /// right-aligned row off the screen. Names live in the dropdown rows, which have room for them.
+    /// Same trade the episode chip makes with "S1E5" over the episode title.
     private var chapterButtonLabel: String {
         guard let i = activeChapterIndex else {
             return String(localized: "player.chapters", defaultValue: "Chapters")
-        }
-        if let name = chapters[i].name, !name.isEmpty {
-            return name
         }
         return "\(i + 1) / \(chapters.count)"
     }

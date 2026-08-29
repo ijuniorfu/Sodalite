@@ -238,8 +238,10 @@ struct PlayerTouchControls: View {
             if viewModel.seasonEpisodes.count > 1 {
                 iconButton("list.bullet") { activePicker = .episodes }
             }
-            if viewModel.chapters.count > 1, viewModel.seasonEpisodes.count <= 1 {
-                iconButton("list.dash") { activePicker = .chapters }
+            // Gated on chapter data alone (it used to vanish on any series episode), and on a split-bar
+            // glyph so it never reads as the episode list it can now stand next to.
+            if viewModel.chapters.count > 1 {
+                iconButton("rectangle.split.3x1") { activePicker = .chapters }
             }
             if !viewModel.displayAudioTracks.isEmpty {
                 iconButton("speaker.wave.2") { activePicker = .audio }
@@ -475,8 +477,11 @@ struct PlayerTouchControls: View {
                 }
             }
         case .chapters:
+            let active = viewModel.activeChapterIndex
             return viewModel.chapters.enumerated().map { idx, chapter in
-                PickerRow(label: chapter.name ?? "Chapter \(idx + 1)", isActive: false, chapterIndex: idx) {
+                let name = chapter.name.flatMap { $0.isEmpty ? nil : $0 }
+                    ?? String(localized: "player.chapter.fallback", defaultValue: "Chapter \(idx + 1)")
+                return PickerRow(label: name, isActive: idx == active, chapterIndex: idx) {
                     viewModel.selectChapter(at: idx)
                 }
             }
