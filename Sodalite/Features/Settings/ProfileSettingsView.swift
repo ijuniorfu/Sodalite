@@ -59,6 +59,12 @@ struct ProfileSettingsView: View {
             Text(message)
         }
         .onAppear(perform: refresh)
+        // Hold the cards against the server's own user table, so a profile deleted on the server
+        // stops being offered here (Sodalite#90).
+        .task {
+            guard await dependencies.reconcileRememberedProfiles() > 0 else { return }
+            refresh()
+        }
         .onReceive(NotificationCenter.default.publisher(for: .loginDidComplete)) { _ in
             // LoginView flipped activeUser; pop the add-profile stack back so the active card updates.
             navigateToAddProfile = false
@@ -104,15 +110,21 @@ struct ProfileSettingsView: View {
                                 user: user,
                                 server: server,
                                 isCurrent: isCurrent,
+                                // The signed-in profile is removable here too, it just ends the
+                                // session with it. Before Sodalite#90 the only way out of a profile
+                                // you were signed in as was a full logout, which takes every server.
+                                removal: isCurrent ? .signOut : .forget,
                                 onSelect: {
                                     guard !isCurrent else { return }
 
                                     switchTo(user, server: server)
                                 },
                                 onLongPress: {
-                                    // Removing the active profile would leave us authed with a forgotten token; Logout covers that path.
-                                    guard !isCurrent else { return }
-                                    forget(user)
+                                    if isCurrent {
+                                        dependencies.signOutOfActiveProfile()
+                                    } else {
+                                        forget(user)
+                                    }
                                 }
                             )
                         }
@@ -323,11 +335,16 @@ struct ProfileSettingsView: View {
 
     private func refreshUserDetails(userID: String, serverID: String) async {
         // Fetch + keychain persistence live in the container; this view only applies the result to AppState.
-        if let fresh = await dependencies.refreshActiveUserDetails(
+        switch await dependencies.refreshActiveUserDetails(
             expectedUserID: userID,
             serverID: serverID
         ) {
-            appState.activeUser = fresh
+        case .kept(let fresh):
+            if let fresh { appState.activeUser = fresh }
+        case .rejected:
+            // The switched-to profile's token is dead and the container dropped it; AppRouter's
+            // probe lands on this server's picker, which carries the notice (Sodalite#90).
+            dependencies.requestSessionReroute()
         }
     }
 
@@ -347,10 +364,8 @@ struct ProfileSettingsView: View {
     private func forget(_ user: RememberedUser) {
         guard let server = appState.activeServer else { return }
         do {
+            // forgetUser clears a default pin naming this profile itself, so no path can forget to.
             try dependencies.forgetUser(id: user.id, serverID: server.id)
-            if authPreferences.defaultUserID(serverID: server.id) == user.id {
-                authPreferences.setDefaultUserID(nil, serverID: server.id)
-            }
             refresh()
         } catch {
             actionError = ErrorText.user(for: error)

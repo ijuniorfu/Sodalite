@@ -8,6 +8,10 @@ enum JellyfinEndpoint: APIEndpoint {
     // Auth
     case authenticateByName(username: String, password: String)
     case currentUser
+    /// Every user the server knows, unfiltered. Needs a token but no admin rights, and unlike
+    /// /Users/Public it hides nobody (that one drops hidden, disabled, device- and network-restricted
+    /// users), which is what makes it the one answer to "does this profile still exist".
+    case allUsers
 
     // Quick Connect
     case quickConnectInitiate
@@ -92,6 +96,8 @@ enum JellyfinEndpoint: APIEndpoint {
             "/Users/AuthenticateByName"
         case .currentUser:
             "/Users/Me"
+        case .allUsers:
+            "/Users"
         case .quickConnectInitiate:
             "/QuickConnect/Initiate"
         case .quickConnectCheck:

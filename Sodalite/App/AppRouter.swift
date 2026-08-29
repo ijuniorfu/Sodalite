@@ -231,6 +231,10 @@ struct AppRouter: View {
                     } else {
                         appState.disconnectSeerr()
                     }
+                    // Last, because it delays nothing the user is waiting for: the profiles of the
+                    // server just switched to are a cache nobody has re-read since it was last
+                    // active (Sodalite#90).
+                    await dependencies.reconcileRememberedProfiles()
                 } else {
                     // Token expired, no remembered user, or the active server was removed with no
                     // successor: route to the picker for the new active server, or fall through to
@@ -496,15 +500,29 @@ struct AppRouter: View {
         }
     }
 
-    /// Refreshes the active user's name + Policy block via /Users/Me: the policy drives the canDeleteContent permission gate (keychain-bootstrapped users have policy: nil, else the gated UI stays hidden until logout/login), the name heals a stale keychain bootstrap (renames server-side, or another server's name inherited from an install predating the per-server name resolution). `expectedUserID` discards the result if a racing profile switch changed the active user.
+    /// The first thing a restored session asks the server: who this token resolves to (the Policy
+    /// block drives the canDeleteContent gate, and keychain-bootstrapped users carry policy: nil),
+    /// and whether it still resolves at all. `expectedUserID` discards the result if a racing profile
+    /// switch changed the active user.
+    ///
+    /// A refused token used to be swallowed here, so a session whose user had been deleted on the
+    /// server entered the app and failed one request at a time. Now the container drops that profile
+    /// and this lands on the server's picker instead, in one update so the discovery screen never
+    /// flashes between the two (Sodalite#90).
     private func refreshActiveUserIdentity(expectedUserID: String) async {
-        guard let me = try? await dependencies.jellyfinAuthService.getCurrentUser(),
-              me.id == expectedUserID,
-              appState.activeUser?.id == expectedUserID
-        else { return }
-        appState.updateActiveUserIdentity(name: me.name, policy: me.policy)
-        if let serverID = appState.activeServer?.id {
-            dependencies.persistActiveUserName(me.name, userID: me.id, serverID: serverID)
+        guard let serverID = appState.activeServer?.id else { return }
+        switch await dependencies.refreshActiveUserDetails(
+            expectedUserID: expectedUserID,
+            serverID: serverID
+        ) {
+        case .kept(let fresh):
+            if let fresh { appState.activeUser = fresh }
+            // The session stands, so its token can speak for the profiles beside it: hold them
+            // against the server's own user table.
+            await dependencies.reconcileRememberedProfiles()
+        case .rejected:
+            launchPickerServer = dependencies.activeServer
+            appState.isAuthenticated = false
         }
     }
 }

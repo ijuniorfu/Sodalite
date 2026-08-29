@@ -73,6 +73,10 @@ final class DependencyContainer {
     /// fully built (the service needs a back-reference to the container).
     var cloudSync: CloudSyncServiceProtocol?
 
+    /// When each server's remembered profiles were last held against its user table (Sodalite#90),
+    /// so the launch pass and the picker that comes up right behind it do not each ask.
+    var lastProfileReconcile: [String: Date] = [:]
+
     /// Dual-URL routing state. Routes are per active session; nil when the
     /// active server has no resolved route yet.
     let serverRouteStore = ServerRouteStore()
@@ -201,51 +205,22 @@ final class DependencyContainer {
         }
     }
 
-    /// Probes /Users/Me against the active server. Returns the user on success; on 401 drops the remembered entry + token slot and returns nil (caller routes to picker); throws on transport errors (caller keeps previous server active).
+    /// Probes the active server's session for AppRouter's post-switch routing. Returns the user when
+    /// the token still resolves (or a stored password minted a fresh one); nil when the server refused
+    /// it and the profile was dropped, or when there is no session to probe (caller routes to the
+    /// picker); throws on transport errors (caller keeps the previous server active).
+    ///
+    /// Deliberately does no routing of its own: this runs inside AppRouter's `.task(id: serverDidSwitch)`,
+    /// and a bump from in here would re-key that task and cancel the probe mid-flight.
     @MainActor
     func probeActiveUser() async throws -> JellyfinUser? {
-        guard let server = activeServer,
-              let userID = try? keychainService.loadString(for: KeychainKeys.userID(serverID: server.id))
-        else { return nil }
-
-        // Tokenless short-circuit: switchServer can move the pointer then throw on an empty token slot (removeServer fall-through). Probing would issue an unauthenticated request carrying stale client state. No token means picker.
-        guard (try? keychainService.loadString(for: KeychainKeys.accessToken(serverID: server.id))) != nil
-        else { return nil }
-
-        do {
-            let user = try await jellyfinAuthService.getCurrentUser()
+        switch await checkActiveSession() {
+        case .valid(let user):
             return user
-        } catch APIError.unauthorized {
-            // Cloud-synced (or locally stored) password: mint a fresh device-own
-            // token instead of dropping the profile. The key is scoped to this
-            // profile, so a password here is by definition theirs.
-            if let password = try? keychainService.loadString(
-                   for: KeychainKeys.jellyfinPassword(serverID: server.id, userID: userID)
-               ),
-               let name = listRememberedUsers(serverID: server.id).first(where: { $0.id == userID })?.name,
-               let auth = try? await jellyfinAuthService.login(username: name, password: password),
-               auth.user.id == userID {
-                try? saveSession(server: server, user: auth.user, token: auth.accessToken, password: password)
-                return auth.user
-            }
-
-            try? keychainService.delete(for: KeychainKeys.accessToken(serverID: server.id))
-            try? keychainService.delete(for: KeychainKeys.userID(serverID: server.id))
-
-            // Drop the remembered user too; their token is dead.
-            var users = listRememberedUsers(serverID: server.id)
-            users.removeAll { $0.id == userID }
-            if let data = try? JSONEncoder().encode(users) {
-                try? keychainService.save(data, for: KeychainKeys.rememberedUsers(serverID: server.id))
-            }
-            jellyfinClient.accessToken = nil
-            SharedSessionMirror.clear()
-            forgetRememberedSeerr(
-                forJellyfinUserID: userID,
-                jellyfinServerID: server.id
-            )
-            cloudSyncMarkServer(server.id)
+        case .rejected, .noSession:
             return nil
+        case .unreachable(let error):
+            throw error
         }
     }
 
@@ -749,9 +724,10 @@ final class DependencyContainer {
         if let serverID { cloudSyncMarkServer(serverID) }
     }
 
-    /// Drop one profile from the remembered list. Called from the
-    /// profile-picker's long-press menu. Leaves the active session
-    /// alone, the caller decides whether to switch afterwards.
+    /// Drop one profile from a server: the remembered entry, its credentials, a default pin that
+    /// named it, and a tombstone so the removal travels as a removal. Called from the pickers'
+    /// long-press menu and from the reconcile against the server's user table. Leaves the active
+    /// session alone (`dropActiveProfile` is the path that ends one).
     func forgetUser(id: String, serverID: String) throws {
         let remaining = listRememberedUsers(serverID: serverID)
             .filter { $0.id != id }
@@ -773,6 +749,11 @@ final class DependencyContainer {
         // Drop the profile-scoped Seerr session and Jellyfin password too so a forgotten
         // user doesn't leave dangling credentials in the keychain.
         purgeUserCredentials(id: id, serverID: serverID)
+        // A pin to a profile that is gone would send the next launch after a ghost. It lives here,
+        // not at the call sites, so every path that removes a profile clears it (Sodalite#90).
+        if authPreferences.defaultUserID(serverID: serverID) == id {
+            authPreferences.setDefaultUserID(nil, serverID: serverID)
+        }
         cloudSyncMarkServer(serverID)
     }
 
@@ -842,19 +823,32 @@ final class DependencyContainer {
         )
     }
 
-    /// Refreshes active-user details after a profile switch. /Users/Me supplies the Policy block (canDeleteContent gate, else stuck on the keychain stub with policy: nil) and the authoritative name; /Users/Public is the imageTag-only fallback backfilling a nil/stale RememberedUser tag. `expectedUserID` discards the result if a racing switch changed the active profile. Persists name + tag to keychain + remembered entry, returns the fresh user; nil on guard trip / no change.
+    /// Refreshes active-user details after a profile switch. /Users/Me supplies the Policy block (canDeleteContent gate, else stuck on the keychain stub with policy: nil) and the authoritative name; /Users/Public is the imageTag-only fallback backfilling a nil/stale RememberedUser tag. `expectedUserID` discards the result if a racing switch changed the active profile. Persists name + tag to keychain + remembered entry.
+    ///
+    /// It is also the first request a switched-to profile makes, which makes it the place a refused
+    /// token surfaces: `.rejected` means the profile is gone from this device and the caller routes
+    /// back to the picker, instead of leaving the user inside a session the server answers nothing for
+    /// (Sodalite#90).
     func refreshActiveUserDetails(
         expectedUserID userID: String,
         serverID: String
-    ) async -> JellyfinUser? {
-        let me: JellyfinUser? = try? await jellyfinAuthService.getCurrentUser()
+    ) async -> ProfileRefresh {
+        let me: JellyfinUser?
+        switch await checkActiveSession() {
+        case .valid(let user):
+            me = user
+        case .rejected(let profileName):
+            return .rejected(profileName: profileName)
+        case .noSession, .unreachable:
+            me = nil
+        }
         let directTag: String? = (me?.id == userID) ? me?.primaryImageTag : nil
         // /Users/Public fallback when directTag is nil (some Jellyfin versions only populate the tag on the public listing, not the authenticated detail endpoint).
         let fallbackTag: String? = directTag == nil ? await fetchPublicImageTag(for: userID) : nil
         let tag = directTag ?? fallbackTag
 
         guard appState?.activeUser?.id == userID,
-              let current = appState?.activeUser else { return nil }
+              let current = appState?.activeUser else { return .kept(nil) }
 
         // Apply the fetched policy/name when /Users/Me succeeded; else keep the existing values (no-op, not a regression). The server owns the name, so a stale in-memory one never gets written back into the remembered entry.
         let freshPolicy = (me?.id == userID) ? me?.policy : current.policy
@@ -862,7 +856,7 @@ final class DependencyContainer {
         let tagChanged = current.primaryImageTag != tag
         let policyChanged = current.policy != freshPolicy
         let nameChanged = current.name != freshName
-        guard tagChanged || policyChanged || nameChanged else { return nil }
+        guard tagChanged || policyChanged || nameChanged else { return .kept(nil) }
 
         let fresh = JellyfinUser(
             id: current.id,
@@ -893,7 +887,7 @@ final class DependencyContainer {
                 )
             )
         }
-        return fresh
+        return .kept(fresh)
     }
 
     /// Image-tag lookup against /Users/Public for the fallback path

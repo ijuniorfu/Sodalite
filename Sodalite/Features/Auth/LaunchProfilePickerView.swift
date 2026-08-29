@@ -25,6 +25,9 @@ struct LaunchProfilePickerView: View {
     @State private var rememberedUsers: [RememberedUser] = []
     @State private var navigateToAddProfile = false
     @State private var switchError: String?
+    /// Set when this picker is the screen a refused profile landed on; its own alert, because the
+    /// switch-failed title would be describing something the user never did (Sodalite#90).
+    @State private var rejectionNotice: String?
     @State private var showServerSwitchSheet = false
     @State private var showAddServerFlow = false
 
@@ -65,17 +68,35 @@ struct LaunchProfilePickerView: View {
             } message: { message in
                 Text(message)
             }
+            .alert(
+                String(localized: "profile.rejected.title",
+                       defaultValue: "Profile removed"),
+                isPresented: Binding(
+                    get: { rejectionNotice != nil },
+                    set: { if !$0 { rejectionNotice = nil } }
+                ),
+                presenting: rejectionNotice
+            ) { _ in
+                Button(String(localized: "common.ok", defaultValue: "OK")) {
+                    rejectionNotice = nil
+                }
+            } message: { message in
+                Text(message)
+            }
             .onAppear {
-                rememberedUsers = ProfilePickerOrdering.orderedForPicker(
-                    dependencies.listRememberedUsers(serverID: server.id),
-                    activeID: activeSessionUserID
-                )
+                reloadProfiles()
+                showRejectionNoticeIfAny()
+            }
+            // Hold the cards against the server's own user table: a profile deleted there used to
+            // keep its card in here forever, and picking it entered a session the server answers
+            // nothing for (Sodalite#90).
+            .task {
+                guard dependencies.activeServer?.id == server.id else { return }
+                guard await dependencies.reconcileRememberedProfiles() > 0 else { return }
+                reloadProfiles()
             }
             .onReceive(NotificationCenter.default.publisher(for: .cloudSyncDidApplyChanges)) { _ in
-                rememberedUsers = ProfilePickerOrdering.orderedForPicker(
-                    dependencies.listRememberedUsers(serverID: server.id),
-                    activeID: activeSessionUserID
-                )
+                reloadProfiles()
             }
             // Add-profile / add-server from inside the reprompt cover authenticates underneath
             // (setAuthenticated without a serverDidSwitch bump); drop the cover instead of
@@ -120,6 +141,17 @@ struct LaunchProfilePickerView: View {
             ))
             .font(.body)
             .foregroundStyle(.secondary)
+
+            // The removal menu is a long press with nothing on screen pointing at it, which on tvOS
+            // is a gesture nobody finds by accident (Sodalite#90).
+            if !rememberedUsers.isEmpty {
+                Text(String(
+                    localized: "profile.launch.removeHint",
+                    defaultValue: "Long-press a profile to remove it."
+                ))
+                .font(.caption)
+                .foregroundStyle(.tertiary)
+            }
         }
     }
 
@@ -179,13 +211,17 @@ struct LaunchProfilePickerView: View {
                         user: user,
                         server: server,
                         isCurrent: isCurrent,
+                        // The signed-in profile takes the session with it, so its menu says so
+                        // (Sodalite#90). A plain forget would leave the active token behind and
+                        // SessionRestorer's migration block would resurrect the entry next launch.
+                        removal: removal(for: user, isCurrent: isCurrent),
                         onSelect: { select(user) },
-                        // The active-session profile can't be forgotten here (mirrors ProfileSettingsView):
-                        // forgetUser leaves the active token, and SessionRestorer's migration block would
-                        // resurrect the entry on the next launch.
                         onLongPress: {
-                            guard !isCurrent else { return }
-                            forget(user)
+                            if isCurrent {
+                                signOutOfCurrentProfile()
+                            } else {
+                                forget(user)
+                            }
                         }
                     )
                     // Pre-focus default profile, else the active-session profile, else the first card (issues #25, #41).
@@ -296,11 +332,18 @@ struct LaunchProfilePickerView: View {
 
     private func refreshUserDetails(userID: String, serverID: String) async {
         // Fetch + persistence live in the container; this view only applies the refreshed user to AppState.
-        if let fresh = await dependencies.refreshActiveUserDetails(
+        switch await dependencies.refreshActiveUserDetails(
             expectedUserID: userID,
             serverID: serverID
         ) {
-            appState.activeUser = fresh
+        case .kept(let fresh):
+            if let fresh { appState.activeUser = fresh }
+        case .rejected:
+            // The picked profile's token is dead and no password could replace it, so the container
+            // dropped it. Hand routing back to AppRouter, which lands on this server's picker again,
+            // where the notice is shown (Sodalite#90).
+            dependencies.requestSessionReroute()
+            onFinished?()
         }
     }
 
@@ -325,22 +368,52 @@ struct LaunchProfilePickerView: View {
         try? dependencies.keychainService.loadString(for: KeychainKeys.userID(serverID: server.id))
     }
 
+    private func reloadProfiles() {
+        rememberedUsers = ProfilePickerOrdering.orderedForPicker(
+            dependencies.listRememberedUsers(serverID: server.id),
+            activeID: activeSessionUserID
+        )
+    }
+
+    /// A profile the server refused is dropped wherever the refusal was noticed, which is rarely
+    /// this screen. The notice travels on AppState and is spent here, on the picker the session
+    /// lands on (Sodalite#90).
+    private func showRejectionNoticeIfAny() {
+        guard let name = appState.rejectedProfileName else { return }
+        appState.rejectedProfileName = nil
+        rejectionNotice = String(
+            format: String(
+                localized: "profile.rejected.detail %@",
+                defaultValue: "The server refused the saved sign-in for %@, so the profile was removed from this device. Sign in again if the account still exists."
+            ),
+            name
+        )
+    }
+
+    /// What long-pressing a card offers. The signed-in profile can go too, it just takes the session
+    /// with it; a card that is another server's current pointer cannot (this device would keep that
+    /// server's token with nothing remembering it, and the next launch there would resurrect the
+    /// entry through SessionRestorer's migration).
+    private func removal(for user: RememberedUser, isCurrent: Bool) -> RememberedProfileCard.Removal {
+        guard isCurrent else { return .forget }
+        return dependencies.activeServer?.id == server.id ? .signOut : .unavailable
+    }
+
+    private func signOutOfCurrentProfile() {
+        guard dependencies.activeServer?.id == server.id else { return }
+        dependencies.signOutOfActiveProfile()
+        reloadProfiles()
+        onFinished?()
+    }
+
     private func forget(_ user: RememberedUser) {
-        // Never forget the active-session profile here: forgetUser leaves the active token in the
-        // keychain and SessionRestorer's migration block would resurrect the entry on next launch.
+        // The signed-in profile goes through signOutOfActiveProfile instead: a plain forget would
+        // leave the active token in the keychain and SessionRestorer's migration block would
+        // resurrect the entry on the next launch.
         guard user.id != activeSessionUserID else { return }
         do {
             try dependencies.forgetUser(id: user.id, serverID: server.id)
-            rememberedUsers = ProfilePickerOrdering.orderedForPicker(
-                dependencies.listRememberedUsers(serverID: server.id),
-                activeID: activeSessionUserID
-            )
-
-            // If the user forgot the defaultUserID, clear the default
-            // so launch behavior doesn't try to restore a ghost.
-            if dependencies.authPreferences.defaultUserID(serverID: server.id) == user.id {
-                dependencies.authPreferences.setDefaultUserID(nil, serverID: server.id)
-            }
+            reloadProfiles()
         } catch {
             switchError = ErrorText.user(for: error)
         }
@@ -351,10 +424,17 @@ struct LaunchProfilePickerView: View {
 
 /// Circular avatar + name card with long-press-to-forget. Matches UserPickerCard for consistency between the two pickers.
 struct RememberedProfileCard: View {
+    /// What the long-press menu offers for this card. The signed-in profile can be removed too, it
+    /// just ends the session with it; `unavailable` draws no menu at all, which is what a card whose
+    /// removal would leave a half-torn-down session behind gets (Sodalite#90). Before that it drew a
+    /// "Remove profile" item whose action the callers dropped on the floor.
+    enum Removal { case forget, signOut, unavailable }
+
     let user: RememberedUser
     let server: JellyfinServer
     /// Marks the active session: green checkmark badge + idle ring so the current login is spottable in an otherwise-identical grid.
     var isCurrent: Bool = false
+    var removal: Removal = .forget
     let onSelect: () -> Void
     let onLongPress: () -> Void
 
@@ -365,6 +445,34 @@ struct RememberedProfileCard: View {
     private var diameter: CGFloat { hSizeClass == .compact ? 110 : 160 }
 
     var body: some View {
+        // The menu is attached or it is not; no branch inside it, so a card never swaps identity
+        // (and its focus with it) while the picker is on screen.
+        if removal == .unavailable {
+            card
+        } else {
+            card
+                // Long-press opens a context menu; tapping the item is the explicit confirm against accidental deletion.
+                .contextMenu {
+                    Button(role: .destructive, action: onLongPress) {
+                        if removal == .signOut {
+                            Label(
+                                String(localized: "profile.signOut.confirm.short",
+                                       defaultValue: "Sign out and remove"),
+                                systemImage: "rectangle.portrait.and.arrow.right"
+                            )
+                        } else {
+                            Label(
+                                String(localized: "profile.forget.confirm.short",
+                                       defaultValue: "Remove profile"),
+                                systemImage: "trash"
+                            )
+                        }
+                    }
+                }
+        }
+    }
+
+    private var card: some View {
         Button(action: onSelect) {
             VStack(spacing: 16) {
                 avatar
@@ -377,16 +485,6 @@ struct RememberedProfileCard: View {
         // BareButtonStyle suppresses tvOS' default thick white focus halo; the avatar overlay draws our tint (or green-when-current) ring instead.
         .buttonStyle(BareButtonStyle())
         .focused($isFocused)
-        // Long-press opens a context menu; tapping "Remove" is the explicit confirm against accidental deletion.
-        .contextMenu {
-            Button(role: .destructive, action: onLongPress) {
-                Label(
-                    String(localized: "profile.forget.confirm.short",
-                           defaultValue: "Remove profile"),
-                    systemImage: "trash"
-                )
-            }
-        }
     }
 
     private var avatar: some View {

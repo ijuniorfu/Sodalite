@@ -7,6 +7,7 @@ protocol JellyfinAuthServiceProtocol: Sendable {
     func authenticateWithQuickConnect(secret: String) async throws -> JellyfinAuthResponse
     func getPublicUsers() async throws -> [JellyfinUser]
     func getCurrentUser() async throws -> JellyfinUser
+    func getAllUsers() async throws -> [JellyfinUser]
 }
 
 final class JellyfinAuthService: JellyfinAuthServiceProtocol {
@@ -58,6 +59,17 @@ final class JellyfinAuthService: JellyfinAuthServiceProtocol {
         try await client.request(
             endpoint: JellyfinEndpoint.currentUser,
             responseType: JellyfinUser.self
+        )
+    }
+
+    /// The server's full user table, the ground truth remembered profiles are reconciled against.
+    /// Not /Users/Public: that one is a login-screen list, filtered by IsHidden, IsDisabled, device
+    /// access and (from outside the local network) EnableRemoteAccess, so a profile missing from it
+    /// says nothing about whether the account exists.
+    func getAllUsers() async throws -> [JellyfinUser] {
+        try await client.request(
+            endpoint: JellyfinEndpoint.allUsers,
+            responseType: [JellyfinUser].self
         )
     }
 }

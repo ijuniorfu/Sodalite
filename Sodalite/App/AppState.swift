@@ -32,6 +32,11 @@ final class AppState {
     /// picker and clears it; the current session stands until a profile there is picked.
     var pendingProfilePickerServerID: String?
 
+    /// Name of the profile whose saved sign-in the server refused, set by the paths that drop it
+    /// (Sodalite#90). The picker the session lands on says so once and clears it, so a card that
+    /// disappears is explained on the screen it disappeared from.
+    var rejectedProfileName: String?
+
     /// Bumped by the deep-link path to dismiss a presented player before the new sheet, else a TopShelf tap brings the app forward with the stale player on top. Detail views driving a PlayerLauncher clear showPlayer on change.
     var requestPlayerDismissal: Int = 0
 
