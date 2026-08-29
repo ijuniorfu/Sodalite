@@ -77,6 +77,12 @@ nonisolated enum LocalNetworkAccess {
     /// Asks the system whether this address is unreachable because the app may not use the local
     /// network. Answers false for anything it cannot establish, so the generic error stands rather
     /// than a wrong accusation replacing it.
+    ///
+    /// Not measured: a server addressed by a `.local` name. Resolving one needs mDNS, which the same
+    /// permission governs, so the connection may fail on the name before it ever has a path to read
+    /// a reason off. That reads as "nothing established" here and leaves the old generic error in
+    /// place, which is the status quo for those setups rather than a regression, but it is a gap
+    /// somebody with such a server could close by measuring what the reading actually is.
     static func isDenied(for url: URL) async -> Bool {
         guard isGoverned(url), let host = url.host(), let port = port(for: url) else { return false }
         let denied = await LocalNetworkProber.shared.isDenied(host: host, port: port)
