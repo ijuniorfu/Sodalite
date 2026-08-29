@@ -12,8 +12,8 @@ private struct LogLine: Identifiable {
 /// Deliberately not gated by `LogTap.isDiagnosticBuild`: it is read-only, and until it existed the
 /// only way to see a host line like `[CloudSync] …` was a console capture from a Mac, which put every
 /// log-based question out of reach for the people actually hitting the bug. Sodalite#45 was diagnosed
-/// twice without it. On an App Store build the buffer holds host `note(_:)` lines only, because
-/// `SodaliteApp` wires `EngineLog.handler` on diagnostic builds alone.
+/// twice without it. Engine lines are in here on every build including App Store, because `SodaliteApp`
+/// wires `EngineLog.handler` unconditionally.
 struct DiagnosticLogView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.horizontalSizeClass) private var hSizeClass
@@ -22,6 +22,20 @@ struct DiagnosticLogView: View {
     /// tvOS groups the lines into focusable blocks (see LogBlock). 12 keeps a block roughly one
     /// screenful, so one swipe of the remote is one page.
     private static let blockSize = 12
+
+    /// Wider than the 900 the rest of Settings reads at, because this is a table and not prose. At tvOS
+    /// caption size the monospaced advance is 15.45pt, so 900 held 56 characters per row: a 24-character
+    /// UTC stamp plus its two spaces left 30 for the message, and every line wrapped. 1600 holds 101, so
+    /// the stamp costs a quarter of a row instead of half of it. It is also the ceiling: 1920 less the
+    /// 80pt padding on each side and the overscan safe area leaves about 1640, and `maxWidth` shrinks to
+    /// what is there rather than overflowing if a future tvOS insets more.
+    private static let contentWidth: CGFloat = {
+        #if os(tvOS)
+        1600
+        #else
+        900
+        #endif
+    }()
 
     private var lines: [LogLine] {
         tap.lines.enumerated().map { LogLine(id: $0.offset, text: $0.element) }
@@ -49,7 +63,7 @@ struct DiagnosticLogView: View {
                         content
                     }
                 }
-                .frame(maxWidth: 900, alignment: .leading)
+                .frame(maxWidth: Self.contentWidth, alignment: .leading)
                 .frame(maxWidth: .infinity)
                 .padding(.horizontal, hSizeClass == .compact ? 16 : 80)
                 .padding(.bottom, 60)

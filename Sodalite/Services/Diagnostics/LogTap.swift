@@ -2,7 +2,7 @@ import Foundation
 import Combine
 import StoreKit
 
-/// Ring buffer of diagnostic log lines for Settings > Diagnostic Log so a tester with no Mac can read and screenshot them. Lines arrive via `AetherEngine.EngineLog.handler` (engine) and direct `note(_:)` (host). Does NOT redirect stdout via dup2: unreliable on tvOS Release (stdout null-redirected with no debugger). Type is MainActor-isolated for the `lines` publisher; `note(_:)`/`clear()` are explicitly `nonisolated` because the engine calls them off its own threads (the compiler now enforces what was previously safe only by accident).
+/// Ring buffer of diagnostic log lines for Settings > Diagnostic Log so a tester with no Mac can read and screenshot them. Every line is stored with a fixed-width UTC stamp already in front of it, so the screenshot, the iOS Copy output and the console mirror cannot disagree about when something happened. Lines arrive via `AetherEngine.EngineLog.handler` (engine) and direct `note(_:)` (host). Does NOT redirect stdout via dup2: unreliable on tvOS Release (stdout null-redirected with no debugger). Type is MainActor-isolated for the `lines` publisher; `note(_:)`/`clear()` are explicitly `nonisolated` because the engine calls them off its own threads (the compiler now enforces what was previously safe only by accident).
 final class LogTap: ObservableObject {
 
     nonisolated static let shared = LogTap()
@@ -37,9 +37,18 @@ final class LogTap: ObservableObject {
     /// Append one line to the buffer. Safe to call from any thread.
     ///
     /// The single door every line comes through, host and engine alike, which is why credential
-    /// stripping sits here and not at the call sites (see LogRedaction).
+    /// stripping and the UTC stamp both sit here and not at the call sites (see LogRedaction,
+    /// LogTimestamp). The stamp is taken first, before any work on the line, so it dates the moment the
+    /// line was emitted rather than the moment it reached the buffer: `note` hops to the main actor to
+    /// append, and two threads that hop in the same instant can land in either order. Reading a stamp
+    /// out of order is then a true statement about a race, where an append-time stamp would have hidden
+    /// it. An engine line is dated just as honestly, because `EngineLog` calls its handler synchronously
+    /// on the thread that emitted it.
     nonisolated func note(_ line: String) {
-        let line = LogRedaction.redact(line)
+        let stamp = LogTimestamp.stamp()
+        // Stamp AFTER redaction, so the redactor never scans the stamp and the offsets it reports (were
+        // it ever to report any) stay offsets into the line its author wrote.
+        let line = "\(stamp)  \(LogRedaction.redact(line))"
         // Mirror to console on diagnostic builds so host notes appear in an Xcode/Console capture alongside engine prints.
         if Self.isDiagnosticBuild {
             print(line)
