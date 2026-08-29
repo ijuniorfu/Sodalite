@@ -9,6 +9,13 @@ import Foundation
 /// digits for an Arabic user, and one that forgets an explicit Gregorian calendar prints year 1447 for a
 /// Hijri one. This field exists to be diffed against a Jellyfin log or handed to an AI, so it has to come
 /// out byte-identical on every device.
+///
+/// AetherPlayer carries an identical copy for its own session log, because both apps read the same
+/// `EngineLog` lines and a log handed over from one gets diffed against a log from the other. Duplicated
+/// rather than moved into AetherEngine on purpose: Console stamps the engine's OSLog already and
+/// `aetherctl live` prints a relative offset, which is the better reading for a repro run, so an
+/// engine-side stamp would be a policy two of the four sinks opt straight back out of. Keep the copies
+/// identical; only the doc comment differs.
 nonisolated enum LogTimestamp {
 
     /// Character count of every stamp, no exceptions. Fixed width is the point: the message column only
