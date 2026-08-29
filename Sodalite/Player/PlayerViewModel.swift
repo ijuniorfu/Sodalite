@@ -1244,6 +1244,13 @@ final class PlayerViewModel {
                     if self.showControls { self.scheduleControlsHide() }
                 case .paused:
                     self.isPlaying = false
+                    // Sodalite#93: this sink is the ONLY place that learns about every pause, including
+                    // the ones raised from outside the app. See `TransportAutoHide` for why the two
+                    // exceptions are the ones they are.
+                    if TransportAutoHide.raisesTransport(errorVisible: self.errorMessage != nil,
+                                                         inputLocked: self.isInputLocked) {
+                        self.showControls = true
+                    }
                 case .ended:
                     // End-of-media on any backend: the engine surfaces .ended for native / software / audio
                     // alike (AetherEngine#63), so this fires uniformly without watching the AVPlayer directly.
@@ -1671,7 +1678,7 @@ final class PlayerViewModel {
             guard !Task.isCancelled else { return }
             isScrubbing = false
             scrubPreview.clear()
-            hideControls()
+            hideControlsIfPlaying()
         }
     }
 
@@ -2955,8 +2962,15 @@ final class PlayerViewModel {
         controlsTimer = Task {
             try? await Task.sleep(for: .seconds(5))
             guard !Task.isCancelled else { return }
-            hideControls()
+            hideControlsIfPlaying()
         }
+    }
+
+    /// The auto-hide's liveness check, asked at FIRE time (see `TransportAutoHide`). Explicit
+    /// dismissals (Menu, PiP handoff, child lock) keep calling `hideControls()` directly.
+    private func hideControlsIfPlaying() {
+        guard TransportAutoHide.hides(isPlaying: isPlaying) else { return }
+        hideControls()
     }
 
     /// Pause the controls auto-hide while the user is actively in a touch menu; re-arm via scheduleControlsHide().
