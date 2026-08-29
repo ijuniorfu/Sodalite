@@ -81328,6 +81328,966 @@
         }
       }
     },
+    "error.localNetworkDenied" : {
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Přístup k místní síti je pro Sodalite vypnutý"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Adgang til lokalt netværk er slået fra for Sodalite"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Zugriff auf das lokale Netzwerk ist für Sodalite deaktiviert"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Η πρόσβαση στο τοπικό δίκτυο είναι απενεργοποιημένη για το Sodalite"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Local Network access is turned off for Sodalite"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El acceso a la red local está desactivado para Sodalite"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paikallisverkon käyttö on poistettu käytöstä Sodalitelta"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L'accès au réseau local est désactivé pour Sodalite"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pristup lokalnoj mreži isključen je za Sodalite"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A helyi hálózat elérése ki van kapcsolva a Sodalite számára"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L'accesso alla rete locale è disattivato per Sodalite"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sodaliteのローカルネットワークアクセスがオフになっています"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sodalite의 로컬 네트워크 접근이 꺼져 있습니다"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tilgang til lokalt nettverk er slått av for Sodalite"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toegang tot lokaal netwerk staat uit voor Sodalite"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dostęp do sieci lokalnej jest wyłączony dla Sodalite"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O acesso à rede local está desativado para o Sodalite"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O acesso à rede local está desativado para o Sodalite"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Accesul la rețeaua locală este dezactivat pentru Sodalite"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Доступ к локальной сети отключён для Sodalite"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Prístup k lokálnej sieti je pre Sodalite vypnutý"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Åtkomst till lokalt nätverk är avstängd för Sodalite"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sodalite için Yerel Ağ erişimi kapalı"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Доступ до локальної мережі вимкнено для Sodalite"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sodalite 的本地网络访问权限已关闭"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sodalite 的區域網路取用權限已關閉"
+          }
+        }
+      }
+    },
+    "localNetwork.denied.title" : {
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Přístup k místní síti je vypnutý"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Adgang til lokalt netværk er slået fra"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zugriff auf das lokale Netzwerk ist deaktiviert"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Η πρόσβαση στο τοπικό δίκτυο είναι απενεργοποιημένη"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Local Network access is off"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El acceso a la red local está desactivado"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paikallisverkon käyttö on pois päältä"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L'accès au réseau local est désactivé"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pristup lokalnoj mreži je isključen"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A helyi hálózat elérése ki van kapcsolva"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L'accesso alla rete locale è disattivato"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ローカルネットワークアクセスがオフです"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "로컬 네트워크 접근이 꺼져 있음"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tilgang til lokalt nettverk er slått av"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toegang tot lokaal netwerk staat uit"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dostęp do sieci lokalnej jest wyłączony"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O acesso à rede local está desativado"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O acesso à rede local está desativado"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Accesul la rețeaua locală este dezactivat"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Доступ к локальной сети отключён"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Prístup k lokálnej sieti je vypnutý"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Åtkomst till lokalt nätverk är avstängd"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yerel Ağ erişimi kapalı"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Доступ до локальної мережі вимкнено"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "本地网络访问权限已关闭"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "區域網路取用權限已關閉"
+          }
+        }
+      }
+    },
+    "localNetwork.denied.body" : {
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sodalite nemůže kontaktovat servery ve vaší síti, protože toto zařízení blokuje přístup k místní síti. Ostatních aplikací ani Safari se to netýká, a proto to vypadá jako přerušené připojení."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sodalite kan ikke nå servere på dit netværk, fordi denne enhed blokerer adgang til det lokale netværk. Andre apps og Safari er upåvirkede, og derfor ligner det en afbrudt forbindelse."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sodalite erreicht keine Server in deinem Netzwerk, weil dieses Gerät den Zugriff auf das lokale Netzwerk blockiert. Andere Apps und Safari sind nicht betroffen, deshalb sieht es wie eine gestörte Verbindung aus."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Το Sodalite δεν μπορεί να προσεγγίσει διακομιστές στο δίκτυό σας, επειδή αυτή η συσκευή αποκλείει την πρόσβαση στο τοπικό δίκτυο. Οι άλλες εφαρμογές και το Safari δεν επηρεάζονται, γι' αυτό μοιάζει με προβληματική σύνδεση."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sodalite cannot reach servers on your network because this device is blocking local network access. Other apps and Safari are unaffected, which is why this looks like a broken connection."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sodalite no puede contactar con los servidores de tu red porque este dispositivo bloquea el acceso a la red local. Otras apps y Safari no se ven afectadas, por eso parece un problema de conexión."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sodalite ei tavoita verkkosi palvelimia, koska tämä laite estää paikallisverkon käytön. Muut apit ja Safari toimivat normaalisti, minkä vuoksi tämä näyttää katkenneelta yhteydeltä."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sodalite ne peut pas joindre les serveurs de votre réseau, car cet appareil bloque l'accès au réseau local. Les autres apps et Safari ne sont pas concernés, ce qui donne l'impression d'une connexion défaillante."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sodalite ne može doći do poslužitelja na vašoj mreži jer ovaj uređaj blokira pristup lokalnoj mreži. Ostale aplikacije i Safari rade normalno, zbog čega ovo izgleda kao prekinuta veza."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A Sodalite nem éri el a hálózatán lévő kiszolgálókat, mert ez az eszköz blokkolja a helyi hálózat elérését. A többi appot és a Safarit ez nem érinti, ezért tűnik megszakadt kapcsolatnak."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sodalite non riesce a raggiungere i server della tua rete perché questo dispositivo blocca l'accesso alla rete locale. Le altre app e Safari non sono interessate, per questo sembra un problema di connessione."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "このデバイスがローカルネットワークへのアクセスをブロックしているため、Sodaliteはネットワーク上のサーバーに接続できません。他のAppやSafariは影響を受けないので、接続の問題のように見えます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이 기기가 로컬 네트워크 접근을 차단하고 있어 Sodalite가 네트워크의 서버에 연결할 수 없습니다. 다른 앱과 Safari는 영향을 받지 않기 때문에 연결 문제처럼 보입니다."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sodalite når ikke tjenerne på nettverket ditt fordi denne enheten blokkerer tilgang til det lokale nettverket. Andre apper og Safari er upåvirket, og derfor ser dette ut som en brutt forbindelse."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sodalite kan de servers op je netwerk niet bereiken omdat dit apparaat toegang tot het lokale netwerk blokkeert. Andere apps en Safari werken gewoon, waardoor dit op een verbroken verbinding lijkt."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sodalite nie może połączyć się z serwerami w Twojej sieci, ponieważ to urządzenie blokuje dostęp do sieci lokalnej. Inne aplikacje i Safari działają normalnie, dlatego wygląda to na przerwane połączenie."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O Sodalite não consegue alcançar os servidores da sua rede porque este dispositivo bloqueia o acesso à rede local. Outros apps e o Safari não são afetados, por isso parece um problema de conexão."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O Sodalite não consegue alcançar os servidores da sua rede porque este dispositivo bloqueia o acesso à rede local. As outras aplicações e o Safari não são afetados, por isso parece um problema de ligação."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sodalite nu poate contacta serverele din rețeaua dvs. deoarece acest dispozitiv blochează accesul la rețeaua locală. Celelalte aplicații și Safari nu sunt afectate, de aceea pare o conexiune întreruptă."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sodalite не может связаться с серверами в вашей сети, потому что это устройство блокирует доступ к локальной сети. Другие приложения и Safari работают как обычно, поэтому это выглядит как обрыв связи."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sodalite sa nedokáže spojiť so servermi vo vašej sieti, pretože toto zariadenie blokuje prístup k lokálnej sieti. Ostatné aplikácie ani Safari to neovplyvňuje, preto to vyzerá ako prerušené pripojenie."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sodalite når inte servrarna på ditt nätverk eftersom den här enheten blockerar åtkomst till det lokala nätverket. Andra appar och Safari påverkas inte, vilket gör att det ser ut som ett anslutningsfel."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bu aygıt yerel ağ erişimini engellediği için Sodalite ağınızdaki sunuculara ulaşamıyor. Diğer uygulamalar ve Safari etkilenmez, bu yüzden bağlantı sorunu gibi görünür."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sodalite не може зв'язатися із серверами у вашій мережі, бо цей пристрій блокує доступ до локальної мережі. Інші програми та Safari працюють як завжди, тому це має вигляд обриву зв'язку."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此设备阻止了本地网络访问，因此 Sodalite 无法连接到您网络中的服务器。其他 App 和 Safari 浏览器不受影响，所以这看起来像是网络故障。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此裝置封鎖了區域網路取用權限，因此 Sodalite 無法連接你網路上的伺服器。其他 App 和 Safari 不受影響，所以這看起來像是連線問題。"
+          }
+        }
+      }
+    },
+    "localNetwork.denied.path" : {
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zapněte Místní síť pro Sodalite v Nastavení > Soukromí a zabezpečení > Místní síť."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Slå Lokalt netværk til for Sodalite i Indstillinger > Anonymitet og sikkerhed > Lokalt netværk."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aktiviere Lokales Netzwerk für Sodalite unter Einstellungen > Datenschutz & Sicherheit > Lokales Netzwerk."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ενεργοποιήστε το Τοπικό δίκτυο για το Sodalite στις Ρυθμίσεις > Απόρρητο και ασφάλεια > Τοπικό δίκτυο."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Turn on Local Network for Sodalite in Settings > Privacy & Security > Local Network."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Activa Red local para Sodalite en Ajustes > Privacidad y seguridad > Red local."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ota Paikallinen verkko käyttöön Sodalitelle: Asetukset > Tietosuoja ja turvallisuus > Paikallinen verkko."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Activez Réseau local pour Sodalite dans Réglages > Confidentialité et sécurité > Réseau local."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uključite Lokalna mreža za Sodalite u Postavke > Privatnost i sigurnost > Lokalna mreža."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kapcsolja be a Helyi hálózat beállítást a Sodalite-hoz: Beállítások > Adatvédelem és biztonság > Helyi hálózat."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Attiva Rete locale per Sodalite in Impostazioni > Privacy e sicurezza > Rete locale."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "設定 > プライバシーとセキュリティ > ローカルネットワーク でSodaliteのローカルネットワークをオンにしてください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "설정 > 개인정보 보호 및 보안 > 로컬 네트워크에서 Sodalite의 로컬 네트워크를 켜십시오."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Slå på Lokalt nettverk for Sodalite i Innstillinger > Personvern og sikkerhet > Lokalt nettverk."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Schakel Lokaal netwerk in voor Sodalite via Instellingen > Privacy en beveiliging > Lokaal netwerk."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Włącz Sieć lokalna dla Sodalite w Ustawienia > Prywatność i bezpieczeństwo > Sieć lokalna."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ative Rede Local para o Sodalite em Ajustes > Privacidade e Segurança > Rede Local."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ative Rede local para o Sodalite em Definições > Privacidade e segurança > Rede local."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Activați Rețea locală pentru Sodalite în Configurări > Confidențialitate și securitate > Rețea locală."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Включите «Локальная сеть» для Sodalite в Настройки > Конфиденциальность и безопасность > Локальная сеть."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zapnite Lokálna sieť pre Sodalite v Nastavenia > Súkromie a zabezpečenie > Lokálna sieť."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Slå på Lokalt nätverk för Sodalite i Inställningar > Integritet och säkerhet > Lokalt nätverk."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ayarlar > Gizlilik ve Güvenlik > Yerel Ağ bölümünden Sodalite için Yerel Ağ'ı açın."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Увімкніть «Локальна мережа» для Sodalite у Налаштування > Конфіденційність і безпека > Локальна мережа."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请在 设置 > 隐私与安全性 > 本地网络 中为 Sodalite 打开本地网络权限。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請在 設定 > 隱私權與安全性 > 區域網路 中為 Sodalite 開啟區域網路權限。"
+          }
+        }
+      }
+    },
+    "localNetwork.denied.path.tv" : {
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zapněte Místní síť pro Sodalite v Nastavení > Obecné > Soukromí a zabezpečení > Místní síť."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Slå Lokalt netværk til for Sodalite i Indstillinger > Generelt > Anonymitet og sikkerhed > Lokalt netværk."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aktiviere Lokales Netzwerk für Sodalite unter Einstellungen > Allgemein > Datenschutz & Sicherheit > Lokales Netzwerk."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ενεργοποιήστε το Τοπικό δίκτυο για το Sodalite στις Ρυθμίσεις > Γενικά > Απόρρητο και ασφάλεια > Τοπικό δίκτυο."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Turn on Local Network for Sodalite in Settings > General > Privacy & Security > Local Network."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Activa Red local para Sodalite en Ajustes > General > Privacidad y seguridad > Red local."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ota Paikallinen verkko käyttöön Sodalitelle: Asetukset > Yleiset > Tietosuoja ja turvallisuus > Paikallinen verkko."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Activez Réseau local pour Sodalite dans Réglages > Général > Confidentialité et sécurité > Réseau local."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uključite Lokalna mreža za Sodalite u Postavke > Općenito > Privatnost i sigurnost > Lokalna mreža."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kapcsolja be a Helyi hálózat beállítást a Sodalite-hoz: Beállítások > Általános > Adatvédelem és biztonság > Helyi hálózat."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Attiva Rete locale per Sodalite in Impostazioni > Generali > Privacy e sicurezza > Rete locale."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "設定 > 一般 > プライバシーとセキュリティ > ローカルネットワーク でSodaliteのローカルネットワークをオンにしてください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "설정 > 일반 > 개인정보 보호 및 보안 > 로컬 네트워크에서 Sodalite의 로컬 네트워크를 켜십시오."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Slå på Lokalt nettverk for Sodalite i Innstillinger > Generelt > Personvern og sikkerhet > Lokalt nettverk."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Schakel Lokaal netwerk in voor Sodalite via Instellingen > Algemeen > Privacy en beveiliging > Lokaal netwerk."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Włącz Sieć lokalna dla Sodalite w Ustawienia > Ogólne > Prywatność i bezpieczeństwo > Sieć lokalna."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ative Rede Local para o Sodalite em Ajustes > Geral > Privacidade e Segurança > Rede Local."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ative Rede local para o Sodalite em Definições > Geral > Privacidade e segurança > Rede local."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Activați Rețea locală pentru Sodalite în Configurări > General > Confidențialitate și securitate > Rețea locală."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Включите «Локальная сеть» для Sodalite в Настройки > Основные > Конфиденциальность и безопасность > Локальная сеть."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zapnite Lokálna sieť pre Sodalite v Nastavenia > Všeobecné > Súkromie a zabezpečenie > Lokálna sieť."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Slå på Lokalt nätverk för Sodalite i Inställningar > Allmänt > Integritet och säkerhet > Lokalt nätverk."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ayarlar > Genel > Gizlilik ve Güvenlik > Yerel Ağ bölümünden Sodalite için Yerel Ağ'ı açın."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Увімкніть «Локальна мережа» для Sodalite у Налаштування > Основні > Конфіденційність і безпека > Локальна мережа."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请在 设置 > 通用 > 隐私与安全性 > 本地网络 中为 Sodalite 打开本地网络权限。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請在 設定 > 一般 > 隱私權與安全性 > 區域網路 中為 Sodalite 開啟區域網路權限。"
+          }
+        }
+      }
+    },
+    "localNetwork.denied.openSettings" : {
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Otevřít Nastavení"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Åbn Indstillinger"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Einstellungen öffnen"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Άνοιγμα Ρυθμίσεων"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open Settings"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abrir Ajustes"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Avaa Asetukset"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ouvrir Réglages"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Otvori Postavke"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Beállítások megnyitása"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apri Impostazioni"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "設定を開く"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "설정 열기"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Åpne Innstillinger"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open Instellingen"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Otwórz Ustawienia"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abrir Ajustes"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abrir Definições"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deschide Configurări"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Открыть Настройки"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Otvoriť Nastavenia"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Öppna Inställningar"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ayarları Aç"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Відкрити Налаштування"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "打开设置"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "打開設定"
+          }
+        }
+      }
+    },
     "home.topRatedMovies" : {
       "comment" : "Section title for top rated movies",
       "extractionState" : "manual",

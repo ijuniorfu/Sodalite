@@ -43,6 +43,18 @@ final class AppState {
     /// True while a deep-link is in flight; AppRouter overlays a loading view so the prior detail view doesn't flash.
     var isResolvingDeepLink: Bool = false
 
+    /// True while this device withholds Local Network access, which makes every LAN server
+    /// unreachable from this app alone while the same address still works in Safari (Sodalite#92).
+    /// Written only by `LocalNetworkAccess`, and only after it asked the system rather than read the
+    /// error text. AppRouter renders the explanation over everything, because with the permission
+    /// off nothing behind it works, and clears the flag when a foreground re-probe disagrees.
+    var isLocalNetworkDenied = false
+
+    /// Bumped when something outside a feature has made its last failure obsolete, so the feature
+    /// reloads what it already gave up on. Raised today by the return from a Local Network denial:
+    /// the permission is back, and Home is still showing the error it hit while it was off.
+    var requestContentReload: Int = 0
+
     /// True while the fresh-install launch gate is waiting on the first iCloud fetch; SplashView surfaces a status line.
     var isCloudSyncProbing = false
 

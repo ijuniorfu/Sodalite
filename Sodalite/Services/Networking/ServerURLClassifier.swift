@@ -5,7 +5,7 @@ import Foundation
 /// result in the iOS edit sheet, so this only needs to be right for the
 /// common cases. Tailscale CGNAT (100.64.0.0/10) intentionally classifies as
 /// external: it is reachable away from home via VPN.
-enum ServerURLClassifier {
+nonisolated enum ServerURLClassifier {
     private static let internalSuffixes = [".local", ".lan", ".home", ".home.arpa", ".internal"]
 
     static func isInternal(_ url: URL) -> Bool {

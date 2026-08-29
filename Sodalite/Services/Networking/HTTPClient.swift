@@ -128,7 +128,7 @@ final class HTTPClient: HTTPClientProtocol, @unchecked Sendable {
                     HTTPDiagnostics.transport(method: endpoint.method.rawValue, url: url, error: error)
                 )
             }
-            throw Self.transportFailure(error)
+            throw await Self.transportFailure(error, url: urlRequest.url)
         }
 
         guard let httpResponse = response as? HTTPURLResponse else {
@@ -137,6 +137,9 @@ final class HTTPClient: HTTPClientProtocol, @unchecked Sendable {
 
         switch httpResponse.statusCode {
         case 200...299:
+            // Evidence that this app is reaching something, which is what keeps a denial measured on
+            // one address from covering a session another address is serving fine (Sodalite#92).
+            LocalNetworkAccess.noteReachableServer()
             return (data, httpResponse)
         default:
             if let url = httpResponse.url {
@@ -158,8 +161,17 @@ final class HTTPClient: HTTPClientProtocol, @unchecked Sendable {
 
     /// The `APIError` a transport failure maps to. Cancellation never reaches here: it is answered
     /// above, before the failure log, because a cancelled request is not a failure to report.
-    private static func transportFailure(_ error: Error) -> APIError {
+    ///
+    /// A denied Local Network permission is checked before the code table, because it arrives
+    /// wearing `.notConnectedToInternet` and would otherwise be filed as an unreachable server
+    /// (Sodalite#92). The pre-filter runs first so the probe costs nothing on the ordinary failures:
+    /// only a LAN address that failed with that exact sentence gets as far as asking the system.
+    private static func transportFailure(_ error: Error, url: URL?) async -> APIError {
         guard let urlError = error as? URLError else { return .networkError(error) }
+        if let url, LocalNetworkAccess.couldBeDenial(urlError, url: url),
+           await LocalNetworkAccess.isDenied(for: url) {
+            return .localNetworkDenied
+        }
         switch urlError.code {
         case .timedOut:
             return .timeout

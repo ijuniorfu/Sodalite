@@ -202,6 +202,12 @@ nonisolated enum DiscoveryProbeRace {
     /// the cap is our decision to stop waiting, and printing it as a statement about the server is
     /// what sent the Sodalite#82 reporter looking for a network fault that was not there.
     static func aggregateError<Success: Sendable>(_ verdicts: [Result<Success, APIError>?]) -> APIError {
+        // A denied Local Network permission outranks every verdict about the address, because it is
+        // not one: it says this device would not have let ANY of these candidates through, so the
+        // captive-portal and cap readings below describe a race that never got to happen.
+        for verdict in verdicts {
+            if case .failure(.localNetworkDenied) = verdict { return .localNetworkDenied }
+        }
         var sawTimeout = false
         for verdict in verdicts {
             guard case .failure(let error) = verdict else { continue }
@@ -227,6 +233,7 @@ nonisolated enum DiscoveryProbeRace {
         case .decodingError: "wrong service"
         case .timeout: "timed out"
         case .serverUnreachable: "unreachable"
+        case .localNetworkDenied: "local network denied"
         case .invalidResponse: "invalid response"
         case .invalidURL: "invalid URL"
         case .networkError(let underlying): "network error (\((underlying as NSError).code))"

@@ -23,6 +23,10 @@ struct HomeView: View {
     /// Last serverDidSwitch this view reacted to. .task(id:) re-fires with the same id on every reappear; without the latch each reappear would wipe FilterCache and reload the whole feed.
     @State private var lastHandledServerSwitch = 0
 
+    /// Same latch for requestContentReload, and for the same reason: without it every reappear would
+    /// reload the whole feed on a signal that was already answered.
+    @State private var lastHandledContentReload = 0
+
     private static let refreshStaleSeconds: TimeInterval = 60
 
     var body: some View {
@@ -153,6 +157,20 @@ struct HomeView: View {
             }
             // switchServer already purged FilterCache, before this signal was even bumped.
             await viewModel?.reloadAfterServerSwitch()
+        }
+        // A cause outside Home has made its last failure obsolete (the Local Network permission came
+        // back, Sodalite#92). Home is still showing the error it hit while that was off, and only a
+        // reload can retire it.
+        .task(id: appState.requestContentReload) {
+            let signal = appState.requestContentReload
+            guard signal > 0, signal != lastHandledContentReload else { return }
+            lastHandledContentReload = signal
+            defer {
+                if Task.isCancelled, lastHandledContentReload == signal {
+                    lastHandledContentReload = 0
+                }
+            }
+            await viewModel?.loadContent()
         }
         // Pre-warm row artwork as rows land so first focus doesn't pay round-trip + decode. Keyed on the cross-row item-id set so it re-fires whenever row membership changes.
         .onChange(of: viewModel?.rows.flatMap({ $0.items.map(\.id) })) { _, _ in
