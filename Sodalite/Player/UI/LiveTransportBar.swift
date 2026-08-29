@@ -102,6 +102,11 @@ struct LiveTransportBar: View {
             // .bottom, as in the VOD bar: an open menu grows its own column upward, and a centred
             // row would lift every sibling off the baseline to meet it.
             HStack(alignment: .bottom, spacing: 16) {
+                if !viewModel.isPlaying {
+                    PausedGlyph()
+                        .font(.callout)
+                }
+
                 Text(positionLabel)
                     .font(.callout)
                     .fontWeight(.medium)
@@ -184,6 +189,7 @@ struct LiveTransportBar: View {
         .padding(.bottom, 60)
         .animation(.easeInOut(duration: 0.2), value: viewModel.isScrubbing)
         .animation(.easeInOut(duration: 0.2), value: viewModel.isAtLiveEdge)
+        .animation(.smooth(duration: 0.25), value: viewModel.isPlaying)
         .animation(.smooth(duration: 0.32), value: viewModel.controlsFocus)
         .animation(.smooth(duration: 0.32), value: viewModel.trackDropdown)
     }

@@ -26,6 +26,7 @@ struct TransportBar: View {
     private var isScrubbing: Bool { viewModel.isScrubbing }
     private var scrubTime: String { viewModel.scrubTime }
     private var bufferedProgress: Float { viewModel.bufferedProgress }
+    private var isPaused: Bool { !viewModel.isPlaying }
     let audioTracks: [TrackInfo]
     let subtitleStreams: [MediaStream]
     let activeAudioIndex: Int?
@@ -202,7 +203,12 @@ struct TransportBar: View {
 
             progressBar
 
-            HStack {
+            HStack(spacing: 8) {
+                if isPaused {
+                    PausedGlyph()
+                        .font(.callout)
+                }
+
                 Text(currentTime)
                     .font(.callout)
                     .fontWeight(.medium)
@@ -221,6 +227,7 @@ struct TransportBar: View {
         .padding(.horizontal, 80)
         .padding(.bottom, 60)
         .animation(.easeInOut(duration: 0.2), value: isScrubbing)
+        .animation(.smooth(duration: 0.25), value: isPaused)
         .animation(.smooth(duration: 0.32), value: controlsFocus)
         .animation(.smooth(duration: 0.32), value: trackDropdown)
     }
@@ -674,5 +681,19 @@ struct PlayerTitleOverlay: View {
             return item.name
         }
         return "\(prefix) \(item.name)"
+    }
+}
+
+// MARK: - Paused Glyph
+
+/// Sodalite#93: the only thing on screen that says "paused" rather than "stalled". Sits at the leading
+/// edge of the time row on all three transports (VOD, live, iOS touch), so the three read alike; the
+/// caller sets the font because those rows do not share a type scale.
+struct PausedGlyph: View {
+    var body: some View {
+        Image(systemName: "pause.fill")
+            .fontWeight(.medium)
+            .foregroundStyle(.white.opacity(0.7))
+            .transition(.opacity.combined(with: .scale(scale: 0.6)))
     }
 }
