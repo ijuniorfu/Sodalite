@@ -64,6 +64,12 @@ struct ServerAddressEntryView: View {
                     // Primary action of the screen.
                     .buttonStyle(SettingsTileButtonStyle(isProminent: true))
                     .disabled(vm.isLoading || vm.serverAddress.trimmingCharacters(in: .whitespaces).isEmpty)
+
+                    // Below the primary action, not beside the error: the error is what raises the
+                    // question, but the connect button has to keep the first focus move under it.
+                    if vm.errorMessage != nil {
+                        DiagnosticLogLink()
+                    }
                 }
                 .frame(maxWidth: 500)
                 .navigationDestination(isPresented: Bindable(vm).showLogin) {

@@ -39,6 +39,10 @@ struct ServerDiscoveryView: View {
 
                 cloudLoadButton
 
+                if addMode {
+                    cancelButton
+                }
+
                 Spacer(minLength: 0)
             }
             .padding()
@@ -101,10 +105,14 @@ struct ServerDiscoveryView: View {
     }
 
     private var empty: some View {
-        Text("auth.discovery.empty.title")
-            .font(.callout)
-            .foregroundStyle(.secondary)
-            .multilineTextAlignment(.center)
+        VStack(spacing: 16) {
+            Text("auth.discovery.empty.title")
+                .font(.callout)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+
+            DiagnosticLogLink()
+        }
     }
 
     @ViewBuilder
@@ -125,6 +133,25 @@ struct ServerDiscoveryView: View {
             }
         }
         .frame(maxWidth: 760)
+    }
+
+    /// The way out of add-mode for somebody who decided not to add a server. This screen is
+    /// presented as a full-screen cover, which on iOS dismisses by neither gesture nor chrome, so
+    /// until now the only way back to Settings was to finish the flow (Discord report, 2026-08-30).
+    /// tvOS has the Menu button, but nothing on screen says so.
+    ///
+    /// `onCompletion` is what both hosts already use to drop the cover; it means the flow is over,
+    /// not that a server arrived.
+    private var cancelButton: some View {
+        Button {
+            onCompletion?()
+        } label: {
+            Text("common.cancel")
+                .font(.body)
+                .padding(.horizontal, 32)
+                .padding(.vertical, 12)
+        }
+        .buttonStyle(SettingsTileButtonStyle())
     }
 
     private var manualButton: some View {
