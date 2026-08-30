@@ -19,32 +19,35 @@ struct LiveProgramsView: View {
     /// True while the live player covers the screen. The rows are not worth refreshing behind it,
     /// and the moment it flips back is exactly when the snapshot has aged by a whole program (#96).
     let isPlayerPresented: Bool
+    /// Whether the Live TV tab is the selected one. A background tab keeps its content in the
+    /// hierarchy, so neither the task nor onDisappear can be trusted to stop the clock there.
+    let isTabSelected: Bool
     var onWatchLive: ((LivePlaybackContext) -> Void)?
 
     @Environment(\.dependencies) private var dependencies
     @Environment(\.horizontalSizeClass) private var hSizeClass
     @Environment(\.scenePhase) private var scenePhase
     @State private var selection: ProgramSelection?
-    /// Set from onAppear/onDisappear, which is what a TabView selection change moves; the `.task`
-    /// below is not, because a background tab's content stays in the hierarchy.
-    @State private var isOnScreen = false
 
     init(model: LiveProgramsViewModel,
          timers: LiveTimerStore,
          guideChannels: [JellyfinChannel],
          tint: Color,
          isPlayerPresented: Bool,
+         isTabSelected: Bool,
          onWatchLive: ((LivePlaybackContext) -> Void)? = nil) {
         _model = State(initialValue: model)
         self.timers = timers
         self.guideChannels = guideChannels
         self.tint = tint
         self.isPlayerPresented = isPlayerPresented
+        self.isTabSelected = isTabSelected
         self.onWatchLive = onWatchLive
     }
 
-    /// The rows only have to describe "now" while someone is looking at them.
-    private var isWatched: Bool { isOnScreen && !isPlayerPresented && scenePhase == .active }
+    /// The rows only have to describe "now" while someone is looking at them. The section is implicit:
+    /// this view exists only while the overview segment is the selected one.
+    private var isWatched: Bool { isTabSelected && !isPlayerPresented && scenePhase == .active }
 
     var body: some View {
         Group {
@@ -88,11 +91,9 @@ struct LiveProgramsView: View {
         }
         // Ungated, so the first fill never depends on the appearance callbacks below.
         .task { await model.load() }
-        .onAppear { isOnScreen = true }
-        .onDisappear { isOnScreen = false }
-        // Restarts whenever the rows become visible again: a returning player, a section switch, the
-        // app coming forward. Then it sleeps to the snapshot's own expiry rather than polling, so a
-        // schedule that is not about to turn over costs nothing.
+        // Restarts whenever the rows become visible again: a returning player, a tab or section
+        // switch, the app coming forward. Then it sleeps to the snapshot's own expiry rather than
+        // polling, so a schedule that is not about to turn over costs nothing.
         .task(id: isWatched) {
             guard isWatched else { return }
             await model.refreshIfExpired()

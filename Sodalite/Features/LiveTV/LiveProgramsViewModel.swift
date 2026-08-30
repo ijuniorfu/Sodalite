@@ -111,7 +111,10 @@ final class LiveProgramsViewModel {
                 }
                 return
             }
-            rows = collected
+            // Only when it actually differs: on tvOS an assignment rebuilds the rows, and a card
+            // that is rebuilt under the focus engine is a card the focus engine may leave. Most
+            // refreshes land on an unchanged schedule and have nothing to say.
+            if collected != rows { rows = collected }
             validUntil = Self.expiry(for: collected, loadedAt: startedAt)
             loadError = nil
         }

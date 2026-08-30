@@ -189,3 +189,53 @@ private final class StubLiveTvService: JellyfinLiveTvServiceProtocol, @unchecked
     func createSeriesTimer(programID: String) async throws {}
     func cancelSeriesTimer(timerID: String) async throws {}
 }
+
+/// Sodalite#96, the player half: a live session outlives the programme it tuned into, and both the
+/// title above the picture and the system Now Playing entry are built from that one programme.
+@MainActor
+struct LiveProgramFollowTests {
+
+    private func program(endingIn seconds: TimeInterval?, from now: Date) -> JellyfinProgram {
+        JellyfinProgram(
+            id: "p", channelId: "c1", channelName: "Test", name: "Programme", overview: nil,
+            startDate: now.addingTimeInterval(-600),
+            endDate: seconds.map { now.addingTimeInterval($0) },
+            genres: nil, imageTags: nil, isLive: nil, isNews: nil, isMovie: nil,
+            isSeries: nil, isKids: nil, isSports: nil, seriesName: nil,
+            parentIndexNumber: nil, indexNumber: nil, episodeTitle: nil,
+            timerId: nil, seriesTimerId: nil)
+    }
+
+    @Test("the next look is the programme's end, which is when the title stops being true")
+    func checkLandsOnTheProgramEnd() {
+        let now = Date(timeIntervalSince1970: 10_000)
+        let end = now.addingTimeInterval(1800)
+        #expect(PlayerViewModel.nextLiveProgramCheck(
+            after: program(endingIn: 1800, from: now), from: now) == end)
+    }
+
+    @Test("a programme about to end is not looked at every second")
+    func checkHasAFloor() {
+        let now = Date(timeIntervalSince1970: 10_000)
+        #expect(PlayerViewModel.nextLiveProgramCheck(after: program(endingIn: 2, from: now), from: now)
+                == now.addingTimeInterval(PlayerViewModel.liveProgramMinimumInterval))
+    }
+
+    @Test("nothing known to be on air earns the blind interval, not a retry loop")
+    func checkWithoutAProgram() {
+        let now = Date(timeIntervalSince1970: 10_000)
+        let blind = now.addingTimeInterval(PlayerViewModel.liveProgramBlindInterval)
+        // A failed ask reports nothing, and a channel without EPG never had an end date.
+        #expect(PlayerViewModel.nextLiveProgramCheck(after: nil, from: now) == blind)
+        #expect(PlayerViewModel.nextLiveProgramCheck(
+            after: program(endingIn: nil, from: now), from: now) == blind)
+    }
+
+    @Test("an end that already passed does not schedule a look in the past")
+    func checkWithAnEndedProgram() {
+        let now = Date(timeIntervalSince1970: 10_000)
+        #expect(PlayerViewModel.nextLiveProgramCheck(
+            after: program(endingIn: -300, from: now), from: now)
+                == now.addingTimeInterval(PlayerViewModel.liveProgramBlindInterval))
+    }
+}
