@@ -327,15 +327,14 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
         .animation(.easeInOut(duration: 0.4), value: portraitPalette)
     }
 
-    /// The band: the page colour across the Dynamic Island, then the artwork under it.
+    /// The band: the artwork's own top edge continued across the Dynamic Island, then the artwork.
     ///
     /// The artwork used to run to the top edge and the island sat on top of it (device, 2026-08-30).
     /// Insetting the artwork rather than shrinking it keeps it a true 16:9 rectangle, which was the
     /// point of the band; the page simply starts one safe area lower.
     private var heroBand: some View {
         VStack(spacing: 0) {
-            portraitPalette.near
-                .frame(height: safeTop)
+            islandStrip
             bandArtwork
         }
         // Dissolves the band into the page tint, so the artwork ends without an edge. Every stop is
@@ -397,19 +396,46 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
                 .fill(Color.Theme.surface)
                 .frame(maxWidth: .infinity, minHeight: bandHeight, maxHeight: bandHeight)
         }
-        // Carries the island strip into the artwork, so the two meet on a gradient rather than on a
-        // line. Same rule as the bottom dissolve: stops are the tint at falling opacity, not `.clear`.
-        .overlay(alignment: .top) {
+    }
+
+    /// The strip behind the Dynamic Island: the artwork's own top slice, mirrored and blurred.
+    ///
+    /// A flat fill of the page colour was measured to be almost exactly the artwork's top edge colour
+    /// (0.263 against 0.243 brightness on Emily in Paris) and still looked wrong, because what set it
+    /// apart was not its hue but its flatness next to structured art: it read as a letterbox bar
+    /// (Vincent, device, 2026-08-30). Mirroring puts the image's own top row at the strip's BOTTOM,
+    /// so the seam is continuous by construction rather than by a matched colour, and the blur keeps
+    /// the mirror from reading as a repeat. The dim runs to zero at that seam for the same reason:
+    /// anything left there would be a brightness step exactly where the two meet.
+    private var islandStrip: some View {
+        AsyncCachedImage(url: portraitBandURL) { image in
+            image
+                .resizable()
+                .aspectRatio(contentMode: .fill)
+                .frame(maxWidth: .infinity, minHeight: safeTop, maxHeight: safeTop, alignment: .top)
+                .clipped()
+                .scaleEffect(y: -1)
+                .blur(radius: 14)
+                // Bounded frame + clip around the blur, then flattened: an unbounded blur surface has
+                // blanked sibling layers before (project_backdrop_blur_blanks_overlay).
+                .frame(maxWidth: .infinity, minHeight: safeTop, maxHeight: safeTop)
+                .clipped()
+                .drawingGroup()
+        } placeholder: {
+            portraitPalette.near
+                .frame(maxWidth: .infinity, minHeight: safeTop, maxHeight: safeTop)
+        }
+        .overlay {
             LinearGradient(
                 stops: [
-                    .init(color: portraitPalette.near, location: 0),
-                    .init(color: portraitPalette.near.opacity(0.55), location: 0.4),
-                    .init(color: portraitPalette.near.opacity(0), location: 1)
+                    .init(color: .black.opacity(0.68), location: 0),
+                    .init(color: .black.opacity(0.40), location: 0.45),
+                    .init(color: .black.opacity(0.10), location: 0.80),
+                    .init(color: .black.opacity(0), location: 1)
                 ],
                 startPoint: .top,
                 endPoint: .bottom
             )
-            .frame(height: 36)
             .allowsHitTesting(false)
         }
     }
