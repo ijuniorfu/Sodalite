@@ -110,7 +110,10 @@ struct PlaylistDetailView: View {
             )
             .ignoresSafeArea()
 
-            DetailContentOverlay(primary: {
+            DetailContentOverlay(
+                heroImageURL: vm.backdropURL(for: vm.item),
+                heroPosterURL: vm.heroPosterURL(for: vm.item),
+                primary: {
                 VStack(alignment: .leading, spacing: 24) {
                     glassPanel(vm: vm)
                     actionButtonRow(vm: vm)

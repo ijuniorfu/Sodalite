@@ -97,7 +97,10 @@ struct CatalogCollectionView: View {
         } else if let errorMessage {
             errorState(message: errorMessage)
         } else {
-            DetailContentOverlay(primary: {
+            DetailContentOverlay(
+                heroImageURL: SeerrImageURL.backdrop(path: detail?.backdropPath ?? collection.backdropPath),
+                heroPosterURL: SeerrImageURL.poster(path: detail?.posterPath ?? collection.posterPath, size: .w780),
+                primary: {
                 VStack(alignment: .leading, spacing: 24) {
                     glassPanel
                     actionBlock

@@ -413,6 +413,7 @@
 		7170EDC2AB1D4A2E12C9390C /* AppShortcuts.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 30BAB0577F927E6DE70315F7 /* AppShortcuts.xcstrings */; };
 		71C9EEA30D2FFD720A45CB54 /* DependencyContainer+CloudSync.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2EF7DDFE86971C0AA32E4085 /* DependencyContainer+CloudSync.swift */; };
 		71D85B1C5CDD5E0F21709E08 /* RememberedSeerrSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E97880F967A329D4C748338 /* RememberedSeerrSession.swift */; };
+		71EBDE77A333D8853F0F20AF /* ArtworkTint.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C700013DC820AD4D397ED37 /* ArtworkTint.swift */; };
 		7274808DC432A2B3640FA453 /* IntentBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4189A046FB58ED940B4C2A7B /* IntentBridge.swift */; };
 		7278EC59CB5A676B9AD32699 /* UserPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAD2BDE70B795F2AD5A8BBF0 /* UserPickerView.swift */; };
 		727CB25E4B00CA055FA6C50D /* AirPlayRouteButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69C6C2AD69C879659FBC50AD /* AirPlayRouteButton.swift */; };
@@ -843,6 +844,7 @@
 		E3964FAD86407B3C6CC6961B /* LibrarySortSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B0EBC152D80BAC2D6FE9AEF /* LibrarySortSheet.swift */; };
 		E4333721A6579565BCA27BC7 /* SupportDevelopmentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DCCDE639EE071B54BD03C8B /* SupportDevelopmentView.swift */; };
 		E4D0B9DE7DA199986E27A05E /* TopShelfCachePolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D955E208D3CD0779141D95 /* TopShelfCachePolicy.swift */; };
+		E4E59C553A7B60179E7E1707 /* ArtworkTint.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C700013DC820AD4D397ED37 /* ArtworkTint.swift */; };
 		E50C8E9A2BF14F89FA2478B8 /* LicenseText-ISC-libass.txt in Resources */ = {isa = PBXBuildFile; fileRef = 01C12B24850C327CD8373DB8 /* LicenseText-ISC-libass.txt */; };
 		E555E8826A44AB1367C7D31E /* SessionRestoreEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = E34B48C22ADA9876864D8093 /* SessionRestoreEnvironment.swift */; };
 		E5D8A27D7260E1690B482633 /* TabRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FD9103B219AFCAC73A8836A /* TabRootView.swift */; };
@@ -1177,6 +1179,7 @@
 		5B7F000B8D8677EF0C3F7C73 /* PlayerSystemVolume.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerSystemVolume.swift; sourceTree = "<group>"; };
 		5C0E521708A7EBC3D396F706 /* ServerRouteResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServerRouteResolver.swift; sourceTree = "<group>"; };
 		5C2FBEBB8926214D1253EA10 /* Color+Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Color+Theme.swift"; sourceTree = "<group>"; };
+		5C700013DC820AD4D397ED37 /* ArtworkTint.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtworkTint.swift; sourceTree = "<group>"; };
 		5CA101AEE2DA1D2D4A2957A9 /* MediaFocusRing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaFocusRing.swift; sourceTree = "<group>"; };
 		5CEA6778D4D7308C1217ED52 /* GuideRowMathTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuideRowMathTests.swift; sourceTree = "<group>"; };
 		5D67C0E479E49AEC10441E52 /* NowPlayingCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NowPlayingCard.swift; sourceTree = "<group>"; };
@@ -1622,6 +1625,7 @@
 				84CC66975368B57B931861AE /* LiquidGlass */,
 				ABC77BDA6A3B780DF2964CC4 /* ArtworkStateBadges.swift */,
 				CC726417573B591C1BAEFC70 /* ArtworkTile.swift */,
+				5C700013DC820AD4D397ED37 /* ArtworkTint.swift */,
 				701C10265C5C32AA946482DC /* AsyncCachedImage.swift */,
 				CCD5596E5ED089CD31B3ADB8 /* CheckmarkAnimation.swift */,
 				8B80BA3A6FF7AC272BD36391 /* DetailBackdrop.swift */,
@@ -2758,6 +2762,7 @@
 				17AAD041864E1B66C82FE73E /* AppearanceTheme.swift in Sources */,
 				77057A5582B0A1BE87D51377 /* ArtworkStateBadges.swift in Sources */,
 				C40C9015920A2F4D6D7E2E8D /* ArtworkTile.swift in Sources */,
+				71EBDE77A333D8853F0F20AF /* ArtworkTint.swift in Sources */,
 				1A1312208911D80DF1239BAC /* AsyncCachedImage.swift in Sources */,
 				1F069BF8E9280E25499C2FFB /* AsyncSemaphore.swift in Sources */,
 				9D8F177619267AE8785EC722 /* AuthPreferences.swift in Sources */,
@@ -3317,6 +3322,7 @@
 				AEFE56E6ACBF2FD08C05BB38 /* AppearanceTheme.swift in Sources */,
 				FFD0380A91EE12DFD61F9EB2 /* ArtworkStateBadges.swift in Sources */,
 				3C025FF85682E1F4AB0FA2B4 /* ArtworkTile.swift in Sources */,
+				E4E59C553A7B60179E7E1707 /* ArtworkTint.swift in Sources */,
 				9B9F7FCB0ABD86947EE5E416 /* AsyncCachedImage.swift in Sources */,
 				DD07C9ACEED4C480EF32E3E6 /* AsyncSemaphore.swift in Sources */,
 				7DE057BFC94CB03E34FDEBAA /* AuthPreferences.swift in Sources */,

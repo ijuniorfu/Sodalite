@@ -284,7 +284,10 @@ struct MovieDetailView: View {
                 .id(vm.item.backdropImageTags?.first ?? "empty")
                 .ignoresSafeArea()
 
-            DetailContentOverlay(hero: {
+            DetailContentOverlay(
+                heroImageURL: vm.backdropURL(for: vm.item),
+                heroPosterURL: vm.heroPosterURL(for: vm.item),
+                hero: {
                 DetailHeroLogo(viewModel: vm)
             }, primary: {
                 // Glass panel + action buttons as the bottom-aligned first-page block (Sodalite#15 round 6), mirroring SeriesDetailView.

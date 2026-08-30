@@ -4,6 +4,9 @@ import UIKit
 #endif
 
 /// Shared fullscreen backdrop with gradient overlay used in all detail views.
+///
+/// tvOS, iPad and iPhone landscape only. iPhone portrait draws its hero as a 16:9 band inside the
+/// scrolling `DetailContentOverlay` instead (Sodalite#95), so this fixed layer stands down there.
 struct DetailBackdrop: View {
     let imageURL: URL?
     /// Hero stand-in for items lacking backdrop art: portrait poster scaled to screen width, top-pinned so its useful upper half stays on screen. Replaced the flat grey plate, then the heavy ambient blur-fill (Sodalite#15).
@@ -12,9 +15,7 @@ struct DetailBackdrop: View {
     @Environment(\.horizontalSizeClass) private var hSizeClass
     @Environment(\.verticalSizeClass) private var vSizeClass
 
-    /// iPhone portrait uses the portrait poster as a full-bleed hero. vSizeClass != .compact (rather
-    /// than == .regular) treats the unresolved first frame as portrait. tvOS/iPad and iPhone
-    /// landscape keep the landscape backdrop.
+    /// vSizeClass != .compact (rather than == .regular) treats the unresolved first frame as portrait.
     private var isPhonePortrait: Bool {
         #if os(iOS)
         hSizeClass == .compact && vSizeClass != .compact
@@ -24,20 +25,26 @@ struct DetailBackdrop: View {
     }
 
     private var heroURL: URL? {
-        // Portrait phone shows the poster ONLY, never the landscape backdrop, so a not-yet-loaded
-        // poster (e.g. an episode's series stub) shows a neutral placeholder instead of flashing a
-        // stretched 16:9 backdrop.
-        if isPhonePortrait { return posterFallbackURL }
-        return imageURL ?? posterFallbackURL
+        imageURL ?? posterFallbackURL
     }
 
-    /// Blur only the landscape-fallback poster (upscaled into a wide area). A real backdrop, or the
-    /// portrait poster hero, fills naturally and stays sharp.
+    /// Blur only the fallback poster (a portrait image upscaled into a landscape area). A real
+    /// backdrop fills naturally and stays sharp.
     private var usesPosterFill: Bool {
-        imageURL == nil && posterFallbackURL != nil && !isPhonePortrait
+        imageURL == nil && posterFallbackURL != nil
     }
 
     var body: some View {
+        if isPhonePortrait {
+            // The band lives in the scrolling overlay so page content can travel over it; a second
+            // copy here would sit behind that content, fixed, and show through every gap.
+            Color.clear
+        } else {
+            fixedBackdrop
+        }
+    }
+
+    private var fixedBackdrop: some View {
         GeometryReader { geo in
             AsyncCachedImage(url: heroURL) { image in
                 if usesPosterFill {
@@ -72,6 +79,10 @@ struct DetailBackdrop: View {
 /// `hero` slot (title-card logo) floats on the artwork above the gradient, not the black panel, so dark logos stay legible (black on ultraThinMaterial would vanish). Empty default keeps no-hero overlays (collection, catalog) unchanged.
 /// `primary` slot (glass panel + button row) makes the first screen one viewport tall with hero + panel + buttons bottom-aligned, maximizing visible backdrop (Sodalite#15 round 6). Empty default keeps the fixed 500 pt hero window for non-split overlays (collection, catalog, person).
 struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
+    /// Hero artwork for the iPhone-portrait band (ignored on every other tier, where the fixed
+    /// `DetailBackdrop` owns the artwork). Same two URLs that surface passes to the backdrop.
+    var heroImageURL: URL? = nil
+    var heroPosterURL: URL? = nil
     @ViewBuilder let hero: () -> Hero
     @ViewBuilder let primary: () -> Primary
     @ViewBuilder let content: () -> Content
@@ -140,12 +151,9 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
         #endif
     }
 
-    /// iPhone portrait is the one tier that keeps the safe area on this page (the detail views pass
-    /// `ignoresSafeArea(when: !isPhonePortrait)`), so the scrolling scrim stopped 34pt above the
-    /// screen edge while the backdrop behind it ran to the edge: a hard bright band under the home
-    /// indicator on every detail page (measured on an iPhone 17 Pro and reproduced in a simulator
-    /// probe, brightness 61 to 134 at exactly 34pt). The scroll view now bleeds past that edge and
-    /// the primary block pays the inset back, so the first page stands where it stood.
+    /// Picks the whole page shape, not a detail of one: portrait is a top-anchored 16:9 band with the
+    /// content flowing beneath it, every other tier is a full-bleed backdrop with the first page
+    /// bottom-aligned over it. vSizeClass != .compact treats the unresolved first frame as portrait.
     private var isPhonePortrait: Bool {
         #if os(iOS)
         hSizeClass == .compact && vSizeClass != .compact
@@ -153,27 +161,32 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
         false
         #endif
     }
-    private var bottomBleed: CGFloat {
-        #if os(iOS)
-        guard isPhonePortrait else { return 0 }
-        return UIApplication.shared.connectedScenes
-            .compactMap { $0 as? UIWindowScene }.first?.keyWindow?.safeAreaInsets.bottom ?? 0
-        #else
-        return 0
-        #endif
-    }
 
     init(
+        heroImageURL: URL? = nil,
+        heroPosterURL: URL? = nil,
         @ViewBuilder hero: @escaping () -> Hero = { EmptyView() },
         @ViewBuilder primary: @escaping () -> Primary,
         @ViewBuilder content: @escaping () -> Content
     ) {
+        self.heroImageURL = heroImageURL
+        self.heroPosterURL = heroPosterURL
         self.hero = hero
         self.primary = primary
         self.content = content
     }
 
     var body: some View {
+        if isPhonePortrait {
+            portraitBody
+        } else {
+            standardBody
+        }
+    }
+
+    /// tvOS, iPad and iPhone landscape: the first page is one viewport tall with hero + panel +
+    /// buttons bottom-aligned over the full-bleed backdrop, and every block carries its own scrim.
+    private var standardBody: some View {
         ScrollView(.vertical, showsIndicators: false) {
             VStack(alignment: .leading, spacing: 0) {
                 if Primary.self == EmptyView.self {
@@ -194,7 +207,7 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                         // 24 pt matching the panel-to-buttons gap, widened on tvOS to a constant
                         // band that holds the fold marker (Sodalite#53).
-                        .padding(.bottom, ScrollHintPolicy.primaryBottomInset(reservesHint: reservesScrollHint) + bottomBleed)
+                        .padding(.bottom, ScrollHintPolicy.primaryBottomInset(reservesHint: reservesScrollHint))
                         .overlay(alignment: .bottom) {
                             if reservesScrollHint {
                                 ScrollHintChevron(isVisible: showsScrollHint)
@@ -248,7 +261,6 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
                     }
             }
         }
-        .ignoresSafeArea(when: isPhonePortrait, edges: .bottom)
         .background(Color.black.opacity(scrollDim).ignoresSafeArea())
         .onScrollGeometryChange(for: Double.self) { geometry in
             geometry.contentOffset.y + geometry.contentInsets.top
@@ -263,6 +275,150 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
             try? await Task.sleep(for: .milliseconds(800))
             hintSettled = true
         }
+    }
+
+    // MARK: - iPhone portrait
+
+    /// iPhone portrait (Sodalite#95): the artwork is a 16:9 band at its own aspect ratio, full-bleed
+    /// to the top edge, and the page flows underneath it carrying a tint pulled from the band's own
+    /// bottom pixels. It replaces the full-bleed portrait poster, which drew the show's baked-in
+    /// title behind the overlaid logo, so every logo-bearing title rendered its name twice.
+    ///
+    /// The band scrolls with the content rather than sitting behind it: with the tint carrying the
+    /// page, there is no scrim between the text and the artwork, so the artwork has to leave.
+    private var portraitBody: some View {
+        ScrollView(.vertical, showsIndicators: false) {
+            VStack(alignment: .leading, spacing: 0) {
+                heroBand
+
+                VStack(alignment: .leading, spacing: 0) {
+                    VStack(alignment: .leading, spacing: 0) {
+                        primary()
+                    }
+                    .padding(.top, 20)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+
+                    VStack(alignment: .leading, spacing: 40) {
+                        content()
+                    }
+                    .padding(.top, 32)
+                    .padding(.bottom, 80)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+
+                    // Keeps the last row off the screen edge. Transparent, unlike the scrimmed tiers:
+                    // the tint canvas behind it already reaches the bottom.
+                    Color.clear.frame(minHeight: trailingFiller)
+                }
+                .background(alignment: .top) { tintCanvas }
+            }
+        }
+        // Both edges: the band is the top chrome, and the canvas has to reach past the home indicator
+        // or the page ends on a bright line where the scrim stops and the base black begins.
+        .ignoresSafeArea(edges: [.top, .bottom])
+        .animation(.easeInOut(duration: 0.4), value: portraitTint)
+    }
+
+    /// Artwork for the band. A backdrop fills 16:9 exactly; a poster standing in for a missing
+    /// backdrop keeps the established fallback treatment (filled to the width, pinned to its useful
+    /// top half, blurred just enough to hide the upscale, bounded and flattened per the tvOS blur
+    /// rule), which also stops its baked-in title from reading as a second logo.
+    private var heroBand: some View {
+        AsyncCachedImage(url: portraitBandURL, onImageLoaded: { image in
+            #if canImport(UIKit)
+            if let url = portraitBandURL {
+                ArtworkTintStore.shared.resolve(image, for: url)
+            }
+            #endif
+        }) { image in
+            if portraitBandUsesPoster {
+                image
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .frame(maxWidth: .infinity, minHeight: bandHeight, maxHeight: bandHeight, alignment: .top)
+                    .clipped()
+                    .blur(radius: 8)
+                    .drawingGroup()
+            } else {
+                image
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .frame(maxWidth: .infinity, minHeight: bandHeight, maxHeight: bandHeight)
+                    .clipped()
+            }
+        } placeholder: {
+            Rectangle()
+                .fill(Color.Theme.surface)
+                .frame(maxWidth: .infinity, minHeight: bandHeight, maxHeight: bandHeight)
+        }
+        // Status bar and the close button sit on the band's top edge with nothing else between them
+        // and the artwork.
+        .overlay(alignment: .top) {
+            LinearGradient(colors: [.black.opacity(0.35), .clear], startPoint: .top, endPoint: .bottom)
+                .frame(height: 110)
+                .allowsHitTesting(false)
+        }
+        // Dissolves the band into the page tint, so the artwork ends without an edge.
+        .overlay(alignment: .bottom) {
+            LinearGradient(colors: [.clear, portraitTint], startPoint: .top, endPoint: .bottom)
+                .frame(height: 96)
+                .allowsHitTesting(false)
+        }
+        .overlay(alignment: .bottom) {
+            hero()
+                .padding(.horizontal, metrics.rowInset)
+                .padding(.bottom, 12)
+        }
+    }
+
+    /// The page colour, carried from the band down the whole page. A fixed fade distance, not a share
+    /// of the content height, so a two-screen page and a six-screen page transition at the same rate
+    /// and neither ends in a step. It holds flat through the first 200 pt (panel and button row) and
+    /// only then gives way: measured against a rendered mock, a fade that starts at the band leaves
+    /// the action area looking like it lost the colour rather than carried it.
+    private var tintCanvas: some View {
+        VStack(spacing: 0) {
+            LinearGradient(
+                stops: [
+                    .init(color: portraitTint, location: 0),
+                    .init(color: portraitTint, location: 0.28),
+                    .init(color: ArtworkTint.base, location: 1)
+                ],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .frame(height: 720)
+            ArtworkTint.base
+        }
+    }
+
+    private var portraitBandURL: URL? {
+        heroImageURL ?? heroPosterURL
+    }
+
+    private var portraitBandUsesPoster: Bool {
+        heroImageURL == nil && heroPosterURL != nil
+    }
+
+    /// Base black until the artwork has been read, so an unresolved tint is invisible rather than a
+    /// seam, and the real colour fades in when it lands.
+    private var portraitTint: Color {
+        #if canImport(UIKit)
+        ArtworkTintStore.shared.tint(for: portraitBandURL) ?? ArtworkTint.base
+        #else
+        ArtworkTint.base
+        #endif
+    }
+
+    /// One clean 16:9 rectangle off the window width; the layout only ever supplies the width, so the
+    /// height has to be derived rather than measured mid-flight.
+    private var bandHeight: CGFloat {
+        #if os(iOS)
+        let width = UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }.first?.keyWindow?.bounds.width ?? 390
+        return (width * 9 / 16).rounded()
+        #else
+        return 0
+        #endif
     }
 
     // Hero rides as a gradient overlay (not a stacked layer) to keep the sibling structure the focus engine scrolls; drawn on top so the logo stays visible. Full-bleed redesign (Sodalite#15): backdrop stays behind a scrim, text containers carry their own material.
@@ -286,10 +442,18 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
 /// Legacy shape for overlays without a `primary` slot (collection, catalog, person): fixed 500 pt hero window.
 extension DetailContentOverlay where Primary == EmptyView {
     init(
+        heroImageURL: URL? = nil,
+        heroPosterURL: URL? = nil,
         @ViewBuilder hero: @escaping () -> Hero = { EmptyView() },
         @ViewBuilder content: @escaping () -> Content
     ) {
-        self.init(hero: hero, primary: { EmptyView() }, content: content)
+        self.init(
+            heroImageURL: heroImageURL,
+            heroPosterURL: heroPosterURL,
+            hero: hero,
+            primary: { EmptyView() },
+            content: content
+        )
     }
 }
 
