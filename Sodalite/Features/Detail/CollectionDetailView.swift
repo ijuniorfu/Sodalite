@@ -47,6 +47,7 @@ struct CollectionDetailView: View {
             }
         }
         .ignoresSafeArea(when: !isPhonePortrait)
+        .hidesToolbarBackground()
         .overlay {
             if let userID = appState.activeUser?.id {
                 PlayerLauncher(

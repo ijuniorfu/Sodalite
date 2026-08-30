@@ -22,6 +22,23 @@ struct ThemeNavigationPathStack<Content: View>: View {
 }
 
 extension View {
+    /// Drops the system navigation bar's own background on iOS.
+    ///
+    /// A detail page owns its top edge: the hero band runs full bleed under the status bar. On a
+    /// PUSHED detail (detail -> similar title -> person) a navigation bar exists, and it paints a
+    /// background over exactly that region, so the band's top reads black instead of the page colour
+    /// while the same page opened directly reads correctly (measured, Sodalite#95: (8,4,4) against
+    /// the page's own (56,29,28), while an unpushed page matched at (61,50,57)). The bar keeps its
+    /// controls, which carry their own glass and stay legible over artwork.
+    @ViewBuilder
+    func hidesToolbarBackground() -> some View {
+        #if os(iOS)
+        toolbarBackgroundVisibility(.hidden, for: .navigationBar)
+        #else
+        self
+        #endif
+    }
+
     @ViewBuilder
     func themedNavigationDestination() -> some View {
         #if os(iOS)

@@ -73,6 +73,7 @@ struct CatalogCollectionView: View {
             content
         }
         .ignoresSafeArea(when: !isPhonePortrait)
+        .hidesToolbarBackground()
         .hidesShellTabBar()
         .navigationDestination(item: $selectedMedia) { media in
             CatalogDetailView(media: media)
