@@ -4,11 +4,19 @@
 <dict>
 	<key>CFBundleDisplayName</key>
 	<string>Sodalite Top Shelf</string>
+	<!-- One key, and it has to stay alone. NSAllowsArbitraryLoads is IGNORED the moment any of
+	     NSAllowsLocalNetworking / NSAllowsArbitraryLoadsInWebContent / NSAllowsArbitraryLoadsInMedia
+	     sits beside it (iOS and tvOS 10 and later), and the plain default takes over instead:
+	     cleartext to the local network only. Measured on tvOS 26.5 on 2026-08-30, http to a public
+	     address failed with NSURLErrorDomain -1022 in 0.0s ("does not conform to ATS policy") while
+	     the same request to a private address went out and timed out on the wire like any other.
+	     A self-hosted Jellyfin reachable at a public address over plain http is an ordinary setup,
+	     and the pair locked those users out of setup entirely with "Server unreachable", since the
+	     -1022 folds into .serverUnreachable in DiscoveryProbeRace. Putting NSAllowsLocalNetworking
+	     back re-breaks them: the permissive key is the one that covers the LAN too. -->
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsArbitraryLoads</key>
-		<true/>
-		<key>NSAllowsLocalNetworking</key>
 		<true/>
 	</dict>
 	<key>NSExtension</key>
