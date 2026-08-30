@@ -530,8 +530,8 @@ struct PlayerOverlayView: View {
     #if os(iOS)
     /// The window's UIKit-truth geometry; the hosting pipeline's safe area is untrustworthy here.
     /// Tolerates scene/key churn during the modal transition (scene order is undefined and keyWindow
-    /// can be transiently nil).
-    private static func windowGeometry(fallback: CGSize) -> (CGRect, UIEdgeInsets) {
+    /// can be transiently nil). Shared with the stats panel, which mounts the same absolute wrapper.
+    static func windowGeometry(fallback: CGSize) -> (CGRect, UIEdgeInsets) {
         let window = UIApplication.shared.connectedScenes
             .compactMap { $0 as? UIWindowScene }
             .flatMap(\.windows)

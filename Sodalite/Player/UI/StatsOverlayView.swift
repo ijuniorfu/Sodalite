@@ -59,19 +59,52 @@ struct StatsOverlayView: View {
     }
 
     var body: some View {
-        HStack(spacing: 0) {
-            Spacer()
-            panel
-                #if os(iOS)
-                .padding(.trailing, 16)
-                .padding(.vertical, 16)
-                #else
-                .padding(.trailing, 40)
-                .padding(.vertical, 40)
-                #endif
+        // Absolute screen-pinned mount, the same wrapper the controls overlay uses. The panel is sized
+        // `maxHeight: .infinity`, so it is exactly as tall as the host's safe area, and AVKit's alpha=0
+        // chrome (kept for the CC +10s handler) shows ITSELF on pause and widens that inset: the panel
+        // shortened on pause and grew back when the chrome auto-hid. The allotted region is measured in
+        // global space and a screen-sized frame pinned back over it, so the panel reads the window's own
+        // insets as plain padding instead (on iOS the insets AVKit serves in portrait go negative, so
+        // `.ignoresSafeArea()` is not an option here). This also takes the panel out of the parent-frame
+        // collapse an in-place reload (audio switch, next episode) puts AVKit through.
+        GeometryReader { geo in
+            let allotted = geo.frame(in: .global)
+            let (screen, insets) = Self.hostGeometry(fallback: geo.size)
+            HStack(spacing: 0) {
+                Spacer()
+                panel
+                    #if os(iOS)
+                    .padding(.trailing, 16)
+                    .padding(.vertical, 16)
+                    #else
+                    .padding(.trailing, 40)
+                    .padding(.vertical, 40)
+                    #endif
+            }
+            .padding(insets)
+            .frame(width: screen.width, height: screen.height)
+            .position(x: screen.width / 2 - allotted.minX, y: screen.height / 2 - allotted.minY)
         }
         .transition(.move(edge: .trailing).combined(with: .opacity))
         // Hit testing left on so the focus engine treats the overlay as a gesture-consuming layer; Up/Down routing is in PlayerHostController's @objc handlers gated on viewModel.showStatsOverlay.
+    }
+
+    /// Screen bounds + the insets that are actually true, sourced away from the SwiftUI safe area AVKit
+    /// churns. iOS reads the key window (shared with `PlayerOverlayView`), tvOS the scene's screen, where
+    /// the title-safe margin is this panel's own 40pt padding and the window carries no insets.
+    private static func hostGeometry(fallback: CGSize) -> (CGSize, EdgeInsets) {
+        #if os(iOS)
+        let (bounds, insets) = PlayerOverlayView.windowGeometry(fallback: fallback)
+        return (
+            bounds.size,
+            EdgeInsets(top: insets.top, leading: insets.left, bottom: insets.bottom, trailing: insets.right)
+        )
+        #else
+        let size = UIApplication.shared.connectedScenes
+            .lazy.compactMap { $0 as? UIWindowScene }
+            .first?.screen.bounds.size ?? CGSize(width: 1920, height: 1080)
+        return (size, EdgeInsets())
+        #endif
     }
 
     /// Latches once the slide-in settles, gating scrollTo so the mount-time `statsSectionIndex = 0` reset (fires the same render cycle) doesn't run a 0.2s scrollTo that fights the panel's 0.25s `.move(edge: .trailing)` transition (stuck-halfway-in for ~1s).
