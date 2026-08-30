@@ -327,11 +327,49 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
         .animation(.easeInOut(duration: 0.4), value: portraitPalette)
     }
 
+    /// The band: the page colour across the Dynamic Island, then the artwork under it.
+    ///
+    /// The artwork used to run to the top edge and the island sat on top of it (device, 2026-08-30).
+    /// Insetting the artwork rather than shrinking it keeps it a true 16:9 rectangle, which was the
+    /// point of the band; the page simply starts one safe area lower.
+    private var heroBand: some View {
+        VStack(spacing: 0) {
+            portraitPalette.near
+                .frame(height: safeTop)
+            bandArtwork
+        }
+        // Dissolves the band into the page tint, so the artwork ends without an edge. Every stop is
+        // the tint at a different opacity, never `.clear`: `.clear` is transparent BLACK, so fading
+        // to it drags the artwork through a grey band on the way, which reads as the very edge this
+        // is meant to remove. The eased stops and the 150 pt run are the second half of that; a
+        // linear 96 pt ramp still showed the cut on a bright backdrop (device, 2026-08-30).
+        .overlay(alignment: .bottom) {
+            LinearGradient(
+                stops: [
+                    .init(color: portraitPalette.near.opacity(0), location: 0),
+                    .init(color: portraitPalette.near.opacity(0.12), location: 0.30),
+                    .init(color: portraitPalette.near.opacity(0.45), location: 0.58),
+                    .init(color: portraitPalette.near.opacity(0.85), location: 0.82),
+                    .init(color: portraitPalette.near, location: 1)
+                ],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .frame(height: 150)
+            .allowsHitTesting(false)
+        }
+        .overlay(alignment: .bottom) {
+            hero()
+                .padding(.horizontal, metrics.rowInset)
+                .padding(.bottom, 12)
+        }
+    }
+
     /// Artwork for the band. A backdrop fills 16:9 exactly; a poster standing in for a missing
     /// backdrop keeps the established fallback treatment (filled to the width, pinned to its useful
     /// top half, blurred just enough to hide the upscale, bounded and flattened per the tvOS blur
     /// rule), which also stops its baked-in title from reading as a second logo.
-    private var heroBand: some View {
+    private var bandArtwork: some View {
         AsyncCachedImage(url: portraitBandURL, onImageLoaded: { image in
             #if canImport(UIKit)
             if let url = portraitBandURL {
@@ -359,37 +397,20 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
                 .fill(Color.Theme.surface)
                 .frame(maxWidth: .infinity, minHeight: bandHeight, maxHeight: bandHeight)
         }
-        // Status bar and the close button sit on the band's top edge with nothing else between them
-        // and the artwork.
+        // Carries the island strip into the artwork, so the two meet on a gradient rather than on a
+        // line. Same rule as the bottom dissolve: stops are the tint at falling opacity, not `.clear`.
         .overlay(alignment: .top) {
-            LinearGradient(colors: [.black.opacity(0.35), .clear], startPoint: .top, endPoint: .bottom)
-                .frame(height: 110)
-                .allowsHitTesting(false)
-        }
-        // Dissolves the band into the page tint, so the artwork ends without an edge. Every stop is
-        // the tint at a different opacity, never `.clear`: `.clear` is transparent BLACK, so fading
-        // to it drags the artwork through a grey band on the way, which reads as the very edge this
-        // is meant to remove. The eased stops and the 150 pt run are the second half of that; a
-        // linear 96 pt ramp still showed the cut on a bright backdrop (device, 2026-08-30).
-        .overlay(alignment: .bottom) {
             LinearGradient(
                 stops: [
-                    .init(color: portraitPalette.near.opacity(0), location: 0),
-                    .init(color: portraitPalette.near.opacity(0.12), location: 0.30),
-                    .init(color: portraitPalette.near.opacity(0.45), location: 0.58),
-                    .init(color: portraitPalette.near.opacity(0.85), location: 0.82),
-                    .init(color: portraitPalette.near, location: 1)
+                    .init(color: portraitPalette.near, location: 0),
+                    .init(color: portraitPalette.near.opacity(0.55), location: 0.4),
+                    .init(color: portraitPalette.near.opacity(0), location: 1)
                 ],
                 startPoint: .top,
                 endPoint: .bottom
             )
-            .frame(height: 150)
+            .frame(height: 36)
             .allowsHitTesting(false)
-        }
-        .overlay(alignment: .bottom) {
-            hero()
-                .padding(.horizontal, metrics.rowInset)
-                .padding(.bottom, 12)
         }
     }
 
@@ -424,6 +445,18 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
         ArtworkTintStore.shared.palette(for: portraitBandURL) ?? .base
         #else
         .base
+        #endif
+    }
+
+    /// Height of the Dynamic Island / status bar region, which the band paints in the page colour.
+    /// Read from the window for the same reason the side insets are: the overlay is full-bleed here,
+    /// so the environment inset is gone by the time this is asked.
+    private var safeTop: CGFloat {
+        #if os(iOS)
+        UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }.first?.keyWindow?.safeAreaInsets.top ?? 0
+        #else
+        return 0
         #endif
     }
 
