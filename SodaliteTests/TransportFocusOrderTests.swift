@@ -30,11 +30,32 @@ struct TransportFocusOrderTests {
         #expect(order(hasAudioTracks: false, hasSubtitles: false) == [.restartButton, .speedButton, .pictureButton])
     }
 
-    @Test("chapters are suppressed on series episodes, mirroring TransportBar")
+    /// The chapter button used to be suppressed whenever the item was a series episode, so a remux
+    /// with real named chapters lost its only chapter navigation. Each picker now answers for its
+    /// own data alone, and the two can stand side by side.
+    @Test("chapters and episodes are gated independently and can coexist")
     func chapterGate() {
-        #expect(order(episodeCount: 12, chapterCount: 40).contains(.chapterButton) == false)
+        #expect(order(episodeCount: 12, chapterCount: 40).contains(.chapterButton))
         #expect(order(episodeCount: 12, chapterCount: 40).contains(.episodeButton))
         #expect(order(episodeCount: 1, chapterCount: 40).contains(.chapterButton))
+        #expect(order(episodeCount: 12, chapterCount: 0).contains(.chapterButton) == false)
+        #expect(order(episodeCount: 1, chapterCount: 40).contains(.episodeButton) == false)
+    }
+
+    @Test("the episode picker precedes the chapter picker when both are present")
+    func episodePrecedesChapter() {
+        let both = order(episodeCount: 12, chapterCount: 40)
+        #expect(both == [.restartButton, .episodeButton, .chapterButton, .audioButton, .subtitleButton, .speedButton, .pictureButton])
+    }
+
+    /// Up from the scrub bar lands on the leftmost control that is not "From Start"; reading it off
+    /// the same order the bar renders from is what keeps that landing on a button that exists.
+    @Test("the up-from-scrub-bar landing is the leftmost control after restart")
+    func upFromProgressBarLanding() {
+        #expect(order(episodeCount: 12, chapterCount: 40).first(where: { $0 != .restartButton }) == .episodeButton)
+        #expect(order(episodeCount: 1, chapterCount: 40).first(where: { $0 != .restartButton }) == .chapterButton)
+        #expect(order(hasSkippableSegment: true, episodeCount: 12, chapterCount: 40).first(where: { $0 != .restartButton }) == .skipSegmentButton)
+        #expect(order(hasAudioTracks: false, hasSubtitles: false).first(where: { $0 != .restartButton }) == .speedButton)
     }
 
     @Test("optional trailing buttons appear only when enabled")

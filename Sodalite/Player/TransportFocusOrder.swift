@@ -1,3 +1,4 @@
+import AetherEngine
 import Foundation
 
 extension PlayerViewModel {
@@ -16,7 +17,7 @@ extension PlayerViewModel {
         var order: [ControlsFocus] = [.restartButton]
         if hasSkippableSegment { order.append(.skipSegmentButton) }
         if episodeCount > 1 { order.append(.episodeButton) }
-        if chapterCount > 1, episodeCount <= 1 { order.append(.chapterButton) }
+        if chapterCount > 1 { order.append(.chapterButton) }
         if hasAudioTracks { order.append(.audioButton) }
         if hasSubtitles { order.append(.subtitleButton) }
         order.append(.speedButton)
@@ -45,6 +46,19 @@ extension PlayerViewModel {
         if isPiPAvailable { order.append(.pipButton) }
         if showsStats { order.append(.infoButton) }
         return order
+    }
+
+    /// The VOD order for the current session, gated exactly as TransportBar renders. Reading the
+    /// order instead of restating its gates is what keeps focus off a button that is not there.
+    var transportFocusOrder: [ControlsFocus] {
+        Self.transportFocusOrder(
+            hasSkippableSegment: activeSkipSegment != nil,
+            episodeCount: seasonEpisodes.count,
+            chapterCount: chapters.count,
+            hasAudioTracks: !player.audioTracks.isEmpty,
+            hasSubtitles: !subtitleStreams.isEmpty || supportsSubtitleSearch,
+            isPiPAvailable: isPiPAvailable,
+            showsStats: preferences.showStatsForNerds)
     }
 
     /// The live order for the current session, gated exactly as LiveTransportBar renders.

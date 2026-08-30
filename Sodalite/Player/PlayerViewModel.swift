@@ -3040,16 +3040,25 @@ final class PlayerViewModel {
         trackDropdown = .episode(highlighted: currentIdx)
     }
 
+    /// Index into `chapters` of the chapter containing the frame on screen: the last one starting at
+    /// or before it. nil only when there are no chapters. Both pickers open on it and iOS marks it.
+    ///
+    /// sourceTime, not currentTime: chapter marks sit on the absolute source timeline, and during a
+    /// seek `sourceTime` still names the frame the viewer is looking at.
+    var activeChapterIndex: Int? {
+        guard !chapters.isEmpty else { return nil }
+        let nowSeconds = player.sourceTime
+        var idx = 0
+        for (i, chapter) in chapters.enumerated() {
+            if chapter.startSeconds <= nowSeconds + 0.001 { idx = i } else { break }
+        }
+        return idx
+    }
+
     func openChapterDropdown() {
         guard chapters.count > 1 else { return }
         controlsTimer?.cancel()
-        // sourceTime, not currentTime: chapter marks are on the absolute source timeline.
-        let nowSeconds = player.sourceTime
-        var currentIdx = 0
-        for (i, chapter) in chapters.enumerated() {
-            if chapter.startSeconds <= nowSeconds + 0.001 { currentIdx = i } else { break }
-        }
-        trackDropdown = .chapter(highlighted: currentIdx)
+        trackDropdown = .chapter(highlighted: activeChapterIndex ?? 0)
     }
 
     func confirmDropdownSelection() {
