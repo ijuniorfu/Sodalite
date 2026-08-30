@@ -425,12 +425,30 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
             portraitPalette.near
                 .frame(maxWidth: .infinity, minHeight: safeTop, maxHeight: safeTop)
         }
+        // The screen's top edge cuts the mirrored structure off mid-shape and read as torn (Vincent,
+        // device, 2026-08-30), so the strip resolves INTO the page colour going up: the artwork is
+        // bracketed by the same colour at both ends of the band. Both overlays reach zero at the
+        // seam, or they would put a step exactly where the mirror makes the artwork continuous.
         .overlay {
             LinearGradient(
                 stops: [
-                    .init(color: .black.opacity(0.68), location: 0),
-                    .init(color: .black.opacity(0.40), location: 0.45),
-                    .init(color: .black.opacity(0.10), location: 0.80),
+                    .init(color: portraitPalette.near, location: 0),
+                    .init(color: portraitPalette.near.opacity(0.72), location: 0.34),
+                    .init(color: portraitPalette.near.opacity(0.28), location: 0.70),
+                    .init(color: portraitPalette.near.opacity(0), location: 1)
+                ],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .allowsHitTesting(false)
+        }
+        // Keeps the status bar legible where the artwork is already showing through, which the page
+        // colour alone cannot promise: it is clamped dark, the artwork under it is not.
+        .overlay {
+            LinearGradient(
+                stops: [
+                    .init(color: .black.opacity(0.40), location: 0),
+                    .init(color: .black.opacity(0.16), location: 0.55),
                     .init(color: .black.opacity(0), location: 1)
                 ],
                 startPoint: .top,
