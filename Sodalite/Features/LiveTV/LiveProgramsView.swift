@@ -16,23 +16,35 @@ struct LiveProgramsView: View {
     /// The guide's channel list, used to upgrade a tapped program's synthesized channel to the real one.
     let guideChannels: [JellyfinChannel]
     let tint: Color
+    /// True while the live player covers the screen. The rows are not worth refreshing behind it,
+    /// and the moment it flips back is exactly when the snapshot has aged by a whole program (#96).
+    let isPlayerPresented: Bool
     var onWatchLive: ((LivePlaybackContext) -> Void)?
 
     @Environment(\.dependencies) private var dependencies
     @Environment(\.horizontalSizeClass) private var hSizeClass
+    @Environment(\.scenePhase) private var scenePhase
     @State private var selection: ProgramSelection?
+    /// Set from onAppear/onDisappear, which is what a TabView selection change moves; the `.task`
+    /// below is not, because a background tab's content stays in the hierarchy.
+    @State private var isOnScreen = false
 
     init(model: LiveProgramsViewModel,
          timers: LiveTimerStore,
          guideChannels: [JellyfinChannel],
          tint: Color,
+         isPlayerPresented: Bool,
          onWatchLive: ((LivePlaybackContext) -> Void)? = nil) {
         _model = State(initialValue: model)
         self.timers = timers
         self.guideChannels = guideChannels
         self.tint = tint
+        self.isPlayerPresented = isPlayerPresented
         self.onWatchLive = onWatchLive
     }
+
+    /// The rows only have to describe "now" while someone is looking at them.
+    private var isWatched: Bool { isOnScreen && !isPlayerPresented && scenePhase == .active }
 
     var body: some View {
         Group {
@@ -69,9 +81,27 @@ struct LiveProgramsView: View {
                     }
                     .padding(.vertical, hSizeClass == .compact ? 16 : 40)
                 }
+                #if os(iOS)
+                .refreshable { await model.refresh() }
+                #endif
             }
         }
+        // Ungated, so the first fill never depends on the appearance callbacks below.
         .task { await model.load() }
+        .onAppear { isOnScreen = true }
+        .onDisappear { isOnScreen = false }
+        // Restarts whenever the rows become visible again: a returning player, a section switch, the
+        // app coming forward. Then it sleeps to the snapshot's own expiry rather than polling, so a
+        // schedule that is not about to turn over costs nothing.
+        .task(id: isWatched) {
+            guard isWatched else { return }
+            await model.refreshIfExpired()
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .seconds(model.secondsUntilExpiry()))
+                guard !Task.isCancelled else { return }
+                await model.refreshIfExpired()
+            }
+        }
         // Full-screen cover, NOT .sheet: a tvOS sheet leaves the tab bar visible behind it and tvOS 26 re-templates the backgrounded bar gray. The cover covers the bar so it is never disturbed.
         .detailCover(item: $selection) { sel in
             ProgramInfoPopover(

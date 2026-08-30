@@ -109,6 +109,7 @@ struct LiveTVTabView: View {
                         timers: timers,
                         guideChannels: guideModel.channels,
                         tint: tint,
+                        isPlayerPresented: isPlayerPresented,
                         onWatchLive: { context in
                             liveContext = context
                             isPlayerPresented = true
