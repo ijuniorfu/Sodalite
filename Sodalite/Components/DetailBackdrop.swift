@@ -396,21 +396,25 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
                 .fill(Color.Theme.surface)
                 .frame(maxWidth: .infinity, minHeight: bandHeight, maxHeight: bandHeight)
         }
-        // The bottom dissolve's eased curve, reversed: the artwork emerges out of the island strip's
-        // colour rather than starting against it on a line.
+        // Lets the artwork emerge out of the island strip's colour rather than start against it on a
+        // line. Full opacity at the seam is what removes the edge; everything after that is only how
+        // fast it lets go, and it has to let go quickly, or the veil reads as a haze lying over the
+        // artwork rather than as its edge (Vincent, device, 2026-08-30). Half gone by 16 pt, four
+        // fifths by 36, clear by 58, against 150 pt at the bottom, which has a whole page below it to
+        // hand over to and can afford the slower curve.
         .overlay(alignment: .top) {
             LinearGradient(
                 stops: [
                     .init(color: portraitPalette.near, location: 0),
-                    .init(color: portraitPalette.near.opacity(0.85), location: 0.18),
-                    .init(color: portraitPalette.near.opacity(0.45), location: 0.42),
-                    .init(color: portraitPalette.near.opacity(0.12), location: 0.70),
+                    .init(color: portraitPalette.near.opacity(0.55), location: 0.20),
+                    .init(color: portraitPalette.near.opacity(0.20), location: 0.45),
+                    .init(color: portraitPalette.near.opacity(0.05), location: 0.72),
                     .init(color: portraitPalette.near.opacity(0), location: 1)
                 ],
                 startPoint: .top,
                 endPoint: .bottom
             )
-            .frame(height: 120)
+            .frame(height: 80)
             .allowsHitTesting(false)
         }
     }
