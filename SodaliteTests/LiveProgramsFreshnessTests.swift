@@ -111,6 +111,25 @@ struct LiveProgramsFreshnessTests {
         #expect(model.loadError == nil)
     }
 
+    @Test("a failed refresh moves the expiry, so an unreachable server is not asked every 30 seconds")
+    func failedRefreshBacksOff() async throws {
+        let service = StubLiveTvService(airingFor: 1800)
+        let model = LiveProgramsViewModel(service: service, userID: "u")
+        await model.load()
+        let firstExpiry = try #require(model.validUntil)
+
+        service.failing = true
+        // The refetch the clock makes once the snapshot has expired.
+        await model.refreshIfExpired(now: Date().addingTimeInterval(3600))
+        let secondExpiry = try #require(model.validUntil)
+
+        // Left untouched, the expiry stays in the past and the loop's floor of 30s becomes the
+        // whole wait, for as long as the tab is open.
+        #expect(secondExpiry != firstExpiry)
+        let expected = Date().addingTimeInterval(LiveProgramsViewModel.minimumLifetime)
+        #expect(abs(secondExpiry.timeIntervalSince(expected)) < 5)
+    }
+
     @Test("a first load that fails everywhere reports it and stays retryable")
     func failedFirstLoadIsRetryable() async {
         let service = StubLiveTvService(airingFor: 1800)

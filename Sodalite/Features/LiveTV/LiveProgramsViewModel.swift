@@ -103,6 +103,11 @@ final class LiveProgramsViewModel {
                 if rows.isEmpty {
                     loadError = String(
                         localized: "livetv.loadFailed.title", defaultValue: "Couldn't load programs")
+                } else {
+                    // The expiry is what the clock sleeps to, so leaving it in the past would ask an
+                    // unreachable server again every thirty seconds for as long as the tab is open.
+                    // The rows are stale either way; the next attempt can wait a lifetime.
+                    validUntil = startedAt.addingTimeInterval(Self.minimumLifetime)
                 }
                 return
             }
