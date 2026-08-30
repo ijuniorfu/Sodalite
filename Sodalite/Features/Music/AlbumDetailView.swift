@@ -190,6 +190,7 @@ struct AlbumDetailView: View {
                 ForEach(Array(viewModel.songs.enumerated()), id: \.element.id) { index, song in
                     TrackRow(
                         song: song,
+                        number: song.indexNumber,
                         isCurrent: coordinator.currentItem?.id == song.id,
                         isPlaying: coordinator.isPlaying,
                         onSelect: {
@@ -204,75 +205,5 @@ struct AlbumDetailView: View {
                 }
             }
         }
-    }
-}
-
-// MARK: - Track Row
-
-private struct TrackRow: View {
-    let song: JellyfinItem
-    let isCurrent: Bool
-    let isPlaying: Bool
-    let onSelect: () -> Void
-
-    @Environment(\.horizontalSizeClass) private var hSizeClass
-    @FocusState private var focused: Bool
-
-    var body: some View {
-        HStack(alignment: .center, spacing: hSizeClass == .compact ? 14 : 24) {
-            Group {
-                if isCurrent {
-                    NowPlayingWaveIcon(isPlaying: isPlaying, font: .body)
-                } else {
-                    Text(song.indexNumber.map { String($0) } ?? "")
-                        .font(.body)
-                        .foregroundStyle(focused ? .white : Color.secondary)
-                        .monospacedDigit()
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.5)
-                }
-            }
-            .frame(width: 40, alignment: .center)
-
-            Text(song.name)
-                .font(.body)
-                .fontWeight(isCurrent ? .semibold : .medium)
-                .foregroundStyle(titleColor)
-                .lineLimit(1)
-                .frame(maxWidth: .infinity, alignment: .leading)
-
-            if let ticks = song.runTimeTicks,
-               let formatted = ResumeTimeFormatter.format(ticks: ticks) {
-                Text(formatted)
-                    .font(.caption)
-                    .foregroundStyle(focused ? Color.white.opacity(0.85) : Color.secondary)
-                    .monospacedDigit()
-            }
-        }
-        .padding(.horizontal, hSizeClass == .compact ? 16 : 28)
-        .padding(.vertical, hSizeClass == .compact ? 12 : 18)
-        .background(
-            RoundedRectangle(cornerRadius: 16)
-                .fill(focused ? Color.white.opacity(0.15) : Color.white.opacity(0.04))
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 16)
-                .strokeBorder(.tint, lineWidth: 3)
-                .opacity(focused ? 1 : 0)
-        )
-        .scaleEffect(focused ? 1.015 : 1.0)
-        .shadow(color: .black.opacity(focused ? 0.3 : 0), radius: 14, y: 6)
-        .focusable(true)
-        .focused($focused)
-        .animation(.easeInOut(duration: 0.15), value: focused)
-        .stableTap(isFocused: focused) {
-            onSelect()
-        }
-    }
-
-    /// `.tint` and `Color` are different shape-style types; erase to AnyShapeStyle to pick in one expression.
-    private var titleColor: AnyShapeStyle {
-        if isCurrent { return AnyShapeStyle(.tint) }
-        return AnyShapeStyle(focused ? Color.white : Color.primary)
     }
 }

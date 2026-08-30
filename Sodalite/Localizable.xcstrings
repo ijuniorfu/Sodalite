@@ -100371,6 +100371,326 @@
         }
       }
     },
+    "music.songs.title" : {
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Skladby"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sange"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Titel"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Τραγούδια"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Songs"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Canciones"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kappaleet"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Morceaux"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pjesme"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Számok"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Brani"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "曲"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "노래"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sanger"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nummers"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Utwory"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Músicas"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Músicas"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Piese"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Композиции"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Skladby"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Låtar"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Şarkılar"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Композиції"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "歌曲"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "歌曲"
+          }
+        }
+      }
+    },
+    "music.songs.ungrouped" : {
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tyto skladby nepatří do žádného alba. Jellyfin vytváří alba podle složek, takže každé album potřebuje vlastní složku."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Disse numre hører ikke til noget album. Jellyfin danner album ud fra mapper, så hvert album skal have sin egen mappe."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Diese Titel gehören zu keinem Album. Jellyfin bildet Alben aus Ordnern, jedes Album braucht also einen eigenen Ordner."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Αυτά τα κομμάτια δεν ανήκουν σε κανένα άλμπουμ. Το Jellyfin δημιουργεί άλμπουμ από φακέλους, επομένως κάθε άλμπουμ χρειάζεται τον δικό του φάκελο."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "These tracks are not in any album. Jellyfin builds albums from folders, so each album needs its own folder."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Estas pistas no pertenecen a ningún álbum. Jellyfin crea los álbumes a partir de carpetas, así que cada álbum necesita su propia carpeta."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nämä kappaleet eivät kuulu mihinkään albumiin. Jellyfin muodostaa albumit kansioista, joten jokainen albumi tarvitsee oman kansionsa."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ces morceaux n'appartiennent à aucun album. Jellyfin crée les albums à partir des dossiers, chaque album a donc besoin de son propre dossier."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ove pjesme ne pripadaju nijednom albumu. Jellyfin stvara albume prema mapama, pa svaki album treba vlastitu mapu."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ezek a számok egyetlen albumhoz sem tartoznak. A Jellyfin a mappákból hozza létre az albumokat, ezért minden albumnak saját mappa kell."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Questi brani non appartengono a nessun album. Jellyfin crea gli album dalle cartelle, quindi ogni album ha bisogno della propria cartella."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "これらの曲はどのアルバムにも属していません。Jellyfin はフォルダからアルバムを作成するため、アルバムごとに専用のフォルダが必要です。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이 트랙은 어떤 앨범에도 속해 있지 않습니다. Jellyfin은 폴더를 기준으로 앨범을 만들므로 앨범마다 고유한 폴더가 필요합니다."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Disse sporene tilhører ingen album. Jellyfin lager album ut fra mapper, så hvert album trenger sin egen mappe."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deze nummers horen bij geen enkel album. Jellyfin maakt albums op basis van mappen, dus elk album heeft een eigen map nodig."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Te utwory nie należą do żadnego albumu. Jellyfin tworzy albumy na podstawie folderów, więc każdy album potrzebuje własnego folderu."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Estas faixas não pertencem a nenhum álbum. O Jellyfin cria os álbuns a partir de pastas, então cada álbum precisa da própria pasta."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Estas faixas não pertencem a nenhum álbum. O Jellyfin cria os álbuns a partir de pastas, por isso cada álbum precisa da sua própria pasta."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aceste piese nu aparțin niciunui album. Jellyfin creează albumele din foldere, așa că fiecare album are nevoie de propriul folder."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Эти треки не входят ни в один альбом. Jellyfin создаёт альбомы по папкам, поэтому каждому альбому нужна собственная папка."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tieto skladby nepatria do žiadneho albumu. Jellyfin vytvára albumy podľa priečinkov, takže každý album potrebuje vlastný priečinok."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "De här låtarna tillhör inget album. Jellyfin skapar album utifrån mappar, så varje album behöver en egen mapp."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bu parçalar hiçbir albüme ait değil. Jellyfin albümleri klasörlerden oluşturur, bu yüzden her albümün kendi klasörü olmalı."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ці треки не належать до жодного альбому. Jellyfin створює альбоми за папками, тому кожному альбому потрібна власна папка."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "这些曲目不属于任何专辑。Jellyfin 依据文件夹生成专辑，因此每张专辑都需要各自的文件夹。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "這些曲目不屬於任何專輯。Jellyfin 依資料夾建立專輯，因此每張專輯都需要各自的資料夾。"
+          }
+        }
+      }
+    },
     "No albums found" : {
       "comment" : "Empty state shown when the music library has no albums",
       "extractionState" : "manual",
