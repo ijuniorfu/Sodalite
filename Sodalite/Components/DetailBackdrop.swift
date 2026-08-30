@@ -324,6 +324,11 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
         // Both edges: the band is the top chrome, and the canvas has to reach past the home indicator
         // or the page ends on a bright line where the scrim stops and the base black begins.
         .ignoresSafeArea(edges: [.top, .bottom])
+        // iOS 26 lays its own effect over a scroll view's top edge, on top of the band, and it is a
+        // separate thing from the navigation bar's background: hiding that background left the top of
+        // the band black anyway on a PUSHED detail page (measured, Sodalite#95). This page draws its
+        // own top edge and wants neither.
+        .scrollEdgeEffectHidden(true, for: .top)
         .animation(.easeInOut(duration: 0.4), value: portraitPalette)
     }
 
