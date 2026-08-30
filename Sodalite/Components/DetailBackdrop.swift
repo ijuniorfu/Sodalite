@@ -306,8 +306,17 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
 
                     // Keeps the last row off the screen edge. Transparent, unlike the scrimmed tiers:
-                    // the tint canvas behind it already reaches the bottom.
-                    Color.clear.frame(minHeight: trailingFiller)
+                    // the tint canvas behind it already reaches the bottom. The hanging band carries
+                    // the page colour into the rubber-band overscroll, which would otherwise uncover
+                    // the black the detail views put under their ZStack.
+                    Color.clear
+                        .frame(minHeight: trailingFiller)
+                        .overlay(alignment: .bottom) {
+                            portraitPalette.far
+                                .frame(height: 600)
+                                .offset(y: 600)
+                                .allowsHitTesting(false)
+                        }
                 }
                 .background(alignment: .top) { tintCanvas }
             }
@@ -315,7 +324,7 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
         // Both edges: the band is the top chrome, and the canvas has to reach past the home indicator
         // or the page ends on a bright line where the scrim stops and the base black begins.
         .ignoresSafeArea(edges: [.top, .bottom])
-        .animation(.easeInOut(duration: 0.4), value: portraitTint)
+        .animation(.easeInOut(duration: 0.4), value: portraitPalette)
     }
 
     /// Artwork for the band. A backdrop fills 16:9 exactly; a poster standing in for a missing
@@ -357,11 +366,25 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
                 .frame(height: 110)
                 .allowsHitTesting(false)
         }
-        // Dissolves the band into the page tint, so the artwork ends without an edge.
+        // Dissolves the band into the page tint, so the artwork ends without an edge. Every stop is
+        // the tint at a different opacity, never `.clear`: `.clear` is transparent BLACK, so fading
+        // to it drags the artwork through a grey band on the way, which reads as the very edge this
+        // is meant to remove. The eased stops and the 150 pt run are the second half of that; a
+        // linear 96 pt ramp still showed the cut on a bright backdrop (device, 2026-08-30).
         .overlay(alignment: .bottom) {
-            LinearGradient(colors: [.clear, portraitTint], startPoint: .top, endPoint: .bottom)
-                .frame(height: 96)
-                .allowsHitTesting(false)
+            LinearGradient(
+                stops: [
+                    .init(color: portraitPalette.near.opacity(0), location: 0),
+                    .init(color: portraitPalette.near.opacity(0.12), location: 0.30),
+                    .init(color: portraitPalette.near.opacity(0.45), location: 0.58),
+                    .init(color: portraitPalette.near.opacity(0.85), location: 0.82),
+                    .init(color: portraitPalette.near, location: 1)
+                ],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .frame(height: 150)
+            .allowsHitTesting(false)
         }
         .overlay(alignment: .bottom) {
             hero()
@@ -370,25 +393,20 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
         }
     }
 
-    /// The page colour, carried from the band down the whole page. A fixed fade distance, not a share
-    /// of the content height, so a two-screen page and a six-screen page transition at the same rate
-    /// and neither ends in a step. It holds flat through the first 200 pt (panel and button row) and
-    /// only then gives way: measured against a rendered mock, a fade that starts at the band leaves
-    /// the action area looking like it lost the colour rather than carried it.
+    /// The page colour, spanning the whole page rather than a fixed run that ends in black: the page
+    /// keeps its colour all the way to the bottom, it only deepens (Vincent, 2026-08-30). Holding it
+    /// flat over the first tenth keeps the action area looking like it carries the colour rather than
+    /// like it is already losing it.
     private var tintCanvas: some View {
-        VStack(spacing: 0) {
-            LinearGradient(
-                stops: [
-                    .init(color: portraitTint, location: 0),
-                    .init(color: portraitTint, location: 0.28),
-                    .init(color: ArtworkTint.base, location: 1)
-                ],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-            .frame(height: 720)
-            ArtworkTint.base
-        }
+        LinearGradient(
+            stops: [
+                .init(color: portraitPalette.near, location: 0),
+                .init(color: portraitPalette.near, location: 0.10),
+                .init(color: portraitPalette.far, location: 1)
+            ],
+            startPoint: .top,
+            endPoint: .bottom
+        )
     }
 
     private var portraitBandURL: URL? {
@@ -401,11 +419,11 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
 
     /// Base black until the artwork has been read, so an unresolved tint is invisible rather than a
     /// seam, and the real colour fades in when it lands.
-    private var portraitTint: Color {
+    private var portraitPalette: ArtworkPalette {
         #if canImport(UIKit)
-        ArtworkTintStore.shared.tint(for: portraitBandURL) ?? ArtworkTint.base
+        ArtworkTintStore.shared.palette(for: portraitBandURL) ?? .base
         #else
-        ArtworkTint.base
+        .base
         #endif
     }
 

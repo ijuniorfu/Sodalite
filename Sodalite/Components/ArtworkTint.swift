@@ -3,24 +3,38 @@ import SwiftUI
 import UIKit
 #endif
 
+/// The two ends of a page's tint: the colour directly under the hero band, and the colour the page
+/// has deepened to by its bottom. Deliberately not black at the far end, the page keeps its colour
+/// all the way down (Vincent, 2026-08-30).
+struct ArtworkPalette: Equatable {
+    var near: Color
+    var far: Color
+
+    /// Unresolved artwork. Black at both ends, so a page that has not read its image yet is simply
+    /// the black the detail views already put under their ZStack, never a seam.
+    static let base = ArtworkPalette(near: .black, far: .black)
+}
+
 /// Page tint derived from hero artwork, for the iPhone-portrait detail page.
 ///
 /// The portrait hero is a 16:9 band that ends mid-screen; below it the page carries a colour pulled
 /// from the artwork's own bottom edge, so the band dissolves into the page instead of ending on a
 /// hard cut (Sodalite#95). The colour is clamped dark before it is handed out: a bright backdrop
 /// (snow, daylight) would otherwise hand white body text a near-white canvas.
+///
+/// The mean is taken as it falls, with no saturation lift. Measured on a busy backdrop (One Piece,
+/// 2026-08-30): its bottom edge averages to a near-grey (saturation 0.058) because its hues cancel,
+/// and a chroma-weighted pass confirms there is nothing to recover, hue coherence 0.08 against 0.75
+/// on a single-palette backdrop. A page painted from that noise would claim a colour the artwork
+/// does not have; the neutral canvas is the honest reading.
 enum ArtworkTint {
-
-    /// Where a fully unresolved page sits, and the far end of every tint gradient. Matches the black
-    /// each detail view puts under its ZStack, so an unresolved tint is invisible rather than a seam.
-    static let base = Color.black
 
     #if canImport(UIKit)
     /// Average of the image's bottom eighth, clamped to a dark, half-saturated version of itself.
     ///
     /// The strip, not the whole image: the tint has to continue the pixels the band actually ends on,
     /// and a full-frame average of a dark-bottom/bright-top backdrop lands somewhere neither edge is.
-    nonisolated static func bottomEdgeTint(of image: UIImage) -> Color? {
+    nonisolated static func bottomEdgePalette(of image: UIImage) -> ArtworkPalette? {
         guard let source = image.cgImage, source.width > 0, source.height > 0 else { return nil }
 
         // CGImage crop coordinates are top-left origin, so the bottom strip starts at height - strip.
@@ -57,19 +71,19 @@ enum ArtworkTint {
 
     /// Dark enough for white text at any artwork brightness, saturated enough to still read as the
     /// artwork's colour, and lifted off pure black so a dark backdrop still produces a visible
-    /// transition rather than a black page.
-    nonisolated static func clamped(red: CGFloat, green: CGFloat, blue: CGFloat) -> Color {
+    /// transition rather than a black page. The far end is the same colour deepened, never black.
+    nonisolated static func clamped(red: CGFloat, green: CGFloat, blue: CGFloat) -> ArtworkPalette {
         var hue: CGFloat = 0
         var saturation: CGFloat = 0
         var brightness: CGFloat = 0
         UIColor(red: red, green: green, blue: blue, alpha: 1)
             .getHue(&hue, saturation: &saturation, brightness: &brightness, alpha: nil)
-        return Color(uiColor: UIColor(
-            hue: hue,
-            saturation: min(saturation, 0.55),
-            brightness: min(max(brightness, 0.09), 0.24),
-            alpha: 1
-        ))
+        let sat = min(saturation, 0.55)
+        let near = min(max(brightness, 0.09), 0.24)
+        return ArtworkPalette(
+            near: Color(uiColor: UIColor(hue: hue, saturation: sat, brightness: near, alpha: 1)),
+            far: Color(uiColor: UIColor(hue: hue, saturation: sat, brightness: near * 0.4, alpha: 1))
+        )
     }
     #endif
 }
@@ -86,25 +100,25 @@ enum ArtworkTint {
 final class ArtworkTintStore {
     static let shared = ArtworkTintStore()
 
-    private var tints: [URL: Color] = [:]
+    private var palettes: [URL: ArtworkPalette] = [:]
     private var inFlight: Set<URL> = []
 
-    func tint(for url: URL?) -> Color? {
+    func palette(for url: URL?) -> ArtworkPalette? {
         guard let url else { return nil }
-        return tints[url]
+        return palettes[url]
     }
 
     /// Derives and stores the tint for `url` once. Cheap (one 1x1 draw of an already decoded image),
     /// but off the main actor regardless: it runs while the detail page is painting its first frame.
     func resolve(_ image: UIImage, for url: URL) {
-        guard tints[url] == nil, !inFlight.contains(url) else { return }
+        guard palettes[url] == nil, !inFlight.contains(url) else { return }
         inFlight.insert(url)
         Task.detached(priority: .utility) {
-            let tint = ArtworkTint.bottomEdgeTint(of: image)
+            let palette = ArtworkTint.bottomEdgePalette(of: image)
             await MainActor.run {
                 ArtworkTintStore.shared.inFlight.remove(url)
-                if let tint {
-                    ArtworkTintStore.shared.tints[url] = tint
+                if let palette {
+                    ArtworkTintStore.shared.palettes[url] = palette
                 }
             }
         }
