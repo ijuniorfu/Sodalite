@@ -1,6 +1,9 @@
 import SwiftUI
 
 struct LiveTVTabView: View {
+    /// Whether this tab is the selected one. See TabRootView's call site.
+    let isTabSelected: Bool
+
     @Environment(\.dependencies) private var dependencies
     @Environment(\.horizontalSizeClass) private var hSizeClass
     // Late-bound once the active user is known, then stable across re-renders (matches MusicHomeView);
@@ -109,6 +112,8 @@ struct LiveTVTabView: View {
                         timers: timers,
                         guideChannels: guideModel.channels,
                         tint: tint,
+                        isPlayerPresented: isPlayerPresented,
+                        isTabSelected: isTabSelected,
                         onWatchLive: { context in
                             liveContext = context
                             isPlayerPresented = true

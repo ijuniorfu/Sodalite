@@ -21,7 +21,6 @@ struct ProgramInfoPopover: View {
     @State private var isRecording: Bool = false
     @State private var isSeriesRecording: Bool = false
 
-    private var isAiring: Bool { program.isAiring(at: Date()) }
 
     var body: some View {
         layout
@@ -48,8 +47,14 @@ struct ProgramInfoPopover: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
                     infoBlock
-                    VStack(alignment: .leading, spacing: 12) { actionButtons }
-                        .padding(.top, 4)
+                    // The buttons are statements about now: "Watch live" for a programme that has
+                    // ended is an offer the channel cannot honour, and a record timer past the end
+                    // is refused by the server (#96). Only this row carries the clock, so the info
+                    // above it is not re-laid out every minute under the user's focus.
+                    TimelineView(.periodic(from: .now, by: 60)) { context in
+                        VStack(alignment: .leading, spacing: 12) { actionButtons(at: context.date) }
+                    }
+                    .padding(.top, 4)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(24)
@@ -57,7 +62,9 @@ struct ProgramInfoPopover: View {
         } else {
             VStack(alignment: .leading, spacing: 24) {
                 infoBlock
-                HStack(spacing: 20) { actionButtons }
+                TimelineView(.periodic(from: .now, by: 60)) { context in
+                    HStack(spacing: 20) { actionButtons(at: context.date) }
+                }
                 Spacer()
             }
             .padding(60)
@@ -107,8 +114,8 @@ struct ProgramInfoPopover: View {
     }
 
     @ViewBuilder
-    private var actionButtons: some View {
-        if isAiring {
+    private func actionButtons(at now: Date) -> some View {
+        if program.isAiring(at: now) {
             PopoverActionButton(title: "livetv.watchLive", systemImage: "play.fill", accent: tint) {
                 dismiss()
                 onWatchLive?(LivePlaybackContext(channel: channel, program: program))
@@ -123,7 +130,7 @@ struct ProgramInfoPopover: View {
             onToggleFavorite?()
         }
         // Record affordances only for future / currently airing programs.
-        if let end = program.endDate, end > Date(), !program.isSynthesized {
+        if let end = program.endDate, end > now, !program.isSynthesized {
             PopoverActionButton(
                 title: isRecording ? "livetv.cancelRecording" : "livetv.record",
                 systemImage: isRecording ? "stop.circle" : "record.circle",

@@ -81,6 +81,7 @@ struct LivePlayerLauncher: UIViewControllerRepresentable {
             preferences: preferences,
             isLiveSession: true,
             liveChannel: liveContext.channel,
+            liveProgram: liveContext.program,
             liveTvService: liveTvService,
             directStreamMemory: directStreamMemory
         )

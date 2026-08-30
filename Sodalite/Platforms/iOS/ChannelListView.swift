@@ -73,8 +73,7 @@ struct ChannelListView: View {
                 }
                 ForEach(model.channels) { channel in
                     ChannelRow(channel: channel,
-                               current: model.currentProgram(for: channel),
-                               next: model.nextProgram(for: channel),
+                               schedule: model.schedule(for: channel),
                                isFavorite: model.timers.isFavorite(channel.id),
                                tint: tint,
                                onPlay: {
@@ -91,6 +90,7 @@ struct ChannelListView: View {
                 }
             }
             .listStyle(.plain)
+            .refreshable { await model.refresh() }
         }
     }
 
@@ -157,8 +157,10 @@ struct ChannelListView: View {
 /// Logo, identity, what is on now with its progress, what follows, and a direct play button.
 private struct ChannelRow: View {
     let channel: JellyfinChannel
-    let current: JellyfinProgram?
-    let next: JellyfinProgram?
+    /// The channel's loaded schedule. The row derives "now" and "next" from it on a minute clock
+    /// rather than being handed two values computed once: a program boundary passes without anything
+    /// else in the model changing, so nothing would otherwise invalidate those two lines (#96).
+    let schedule: [JellyfinProgram]
     let isFavorite: Bool
     let tint: Color
     let onPlay: () -> Void
@@ -184,17 +186,24 @@ private struct ChannelRow: View {
                         Image(systemName: "star.fill").font(.caption2).foregroundStyle(.yellow)
                     }
                 }
-                if let current {
-                    Text("livetv.channelList.now \(current.name)")
-                        .font(.subheadline)
-                        .lineLimit(1)
-                    ChannelRowProgress(program: current, tint: tint)
-                }
-                if let next, let start = next.startDate {
-                    Text("livetv.channelList.next \(next.name) \(DateFormatter.guideShortTime.string(from: start))")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
+                TimelineView(.periodic(from: .now, by: 60)) { context in
+                    let current = ChannelListViewModel.currentProgram(
+                        at: context.date, in: schedule, fallback: channel.currentProgram)
+                    let next = ChannelListViewModel.nextProgram(after: context.date, in: schedule)
+                    VStack(alignment: .leading, spacing: 3) {
+                        if let current {
+                            Text("livetv.channelList.now \(current.name)")
+                                .font(.subheadline)
+                                .lineLimit(1)
+                            ChannelRowProgress(program: current, now: context.date, tint: tint)
+                        }
+                        if let next, let start = next.startDate {
+                            Text("livetv.channelList.next \(next.name) \(DateFormatter.guideShortTime.string(from: start))")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                                .lineLimit(1)
+                        }
+                    }
                 }
             }
 
@@ -216,21 +225,20 @@ private struct ChannelRow: View {
     }
 }
 
-/// Its own view with its own minute clock, so the tick invalidates the bar and not the whole row.
+/// Drawn from the row's clock rather than one of its own: the bar and the two lines above it are
+/// the same statement about the same moment, and two clocks could disagree for a frame.
 private struct ChannelRowProgress: View {
     let program: JellyfinProgram
+    let now: Date
     let tint: Color
 
     var body: some View {
-        TimelineView(.periodic(from: .now, by: 60)) { context in
-            GeometryReader { geometry in
-                ZStack(alignment: .leading) {
-                    Capsule().fill(Color.white.opacity(0.16))
-                    Capsule().fill(tint)
-                        .frame(width: geometry.size.width * fraction(at: context.date))
-                }
+        GeometryReader { geometry in
+            ZStack(alignment: .leading) {
+                Capsule().fill(Color.white.opacity(0.16))
+                Capsule().fill(tint)
+                    .frame(width: geometry.size.width * fraction(at: now))
             }
-            .frame(height: 3)
         }
         .frame(height: 3)
     }

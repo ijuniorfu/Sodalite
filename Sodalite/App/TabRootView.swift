@@ -300,7 +300,9 @@ struct TabRootView: View {
             case .home:
                 HomeView()
             case .liveTV:
-                LiveTVTabView()
+                // Selection is passed rather than inferred from onAppear: a tab that is not selected
+                // keeps its content in the hierarchy, so its clocks have to be told (#96).
+                LiveTVTabView(isTabSelected: selectedTab == .liveTV)
             case .catalog:
                 CatalogView()
             case .search:

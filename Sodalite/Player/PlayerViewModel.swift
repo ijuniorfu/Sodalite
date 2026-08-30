@@ -647,6 +647,12 @@ final class PlayerViewModel {
     var behindLiveSeconds: Double = 0
     /// Channel for live sessions. Nil for VOD.
     let liveChannel: JellyfinChannel?
+    /// What is on air right now, as far as this session knows. Seeded with the programme that was on
+    /// at tune time and kept current by `startFollowingLiveProgram` (#96), because `item` is built
+    /// from it and the title above the picture reads `item`.
+    var liveProgram: JellyfinProgram?
+    /// Wakes at the programme's end and asks what took its place. Nil for VOD.
+    var liveProgramFollow: Task<Void, Never>?
     /// Live-TV service for tuner lifecycle (PlayerViewModel+Live). Nil for VOD.
     let liveTvService: JellyfinLiveTvServiceProtocol?
     /// Latched by `observeLiveEdge()` so a retune (re-runs `loadLiveStream`) can't stack duplicate sinks.
@@ -694,6 +700,7 @@ final class PlayerViewModel {
         playQueue: [JellyfinItem] = [],
         isLiveSession: Bool = false,
         liveChannel: JellyfinChannel? = nil,
+        liveProgram: JellyfinProgram? = nil,
         liveTvService: JellyfinLiveTvServiceProtocol? = nil,
         directStreamMemory: LiveDirectStreamMemory? = nil
     ) {
@@ -713,6 +720,7 @@ final class PlayerViewModel {
         self.queueIndex = 0
         self.isLiveSession = isLiveSession
         self.liveChannel = liveChannel
+        self.liveProgram = liveProgram
         self.liveTvService = liveTvService
         self.directStreamMemory = directStreamMemory
     }
@@ -777,6 +785,7 @@ final class PlayerViewModel {
                 // $subtitleTracks sink in startObserving owns it, and re-arms per channel.
                 resetLiveSubtitleAutoSelect()
                 resetTemporarySubtitleWindows()
+                startFollowingLiveProgram()
                 hostLoadActive = false
                 isPlaying = true
                 startObserving()
@@ -1123,6 +1132,8 @@ final class PlayerViewModel {
         // at entry, defeating the latch). Kill every UI timer with the session.
         nextEpisodeTimer?.cancel()
         nextEpisodeTimer = nil
+        liveProgramFollow?.cancel()
+        liveProgramFollow = nil
         controlsTimer?.cancel()
         controlsTimer = nil
         continuousSeekTask?.cancel()

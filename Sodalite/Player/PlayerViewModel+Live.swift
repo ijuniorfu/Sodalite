@@ -740,3 +740,67 @@ extension PlayerViewModel {
     }
 
 }
+
+// MARK: - Following the programme on air
+
+extension PlayerViewModel {
+
+    /// A live session outlives the programme it tuned into. `item` is built from the one that was on
+    /// air at tune time, and both the title above the picture and the system Now Playing entry read
+    /// `item`, so past a boundary they name a show that has ended while its successor is on screen
+    /// (Sodalite#96).
+    ///
+    /// Same shape as the overview's rows: an answer about "now" carries its own expiry, and here the
+    /// expiry is the programme's end. Nothing is polled between two boundaries.
+    static let liveProgramMinimumInterval: TimeInterval = 30
+    /// No end date to wake on: a channel without EPG, or an answer that never arrived.
+    static let liveProgramBlindInterval: TimeInterval = 300
+
+    /// When to look again at what is on air.
+    static func nextLiveProgramCheck(after program: JellyfinProgram?, from now: Date) -> Date {
+        guard let end = program?.endDate, end > now else {
+            return now.addingTimeInterval(liveProgramBlindInterval)
+        }
+        return max(end, now.addingTimeInterval(liveProgramMinimumInterval))
+    }
+
+    func startFollowingLiveProgram() {
+        liveProgramFollow?.cancel()
+        guard isLiveSession, let channel = liveChannel, let service = liveTvService else { return }
+        liveProgramFollow = Task { [weak self] in
+            var checkAt = PlayerViewModel.nextLiveProgramCheck(after: self?.liveProgram, from: Date())
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .seconds(max(checkAt.timeIntervalSinceNow, 1)))
+                guard !Task.isCancelled else { return }
+                guard let self else { return }
+                let adopted = await self.adoptCurrentLiveProgram(channel: channel, service: service)
+                checkAt = PlayerViewModel.nextLiveProgramCheck(after: adopted, from: Date())
+            }
+        }
+    }
+
+    /// Ask the channel what is on air and adopt it. Returns what it found, so the caller schedules
+    /// against the answer rather than against what it hoped for: a failed ask reports nothing and
+    /// earns the blind interval instead of a retry every thirty seconds.
+    private func adoptCurrentLiveProgram(
+        channel: JellyfinChannel, service: JellyfinLiveTvServiceProtocol
+    ) async -> JellyfinProgram? {
+        let now = Date()
+        guard let programs = try? await service.getPrograms(
+            channelIDs: [channel.id], userID: userID,
+            start: now, end: now.addingTimeInterval(PlayerViewModel.liveProgramBlindInterval)),
+            let airing = programs.first(where: { $0.isAiring(at: now) })
+        else {
+            LogTap.shared.note("[LiveProgram] channel=\(channel.id) nothing on air")
+            return nil
+        }
+        guard airing.id != liveProgram?.id else { return airing }
+        liveProgram = airing
+        // The whole item, not just the name: the description slot carries the programme's overview,
+        // and leaving the old one under a new title is the same lie one line down.
+        item = JellyfinItem(liveChannel: channel, program: airing)
+        stageInitialNowPlayingMetadata()
+        LogTap.shared.note("[LiveProgram] now \(airing.name)")
+        return airing
+    }
+}

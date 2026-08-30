@@ -47,6 +47,16 @@ final class ChannelListViewModel {
         await fetchChannels()
     }
 
+    /// Pull to refresh. Only the channel list is re-asked: the schedule behind each row spans two
+    /// days and does not go stale, what goes stale is the row's "now", and that follows the clock
+    /// rather than a request. `channels` is left standing until the first page lands, so the list
+    /// does not blink empty under the user's finger.
+    func refresh() async {
+        loadGeneration += 1
+        fetchedChannels = []
+        await fetchChannels()
+    }
+
     private func probeRadio() async {
         var probe = GuideFilter.default
         probe.kind = .radio
@@ -130,18 +140,32 @@ final class ChannelListViewModel {
         }
     }
 
+    func schedule(for channel: JellyfinChannel) -> [JellyfinProgram] {
+        programsByChannel[channel.id] ?? []
+    }
+
     /// `AddCurrentProgram=true` already delivers this with the channel list, so the row's first line
     /// needs no extra request; the fetched schedule only refines it once loaded.
     func currentProgram(for channel: JellyfinChannel) -> JellyfinProgram? {
-        let now = Date()
-        if let fromSchedule = programsByChannel[channel.id]?.first(where: { $0.isAiring(at: now) }) {
+        Self.currentProgram(at: Date(), in: schedule(for: channel), fallback: channel.currentProgram)
+    }
+
+    /// What is airing at `reference`. The fallback is the snapshot the channel list arrived with, so
+    /// it only answers for a channel whose schedule has not loaded yet; once it has, the row follows
+    /// the schedule and the clock rather than that one moment (#96).
+    static func currentProgram(at reference: Date, in schedule: [JellyfinProgram],
+                               fallback: JellyfinProgram?) -> JellyfinProgram? {
+        if let fromSchedule = schedule.first(where: { $0.isAiring(at: reference) }) {
             return fromSchedule
         }
-        return channel.currentProgram
+        guard let fallback else { return nil }
+        // A schedule that is loaded and says nothing is airing has answered; the snapshot would only
+        // repeat a program that ended.
+        return schedule.isEmpty ? fallback : nil
     }
 
     func nextProgram(for channel: JellyfinChannel) -> JellyfinProgram? {
-        Self.nextProgram(after: Date(), in: programsByChannel[channel.id] ?? [])
+        Self.nextProgram(after: Date(), in: schedule(for: channel))
     }
 
     /// First program starting at or after `reference`. A gap in the schedule is not an end: the

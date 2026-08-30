@@ -54,4 +54,32 @@ struct ChannelListRowTests {
         let now = Date(timeIntervalSince1970: 3600)
         #expect(ChannelListViewModel.nextProgram(after: now, in: schedule)?.name == "B")
     }
+
+    // MARK: - What is on now (Sodalite#96)
+
+    @Test("now follows the clock through a program boundary")
+    func currentFollowsTheClock() {
+        let stale = program("stale", start: -7200, end: -3600)
+        #expect(ChannelListViewModel.currentProgram(
+            at: Date(timeIntervalSince1970: 1800), in: schedule, fallback: stale)?.name == "A")
+        // Same schedule, same row, one boundary later.
+        #expect(ChannelListViewModel.currentProgram(
+            at: Date(timeIntervalSince1970: 5400), in: schedule, fallback: stale)?.name == "B")
+    }
+
+    @Test("a channel whose schedule never loaded still shows the snapshot it arrived with")
+    func fallbackWithoutSchedule() {
+        let snapshot = program("snapshot", start: 0, end: 3600)
+        #expect(ChannelListViewModel.currentProgram(
+            at: Date(timeIntervalSince1970: 1800), in: [], fallback: snapshot)?.name == "snapshot")
+    }
+
+    @Test("a loaded schedule with a gap says nothing rather than repeating an ended program")
+    func loadedScheduleOverridesTheSnapshot() {
+        // 7200 to 10800 is a gap. The snapshot the channel list arrived with named the program that
+        // ran then, and showing it here would state that an ended show is on air.
+        let snapshot = program("A", start: 0, end: 3600)
+        #expect(ChannelListViewModel.currentProgram(
+            at: Date(timeIntervalSince1970: 8000), in: schedule, fallback: snapshot) == nil)
+    }
 }
