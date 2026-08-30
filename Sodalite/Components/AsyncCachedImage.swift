@@ -6,6 +6,9 @@ struct AsyncCachedImage<Content: View, Placeholder: View>: View {
     let url: URL?
     /// Second URL tried when the primary is nil or fails, e.g. a series Thumb falling back to backdrop/episode still.
     var fallbackURL: URL? = nil
+    /// Fires with the decoded image whenever one lands, cache hit included, so a caller can derive
+    /// artwork colours (ArtworkTint) without decoding the bytes a second time.
+    var onImageLoaded: ((UIImage) -> Void)? = nil
     @ViewBuilder let content: (Image) -> Content
     @ViewBuilder let placeholder: () -> Placeholder
 
@@ -46,6 +49,7 @@ struct AsyncCachedImage<Content: View, Placeholder: View>: View {
             let result = await loadImage(from: candidate)
             if let image = result.image {
                 loaded = image
+                onImageLoaded?(image)
                 return
             }
             sawTransientFailure = sawTransientFailure || result.transientFailure

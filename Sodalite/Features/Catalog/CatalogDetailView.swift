@@ -85,6 +85,7 @@ struct CatalogDetailView: View {
             content
         }
         .ignoresSafeArea(when: !isPhonePortrait)
+        .hidesToolbarBackground()
         .hidesShellTabBar()
         .navigationDestination(item: $navigateToMedia) { media in
             CatalogDetailView(media: media)
@@ -124,7 +125,10 @@ struct CatalogDetailView: View {
             errorState(message: errorMessage)
         } else {
             // Same shape as MovieDetailView: hero + bottom-aligned primary block fill screen one, rest scrolls below the fold; default focus stays in the visible block so opening never auto-scrolls (left the tab bar stuck hidden on mid-scroll back-out).
-            DetailContentOverlay(hero: {
+            DetailContentOverlay(
+                heroImageURL: SeerrImageURL.backdrop(path: backdropPath),
+                heroPosterURL: SeerrImageURL.poster(path: posterPath, size: .w780),
+                hero: {
                 heroTitle
             }, primary: {
                 primaryBlock

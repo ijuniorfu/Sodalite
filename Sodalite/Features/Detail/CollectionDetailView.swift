@@ -47,6 +47,7 @@ struct CollectionDetailView: View {
             }
         }
         .ignoresSafeArea(when: !isPhonePortrait)
+        .hidesToolbarBackground()
         .overlay {
             if let userID = appState.activeUser?.id {
                 PlayerLauncher(
@@ -114,7 +115,10 @@ struct CollectionDetailView: View {
             )
             .ignoresSafeArea()
 
-            DetailContentOverlay(primary: {
+            DetailContentOverlay(
+                heroImageURL: vm.backdropURL(for: vm.item),
+                heroPosterURL: vm.heroPosterURL(for: vm.item),
+                primary: {
                 // Glass panel + action buttons as the bottom-aligned first-page block, matching movie/series detail (Sodalite#15 round 6).
                 VStack(alignment: .leading, spacing: 24) {
                     glassPanel(vm: vm)
