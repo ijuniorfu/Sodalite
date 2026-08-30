@@ -396,66 +396,42 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
                 .fill(Color.Theme.surface)
                 .frame(maxWidth: .infinity, minHeight: bandHeight, maxHeight: bandHeight)
         }
-    }
-
-    /// The strip behind the Dynamic Island: the artwork's own top slice, mirrored and blurred.
-    ///
-    /// A flat fill of the page colour was measured to be almost exactly the artwork's top edge colour
-    /// (0.263 against 0.243 brightness on Emily in Paris) and still looked wrong, because what set it
-    /// apart was not its hue but its flatness next to structured art: it read as a letterbox bar
-    /// (Vincent, device, 2026-08-30). Mirroring puts the image's own top row at the strip's BOTTOM,
-    /// so the seam is continuous by construction rather than by a matched colour, and the blur keeps
-    /// the mirror from reading as a repeat. The dim runs to zero at that seam for the same reason:
-    /// anything left there would be a brightness step exactly where the two meet.
-    private var islandStrip: some View {
-        AsyncCachedImage(url: portraitBandURL) { image in
-            image
-                .resizable()
-                .aspectRatio(contentMode: .fill)
-                .frame(maxWidth: .infinity, minHeight: safeTop, maxHeight: safeTop, alignment: .top)
-                .clipped()
-                .scaleEffect(y: -1)
-                .blur(radius: 14)
-                // Bounded frame + clip around the blur, then flattened: an unbounded blur surface has
-                // blanked sibling layers before (project_backdrop_blur_blanks_overlay).
-                .frame(maxWidth: .infinity, minHeight: safeTop, maxHeight: safeTop)
-                .clipped()
-                .drawingGroup()
-        } placeholder: {
-            portraitPalette.near
-                .frame(maxWidth: .infinity, minHeight: safeTop, maxHeight: safeTop)
-        }
-        // The screen's top edge cuts the mirrored structure off mid-shape and read as torn (Vincent,
-        // device, 2026-08-30), so the strip resolves INTO the page colour going up: the artwork is
-        // bracketed by the same colour at both ends of the band. Both overlays reach zero at the
-        // seam, or they would put a step exactly where the mirror makes the artwork continuous.
-        .overlay {
+        // The bottom dissolve's eased curve, reversed: the artwork emerges out of the island strip's
+        // colour rather than starting against it on a line.
+        .overlay(alignment: .top) {
             LinearGradient(
                 stops: [
                     .init(color: portraitPalette.near, location: 0),
-                    .init(color: portraitPalette.near.opacity(0.72), location: 0.34),
-                    .init(color: portraitPalette.near.opacity(0.28), location: 0.70),
+                    .init(color: portraitPalette.near.opacity(0.85), location: 0.18),
+                    .init(color: portraitPalette.near.opacity(0.45), location: 0.42),
+                    .init(color: portraitPalette.near.opacity(0.12), location: 0.70),
                     .init(color: portraitPalette.near.opacity(0), location: 1)
                 ],
                 startPoint: .top,
                 endPoint: .bottom
             )
+            .frame(height: 120)
             .allowsHitTesting(false)
         }
-        // Keeps the status bar legible where the artwork is already showing through, which the page
-        // colour alone cannot promise: it is clamped dark, the artwork under it is not.
-        .overlay {
-            LinearGradient(
-                stops: [
-                    .init(color: .black.opacity(0.40), location: 0),
-                    .init(color: .black.opacity(0.16), location: 0.55),
-                    .init(color: .black.opacity(0), location: 1)
-                ],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-            .allowsHitTesting(false)
-        }
+    }
+
+    /// The strip behind the Dynamic Island: flat page colour. The whole top transition lives in the
+    /// artwork's dissolve below it.
+    ///
+    /// Two cleverer strips were built and measured away first. A colour matched to the artwork's top
+    /// edge (0.263 against 0.243 brightness) still read as a letterbox bar; the artwork's own top
+    /// slice, mirrored and blurred, should have been seamless by construction and was worse. A
+    /// SwiftUI `blur` fades a view's OWN EDGES into transparency, so the strip's last 14 pt pulled
+    /// toward the black behind it. Measured across that seam: luminance 63 falling to 52, then
+    /// jumping to 80 on the artwork's side, a 28-level step exactly where the mirror was meant to
+    /// make the two continuous.
+    ///
+    /// The fault was never the strip's content, it was distance: 36 pt of transition at the top
+    /// against 150 pt at the bottom. Flat colour and a long dissolve is what the bottom edge does,
+    /// and it is what the top edge wanted (Vincent, device, 2026-08-30).
+    private var islandStrip: some View {
+        portraitPalette.near
+            .frame(maxWidth: .infinity, minHeight: safeTop, maxHeight: safeTop)
     }
 
     /// The page colour, spanning the whole page rather than a fixed run that ends in black: the page
