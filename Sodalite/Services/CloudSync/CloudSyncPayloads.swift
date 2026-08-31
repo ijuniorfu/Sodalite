@@ -126,6 +126,8 @@ struct PlaybackSettingsPayload: Codable, Equatable {
     var liveTeletextPage: String?
     /// Sodalite#67, same reason again.
     var autoplayCountdown: Bool?
+    /// AetherEngine#455, same reason again.
+    var forceDolbyVisionOnNonDVDisplay: Bool?
 }
 
 /// Sodalite#46. Unlike the other settings payloads this one is NOT last-writer-wins:

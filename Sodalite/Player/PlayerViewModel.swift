@@ -981,6 +981,7 @@ final class PlayerViewModel {
                 startPosition: startPos,
                 options: LoadOptions(
                     suppressDisplayCriteria: false,
+                    forceDolbyVisionOnNonDVDisplay: preferences.forceDolbyVisionOnNonDVDisplay,
                     matchContentEnabled: Self.matchDynamicRangeEnabled,
                     panelIsInHDRMode: Self.panelIsInHDRMode,
                     audioBridgeMode: preferences.audioBridgeMode,

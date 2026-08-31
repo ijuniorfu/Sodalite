@@ -47,6 +47,7 @@ final class PlaybackPreferences {
         static let selectTogglesPlayback = "playback.selectTogglesPlayback"
         static let instantSkipSeek = "playback.instantSkipSeek"
         static let subtitlesOnSkipBack = "playback.subtitlesOnSkipBack"
+        static let forceDolbyVisionOnNonDVDisplay = "playback.forceDolbyVisionOnNonDVDisplay"
     }
 
     // MARK: - Allowed Values
@@ -382,6 +383,14 @@ final class PlaybackPreferences {
         didSet { store.set(subtitlesOnSkipBack, forKey: Keys.subtitlesOnSkipBack) }
     }
 
+    /// AetherEngine#455, experimental, default OFF. On a display that reports no Dolby Vision, serve a
+    /// Profile 8.1 source as a Profile 5 so AVPlayer composes the DV itself instead of the panel getting
+    /// the static HDR10 base layer. Inert on a display that does Dolby Vision, which is why the settings
+    /// row only appears on the displays it can act on.
+    var forceDolbyVisionOnNonDVDisplay: Bool {
+        didSet { store.set(forceDolbyVisionOnNonDVDisplay, forKey: Keys.forceDolbyVisionOnNonDVDisplay) }
+    }
+
     var audioBridgeMode: AudioBridgeMode {
         preferLosslessAudioBridge ? .lossless : .surroundCompat
     }
@@ -438,6 +447,7 @@ final class PlaybackPreferences {
         self.showStatsForNerds = store.object(forKey: Keys.showStatsForNerds) as? Bool ?? false
         self.showEngineDiagnostics = store.object(forKey: Keys.showEngineDiagnostics) as? Bool ?? false
         self.preferLosslessAudioBridge = store.object(forKey: Keys.preferLosslessAudioBridge) as? Bool ?? false
+        self.forceDolbyVisionOnNonDVDisplay = store.object(forKey: Keys.forceDolbyVisionOnNonDVDisplay) as? Bool ?? false
         self.showScrubPreview = store.object(forKey: Keys.showScrubPreview) as? Bool ?? true
         self.preferServerTrickplay = store.object(forKey: Keys.preferServerTrickplay) as? Bool ?? false
         self.playerRotationLocked = store.object(forKey: Keys.playerRotationLocked) as? Bool ?? true
