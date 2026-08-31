@@ -139,6 +139,16 @@ extension DependencyContainer {
 
     // MARK: - Reconcile against the server's user table
 
+    /// What one reconcile pass changed on this device.
+    struct ReconcileOutcome {
+        /// Remembered profiles dropped, the signed-in one included.
+        let dropped: Int
+        /// The session ended with one of them: the caller routes back to the server's picker.
+        let endedActiveSession: Bool
+
+        static let none = ReconcileOutcome(dropped: 0, endedActiveSession: false)
+    }
+
     /// Holds the active server's remembered profiles against the server's own user table and drops
     /// the ones it no longer has. Answers "who is on this server" with `/Users`, which needs a token
     /// but no admin rights and hides nobody. `/Users/Public` is a login-screen list (no hidden, no
@@ -146,36 +156,76 @@ extension DependencyContainer {
     /// permission), so a profile missing from it is not evidence of anything.
     ///
     /// Only the active server: the reconcile rides the session's own token, and the other servers
-    /// get their pass when they become active. Returns how many profiles were dropped.
+    /// get their pass when they become active.
     @discardableResult
-    func reconcileRememberedProfiles(minimumInterval: TimeInterval = 30) async -> Int {
+    func reconcileRememberedProfiles(minimumInterval: TimeInterval = 30) async -> ReconcileOutcome {
         guard let server = activeServer,
               (try? keychainService.loadString(for: KeychainKeys.accessToken(serverID: server.id))) != nil
-        else { return 0 }
+        else { return .none }
 
         // The launch pass and the picker that comes up right behind it must not each ask.
         if let last = lastProfileReconcile[server.id],
            Date.now.timeIntervalSince(last) < minimumInterval {
-            return 0
+            return .none
         }
 
-        let remembered = listRememberedUsers(serverID: server.id)
-        guard !remembered.isEmpty else { return 0 }
-        guard let serverUsers = try? await jellyfinAuthService.getAllUsers() else { return 0 }
-        lastProfileReconcile[server.id] = .now
+        guard !listRememberedUsers(serverID: server.id).isEmpty else { return .none }
 
+        let serverUserIDs: [String]
+        do {
+            serverUserIDs = try await jellyfinAuthService.getAllUsers().map(\.id)
+            lastProfileReconcile[server.id] = .now
+        } catch APIError.unauthorized {
+            // Deleting a user takes its tokens with it, so the table can come back refused instead
+            // of arriving without the user in it. That refusal is still an answer, and the profile
+            // it is about is the one whose token was refused. The rest of the list keeps its cards
+            // until a session that the server does answer can speak for them.
+            return await endSessionIfRefused()
+        } catch {
+            return .none
+        }
+
+        // A table that does not list the session's own user is either a table this session does not
+        // live in (a proxy, another backend behind the same URL) or the table of a server that just
+        // deleted this profile. Nothing in the table itself tells the two apart, so ask the token:
+        // one still resolves, the other is refused (Sodalite#90).
+        let activeUserID = try? keychainService.loadString(for: KeychainKeys.userID(serverID: server.id))
+        var ended = ReconcileOutcome.none
+        if RememberedProfileReconciliation.sessionUserIsAbsent(from: serverUserIDs, activeUserID: activeUserID) {
+            ended = await endSessionIfRefused()
+            guard ended.endedActiveSession else { return .none }
+        }
+
+        // Read the list back: the profile the session was signed in as may just have gone with it,
+        // and with no session left, nothing has to be held against the table any more.
+        let remembered = listRememberedUsers(serverID: server.id)
         let stale = RememberedProfileReconciliation.staleProfileIDs(
             remembered: remembered,
-            serverUserIDs: serverUsers.map(\.id),
-            activeUserID: try? keychainService.loadString(for: KeychainKeys.userID(serverID: server.id))
+            serverUserIDs: serverUserIDs,
+            activeUserID: ended.endedActiveSession ? nil : activeUserID
         )
-        guard !stale.isEmpty else { return 0 }
 
         for id in stale {
             let name = remembered.first { $0.id == id }?.name ?? id
             sessionNote("\(name) is not a user on \(server.name) any more, dropping the remembered profile.")
             try? forgetUser(id: id, serverID: server.id)
         }
-        return stale.count
+        return ReconcileOutcome(
+            dropped: ended.dropped + stale.count,
+            endedActiveSession: ended.endedActiveSession
+        )
+    }
+
+    /// Asks the session check whether the token this session holds still resolves, and reports the
+    /// profile it took with it when it did not. Everything a refusal entails (the stored-password
+    /// retry first, then the tombstone, the credentials, the session pointers and the notice the
+    /// picker shows) stays in `checkActiveSession`, the one place a refusal is acted on.
+    private func endSessionIfRefused() async -> ReconcileOutcome {
+        switch await checkActiveSession() {
+        case .rejected:
+            return ReconcileOutcome(dropped: 1, endedActiveSession: true)
+        case .valid, .noSession, .unreachable:
+            return .none
+        }
     }
 }

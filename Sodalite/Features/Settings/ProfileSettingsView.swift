@@ -62,8 +62,14 @@ struct ProfileSettingsView: View {
         // Hold the cards against the server's own user table, so a profile deleted on the server
         // stops being offered here (Sodalite#90).
         .task {
-            guard await dependencies.reconcileRememberedProfiles() > 0 else { return }
+            let reconcile = await dependencies.reconcileRememberedProfiles()
+            guard reconcile.dropped > 0 else { return }
             refresh()
+            // The profile the pass dropped can be the one this screen is signed in as; the session
+            // ended with it, so hand routing back to AppRouter's picker (Sodalite#90).
+            if reconcile.endedActiveSession {
+                dependencies.requestSessionReroute()
+            }
         }
         .onReceive(NotificationCenter.default.publisher(for: .loginDidComplete)) { _ in
             // LoginView flipped activeUser; pop the add-profile stack back so the active card updates.

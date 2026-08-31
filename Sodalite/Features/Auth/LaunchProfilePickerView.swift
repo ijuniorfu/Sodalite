@@ -92,8 +92,19 @@ struct LaunchProfilePickerView: View {
             // nothing for (Sodalite#90).
             .task {
                 guard dependencies.activeServer?.id == server.id else { return }
-                guard await dependencies.reconcileRememberedProfiles() > 0 else { return }
+                let reconcile = await dependencies.reconcileRememberedProfiles()
+                guard reconcile.dropped > 0 else { return }
                 reloadProfiles()
+                // The pass can find that the session this screen is sitting on top of is the one
+                // the server dropped, which is what this picker is here to catch (Sodalite#90).
+                if reconcile.endedActiveSession, appState.isAuthenticated {
+                    // This cover is going away with the session, so the notice stays on AppState
+                    // and is spent on the picker AppRouter raises in its place.
+                    dependencies.requestSessionReroute()
+                    onFinished?()
+                } else {
+                    showRejectionNoticeIfAny()
+                }
             }
             .onReceive(NotificationCenter.default.publisher(for: .cloudSyncDidApplyChanges)) { _ in
                 reloadProfiles()

@@ -29,6 +29,15 @@ enum RememberedProfileReconciliation {
             .map(\.id)
     }
 
+    /// Whether the server's answer leaves the session's own user out. True for two situations that
+    /// look identical from here (the table belongs to another backend / the active profile is the
+    /// user that was deleted), which is why `staleProfileIDs` refuses to judge either of them: the
+    /// caller has to tell them apart by asking whether the token still resolves.
+    static func sessionUserIsAbsent(from serverUserIDs: [String], activeUserID: String?) -> Bool {
+        guard let activeUserID, !serverUserIDs.isEmpty else { return false }
+        return !Set(serverUserIDs.map(normalized)).contains(normalized(activeUserID))
+    }
+
     /// Jellyfin serialises the same GUID with and without dashes depending on where it came from
     /// (an auth response, a user listing, an older install's stored copy). Compare on the digits.
     private static func normalized(_ id: String) -> String {
