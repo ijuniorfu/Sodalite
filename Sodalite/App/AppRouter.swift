@@ -250,7 +250,14 @@ struct AppRouter: View {
                     // Last, because it delays nothing the user is waiting for: the profiles of the
                     // server just switched to are a cache nobody has re-read since it was last
                     // active (Sodalite#90).
-                    await dependencies.reconcileRememberedProfiles()
+                    let reconcile = await dependencies.reconcileRememberedProfiles()
+                    // The pass can end the session it rode on (the profile was deleted on the
+                    // server between the probe above and this request). Route it here rather than
+                    // through requestSessionReroute, whose bump would re-key this very task.
+                    if reconcile.endedActiveSession, !Task.isCancelled {
+                        launchPickerServer = dependencies.activeServer
+                        appState.isAuthenticated = false
+                    }
                 } else {
                     // Token expired, no remembered user, or the active server was removed with no
                     // successor: route to the picker for the new active server, or fall through to
@@ -551,7 +558,10 @@ struct AppRouter: View {
             if let fresh { appState.activeUser = fresh }
             // The session stands, so its token can speak for the profiles beside it: hold them
             // against the server's own user table.
-            await dependencies.reconcileRememberedProfiles()
+            if await dependencies.reconcileRememberedProfiles().endedActiveSession {
+                launchPickerServer = dependencies.activeServer
+                appState.isAuthenticated = false
+            }
         case .rejected:
             launchPickerServer = dependencies.activeServer
             appState.isAuthenticated = false
