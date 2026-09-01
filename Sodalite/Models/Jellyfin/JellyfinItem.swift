@@ -52,10 +52,12 @@ struct JellyfinItem: Codable, Sendable, Identifiable, Equatable, Hashable {
     let localTrailerCount: Int?
     let seriesPrimaryImageTag: String?
     let providerIds: [String: String]?
-    let chapters: [ChapterInfo]?
+    /// nil unless the fetch requested `Fields=Chapters`; `[]` is the server answering "none". `var`
+    /// so the player can fill it from its own detail fetch when a slim list item reaches it (Sodalite#94).
+    var chapters: [ChapterInfo]?
     /// Trickplay manifest: mediaSourceId -> width-string -> rendition. nil unless the server
-    /// generated tiles and the fetch requested `Fields=Trickplay`.
-    let trickplay: [String: [String: TrickplayInfo]]?
+    /// generated tiles and the fetch requested `Fields=Trickplay`. `var` for the same reason as `chapters`.
+    var trickplay: [String: [String: TrickplayInfo]]?
     let albumArtist: String?
     let artists: [String]?
     let albumId: String?
@@ -273,6 +275,20 @@ struct JellyfinItem: Codable, Sendable, Identifiable, Equatable, Hashable {
             return
         }
         userData = base.with(playbackPositionTicks: ticks, playedPercentage: pct)
+    }
+
+    /// Fill in the fields only `detailFields` carries, from a detail fetch of the same item.
+    ///
+    /// Additive, never overwriting: the launch item's `userData` holds the resume position this
+    /// session is already playing from, and a wholesale swap would replace it with the server's
+    /// staler copy. `nil` is the only gap it closes, so `chapters == []` (the server answering
+    /// "this file has none") survives.
+    mutating func applyDetailFields(from detail: JellyfinItem) {
+        // An auto-advance swaps the player's item while the previous episode's fetch is still in
+        // flight, so a detail that names another item is not ours to apply.
+        guard detail.id == id else { return }
+        if chapters == nil { chapters = detail.chapters }
+        if trickplay == nil { trickplay = detail.trickplay }
     }
 
     // `==` is deliberately the synthesized structural one, NOT `lhs.id == rhs.id`. An id-only `==`
