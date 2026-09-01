@@ -119,9 +119,13 @@ struct ContentLogoTitle<Fallback: View>: View {
         } action: { width in
             columnWidth = width
         }
-        // Faint glow lifts a dark logo off a dark backdrop; the dark drop shadow gives a light logo
-        // separation on a bright one. The glow used to be strong enough to halo the mark (Sodalite#97).
-        .shadow(color: .white.opacity(0.18), radius: 10)
+        // The glow still lifts a dark logo off a dark backdrop, but wide and soft instead of tight and
+        // bright: at 0.45 over 6pt it drew a rim around the mark, which is what read as a halo
+        // (Sodalite#97). Spreading the same lift over 16pt loses the rim and keeps the separation;
+        // dropping it entirely does not, a black mark on a dark backdrop nearly disappears (measured
+        // in an ImageRenderer sheet, 2026-09-01). The dark drop shadow does the opposite job, a light
+        // mark on bright artwork.
+        .shadow(color: .white.opacity(0.30), radius: 16)
         .shadow(color: .black.opacity(0.55), radius: 14, y: 4)
     }
 }
