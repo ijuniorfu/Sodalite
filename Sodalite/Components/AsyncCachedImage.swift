@@ -9,8 +9,52 @@ struct AsyncCachedImage<Content: View, Placeholder: View>: View {
     /// Fires with the decoded image whenever one lands, cache hit included, so a caller can derive
     /// artwork colours (ArtworkTint) without decoding the bytes a second time.
     var onImageLoaded: ((UIImage) -> Void)? = nil
-    @ViewBuilder let content: (Image) -> Content
-    @ViewBuilder let placeholder: () -> Placeholder
+    /// Fires false when a load starts and true once every candidate has failed. The placeholder is
+    /// also what shows WHILE loading, so a caller that deliberately blanks its placeholder (the
+    /// detail-page logo reserving its slot, Sodalite#97) can only tell "still coming" from "never
+    /// coming" here, and put its own fallback back.
+    var onLoadFailed: ((Bool) -> Void)? = nil
+    /// Built with the decoded image AND that image's own size, so a caller that has to size its
+    /// frame from the source's aspect ratio reads both out of the same state. Handing the size back
+    /// through `onImageLoaded` instead puts it in the CALLER's state, one view up, where the image
+    /// can render a pass before the aspect arrives: the detail-page logo drew every first open
+    /// square that way (Sodalite#97).
+    let content: (Image, CGSize) -> Content
+    let placeholder: () -> Placeholder
+
+    init(
+        url: URL?,
+        fallbackURL: URL? = nil,
+        onImageLoaded: ((UIImage) -> Void)? = nil,
+        onLoadFailed: ((Bool) -> Void)? = nil,
+        @ViewBuilder content: @escaping (Image) -> Content,
+        @ViewBuilder placeholder: @escaping () -> Placeholder
+    ) {
+        self.init(
+            url: url,
+            fallbackURL: fallbackURL,
+            onImageLoaded: onImageLoaded,
+            onLoadFailed: onLoadFailed,
+            sizedContent: { image, _ in content(image) },
+            placeholder: placeholder
+        )
+    }
+
+    init(
+        url: URL?,
+        fallbackURL: URL? = nil,
+        onImageLoaded: ((UIImage) -> Void)? = nil,
+        onLoadFailed: ((Bool) -> Void)? = nil,
+        @ViewBuilder sizedContent: @escaping (Image, CGSize) -> Content,
+        @ViewBuilder placeholder: @escaping () -> Placeholder
+    ) {
+        self.url = url
+        self.fallbackURL = fallbackURL
+        self.onImageLoaded = onImageLoaded
+        self.onLoadFailed = onLoadFailed
+        self.content = sizedContent
+        self.placeholder = placeholder
+    }
 
     @Environment(\.dependencies) private var dependencies
     @Environment(\.scenePhase) private var scenePhase
@@ -23,7 +67,7 @@ struct AsyncCachedImage<Content: View, Placeholder: View>: View {
     var body: some View {
         ZStack {
             if let loaded {
-                content(Image(uiImage: loaded))
+                content(Image(uiImage: loaded), loaded.size)
                     .transition(.opacity.animation(.easeIn(duration: 0.2)))
             } else {
                 placeholder()
@@ -44,6 +88,7 @@ struct AsyncCachedImage<Content: View, Placeholder: View>: View {
         // Reset on URL change so a stale image from the previous profile doesn't flash while the new one loads.
         loaded = nil
         retryOnActivate = false
+        onLoadFailed?(false)
         var sawTransientFailure = false
         for candidate in [url, fallbackURL] {
             let result = await loadImage(from: candidate)
@@ -55,6 +100,7 @@ struct AsyncCachedImage<Content: View, Placeholder: View>: View {
             sawTransientFailure = sawTransientFailure || result.transientFailure
         }
         retryOnActivate = sawTransientFailure
+        onLoadFailed?(true)
     }
 
     @MainActor
@@ -106,9 +152,7 @@ struct AsyncCachedImage<Content: View, Placeholder: View>: View {
 
 extension AsyncCachedImage where Placeholder == ProgressView<EmptyView, EmptyView> {
     init(url: URL?, @ViewBuilder content: @escaping (Image) -> Content) {
-        self.url = url
-        self.content = content
-        self.placeholder = { ProgressView() }
+        self.init(url: url, content: content, placeholder: { ProgressView() })
     }
 }
 
