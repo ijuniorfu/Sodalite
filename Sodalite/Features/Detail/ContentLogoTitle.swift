@@ -54,8 +54,9 @@ struct ContentLogoTitle<Fallback: View>: View {
 
     /// Logo URL by item ID only: `/Items/{id}/Images/Logo` serves the current logo tagless, so it loads on the first frame from a series stub (episode deep-link) with no imageTags round-trip, and stays stable when the stub is replaced (no reload/flash). No-logo items 404 to the text fallback. nil only when logos are off.
     ///
-    /// The pixel box is a tier constant, never the measured column or the decoded aspect: a URL that
-    /// moves after the image lands re-fires AsyncCachedImage's `task(id:)` and flashes.
+    /// The pixel box is a constant per device family, never the measured column, the decoded aspect
+    /// or the orientation: a URL that moves after the image lands re-fires AsyncCachedImage's
+    /// `task(id:)` and flashes.
     private var logoURL: URL? {
         guard dependencies.appearancePreferences.showContentLogos else {
             return nil
