@@ -9,6 +9,11 @@ struct AsyncCachedImage<Content: View, Placeholder: View>: View {
     /// Fires with the decoded image whenever one lands, cache hit included, so a caller can derive
     /// artwork colours (ArtworkTint) without decoding the bytes a second time.
     var onImageLoaded: ((UIImage) -> Void)? = nil
+    /// Fires false when a load starts and true once every candidate has failed. The placeholder is
+    /// also what shows WHILE loading, so a caller that deliberately blanks its placeholder (the
+    /// detail-page logo reserving its slot, Sodalite#97) can only tell "still coming" from "never
+    /// coming" here, and put its own fallback back.
+    var onLoadFailed: ((Bool) -> Void)? = nil
     @ViewBuilder let content: (Image) -> Content
     @ViewBuilder let placeholder: () -> Placeholder
 
@@ -44,6 +49,7 @@ struct AsyncCachedImage<Content: View, Placeholder: View>: View {
         // Reset on URL change so a stale image from the previous profile doesn't flash while the new one loads.
         loaded = nil
         retryOnActivate = false
+        onLoadFailed?(false)
         var sawTransientFailure = false
         for candidate in [url, fallbackURL] {
             let result = await loadImage(from: candidate)
@@ -55,6 +61,7 @@ struct AsyncCachedImage<Content: View, Placeholder: View>: View {
             sawTransientFailure = sawTransientFailure || result.transientFailure
         }
         retryOnActivate = sawTransientFailure
+        onLoadFailed?(true)
     }
 
     @MainActor
