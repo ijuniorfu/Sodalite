@@ -546,6 +546,8 @@ final class PlayerViewModel {
     /// can cancel it before `player.load()`; untracked it would resume after stopPlayback's
     /// player.stop() and restart playback behind a dismissed player (audio runs until app restart).
     var loadTask: Task<Void, Never>?
+    /// Late fetch of the `detailFields` a slim launch item arrived without (Sodalite#94).
+    @ObservationIgnored private var detailEnrichmentTask: Task<Void, Never>?
     /// Latched by `stopPlayback()`; startPlayback resets it at entry and re-checks after every await
     /// so a teardown racing an in-flight load (incl. next-episode / season-picker tasks, not loadTask
     /// and thus uncancellable) still bails before or stops right after `player.load()`.
@@ -735,6 +737,115 @@ final class PlayerViewModel {
         loadTask = Task { [weak self] in await self?.startPlayback() }
     }
 
+    /// Chapters sorted by start position, each entry paired with its index in the server's original
+    /// array (chapter image URLs address that array, not the sorted one). The API documents
+    /// start-position order but some legacy taggers emit out of sequence.
+    static func orderedChapters(from chapters: [ChapterInfo]?) -> (chapters: [ChapterInfo], imageIndices: [Int]) {
+        let ordered = (chapters ?? [])
+            .enumerated()
+            .sorted { $0.element.startPositionTicks < $1.element.startPositionTicks }
+        return (ordered.map(\.element), ordered.map(\.offset))
+    }
+
+    /// Single owner for the chapter arrays: the load reads them off the launch item, a late detail
+    /// fetch re-reads them off the enriched one, and both land here.
+    private func applyChapterOrdering() {
+        let ordered = Self.orderedChapters(from: item.chapters)
+        chapters = ordered.chapters
+        chapterImageIndices = ordered.imageIndices
+    }
+
+    /// Whether the item still owes us the fields only `detailFields` requests.
+    ///
+    /// Chapters and the trickplay manifest ride on the item, and every route that starts an episode
+    /// (the series Play button, an episode row, an auto-advance, the in-player season picker) hands
+    /// over a list item fetched with `episodeListFields` or `homeRowFields`, neither of which names
+    /// them. Movies looked immune only because their detail screen plays the item it fetched itself.
+    ///
+    /// `nil` is "never requested" and `[]` is the server answering "this file has none", so keeping
+    /// them apart spares a chapterless file a round-trip on every launch (Sodalite#94).
+    static func needsDetailEnrichment(item: JellyfinItem, isLive: Bool) -> Bool {
+        // A live item is synthesised from the channel plus its EPG program; there is no library item
+        // behind it, and the live load path shows no chapter UI at all.
+        guard !isLive else { return false }
+        return item.chapters == nil
+    }
+
+    /// Fetch the fields the caller did not ask for, rather than requiring every call site to hand over
+    /// a fat item. Deliberately not awaited by the load: the chapter button, the scrub-bar ticks and
+    /// the preview are all reactive, and blocking here would make the prefetched-PlaybackInfo route
+    /// (Sodalite#71) trade its saved round-trip back for this one before the first frame.
+    private func startDetailEnrichment() {
+        detailEnrichmentTask?.cancel()
+        detailEnrichmentTask = nil
+        guard Self.needsDetailEnrichment(item: item, isLive: isLiveSession),
+              let itemService else { return }
+        let itemID = item.id
+        detailEnrichmentTask = Task { [weak self] in
+            guard let self,
+                  let detail = try? await itemService.getItemDetail(userID: self.userID, itemID: itemID)
+            else { return }
+            // An auto-advance can swap the item while this is in flight; the enriched twin of the
+            // episode we just left has nothing to say about the one now playing.
+            guard !Task.isCancelled, !self.isTearingDown, self.item.id == itemID else { return }
+            self.applyEnrichedDetail(detail)
+        }
+    }
+
+    private func applyEnrichedDetail(_ detail: JellyfinItem) {
+        let hadTrickplay = item.trickplay != nil
+        item.applyDetailFields(from: detail)
+        applyChapterOrdering()
+        // The preview was wired to the local extractor because the launch item carried no manifest;
+        // rewire it now the tiles are known instead of leaving the session on the expensive path.
+        if !hadTrickplay, item.trickplay != nil, let source = activePlaybackSource {
+            configureScrubPreview(source: source)
+        }
+    }
+
+    /// Server trickplay tiles when the item carries a manifest, the local extractor / cache stills
+    /// otherwise. One owner, because a late detail fetch has to be able to re-run the same decision.
+    private func configureScrubPreview(source: PlaybackMediaSource) {
+        let trickplayTileSet = TrickplayTileSet(
+            trickplay: item.trickplay, mediaSourceID: source.id, targetWidth: 320)
+        if Self.shouldUseServerTrickplay(
+            preferServer: preferences.preferServerTrickplay, tileSet: trickplayTileSet),
+           let tileSet = trickplayTileSet {
+            let itemID = item.id
+            let service = playbackService
+            scrubPreview.configure(
+                serverThumbnail: { seconds in
+                    // MainActor: resolve tile index + crop, then hop off-actor to fetch/decode.
+                    guard let placement = tileSet.tile(forSeconds: seconds),
+                          let url = service.buildTrickplayTileURL(
+                              itemID: itemID, width: tileSet.width, tileIndex: placement.tileIndex)
+                    else { return nil }
+                    return await Self.fetchTrickplayCrop(from: url, crop: placement.crop)
+                },
+                enabled: preferences.showScrubPreview
+            )
+        } else {
+            // Cache-first: resident loopback segments decode with no second connection;
+            // the extractor is the fallback for non-resident positions. supportsCacheBackedStills
+            // is false on the software-decode path (no HLSVideoEngine) so it degrades to the
+            // extractor. Disc titles keep the extractor: scrubThumbnail wants playlist/output
+            // seconds while our value is the display axis, and a disc shift would return a wrong
+            // (not nil) frame; the extractor is correct by construction there.
+            let engine = player
+            let cacheThumbnail: (Double, Int) async -> CGImage? = { [weak engine] seconds, maxWidth in
+                guard let engine, engine.supportsCacheBackedStills, engine.discTitles.isEmpty else {
+                    return nil
+                }
+                return await engine.scrubThumbnail(atSeconds: seconds, maxWidth: maxWidth)
+            }
+            scrubPreview.configure(
+                extractor: frameExtractor,
+                cacheThumbnail: cacheThumbnail,
+                enabled: preferences.showScrubPreview
+            )
+        }
+    }
+
     func startPlayback() async {
         isTearingDown = false
         hostLoadActive = true
@@ -743,12 +854,8 @@ final class PlayerViewModel {
         // standing from the previous episode would describe the new one until PlaybackInfo answers.
         activePlaybackSource = nil
         liveRoute = nil
-        // Sort chapters defensively: API documents start-position order but some legacy taggers emit out of sequence.
-        let orderedChapters = (item.chapters ?? [])
-            .enumerated()
-            .sorted { $0.element.startPositionTicks < $1.element.startPositionTicks }
-        chapters = orderedChapters.map(\.element)
-        chapterImageIndices = orderedChapters.map(\.offset)
+        applyChapterOrdering()
+        startDetailEnrichment()
         // Reset to the global default each session so in-player overrides don't bleed across episodes/movies.
         pictureMode = preferences.pictureMode
         applyPictureMode()
@@ -872,44 +979,7 @@ final class PlayerViewModel {
             } else {
                 frameExtractor = nil
             }
-            let trickplayTileSet = TrickplayTileSet(
-                trickplay: item.trickplay, mediaSourceID: source.id, targetWidth: 320)
-            if Self.shouldUseServerTrickplay(
-                preferServer: preferences.preferServerTrickplay, tileSet: trickplayTileSet),
-               let tileSet = trickplayTileSet {
-                let itemID = item.id
-                let service = playbackService
-                scrubPreview.configure(
-                    serverThumbnail: { seconds in
-                        // MainActor: resolve tile index + crop, then hop off-actor to fetch/decode.
-                        guard let placement = tileSet.tile(forSeconds: seconds),
-                              let url = service.buildTrickplayTileURL(
-                                  itemID: itemID, width: tileSet.width, tileIndex: placement.tileIndex)
-                        else { return nil }
-                        return await Self.fetchTrickplayCrop(from: url, crop: placement.crop)
-                    },
-                    enabled: preferences.showScrubPreview
-                )
-            } else {
-                // Cache-first: resident loopback segments decode with no second connection;
-                // the extractor is the fallback for non-resident positions. supportsCacheBackedStills
-                // is false on the software-decode path (no HLSVideoEngine) so it degrades to the
-                // extractor. Disc titles keep the extractor: scrubThumbnail wants playlist/output
-                // seconds while our value is the display axis, and a disc shift would return a wrong
-                // (not nil) frame; the extractor is correct by construction there.
-                let engine = player
-                let cacheThumbnail: (Double, Int) async -> CGImage? = { [weak engine] seconds, maxWidth in
-                    guard let engine, engine.supportsCacheBackedStills, engine.discTitles.isEmpty else {
-                        return nil
-                    }
-                    return await engine.scrubThumbnail(atSeconds: seconds, maxWidth: maxWidth)
-                }
-                scrubPreview.configure(
-                    extractor: frameExtractor,
-                    cacheThumbnail: cacheThumbnail,
-                    enabled: preferences.showScrubPreview
-                )
-            }
+            configureScrubPreview(source: source)
 
             let startPos: Double?
             // A retry after a source outage resumes where the outage hit: the item's server-side progress
@@ -1139,6 +1209,8 @@ final class PlayerViewModel {
         controlsTimer = nil
         continuousSeekTask?.cancel()
         continuousSeekTask = nil
+        detailEnrichmentTask?.cancel()
+        detailEnrichmentTask = nil
         scrubPreview.reset()
         let extractorToClose = frameExtractor
         frameExtractor = nil
