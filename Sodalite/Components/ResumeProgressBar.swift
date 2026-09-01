@@ -73,9 +73,24 @@ struct ResumeProgressBar: View {
                     track.frame(minWidth: posterWidth * PosterBadgeMetrics.minimumTrackShare * scale)
                     label(remaining)
                 }
-                track
+                unlabelledTrack
             }
         } else {
+            unlabelledTrack
+        }
+    }
+
+    /// The capsule alone, in the height a labelled row would have. Without this the row is only as
+    /// tall as the capsule when there is no time to show, so its meter sits lower on the card than
+    /// the meter on the card beside it, which is visible in any row that mixes the two.
+    ///
+    /// The spacer is a hidden `Text` in the same font rather than an arithmetic line height: a font's
+    /// line height is not its point size, and guessing the factor would drift per platform.
+    private var unlabelledTrack: some View {
+        ZStack {
+            Text(verbatim: "0")
+                .font(.system(size: labelSize, weight: .semibold))
+                .hidden()
             track
         }
     }
