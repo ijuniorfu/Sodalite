@@ -260,6 +260,7 @@ extension PlayerViewModel {
             source: .custom(reader, formatHint: "mpegts"),
             options: LoadOptions(
                 suppressDisplayCriteria: false,
+                forceDolbyVisionOnNonDVDisplay: preferences.forceDolbyVisionOnNonDVDisplay,
                 matchContentEnabled: Self.matchDynamicRangeEnabled,
                 panelIsInHDRMode: Self.panelIsInHDRMode,
                 audioBridgeMode: preferences.audioBridgeMode,
@@ -382,6 +383,7 @@ extension PlayerViewModel {
 
         let options = LoadOptions(
             suppressDisplayCriteria: false,
+            forceDolbyVisionOnNonDVDisplay: preferences.forceDolbyVisionOnNonDVDisplay,
             matchContentEnabled: Self.matchDynamicRangeEnabled,
             panelIsInHDRMode: Self.panelIsInHDRMode,
             audioBridgeMode: preferences.audioBridgeMode,

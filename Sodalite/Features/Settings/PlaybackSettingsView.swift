@@ -1,8 +1,13 @@
 import SwiftUI
+import AetherEngine
 
 /// Playback preferences UI; each row is a focusable left/right value cycler (no click), like native tvOS Settings.
 struct PlaybackSettingsView: View {
     @Environment(\.dependencies) private var dependencies
+
+    /// Read once per appearance, not per body pass: the DV row is inert on a display that has Dolby
+    /// Vision of its own, and the capability read walks the screen's HDR modes.
+    @State private var displayHasDolbyVision = false
 
     private var prefs: PlaybackPreferences { dependencies.playbackPreferences }
 
@@ -336,6 +341,20 @@ struct PlaybackSettingsView: View {
                     label: { String(localized: String.LocalizationValue($0.titleKey)) }
                 )
 
+                // AetherEngine#455: only a display without Dolby Vision of its own has anything to gain
+                // here, so on one that has it the row greys out rather than offering a dead switch.
+                boolRow(
+                    icon: "sparkles.tv",
+                    title: "settings.playback.forceDolbyVision",
+                    subtitle: "settings.playback.forceDolbyVision.subtitle",
+                    value: Binding(
+                        get: { prefs.forceDolbyVisionOnNonDVDisplay },
+                        set: { prefs.forceDolbyVisionOnNonDVDisplay = $0 }
+                    )
+                )
+                .disabled(displayHasDolbyVision)
+                .opacity(displayHasDolbyVision ? 0.4 : 1)
+
                 sectionHeader("settings.playback.section.audio")
 
                 boolRow(
@@ -373,6 +392,7 @@ struct PlaybackSettingsView: View {
                 }
             }
             .screenContentInset()
+            .task { displayHasDolbyVision = AetherEngine.displayCapabilities.supportsDolbyVision }
             .frame(maxWidth: .infinity, alignment: .leading)
         }
         .frame(maxWidth: .infinity)

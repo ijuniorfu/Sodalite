@@ -153102,6 +153102,328 @@
         }
       }
     },
+    "settings.playback.forceDolbyVision" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dolby Vision na HDR10 displejích"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dolby Vision på HDR10-skærme"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dolby Vision auf HDR10-Displays"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dolby Vision σε οθόνες HDR10"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dolby Vision on HDR10 Displays"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dolby Vision en pantallas HDR10"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dolby Vision HDR10-näytöillä"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dolby Vision sur écrans HDR10"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dolby Vision na HDR10 zaslonima"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dolby Vision HDR10-kijelzőkön"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dolby Vision su display HDR10"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "HDR10ディスプレイでのDolby Vision"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "HDR10 디스플레이에서 Dolby Vision"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dolby Vision på HDR10-skjermer"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dolby Vision op HDR10-schermen"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dolby Vision na ekranach HDR10"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dolby Vision em telas HDR10"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dolby Vision em ecrãs HDR10"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dolby Vision pe afișaje HDR10"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dolby Vision на HDR10-экранах"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dolby Vision na HDR10 displejoch"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dolby Vision på HDR10-skärmar"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "HDR10 ekranlarda Dolby Vision"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dolby Vision на HDR10-екранах"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在 HDR10 显示器上启用 Dolby Vision"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在 HDR10 顯示器上啟用 Dolby Vision"
+          }
+        }
+      }
+    },
+    "settings.playback.forceDolbyVision.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Experimentální. Data Dolby Vision pro každý snímek se použijí přímo v tomto zařízení místo odeslání statické vrstvy HDR10 na displej. Jen Profile 8.1. Pokud barvy vypadají špatně, vypněte."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Eksperimentel. Anvender Dolby Visions data for hvert billede på denne enhed i stedet for at sende det statiske HDR10-lag til skærmen. Kun Profile 8.1. Slå fra, hvis farverne ser forkerte ud."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Experimentell. Wendet die Bild-für-Bild-Daten von Dolby Vision auf diesem Gerät an, statt dem Panel die statische HDR10-Ebene zu schicken. Nur Profile 8.1. Bei falschen Farben abschalten."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Πειραματικό. Εφαρμόζει τα δεδομένα Dolby Vision ανά καρέ σε αυτή τη συσκευή αντί να στέλνει στην οθόνη το στατικό στρώμα HDR10. Μόνο Profile 8.1. Απενεργοποιήστε το αν τα χρώματα δείχνουν λάθος."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Experimental. Applies Dolby Vision's per-frame data on this device instead of sending the panel the static HDR10 layer. Profile 8.1 only. Turn it off if colors look wrong."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Experimental. Aplica los datos por fotograma de Dolby Vision en este dispositivo en lugar de enviar la capa estática HDR10 a la pantalla. Solo Profile 8.1. Desactívalo si los colores se ven mal."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kokeellinen. Käyttää Dolby Visionin ruutukohtaisia tietoja tässä laitteessa sen sijaan, että näytölle lähetettäisiin staattinen HDR10-kerros. Vain Profile 8.1. Poista käytöstä, jos värit näyttävät vääriltä."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Expérimental. Applique les données image par image de Dolby Vision sur cet appareil au lieu d'envoyer la couche HDR10 statique à l'écran. Profile 8.1 uniquement. Désactivez si les couleurs semblent fausses."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Eksperimentalno. Primjenjuje Dolby Vision podatke po sličici na ovom uređaju umjesto slanja statičnog HDR10 sloja zaslonu. Samo Profile 8.1. Isključite ako boje izgledaju pogrešno."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kísérleti. A Dolby Vision képkockánkénti adatait ezen az eszközön alkalmazza, ahelyett hogy a statikus HDR10-réteget küldené a kijelzőre. Csak Profile 8.1. Kapcsold ki, ha a színek hibásnak tűnnek."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sperimentale. Applica i dati fotogramma per fotogramma di Dolby Vision su questo dispositivo invece di inviare al pannello il livello HDR10 statico. Solo Profile 8.1. Disattiva se i colori sembrano sbagliati."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "実験的機能。静的な HDR10 レイヤーをパネルに送る代わりに、Dolby Vision のフレームごとのデータをこの端末で適用します。Profile 8.1 のみ。色がおかしい場合はオフにしてください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "실험적 기능입니다. 정적 HDR10 레이어를 디스플레이로 보내는 대신 Dolby Vision의 프레임별 데이터를 이 기기에서 적용합니다. Profile 8.1 전용. 색이 이상하면 끄십시오."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Eksperimentell. Bruker Dolby Visions data per bilde på denne enheten i stedet for å sende det statiske HDR10-laget til skjermen. Kun Profile 8.1. Slå av hvis fargene ser feil ut."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Experimenteel. Past de gegevens per beeld van Dolby Vision toe op dit apparaat in plaats van de statische HDR10-laag naar het scherm te sturen. Alleen Profile 8.1. Schakel uit als de kleuren verkeerd lijken."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Eksperymentalne. Stosuje dane Dolby Vision dla każdej klatki na tym urządzeniu, zamiast wysyłać do ekranu statyczną warstwę HDR10. Tylko Profile 8.1. Wyłącz, jeśli kolory wyglądają źle."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Experimental. Aplica os dados quadro a quadro do Dolby Vision neste dispositivo em vez de enviar a camada HDR10 estática para a tela. Somente Profile 8.1. Desative se as cores parecerem erradas."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Experimental. Aplica os dados imagem a imagem do Dolby Vision neste dispositivo em vez de enviar a camada HDR10 estática para o ecrã. Apenas Profile 8.1. Desative se as cores parecerem erradas."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Experimental. Aplică datele Dolby Vision pentru fiecare cadru pe acest dispozitiv în loc să trimită afișajului stratul HDR10 static. Doar Profile 8.1. Dezactivează dacă culorile arată greșit."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Экспериментально. Данные Dolby Vision для каждого кадра применяются на этом устройстве вместо отправки на экран статичного слоя HDR10. Только Profile 8.1. Отключите, если цвета выглядят неправильно."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Experimentálne. Údaje Dolby Vision pre každú snímku sa použijú v tomto zariadení namiesto odoslania statickej vrstvy HDR10 na displej. Len Profile 8.1. Ak farby vyzerajú zle, vypnite."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Experimentell. Använder Dolby Visions data per bildruta på den här enheten i stället för att skicka det statiska HDR10-lagret till skärmen. Endast Profile 8.1. Stäng av om färgerna ser fel ut."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deneysel. Statik HDR10 katmanını ekrana göndermek yerine Dolby Vision'ın kare başına verilerini bu cihazda uygular. Yalnızca Profile 8.1. Renkler yanlış görünüyorsa kapatın."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Експериментально. Дані Dolby Vision для кожного кадру застосовуються на цьому пристрої замість надсилання на екран статичного шару HDR10. Лише Profile 8.1. Вимкніть, якщо кольори виглядають неправильно."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "实验性功能。在本设备上应用 Dolby Vision 的逐帧数据，而不是把静态 HDR10 层发给显示器。仅限 Profile 8.1。若颜色不正常请关闭。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "實驗性功能。在本裝置上套用 Dolby Vision 的逐幀資料，而非將靜態 HDR10 層送往顯示器。僅限 Profile 8.1。若顏色不正常請關閉。"
+          }
+        }
+      }
+    },
     "settings.playback.preferLossless.subtitle" : {
       "extractionState" : "manual",
       "localizations" : {
