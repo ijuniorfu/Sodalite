@@ -1,35 +1,130 @@
 import SwiftUI
 
-/// Resume bar across the bottom of card artwork. One component for `MediaCard` and the episode
-/// rows, which held byte-identical copies of it.
+/// When the resume indicator is drawn at all. One rule for both cards, like `TopShelfProgress` is
+/// for the shelf, because the two used to hold their own copies of it and only one of them read the
+/// live watched state.
+enum ResumeIndicator {
+    /// nil means "draw nothing". A finished item is the case that changed in Sodalite#99: the gate
+    /// used to be `playedPercentage > 0` alone, so an item watched to the end wore a full bar under
+    /// the watched check, one state drawn twice. Past the server's resume threshold
+    /// `setResumePosition` writes 100 percent and `played` together, so both marks appeared the
+    /// moment playback stopped, without a refetch to blame.
+    static func fraction(playedPercentage: Double?, isPlayed: Bool) -> Double? {
+        guard !isPlayed, let playedPercentage, playedPercentage > 0 else { return nil }
+        return min(playedPercentage / 100, 1)
+    }
+}
+
+/// Resume indicator on card artwork: an inset capsule with the remaining time beside it, in one row
+/// along the bottom of the image. `MediaCard` and the episode strip share it.
+///
+/// It replaces a 10pt band that ran edge to edge inside the card's own 12pt clip (Sodalite#99).
+/// That band was a fixed height on every tier, so it measured 4.5 percent of a TV poster and 8.3
+/// percent of a phone one, it ignored the card-scale setting, and, having no gap to the card edge,
+/// it read as a heavy bottom frame rather than as progress. Everything here is a fraction of the
+/// tier's poster width times that setting, the convention `PosterBadgeMetrics` already sets, so a
+/// landscape card wears the same indicator as the poster beside it and both track the setting.
+///
+/// No scrim under the row, unlike the Top Shelf artwork, which needs one because the system draws
+/// its own title into the same corner. Rendered against a white still, a dark still and a busy one,
+/// the opaque track carries itself and the label carries on a two-layer shadow; the scrim variant
+/// only dimmed the lower third of every partly-watched card in a row where nearly all of them are.
 struct ResumeProgressBar: View {
     /// 0...1. Callers hold Jellyfin percentages; they convert, so the view has a single unit.
     let fraction: Double
-    var height: CGFloat = 10
-    var cornerRadius: CGFloat = 12
+
+    /// Remaining time, already formatted and localized. `nil` draws the capsule alone, which is what
+    /// a container item gets: a series or an album has a percentage but no resume point, so there is
+    /// no honest number to put beside it.
+    var remaining: String?
+
+    /// The tier's poster width, not this card's width.
+    let posterWidth: CGFloat
+    var scale: CGFloat = 1
 
     /// Opaque, and neither a material nor a translucent black. Both of those let the artwork
     /// through, so on a bright still the track ends up as light as the fill and the played part
-    /// stops being readable, which is the defect this replaces. The level matches the Top Shelf
-    /// renderer's track so the shelf and the app show the same bar.
+    /// stops being readable. The level matches the Top Shelf renderer's track so the shelf and the
+    /// app show the same bar.
     private static let trackLevel = 0.13
 
+    private var inset: CGFloat { PosterBadgeMetrics.checkInset(posterWidth: posterWidth, scale: scale) }
+    private var trackHeight: CGFloat { PosterBadgeMetrics.trackHeight(posterWidth: posterWidth, scale: scale) }
+    private var gap: CGFloat { PosterBadgeMetrics.labelGap(posterWidth: posterWidth, scale: scale) }
+    private var labelSize: CGFloat { PosterBadgeMetrics.remainingLabelSize(posterWidth: posterWidth, scale: scale) }
+
     var body: some View {
-        GeometryReader { geo in
-            VStack {
-                Spacer()
-                ZStack(alignment: .leading) {
-                    Rectangle()
-                        .fill(Color(white: Self.trackLevel))
-                        .frame(height: height)
-                    Rectangle()
+        row
+            // The same inset as the watched badge opposite, so the two overlays line up on the
+            // card's margin instead of each keeping their own.
+            .padding(inset)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
+    }
+
+    /// `ViewThatFits` is the guard rule: it measures the label at its natural width against a track
+    /// held to its minimum share of the card, and falls back to the track alone when the two cannot
+    /// both have their space. Estimating the text width instead would need a font metric per locale
+    /// and would guess wrong in exactly the languages that need the rule.
+    @ViewBuilder
+    private var row: some View {
+        if let remaining {
+            ViewThatFits(in: .horizontal) {
+                HStack(spacing: gap) {
+                    track.frame(minWidth: posterWidth * PosterBadgeMetrics.minimumTrackShare * scale)
+                    label(remaining)
+                }
+                unlabelledTrack
+            }
+        } else {
+            unlabelledTrack
+        }
+    }
+
+    /// The capsule alone, in the height a labelled row would have. Without this the row is only as
+    /// tall as the capsule when there is no time to show, so its meter sits lower on the card than
+    /// the meter on the card beside it, which is visible in any row that mixes the two.
+    ///
+    /// The spacer is a hidden `Text` in the same font rather than an arithmetic line height: a font's
+    /// line height is not its point size, and guessing the factor would drift per platform.
+    private var unlabelledTrack: some View {
+        ZStack {
+            Text(verbatim: "0")
+                .font(.system(size: labelSize, weight: .semibold))
+                .hidden()
+            track
+        }
+    }
+
+    private var track: some View {
+        Capsule()
+            .fill(Color(white: Self.trackLevel))
+            .frame(height: trackHeight)
+            .overlay(alignment: .leading) {
+                GeometryReader { geo in
+                    Capsule()
                         // .tint reads the WindowGroup tint and follows supporter state. Never
                         // Color.accentColor, which is the static asset (hard-coded blue).
                         .fill(.tint)
-                        .frame(width: geo.size.width * min(max(fraction, 0), 1), height: height)
+                        .frame(width: geo.size.width * min(max(fraction, 0), 1))
                 }
             }
-        }
-        .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
+            .shadow(color: .black.opacity(0.5), radius: trackHeight * 0.5)
+    }
+
+    private func label(_ text: String) -> some View {
+        Text(text)
+            // Fixed, like the poster badges: it is sized off the artwork it sits on, so growing it
+            // with the viewer's Dynamic Type setting would push it out of a card that stayed put.
+            .font(.system(size: labelSize, weight: .semibold))
+            .foregroundStyle(.white)
+            .lineLimit(1)
+            // Never truncate. The row either has room for the whole label or drops it, and that is
+            // ViewThatFits' decision, which needs the natural width to make.
+            .fixedSize()
+            // Two layers, not one. A tight radius alone draws a contour around the glyphs and a wide
+            // one alone reads as a grey smudge on a bright still; together they give the number an
+            // edge and a soft ground, the same lesson as the detail logo's glow (Sodalite#97).
+            .shadow(color: .black.opacity(0.7), radius: labelSize * 0.1)
+            .shadow(color: .black.opacity(0.45), radius: labelSize * 0.5)
     }
 }

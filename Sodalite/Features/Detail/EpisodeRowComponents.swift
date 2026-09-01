@@ -177,8 +177,11 @@ struct EpisodeLandscapeCard: View {
                         .animation(.easeInOut(duration: 0.2), value: isFocused)
                 )
 
-                if let pct = episode.userData?.playedPercentage, pct > 0 {
-                    ResumeProgressBar(fraction: pct / 100)
+                if let fraction = ResumeIndicator.fraction(playedPercentage: episode.userData?.playedPercentage,
+                                                           isPlayed: isPlayed) {
+                    ResumeProgressBar(fraction: fraction,
+                                      remaining: remainingLabel,
+                                      posterWidth: LayoutMetrics.current(hSizeClass).posterSize.width)
                         .frame(width: cardSize.width, height: cardSize.height)
                 }
 
@@ -205,13 +208,25 @@ struct EpisodeLandscapeCard: View {
                 }
 
                 if let runtime = episode.runTimeTicks {
-                    Text(runtime.ticksToDisplay)
+                    // A started episode carries its remaining time on the artwork, so the total
+                    // would be a second number on one card saying something else (Sodalite#99).
+                    // Blank, not absent: the strip keeps even card heights that way, the same
+                    // reason MediaCard always renders its subtitle slot.
+                    Text(remainingLabel == nil ? runtime.ticksToDisplay : " ")
                         .font(.caption2)
                         .foregroundStyle(.tertiary)
                 }
             }
             .frame(width: cardSize.width, alignment: .leading)
         }
+    }
+
+    /// Time left beside the resume capsule. Reads the live `isPlayed` override rather than the
+    /// immutable `episode.userData`, for the same reason the badge does: marking an episode watched
+    /// in the context menu has to clear the indicator without a refetch.
+    private var remainingLabel: String? {
+        guard !isPlayed else { return nil }
+        return episode.resumeRemainingTicks?.ticksToCompactDisplay
     }
 
     /// Focus stroke beats selected/current. Selection keeps the control tint, while focus uses the semantic media role.

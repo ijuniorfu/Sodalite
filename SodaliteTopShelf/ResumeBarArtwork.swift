@@ -21,7 +21,7 @@ enum ResumeBarArtwork {
     /// Bump whenever the drawing changes. It rides in the file name, so old artwork stops
     /// matching, gets swept, and re-renders; without it a look change is invisible on every cell
     /// whose progress and accent happen to be unchanged.
-    private static let renderVersion = 2
+    private static let renderVersion = 3
 
     /// Whole-pass budget. Renders are serial, so one unreachable image must not eat the
     /// extension's time slice and leave the shelf empty.

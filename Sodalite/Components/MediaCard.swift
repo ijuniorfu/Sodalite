@@ -63,6 +63,8 @@ struct MediaCard: View {
             itemInfo
         }
         .frame(width: cardWidth)
+        .accessibilityElement(children: .combine)
+        .accessibilityValue(accessibilityProgress)
     }
 
     private var posterImage: some View {
@@ -146,9 +148,27 @@ struct MediaCard: View {
 
     @ViewBuilder
     private var progressOverlay: some View {
-        if let playedPercentage = item.userData?.playedPercentage, playedPercentage > 0 {
-            ResumeProgressBar(fraction: playedPercentage / 100)
+        if let resumeFraction {
+            ResumeProgressBar(fraction: resumeFraction,
+                              remaining: item.resumeRemainingTicks?.ticksToCompactDisplay,
+                              posterWidth: tierPosterWidth,
+                              scale: scale)
         }
+    }
+
+    private var resumeFraction: Double? {
+        ResumeIndicator.fraction(playedPercentage: item.userData?.playedPercentage,
+                                 isPlayed: item.userData?.played == true)
+    }
+
+    /// Progress was purely visual before this, VoiceOver got nothing from the bar at all. Composed
+    /// from a percent style and the same compact remaining string the label shows, so it carries no
+    /// sentence of its own into 26 languages.
+    private var accessibilityProgress: String {
+        guard let resumeFraction else { return "" }
+        let percent = resumeFraction.formatted(.percent.precision(.fractionLength(0)))
+        guard let remaining = item.resumeRemainingTicks?.ticksToCompactDisplay else { return percent }
+        return "\(percent), \(remaining)"
     }
 
     private var iconForType: String {
