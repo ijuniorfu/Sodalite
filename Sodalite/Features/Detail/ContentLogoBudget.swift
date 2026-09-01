@@ -63,17 +63,30 @@ enum ContentLogoTier: Equatable {
         return ContentLogoBudget(maxWidth: column * columnFraction, maxHeight: maxHeight)
     }
 
-    /// Pixel box to ask Jellyfin for. Jellyfin fits the image inside the box and keeps its aspect,
-    /// so bounding both axes covers a wide mark without pulling a needlessly tall payload for a
-    /// stacked one.
+    /// Box to ask Jellyfin for, in points, per DEVICE FAMILY rather than per tier: the two phone
+    /// tiers share one box, so rotating the phone cannot change the URL. It can, and then every
+    /// rotation drops `loaded`, refetches and flashes. The box covers the widest and tallest budget
+    /// in its family.
     ///
-    /// Constant per tier ON PURPOSE. Sizing the request off the measured column or the decoded
-    /// aspect would change the URL after the image lands, which re-fires AsyncCachedImage's
-    /// `task(id:)`, clears `loaded`, and reintroduces the flash this change exists to remove.
+    /// Constant ON PURPOSE, for the same reason: sizing the request off the measured column or the
+    /// decoded aspect would move the URL after the image lands, re-firing AsyncCachedImage's
+    /// `task(id:)`.
+    var requestPoints: CGSize {
+        switch self {
+        case .tv: CGSize(width: 1820 * 0.42, height: 165)
+        case .regular: CGSize(width: 1310 * 0.55, height: 130)
+        case .phoneLandscape, .phonePortrait: CGSize(width: 900 * 0.60, height: 88)
+        }
+    }
+
+    /// Pixel box for the request. Jellyfin fits the image inside it and keeps its aspect, so
+    /// bounding both axes covers a wide mark without pulling a needlessly tall payload for a
+    /// stacked one.
     func requestPixels(scale: CGFloat) -> (width: Int, height: Int) {
-        (
-            width: Int((nominalColumn * columnFraction * scale).rounded()),
-            height: Int((maxHeight * scale).rounded())
+        let box = requestPoints
+        return (
+            width: Int((box.width * scale).rounded()),
+            height: Int((box.height * scale).rounded())
         )
     }
 }

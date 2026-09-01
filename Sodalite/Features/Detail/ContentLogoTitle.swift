@@ -19,9 +19,6 @@ struct ContentLogoTitle<Fallback: View>: View {
     @Environment(\.verticalSizeClass) private var vSizeClass
     @Environment(\.displayScale) private var displayScale
 
-    /// Aspect of the decoded mark, off AsyncCachedImage's existing callback, so the budget can
-    /// normalize optical weight without a second decode.
-    @State private var aspect: CGFloat?
     /// The column the logo sits in. Layout runs before the image task, so this is measured before
     /// there is anything to draw; the tier nominal only ever covers the very first pass.
     @State private var columnWidth: CGFloat = 0
@@ -83,20 +80,23 @@ struct ContentLogoTitle<Fallback: View>: View {
         // Always an AsyncCachedImage, never a branch: the fallback is its placeholder, so the stable per-id URL never swaps the subtree or resets `.id` to disturb the enclosing ScrollView.
         AsyncCachedImage(
             url: logoURL,
-            onImageLoaded: { image in
-                let size = image.size
-                aspect = size.width > 0 && size.height > 0 ? size.width / size.height : nil
-            },
-            onLoadFailed: { loadFailed = $0 }
-        ) { image in
-            let drawn = ContentLogoSizing.size(aspect: aspect ?? 1, in: budget)
-            image
-                .resizable()
-                .aspectRatio(contentMode: .fit)
-                // Both axes come from the budget, so the size is the tier's decision and not the
-                // source asset's aspect ratio (Sodalite#97).
-                .frame(width: drawn.width, height: drawn.height)
-        } placeholder: {
+            onLoadFailed: { loadFailed = $0 },
+            // sizedContent, not onImageLoaded: the mark's own size arrives WITH the mark, out of one
+            // state, so there is no pass where an image is on screen and its aspect is not known yet.
+            // Through the callback there was, and every first open drew the mark square (Sodalite#97).
+            sizedContent: { image, imageSize in
+                let drawn = ContentLogoSizing.size(
+                    aspect: imageSize.width / imageSize.height,
+                    in: budget
+                )
+                image
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    // Both axes come from the budget, so the size is the tier's decision and not the
+                    // source asset's aspect ratio (Sodalite#97).
+                    .frame(width: drawn.width, height: drawn.height)
+            }
+        ) {
             if reservesSlotSilently {
                 Color.clear
             } else {

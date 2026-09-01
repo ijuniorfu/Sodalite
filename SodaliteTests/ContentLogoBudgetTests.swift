@@ -119,6 +119,17 @@ struct ContentLogoBudgetTests {
         #expect(a.height == 330)
     }
 
+    /// A phone rotation must not move the URL: it would drop the loaded image, refetch and flash on
+    /// every turn. Both phone tiers therefore share one request box.
+    @Test func rotatingThePhoneDoesNotChangeTheRequest() {
+        #expect(ContentLogoTier.phonePortrait.requestPoints == ContentLogoTier.phoneLandscape.requestPoints)
+        #expect(ContentLogoTier.phonePortrait.requestPixels(scale: 3) == ContentLogoTier.phoneLandscape.requestPixels(scale: 3))
+        // and it still covers the taller of the two budgets
+        #expect(ContentLogoTier.phonePortrait.requestPoints.height >= ContentLogoTier.phonePortrait.maxHeight)
+        #expect(ContentLogoTier.phonePortrait.requestPoints.height >= ContentLogoTier.phoneLandscape.maxHeight)
+        #expect(ContentLogoTier.phonePortrait.requestPoints.width >= ContentLogoTier.phonePortrait.budget(columnWidth: 440).maxWidth)
+    }
+
     @Test func requestBoxFollowsTheScale() {
         let oneX = ContentLogoTier.phonePortrait.requestPixels(scale: 1)
         let threeX = ContentLogoTier.phonePortrait.requestPixels(scale: 3)
