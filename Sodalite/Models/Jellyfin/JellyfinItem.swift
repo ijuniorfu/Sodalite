@@ -103,6 +103,20 @@ struct JellyfinItem: Codable, Sendable, Identifiable, Equatable, Hashable {
         type == .playlist && mediaType?.caseInsensitiveCompare("Audio") == .orderedSame
     }
 
+    /// Time left, for the resume capsule's label (Sodalite#99). `nil` unless the item carries a real
+    /// resume point, which is the gate that keeps container items honest: a series or an album has a
+    /// `playedPercentage` (episodes watched, tracks played) but never a `playbackPositionTicks`, so
+    /// subtracting a missing position from the runtime would have advertised a whole album as "left
+    /// to play". Under a minute counts as nothing left, since the label would round it to "1m".
+    var resumeRemainingTicks: Int64? {
+        guard let total = runTimeTicks,
+              let position = userData?.playbackPositionTicks,
+              position > 0
+        else { return nil }
+        let remaining = total - position
+        return remaining >= 60 * 10_000_000 ? remaining : nil
+    }
+
     /// Does this item actually carry `provider.value` (e.g. "tmdb.1399")? Jellyfin has no server-side
     /// provider-id filter, so a query that looks like a lookup returns whatever the library sorts first;
     /// every such "hit" has to be verified here or it is just an arbitrary item.

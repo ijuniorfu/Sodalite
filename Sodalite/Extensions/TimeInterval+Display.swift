@@ -16,6 +16,21 @@ extension Int64 {
         return "\(minutes)\(m)"
     }
 
+    /// Compact form for the resume capsule's label, e.g. "23m" / "1h 48m" (en), "23min" /
+    /// "1h 48min" (de). CLDR's narrow units, not `ticksToDisplay`'s own suffixes: measured across
+    /// all 26 catalogue locales at the label sizes this is drawn at, our "Std."/"Min." spelling puts
+    /// German at 69.9pt against narrow's 51.1pt and Polish at 74.5 against 51.1, which is the
+    /// difference between a label that fits beside the meter on a phone poster and one that gets
+    /// dropped (Sodalite#99). It also handles the edges by itself: an exact hour is "1h" rather than
+    /// "1h 0m", and anything under a minute rounds up to "1m" rather than showing "0m".
+    ///
+    /// `ticksToDisplay` keeps its own spelling for the metadata rows, where the line has room and
+    /// the longer form reads better.
+    var ticksToCompactDisplay: String {
+        Duration.seconds(ticksToSeconds)
+            .formatted(.units(allowed: [.hours, .minutes], width: .narrow))
+    }
+
     /// Convert Jellyfin ticks to TimeInterval (seconds)
     var ticksToSeconds: TimeInterval {
         TimeInterval(self) / 10_000_000

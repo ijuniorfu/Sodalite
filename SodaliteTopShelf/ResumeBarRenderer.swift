@@ -13,8 +13,13 @@ enum ResumeBarRenderer {
     /// scales the artwork down to cell width. A fixed pixel height would shrink with it, which
     /// is exactly why Jellyfin's own server-side bar reads as a hairline on Apple TV.
     private enum Metrics {
-        static let barHeight = 0.035
+        static let barHeight = 0.031
         static let minBarHeight = 4.0
+        /// Inset on the three sides the capsule touches, as a fraction of the image WIDTH so it
+        /// stays even on all three (the cell is 16:9, so the same fraction of height would be a
+        /// wider gap below than beside). 0.0275 of a 16:9 cell is what the app's `checkInset` comes
+        /// to on its landscape card, so the shelf and the app wear the same margin (Sodalite#99).
+        static let inset = 0.0275
         static let scrimHeight = 0.16
         static let scrimOpacity = 0.65
         /// Opaque, not a translucent white. A see-through track lets the scrim bleed into it and
@@ -56,8 +61,12 @@ enum ResumeBarRenderer {
 
     // MARK: - Drawing
 
-    /// CoreGraphics' origin is bottom-left, so the bar lives at y = 0 and the scrim grows upward
-    /// from it. Reading this as top-down is the classic way to end up with a bar in the sky.
+    /// CoreGraphics' origin is bottom-left, so the bar sits one inset above y = 0 and the scrim
+    /// grows upward from the edge. Reading this as top-down is the classic way to end up with a bar
+    /// in the sky.
+    ///
+    /// The shelf keeps its scrim where the in-app card dropped one: the system draws `cell.title`
+    /// into this artwork's lower edge, and the capsule has to stay legible under it.
     private static func drawBar(in context: CGContext,
                                 bounds: CGRect,
                                 fraction: Double,
@@ -78,18 +87,29 @@ enum ResumeBarRenderer {
         }
         context.restoreGState()
 
-        let track = CGRect(x: 0, y: 0, width: bounds.width, height: barHeight)
+        let inset = (bounds.width * Metrics.inset).rounded()
+        let track = CGRect(x: inset, y: inset, width: bounds.width - 2 * inset, height: barHeight)
         context.setFillColor(CGColor(red: Metrics.trackLevel,
                                      green: Metrics.trackLevel,
                                      blue: Metrics.trackLevel,
                                      alpha: 1))
-        context.fill(track)
+        fillCapsule(in: context, rect: track)
 
         let clamped = min(max(fraction, 0), 1)
-        let fillWidth = (bounds.width * clamped).rounded()
+        let fillWidth = (track.width * clamped).rounded()
         guard fillWidth > 0 else { return }
         context.setFillColor(color(from: accent))
-        context.fill(CGRect(x: 0, y: 0, width: fillWidth, height: barHeight))
+        fillCapsule(in: context, rect: CGRect(x: track.minX, y: track.minY,
+                                              width: fillWidth, height: barHeight))
+    }
+
+    /// Rounded caps rather than the flush rectangle this used to draw. CoreGraphics clamps a corner
+    /// radius wider than half the rect, so a fill of a few percent comes out as a dot instead of a
+    /// malformed shape.
+    private static func fillCapsule(in context: CGContext, rect: CGRect) {
+        let radius = rect.height / 2
+        context.addPath(CGPath(roundedRect: rect, cornerWidth: radius, cornerHeight: radius, transform: nil))
+        context.fillPath()
     }
 
     private static func color(from hex: UInt32) -> CGColor {
