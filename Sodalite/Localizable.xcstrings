@@ -109236,6 +109236,330 @@
         }
       }
     },
+    "player.error.liveAudioUnsupported.body" : {
+      "comment" : "Error body naming the live channel's undecodable audio format (AC-4, MPEG-H)",
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zvuk tohoto kanálu je %@, pro který na tomto zařízení není žádný dekodér. Opakovaný pokus nepomůže."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Denne kanals lyd er %@, som ingen dekoder på denne enhed understøtter. Det hjælper ikke at prøve igen."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Ton dieses Senders ist %@, dafür gibt es auf diesem Gerät keinen Decoder. Ein erneuter Versuch hilft nicht."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ο ήχος αυτού του καναλιού είναι %@, τον οποίο δεν υποστηρίζει κανένας αποκωδικοποιητής σε αυτή τη συσκευή. Μια νέα προσπάθεια δεν θα βοηθήσει."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This channel's audio is %@, which no decoder on this device supports. Trying again will not help."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El audio de este canal es %@, que ningún decodificador de este dispositivo admite. Volver a intentarlo no servirá de nada."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tämän kanavan ääni on %@, jota mikään tämän laitteen dekooderi ei tue. Uudelleen yrittäminen ei auta."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L'audio de cette chaîne est en %@, qu'aucun décodeur de cet appareil ne prend en charge. Réessayer n'y changera rien."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zvuk ovog kanala je %@, koji nijedan dekoder na ovom uređaju ne podržava. Ponovni pokušaj neće pomoći."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A csatorna hangja %@ formátumú, amelyet ezen az eszközön egyetlen dekódoló sem támogat. Az újrapróbálkozás nem segít."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L'audio di questo canale è %@, che nessun decoder di questo dispositivo supporta. Riprovare non servirà."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "このチャンネルの音声は %@ で、このデバイスのどのデコーダーも対応していません。再試行しても解決しません。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이 채널의 오디오는 %@이며, 이 기기의 어떤 디코더도 지원하지 않습니다. 다시 시도해도 해결되지 않습니다."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lyden på denne kanalen er %@, som ingen dekoder på denne enheten støtter. Å prøve igjen hjelper ikke."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "De audio van dit kanaal is %@, die door geen enkele decoder op dit apparaat wordt ondersteund. Opnieuw proberen helpt niet."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dźwięk tego kanału to %@, którego nie obsługuje żaden dekoder na tym urządzeniu. Ponowna próba nie pomoże."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O áudio deste canal é %@, que nenhum decodificador deste dispositivo suporta. Tentar de novo não vai adiantar."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O áudio deste canal é %@, que nenhum descodificador deste dispositivo suporta. Tentar novamente não vai ajudar."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sunetul acestui canal este %@, pe care niciun decodor de pe acest dispozitiv nu îl acceptă. O nouă încercare nu va ajuta."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Звук этого канала закодирован в %@, для которого на этом устройстве нет декодера. Повторная попытка не поможет."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zvuk tohto kanála je %@, pre ktorý na tomto zariadení nie je žiadny dekodér. Opakovaný pokus nepomôže."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ljudet på den här kanalen är %@, som ingen avkodare på den här enheten stöder. Att försöka igen hjälper inte."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bu kanalın sesi %@ biçiminde ve bu cihazdaki hiçbir kod çözücü bunu desteklemiyor. Yeniden denemek işe yaramaz."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Звук цього каналу закодовано в %@, для якого на цьому пристрої немає декодера. Повторна спроба не допоможе."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此频道的音频为 %@，本设备没有任何解码器支持该格式。重试也无济于事。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此頻道的音訊為 %@，本裝置沒有任何解碼器支援該格式。重試也無濟於事。"
+          }
+        }
+      }
+    },
+    "player.error.liveAudioUnsupported.title" : {
+      "comment" : "Error title when a live channel's only audio format cannot be decoded on this device",
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kanál není podporován"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kanalen understøttes ikke"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sender nicht unterstützt"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Το κανάλι δεν υποστηρίζεται"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Channel not supported"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Canal no compatible"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kanavaa ei tueta"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chaîne non prise en charge"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kanal nije podržan"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A csatorna nem támogatott"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Canale non supportato"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "サポートされていないチャンネル"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "지원되지 않는 채널"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kanalen støttes ikke"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kanaal niet ondersteund"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kanał nieobsługiwany"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Canal não compatível"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Canal não suportado"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Canal neacceptat"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Канал не поддерживается"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kanál nie je podporovaný"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kanalen stöds inte"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kanal desteklenmiyor"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Канал не підтримується"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "不支持此频道"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "不支援此頻道"
+          }
+        }
+      }
+    },
     "player.error.liveUnavailable.body" : {
       "comment" : "Error body when a live channel cannot be opened server-side (dead upstream source)",
       "extractionState" : "manual",
