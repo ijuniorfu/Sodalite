@@ -84,7 +84,13 @@ enum DirectPlayProfile {
                     // DTS spelled every way Jellyfin reports it (dts/dca/dts-hd
                     // vary by build) so it won't transcode DTS-HD MA over a
                     // string mismatch. mp2 pairs with MPEG-2 (broadcast/VOB).
-                    "AudioCodec": "aac,ac3,eac3,mp3,mp2,flac,opus,vorbis,alac,truehd,mlp,dts,dca,dts-hd,dtshd,pcm_s16le,pcm_s24le,pcm_f32le",
+                    // aac_latm is its own ffprobe codec name, not a spelling of
+                    // aac, and it is how DVB carries AAC on most European HD
+                    // channels; the decoder has always been in the build, so
+                    // leaving it out only ever made the server answer
+                    // AudioCodecNotSupported for audio we decode natively.
+                    // pcm_bluray is the same story for M2TS/Blu-ray LPCM.
+                    "AudioCodec": "aac,aac_latm,ac3,eac3,mp3,mp2,flac,opus,vorbis,alac,truehd,mlp,dts,dca,dts-hd,dtshd,pcm_s16le,pcm_s24le,pcm_f32le,pcm_bluray",
                 ],
                 [
                     "Container": "mp3,aac,m4a,m4b,flac,alac,wav,opus,ogg",
