@@ -59,6 +59,14 @@ extension PlayerViewModel {
         let stageOneTuner = source.liveStreamId
 
         do {
+            // Inside the do block so the catch below releases the stage-1 tuner, same as every other
+            // live failure (#70). Logged on every tune, not only on a refusal: a report needs to tell
+            // "checked, the audio is fine" apart from "the server named no audio at all" (#100).
+            LogTap.shared.note(LiveAudioSupport.logLine(for: source.mediaStreams))
+            if case .noDecodableAudio(let codec) = LiveAudioSupport.verdict(for: source.mediaStreams) {
+                throw PlayerEngineError.liveAudioUnsupported(codec: codec.displayName)
+            }
+
             // Direct eligibility, decided in liveDirectIngestEligibility: a remux channel whose Path is
             // a real http(s) PROVIDER playlist. Jellyfin's own LiveStreamFiles route is not one, and the
             // guard that used to stand here could not tell them apart (#70).

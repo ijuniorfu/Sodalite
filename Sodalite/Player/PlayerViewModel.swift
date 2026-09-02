@@ -1125,7 +1125,12 @@ final class PlayerViewModel {
             LogTap.shared.note(
                 PlayerEngineErrorPresentation.logLine(for: engineInfo, engineMessage: error.localizedDescription)
             )
-            if isLiveSession && !(error is APIError) {
+            if isLiveSession, case .liveAudioUnsupported = (error as? PlayerEngineError) {
+                // Refused before the engine was asked, so there is no classification to read and
+                // "the channel's source may be offline" would be a lie: it is on the air and we
+                // cannot decode it (#100).
+                setError(from: error)
+            } else if isLiveSession && !(error is APIError) {
                 // Engine-level live open failure (probe fail-fast): friendly message, APIErrors keep their trio.
                 setLiveChannelUnavailableError(info: engineInfo)
             } else if ReplacedItemRecoveryTrigger.serverAnswered(hostError: error, engineError: engineInfo),
@@ -1840,6 +1845,14 @@ final class PlayerViewModel {
             case .noSource, .noURL:
                 icon = "questionmark.video"
                 title = String(localized: "player.error.noVideo.title", defaultValue: "Couldn't open this video")
+            case .liveAudioUnsupported:
+                // Its own headline rather than "Channel unavailable": the advice is the opposite of
+                // every other live error, since no retry and no server setting can decode AC-4 (#100).
+                icon = "waveform.slash"
+                title = String(
+                    localized: "player.error.liveAudioUnsupported.title",
+                    defaultValue: "Channel not supported"
+                )
             }
         } else {
             icon = "exclamationmark.triangle"
@@ -3237,6 +3250,9 @@ final class PlayerViewModel {
 enum PlayerEngineError: LocalizedError {
     case noSource
     case noURL
+    /// A live channel refused before the engine was asked, because every audio track the server named
+    /// is a format nothing on this device decodes (#100). The payload is the format's display name.
+    case liveAudioUnsupported(codec: String)
 
     var errorDescription: String? {
         switch self {
@@ -3249,6 +3265,14 @@ enum PlayerEngineError: LocalizedError {
             String(
                 localized: "player.error.noURL",
                 defaultValue: "Couldn't build a stream URL for this item."
+            )
+        case .liveAudioUnsupported(let codec):
+            String(
+                format: String(
+                    localized: "player.error.liveAudioUnsupported.body",
+                    defaultValue: "This channel's audio is %@, which no decoder on this device supports. Trying again will not help."
+                ),
+                codec
             )
         }
     }
