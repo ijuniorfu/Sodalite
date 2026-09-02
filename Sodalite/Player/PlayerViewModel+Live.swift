@@ -357,8 +357,8 @@ extension PlayerViewModel {
             : source.path.flatMap { playbackService.buildLiveStreamFileURL(sourcePath: $0) }
         // Jellyfin re-encodes only for a codec outside liveProfile's copy list. Everything else it
         // offers a TranscodingUrl for is a stream copy, and that copy's input is the tuner file itself.
-        let transcodeIsReencode = Self.liveNeedsVideoReencode(transcodeReasons: source.transcodeReasons,
-                                                             transcodingURL: source.transcodingUrl)
+        let transcodeIsReencode = Self.liveTranscodeIsRealReencode(
+            transcodeReasons: source.transcodeReasons, transcodingURL: source.transcodingUrl)
 
         let tsURL: URL
         let isTunerFileRoute: Bool
@@ -370,7 +370,13 @@ extension PlayerViewModel {
             tsURL = url
             isTunerFileRoute = false
             liveRoute = .transcode
-            LogTap.shared.note("[LiveDirect] route=transcode reencode=\(transcodeIsReencode)")
+            // The reasons, not just the verdict: "reencode=true" alone cannot say whether the server
+            // is re-encoding the picture or only the soundtrack, and those are different routes home.
+            let listed = Self.liveTranscodeReasons(transcodeReasons: source.transcodeReasons,
+                                                   transcodingURL: source.transcodingUrl)
+                .sorted().joined(separator: ",")
+            LogTap.shared.note("[LiveDirect] route=transcode reencode=\(transcodeIsReencode)"
+                               + " reasons=\(listed.isEmpty ? "none" : listed)")
         case .tunerFile(let url):
             tsURL = url
             isTunerFileRoute = true
@@ -676,14 +682,44 @@ extension PlayerViewModel {
         return (video.codec ?? "").isEmpty
     }
 
-    /// Whether the live source needs a real VIDEO re-encode (codec not in liveProfile's copy list). Checks BOTH the MediaSource field and the TranscodingUrl query reasons, since Jellyfin populates the field unreliably (empty for some channels even when the URL carries VideoCodecNotSupported).
+    /// Every reason Jellyfin gave for not direct-playing this live source, from BOTH places it puts
+    /// them. It populates the MediaSource field unreliably (empty for some channels even when the URL
+    /// carries the reason), so neither source alone can be trusted.
+    static func liveTranscodeReasons(transcodeReasons: [String]?, transcodingURL: String?) -> Set<String> {
+        var reasons = Set(transcodeReasons ?? [])
+        if let t = transcodingURL,
+           let comps = URLComponents(string: t.hasPrefix("http") ? t : "http://x" + t),
+           let query = comps.queryItems?.first(where: { $0.name == "TranscodeReasons" })?.value {
+            reasons.formUnion(query.split(separator: ",").map(String.init))
+        }
+        return reasons
+    }
+
+    /// Whether the live source needs a real VIDEO re-encode (codec not in liveProfile's copy list).
+    ///
+    /// Deliberately video-only, and it must stay that way: its one caller re-negotiates the whole
+    /// source at `liveReencodeCapBitrate`, which is a 12 Mbps 1080p H.264 target. An audio-only
+    /// mismatch does not turn the copy ceiling into an encode target, so re-negotiating for one would
+    /// push a 20 Mbps HEVC broadcast through a 12 Mbps video encode for the sake of its soundtrack.
     static func liveNeedsVideoReencode(transcodeReasons: [String]?, transcodingURL: String?) -> Bool {
-        if (transcodeReasons ?? []).contains("VideoCodecNotSupported") { return true }
-        guard let t = transcodingURL,
-              let comps = URLComponents(string: t.hasPrefix("http") ? t : "http://x" + t),
-              let reasons = comps.queryItems?.first(where: { $0.name == "TranscodeReasons" })?.value
-        else { return false }
-        return reasons.split(separator: ",").map(String.init).contains("VideoCodecNotSupported")
+        liveTranscodeReasons(transcodeReasons: transcodeReasons, transcodingURL: transcodingURL)
+            .contains("VideoCodecNotSupported")
+    }
+
+    /// Whether the TranscodingUrl is a real re-encode rather than the stream copy the tuner file
+    /// already is, which is the question the route ranking asks (#70).
+    ///
+    /// Audio counts here even though it does not count for the bitrate re-negotiation above. The
+    /// ranking prefers the tuner file because a copy-remux is a second ffmpeg copying the very file
+    /// the tuner route reads, and that argument holds only while the answer really is a copy: when
+    /// the server is re-encoding audio our own profile says we cannot decode, the raw tuner stream is
+    /// the one route that ends in silence. The cost is real and accepted: Jellyfin's remux maps only
+    /// `a:0`, so this trades the extra audio PIDs the raw stream carries (#64) for a track that makes
+    /// sound, and it is only reached when the server was told we cannot play the original.
+    static func liveTranscodeIsRealReencode(transcodeReasons: [String]?, transcodingURL: String?) -> Bool {
+        let reasons = liveTranscodeReasons(transcodeReasons: transcodeReasons,
+                                           transcodingURL: transcodingURL)
+        return reasons.contains("VideoCodecNotSupported") || reasons.contains("AudioCodecNotSupported")
     }
 
     // MARK: - Route choices, decided in one place so a test can hold them
