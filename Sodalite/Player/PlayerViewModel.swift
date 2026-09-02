@@ -1052,7 +1052,7 @@ final class PlayerViewModel {
                 options: LoadOptions(
                     suppressDisplayCriteria: false,
                     forceDolbyVisionOnNonDVDisplay: preferences.forceDolbyVisionOnNonDVDisplay,
-                    matchContentEnabled: Self.matchDynamicRangeEnabled,
+                    matchContentEnabled: Self.matchContentEnabled,
                     panelIsInHDRMode: Self.panelIsInHDRMode,
                     audioBridgeMode: preferences.audioBridgeMode,
                     // Raw ASS event lines for the styled path; only affects ASS/SSA cue content.
@@ -1142,9 +1142,10 @@ final class PlayerViewModel {
         }
     }
 
-    /// Apple TV's "Match Dynamic Range" toggle; read when rendering the HDR badge so it only shows
-    /// when the panel actually engages HDR.
-    static var matchDynamicRangeEnabled: Bool {
+    /// tvOS's single "Match Content" flag. It covers Match Dynamic Range AND Match Frame Rate with no
+    /// way to tell them apart, which is exactly why it cannot answer whether the panel presents HDR
+    /// (AE#459); it is passed to the engine as the criteria-matching input and nothing else.
+    static var matchContentEnabled: Bool {
         #if os(tvOS)
         guard let win = UIApplication.shared.connectedScenes
             .compactMap({ $0 as? UIWindowScene })
@@ -1588,13 +1589,11 @@ final class PlayerViewModel {
                     print(line)
                     LogTap.shared.note(line)
                 }
-                // Only badge HDR if the panel went to HDR mode; with Match Dynamic Range off the TV stays SDR.
-                #if os(tvOS)
-                if format != .sdr, !Self.matchDynamicRangeEnabled {
-                    self.videoFormat = .sdr
-                    return
-                }
-                #endif
+                // AE#459: no second clamp here. The engine already publishes what the PANEL presents
+                // (`presentedVideoFormat`), and this one asked the wrong question: tvOS reports Match
+                // Dynamic Range and Match Frame Rate through one combined flag, so an Apple TV whose output
+                // format is fixed to HDR with matching off was relabelled SDR while it was demonstrably
+                // showing HDR, and it would have overridden the engine's late panel probe right back.
                 self.videoFormat = format
             }
             .store(in: &cancellables)

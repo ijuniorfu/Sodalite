@@ -261,7 +261,7 @@ extension PlayerViewModel {
             options: LoadOptions(
                 suppressDisplayCriteria: false,
                 forceDolbyVisionOnNonDVDisplay: preferences.forceDolbyVisionOnNonDVDisplay,
-                matchContentEnabled: Self.matchDynamicRangeEnabled,
+                matchContentEnabled: Self.matchContentEnabled,
                 panelIsInHDRMode: Self.panelIsInHDRMode,
                 audioBridgeMode: preferences.audioBridgeMode,
                 isLive: true,
@@ -384,7 +384,7 @@ extension PlayerViewModel {
         let options = LoadOptions(
             suppressDisplayCriteria: false,
             forceDolbyVisionOnNonDVDisplay: preferences.forceDolbyVisionOnNonDVDisplay,
-            matchContentEnabled: Self.matchDynamicRangeEnabled,
+            matchContentEnabled: Self.matchContentEnabled,
             panelIsInHDRMode: Self.panelIsInHDRMode,
             audioBridgeMode: preferences.audioBridgeMode,
             isLive: true,
